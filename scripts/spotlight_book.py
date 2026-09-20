@@ -107,8 +107,11 @@ def main():
     markup = {
         "inline_keyboard": [
             [
-                {"text": "🌐 Official Website", "url": "https://fhes-tus.github.io/Vern-TTS/"},
-                {"text": "⬇️ Download Vern TTS", "url": f"https://github.com/{REPO}/releases/latest"}
+                {"text": "🤖 Chat with @VernTTS_bot", "url": "https://t.me/VernTTS_bot"},
+                {"text": "⬇️ Download App", "url": f"https://github.com/{REPO}/releases/latest"}
+            ],
+            [
+                {"text": "🌐 Official Website", "url": "https://fhes-tus.github.io/Vern-TTS/"}
             ]
         ]
     }
