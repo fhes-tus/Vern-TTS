@@ -98,15 +98,22 @@ internal fun PlaybackService.startForegroundNow() {
     updateMediaSessionMetadata()
     updateMediaSessionState()
     val notification = buildNotification()
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        ServiceCompat.startForeground(
-            this,
-            NOTIFICATION_ID,
-            notification,
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-        )
-    } else {
-        startForeground(NOTIFICATION_ID, notification)
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
+        }
+        PlaybackStateStore.isForegroundActive = true
+    } catch (e: Exception) {
+        // Handles ForegroundServiceStartNotAllowedException on Android 12+/14+
+        // and SecurityException if background execution is restricted.
+        android.util.Log.w("PlaybackService", "Could not promote to foreground service: ${e.message}")
     }
 }
 

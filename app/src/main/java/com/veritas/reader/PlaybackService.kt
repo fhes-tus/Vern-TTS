@@ -790,10 +790,9 @@ class PlaybackService : MediaSessionService() {
         tts?.stop()
         veritasAudioBuffer?.flush()
         PlaybackStateStore.isPlaying = false
-        if (PlaybackStateStore.isForegroundActive) {
-            PlaybackStateStore.isForegroundActive = false
-            stopForeground(STOP_FOREGROUND_DETACH)
-        }
+        // Keep foreground service active with a paused notification during transient interruptions
+        // so that when audio focus returns (AUDIOFOCUS_GAIN), resuming playback does not trigger
+        // ForegroundServiceStartNotAllowedException on Android 12+/14+.
         PlaybackStateStore.statusMessage = message
         activeDocument?.let { repository.updateProgress(it.id, PlaybackStateStore.currentIndex, chunks.size) }
         updateMediaSessionState()

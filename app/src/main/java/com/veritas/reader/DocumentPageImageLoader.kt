@@ -53,6 +53,9 @@ object DocumentPageImageLoader {
         documentId: String,
         pageNumber: Int
     ): List<Bitmap> = withContext(Dispatchers.IO) {
+        runCatching {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND)
+        }
         val key = cacheKey(documentId, pageNumber)
         bitmapCache.get(key)?.let { return@withContext it }
 

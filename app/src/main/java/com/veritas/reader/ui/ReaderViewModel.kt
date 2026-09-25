@@ -570,6 +570,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                     val model = ReaderTextModelCache.get(latestMetadata.id, readerDocument.rawText, readerDocument.pageCount)
                     val startPage = model.sentences.getOrNull(targetIndex)?.pageNumber ?: 1
                     DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage)
+                    kotlinx.coroutines.delay(1200L)
                     if (startPage > 1) {
                         DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage - 1)
                     }

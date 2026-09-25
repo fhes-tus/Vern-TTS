@@ -593,8 +593,8 @@ internal fun ReaderPageItemView(
                                                             justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
                                                         }
                                                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                                                            breakStrategy = android.text.Layout.BREAK_STRATEGY_HIGH_QUALITY
-                                                            hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_FULL_FAST
+                                                            breakStrategy = android.text.Layout.BREAK_STRATEGY_BALANCED
+                                                            hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_NONE
                                                         }
                                                         val holder = TextViewHolder()
                                                         val touchSlop = android.view.ViewConfiguration.get(viewContext).scaledTouchSlop
