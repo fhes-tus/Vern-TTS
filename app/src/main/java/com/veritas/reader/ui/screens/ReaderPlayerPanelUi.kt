@@ -525,7 +525,7 @@ internal fun PlayerPanel(
                             activity?.requestedOrientation = if (isLandscape) {
                                 android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                             } else {
-                                android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                                android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                             }
                         },
                         modifier = Modifier.size(38.dp)

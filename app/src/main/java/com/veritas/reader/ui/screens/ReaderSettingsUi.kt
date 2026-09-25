@@ -563,10 +563,10 @@ fun ReaderSettingsDialog(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             when (currentTone) {
-                                PaperToneMode.ACTIVE_THEME -> "Paper tone: Theme-Adapted"
-                                PaperToneMode.WARM_SEPIA -> "Paper tone: Warm Sepia Book"
-                                PaperToneMode.NATURAL_WHITE -> "Paper tone: Natural White"
-                                PaperToneMode.DARK -> "Paper tone: Dark Slate"
+                                PaperToneMode.ACTIVE_THEME -> "Paper tone: Default"
+                                PaperToneMode.WARM_SEPIA -> "Paper tone: Sepia"
+                                PaperToneMode.NATURAL_WHITE -> "Paper tone: Bone"
+                                PaperToneMode.DARK -> "Paper tone: Dark slate"
                             },
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
@@ -590,7 +590,7 @@ fun ReaderSettingsDialog(
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         PaperToneOptionRow(
-                            label = "Theme-Adapted",
+                            label = "Default",
                             description = "Follows active theme background and contrast",
                             isSelected = currentTone == PaperToneMode.ACTIVE_THEME,
                             chipColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -598,7 +598,7 @@ fun ReaderSettingsDialog(
                             onClick = { onPaperToneModeChange(PaperToneMode.ACTIVE_THEME) }
                         )
                         PaperToneOptionRow(
-                            label = "Warm Sepia Book",
+                            label = "Sepia",
                             description = "Authentic printed book paper (#FBF0D9) with deep ink",
                             isSelected = currentTone == PaperToneMode.WARM_SEPIA,
                             chipColor = Color(0xFFFBF0D9),
@@ -606,7 +606,7 @@ fun ReaderSettingsDialog(
                             onClick = { onPaperToneModeChange(PaperToneMode.WARM_SEPIA) }
                         )
                         PaperToneOptionRow(
-                            label = "Natural White",
+                            label = "Bone",
                             description = "Clean white document page with crisp black ink",
                             isSelected = currentTone == PaperToneMode.NATURAL_WHITE,
                             chipColor = Color(0xFFFFFFFF),
@@ -614,7 +614,7 @@ fun ReaderSettingsDialog(
                             onClick = { onPaperToneModeChange(PaperToneMode.NATURAL_WHITE) }
                         )
                         PaperToneOptionRow(
-                            label = "Dark Slate",
+                            label = "Dark slate",
                             description = "High-contrast dark paper (#141414) for low-light reading",
                             isSelected = currentTone == PaperToneMode.DARK,
                             chipColor = Color(0xFF141414),

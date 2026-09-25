@@ -233,6 +233,8 @@ import com.veritas.reader.ReaderModeToggle
 import com.veritas.reader.aiAssistantOptions
 import com.veritas.reader.capWords
 import com.veritas.reader.installedPackageForOption
+import com.veritas.reader.ui.VeritasUiFont
+import com.veritas.reader.ui.asTypeface
 import com.veritas.reader.openPlayStoreForPackage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -255,6 +257,7 @@ private class TextViewHolder(
     var extraSpacingPx: Float = -1f,
     var lineMultiplier: Float = -1f,
     var textColor: Int = 0,
+    var uiFontId: String? = null,
     var onToggleBars: () -> Unit = {},
     var onSentenceDoubleTap: (Int) -> Unit = {},
     var isCollapsible: Boolean = false,
@@ -721,6 +724,12 @@ internal fun ReaderPageItemView(
                                                     if (holder.fontSizeSp != readerSettings.fontSizeSp) {
                                                         holder.fontSizeSp = readerSettings.fontSizeSp
                                                         textView.textSize = readerSettings.fontSizeSp.toFloat()
+                                                    }
+                                                    val currentFontId = readerSettings.uiFontId
+                                                    if (holder.uiFontId != currentFontId) {
+                                                        holder.uiFontId = currentFontId
+                                                        val uiFont = VeritasUiFont.fromId(currentFontId)
+                                                        textView.typeface = uiFont.asTypeface(context)
                                                     }
                                                     val extraSpacingPx = 0f
                                                     val lineMult = 1.0f + ((readerSettings.sectionSpacingDp - 6).coerceAtLeast(0) * (0.6f / 18f))

@@ -9,6 +9,7 @@ import androidx.core.content.edit
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.interactive.action.PDActionGoTo
+import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.destination.PDNamedDestination
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem
 import com.veritas.reader.ui.screens.cleanTocTitle
@@ -844,10 +845,13 @@ class DocumentRepository(context: Context) {
             }
             PDDocument.load(original, memorySetting).use { pdf ->
                 val outline = pdf.documentCatalog.documentOutline ?: return@use emptyList()
+                val textModel = runCatching {
+                    ReaderTextModelCache.get(document.id, readText(document), pdf.numberOfPages)
+                }.getOrNull()
                 val entries = mutableListOf<VeritasDocumentOutlineEntry>()
                 var child = outline.firstChild
                 while (child != null) {
-                    collectPdfOutlineEntries(pdf, child, chunks, 0, entries)
+                    collectPdfOutlineEntries(pdf, child, chunks, 0, entries, textModel)
                     child = child.nextSibling
                 }
                 entries
@@ -863,15 +867,16 @@ class DocumentRepository(context: Context) {
         item: PDOutlineItem,
         chunks: List<String>,
         level: Int,
-        entries: MutableList<VeritasDocumentOutlineEntry>
+        entries: MutableList<VeritasDocumentOutlineEntry>,
+        textModel: ReaderTextModel? = null
     ) {
         val title = cleanTocTitle(item.title.orEmpty())
-        val pageIndex = pdfOutlinePageIndex(item)
+        val pageIndex = pdfOutlinePageIndex(item, pdf)
         if (title.isNotBlank() && !title.all { it == '.' || it.isWhitespace() || it == '•' || it == '·' }) {
             entries.add(
                 VeritasDocumentOutlineEntry(
                     title = title.take(120),
-                    targetIndex = outlineTargetIndex(pageIndex, pdf.numberOfPages, chunks),
+                    targetIndex = outlineTargetIndex(pageIndex, pdf.numberOfPages, chunks, textModel),
                     pageNumber = pageIndex?.plus(1),
                     level = level.coerceIn(0, 6),
                     source = "PDF table of contents"
@@ -880,20 +885,54 @@ class DocumentRepository(context: Context) {
         }
         var child = item.firstChild
         while (child != null) {
-            collectPdfOutlineEntries(pdf, child, chunks, level + 1, entries)
+            collectPdfOutlineEntries(pdf, child, chunks, level + 1, entries, textModel)
             child = child.nextSibling
         }
     }
 
-    private fun pdfOutlinePageIndex(item: PDOutlineItem): Int? {
-        val destination = item.destination ?: (item.action as? PDActionGoTo)?.destination
-        return (destination as? PDPageDestination)
-            ?.retrievePageNumber()
-            ?.takeIf { it >= 0 }
+    private fun pdfOutlinePageIndex(item: PDOutlineItem, pdDoc: PDDocument): Int? {
+        return runCatching {
+            var dest = item.destination
+            if (dest == null && item.action is PDActionGoTo) {
+                dest = (item.action as PDActionGoTo).destination
+            }
+            if (dest is PDPageDestination) {
+                val p = dest.page
+                if (p != null) {
+                    val idx = pdDoc.pages.indexOf(p)
+                    if (idx >= 0) return idx
+                }
+                val pageNumber = dest.pageNumber
+                if (pageNumber >= 0) return pageNumber
+            } else if (dest is PDNamedDestination) {
+                val pageDest = pdDoc.documentCatalog.findNamedDestinationPage(dest)
+                if (pageDest is PDPageDestination) {
+                    val p = pageDest.page
+                    if (p != null) {
+                        val idx = pdDoc.pages.indexOf(p)
+                        if (idx >= 0) return idx
+                    }
+                }
+            }
+            null
+        }.getOrNull()
     }
 
-    private fun outlineTargetIndex(pageIndex: Int?, pageCount: Int, chunks: List<String>): Int {
+    private fun outlineTargetIndex(
+        pageIndex: Int?,
+        pageCount: Int,
+        chunks: List<String>,
+        textModel: ReaderTextModel? = null
+    ): Int {
         if (chunks.isEmpty()) return 0
+        if (pageIndex != null && textModel != null) {
+            val targetPage = pageIndex + 1
+            val matchingSentence = textModel.sentences.firstOrNull { it.pageNumber == targetPage }
+                ?: textModel.sentences.firstOrNull { it.pageNumber > targetPage }
+            if (matchingSentence != null && matchingSentence.index in chunks.indices) {
+                return matchingSentence.index
+            }
+        }
         val page = pageIndex ?: 0
         val denominator = (pageCount - 1).coerceAtLeast(1)
         return ((page.toFloat() / denominator.toFloat()) * chunks.lastIndex.toFloat())

@@ -376,10 +376,10 @@ internal fun ReaderTopAppBar(
                             }
                             onPaperToneModeChange(nextTone)
                             val toneLabel = when (nextTone) {
-                                PaperToneMode.ACTIVE_THEME -> "Default Theme"
-                                PaperToneMode.DARK -> "Kindle Dark Slate"
-                                PaperToneMode.NATURAL_WHITE -> "Natural White"
-                                PaperToneMode.WARM_SEPIA -> "Warm Sepia"
+                                PaperToneMode.ACTIVE_THEME -> "Default"
+                                PaperToneMode.DARK -> "Dark slate"
+                                PaperToneMode.NATURAL_WHITE -> "Bone"
+                                PaperToneMode.WARM_SEPIA -> "Sepia"
                             }
                             Toast.makeText(context, "Paper tone: $toneLabel", Toast.LENGTH_SHORT).show()
                         }

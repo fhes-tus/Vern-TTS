@@ -775,7 +775,7 @@ internal fun ActualDocumentView(
                     act.requestedOrientation = if (isLandscape) {
                         android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                     } else {
-                        android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                        android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                     }
                 }
                 zoomScale = 1f
@@ -795,6 +795,13 @@ internal fun ActualDocumentView(
                 paperToneMode = newMode
                 val curSettings = repository.loadReaderSettings()
                 repository.saveReaderSettings(curSettings.copy(paperToneMode = newMode.name.lowercase()))
+                val toneLabel = when (newMode) {
+                    PaperToneMode.ACTIVE_THEME -> "Default"
+                    PaperToneMode.DARK -> "Dark slate"
+                    PaperToneMode.NATURAL_WHITE -> "Bone"
+                    PaperToneMode.WARM_SEPIA -> "Sepia"
+                }
+                android.widget.Toast.makeText(context, "Paper tone: $toneLabel", android.widget.Toast.LENGTH_SHORT).show()
                 onPaperToneModeChange?.invoke(newMode)
             },
             showMenu = showMenu,

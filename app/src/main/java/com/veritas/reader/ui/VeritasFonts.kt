@@ -1,5 +1,7 @@
 package com.veritas.reader.ui
 
+import android.content.Context
+import android.graphics.Typeface
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -7,18 +9,19 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.core.content.res.ResourcesCompat
 import com.veritas.reader.R
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The typefaces Veritas can be set in.
  *
- * Until now the app bundled no font at all: chrome and book text alike rendered in
- * whatever sans the OEM ships, so a chapter of Sherlock Holmes was set in the same
- * face as the "Sleep timer" label. These are all SIL Open Font License faces;
- * their OFL.txt files ship in assets/licenses/.
- *
- * Literata, Lora and Bitter are variable fonts, so one file covers every weight —
- * the axis is pinned per weight below rather than letting Compose synthesise bold.
+ * Distinct font personalities:
+ * - SYSTEM: Whatever your phone ships with
+ * - GAZETTE: Editorial newsprint slab with bold ink-traps (Bitter)
+ * - CRISP: Clean geometric sans with open curves (Outfit)
+ * - TYPEWRITER: Fixed-width monospace with authentic draft character (JetBrains Mono)
+ * - ATKINSON: Braille Institute high-contrast legibility (Atkinson Hyperlegible)
  */
 enum class VeritasUiFont(
     val id: String,
@@ -26,14 +29,20 @@ enum class VeritasUiFont(
     val note: String
 ) {
     SYSTEM("system", "System default", "Whatever your phone ships with"),
-    LITERATA("literata", "Literata", "Serif drawn for long-form reading on screens"),
-    LORA("lora", "Lora", "Warm contemporary serif with calligraphic roots"),
-    BITTER("bitter", "Bitter", "Slab serif — heavier texture, holds up on dark themes"),
+    GAZETTE("gazette", "Gazette", "Editorial newsprint slab with bold ink-traps"),
+    CRISP("crisp", "Crisp", "Clean geometric sans with open curves"),
+    TYPEWRITER("typewriter", "Typewriter", "Fixed-width monospace with authentic draft character"),
     ATKINSON("atkinson", "Atkinson Hyperlegible", "Braille Institute; disambiguates similar letters");
 
     companion object {
-        fun fromId(id: String?): VeritasUiFont =
-            entries.firstOrNull { it.id == id } ?: SYSTEM
+        fun fromId(id: String?): VeritasUiFont = when (id) {
+            "gazette", "bitter", "literata", "lora" -> GAZETTE
+            "crisp", "outfit" -> CRISP
+            "typewriter", "jetbrains_mono" -> TYPEWRITER
+            "atkinson" -> ATKINSON
+            "system" -> SYSTEM
+            else -> entries.firstOrNull { it.id == id } ?: SYSTEM
+        }
     }
 }
 
@@ -49,13 +58,34 @@ private fun variableFamily(resId: Int): FontFamily = FontFamily(
 /** The [FontFamily] for a choice, or null to leave Compose on the platform default. */
 fun VeritasUiFont.fontFamily(): FontFamily? = when (this) {
     VeritasUiFont.SYSTEM -> null
-    VeritasUiFont.LITERATA -> variableFamily(R.font.literata_variable)
-    VeritasUiFont.LORA -> variableFamily(R.font.lora_variable)
-    VeritasUiFont.BITTER -> variableFamily(R.font.bitter_variable)
+    VeritasUiFont.GAZETTE -> variableFamily(R.font.bitter_variable)
+    VeritasUiFont.CRISP -> variableFamily(R.font.outfit)
+    VeritasUiFont.TYPEWRITER -> FontFamily(Font(R.font.jetbrains_mono, FontWeight.Normal))
     VeritasUiFont.ATKINSON -> FontFamily(
         Font(R.font.atkinson_regular, FontWeight.Normal),
         Font(R.font.atkinson_bold, FontWeight.Bold)
     )
+}
+
+private val typefaceCache = ConcurrentHashMap<Int, Typeface>()
+
+/** Android [Typeface] for native View rendering (e.g. TextView in ReaderPageItemView). */
+fun VeritasUiFont.asTypeface(context: Context): Typeface {
+    if (this == VeritasUiFont.SYSTEM) return Typeface.DEFAULT
+    val resId = when (this) {
+        VeritasUiFont.SYSTEM -> return Typeface.DEFAULT
+        VeritasUiFont.GAZETTE -> R.font.bitter_variable
+        VeritasUiFont.CRISP -> R.font.outfit
+        VeritasUiFont.TYPEWRITER -> R.font.jetbrains_mono
+        VeritasUiFont.ATKINSON -> R.font.atkinson_regular
+    }
+    return typefaceCache.getOrPut(resId) {
+        try {
+            ResourcesCompat.getFont(context, resId) ?: Typeface.DEFAULT
+        } catch (_: Exception) {
+            Typeface.DEFAULT
+        }
+    }
 }
 
 /**

@@ -101,16 +101,16 @@ import kotlinx.coroutines.launch
         ))
         items.add(OverflowMenuItem(
             title = when (paperToneMode) {
-                PaperToneMode.ACTIVE_THEME -> "Theme-Adapted Paper (Active)"
-                PaperToneMode.DARK -> "Theme-Adapted Paper (Dark)"
-                PaperToneMode.NATURAL_WHITE -> "Natural Paper Colors (White)"
-                PaperToneMode.WARM_SEPIA -> "Warm Sepia Book Paper"
+                PaperToneMode.ACTIVE_THEME -> "Default"
+                PaperToneMode.DARK -> "Dark slate"
+                PaperToneMode.NATURAL_WHITE -> "Bone"
+                PaperToneMode.WARM_SEPIA -> "Sepia"
             },
             subtitle = when (paperToneMode) {
-                PaperToneMode.ACTIVE_THEME -> "Tap for dark paper"
-                PaperToneMode.DARK -> "Tap for authentic white paper"
-                PaperToneMode.NATURAL_WHITE -> "Tap for warm sepia paper"
-                PaperToneMode.WARM_SEPIA -> "Tap to adapt paper to active theme"
+                PaperToneMode.ACTIVE_THEME -> "Tap for Dark slate"
+                PaperToneMode.DARK -> "Tap for Bone"
+                PaperToneMode.NATURAL_WHITE -> "Tap for Sepia"
+                PaperToneMode.WARM_SEPIA -> "Tap for Default"
             },
             iconRes = R.drawable.ic_m3_contrast,
             action = { cyclePaperToneMode() }

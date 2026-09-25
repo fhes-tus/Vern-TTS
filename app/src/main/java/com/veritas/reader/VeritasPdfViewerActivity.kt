@@ -307,7 +307,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         requestedOrientation = if (resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         } else {
-            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         }
         updateRotateIcon()
     }
@@ -428,13 +428,13 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         val currentSettings = repository.loadReaderSettings()
         repository.saveReaderSettings(currentSettings.copy(paperToneMode = paperToneMode.name.lowercase()))
         applyPaperToneMode()
-        val toastMessage = when (paperToneMode) {
-            PaperToneMode.ACTIVE_THEME -> "Active Theme Paper Tone"
-            PaperToneMode.DARK -> "Dark Paper (High Contrast)"
-            PaperToneMode.NATURAL_WHITE -> "Natural Paper Colors (White)"
-            PaperToneMode.WARM_SEPIA -> "Warm Sepia Book Paper"
+        val toneLabel = when (paperToneMode) {
+            PaperToneMode.ACTIVE_THEME -> "Default"
+            PaperToneMode.DARK -> "Dark slate"
+            PaperToneMode.NATURAL_WHITE -> "Bone"
+            PaperToneMode.WARM_SEPIA -> "Sepia"
         }
-        Toast.makeText(this, toastMessage, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Paper tone: $toneLabel", Toast.LENGTH_SHORT).show()
     }
 
 

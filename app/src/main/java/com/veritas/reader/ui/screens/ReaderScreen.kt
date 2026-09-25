@@ -662,7 +662,7 @@ fun ReaderScreen(
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val animatedTopPadding by animateDpAsState(
-        targetValue = if (effectiveTopBarVisible) topInset + 56.dp else topInset + 8.dp,
+        targetValue = if (effectiveTopBarVisible) topInset + 132.dp else topInset + 8.dp,
         animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "animatedTopPadding"
     )
