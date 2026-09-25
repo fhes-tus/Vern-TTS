@@ -81,7 +81,7 @@ def main():
     if not data:
         data = get_release_data(req_tag)
     
-    tag = req_tag or (data.get("tag_name") if data else "v2.5.0")
+    tag = req_tag or (data.get("tag_name") if data else "v2.5.1")
     name = data.get("name", f"Vern TTS {tag}") if data else f"Vern TTS {tag}"
     body = data.get("body", "") if data else ""
     

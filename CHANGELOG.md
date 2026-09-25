@@ -4,6 +4,30 @@ All notable changes to the Veritas Reader application will be documented in this
 
 ---
 
+## [2.5.1] - 2026-09-25
+
+### Added
+*   **Typography Overhaul & Custom Typefaces:** Introduced **Gazette** (Slab Serif), **Crisp** (Geometric Sans), and **Typewriter** (Monospace) with dynamic `TextView.typeface` runtime binding for superior reading comfort.
+*   **180-Degree Upside-Down Sensor Landscape:** Configured `SCREEN_ORIENTATION_SENSOR_LANDSCAPE` across reader views to support effortless device flipping and comfortable one-handed landscape holding.
+*   **Resilient PDF Table of Contents & Outlines:** Implemented `PDNamedDestination` / `PDPage` destination resolution and `ReaderTextModelCache` sentence index mapping for instant navigation through PDF document outlines.
+*   **Dismissible Hero Continue Card:** Added fluid swipe/close dismiss functionality for the home hero continue card.
+*   **Official Website Integration:** Added direct navigation to the official Vern TTS website (`https://fhes-tus.github.io/Vern-TTS/`) across About dialog and User Manual.
+
+### Changed
+*   **Reading Layout Headroom:** Set animated reading headroom to 132dp when top app bar is visible to prevent text occlusion.
+*   **Asset Footprint Reduction:** Trimmed legacy unused font files and streamlined asset packaging, reducing binary size.
+*   **Uniform Paper Tone System:** Standardized paper tones across all readers to Sepia, Bone, Dark slate, and Default with clean Android system toasts.
+
+### Fixed
+*   **Audio Focus & Transient Pause Crashes:** Kept foreground service active during transient audio focus interruptions (calls, navigation alerts) to eliminate `ForegroundServiceStartNotAllowedException` on playback resume.
+*   **Foreground Service Watchdog Timeouts:** Added resilient try-catch handling to `startForegroundNow` to prevent background execution restriction termination and `ForegroundServiceDidNotStartInTimeException`.
+*   **UI Thread Text Measurement ANRs:** Switched `TextView` break strategy to `BALANCED` and hyphenation frequency to `NONE` across readers, eliminating main-thread freezing and layout hangs on dense pages.
+*   **Page Preloading GC Lock Contention:** Lowered `DocumentPageImageLoader` thread priority to `THREAD_PRIORITY_BACKGROUND` and serialized adjacent page caching.
+*   **Reading Progress Persistence:** Fixed state tracking to ensure sentence and page positions reliably persist across activity recreation and reader switches.
+*   **Security Vulnerability Fix:** Upgraded `androidx.glance` to 1.1.1 resolving Google Play Console advisory for CVE-2024-7254.
+
+---
+
 ## [2.5.0] - 2026-09-18
 
 ### Added

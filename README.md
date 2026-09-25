@@ -6,7 +6,7 @@
 
 ### *Your intelligent, private reading companion, neural audiobook studio, and active-recall study suite for Android.*
 
-[![Latest Release](https://img.shields.io/badge/Release-v2.5.0-orange.svg)](https://github.com/fhes-tus/Vern-TTS/releases)
+[![Latest Release](https://img.shields.io/badge/Release-v2.5.1-orange.svg)](https://github.com/fhes-tus/Vern-TTS/releases)
 [![Target Platform](https://img.shields.io/badge/Platform-Android%2016%20(API%2036)-3DDC84.svg?logo=android&logoColor=white)](https://developer.android.com/)
 [![Minimum SDK](https://img.shields.io/badge/Min%20SDK-Android%209.0%20(API%2028)-blue.svg)](https://developer.android.com/)
 [![Language](https://img.shields.io/badge/Kotlin-2.4.0-7F52FF.svg?logo=kotlin&logoColor=white)](https://kotlinlang.org/)

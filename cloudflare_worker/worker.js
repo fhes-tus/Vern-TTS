@@ -428,7 +428,7 @@ async function getLatestRelease() {
   } catch (e) {
     console.log("Could not fetch latest release:", e);
   }
-  const tag = "v2.5.0";
+  const tag = "v2.5.1";
   return {
     tag: tag,
     name: `Vern TTS ${tag}`,

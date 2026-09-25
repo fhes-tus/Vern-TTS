@@ -8,7 +8,7 @@ on:
       release_tag:
         description: 'Release Tag to broadcast (e.g. v2.5.0)'
         required: false
-        default: 'v2.5.0'
+        default: 'v2.5.1'
 
 jobs:
   broadcast:
