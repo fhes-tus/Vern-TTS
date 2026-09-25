@@ -21,6 +21,7 @@ data class VeritasPendingImport(
 
 data class ReaderUiState(
     val documents: List<SavedDocument> = emptyList(),
+    val dismissedHeroDocId: String? = null,
     val generalNotes: List<GeneralNote> = emptyList(),
     val showGeneralNotesEditor: Boolean = false,
     val generalNoteEditorTarget: GeneralNote? = null,

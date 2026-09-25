@@ -63,6 +63,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 questSpeedDone = questProgress.speedDone,
                 questBookmarkDone = questProgress.bookmarkDone,
                 questChecklistDismissed = allQuestsDone || repository.isQuestChecklistDismissed(),
+                dismissedHeroDocId = repository.getDismissedHeroDocId(),
                 showTutorial = !hasCompleted
             )
         }
@@ -386,6 +387,14 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     fun onAppBackgrounded() {
         PlaybackStateStore.appInForeground = false
         recordActiveDocSessionTime()
+        val doc = uiState.value.activeDocument
+        val docId = doc?.id
+        if (doc != null && docId != null) {
+            val currentIndex = PlaybackStateStore.currentIndex
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.updateProgress(docId, currentIndex, doc.chunks.size)
+            }
+        }
         val startedAt = appSessionStartedAt
         if (startedAt <= 0L) return
         appSessionStartedAt = 0L
@@ -475,12 +484,20 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun clearContinueReading(document: SavedDocument) {
-        stopPlaybackIfDocumentsRemoved(setOf(document.id))
+        if (PlaybackStateStore.activeDocumentId == document.id && PlaybackStateStore.isPlaying) {
+            stopAndForgetPlayback("Reading dismissed.")
+        }
         viewModelScope.launch(Dispatchers.IO) {
-            val docs = repository.clearProgress(document.id)
+            repository.setDismissedHeroDocId(document.id)
             val queue = repository.loadQueueDocuments()
             withContext(Dispatchers.Main) {
-                _uiState.update { it.copy(documents = docs, queuedDocuments = queue, importMessage = "Cleared ${document.title} from Continue listening.") }
+                _uiState.update {
+                    it.copy(
+                        dismissedHeroDocId = document.id,
+                        queuedDocuments = queue,
+                        importMessage = "Removed ${document.title} from Continue reading."
+                    )
+                }
                 PlaybackStateStore.queueCount = queue.size
             }
         }
@@ -535,6 +552,20 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun openSavedDocument(metadata: SavedDocument, startIndex: Int? = null) {
+        val currentActive = _uiState.value.activeDocument
+        val currentActiveId = currentActive?.id
+        if (currentActive != null && currentActiveId != null && currentActiveId != metadata.id) {
+            recordActiveDocSessionTime()
+            val lastIndex = PlaybackStateStore.currentIndex
+            val totalChunks = currentActive.chunks.size
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.updateProgress(currentActiveId, lastIndex, totalChunks)
+            }
+        }
+        if (metadata.id == repository.getDismissedHeroDocId()) {
+            repository.setDismissedHeroDocId(null)
+            _uiState.update { it.copy(dismissedHeroDocId = null) }
+        }
         _uiState.update { it.copy(isOpeningDocument = true) }
         viewModelScope.launch(Dispatchers.IO) {
             val latestMetadata = repository.findDocument(metadata.id) ?: metadata

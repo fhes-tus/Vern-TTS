@@ -186,6 +186,7 @@ import com.veritas.reader.ui.screens.BookCatalogBrowserDialog
 import com.veritas.reader.ui.screens.VeritasHomeTab
 import com.veritas.reader.ui.screens.VoiceStudioDialog
 import com.veritas.reader.ReaderMode
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -507,6 +508,7 @@ internal fun VeritasReaderApp(
                     }
                     val activeSentence = readerModel.sentences
                         .getOrNull(PlaybackStateStore.currentIndex)
+                    var pageSettleJob by remember { mutableStateOf<Job?>(null) }
                     ActualDocumentView(
                         document = activeMetadata,
                         repository = documentRepository,
@@ -540,15 +542,22 @@ internal fun VeritasReaderApp(
                             // in Original view must never jump playback (moveTo notifies the
                             // service mid-utterance and it re-reads from the viewed page).
                             if (!PlaybackStateStore.isPlaying) {
-                                // Interpolating page position onto sentence position assumed an
-                                // even spread and landed pages away on real documents. Ask the
-                                // model which sentence actually starts this page; pages with no
-                                // sentences of their own leave playback where it is.
-                                val targetPageNumber = pageIndex + 1
-                                val targetIndex = readerModel.sentences
-                                    .indexOfFirst { it.pageNumber == targetPageNumber }
-                                if (targetIndex >= 0) {
-                                    viewModel.moveTo(targetIndex, autoPlay = false)
+                                pageSettleJob?.cancel()
+                                pageSettleJob = coroutineScope.launch {
+                                    delay(1200L)
+                                    val targetPageNumber = pageIndex + 1
+                                    val exactIndex = readerModel.sentences
+                                        .indexOfFirst { it.pageNumber == targetPageNumber }
+                                    val targetIndex = if (exactIndex >= 0) {
+                                        exactIndex
+                                    } else {
+                                        readerModel.sentences.indices.minByOrNull {
+                                            kotlin.math.abs(readerModel.sentences[it].pageNumber - targetPageNumber)
+                                        } ?: -1
+                                    }
+                                    if (targetIndex >= 0) {
+                                        viewModel.moveTo(targetIndex, autoPlay = false)
+                                    }
                                 }
                             }
                         },

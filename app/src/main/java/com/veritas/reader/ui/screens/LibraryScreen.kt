@@ -447,10 +447,10 @@ fun LibraryScreen(
     val completedCount by remember(documents) { derivedStateOf { documents.count { it.chunkCount > 0 && it.currentIndex >= it.chunkCount - 1 } } }
     val readingCount by remember(documents) { derivedStateOf { documents.count { it.chunkCount > 1 && it.currentIndex in 1 until it.chunkCount - 1 } } }
     val favoriteCount by remember(documents) { derivedStateOf { documents.count { it.favorite } } }
-    val continueDocument by remember(documents) {
+    val continueDocument by remember(documents, uiState.dismissedHeroDocId) {
         derivedStateOf {
             documents
-                .filter { it.chunkCount > 1 && it.currentIndex in 1 until it.chunkCount }
+                .filter { it.chunkCount > 1 && it.currentIndex in 1 until it.chunkCount && it.id != uiState.dismissedHeroDocId }
                 .maxByOrNull { it.updatedAt }
         }
     }

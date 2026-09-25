@@ -940,8 +940,20 @@ class DocumentRepository(context: Context) {
             .coerceIn(0, chunks.lastIndex)
     }
 
+    fun getDismissedHeroDocId(): String? = prefs.getString("dismissed_hero_doc_id", null)
+
+    fun setDismissedHeroDocId(documentId: String?) {
+        prefs.edit().apply {
+            if (documentId != null) putString("dismissed_hero_doc_id", documentId)
+            else remove("dismissed_hero_doc_id")
+        }.apply()
+    }
+
     fun updateProgress(documentId: String, currentIndex: Int, chunkCount: Int): List<SavedDocument> {
         val now = System.currentTimeMillis()
+        if (documentId == getDismissedHeroDocId()) {
+            setDismissedHeroDocId(null)
+        }
         val updated = loadDocuments().map { doc ->
             if (doc.id == documentId) {
                 val safeIndex = if (chunkCount <= 0) 0 else currentIndex.coerceIn(0, chunkCount - 1)
@@ -955,6 +967,9 @@ class DocumentRepository(context: Context) {
     }
 
     fun clearProgress(documentId: String): List<SavedDocument> {
+        if (documentId == getDismissedHeroDocId()) {
+            setDismissedHeroDocId(null)
+        }
         val updated = loadDocuments().map { doc ->
             if (doc.id == documentId) doc.copy(currentIndex = 0) else doc
         }
