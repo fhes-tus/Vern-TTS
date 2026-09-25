@@ -559,16 +559,16 @@ fun UserManualDialog(
                         title = "About Vern & Community",
                         icon = Icons.Outlined.Info,
                         subtitle = "Version, developer contact, GitHub & social channels",
-                        content = "Learn more about Vern, check for the latest releases, submit feedback or bug reports on GitHub, and join community channels on Telegram, WhatsApp, and X.",
+                        content = "Learn more about Vern, check for the latest releases, submit feedback or bug reports on GitHub, visit the official website, and join community channels on Telegram and X.",
                         ctaText = "Open About",
                         ctaAction = "about",
                         flowSteps = listOf(
                             "Go to Settings -> About",
                             "Check installed version build number",
-                            "Tap social and GitHub links to join the community"
+                            "Tap social, website, and GitHub links to join the community"
                         ),
                         imageResId = R.drawable.manual_about_veritas,
-                        tags = listOf("about", "version", "github", "contact", "developer", "feedback", "social", "telegram", "whatsapp")
+                        tags = listOf("about", "version", "github", "website", "contact", "developer", "feedback", "social", "telegram")
                     )
                 )
             )

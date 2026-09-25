@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -151,62 +152,6 @@ val IconTelegram: ImageVector
             curveTo(4.549f, 12.213f, 4.536f, 11.766f, 5.336f, 11.454f)
             lineTo(17.037f, 6.945f)
             curveTo(17.579f, 6.742f, 18.053f, 7.067f, 17.848f, 7.915f)
-            close()
-        }
-    }.build()
-
-val IconWhatsapp: ImageVector
-    get() = ImageVector.Builder(
-        name = "Whatsapp",
-        defaultWidth = 24.dp,
-        defaultHeight = 24.dp,
-        viewportWidth = 24f,
-        viewportHeight = 24f
-    ).apply {
-        path(fill = SolidColor(Color.Black)) {
-            moveTo(12.012f, 0f)
-            curveTo(5.385f, 0f, 0.005f, 5.378f, 0.005f, 12.007f)
-            curveTo(0.005f, 14.127f, 0.559f, 16.202f, 1.611f, 18.026f)
-            lineTo(0f, 23.908f)
-            lineTo(6.032f, 22.327f)
-            curveTo(7.794f, 23.287f, 9.878f, 23.792f, 12.007f, 23.792f)
-            curveTo(18.636f, 23.792f, 24.015f, 18.413f, 24.015f, 11.984f)
-            curveTo(24.015f, 5.554f, 18.636f, 0f, 12.012f, 0f)
-            close()
-            moveTo(12.012f, 21.803f)
-            curveTo(10.207f, 21.803f, 8.435f, 21.318f, 6.883f, 20.4f)
-            lineTo(6.52f, 20.184f)
-            lineTo(2.934f, 21.124f)
-            lineTo(3.89f, 17.627f)
-            lineTo(3.652f, 17.249f)
-            curveTo(2.645f, 15.647f, 2.112f, 13.847f, 2.112f, 12.007f)
-            curveTo(2.112f, 6.549f, 6.554f, 2.107f, 12.012f, 2.107f)
-            curveTo(17.47f, 2.107f, 21.912f, 6.549f, 21.912f, 12.007f)
-            curveTo(21.912f, 17.465f, 17.47f, 21.803f, 12.012f, 21.803f)
-            close()
-            moveTo(17.424f, 14.475f)
-            curveTo(17.127f, 14.327f, 15.666f, 13.609f, 15.393f, 13.511f)
-            curveTo(15.121f, 13.411f, 14.923f, 13.361f, 14.725f, 13.659f)
-            curveTo(14.527f, 13.956f, 13.958f, 14.624f, 13.785f, 14.822f)
-            curveTo(13.612f, 15.02f, 13.438f, 15.045f, 13.141f, 14.896f)
-            curveTo(12.844f, 14.747f, 11.889f, 14.433f, 10.757f, 13.424f)
-            curveTo(9.873f, 12.636f, 9.277f, 11.662f, 9.104f, 11.365f)
-            curveTo(8.931f, 11.068f, 9.085f, 10.907f, 9.234f, 10.759f)
-            curveTo(9.368f, 10.626f, 9.531f, 10.413f, 9.679f, 10.239f)
-            curveTo(9.827f, 10.065f, 9.877f, 9.942f, 9.976f, 9.744f)
-            curveTo(10.075f, 9.546f, 10.025f, 9.373f, 9.951f, 9.224f)
-            curveTo(9.877f, 9.075f, 9.283f, 7.614f, 9.035f, 7.02f)
-            curveTo(8.795f, 6.442f, 8.552f, 6.519f, 8.374f, 6.51f)
-            curveTo(8.205f, 6.502f, 8.007f, 6.502f, 7.809f, 6.502f)
-            curveTo(7.611f, 6.502f, 7.314f, 6.576f, 7.066f, 6.848f)
-            curveTo(6.818f, 7.12f, 6.125f, 7.768f, 6.125f, 9.08f)
-            curveTo(6.125f, 10.392f, 7.091f, 11.654f, 7.227f, 11.837f)
-            curveTo(7.363f, 12.02f, 9.127f, 14.729f, 11.832f, 15.895f)
-            curveTo(12.476f, 16.173f, 12.973f, 16.338f, 13.365f, 16.462f)
-            curveTo(14.012f, 16.668f, 14.601f, 16.639f, 15.066f, 16.569f)
-            curveTo(15.584f, 16.491f, 16.661f, 15.916f, 16.884f, 15.297f)
-            curveTo(17.107f, 14.678f, 17.107f, 14.158f, 17.04f, 14.045f)
-            curveTo(16.973f, 13.932f, 16.775f, 13.865f, 16.478f, 13.716f)
             close()
         }
     }.build()
@@ -494,7 +439,7 @@ fun AboutDialog(
                 }
             }
 
-            // Monochrome Social App Icons Row (GitHub, X, Telegram, WhatsApp)
+            // Monochrome Social & Web App Icons Row (GitHub, X, Telegram, Website)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -503,7 +448,7 @@ fun AboutDialog(
                 SocialIconButton(
                     icon = IconGithub,
                     label = "GitHub",
-                    onClick = { openUrl(context, "https://github.com/fhes-tus/Veritas-Reader") }
+                    onClick = { openUrl(context, "https://github.com/fhes-tus/Vern-TTS") }
                 )
                 SocialIconButton(
                     icon = IconX,
@@ -516,9 +461,9 @@ fun AboutDialog(
                     onClick = { openUrl(context, "https://t.me/myreader_veritas") }
                 )
                 SocialIconButton(
-                    icon = IconWhatsapp,
-                    label = "WhatsApp",
-                    onClick = { openUrl(context, "https://wa.me/mr.Gyan_0") }
+                    icon = Icons.Outlined.Language,
+                    label = "Website",
+                    onClick = { openUrl(context, "https://fhes-tus.github.io/Vern-TTS/") }
                 )
             }
 
