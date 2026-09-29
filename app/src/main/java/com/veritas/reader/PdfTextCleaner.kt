@@ -10,6 +10,36 @@ data class PdfCleanupResult(
 )
 
 object PdfTextCleaner {
+    private val WHITESPACE_REGEX = Regex("""\s+""")
+    private val NUMBERED_HEADING_REGEX = Regex("""^\d+(\.\d+)*\s+[A-Z0-9].*""")
+    private val NUMBERED_ITEM_REGEX = Regex("""^\s*(\d{1,3}[.)]|\d{1,3}\s+[A-Za-z0-9])\s+\S+""")
+    private val BULLET_ITEM_REGEX = Regex("""^\s*([•◦▪▫‣⁃∙*–—\-]|(?:\([a-zA-Z0-9]+\)|[a-zA-Z]\)))\s+\S+""")
+    private val EXPLICIT_CHAPTER_REGEX = Regex(
+        """^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PREFACE|Preface|PART|Part|BOOK|Book|SECTION|Section|ACT|Act|SCENE|Scene)\b.*""",
+        RegexOption.IGNORE_CASE
+    )
+    private val CHAPTER_NUMBERED_DOT_PATTERN = Regex("""^(CHAPTER|Chapter|Part|Section)?\s*[IVXLCDM\d]+(\.[IVXLCDM\d]+)*\.$""", RegexOption.IGNORE_CASE)
+    private val STANDALONE_PAGE_NUMBER_REGEX = Regex("""^[-–—]?\s*\d{1,4}\s*[-–—]?$""")
+    private val STANDALONE_PAGE_WORD_REGEX = Regex("""^(page|p\.)\s*\d{1,4}(\s*(of|/)\s*\d{1,4})?$""", RegexOption.IGNORE_CASE)
+
+    private val RUNNING_PROSE_VERBS = setOf(
+        "describes", "explores", "examines", "focuses", "covers", "discusses",
+        "presents", "analyzes", "reviews", "addresses", "investigates",
+        "illustrates", "shows", "demonstrates", "argues", "explains", "details",
+        "is", "was", "are", "were", "will", "has", "have", "had", "contains", "provides",
+        "updates", "offers", "introduces", "concludes", "follows", "leads", "opens", "begins", "ends"
+    )
+
+    private val MINOR_WORDS = setOf(
+        "a", "an", "the", "and", "but", "or", "for", "nor", "on", "at", "to", "by", "with",
+        "in", "of", "vs", "vs.", "v", "v."
+    )
+
+    private val BARE_CHAPTER_PREFIX_REGEX = Regex(
+        """^(CHAPTER|Chapter|PART|Part|BOOK|Book|SECTION|Section)(\s+[IVXLCDM\d]+|\s+[A-Za-z]+)?\.?$|^\d{1,3}\.?$|^[IVXLCDM]{1,7}\.?$""",
+        RegexOption.IGNORE_CASE
+    )
+
     fun cleanPages(pageTexts: List<String>, pageNumbers: List<Int> = pageTexts.indices.map { it + 1 }, options: PdfImportOptions = PdfImportOptions()): PdfCleanupResult {
         val pageLines = pageTexts.map { page ->
             page.replace('\r', '\n')
@@ -26,7 +56,11 @@ object PdfTextCleaner {
         pageLines.forEachIndexed { pageIndex, lines ->
             val cleanedLines = mutableListOf<String>()
             lines.forEach { line ->
-                val cleanLine = line.replace(Regex("""\s+"""), " ").trim()
+                val cleanLine = if (isPipeTableLine(line)) {
+                    line.trim()
+                } else {
+                    line.replace(WHITESPACE_REGEX, " ").trim()
+                }
                 val key = normalizedLineKey(cleanLine)
                 when {
                     options.cleanupRepeatedLines && key in repeatedKeys -> removedRepeated++
@@ -77,10 +111,55 @@ object PdfTextCleaner {
         return counts.filterValues { it >= threshold }.keys
     }
 
+    private fun looksLikeTableOfContentsRow(line: String): Boolean {
+        val trimmed = line.trim()
+        if (trimmed.length < 3 || !trimmed.last().isDigit()) return false
+
+        var i = trimmed.length - 1
+        var digitCount = 0
+        while (i >= 0 && trimmed[i].isDigit()) {
+            digitCount++
+            i--
+        }
+        if (digitCount !in 1..5 || i < 0) return false
+
+        var wsCount = 0
+        while (i >= 0 && (trimmed[i] == ' ' || trimmed[i] == '\t')) {
+            if (trimmed[i] == '\t') wsCount += 4 else wsCount++
+            i--
+        }
+        if (i < 0) return false
+
+        var leaderCharCount = 0
+        while (i >= 0 && (trimmed[i] in ".·•…-_" || trimmed[i] == ' ')) {
+            if (trimmed[i] in ".·•…-_") leaderCharCount++
+            i--
+        }
+
+        if (leaderCharCount >= 2 || wsCount >= 2) {
+            return i >= 0 && trimmed.substring(0, i + 1).any { it.isLetter() }
+        }
+
+        if (trimmed[0].isDigit()) {
+            val spaceIdx = trimmed.indexOf(' ')
+            if (spaceIdx in 2..15) {
+                val prefix = trimmed.substring(0, spaceIdx)
+                if (prefix.contains('.') && prefix.all { it.isDigit() || it == '.' }) {
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
     private fun mergePdfLines(lines: List<String>, repairHyphenation: Boolean = true, onHyphenationJoined: () -> Unit): String {
         val output = StringBuilder()
         var previousWasHeading = false
+        var previousHeadingText: String? = null
         var previousWasTable = false
+        var previousWasNumberedItem = false
+
         lines.forEachIndexed { index, originalLine ->
             val line = originalLine.trim()
             if (line.isBlank()) {
@@ -88,20 +167,24 @@ object PdfTextCleaner {
                     output.append("\n\n")
                 }
                 previousWasHeading = false
+                previousHeadingText = null
                 previousWasTable = false
+                previousWasNumberedItem = false
                 return@forEachIndexed
             }
             val currentIsTable = isPipeTableLine(line)
             val prevLine = lines.getOrNull(index - 1)
             val nextLine = lines.getOrNull(index + 1)
             val currentIsHeading = !currentIsTable && looksLikeHeading(line, prevLine, nextLine)
-            val currentIsNumberedItem = looksLikeNumberedItemStart(line)
+            val currentIsNumberedItem = !currentIsTable && !currentIsHeading && looksLikeNumberedItemStart(line)
 
             if (!currentIsTable && repairHyphenation && output.endsWith("-") && line.firstOrNull()?.isLowerCase() == true) {
                 output.deleteCharAt(output.length - 1)
                 output.append(line)
                 previousWasHeading = false
+                previousHeadingText = null
                 previousWasTable = false
+                previousWasNumberedItem = false
                 onHyphenationJoined()
                 return@forEachIndexed
             }
@@ -113,7 +196,29 @@ object PdfTextCleaner {
                     output.append(line)
                 }
                 previousWasHeading = currentIsHeading
+                previousHeadingText = if (currentIsHeading) line else null
                 previousWasTable = currentIsTable
+                previousWasNumberedItem = currentIsNumberedItem
+                return@forEachIndexed
+            }
+
+            // Heading Reassembly (Image 1 fix):
+            // When previous line was a bare chapter/number prefix (e.g. "Chapter 1" or "1.") without a title,
+            // and current line is the chapter subtitle/title, glue them into a single cohesive heading.
+            val prevHeading = previousHeadingText
+            val canReassembleHeading = previousWasHeading && prevHeading != null &&
+                BARE_CHAPTER_PREFIX_REGEX.matches(prevHeading.trim()) &&
+                (currentIsHeading || isTitleCasedSubheading(line)) &&
+                !line.startsWith("\"") && !line.startsWith("“") && !line.startsWith("‘")
+
+            if (canReassembleHeading) {
+                val prev = prevHeading.trim()
+                val glue = if (prev.endsWith(".") || prev.endsWith(":")) " " else ": "
+                output.append(glue).append(line.removePrefix("#").trim())
+                previousHeadingText = "$prev$glue$line"
+                previousWasHeading = true
+                previousWasTable = false
+                previousWasNumberedItem = false
                 return@forEachIndexed
             }
 
@@ -142,7 +247,14 @@ object PdfTextCleaner {
                         output.append("# ")
                     }
                 }
-                previousWasHeading || currentIsNumberedItem -> {
+                currentIsNumberedItem -> {
+                    if (previousWasNumberedItem) {
+                        output.append("\n")
+                    } else {
+                        output.append("\n\n")
+                    }
+                }
+                previousWasHeading -> {
                     output.append("\n\n")
                 }
                 else -> {
@@ -151,28 +263,34 @@ object PdfTextCleaner {
             }
             output.append(line)
             previousWasHeading = currentIsHeading
+            previousHeadingText = if (currentIsHeading) line else null
             previousWasTable = currentIsTable
+            previousWasNumberedItem = currentIsNumberedItem
         }
         return output.toString()
     }
 
-    private fun isPipeTableLine(line: String): Boolean {
+    internal fun isPipeTableLine(line: String): Boolean {
         return line.startsWith("|") && line.endsWith("|") && line.length > 2
     }
-
-
 
     private fun looksLikeHeading(line: String, prevLine: String? = null, nextLine: String? = null): Boolean {
         val trimmed = line.trim()
         if (trimmed.length > 90 || trimmed.isEmpty()) return false
         if (trimmed.startsWith("[[VERITAS_") || trimmed.contains("VERITAS_PAGE", ignoreCase = true) || trimmed.contains("veritas page", ignoreCase = true)) return false
         if (trimmed.startsWith("#")) return true
+        if (looksLikeTableOfContentsRow(trimmed)) return false
 
-        val isExplicitChapterOrSection = Regex(
-            """^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PREFACE|Preface|PART|Part|BOOK|Book|SECTION|Section|ACT|Act|SCENE|Scene)\b.*""",
-            RegexOption.IGNORE_CASE
-        ).containsMatchIn(trimmed)
-        val isNumberedHeading = Regex("""^\d+(\.\d+)*\s+[A-Z0-9].*""").containsMatchIn(trimmed)
+        // Check whether next line starts with lowercase (sentence continues across wrapped line)
+        val nextTrimmed = nextLine?.trim().orEmpty()
+        val nextStartsLower = nextTrimmed.firstOrNull()?.isLowerCase() == true
+        if (nextStartsLower) {
+            // A line whose sentence spills onto the next line in lowercase is NEVER a heading!
+            return false
+        }
+
+        val isExplicitChapter = isStructuralChapterHeading(trimmed)
+        val isNumberedHeading = NUMBERED_HEADING_REGEX.containsMatchIn(trimmed)
 
         // Check whether previous line was an unfinished sentence
         val prevTrimmed = prevLine?.trim().orEmpty()
@@ -181,18 +299,14 @@ object PdfTextCleaner {
             looksLikeExplicitHeading(prevTrimmed) ||
             prevTrimmed.lastOrNull() in listOf('.', '!', '?', ':', '"', '”', '’', '\'')
 
-        // Check whether next line starts with lowercase (sentence continues across wrapped line)
-        val nextTrimmed = nextLine?.trim().orEmpty()
-        val nextStartsLower = nextTrimmed.firstOrNull()?.isLowerCase() == true
-
-        val isMiddleOfSentence = !prevEndsWithTerminal || nextStartsLower
-
-        if (isMiddleOfSentence) {
-            // In the middle of running prose, only explicit structural chapter/section headers qualify
-            return isExplicitChapterOrSection || isNumberedHeading
+        if (!prevEndsWithTerminal) {
+            // In the middle of running prose, only unambiguous short structural headings qualify
+            if (!isExplicitChapter && !isNumberedHeading) return false
+            val words = trimmed.split(WHITESPACE_REGEX).filter { it.isNotBlank() }
+            if (words.size > 5) return false
         }
 
-        if (isExplicitChapterOrSection || isNumberedHeading) return true
+        if (isExplicitChapter || isNumberedHeading) return true
 
         val letters = trimmed.filter { it.isLetter() }
         if (letters.length in 4..65) {
@@ -203,45 +317,62 @@ object PdfTextCleaner {
         return false
     }
 
+    private fun isStructuralChapterHeading(trimmed: String): Boolean {
+        if (!EXPLICIT_CHAPTER_REGEX.matches(trimmed)) return false
+        val words = trimmed.split(WHITESPACE_REGEX).filter { it.isNotBlank() }
+        if (words.size in 1..2) return true
+        if (words.size > 8) return false
+        // If 3rd word is an active verb (e.g. "Part 5 describes...", "Part 2 updates..."), this is inline prose
+        val thirdWord = words.getOrNull(2)?.lowercase(Locale.ROOT).orEmpty().trim('.', ',', ':', ';')
+        if (thirdWord in RUNNING_PROSE_VERBS) return false
+        // Complete sentences ending in periods/quotes are prose
+        if (words.size > 4 && (trimmed.endsWith('.') || trimmed.endsWith('?') || trimmed.endsWith(',') || trimmed.endsWith('"') || trimmed.endsWith('”'))) {
+            return false
+        }
+        return true
+    }
+
     private fun looksLikeExplicitHeading(line: String): Boolean {
         val trimmed = line.trim()
         if (trimmed.startsWith("#")) return true
-        if (Regex("""^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PREFACE|Preface|PART|Part|BOOK|Book|SECTION|Section|ACT|Act|SCENE|Scene)\b.*""", RegexOption.IGNORE_CASE).containsMatchIn(trimmed)) return true
-        if (Regex("""^\d+(\.\d+)*\s+[A-Z0-9].*""").containsMatchIn(trimmed)) return true
+        if (EXPLICIT_CHAPTER_REGEX.matches(trimmed)) return true
+        if (NUMBERED_HEADING_REGEX.containsMatchIn(trimmed)) return true
         return false
     }
 
     private fun isTitleCasedSubheading(trimmed: String): Boolean {
-        if (trimmed.length !in 3..55) return false
-        if (trimmed.contains("\t") || Regex("""\s{3,}""").containsMatchIn(trimmed)) return false
+        if (trimmed.length !in 3..60) return false
+        if (trimmed.contains("\t") || trimmed.contains("   ")) return false
         if (trimmed.startsWith("\"") || trimmed.startsWith("“") || trimmed.startsWith("‘") || trimmed.startsWith("—") || trimmed.startsWith("-")) return false
         if (trimmed.endsWith(",") || trimmed.endsWith(";") || trimmed.endsWith("-") || trimmed.endsWith(":")) return false
-        if (trimmed.endsWith(".") && !Regex("""^(CHAPTER|Chapter|Part|Section)?\s*[IVXLCDM\d]+(\.[IVXLCDM\d]+)*\.$""", RegexOption.IGNORE_CASE).matches(trimmed)) {
+        if (trimmed.endsWith(".") && !CHAPTER_NUMBERED_DOT_PATTERN.matches(trimmed)) {
             return false
         }
-        val words = trimmed.split(Regex("""\s+""")).filter { it.isNotBlank() }
-        if (words.isEmpty() || words.size > 8) return false
-        val minorWords = setOf("a", "an", "the", "and", "but", "or", "for", "nor", "on", "at", "to", "by", "with", "in", "of", "vs", "vs.", "v", "v.")
-        val significantWords = words.filter { it.lowercase(Locale.getDefault()) !in minorWords }
+        val words = trimmed.split(WHITESPACE_REGEX).filter { it.isNotBlank() }
+        if (words.isEmpty() || words.size > 10) return false
+        val significantWords = words.filter { it.lowercase(Locale.ROOT) !in MINOR_WORDS }
         if (significantWords.isEmpty()) return false
         val capitalizedSignificant = significantWords.count { word -> word.firstOrNull()?.isUpperCase() == true }
         return capitalizedSignificant == significantWords.size
     }
 
     private fun looksLikeNumberedItemStart(line: String): Boolean {
-        return Regex("""^\s*\d{1,3}[.)]\s+\S+""").containsMatchIn(line)
+        val trimmed = line.trim()
+        return NUMBERED_ITEM_REGEX.containsMatchIn(trimmed) ||
+            BULLET_ITEM_REGEX.containsMatchIn(trimmed) ||
+            looksLikeTableOfContentsRow(trimmed)
     }
 
     private fun normalizedLineKey(line: String): String {
-        return line.lowercase(Locale.getDefault())
+        return line.lowercase(Locale.ROOT)
             .replace(Regex("\\d+"), "#")
-            .replace(Regex("\\s+"), " ")
+            .replace(WHITESPACE_REGEX, " ")
             .trim()
     }
 
     private fun isStandalonePageNumber(line: String): Boolean {
         val trimmed = line.trim()
-        return Regex("""^[-–—]?\s*\d{1,4}\s*[-–—]?$""").matches(trimmed) ||
-            Regex("""^(page|p\.)\s*\d{1,4}(\s*(of|/)\s*\d{1,4})?$""", RegexOption.IGNORE_CASE).matches(trimmed)
+        return STANDALONE_PAGE_NUMBER_REGEX.matches(trimmed) ||
+            STANDALONE_PAGE_WORD_REGEX.matches(trimmed)
     }
 }

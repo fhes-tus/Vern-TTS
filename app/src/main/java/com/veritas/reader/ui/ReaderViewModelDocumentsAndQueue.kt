@@ -1,11 +1,17 @@
 package com.veritas.reader.ui
 
-import com.veritas.reader.*
-
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.PlaybackStateStore
 import com.veritas.reader.SavedDocument
 import com.veritas.reader.StorageBreakdown
+import com.veritas.reader.addToQueue
+import com.veritas.reader.clearQueue
+import com.veritas.reader.clearReadingHistory
+import com.veritas.reader.isQueued
+import com.veritas.reader.loadQueueDocuments
+import com.veritas.reader.moveQueueItem
+import com.veritas.reader.removeFromQueue
+import com.veritas.reader.removeReadingHistoryEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch

@@ -1,7 +1,5 @@
 package com.veritas.reader.ui
 
-import com.veritas.reader.*
-
 import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.viewModelScope
@@ -10,6 +8,8 @@ import com.veritas.reader.ReaderDocument
 import com.veritas.reader.ReaderTextIndex
 import com.veritas.reader.ReaderTextModelCache
 import com.veritas.reader.VeritasTextEditTarget
+import com.veritas.reader.loadAnnotationCount
+import com.veritas.reader.loadAnnotations
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch

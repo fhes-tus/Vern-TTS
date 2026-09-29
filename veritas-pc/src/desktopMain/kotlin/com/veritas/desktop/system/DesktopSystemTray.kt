@@ -1,6 +1,13 @@
 package com.veritas.desktop.system
 
-import java.awt.*
+import java.awt.Color
+import java.awt.Font
+import java.awt.Image
+import java.awt.MenuItem
+import java.awt.PopupMenu
+import java.awt.RenderingHints
+import java.awt.SystemTray
+import java.awt.TrayIcon
 import java.awt.image.BufferedImage
 import javax.swing.SwingUtilities
 

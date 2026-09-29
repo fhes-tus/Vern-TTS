@@ -2,33 +2,61 @@ package com.veritas.reader.ui
 
 import android.Manifest
 import android.app.Application
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.veritas.reader.*
+import com.veritas.reader.CoverExtractor
+import com.veritas.reader.DocumentPageImageLoader
+import com.veritas.reader.DocumentRepository
+import com.veritas.reader.DocumentTextRepairer
+import com.veritas.reader.PlaybackActions
+import com.veritas.reader.PlaybackStateStore
+import com.veritas.reader.ReaderDocument
+import com.veritas.reader.ReaderMode
+import com.veritas.reader.ReaderTextModelCache
+import com.veritas.reader.SavedDocument
+import com.veritas.reader.VeritasFileBrowserScanner
+import com.veritas.reader.VeritasScreen
+import com.veritas.reader.VeritasSleepTimerRequest
+import com.veritas.reader.addReadingHistory
+import com.veritas.reader.buildReaderDocument
+import com.veritas.reader.completeCurrentAndGetNextQueued
+import com.veritas.reader.loadAiPromptHistory
+import com.veritas.reader.loadAiPromptTemplates
+import com.veritas.reader.loadAllAnnotations
+import com.veritas.reader.loadAllDocumentNotes
+import com.veritas.reader.loadAllFlashcards
+import com.veritas.reader.loadAllQuizzes
+import com.veritas.reader.loadAnnotationCount
+import com.veritas.reader.loadAnnotations
+import com.veritas.reader.loadDocumentNote
+import com.veritas.reader.loadGeneralNotes
+import com.veritas.reader.loadPronunciationRules
+import com.veritas.reader.loadQueueDocuments
+import com.veritas.reader.loadReaderTrackerSnapshot
+import com.veritas.reader.loadReadingHistory
+import com.veritas.reader.loadReadingListCatalog
+import com.veritas.reader.recordAppOpen
+import com.veritas.reader.recordDocumentProgress
+import com.veritas.reader.recordDocumentRead
+import com.veritas.reader.recordUsageDuration
+import com.veritas.reader.sendPlaybackIntent
 import com.veritas.reader.ui.screens.VeritasHomeTab
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.isActive
+import com.veritas.reader.updateVeritasWidgets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import kotlin.math.roundToInt
 
 class ReaderViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -64,6 +92,8 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 questBookmarkDone = questProgress.bookmarkDone,
                 questChecklistDismissed = allQuestsDone || repository.isQuestChecklistDismissed(),
                 dismissedHeroDocId = repository.getDismissedHeroDocId(),
+                dismissedHeroDocIds = repository.getDismissedHeroDocIds(),
+                isHeroContinueDismissed = repository.isHeroContinueDismissed(),
                 showTutorial = !hasCompleted
             )
         }
@@ -242,7 +272,20 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
             // Repair missing covers for existing files in the background without blocking UI
             documents.forEach { doc ->
-                if (CoverExtractor.coverFile(application, doc.id) == null) {
+                if (doc.title.contains("Who Moved My Cheese", ignoreCase = true)) {
+                    val coversDir = CoverExtractor.coversDir(application)
+                    val coverFile = File(coversDir, "${doc.id}.cover.jpg")
+                    // Upgrade legacy AI-generated cover (>100KB) or repair missing cover to published book cover
+                    if (!coverFile.exists() || coverFile.length() > 100_000L) {
+                        runCatching {
+                            application.assets.open("covers/who_moved_my_cheese.jpg").use { input ->
+                                coverFile.outputStream().use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                        }
+                    }
+                } else if (CoverExtractor.coverFile(application, doc.id) == null) {
                     val classic = com.veritas.reader.ui.screens.CURATED_CLASSICS.firstOrNull { c ->
                         doc.title.contains(c.title, ignoreCase = true) ||
                         (doc.originalFileName.isNotBlank() && doc.originalFileName.contains(c.id, ignoreCase = true))
@@ -250,16 +293,6 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                     if (classic != null) {
                         runCatching {
                             application.assets.open("covers/${classic.id}.jpg").use { input ->
-                                val coversDir = CoverExtractor.coversDir(application)
-                                val coverFile = File(coversDir, "${doc.id}.cover.jpg")
-                                coverFile.outputStream().use { output ->
-                                    input.copyTo(output)
-                                }
-                            }
-                        }
-                    } else if (doc.title.contains("Who Moved My Cheese", ignoreCase = true)) {
-                        runCatching {
-                            application.assets.open("covers/who_moved_my_cheese.jpg").use { input ->
                                 val coversDir = CoverExtractor.coversDir(application)
                                 val coverFile = File(coversDir, "${doc.id}.cover.jpg")
                                 coverFile.outputStream().use { output ->
@@ -489,11 +522,16 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         }
         viewModelScope.launch(Dispatchers.IO) {
             repository.setDismissedHeroDocId(document.id)
+            repository.addDismissedHeroDocId(document.id)
+            repository.setHeroContinueDismissed(true)
+            val updatedDismissed = repository.getDismissedHeroDocIds()
             val queue = repository.loadQueueDocuments()
             withContext(Dispatchers.Main) {
                 _uiState.update {
                     it.copy(
                         dismissedHeroDocId = document.id,
+                        dismissedHeroDocIds = updatedDismissed,
+                        isHeroContinueDismissed = true,
                         queuedDocuments = queue,
                         importMessage = "Removed ${document.title} from Continue reading."
                     )
@@ -514,7 +552,15 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             val history = updatedDoc?.let { repository.addReadingHistory(it, index) }
                 ?: repository.loadReadingHistory()
             withContext(Dispatchers.Main) {
-                _uiState.update { it.copy(documents = docs, readerTrackerSnapshot = tracker, readingHistory = history) }
+                _uiState.update {
+                    it.copy(
+                        documents = docs,
+                        readerTrackerSnapshot = tracker,
+                        readingHistory = history,
+                        dismissedHeroDocIds = it.dismissedHeroDocIds - docId,
+                        isHeroContinueDismissed = false
+                    )
+                }
             }
         }
     }
@@ -562,11 +608,20 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 repository.updateProgress(currentActiveId, lastIndex, totalChunks)
             }
         }
+        repository.removeDismissedHeroDocId(metadata.id)
+        repository.setHeroContinueDismissed(false)
         if (metadata.id == repository.getDismissedHeroDocId()) {
             repository.setDismissedHeroDocId(null)
-            _uiState.update { it.copy(dismissedHeroDocId = null) }
         }
-        _uiState.update { it.copy(isOpeningDocument = true) }
+        _uiState.update {
+            it.copy(
+                showFileBrowser = false,
+                isOpeningDocument = true,
+                dismissedHeroDocId = if (it.dismissedHeroDocId == metadata.id) null else it.dismissedHeroDocId,
+                dismissedHeroDocIds = it.dismissedHeroDocIds - metadata.id,
+                isHeroContinueDismissed = false
+            )
+        }
         viewModelScope.launch(Dispatchers.IO) {
             val latestMetadata = repository.findDocument(metadata.id) ?: metadata
             val readerDocument = loadReaderDocument(latestMetadata)
@@ -595,20 +650,6 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             val tracker = repository.recordDocumentRead(latestMetadata.id, latestMetadata.title)
             val history = repository.addReadingHistory(latestMetadata, targetIndex)
 
-            // Pre-warm initial page images into cache so the first frame renders instantly with images
-            launch(Dispatchers.IO) {
-                runCatching {
-                    val model = ReaderTextModelCache.get(latestMetadata.id, readerDocument.rawText, readerDocument.pageCount)
-                    val startPage = model.sentences.getOrNull(targetIndex)?.pageNumber ?: 1
-                    DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage)
-                    kotlinx.coroutines.delay(1200L)
-                    if (startPage > 1) {
-                        DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage - 1)
-                    }
-                    DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage + 1)
-                }
-            }
-
             withContext(Dispatchers.Main) {
                 _uiState.update {
                     it.copy(
@@ -632,7 +673,26 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 syncPlaybackStateForDocument(readerDocument, targetIndex)
             }
             loadOutlineInBackground(latestMetadata, readerDocument.chunks)
+
+            // Pre-warm initial page images into cache in background after opening without delaying the reader UI
+            launch(Dispatchers.IO) {
+                runCatching {
+                    kotlinx.coroutines.delay(600L)
+                    val model = ReaderTextModelCache.get(latestMetadata.id, readerDocument.rawText, readerDocument.pageCount)
+                    val startPage = model.sentences.getOrNull(targetIndex)?.pageNumber ?: 1
+                    DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage)
+                    kotlinx.coroutines.delay(1200L)
+                    if (startPage > 1) {
+                        DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage - 1)
+                    }
+                    DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage + 1)
+                }
+            }
         }
+    }
+
+    fun dismissOpeningDocument() {
+        _uiState.update { it.copy(isOpeningDocument = false) }
     }
 
     /**
@@ -706,6 +766,15 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun playOrPauseSavedDocument(metadata: SavedDocument) {
+        repository.removeDismissedHeroDocId(metadata.id)
+        repository.setHeroContinueDismissed(false)
+        _uiState.update {
+            it.copy(
+                dismissedHeroDocId = if (it.dismissedHeroDocId == metadata.id) null else it.dismissedHeroDocId,
+                dismissedHeroDocIds = it.dismissedHeroDocIds - metadata.id,
+                isHeroContinueDismissed = false
+            )
+        }
         if (PlaybackStateStore.activeDocumentId == metadata.id) {
             if (PlaybackStateStore.isPlaying) {
                 sendPlaybackIntent(getApplication(), PlaybackActions.ACTION_PAUSE)

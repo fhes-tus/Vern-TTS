@@ -1,6 +1,5 @@
 package com.veritas.reader
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -20,13 +19,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.veritas.reader.ui.VeritasSleekSliderView
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
 
-    internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
+internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
         val total = runCatching { pdfView?.pdfDocument?.pageCount }.getOrNull() ?: 1
         val input = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_NUMBER

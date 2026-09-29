@@ -1,9 +1,8 @@
 package com.veritas.reader
 
-import android.net.Uri
-import java.util.UUID
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.UUID
 
 internal fun previewText(text: String): String {
     return extractSynopsisHeuristic(text, maxChars = 360)

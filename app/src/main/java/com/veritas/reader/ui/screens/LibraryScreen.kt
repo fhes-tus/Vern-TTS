@@ -1,187 +1,91 @@
 package com.veritas.reader.ui.screens
 
-import android.graphics.BitmapFactory
 import android.content.Context
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.zIndex
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.SortByAlpha
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material.icons.filled.CheckBox
-import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.LibraryBooks
-import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
-import kotlin.math.roundToInt
-import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.outlined.Layers
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.draw.scale
-import java.util.Calendar
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.contentDescription
-import com.veritas.reader.VeritasPackStyle
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.Canvas
-import androidx.compose.ui.graphics.Path
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.material.icons.outlined.Note
-import androidx.compose.material.icons.outlined.Bookmark
-import androidx.compose.material.icons.filled.EditNote
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.Book
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material3.*
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import kotlinx.coroutines.delay
-import java.util.UUID
-import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
-import com.veritas.reader.ui.rememberVeritasHaptics
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import android.widget.Toast
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.core.content.edit
-import androidx.compose.ui.layout.onGloballyPositioned
-import com.veritas.reader.ui.OnboardingController
-import com.veritas.reader.ui.OnboardingStep
-import com.veritas.reader.*
-import com.veritas.reader.ui.ReaderUiState
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
-import androidx.compose.material.icons.automirrored.outlined.Note
-import androidx.compose.ui.res.stringResource
-import com.veritas.reader.R
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.veritas.reader.AiResultParser
+import com.veritas.reader.DocumentRepository
+import com.veritas.reader.Flashcard
+import com.veritas.reader.FlashcardProgress
+import com.veritas.reader.FlashcardSet
+import com.veritas.reader.GeneralNote
+import com.veritas.reader.LibraryViewMode
+import com.veritas.reader.PlaybackStateStore
+import com.veritas.reader.QuizQuestion
+import com.veritas.reader.QuizSet
+import com.veritas.reader.ReaderAnnotation
+import com.veritas.reader.ReaderSettings
+import com.veritas.reader.ResolvedVeritasFeature
+import com.veritas.reader.SavedDocument
+import com.veritas.reader.TextChunker
+import com.veritas.reader.VeritasFeatureContext
+import com.veritas.reader.VeritasFeatureId
+import com.veritas.reader.VeritasFeatureRegistry
+import com.veritas.reader.VeritasFeatureSurface
+import com.veritas.reader.VeritasPackStyle
+import com.veritas.reader.parseVocabularyNoteContent
+import com.veritas.reader.ui.OnboardingController
+import com.veritas.reader.ui.OnboardingStep
+import com.veritas.reader.ui.ReaderUiState
+import kotlinx.coroutines.launch
 
 enum class VeritasHomeTab {
     HOME,
@@ -283,6 +187,7 @@ fun LibraryScreen(
     onGenerateInAppFlashcards: (SavedDocument, String?) -> Unit = { _, _ -> },
     onGenerateInAppQuiz: (SavedDocument, String?) -> Unit = { _, _ -> },
     onOpenAiStudyTools: () -> Unit = {},
+    onDismissOpeningDocument: () -> Unit = {},
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null
 ) {
@@ -447,11 +352,25 @@ fun LibraryScreen(
     val completedCount by remember(documents) { derivedStateOf { documents.count { it.chunkCount > 0 && it.currentIndex >= it.chunkCount - 1 } } }
     val readingCount by remember(documents) { derivedStateOf { documents.count { it.chunkCount > 1 && it.currentIndex in 1 until it.chunkCount - 1 } } }
     val favoriteCount by remember(documents) { derivedStateOf { documents.count { it.favorite } } }
-    val continueDocument by remember(documents, uiState.dismissedHeroDocId) {
+    val continueDocument by remember(
+        documents,
+        uiState.dismissedHeroDocId,
+        uiState.dismissedHeroDocIds,
+        uiState.isHeroContinueDismissed
+    ) {
         derivedStateOf {
-            documents
-                .filter { it.chunkCount > 1 && it.currentIndex in 1 until it.chunkCount && it.id != uiState.dismissedHeroDocId }
-                .maxByOrNull { it.updatedAt }
+            if (uiState.isHeroContinueDismissed) {
+                null
+            } else {
+                documents
+                    .filter { doc ->
+                        doc.chunkCount > 1 &&
+                        doc.currentIndex in 1 until doc.chunkCount &&
+                        doc.id != uiState.dismissedHeroDocId &&
+                        doc.id !in uiState.dismissedHeroDocIds
+                    }
+                    .maxByOrNull { it.updatedAt }
+            }
         }
     }
     val selectionMode = selectedDocumentIds.isNotEmpty()
@@ -686,6 +605,7 @@ fun LibraryScreen(
         vocabDocs = vocabDocs,
         onRemoveVocabularyWord = onRemoveVocabularyWord,
         isOpeningDocument = uiState.isOpeningDocument,
+        onDismissOpeningDocument = onDismissOpeningDocument,
         uiState = uiState
     )
 

@@ -1,14 +1,13 @@
 package com.veritas.reader
 
-import android.net.Uri
-import java.io.File
+import org.json.JSONArray
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
-import org.json.JSONArray
-import org.json.JSONObject
+
 data class ReaderSettings(
     val fontSizeSp: Int = 18,
     val sectionSpacingDp: Int = 10,
@@ -44,7 +43,9 @@ data class ReaderSettings(
     // Paper tone: "active_theme", "dark", "natural_white", "warm_sepia"
     val paperToneMode: String = "active_theme",
     // AMOLED pure black background mode for dark themes
-    val amoledMode: Boolean = false
+    val amoledMode: Boolean = false,
+    // Contextual gestures: show helpful tips from time to time (pinch, double tap, long press)
+    val showGestureTips: Boolean = true
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("fontSizeSp", fontSizeSp)
@@ -67,6 +68,7 @@ data class ReaderSettings(
         .put("showNavLabels", showNavLabels)
         .put("paperToneMode", paperToneMode)
         .put("amoledMode", amoledMode)
+        .put("showGestureTips", showGestureTips)
 
     companion object {
         fun fromJson(obj: JSONObject): ReaderSettings {
@@ -93,7 +95,8 @@ data class ReaderSettings(
                 collapsibleReaderBars = obj.optBoolean("collapsibleReaderBars", true),
                 showNavLabels = obj.optBoolean("showNavLabels", true),
                 paperToneMode = obj.optString("paperToneMode", "active_theme"),
-                amoledMode = obj.optBoolean("amoledMode", false)
+                amoledMode = obj.optBoolean("amoledMode", false),
+                showGestureTips = obj.optBoolean("showGestureTips", true)
             )
         }
     }

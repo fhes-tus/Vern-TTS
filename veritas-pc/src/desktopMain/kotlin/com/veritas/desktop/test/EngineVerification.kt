@@ -1,9 +1,5 @@
 package com.veritas.desktop.test
 
-import com.veritas.desktop.models.DesktopDocument
-import com.veritas.desktop.models.ReaderSettings
-import com.veritas.desktop.models.VoiceSettings
-import com.veritas.desktop.parser.DocumentParser
 import com.veritas.desktop.parser.TextChunker
 import com.veritas.desktop.storage.DesktopStorage
 import com.veritas.desktop.study.StudyAssistant

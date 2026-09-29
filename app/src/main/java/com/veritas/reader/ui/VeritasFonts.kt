@@ -3,9 +3,9 @@ package com.veritas.reader.ui
 import android.content.Context
 import android.graphics.Typeface
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -28,17 +28,17 @@ enum class VeritasUiFont(
     val label: String,
     val note: String
 ) {
-    SYSTEM("system", "System default", "Whatever your phone ships with"),
+    SYSTEM("system", "System default", "Times serif reader; device system UI"),
     GAZETTE("gazette", "Gazette", "Editorial newsprint slab with bold ink-traps"),
     CRISP("crisp", "Crisp", "Clean geometric sans with open curves"),
-    TYPEWRITER("typewriter", "Typewriter", "Fixed-width monospace with authentic draft character"),
+    TYPEWRITER("typewriter", "Typewriter", "Classic Word document & publication serif (Times)"),
     ATKINSON("atkinson", "Atkinson Hyperlegible", "Braille Institute; disambiguates similar letters");
 
     companion object {
         fun fromId(id: String?): VeritasUiFont = when (id) {
             "gazette", "bitter", "literata", "lora" -> GAZETTE
             "crisp", "outfit" -> CRISP
-            "typewriter", "jetbrains_mono" -> TYPEWRITER
+            "typewriter", "jetbrains_mono", "times", "serif" -> TYPEWRITER
             "atkinson" -> ATKINSON
             "system" -> SYSTEM
             else -> entries.firstOrNull { it.id == id } ?: SYSTEM
@@ -60,30 +60,56 @@ fun VeritasUiFont.fontFamily(): FontFamily? = when (this) {
     VeritasUiFont.SYSTEM -> null
     VeritasUiFont.GAZETTE -> variableFamily(R.font.bitter_variable)
     VeritasUiFont.CRISP -> variableFamily(R.font.outfit)
-    VeritasUiFont.TYPEWRITER -> FontFamily(Font(R.font.jetbrains_mono, FontWeight.Normal))
+    VeritasUiFont.TYPEWRITER -> FontFamily.Serif
     VeritasUiFont.ATKINSON -> FontFamily(
         Font(R.font.atkinson_regular, FontWeight.Normal),
         Font(R.font.atkinson_bold, FontWeight.Bold)
     )
 }
 
-private val typefaceCache = ConcurrentHashMap<Int, Typeface>()
+private data class TypefaceCacheKey(val fontId: String, val weight: Int, val isItalic: Boolean)
+private val typefaceCache = ConcurrentHashMap<TypefaceCacheKey, Typeface>()
 
 /** Android [Typeface] for native View rendering (e.g. TextView in ReaderPageItemView). */
-fun VeritasUiFont.asTypeface(context: Context): Typeface {
-    if (this == VeritasUiFont.SYSTEM) return Typeface.DEFAULT
-    val resId = when (this) {
-        VeritasUiFont.SYSTEM -> return Typeface.DEFAULT
-        VeritasUiFont.GAZETTE -> R.font.bitter_variable
-        VeritasUiFont.CRISP -> R.font.outfit
-        VeritasUiFont.TYPEWRITER -> R.font.jetbrains_mono
-        VeritasUiFont.ATKINSON -> R.font.atkinson_regular
-    }
-    return typefaceCache.getOrPut(resId) {
-        try {
-            ResourcesCompat.getFont(context, resId) ?: Typeface.DEFAULT
-        } catch (_: Exception) {
-            Typeface.DEFAULT
+fun VeritasUiFont.asTypeface(
+    context: Context,
+    weight: Int = 450,
+    isBold: Boolean = false,
+    isItalic: Boolean = false
+): Typeface {
+    val targetWeight = if (isBold) 700 else weight
+    val key = TypefaceCacheKey(this.id, targetWeight, isItalic)
+    return typefaceCache.getOrPut(key) {
+        when (this) {
+            // SYSTEM uses Times (Classic Serif) for the extracted text reader as requested
+            VeritasUiFont.SYSTEM -> Typeface.create(Typeface.SERIF, targetWeight, isItalic)
+            // TYPEWRITER is wired to Times (Classic Serif) as requested
+            VeritasUiFont.TYPEWRITER -> Typeface.create(Typeface.SERIF, targetWeight, isItalic)
+            VeritasUiFont.GAZETTE -> {
+                val base = try {
+                    ResourcesCompat.getFont(context, R.font.bitter_variable) ?: Typeface.SERIF
+                } catch (_: Exception) {
+                    Typeface.SERIF
+                }
+                Typeface.create(base, targetWeight, isItalic)
+            }
+            VeritasUiFont.CRISP -> {
+                val base = try {
+                    ResourcesCompat.getFont(context, R.font.outfit) ?: Typeface.SANS_SERIF
+                } catch (_: Exception) {
+                    Typeface.SANS_SERIF
+                }
+                Typeface.create(base, targetWeight, isItalic)
+            }
+            VeritasUiFont.ATKINSON -> {
+                val res = if (isBold || targetWeight >= 600) R.font.atkinson_bold else R.font.atkinson_regular
+                val base = try {
+                    ResourcesCompat.getFont(context, res) ?: Typeface.SANS_SERIF
+                } catch (_: Exception) {
+                    Typeface.SANS_SERIF
+                }
+                Typeface.create(base, targetWeight, isItalic)
+            }
         }
     }
 }

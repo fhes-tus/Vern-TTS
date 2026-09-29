@@ -96,6 +96,21 @@ object ReaderTextIndex {
         "et al", "al", "ed", "eds", "ref", "refs", "sec", "secs", "para", "paras", "eq", "eqs",
         "app", "approx", "c", "ca", "cf", "ff", "op", "cit", "ibid"
     )
+    private val BULLET_NUMBERED_PATTERN = Regex("""^(\d{1,4}[.)]|\([a-zA-Z0-9]+\)|[a-zA-Z][.)]|[IVXLCDM]{1,6}[.)])\s+""", RegexOption.IGNORE_CASE)
+    private val ROMAN_NUMERAL_REGEX = Regex("""^[IVXLCDM]+$""", RegexOption.IGNORE_CASE)
+    private val RUNNING_VERBS = setOf(
+        "updates", "explores", "describes", "examines", "focuses", "covers",
+        "discusses", "presents", "analyzes", "reviews", "addresses", "investigates",
+        "illustrates", "shows", "demonstrates", "argues", "explains", "details",
+        "is", "was", "are", "were", "will", "has", "have", "had", "contains", "provides"
+    )
+    private val CHAPTER_KEYWORDS = setOf(
+        "chapter", "prologue", "epilogue", "introduction", "preface", "part", "book", "section", "act", "scene"
+    )
+    private val MULTI_NEWLINE_REGEX = Regex("""\n{3,}""")
+    private val MULTI_INITIALS_PATTERN = Regex("""^([a-z]\.){2,}[a-z]?$""")
+    private val CHAPTER_NUMBERED_DOT_PATTERN = Regex("""^(CHAPTER|Chapter|Part|Section)?\s*[IVXLCDM\d]+(\.[IVXLCDM\d]+)*\.$""", RegexOption.IGNORE_CASE)
+    private val WHITESPACE_REGEX = Regex("""\s+""")
 
     fun pageMarker(pageNumber: Int): String = "[[VERITAS_PAGE:${pageNumber.coerceAtLeast(1)}]]"
 
@@ -105,7 +120,7 @@ object ReaderTextIndex {
             .map { line -> line.replace(inlineMarkerRegex, "").trimEnd() }
             .filterNot { pageMarkerRegex.matches(it.trim()) }
             .joinToString("\n")
-            .replace(Regex("\n{3,}"), "\n\n")
+            .replace(MULTI_NEWLINE_REGEX, "\n\n")
             .trim()
     }
 
@@ -246,8 +261,9 @@ object ReaderTextIndex {
     private fun buildParts(sentences: List<ReaderSentence>, ranges: List<ReaderPageRange>): List<ReaderPart> {
         if (sentences.isEmpty()) return emptyList()
         val effectiveRanges = ranges.ifEmpty { ReaderPagePartPlanner.plan(estimatePageCount(sentences.joinToString(" ") { it.text })) }
+        val sentencesByPage = sentences.groupBy { it.pageNumber }
         return effectiveRanges.mapIndexedNotNull { index, range ->
-            val partSentences = sentences.filter { it.pageNumber in range.startPage..range.endPage }
+            val partSentences = (range.startPage..range.endPage).flatMap { sentencesByPage[it].orEmpty() }
                 .ifEmpty {
                     val startFraction = (index.toFloat() / effectiveRanges.size.toFloat()).coerceIn(0f, 1f)
                     val endFraction = ((index + 1).toFloat() / effectiveRanges.size.toFloat()).coerceIn(0f, 1f)
@@ -283,7 +299,51 @@ object ReaderTextIndex {
         }
     }
 
-    private fun displaySeparator(
+    internal fun looksLikeTableOfContentsRow(text: String): Boolean {
+        val trimmed = text.trim()
+        if (trimmed.length < 3) return false
+        val lastChar = trimmed.last()
+        if (!lastChar.isDigit()) return false
+
+        var i = trimmed.length - 1
+        var digitCount = 0
+        while (i >= 0 && trimmed[i].isDigit()) {
+            digitCount++
+            i--
+        }
+        if (digitCount !in 1..5 || i < 0) return false
+
+        var wsCount = 0
+        while (i >= 0 && (trimmed[i] == ' ' || trimmed[i] == '\t')) {
+            if (trimmed[i] == '\t') wsCount += 4 else wsCount++
+            i--
+        }
+        if (i < 0) return false
+
+        var leaderCharCount = 0
+        while (i >= 0 && (trimmed[i] in ".·•…-_" || trimmed[i] == ' ')) {
+            if (trimmed[i] in ".·•…-_") leaderCharCount++
+            i--
+        }
+
+        if (leaderCharCount >= 2 || wsCount >= 2) {
+            return i >= 0 && trimmed.substring(0, i + 1).any { it.isLetter() }
+        }
+
+        if (trimmed[0].isDigit()) {
+            val spaceIdx = trimmed.indexOf(' ')
+            if (spaceIdx in 2..15) {
+                val prefix = trimmed.substring(0, spaceIdx)
+                if (prefix.contains('.') && prefix.all { it.isDigit() || it == '.' }) {
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
+    internal fun displaySeparator(
         rawSeparator: String,
         previousSentence: ReaderSentence?,
         currentSentence: ReaderSentence
@@ -292,13 +352,17 @@ object ReaderTextIndex {
         val currText = currentSentence.text.trim()
         val prevText = previousSentence?.text?.trim().orEmpty()
         val isHeading = currText.startsWith("#") || prevText.startsWith("#")
-        val isBulletOrList = currText.startsWith("- ") || currText.startsWith("* ") || currText.startsWith("• ") || Regex("""^\d+[.)]\s+""").containsMatchIn(currText)
+        val isTable = currText.startsWith("|") || prevText.startsWith("|")
+        val isTocRow = looksLikeTableOfContentsRow(currText) || looksLikeTableOfContentsRow(prevText)
+        val isBulletOrList = currText.startsWith("- ") || currText.startsWith("* ") || currText.startsWith("• ") || BULLET_NUMBERED_PATTERN.containsMatchIn(currText)
         val isDialogueStart = (currText.startsWith("\"") || currText.startsWith("“") || currText.startsWith("—") || currText.startsWith("–")) && (prevText.endsWith("\"") || prevText.endsWith("”") || prevText.endsWith(".") || prevText.endsWith("!") || prevText.endsWith("?"))
 
         return when {
             isHeading -> "\n\n"
+            isTable -> "\n"
+            isTocRow -> if (normalized.count { it == '\n' } >= 2) "\n\n" else "\n"
             previousSentence != null && previousSentence.pageNumber != currentSentence.pageNumber -> "\n\n"
-            isBulletOrList -> "\n\n"
+            isBulletOrList -> if (normalized.count { it == '\n' } >= 2) "\n\n" else "\n"
             isDialogueStart && normalized.contains('\n') -> "\n\n"
             normalized.count { it == '\n' } >= 2 -> "\n\n"
             normalized.contains('\n') -> " "
@@ -381,6 +445,18 @@ object ReaderTextIndex {
     }
 
     private fun isSentenceBoundary(text: String, markIndex: Int): Boolean {
+        val mark = text[markIndex]
+        if (mark == '.') {
+            // Check if this dot is part of a run of dots (e.g. "...", "......")
+            if (markIndex > 0 && text[markIndex - 1] == '.') return false
+            if (markIndex < text.lastIndex && text[markIndex + 1] == '.') return false
+            // Check if preceded by another dot/bullet separated only by whitespace (e.g. ". . .")
+            val prevNonWs = text.lastNonWhitespaceBefore(markIndex)
+            if (prevNonWs == '.' || prevNonWs == '…' || prevNonWs == '•' || prevNonWs == '·') return false
+            // Check if this dot leads directly to a trailing page number on the same line (TOC row)
+            val remainingLine = text.substring(markIndex + 1).substringBefore('\n').trim()
+            if (remainingLine.length in 1..5 && remainingLine.all { it.isDigit() }) return false
+        }
         val next = text.indexOfFirstAfter(markIndex) { !it.isWhitespace() } ?: return true
         val nextChar = text[next]
         if (!nextChar.isUpperCase() && !nextChar.isDigit() && nextChar !in "\"'`(") return false
@@ -392,7 +468,21 @@ object ReaderTextIndex {
         if (token in abbreviations) return false
         if (token.length == 1 && token.firstOrNull()?.isLetter() == true) return false
         // Detect multi-part initials like J.R.R. or U.S.A.
-        if (Regex("^([a-z]\\.){2,}[a-z]?$").matches(token)) return false
+        if (MULTI_INITIALS_PATTERN.matches(token)) return false
+
+        // Detect leading list or chapter item numbers at the start of a line/paragraph (e.g. "1.", "2.", "1.1.", "IV.")
+        if (token.isNotEmpty() && (token.all { it.isDigit() || it == '.' } || ROMAN_NUMERAL_REGEX.matches(token))) {
+            val beforeToken = text.substring(0, markIndex - token.length).trimEnd(' ', '\t')
+            val cleanBefore = beforeToken.trim(' ', '\t', '#')
+            val lowerBefore = cleanBefore.lowercase()
+            val isPrefixOrStart = cleanBefore.isEmpty() || cleanBefore.endsWith('\n') ||
+                cleanBefore.endsWith('•') || cleanBefore.endsWith('-') || cleanBefore.endsWith('*') ||
+                lowerBefore.endsWith("chapter") || lowerBefore.endsWith("part") ||
+                lowerBefore.endsWith("section") || lowerBefore.endsWith("book")
+            if (isPrefixOrStart) {
+                return false
+            }
+        }
         return true
     }
 
@@ -401,16 +491,30 @@ object ReaderTextIndex {
         if (trimmed.length !in 3..55) return false
         if (trimmed.startsWith("\"") || trimmed.startsWith("“") || trimmed.startsWith("‘") || trimmed.startsWith("—") || trimmed.startsWith("-")) return false
         if (trimmed.endsWith(",") || trimmed.endsWith(";") || trimmed.endsWith("-") || trimmed.endsWith(":")) return false
-        if (trimmed.endsWith(".") && !Regex("""^(CHAPTER|Chapter|Part|Section)?\s*[IVXLCDM\d]+(\.[IVXLCDM\d]+)*\.$""", RegexOption.IGNORE_CASE).matches(trimmed)) {
+        if (trimmed.endsWith(".") && !CHAPTER_NUMBERED_DOT_PATTERN.matches(trimmed)) {
             return false
         }
-        val words = trimmed.split(Regex("""\s+""")).filter { it.isNotBlank() }
+        val words = trimmed.split(WHITESPACE_REGEX).filter { it.isNotBlank() }
         if (words.isEmpty() || words.size > 8) return false
         val minorWords = setOf("a", "an", "the", "and", "but", "or", "for", "nor", "on", "at", "to", "by", "with", "in", "of", "vs", "vs.", "v", "v.")
         val significantWords = words.filter { it.lowercase(Locale.getDefault()) !in minorWords }
         if (significantWords.isEmpty()) return false
         val capitalizedSignificant = significantWords.count { word -> word.firstOrNull()?.isUpperCase() == true }
         return capitalizedSignificant == significantWords.size
+    }
+
+    private fun isStructuralChapterLine(line: String): Boolean {
+        val trimmed = line.trim()
+        if (trimmed.length !in 3..70) return false
+        val firstSpace = trimmed.indexOf(' ')
+        val firstWord = (if (firstSpace == -1) trimmed else trimmed.substring(0, firstSpace)).lowercase(Locale.getDefault())
+        if (firstWord !in CHAPTER_KEYWORDS) return false
+        val words = trimmed.split(WHITESPACE_REGEX).filter { it.isNotBlank() }
+        if (words.size in 1..2) return true
+        val third = words.getOrNull(2).orEmpty().lowercase(Locale.getDefault())
+        if (third in RUNNING_VERBS || (words.size > 2 && words[2].firstOrNull()?.isLowerCase() == true)) return false
+        if (trimmed.endsWith(',') || trimmed.endsWith(';') || trimmed.endsWith('?')) return false
+        return true
     }
 
     private fun isLineBoundary(text: String, newlineIndex: Int): Boolean {
@@ -421,33 +525,46 @@ object ReaderTextIndex {
         if (text.getOrNull(newlineIndex + 1) == '\n') return true
         if (newlineIndex > 0 && text.getOrNull(newlineIndex - 1) == '\n') return true
 
+        // If next character is lowercase, this is normal running wrapped prose (unless prev was a table pipe)
+        if (next.isLowerCase() && previous != '|') {
+            return false
+        }
+
+        // Fast-path punctuation boundaries first
+        if (previous in listOf('.', '!', '?')) {
+            if (next.isUpperCase() || next.isDigit() || next in "\"'`([") return true
+        }
+        if (previous == ':' && (next.isUpperCase() || next in "\"'`([")) {
+            return true
+        }
+
+        if (previous == '-') return false
+
+        // Only inspect line slices if there are structural cues (#, |, -, *, •, digit, or uppercase)
+        val hasStructuralCue = previous == '|' || next == '#' || next == '|' || next == '-' || next == '*' || next == '•' || next.isDigit() || next.isUpperCase()
+        if (!hasStructuralCue) {
+            return false
+        }
+
         val prevLine = text.substring(0, newlineIndex).substringAfterLast('\n').trim()
         val nextLine = text.substring(newlineIndex + 1).substringBefore('\n').trim()
 
         // Markdown headings
         if (prevLine.startsWith("#") || nextLine.startsWith("#")) return true
 
-        // Explicit chapter or major section labels
-        val chapterRegex = Regex("""^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PREFACE|Preface|PART|Part|BOOK|Book|SECTION|Section)\b.*""", RegexOption.IGNORE_CASE)
-        if (chapterRegex.matches(prevLine) || chapterRegex.matches(nextLine)) return true
+        // Table rows (keep each table row on its own boundary)
+        if (prevLine.startsWith("|") || nextLine.startsWith("|")) return true
 
         // Bullet / numbered list starts
-        if (nextLine.startsWith("- ") || nextLine.startsWith("* ") || nextLine.startsWith("• ") || Regex("""^\d+[.)]\s+""").containsMatchIn(nextLine)) {
+        if (nextLine.startsWith("- ") || nextLine.startsWith("* ") || nextLine.startsWith("• ") || BULLET_NUMBERED_PATTERN.containsMatchIn(nextLine)) {
             return true
         }
 
-        if (previous == '-') return false
+        // Table of contents rows (keep each TOC row on its own boundary even without terminal punctuation)
+        if (looksLikeTableOfContentsRow(prevLine) || looksLikeTableOfContentsRow(nextLine)) return true
 
-        // A single newline is a sentence boundary ONLY if the preceding text ended with terminal punctuation
-        // and the following text starts a new sentence.
-        if (previous in listOf('.', '!', '?')) {
-            return next.isUpperCase() || next.isDigit() || next in "\"'`(["
-        }
-
-        // Colon followed by uppercase or dialogue
-        if (previous == ':' && (next.isUpperCase() || next in "\"'`([")) {
-            return true
-        }
+        // Explicit structural chapter or major section labels
+        if (isStructuralChapterLine(prevLine) || isStructuralChapterLine(nextLine)) return true
 
         return false
     }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<paths xmlns:android="http://schemas.android.com/apk/res/android">
+<paths>
     <external-files-path name="vern_audio_exports" path="Music/VernExports/" />
     <external-files-path name="veritas_audio_exports" path="Music/VeritasExports/" />
     <files-path name="vern_files" path="." />

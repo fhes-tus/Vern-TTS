@@ -1,18 +1,41 @@
 package com.veritas.reader.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,11 +50,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.veritas.reader.*
+import com.veritas.reader.PaperToneMode
 import com.veritas.reader.R
+import com.veritas.reader.ReaderSettings
+import com.veritas.reader.VeritasPackStyle
+import com.veritas.reader.VeritasThemeCatalog
+import com.veritas.reader.VeritasThemePackCatalog
+import com.veritas.reader.blendColors
+import com.veritas.reader.themePreviewColors
 import com.veritas.reader.ui.VeritasSwitch
 import com.veritas.reader.ui.VeritasUiFont
 import com.veritas.reader.ui.fontFamily
+import com.veritas.reader.veritasColorScheme
 
 /**
  * Typeface picker. Every row is set in the face it offers — a font list rendered
@@ -193,21 +223,20 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
     val scheme = veritasColorScheme(themeId, context)
     // Mirror the hero-card style toggle: vibrant = accent poster gradient with a
     // luminance-picked text colour; subtle = container tones.
-    val heroGradient = if (vibrantHero) {
+    val heroGradient: Brush
+    val heroOnColor: Color
+    if (vibrantHero) {
         val hsl = FloatArray(3)
         android.graphics.Color.colorToHSV(scheme.primary.toArgb(), hsl)
-        Brush.linearGradient(
-            listOf(
-                Color(android.graphics.Color.HSVToColor(floatArrayOf(hsl[0], (hsl[1] * 0.7f).coerceIn(0f, 1f), (hsl[2] * 1.15f).coerceIn(0f, 1f)))),
-                Color(android.graphics.Color.HSVToColor(floatArrayOf((hsl[0] + 15f) % 360f, hsl[1].coerceIn(0f, 1f), (hsl[2] * 0.85f).coerceIn(0f, 1f))))
-            )
-        )
+        val color1 = Color(android.graphics.Color.HSVToColor(floatArrayOf(hsl[0], (hsl[1] * 0.7f).coerceIn(0f, 1f), (hsl[2] * 1.15f).coerceIn(0f, 1f))))
+        val color2 = Color(android.graphics.Color.HSVToColor(floatArrayOf((hsl[0] + 15f) % 360f, hsl[1].coerceIn(0f, 1f), (hsl[2] * 0.85f).coerceIn(0f, 1f))))
+        heroGradient = Brush.linearGradient(listOf(color1, color2))
+        val avgLuminance = (color1.luminance() + color2.luminance()) / 2f
+        heroOnColor = if (avgLuminance > 0.40f) Color(0xFF0F172A) else Color.White
     } else {
-        Brush.linearGradient(listOf(scheme.primaryContainer, blendColors(scheme.primaryContainer, scheme.surface, 0.5f)))
+        heroGradient = Brush.linearGradient(listOf(scheme.primaryContainer, blendColors(scheme.primaryContainer, scheme.surface, 0.5f)))
+        heroOnColor = scheme.onPrimaryContainer
     }
-    val heroOnColor = if (vibrantHero) {
-        if (scheme.primary.luminance() > 0.35f) Color(0xFF1A1A2E) else Color.White
-    } else scheme.onPrimaryContainer
     val cardCorner = when (normalizedPack) {
         "material_you" -> 22.dp
         "liquid_glass" -> 26.dp

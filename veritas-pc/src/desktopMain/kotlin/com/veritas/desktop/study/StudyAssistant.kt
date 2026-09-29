@@ -3,7 +3,7 @@ package com.veritas.desktop.study
 import com.veritas.desktop.models.Flashcard
 import com.veritas.desktop.models.QuizQuestion
 import com.veritas.desktop.models.StudyPack
-import java.util.*
+import java.util.Locale
 
 object StudyAssistant {
 

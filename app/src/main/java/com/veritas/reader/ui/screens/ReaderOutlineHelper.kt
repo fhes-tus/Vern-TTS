@@ -1,247 +1,68 @@
 package com.veritas.reader.ui.screens
 
-
-import android.content.Context
-import android.content.Intent
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Typeface
-import android.graphics.text.LineBreaker
-import android.os.Build
-import android.text.Layout
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.BackgroundColorSpan
-import android.text.style.RelativeSizeSpan
-import android.text.style.ReplacementSpan
-import android.text.style.StrikethroughSpan
-import android.text.style.StyleSpan
-import android.text.style.TypefaceSpan
-import android.view.ActionMode
-import android.view.GestureDetector
-import android.view.Menu
-import android.view.MenuItem
-import android.view.MotionEvent
-import android.widget.TextView
-import androidx.compose.foundation.background
-import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.graphics.asImageBitmap
-import com.veritas.reader.aiAssistantIcon
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.AnchoredDraggableState
-import androidx.compose.foundation.gestures.DraggableAnchors
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.anchoredDraggable
-import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.NavigateBefore
-import androidx.compose.material.icons.automirrored.filled.NavigateNext
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Headphones
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.BookmarkAdd
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.CollectionsBookmark
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
-import androidx.compose.material.icons.automirrored.filled.PlaylistAddCheck
-import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.EditNote
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.outlined.BookmarkRemove
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.CollectionsBookmark
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.RecordVoiceOver
-import androidx.compose.material.icons.outlined.TheaterComedy
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Psychology
-import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.Spellcheck
-import androidx.compose.material.icons.outlined.Bolt
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.GraphicEq
-import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.hapticfeedback.HapticFeedback
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.material.icons.outlined.Info
-import com.veritas.reader.DocumentRepository
-import com.veritas.reader.blendColors
-import com.veritas.reader.ShareScope
-import com.veritas.reader.AiAssistantOption
-import com.veritas.reader.AnnotationPill
-import com.veritas.reader.AnnotationType
-import com.veritas.reader.AskAiSettings
-import com.veritas.reader.BouncyFilledButton
-import com.veritas.reader.BouncyTextButton
-import com.veritas.reader.BrandMark
-import com.veritas.reader.NarrationSettings
-import com.veritas.reader.PlaybackActions
-import com.veritas.reader.PlaybackService
-import com.veritas.reader.ReaderAnnotation
 import com.veritas.reader.ReaderDocument
-import com.veritas.reader.ReaderPageRange
-import com.veritas.reader.ReaderPart
-import com.veritas.reader.ReaderPartSentenceRange
-import com.veritas.reader.ReaderSettings
-import com.veritas.reader.CoverExtractor
-import com.veritas.reader.ReaderTextModelCache
-import com.veritas.reader.ResolvedVeritasFeature
+import com.veritas.reader.ReaderTextIndex
+import com.veritas.reader.ReaderTextModel
 import com.veritas.reader.VeritasDocumentOutlineEntry
-import com.veritas.reader.VeritasFeatureContext
-import com.veritas.reader.VeritasFeatureId
-import com.veritas.reader.VeritasFeatureRegistry
-import com.veritas.reader.VeritasFeatureSurface
-import com.veritas.reader.VeritasSleepTimerAction
-import com.veritas.reader.VeritasSleepTimerFormatter
-import com.veritas.reader.VeritasSleepTimerPresets
-import com.veritas.reader.VeritasSleepTimerRequest
-import com.veritas.reader.VeritasSleepTimerSnapshot
-import com.veritas.reader.VoiceSettings
-import com.veritas.reader.TtsVoiceOption
 import com.veritas.reader.VeritasPackStyle
-import com.veritas.reader.ReaderMode
-import com.veritas.reader.ReaderModeToggle
-import com.veritas.reader.aiAssistantOptions
-import com.veritas.reader.capWords
-import com.veritas.reader.installedPackageForOption
-import com.veritas.reader.openPlayStoreForPackage
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import androidx.compose.ui.layout.onGloballyPositioned
-import com.veritas.reader.ui.OnboardingController
-import com.veritas.reader.ui.rememberSliderHaptics
-import com.veritas.reader.ui.VeritasSleekSlider
-import com.veritas.reader.ui.VeritasThinRoundSlider
-import com.veritas.reader.SlimPageSlider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.math.roundToInt
 
+internal object SmartOutlineCache {
+    private const val MAX_ENTRIES = 8
+    private val cache = object : LinkedHashMap<String, List<SmartOutlineEntry>>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<SmartOutlineEntry>>?): Boolean {
+            return size > MAX_ENTRIES
+        }
+    }
 
+    fun get(key: String): List<SmartOutlineEntry>? {
+        synchronized(cache) {
+            return cache[key]
+        }
+    }
 
-import com.veritas.reader.ReaderTextModel
+    fun put(key: String, entries: List<SmartOutlineEntry>) {
+        synchronized(cache) {
+            cache[key] = entries
+        }
+    }
 
+    fun clear() {
+        synchronized(cache) {
+            cache.clear()
+        }
+    }
+}
 
 internal data class SmartOutlineEntry(
     val index: Int,
@@ -252,6 +73,79 @@ internal data class SmartOutlineEntry(
     val pageNumber: Int? = null,
     val source: String = "Smart outline"
 )
+
+private val WHITESPACE_REGEX = Regex("""\s+""")
+private val ALL_DOTS_REGEX = Regex("""^[.\s\u00b7\u2022]+$""")
+private val PAGE_PREFIX_REGEX = Regex("""^\d{1,4}\b""")
+private val TRAILING_DOTS_REGEX = Regex("""[.\s]{3,}$""")
+private val LEADER_DOTS_PAGE_REGEX = Regex("""(?:\.\s*){2,}\s*\d{1,4}""")
+private val STRUCTURAL_HEADING_WORD_REGEX = Regex("""^(chapter|part|section|book|adventure|volume)\b""", RegexOption.IGNORE_CASE)
+private val LEADING_NUMBER_PUNCT_REGEX = Regex("""^\d+[.)\s]""")
+private val DOTTED_LEVEL_4_REGEX = Regex("""^\d+\.\d+\.\d+\.\d+""")
+private val DOTTED_LEVEL_3_REGEX = Regex("""^\d+\.\d+\.\d+""")
+private val DOTTED_LEVEL_2_REGEX = Regex("""^\d+\.\d+""")
+private val DOTTED_LEVEL_1_REGEX = Regex("""^\d+\.""")
+private val CHAPTER_KEYWORD_REGEX = Regex("""^(CHAPTER|Chapter|PART|Part|BOOK|Book)\b""", RegexOption.IGNORE_CASE)
+private val UNNUMBERED_TOC_LINE_REGEX = Regex("""^(Introduction|Prologue|Preface|Part\s+[IVXLCDM\d]+|Chapter\s+[IVXLCDM\d]+|Book\s+[IVXLCDM\d]+|Conclusions?|Epilogue|Appendix|Notes|Index)\b.*""", RegexOption.IGNORE_CASE)
+private val MAJOR_SECTION_KEYWORD_REGEX = Regex("""^(CHAPTER|Chapter|PART|Part|BOOK|Book|INTRODUCTION|Introduction|CONCLUSION|Conclusion)\b""", RegexOption.IGNORE_CASE)
+private val LEADING_HASH_REGEX = Regex("""^#{1,6}\s*""")
+private val LEADING_PRINTED_PAGE_REGEX = Regex("""^(\d{1,4})\s+(\p{L}.*)$""")
+private val SCENE_BREAK_PATTERN = Regex("""^(\*[\s*]{2,}|\-{3,}|§{1,3}|#{3,}|_{3,}|~{3,})$""")
+private val LEADING_DIGITS_REGEX = Regex("""^\d+(\.\d+)*\s+""")
+private val NON_ALPHANUM_REGEX = Regex("""[^A-Za-z0-9 ]+""")
+private val HEADING_KEYWORD_REGEX = Regex(
+    pattern = "^(chapter|section|part|unit|lesson|module|book|article|introduction|conclusion|summary|abstract|contents|references|appendix|glossary|index|foreword|preface|prologue|epilogue|bibliography|afterword|notes|citations|sources)\\b",
+    option = RegexOption.IGNORE_CASE
+)
+private val ARABIC_HEADING_REGEX = Regex("""^\d+(\.\d+)*[.)\s:-]+""")
+private val ROMAN_HEADING_REGEX = Regex("""^(?!I\b)[IVXLCDM]{1,7}[.)\s:-]+""")
+private val LANDMARK_KEYWORD_REGEX = Regex(
+    pattern = "^(Task|Requirement|Exercise|Solution|Example|Definition|Theorem|Lemma|Proof|Corollary|Proposition|Remark|Case|Scenario|Feature|Instruction|Step|Goal|Outcome|Impact|Conclusion|Recommendation|Background|Methodology|Result|Discussion|Future Work)\\b",
+    option = RegexOption.IGNORE_CASE
+)
+private val UUID_REGEX = Regex("""^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}""")
+private val ROMAN_NUMERAL_REGEX = Regex("""^[IVXLCDM]+$""", RegexOption.IGNORE_CASE)
+private val ARABIC_NUMERAL_REGEX = Regex("""^\d{1,4}$""")
+
+internal fun isPureNumeral(s: String): Boolean {
+    val t = s.trim().trimEnd('.', ':', ')')
+    return ARABIC_NUMERAL_REGEX.matches(t) || (t.length <= 7 && ROMAN_NUMERAL_REGEX.matches(t))
+}
+
+internal fun parseNumeralValue(s: String): Int? {
+    val t = s.trim().trimEnd('.', ':', ')')
+    t.toIntOrNull()?.let { return it }
+    return romanToInt(t.uppercase(Locale.ROOT))
+}
+
+private fun romanToInt(s: String): Int? {
+    if (!ROMAN_NUMERAL_REGEX.matches(s)) return null
+    val values = mapOf('I' to 1, 'V' to 5, 'X' to 10, 'L' to 50, 'C' to 100, 'D' to 500, 'M' to 1000)
+    var sum = 0
+    var prev = 0
+    for (char in s.reversed()) {
+        val curr = values[char] ?: return null
+        if (curr < prev) sum -= curr else sum += curr
+        prev = curr
+    }
+    return sum.takeIf { it > 0 }
+}
+
+internal fun resolveHumanDocumentTitle(title: String, sourceLabel: String = ""): String {
+    val trimmed = title.trim()
+    val isUuidOrCache = UUID_REGEX.containsMatchIn(trimmed) ||
+        trimmed.startsWith("temp_", ignoreCase = true) ||
+        trimmed.startsWith("cached_", ignoreCase = true)
+    if (isUuidOrCache) {
+        val cleanSource = sourceLabel.trim()
+        if (cleanSource.isNotBlank() && cleanSource != "PDF" && cleanSource != "Text" && cleanSource != "DOCX" && cleanSource != "EPUB") {
+            return cleanSource
+        }
+        return "Document outline"
+    }
+    return trimmed.ifBlank { "Document outline" }
+}
+private val SENTENCE_LIKE_REGEX = Regex("""[.!?]\s+\p{Lu}""")
 
 private const val MAX_SMART_OUTLINE_SCAN_SENTENCES = 1200
 private const val MAX_SMART_OUTLINE_ENTRIES = 220
@@ -269,7 +163,10 @@ private const val MAX_SMART_OUTLINE_TOC_SPAN = 120
  * pointing back at the contents page. Excluding the region by position is the only
  * reliable defence, since the pattern is gone by the time we see it.
  */
-internal fun findContentsRange(chunks: List<String>): IntRange? {
+internal fun findContentsRange(
+    chunks: List<String>,
+    readerModel: ReaderTextModel? = null
+): IntRange? {
     val startIndex = chunks.take(MAX_SMART_OUTLINE_TOC_SCAN).indexOfFirst { chunk ->
         val head = chunk.take(200).lowercase()
         head.contains("table of contents") ||
@@ -284,19 +181,35 @@ internal fun findContentsRange(chunks: List<String>): IntRange? {
     }
     if (startIndex < 0) return null
 
-    // Walk forward while the chunks still look like listing debris: very short, or
-    // leader dots, or a bare number, or a fragment opening with a page number.
+    val tocPage = readerModel?.sentences?.getOrNull(startIndex)?.pageNumber
+
+    // Walk forward while the chunks still look like listing debris or belong to the TOC page:
     var end = startIndex
     var misses = 0
     var index = startIndex + 1
-    while (index <= chunks.lastIndex && index - startIndex < MAX_SMART_OUTLINE_TOC_SPAN) {
-        val text = chunks[index].replace(Regex("\\s+"), " ").trim()
-        val debris = text.isBlank() ||
-            text.length < 60 ||
-            Regex("^[.\\s\\u00b7\\u2022]+$").matches(text) ||
-            Regex("^\\d{1,4}\\b").containsMatchIn(text) ||
-            Regex("[.\\s]{3,}$").containsMatchIn(text) ||
-            Regex("(?:\\.\\s*){2,}\\s*\\d{1,4}").containsMatchIn(text)
+    val maxEnd = (startIndex + MAX_SMART_OUTLINE_TOC_SPAN).coerceAtMost(chunks.lastIndex)
+    while (index <= maxEnd) {
+        val sentencePage = readerModel?.sentences?.getOrNull(index)?.pageNumber
+        // If we have page numbers and we have moved past the TOC pages, stop
+        if (sentencePage != null && tocPage != null && sentencePage > tocPage + 1) {
+            break
+        }
+
+        val text = chunks[index].replace(WHITESPACE_REGEX, " ").trim()
+        val onSameTocPage = sentencePage != null && tocPage != null && sentencePage == tocPage
+        val isTocLine = looksLikeTableOfContentsRow(text) ||
+            LEADING_NUMBER_PUNCT_REGEX.containsMatchIn(text) ||
+            STRUCTURAL_HEADING_WORD_REGEX.containsMatchIn(text) ||
+            UNNUMBERED_TOC_LINE_REGEX.containsMatchIn(text)
+        val isDottedDebris = ALL_DOTS_REGEX.matches(text) ||
+            PAGE_PREFIX_REGEX.containsMatchIn(text) ||
+            TRAILING_DOTS_REGEX.containsMatchIn(text) ||
+            LEADER_DOTS_PAGE_REGEX.containsMatchIn(text) ||
+            (text.length < 8 && text.all { it.isDigit() })
+        val debris = onSameTocPage ||
+            text.isBlank() ||
+            isDottedDebris ||
+            isTocLine
         if (debris) {
             end = index
             misses = 0
@@ -319,29 +232,43 @@ internal fun SmartOutlineDialog(
     document: ReaderDocument,
     documentOutline: List<VeritasDocumentOutlineEntry>,
     currentIndex: Int,
-    onJumpToSection: (Int) -> Unit,
-    onDismiss: () -> Unit
+    onJumpToDestination: (pageNumber: Int?, sentenceIndex: Int) -> Unit,
+    onDismiss: () -> Unit,
+    readerModel: ReaderTextModel? = null
 ) {
     var query by remember(document.id) { mutableStateOf("") }
-    val entries = remember(document.id, document.chunks, documentOutline) {
-        if (documentOutline.isNotEmpty()) {
-            documentOutline.mapNotNull { outline ->
-                val title = cleanTocTitle(outline.title)
-                if (title.isBlank() || title.all { it == '.' || it.isWhitespace() || it == '•' || it == '·' }) return@mapNotNull null
-                val preview = document.chunks.getOrNull(outline.targetIndex).orEmpty()
-                    .replace(Regex("\\s+"), " ").trim()
-                SmartOutlineEntry(
-                    index = outline.targetIndex,
-                    title = title,
-                    preview = preview.take(180),
-                    isHeading = true,
-                    level = outline.level,
-                    pageNumber = outline.pageNumber,
-                    source = outline.source
-                )
+    var entries by remember(document.id, document.chunks.size, documentOutline.size) {
+        mutableStateOf<List<SmartOutlineEntry>>(emptyList())
+    }
+    LaunchedEffect(document.id, document.chunks.size, documentOutline, readerModel) {
+        withContext(Dispatchers.Default) {
+            val cacheKey = "${document.id.orEmpty()}:${document.chunks.size}:${documentOutline.size}:${document.rawText.hashCode()}"
+            val cached = SmartOutlineCache.get(cacheKey)
+            if (cached != null) {
+                entries = cached
+                return@withContext
             }
-        } else {
-            buildSmartOutline(document.chunks)
+            val result = if (documentOutline.isNotEmpty()) {
+                documentOutline.mapNotNull { outline ->
+                    val title = cleanTocTitle(outline.title)
+                    if (title.isBlank() || isSelfReferentialTocHeading(title) || title.all { it == '.' || it.isWhitespace() || it == '•' || it == '·' }) return@mapNotNull null
+                    val preview = document.chunks.getOrNull(outline.targetIndex).orEmpty()
+                        .replace(WHITESPACE_REGEX, " ").trim()
+                    SmartOutlineEntry(
+                        index = outline.targetIndex,
+                        title = title,
+                        preview = preview.take(180),
+                        isHeading = true,
+                        level = outline.level,
+                        pageNumber = outline.pageNumber,
+                        source = outline.source
+                    )
+                }.let(::filterAndFormatNumberedOutlineEntries)
+            } else {
+                buildSmartOutline(document.chunks, readerModel)
+            }
+            SmartOutlineCache.put(cacheKey, result)
+            entries = result
         }
     }
     val filteredEntries = remember(entries, query) {
@@ -365,7 +292,7 @@ internal fun SmartOutlineDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    document.title,
+                    resolveHumanDocumentTitle(document.title, document.sourceLabel),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium,
@@ -404,7 +331,7 @@ internal fun SmartOutlineDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = (entry.level.coerceIn(0, 5) * 14).dp)
-                                .clickable { onJumpToSection(entry.index) },
+                                .clickable { onJumpToDestination(entry.pageNumber, entry.index) },
                             shape = VeritasPackStyle.compactShape(),
                             border = androidx.compose.foundation.BorderStroke(
                                 width = 1.dp,
@@ -424,7 +351,7 @@ internal fun SmartOutlineDialog(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Text(
-                                    if (entry.source.startsWith("PDF")) "☰" else if (entry.isHeading) "◆" else "§",
+                                    if (entry.source.startsWith("PDF") || entry.source.contains("table of contents", ignoreCase = true)) "☰" else if (entry.isHeading) "◆" else "§",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary
                                 )
@@ -440,15 +367,11 @@ internal fun SmartOutlineDialog(
                                         fontWeight = if (active || entry.isHeading) FontWeight.Black else FontWeight.SemiBold,
                                         color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                                     )
-                                    // Location only. The body preview that used to sit
-                                    // under each row was the sentence the entry lands on,
-                                    // which says nothing about the section and turned the
-                                    // list into a wall of prose. The dialog title already
-                                    // states whether this is a real table of contents.
+                                    // Location only: Clean page number or sentence fallback
                                     Text(
                                         listOfNotNull(
                                             entry.pageNumber?.let { "Page $it" },
-                                            "Sentence ${entry.index + 1}"
+                                            if (entry.pageNumber == null) "Sentence ${entry.index + 1}" else null
                                         ).joinToString(" • "),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -466,51 +389,124 @@ internal fun SmartOutlineDialog(
     )
 }
 
-internal fun buildSmartOutline(chunks: List<String>): List<SmartOutlineEntry> {
-    // Scan the whole document: capping structure detection at the first 1,200
-    // sentences meant a long book's outline stopped a few percent in.
-    val contentsRange = findContentsRange(chunks)
-    val structuralEntries = (
-            extractTableOfContentsOutline(chunks) + extractHeadingOutline(chunks, contentsRange)
-            )
+internal fun isSelfReferentialTocHeading(title: String): Boolean {
+    val clean = cleanTocTitle(title).lowercase(Locale.getDefault())
+        .trim(':', '-', '•', '·', ' ')
+    return clean == "contents" || clean == "table of contents" ||
+        clean == "brief contents" || clean == "summary of contents" ||
+        clean == "index of chapters" || clean == "toc"
+}
+
+internal fun filterAndFormatNumberedOutlineEntries(entries: List<SmartOutlineEntry>): List<SmartOutlineEntry> {
+    if (entries.isEmpty()) return emptyList()
+
+    val numericIndices = mutableListOf<Int>()
+    val numericValues = mutableListOf<Int>()
+
+    entries.forEachIndexed { i, entry ->
+        if (isPureNumeral(entry.title)) {
+            val v = parseNumeralValue(entry.title)
+            if (v != null) {
+                numericIndices.add(i)
+                numericValues.add(v)
+            }
+        }
+    }
+
+    // Determine which numeric entries belong to a valid sequence (at least 2 ascending entries)
+    val validNumericSet = mutableSetOf<Int>()
+    if (numericValues.size >= 2) {
+        for (j in 0 until numericValues.size - 1) {
+            val diff = numericValues[j + 1] - numericValues[j]
+            if (diff in 1..5) {
+                validNumericSet.add(numericIndices[j])
+                validNumericSet.add(numericIndices[j + 1])
+            }
+        }
+    }
+
+    return entries.mapIndexedNotNull { i, entry ->
+        if (isPureNumeral(entry.title)) {
+            if (i in validNumericSet || entry.source.contains("table of contents", ignoreCase = true)) {
+                val cleanNum = entry.title.trim().trimEnd('.', ':', ')')
+                entry.copy(title = "Chapter $cleanNum")
+            } else {
+                // Solitary orphan number without sequence or TOC origin -> filter out!
+                null
+            }
+        } else {
+            entry
+        }
+    }
+}
+
+internal fun buildSmartOutline(
+    chunks: List<String>,
+    readerModel: ReaderTextModel? = null
+): List<SmartOutlineEntry> {
+    if (chunks.isEmpty()) return emptyList()
+
+    val contentsRange = findContentsRange(chunks, readerModel)
+    val tocStart = contentsRange?.first
+    val tocPage = if (tocStart != null && readerModel != null) {
+        readerModel.sentences.getOrNull(tocStart)?.pageNumber
+    } else null
+
+    val tocEntries = extractTableOfContentsOutline(chunks, readerModel)
+    val headingEntries = extractHeadingOutline(chunks, contentsRange, readerModel)
+
+    val allCandidates = tocEntries + headingEntries
+    val hasBodyPages = allCandidates.any { entry ->
+        val p = entry.pageNumber
+        p != null && (tocPage == null || p > tocPage)
+    }
+
+    // Filter out self-referential headings and any entries pointing to the TOC page itself when body chapters exist
+    val validEntries = allCandidates
+        .filterNot { isSelfReferentialTocHeading(it.title) }
+        .filterNot { entry ->
+            hasBodyPages && contentsRange != null && entry.index in contentsRange
+        }
+
+    // Deduplicate entries by normalized title: prefer entries with body pages over TOC pages
+    val deduplicated = mutableListOf<SmartOutlineEntry>()
+    val seenTitles = mutableMapOf<String, SmartOutlineEntry>()
+    validEntries.forEach { entry ->
+        val key = normalizeOutlineNeedle(entry.title)
+        val existing = seenTitles[key]
+        if (existing == null) {
+            seenTitles[key] = entry
+            deduplicated.add(entry)
+        } else {
+            val existingIsTocPage = tocPage != null && existing.pageNumber == tocPage
+            val entryIsBodyPage = tocPage != null && (entry.pageNumber ?: 0) > tocPage
+            if (existingIsTocPage && entryIsBodyPage) {
+                val idx = deduplicated.indexOf(existing)
+                if (idx >= 0) {
+                    deduplicated[idx] = entry
+                    seenTitles[key] = entry
+                }
+            }
+        }
+    }
+
+    val structuralEntries = deduplicated
         .distinctBy { it.index }
         .let(::dropRunningHeaders)
+        .let(::filterAndFormatNumberedOutlineEntries)
         .sortedBy { it.index }
         .take(MAX_SMART_OUTLINE_ENTRIES)
 
     if (structuralEntries.isNotEmpty()) return structuralEntries
 
-    // No structure found. Offer evenly spaced position markers instead of adding
-    // every Nth sentence as though it were a heading, which buried any real entry
-    // among hundreds of arbitrary ones.
-    val markerCount = MAX_SMART_OUTLINE_FALLBACK_MARKERS.coerceAtMost(chunks.size)
-    if (markerCount <= 0) return emptyList()
-    val step = (chunks.size / markerCount).coerceAtLeast(1)
-    val fallbackIndexes = (0 until chunks.size step step).toMutableList().also { marks ->
-        if (chunks.isNotEmpty() && marks.lastOrNull() != chunks.lastIndex) marks.add(chunks.lastIndex)
+    // Layer 3: Narrative Scene Breaks (if headings are sparse)
+    val sceneBreaks = extractSceneBreaks(chunks, readerModel)
+    if (sceneBreaks.size >= 2) {
+        return sceneBreaks.take(MAX_SMART_OUTLINE_ENTRIES)
     }
 
-    return fallbackIndexes.mapNotNull { index ->
-        val chunk = chunks.getOrNull(index).orEmpty()
-        val firstLine = chunk
-            .lineSequence()
-            .map { it.trim() }
-            .firstOrNull { it.isNotBlank() }
-            .orEmpty()
-        val isHeading = looksLikeOutlineHeading(firstLine)
-        val clean = chunk.replace(Regex("\\s+"), " ").trim()
-        if (clean.isBlank()) return@mapNotNull null
-
-        val title = outlineTitle(if (isHeading) firstLine else clean, index)
-        val preview = clean.take(180)
-
-        SmartOutlineEntry(
-            index = index,
-            title = title,
-            preview = if (preview == title) "" else preview,
-            isHeading = isHeading
-        )
-    }.take(MAX_SMART_OUTLINE_ENTRIES)
+    // Layer 4: Page-Decade Milestones (Natural, 100% paginated)
+    return extractPageMilestones(chunks, readerModel)
 }
 
 /**
@@ -530,12 +526,10 @@ internal fun dropRunningHeaders(entries: List<SmartOutlineEntry>): List<SmartOut
         val repeats = counts[key] ?: 0
         if (repeats < MAX_OUTLINE_TITLE_REPEATS) return@filter true
         // Keep a repeated title only when it carries an explicit structural marker.
-        Regex("^(chapter|part|section|book|adventure|volume)\\b", RegexOption.IGNORE_CASE)
-            .containsMatchIn(entry.title.trim()) ||
-            Regex("^\\d+[.)\\s]").containsMatchIn(entry.title.trim())
+        STRUCTURAL_HEADING_WORD_REGEX.containsMatchIn(entry.title.trim()) ||
+            LEADING_NUMBER_PUNCT_REGEX.containsMatchIn(entry.title.trim())
     }
 }
-
 
 /**
  * Parses a table-of-contents page into outline entries.
@@ -549,8 +543,10 @@ internal fun dropRunningHeaders(entries: List<SmartOutlineEntry>): List<SmartOut
  * matched each title inside the contents listing itself, so every entry navigated
  * back to the table of contents instead of to its chapter.
  */
-internal fun extractTableOfContentsOutline(chunks: List<String>): List<SmartOutlineEntry> {
-    val tocLine = Regex("^(.{3,140}?)[\\s.]*?(?:\\.{2,}|\\s{3,}|\\t+)[\\s.]*(\\d{1,4})$")
+internal fun extractTableOfContentsOutline(
+    chunks: List<String>,
+    readerModel: ReaderTextModel? = null
+): List<SmartOutlineEntry> {
     val contentsIndexes = mutableListOf<Int>()
     chunks.take(MAX_SMART_OUTLINE_TOC_SCAN).forEachIndexed { index, chunk ->
         val head = chunk.take(400).lowercase()
@@ -568,59 +564,216 @@ internal fun extractTableOfContentsOutline(chunks: List<String>): List<SmartOutl
     if (contentsIndexes.isEmpty()) return emptyList()
 
     val tocStart = contentsIndexes.first()
-    val tocEnd = (contentsIndexes.last() + MAX_SMART_OUTLINE_TOC_SPAN).coerceAtMost(chunks.lastIndex)
-    val bodyStart = (tocEnd + 1).coerceAtMost(chunks.lastIndex)
+    val tocPage = readerModel?.sentences?.getOrNull(tocStart)?.pageNumber
+    val contentsRange = findContentsRange(chunks, readerModel)
+    val tocEnd = if (tocPage != null) {
+        val maxTocPage = tocPage + 2
+        val lastSentenceOnTocPage = readerModel.sentences
+            .indexOfLast { it.pageNumber <= maxTocPage && it.index <= tocStart + 40 }
+            .takeIf { it >= tocStart } ?: tocStart
+        contentsRange?.last?.coerceAtMost(lastSentenceOnTocPage) ?: lastSentenceOnTocPage
+    } else {
+        contentsRange?.last?.coerceAtMost(tocStart + 30) ?: (tocStart + 15).coerceAtMost(chunks.lastIndex)
+    }
+    val bodyStart = if (tocPage != null) {
+        readerModel.sentences.indexOfFirst { it.pageNumber > tocPage && it.index > tocEnd }
+            .takeIf { it >= 0 } ?: (tocEnd + 1).coerceAtMost(chunks.lastIndex)
+    } else {
+        (tocEnd + 1).coerceAtMost(chunks.lastIndex)
+    }
 
     val seen = mutableSetOf<String>()
     val entries = mutableListOf<SmartOutlineEntry>()
+
+    // First pass: try standard numbered/dot-leader TOC lines
     for (index in tocStart..tocEnd) {
         chunks.getOrNull(index)?.lineSequence()
             ?.map { it.trim() }
-            ?.filter { it.length in 6..160 }
+            ?.filter { it.length in 4..160 }
             ?.forEach { line ->
-                val match = tocLine.matchEntire(line) ?: return@forEach
-                val title = cleanTocTitle(match.groupValues[1])
-                if (title.length < 3) return@forEach
-                val key = normalizeOutlineNeedle(title)
-                if (key.length < 4 || !seen.add(key)) return@forEach
-                val target = locateOutlineTarget(chunks, title, bodyStart) ?: return@forEach
-                val clean = chunks.getOrNull(target).orEmpty().replace(Regex("\\s+"), " ").trim()
+                val parsed = parseTocLine(line) ?: return@forEach
+                val rawTitle = parsed.first
+                val printedPage = parsed.second
+                val title = cleanTocTitle(rawTitle)
+                val isNum = isPureNumeral(title)
+                if ((title.length < 3 && !isNum) || isSelfReferentialTocHeading(title)) return@forEach
+                val formattedTitle = if (isNum) "Chapter ${title.trimEnd('.', ':')}" else title
+                val key = normalizeOutlineNeedle(formattedTitle)
+                if (key.length < 2 || !seen.add(key)) return@forEach
+
+                var targetIndex: Int? = locateOutlineTarget(chunks, formattedTitle, bodyStart)
+                    ?: if (isNum) locateOutlineTarget(chunks, title, bodyStart) else null
+                var resolvedPage: Int? = printedPage
+
+                if (targetIndex == null && printedPage != null && readerModel != null) {
+                    val pageSentences = readerModel.sentences.filter { it.pageNumber == printedPage }
+                    if (pageSentences.isNotEmpty()) {
+                        val matchOnPage = pageSentences.firstOrNull { s ->
+                            val cleanS = normalizeOutlineNeedle(s.text)
+                            cleanS.contains(key) || key.contains(cleanS)
+                        }
+                        targetIndex = matchOnPage?.index ?: pageSentences.first().index
+                    }
+                }
+
+                if (targetIndex == null && printedPage != null && readerModel != null) {
+                    val approximatePage = readerModel.sentences.firstOrNull { it.pageNumber >= printedPage }
+                    targetIndex = approximatePage?.index
+                }
+
+                if (targetIndex == null) return@forEach
+
+                if (resolvedPage == null && readerModel != null) {
+                    resolvedPage = readerModel.sentences.getOrNull(targetIndex)?.pageNumber
+                }
+
+                val clean = chunks.getOrNull(targetIndex).orEmpty().replace(WHITESPACE_REGEX, " ").trim()
+                val dottedLevel = when {
+                    DOTTED_LEVEL_4_REGEX.containsMatchIn(formattedTitle) -> 3
+                    DOTTED_LEVEL_3_REGEX.containsMatchIn(formattedTitle) -> 2
+                    DOTTED_LEVEL_2_REGEX.containsMatchIn(formattedTitle) -> 1
+                    DOTTED_LEVEL_1_REGEX.containsMatchIn(formattedTitle) -> 0
+                    else -> if (CHAPTER_KEYWORD_REGEX.containsMatchIn(formattedTitle) || isNum) 0 else 1
+                }
                 entries.add(
                     SmartOutlineEntry(
-                        index = target,
-                        title = title.take(96),
+                        index = targetIndex,
+                        title = formattedTitle.take(96),
                         preview = clean.take(180),
-                        isHeading = true
+                        isHeading = true,
+                        level = dottedLevel,
+                        pageNumber = resolvedPage,
+                        source = "Printed table of contents"
                     )
                 )
             }
     }
+
+    // Second pass: unnumbered / hyperlinked / title-style TOC lines (e.g. Kahneman PDF Page 4: "Introduction", "Part 1: Two Systems", "1. The Characters of the Story", etc.)
+    for (index in tocStart..tocEnd) {
+        chunks.getOrNull(index)?.lineSequence()
+            ?.map { it.trim() }
+            ?.filter { it.length in 3..120 }
+            ?.forEach { line ->
+                if (isSelfReferentialTocHeading(line)) return@forEach
+                val isChapterListing = looksLikeOutlineHeading(line) ||
+                    UNNUMBERED_TOC_LINE_REGEX.containsMatchIn(line) ||
+                    LEADING_NUMBER_PUNCT_REGEX.containsMatchIn(line)
+                if (!isChapterListing) return@forEach
+
+                val title = cleanTocTitle(line)
+                if (title.length < 3 || isSelfReferentialTocHeading(title)) return@forEach
+                val key = normalizeOutlineNeedle(title)
+                if (key.length < 3 || !seen.add(key)) return@forEach
+
+                val targetIndex = locateOutlineTarget(chunks, title, bodyStart) ?: return@forEach
+                val resolvedPage = readerModel?.sentences?.getOrNull(targetIndex)?.pageNumber
+                val clean = chunks.getOrNull(targetIndex).orEmpty().replace(WHITESPACE_REGEX, " ").trim()
+                val isMajor = MAJOR_SECTION_KEYWORD_REGEX.containsMatchIn(title)
+
+                entries.add(
+                    SmartOutlineEntry(
+                        index = targetIndex,
+                        title = title.take(96),
+                        preview = clean.take(180),
+                        isHeading = true,
+                        level = if (isMajor) 0 else 1,
+                        pageNumber = resolvedPage,
+                        source = "Printed table of contents"
+                    )
+                )
+            }
+    }
+
     return entries
 }
 
 /**
- * Strips leader dots and a stray leading page number from a contents line.
+ * Strips leader dots, hashes, and a stray leading page number from a contents line.
+ *
+ * The number in "63 The Adventures of Sherlock Holmes" belongs to the row above it.
+ * It is only dropped when enough text follows for that text to be the real title, so
+ * a genuinely numbered heading is left intact.
+ */
+internal fun parseTocLine(line: String): Pair<String, Int>? {
+    val trimmed = line.trim()
+    if (trimmed.length !in 4..160) return null
+    if (!trimmed.last().isDigit()) return null
+
+    var i = trimmed.length - 1
+    while (i >= 0 && trimmed[i].isDigit()) i--
+    val digitLen = (trimmed.length - 1) - i
+    if (digitLen !in 1..5 || i < 0) return null
+    val pageNum = trimmed.substring(i + 1).toIntOrNull() ?: return null
+
+    var wsCount = 0
+    while (i >= 0 && (trimmed[i] == ' ' || trimmed[i] == '\t')) {
+        if (trimmed[i] == '\t') wsCount += 4 else wsCount++
+        i--
+    }
+    if (i < 0) return null
+
+    var leaderCharCount = 0
+    while (i >= 0 && (trimmed[i] in ".·•…-_" || trimmed[i] == ' ')) {
+        if (trimmed[i] in ".·•…-_") leaderCharCount++
+        i--
+    }
+
+    if (leaderCharCount < 2 && wsCount < 2) return null
+    if (i < 0) return null
+
+    val rawTitle = trimmed.substring(0, i + 1).trim()
+    if (rawTitle.isEmpty() || rawTitle.length > 140) return null
+    return Pair(rawTitle, pageNum)
+}
+
+/**
+ * Strips leader dots, hashes, and a stray leading page number from a contents line.
  *
  * The number in "63 The Adventures of Sherlock Holmes" belongs to the row above it.
  * It is only dropped when enough text follows for that text to be the real title, so
  * a genuinely numbered heading is left intact.
  */
 internal fun cleanTocTitle(raw: String): String {
-    var title = raw.trim().trim('.', '-', '\u2022', '\u00b7', ' ')
-    // Strip trailing leader dots/dashes/bullets followed by trailing page number:
-    // e.g. "Chapter 1 .......... 15", "Chapter 1 . . . . . . 15", "Chapter 1    15"
-    title = title.replace(Regex("""(?:\s*[\.\-_·•…](?:\s*[\.\-_·•…])+|\s{2,})\s*\d{1,5}$"""), "").trim()
-    // Strip trailing runs of leader dots, dashes, or ellipses without page numbers:
-    // e.g. "Chapter 1 ..........", "Chapter 1 . . . . . ."
-    title = title.replace(Regex("""(?:[\.\-_·•…]\s*){2,}$"""), "").trim()
+    var title = raw.trim()
+    // Strip leading markdown hashes (#, ##, ###, etc.)
+    title = title.replace(LEADING_HASH_REGEX, "").trim()
+    title = title.trim('.', '-', '\u2022', '\u00b7', ' ')
+
+    // Strip trailing leader dots/dashes/bullets followed by trailing page number
+    if (title.isNotEmpty() && title.last().isDigit()) {
+        var i = title.length - 1
+        while (i >= 0 && title[i].isDigit()) i--
+        var ws = 0
+        while (i >= 0 && (title[i] == ' ' || title[i] == '\t')) { ws++; i-- }
+        var leaders = 0
+        while (i >= 0 && (title[i] in ".·•…-_" || title[i] == ' ')) {
+            if (title[i] in ".·•…-_") leaders++
+            i--
+        }
+        if (leaders >= 2 || ws >= 2) {
+            title = title.substring(0, i + 1).trim()
+        }
+    }
+
+    // Strip trailing runs of leader dots, dashes, or ellipses without page numbers
+    var end = title.length - 1
+    var strippedLeaders = 0
+    while (end >= 0 && (title[end] in ".·•…-_" || title[end] == ' ')) {
+        if (title[end] in ".·•…-_") strippedLeaders++
+        end--
+    }
+    if (strippedLeaders >= 2) {
+        title = title.substring(0, end + 1).trim()
+    }
     title = title.trim('.', '-', '\u2022', '\u00b7', ' ')
 
     // Strip leading printed page numbers (e.g. "12 Introduction") while preserving real numbered headings
-    Regex("^(\\d{1,4})\\s+(\\p{L}.*)$").matchEntire(title)?.let { m ->
+    LEADING_PRINTED_PAGE_REGEX.matchEntire(title)?.let { m ->
         val rest = m.groupValues[2].trim()
         if (rest.length >= 4) title = rest
     }
-    return title.replace(Regex("\\s+"), " ").trim()
+    return title.replace(WHITESPACE_REGEX, " ").trim()
 }
 /**
  * Reassembles a heading the text extractor split mid-word.
@@ -655,40 +808,157 @@ internal fun joinSplitHeading(chunks: List<String>, index: Int): String? {
  */
 internal fun extractHeadingOutline(
     chunks: List<String>,
-    contentsRange: IntRange? = null
+    contentsRange: IntRange? = null,
+    readerModel: ReaderTextModel? = null
 ): List<SmartOutlineEntry> {
     return chunks.mapIndexedNotNull { index, chunk ->
         if (contentsRange != null && index in contentsRange) return@mapIndexedNotNull null
         if (looksLikeTableOfContentsRow(chunk)) return@mapIndexedNotNull null
 
+        var headingText: String? = null
+        var isRepaired = false
+
         // A heading the extractor cut in half is repaired before it is judged.
         joinSplitHeading(chunks, index)?.let { repaired ->
             if (looksLikeOutlineHeading(repaired)) {
-                return@mapIndexedNotNull SmartOutlineEntry(
-                    index = index,
-                    title = outlineTitle(cleanTocTitle(repaired), index),
-                    preview = "",
-                    isHeading = true
+                headingText = repaired
+                isRepaired = true
+            }
+        }
+
+        if (headingText == null) {
+            headingText = chunk.lineSequence()
+                .map { it.trim() }
+                .take(8)
+                .firstOrNull { looksLikeOutlineHeading(it) }
+                ?: chunk.replace(WHITESPACE_REGEX, " ").trim()
+                    .take(120)
+                    .takeIf { looksLikeOutlineHeading(it) }
+                ?: return@mapIndexedNotNull null
+        }
+
+        val rawHashes = chunk.lineSequence().firstOrNull { it.trim().startsWith("#") }?.takeWhile { it == '#' }?.length ?: 0
+        val clean = chunk.replace(WHITESPACE_REGEX, " ").trim()
+        val pageNum = readerModel?.sentences?.getOrNull(index)?.pageNumber
+        val cleanTitle = outlineTitle(cleanTocTitle(headingText), index)
+        if (isSelfReferentialTocHeading(cleanTitle) || isSelfReferentialTocHeading(headingText)) return@mapIndexedNotNull null
+
+        val dottedLevel = when {
+            DOTTED_LEVEL_4_REGEX.containsMatchIn(cleanTitle) -> 3
+            DOTTED_LEVEL_3_REGEX.containsMatchIn(cleanTitle) -> 2
+            DOTTED_LEVEL_2_REGEX.containsMatchIn(cleanTitle) -> 1
+            DOTTED_LEVEL_1_REGEX.containsMatchIn(cleanTitle) -> 0
+            else -> -1
+        }
+        val level = when {
+            rawHashes in 1..4 -> rawHashes - 1
+            dottedLevel >= 0 -> dottedLevel
+            CHAPTER_KEYWORD_REGEX.containsMatchIn(cleanTitle) -> 0
+            else -> 1
+        }
+
+        SmartOutlineEntry(
+            index = index,
+            title = cleanTitle,
+            preview = if (isRepaired || clean.startsWith(headingText)) clean.removePrefix(headingText).trim().take(180) else clean.take(180),
+            isHeading = true,
+            level = level,
+            pageNumber = pageNum,
+            source = "Document heading"
+        )
+    }
+}
+
+internal fun extractSceneBreaks(
+    chunks: List<String>,
+    readerModel: ReaderTextModel? = null
+): List<SmartOutlineEntry> {
+    val entries = mutableListOf<SmartOutlineEntry>()
+    val seenPages = mutableSetOf<Int>()
+
+    chunks.forEachIndexed { index, chunk ->
+        val trimmed = chunk.trim()
+        val isSceneBreak = SCENE_BREAK_PATTERN.matches(trimmed) ||
+            trimmed == "* * *" || trimmed == "***" || trimmed == "---"
+        if (isSceneBreak) {
+            val pageNum = readerModel?.sentences?.getOrNull(index)?.pageNumber
+            if (pageNum == null || seenPages.add(pageNum)) {
+                val nextChunk = chunks.getOrNull(index + 1)?.replace(WHITESPACE_REGEX, " ")?.trim().orEmpty()
+                entries.add(
+                    SmartOutlineEntry(
+                        index = index,
+                        title = "§ Scene Break",
+                        preview = nextChunk.take(180),
+                        isHeading = false,
+                        level = 1,
+                        pageNumber = pageNum,
+                        source = "Scene break"
+                    )
                 )
             }
         }
-        val heading = chunk.lineSequence()
-            .map { it.trim() }
-            .take(8)
-            .firstOrNull { looksLikeOutlineHeading(it) }
-            ?: chunk.replace(Regex("\\s+"), " ").trim()
-                .take(120)
-                .takeIf { looksLikeOutlineHeading(it) }
-            ?: return@mapIndexedNotNull null
-        val clean = chunk.replace(Regex("\\s+"), " ").trim()
+    }
+    return entries
+}
+
+internal fun extractPageMilestones(
+    chunks: List<String>,
+    readerModel: ReaderTextModel? = null
+): List<SmartOutlineEntry> {
+    val totalPages = readerModel?.let {
+        maxOf(it.pageCount, it.sentences.maxOfOrNull { s -> s.pageNumber } ?: 1)
+    } ?: 1
+
+    if (readerModel != null && totalPages > 1) {
+        val step = when {
+            totalPages <= 20 -> 2
+            totalPages <= 50 -> 5
+            totalPages <= 150 -> 10
+            totalPages <= 300 -> 20
+            else -> 25
+        }
+        val milestonePages = (1..totalPages step step).toMutableList()
+        if (milestonePages.lastOrNull() != totalPages) {
+            milestonePages.add(totalPages)
+        }
+        val sentencesByPage = readerModel.sentences.groupBy { it.pageNumber }
+        return milestonePages.mapNotNull { page ->
+            val pageSentences = sentencesByPage[page].orEmpty()
+            val firstSentence = pageSentences.firstOrNull() ?: return@mapNotNull null
+            val preview = firstSentence.text.replace(WHITESPACE_REGEX, " ").trim().take(180)
+            SmartOutlineEntry(
+                index = firstSentence.index,
+                title = "Page $page",
+                preview = preview,
+                isHeading = false,
+                level = 0,
+                pageNumber = page,
+                source = "Page milestone"
+            )
+        }
+    }
+
+    val markerCount = MAX_SMART_OUTLINE_FALLBACK_MARKERS.coerceAtMost(chunks.size)
+    if (markerCount <= 0) return emptyList()
+    val step = (chunks.size / markerCount).coerceAtLeast(1)
+    val fallbackIndexes = (0 until chunks.size step step).toMutableList().also { marks ->
+        if (chunks.isNotEmpty() && marks.lastOrNull() != chunks.lastIndex) marks.add(chunks.lastIndex)
+    }
+
+    return fallbackIndexes.mapNotNull { index ->
+        val chunk = chunks.getOrNull(index).orEmpty()
+        val clean = chunk.replace(WHITESPACE_REGEX, " ").trim()
+        if (clean.isBlank()) return@mapNotNull null
         SmartOutlineEntry(
             index = index,
-            title = outlineTitle(cleanTocTitle(heading), index),
-            preview = if (clean.startsWith(heading)) clean.removePrefix(heading).trim()
-                .take(180) else clean.take(180),
-            isHeading = true
+            title = outlineTitle(clean, index),
+            preview = clean.take(180),
+            isHeading = false,
+            level = 0,
+            pageNumber = null,
+            source = "Sentence milestone"
         )
-    }
+    }.take(MAX_SMART_OUTLINE_ENTRIES)
 }
 
 /**
@@ -701,10 +971,8 @@ internal fun looksLikeTableOfContentsRow(chunk: String): Boolean {
         .firstOrNull { it.isNotBlank() }
         .orEmpty()
     if (line.isBlank()) return false
-    if (Regex("^[.\\s\\u00b7\\u2022]+$").matches(line)) return true
-    return Regex("(?:\\.\\s*){2,}\\s*\\d{1,4}\\s*$").containsMatchIn(line) ||
-        Regex("\\s{3,}\\d{1,4}\\s*$").containsMatchIn(line) ||
-        Regex("(?:\\.\\s*){3,}").containsMatchIn(line)
+    if (ALL_DOTS_REGEX.matches(line)) return true
+    return ReaderTextIndex.looksLikeTableOfContentsRow(line)
 }
 
 /**
@@ -717,28 +985,34 @@ internal fun looksLikeTableOfContentsRow(chunk: String): Boolean {
 internal fun locateOutlineTarget(chunks: List<String>, title: String, from: Int = 0): Int? {
     val needle = normalizeOutlineNeedle(title)
     if (needle.length < 4) return null
+    val firstWord = needle.split(' ').firstOrNull { it.length >= 3 }
     for (index in from..chunks.lastIndex) {
-        if (normalizeOutlineNeedle(chunks[index].take(600)).contains(needle)) return index
+        val chunk = chunks[index]
+        if (firstWord != null && !chunk.contains(firstWord, ignoreCase = true)) continue
+        if (normalizeOutlineNeedle(chunk.take(600)).contains(needle)) return index
     }
     val compact = needle.split(' ').take(6).joinToString(" ")
     if (compact.length >= 8) {
+        val compactFirstWord = compact.split(' ').firstOrNull { it.length >= 3 }
         for (index in from..chunks.lastIndex) {
-            if (normalizeOutlineNeedle(chunks[index].take(600)).contains(compact)) return index
+            val chunk = chunks[index]
+            if (compactFirstWord != null && !chunk.contains(compactFirstWord, ignoreCase = true)) continue
+            if (normalizeOutlineNeedle(chunk.take(600)).contains(compact)) return index
         }
     }
     return null
 }
 internal fun normalizeOutlineNeedle(value: String): String {
     return value
-        .replace(Regex("^\\d+(\\.\\d+)*\\s+"), "")
-        .replace(Regex("[^A-Za-z0-9 ]+"), " ")
-        .replace(Regex("\\s+"), " ")
+        .replace(LEADING_DIGITS_REGEX, "")
+        .replace(NON_ALPHANUM_REGEX, " ")
+        .replace(WHITESPACE_REGEX, " ")
         .trim()
         .lowercase(Locale.getDefault())
 }
 
 internal fun outlineTitle(source: String, index: Int): String {
-    val clean = source.replace(Regex("\\s+"), " ").trim()
+    val clean = source.replace(WHITESPACE_REGEX, " ").trim()
     if (clean.isBlank()) return "Sentence ${index + 1}"
 
     val sentenceEnd = clean.indexOfAny(charArrayOf('.', '!', '?'))
@@ -747,31 +1021,22 @@ internal fun outlineTitle(source: String, index: Int): String {
 }
 
 internal fun looksLikeOutlineHeading(firstLine: String): Boolean {
-    val clean = firstLine.trim().trim(':', '-', '•', '#')
-    if (clean.length !in 3..120) return false
+    val trimmed = firstLine.trim()
+    if (trimmed.startsWith("#")) return true
 
-    val words = clean.split(Regex("\\s+")).filter { word -> word.any { it.isLetter() } }
+    val clean = trimmed.trim(':', '-', '•', '#').trim()
+    val isNumeralCandidate = isPureNumeral(clean)
+    if (!isNumeralCandidate && clean.length !in 3..120) return false
+    if (clean.length > 120) return false
 
-    val headingKeyword = Regex(
-        pattern = "^(chapter|section|part|unit|lesson|module|book|article|introduction|conclusion|summary|abstract|contents|references|appendix|glossary|index|foreword|preface|prologue|epilogue|bibliography|afterword|notes|citations|sources)\\b",
-        option = RegexOption.IGNORE_CASE
-    ).containsMatchIn(clean)
+    val words = clean.split(WHITESPACE_REGEX).filter { word -> word.any { it.isLetter() } }
 
-    // "1.2 Methods" or "IV. The Sign of the Four". The roman-numeral branch is
-    // deliberately case-SENSITIVE and refuses a bare "I": matching it case-insensitively
-    // made every sentence beginning "I " a heading — along with any opening on did,
-    // mix, civil or mild — which filled the outline of a novel with narration.
-    val arabicHeading = Regex("^\\d+(\\.\\d+)*[.)\\s:-]+").containsMatchIn(clean)
-    val romanHeading = Regex("^(?!I\\b)[IVXLCDM]{1,7}[.)\\s:-]+").containsMatchIn(clean)
-    val numberedHeading = arabicHeading || romanHeading
+    val headingKeyword = HEADING_KEYWORD_REGEX.containsMatchIn(clean)
+    val arabicHeading = ARABIC_HEADING_REGEX.containsMatchIn(clean)
+    val romanHeading = ROMAN_HEADING_REGEX.containsMatchIn(clean)
+    val numberedHeading = arabicHeading || romanHeading || isNumeralCandidate
 
-    // Anchored to the start of the line. These are ordinary English words — "case",
-    // "step", "result", "goal" — so matching them anywhere marked any sentence that
-    // happened to contain one as a heading.
-    val landmarkKeyword = Regex(
-        pattern = "^(Task|Requirement|Exercise|Solution|Example|Definition|Theorem|Lemma|Proof|Corollary|Proposition|Remark|Case|Scenario|Feature|Instruction|Step|Goal|Outcome|Impact|Conclusion|Recommendation|Background|Methodology|Result|Discussion|Future Work)\\b",
-        option = RegexOption.IGNORE_CASE
-    ).containsMatchIn(clean)
+    val landmarkKeyword = LANDMARK_KEYWORD_REGEX.containsMatchIn(clean)
 
     val titleCaseWords =
         words.count { word -> word.firstOrNull { it.isLetter() }?.isUpperCase() == true }
@@ -784,16 +1049,17 @@ internal fun looksLikeOutlineHeading(firstLine: String): Boolean {
     // A heading is a label, not a sentence. Sentence-like punctuation disqualifies the
     // weaker signals even when a keyword matched.
     val sentenceLike = clean.length > 90 || clean.count { it == ',' } > 1 ||
-        Regex("[.!?]\\s+\\p{Lu}").containsMatchIn(clean)
+        SENTENCE_LIKE_REGEX.containsMatchIn(clean)
     if (sentenceLike) return false
 
-    // A bare page number off a running header is not a heading.
-    if (clean.none { it.isLetter() }) return false
+    // A bare page number off a running header is not a heading (unless it is a candidate numeral evaluated in sequence)
+    if (!isNumeralCandidate && clean.none { it.isLetter() }) return false
 
     // Neither is a one-word fragment such as the "CHAPT" left behind when a running
     // header is split mid-word. Real one-word headings ("Introduction", "Appendix")
-    // come through the keyword rules instead.
-    if (words.size < 2 && !headingKeyword && !landmarkKeyword) return false
+    // come through the keyword rules instead. Numbered headings ("1. Introduction")
+    // are also valid with a single following word.
+    if (words.size < 2 && !headingKeyword && !landmarkKeyword && !numberedHeading) return false
 
     return headingKeyword || numberedHeading || landmarkKeyword ||
         ((mostlyTitleCase || allCaps) && compactHeading)

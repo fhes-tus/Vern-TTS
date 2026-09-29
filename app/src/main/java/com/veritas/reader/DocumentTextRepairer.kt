@@ -5,10 +5,28 @@ package com.veritas.reader
  * (where ordinary words in paragraphs were wrapped with '|' pipe symbols).
  */
 object DocumentTextRepairer {
+    private val WHITESPACE_REGEX = Regex("""\s+""")
+
+    private val TABLE_DIVIDER_REGEX = Regex("""^\|(?:\s*:?---+:?\s*\|)+$""")
+
+    fun isTableDividerLine(line: String): Boolean = line.trim().matches(TABLE_DIVIDER_REGEX)
+
+    private fun isPipeTableLine(line: String): Boolean {
+        val trimmed = line.trim()
+        return trimmed.startsWith("|") && trimmed.endsWith("|") && trimmed.length > 2 && !isTableDividerLine(trimmed)
+    }
+
+    private fun StringBuilder.lastNonWhitespaceChar(): Char? {
+        for (i in length - 1 downTo 0) {
+            val c = this[i]
+            if (!c.isWhitespace()) return c
+        }
+        return null
+    }
 
     fun isPseudoTableLine(line: String): Boolean {
         val trimmed = line.trim()
-        if (!trimmed.contains("|") || trimmed.contains("---")) return false
+        if (!trimmed.contains("|") || isTableDividerLine(trimmed)) return false
         val segments = trimmed.split("|").map { it.trim() }.filter { it.isNotEmpty() }
         if (segments.isEmpty()) return false
 
@@ -22,7 +40,7 @@ object DocumentTextRepairer {
 
         // Trailing/leading pipe on short 1-2 word fragments (e.g. "sidewalk | as |", "moments |", "the |")
         if (trimmed.startsWith("|") || trimmed.endsWith("|")) {
-            if (segments.size in 1..2 && segments.all { it.split(Regex("""\s+""")).size <= 2 }) {
+            if (segments.size in 1..2 && segments.all { !it.contains(" ") || it.split(WHITESPACE_REGEX).size <= 2 }) {
                 return true
             }
         }
@@ -32,20 +50,19 @@ object DocumentTextRepairer {
     fun repairPseudoTables(rawText: String): String {
         if (!rawText.contains("|")) return rawText
 
-        val rawLines = rawText.replace("\r\n", "\n").replace('\r', '\n').split('\n')
-        
-        // Fast check: does the text actually contain any pseudo-table lines?
-        var hasPseudoTable = false
-        for (line in rawLines) {
-            if (isPseudoTableLine(line)) {
-                hasPseudoTable = true
-                break
-            }
+        // Fast streaming check: does the text actually contain any pseudo-table lines or divider lines?
+        val hasRepairsNeeded = rawText.lineSequence().any {
+            val trimmed = it.trim()
+            isPseudoTableLine(trimmed) || isTableDividerLine(trimmed)
         }
-        if (!hasPseudoTable) return rawText
+        if (!hasRepairsNeeded) return rawText
 
+        val rawLines = rawText.lines()
+        val pseudoIndices = rawLines.indices.filter { isPseudoTableLine(rawLines[it]) }.toSet()
         val repairedLines = mutableListOf<String>()
-        for (line in rawLines) {
+
+        for (idx in rawLines.indices) {
+            val line = rawLines[idx]
             val trimmed = line.trim()
             if (isPseudoTableLine(trimmed)) {
                 val segments = trimmed.split("|").map { it.trim() }.filter { it.isNotEmpty() }
@@ -53,6 +70,14 @@ object DocumentTextRepairer {
                 if (cleanLine.isNotBlank()) {
                     repairedLines.add(cleanLine)
                 }
+            } else if (isTableDividerLine(trimmed)) {
+                // If it is adjacent to a repaired pseudo-table line or not between two valid pipe table lines, discard it!
+                val prevValid = idx > 0 && isPipeTableLine(rawLines[idx - 1]) && (idx - 1) !in pseudoIndices
+                val nextValid = idx < rawLines.lastIndex && isPipeTableLine(rawLines[idx + 1]) && (idx + 1) !in pseudoIndices
+                if (prevValid && nextValid) {
+                    repairedLines.add(line)
+                }
+                // Otherwise this is an orphaned separator inside prose - drop it.
             } else {
                 repairedLines.add(line)
             }
@@ -65,8 +90,7 @@ object DocumentTextRepairer {
             val line = repairedLines[i].trim()
             if (line.isBlank()) {
                 // If previous line did not finish a sentence, do not start a new paragraph
-                val prevTrimmed = output.trimEnd()
-                val prevChar = prevTrimmed.lastOrNull()
+                val prevChar = output.lastNonWhitespaceChar()
                 val isPrevTerminal = prevChar in listOf('.', '!', '?', ':', '"', '”')
                 if (isPrevTerminal) {
                     if (output.isNotEmpty() && !output.endsWith("\n\n")) {
@@ -90,8 +114,7 @@ object DocumentTextRepairer {
             if (output.isEmpty() || output.endsWith("\n\n")) {
                 output.append(line)
             } else {
-                val prevTrimmed = output.trimEnd()
-                val prevChar = prevTrimmed.lastOrNull()
+                val prevChar = output.lastNonWhitespaceChar()
                 val isPrevTerminal = prevChar in listOf('.', '!', '?', ':', '"', '”')
 
                 if (isPrevTerminal) {

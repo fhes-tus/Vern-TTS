@@ -1,9 +1,6 @@
 package com.veritas.reader
 
-import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserFactory
 import java.io.ByteArrayInputStream
-import java.io.StringReader
 import java.util.Locale
 import java.util.zip.ZipInputStream
 
@@ -104,14 +101,8 @@ object DocxDocumentParser {
 
             when (tagName) {
                 "p" -> {
-                    val (blockType, text) = parseParagraphElement(element)
-                    if (text.isNotBlank()) {
-                        when (blockType) {
-                            is BlockType.Heading -> blocks.add(DocxBlock.Heading(blockType.level, text))
-                            is BlockType.Bullet -> blocks.add(DocxBlock.Bullet(blockType.level, text))
-                            is BlockType.Normal -> blocks.add(DocxBlock.Paragraph(text))
-                        }
-                    }
+                    val paragraphBlocks = parseParagraphElement(element)
+                    blocks.addAll(paragraphBlocks)
 
                     // Check for inline images inside paragraph
                     val imageBlocks = extractInlineImages(element, relsMap, mediaMap)
@@ -157,29 +148,87 @@ object DocxDocumentParser {
         return images
     }
 
-    private sealed class BlockType {
-        data class Heading(val level: Int) : BlockType()
-        data class Bullet(val level: Int) : BlockType()
-        object Normal : BlockType()
+    private data class DocxRun(val text: String, val isBold: Boolean)
+
+    private fun extractRuns(element: org.w3c.dom.Element): List<DocxRun> {
+        val runs = mutableListOf<DocxRun>()
+        val childNodes = element.childNodes
+        for (i in 0 until childNodes.length) {
+            val child = childNodes.item(i)
+            if (child.nodeType != org.w3c.dom.Node.ELEMENT_NODE) continue
+            val el = child as org.w3c.dom.Element
+            val localName = el.tagName.substringAfter(':').lowercase(Locale.getDefault())
+            when (localName) {
+                "ppr", "tcpr", "tblpr" -> continue
+                "r" -> {
+                    val isBold = isRunBold(el)
+                    val text = extractRunText(el)
+                    if (text.isNotEmpty()) {
+                        runs.add(DocxRun(text, isBold))
+                    }
+                }
+                "t" -> {
+                    val text = el.textContent.orEmpty()
+                    if (text.isNotEmpty()) runs.add(DocxRun(text, false))
+                }
+                "tab", "ptab" -> runs.add(DocxRun("\t", false))
+                "br", "cr" -> runs.add(DocxRun("\n", false))
+                else -> runs.addAll(extractRuns(el))
+            }
+        }
+        return runs
     }
 
-    private fun parseParagraphElement(p: org.w3c.dom.Element): Pair<BlockType, String> {
-        var blockType: BlockType = BlockType.Normal
+    private fun isRunBold(r: org.w3c.dom.Element): Boolean {
+        val rPrList = r.getElementsByTagName("w:rPr")
+        if (rPrList.length == 0) return false
+        val rPr = rPrList.item(0) as org.w3c.dom.Element
+        val bList = rPr.getElementsByTagName("w:b")
+        if (bList.length == 0) return false
+        val b = bList.item(0) as org.w3c.dom.Element
+        val bVal = b.getAttribute("w:val").ifBlank { b.getAttribute("val") }
+        return bVal.isEmpty() || bVal == "true" || bVal == "1" || bVal == "on"
+    }
+
+    private fun extractRunText(r: org.w3c.dom.Element): String {
+        val sb = StringBuilder()
+        val childNodes = r.childNodes
+        for (i in 0 until childNodes.length) {
+            val child = childNodes.item(i)
+            if (child.nodeType != org.w3c.dom.Node.ELEMENT_NODE) continue
+            val el = child as org.w3c.dom.Element
+            val localName = el.tagName.substringAfter(':').lowercase(Locale.getDefault())
+            when (localName) {
+                "t" -> sb.append(el.textContent.orEmpty())
+                "tab", "ptab" -> sb.append('\t')
+                "br", "cr" -> sb.append('\n')
+            }
+        }
+        return sb.toString()
+    }
+
+    private fun parseParagraphElement(p: org.w3c.dom.Element): List<DocxBlock> {
+        var headingLevel: Int? = null
+        var isToc = false
+        var bulletLevel: Int? = null
+
         val pPrList = p.getElementsByTagName("w:pPr")
         if (pPrList.length > 0) {
             val pPr = pPrList.item(0) as org.w3c.dom.Element
             val pStyleList = pPr.getElementsByTagName("w:pStyle")
             if (pStyleList.length > 0) {
                 val pStyle = pStyleList.item(0) as org.w3c.dom.Element
-                val styleVal = pStyle.getAttribute("w:val").lowercase(Locale.getDefault())
-                if (styleVal.startsWith("heading1") || styleVal == "1" || styleVal == "title") {
-                    blockType = BlockType.Heading(1)
-                } else if (styleVal.startsWith("heading2") || styleVal == "2" || styleVal == "subtitle") {
-                    blockType = BlockType.Heading(2)
-                } else if (styleVal.startsWith("heading3") || styleVal == "3") {
-                    blockType = BlockType.Heading(3)
-                } else if (styleVal.contains("list") || styleVal.contains("bullet")) {
-                    blockType = BlockType.Bullet(0)
+                val rawVal = pStyle.getAttribute("w:val").ifBlank { pStyle.getAttribute("val") }
+                val styleVal = rawVal.lowercase(Locale.getDefault()).replace(" ", "").replace("_", "").replace("-", "")
+
+                when {
+                    styleVal.startsWith("heading1") || styleVal == "1" || styleVal == "title" -> headingLevel = 1
+                    styleVal.startsWith("heading2") || styleVal == "2" || styleVal == "subtitle" -> headingLevel = 2
+                    styleVal.startsWith("heading3") || styleVal == "3" -> headingLevel = 3
+                    styleVal.startsWith("heading4") || styleVal == "4" -> headingLevel = 4
+                    styleVal.startsWith("heading5") || styleVal == "5" -> headingLevel = 5
+                    styleVal.startsWith("toc") -> isToc = true
+                    styleVal.contains("list") || styleVal.contains("bullet") -> bulletLevel = 0
                 }
             }
 
@@ -188,18 +237,77 @@ object DocxDocumentParser {
                 val numPr = numPrList.item(0) as org.w3c.dom.Element
                 val ilvlNode = numPr.getElementsByTagName("w:ilvl").item(0)
                 val ilvl = if (ilvlNode != null) (ilvlNode as org.w3c.dom.Element).getAttribute("w:val").toIntOrNull() ?: 0 else 0
-                blockType = BlockType.Bullet(ilvl)
+                if (headingLevel == null && !isToc) {
+                    bulletLevel = ilvl
+                }
             }
         }
 
-        val textSb = StringBuilder()
-        val tList = p.getElementsByTagName("w:t")
-        for (i in 0 until tList.length) {
-            val t = tList.item(i)
-            textSb.append(t.textContent.orEmpty())
+        val runs = extractRuns(p)
+        val fullText = runs.joinToString("") { it.text }.trim()
+        if (fullText.isBlank()) return emptyList()
+
+        if (headingLevel != null) {
+            return listOf(DocxBlock.Heading(headingLevel, fullText))
+        }
+        if (bulletLevel != null) {
+            return listOf(DocxBlock.Bullet(bulletLevel, fullText))
         }
 
-        return blockType to textSb.toString().trim()
+        // Check if paragraph is a TOC entry (either by style or by trailing tab/dot-leaders + page number)
+        val tocMatch = Regex("""^(.{3,140}?)(?:(?:\s*[\.\-_·•…]\s*){2,}|\s{3,}|\t+)\s*(\d{1,5})$""").matchEntire(fullText)
+        if (isToc || tocMatch != null) {
+            val formatted = if (tocMatch != null) {
+                val title = tocMatch.groupValues[1].trim()
+                val page = tocMatch.groupValues[2].trim()
+                "$title ...... $page"
+            } else {
+                fullText
+            }
+            return listOf(DocxBlock.Paragraph(formatted))
+        }
+
+        // Check for run-in subheadings (e.g. bold heading at start of paragraph followed by prose)
+        if (runs.size >= 2) {
+            val firstRun = runs.first()
+            val firstRunTrimmed = firstRun.text.trim()
+            if (firstRun.isBold && firstRunTrimmed.length in 3..70) {
+                val isDottedHeading = Regex("""^\d+(\.\d+){1,4}\s+[A-Za-z].*""").matches(firstRunTrimmed)
+                val isTitleCaseHeading = isDottedHeading || (firstRunTrimmed.length in 4..50 && !firstRunTrimmed.endsWith('.') && runs.drop(1).none { it.isBold })
+                if (isTitleCaseHeading) {
+                    val dotCount = if (isDottedHeading) firstRunTrimmed.substringBefore(' ').count { it == '.' } else 1
+                    val level = (dotCount + 1).coerceIn(1, 4)
+                    val remainingText = runs.drop(1).joinToString("") { it.text }.trim()
+                    if (remainingText.isNotBlank()) {
+                        return listOf(
+                            DocxBlock.Heading(level, firstRunTrimmed),
+                            DocxBlock.Paragraph(remainingText)
+                        )
+                    } else {
+                        return listOf(DocxBlock.Heading(level, firstRunTrimmed))
+                    }
+                }
+            }
+        }
+
+        // Fallback check for plain-text run-in numbered headings: e.g. "1.2.1 General Objectives The primary..."
+        val plainRunIn = Regex("""^(\d+(?:\.\d+){1,4}\s+[A-Z][A-Za-z0-9\s,\-'\"]{2,60}?)(?:(?:\.|\:)\s+|\s{2,}|\t|\n)(.*)$""", RegexOption.DOT_MATCHES_ALL).matchEntire(fullText)
+        if (plainRunIn != null) {
+            val headingPart = plainRunIn.groupValues[1].trim()
+            val bodyPart = plainRunIn.groupValues[2].trim()
+            val dotCount = headingPart.substringBefore(' ').count { it == '.' }
+            val level = (dotCount + 1).coerceIn(1, 4)
+            if (bodyPart.isNotBlank()) {
+                return listOf(
+                    DocxBlock.Heading(level, headingPart),
+                    DocxBlock.Paragraph(bodyPart)
+                )
+            } else {
+                return listOf(DocxBlock.Heading(level, headingPart))
+            }
+        }
+
+        return listOf(DocxBlock.Paragraph(fullText))
     }
 
     private fun parseTableElement(tbl: org.w3c.dom.Element): DocxBlock.Table {
@@ -211,14 +319,14 @@ object DocxDocumentParser {
             val tcList = tr.getElementsByTagName("w:tc")
             for (c in 0 until tcList.length) {
                 val tc = tcList.item(c) as org.w3c.dom.Element
-                val tList = tc.getElementsByTagName("w:t")
-                val cellSb = StringBuilder()
-                for (t in 0 until tList.length) {
-                    cellSb.append(tList.item(t).textContent.orEmpty())
-                }
-                cells.add(cellSb.toString().trim())
+                val runs = extractRuns(tc)
+                val cellText = runs.joinToString("") { it.text }
+                    .replace("\r\n", " ")
+                    .replace('\n', ' ')
+                    .trim()
+                cells.add(cellText)
             }
-            if (cells.isNotEmpty()) {
+            if (cells.any { it.isNotBlank() }) {
                 rows.add(cells)
             }
         }

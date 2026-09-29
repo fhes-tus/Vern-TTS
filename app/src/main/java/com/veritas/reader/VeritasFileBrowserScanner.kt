@@ -76,7 +76,8 @@ data class VeritasBrowserFile(
     val type: VeritasBrowserTab = VeritasBrowserTab.ALL,
     val isDirectory: Boolean = false,
     val isSupported: Boolean = true,
-    val targetLocation: VeritasBrowserLocation? = null
+    val targetLocation: VeritasBrowserLocation? = null,
+    val filePath: String? = null
 )
 
 data class VeritasFileBrowserScanResult(
@@ -172,16 +173,28 @@ object VeritasFileBrowserScanner {
      * be reached at all.
      */
     private fun storageVolumeRoots(context: Context): List<File> {
-        val roots = LinkedHashSet<File>()
-        runCatching { Environment.getExternalStorageDirectory() }.getOrNull()?.let { roots.add(it) }
+        val seen = LinkedHashSet<String>()
+        val roots = mutableListOf<File>()
+
+        fun addRoot(dir: File?) {
+            if (dir == null) return
+            val canonical = runCatching { dir.canonicalFile }.getOrDefault(dir)
+            if (canonical.exists() && canonical.isDirectory && canonical.canRead()) {
+                if (seen.add(canonical.absolutePath.lowercase(Locale.ROOT))) {
+                    roots.add(canonical)
+                }
+            }
+        }
+
+        runCatching { Environment.getExternalStorageDirectory() }.getOrNull()?.let { addRoot(it) }
         runCatching {
             context.getExternalFilesDirs(null).filterNotNull().forEach { dir ->
                 var candidate: File? = dir
                 repeat(4) { candidate = candidate?.parentFile }
-                candidate?.takeIf { it.exists() && it.isDirectory && it.canRead() }?.let { roots.add(it) }
+                addRoot(candidate)
             }
         }
-        return roots.toList()
+        return roots.ifEmpty { listOf(Environment.getExternalStorageDirectory()) }
     }
 
     /**
@@ -203,14 +216,21 @@ object VeritasFileBrowserScanner {
             MediaStore.Files.FileColumns.MIME_TYPE,
             MediaStore.Files.FileColumns.SIZE,
             MediaStore.Files.FileColumns.DATE_MODIFIED,
-            MediaStore.Files.FileColumns.RELATIVE_PATH
+            MediaStore.Files.FileColumns.RELATIVE_PATH,
+            MediaStore.Files.FileColumns.DATA
         )
-        val results = mutableListOf<VeritasBrowserFile>()
+        val docResults = mutableListOf<VeritasBrowserFile>()
+        val imageResults = mutableListOf<VeritasBrowserFile>()
         val seen = HashSet<String>()
-        // Every mounted volume, not just the built-in one.
-        val volumes = runCatching { MediaStore.getExternalVolumeNames(context) }
+        // Every mounted volume, collapsing external aggregate if present
+        val rawVolumes = runCatching { MediaStore.getExternalVolumeNames(context) }
             .getOrDefault(setOf(MediaStore.VOLUME_EXTERNAL))
             .ifEmpty { setOf(MediaStore.VOLUME_EXTERNAL) }
+        val volumes = if (rawVolumes.contains(MediaStore.VOLUME_EXTERNAL)) {
+            setOf(MediaStore.VOLUME_EXTERNAL)
+        } else {
+            rawVolumes
+        }
         volumes.forEach { volume ->
             val uri = runCatching { MediaStore.Files.getContentUri(volume) }.getOrNull() ?: return@forEach
             runCatching {
@@ -224,34 +244,67 @@ object VeritasFileBrowserScanner {
                     val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)
                     val dateCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATE_MODIFIED)
                     val pathCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.RELATIVE_PATH)
+                    val dataCol = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA)
                     while (cursor.moveToNext()) {
                         val name = cursor.getString(nameCol) ?: continue
                         val mime = cursor.getString(mimeCol).orEmpty()
                         val type = fileTypeFor(name, mime) ?: continue
                         val relative = cursor.getString(pathCol).orEmpty().trimEnd('/')
-                        if (!seen.add("$relative/$name")) continue
-                        results.add(
-                            VeritasBrowserFile(
-                                uri = ContentUris.withAppendedId(uri, cursor.getLong(idCol)),
-                                name = name,
-                                mimeType = mime.ifBlank { mimeTypeForFileName(name) },
-                                sizeBytes = cursor.getLong(sizeCol),
-                                // MediaStore stores seconds; the rest of the browser uses millis.
-                                modifiedAt = cursor.getLong(dateCol) * 1000L,
-                                rootLabel = "On this phone",
-                                relativePath = relative,
-                                type = type,
-                                isDirectory = false,
-                                isSupported = true
-                            )
+                        val dataPath = if (dataCol >= 0 && !cursor.isNull(dataCol)) cursor.getString(dataCol) else null
+                        val diskFile = dataPath?.let(::File)
+
+                        // If the path points to a file that doesn't exist on disk, skip stale MediaStore records
+                        if (diskFile != null && !diskFile.exists()) continue
+
+                        val fileUri = if (diskFile != null && diskFile.exists()) {
+                            Uri.fromFile(diskFile)
+                        } else {
+                            ContentUris.withAppendedId(uri, cursor.getLong(idCol))
+                        }
+
+                        val fullRelative = if (relative.isNotBlank()) {
+                            if (relative.endsWith(name, ignoreCase = true)) relative else "$relative/$name"
+                        } else {
+                            name
+                        }
+
+                        val dedupKey = diskFile?.canonicalPath?.lowercase(Locale.ROOT)
+                            ?: "${fullRelative.lowercase(Locale.ROOT)}/$name"
+                        if (!seen.add(dedupKey)) continue
+
+                        val browserFile = VeritasBrowserFile(
+                            uri = fileUri,
+                            name = name,
+                            mimeType = mime.ifBlank { mimeTypeForFileName(name) },
+                            sizeBytes = cursor.getLong(sizeCol).takeIf { it > 0L } ?: (diskFile?.length() ?: 0L),
+                            // MediaStore stores seconds; the rest of the browser uses millis.
+                            modifiedAt = cursor.getLong(dateCol) * 1000L,
+                            rootLabel = "Phone storage",
+                            relativePath = fullRelative,
+                            type = type,
+                            isDirectory = false,
+                            isSupported = true,
+                            filePath = diskFile?.absolutePath
                         )
+                        if (type == VeritasBrowserTab.OCR) {
+                            if (imageResults.size < MAX_IMAGE_RESULTS) {
+                                imageResults.add(browserFile)
+                            }
+                        } else {
+                            if (docResults.size < MAX_DOCUMENT_RESULTS) {
+                                docResults.add(browserFile)
+                            }
+                        }
+                        if (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS) {
+                            break
+                        }
                     }
                 }
             }.onFailure { e ->
                 diagnostics.add("Could not index $volume: ${e.message ?: "unavailable"}.")
             }
         }
-        return results
+        return docResults + imageResults
     }
 
     private fun listFileDirectory(
@@ -264,6 +317,7 @@ object VeritasFileBrowserScanner {
         val current = location.filePath?.let(::File) ?: storageRoot
         val safeCurrent =
             if (volumeRoots.any { current.absolutePath.startsWith(it.absolutePath) }) current else storageRoot
+        val effectiveVolumeRoot = volumeRoots.firstOrNull { safeCurrent.absolutePath.startsWith(it.absolutePath) } ?: storageRoot
         if (!safeCurrent.exists()) {
             diagnostics.add("${location.label} no longer exists.")
             return emptyList()
@@ -277,85 +331,68 @@ object VeritasFileBrowserScanner {
             diagnostics.add("Android protects this folder. Shared storage can be browsed, but private system/app folders may remain unavailable.")
         }
         val atVolumeRoot = volumeRoots.any { it.absolutePath == safeCurrent.absolutePath }
-        val currentEntries = children.sortedWith(compareBy<File> { !it.isDirectory }.thenBy {
-            it.name.lowercase(Locale.getDefault())
-        })
+        
+        // Navigation folder entries for the current folder (excluding hidden folders)
+        val folderEntries = children
+            .filter { it.isDirectory && it.name != "." && it.name != ".." && !it.name.startsWith(".") }
+            .sortedBy { it.name.lowercase(Locale.ROOT) }
             .mapNotNull { child ->
-                val nameLower = child.name.lowercase(Locale.US)
-                // Dot-prefixed entries were skipped wholesale, which hid documents parked in
-                // folders like .Documents or app caches. Only the navigation aliases are dropped.
-                if (child.name == "." || child.name == "..") return@mapNotNull null
-                if (!child.isDirectory) {
-                    val isBinaryOrSystem = nameLower.endsWith(".bin") ||
-                            nameLower.endsWith(".apk") ||
-                            nameLower.endsWith(".exe") ||
-                            nameLower.endsWith(".so") ||
-                            nameLower.endsWith(".class") ||
-                            nameLower.endsWith(".dex") ||
-                            nameLower.endsWith(".tmp") ||
-                            nameLower.endsWith(".temp") ||
-                            nameLower.endsWith(".db") ||
-                            nameLower.endsWith(".sqlite") ||
-                            nameLower.endsWith(".sys") ||
-                            nameLower.endsWith(".dll") ||
-                            nameLower.endsWith(".log") ||
-                            nameLower.endsWith(".dat")
-                    if (isBinaryOrSystem) return@mapNotNull null
-                }
                 val relativePath =
-                    child.relativeToOrSelf(storageRoot).path.replace(File.separatorChar, '/')
-                if (child.isDirectory) {
-                    VeritasBrowserFile(
-                        uri = Uri.fromFile(child),
-                        name = child.name.ifBlank { "Folder" },
-                        mimeType = DocumentsContract.Document.MIME_TYPE_DIR,
-                        sizeBytes = 0L,
-                        modifiedAt = child.lastModified(),
-                        rootLabel = location.rootLabel,
-                        relativePath = relativePath,
-                        isDirectory = true,
-                        isSupported = child.canRead(),
-                        targetLocation = if (child.canRead()) {
-                            VeritasBrowserLocation(
-                                rootLabel = location.rootLabel,
-                                relativePath = relativePath,
-                                filePath = child.absolutePath
-                            )
-                        } else {
-                            null
-                        }
-                    )
-                } else {
-                    val type = fileTypeFor(child.name, "")
-                    VeritasBrowserFile(
-                        uri = Uri.fromFile(child),
-                        name = child.name.ifBlank { "Untitled file" },
-                        mimeType = mimeTypeForFileName(child.name),
-                        sizeBytes = child.length(),
-                        modifiedAt = child.lastModified(),
-                        rootLabel = location.rootLabel,
-                        relativePath = relativePath,
-                        type = type ?: VeritasBrowserTab.ALL,
-                        isSupported = type != null
-                    )
-                }
+                    child.relativeToOrSelf(effectiveVolumeRoot).path.replace(File.separatorChar, '/')
+                VeritasBrowserFile(
+                    uri = Uri.fromFile(child),
+                    name = child.name.ifBlank { "Folder" },
+                    mimeType = DocumentsContract.Document.MIME_TYPE_DIR,
+                    sizeBytes = 0L,
+                    modifiedAt = child.lastModified(),
+                    rootLabel = location.rootLabel,
+                    relativePath = relativePath,
+                    isDirectory = true,
+                    isSupported = child.canRead(),
+                    filePath = child.absolutePath,
+                    targetLocation = if (child.canRead()) {
+                        VeritasBrowserLocation(
+                            rootLabel = location.rootLabel,
+                            relativePath = relativePath,
+                            filePath = child.absolutePath
+                        )
+                    } else {
+                        null
+                    }
+                )
             }
-        if (atVolumeRoot) {
-            // MediaStore first: it already indexes every volume with no depth limit, so it
-            // reaches things the walk below cannot, and does it in one query. The walk still
-            // runs afterwards to pick up anything the index misses (.nomedia folders, files
-            // written without notifying the media scanner).
-            val indexed = queryDeviceWideFiles(context, diagnostics)
-            val documentEntries = indexed + collectSupportedDocumentFiles(
-                storageRoot = safeCurrent,
-                current = safeCurrent,
-                diagnostics = diagnostics
-            )
-            return (documentEntries + currentEntries)
-                .distinctBy { it.uri.toString() }
-                .sortedWith(compareBy<VeritasBrowserFile> { it.isDirectory }.thenByDescending { it.modifiedAt })
+
+        val docResults = mutableListOf<VeritasBrowserFile>()
+        val imageResults = mutableListOf<VeritasBrowserFile>()
+
+        // Always scan up to 10 levels deep from safeCurrent down through all subfolders!
+        // At volume root, this traverses the whole device up to 10 levels deep.
+        // Inside a subfolder (e.g. Download), it traverses all subfolders of that folder.
+        collectSupportedDocumentFiles(
+            storageRoot = effectiveVolumeRoot,
+            current = safeCurrent,
+            diagnostics = diagnostics,
+            depth = 0,
+            docResults = docResults,
+            imageResults = imageResults
+        )
+
+        // Supplement with MediaStore results when at storage root to catch any indexed external files
+        val mediaStoreResults = if (atVolumeRoot) {
+            queryDeviceWideFiles(context, diagnostics)
+        } else {
+            emptyList()
         }
-        return currentEntries
+
+        // Deduplicate everything so every file and folder appears exactly once!
+        // Direct disk results come before MediaStore results to ensure real file paths are preserved.
+        val allEntries = folderEntries + docResults + mediaStoreResults + imageResults
+        return deduplicateBrowserFiles(allEntries)
+            .sortedWith(
+                compareBy<VeritasBrowserFile> { !it.isDirectory }
+                    .thenBy { it.type == VeritasBrowserTab.OCR }
+                    .thenByDescending { it.modifiedAt }
+            )
     }
 
     private fun collectSupportedDocumentFiles(
@@ -363,55 +400,257 @@ object VeritasFileBrowserScanner {
         current: File,
         diagnostics: MutableList<String>,
         depth: Int = 0,
-        results: MutableList<VeritasBrowserFile> = mutableListOf()
+        docResults: MutableList<VeritasBrowserFile> = mutableListOf(),
+        imageResults: MutableList<VeritasBrowserFile> = mutableListOf()
     ): List<VeritasBrowserFile> {
-        if (depth > MAX_SCAN_DEPTH || results.size >= MAX_SCAN_RESULTS || shouldSkipRecursiveDirectory(
-                current,
-                storageRoot
-            )
-        ) return results
-        val children = runCatching { current.listFiles()?.toList().orEmpty() }.getOrElse { error ->
-            if (depth <= 1) diagnostics.add("Some protected folders could not be indexed: ${error.message ?: "access denied"}.")
-            emptyList()
-        }
-        children.forEach { child ->
-            if (results.size >= MAX_SCAN_RESULTS) return@forEach
+        if (depth > MAX_SCAN_DEPTH ||
+            (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS) ||
+            shouldSkipRecursiveDirectory(current, storageRoot)
+        ) return docResults + imageResults
+
+        val children = current.listFiles() ?: return docResults + imageResults
+        for (child in children) {
+            if (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS) break
             if (child.isDirectory) {
-                collectSupportedDocumentFiles(storageRoot, child, diagnostics, depth + 1, results)
+                collectSupportedDocumentFiles(storageRoot, child, diagnostics, depth + 1, docResults, imageResults)
             } else {
                 val type = fileTypeFor(child.name, "")
                 if (type != null) {
                     val relativePath =
                         child.relativeToOrSelf(storageRoot).path.replace(File.separatorChar, '/')
-                    results.add(
-                        VeritasBrowserFile(
-                            uri = Uri.fromFile(child),
-                            name = child.name.ifBlank { "Untitled file" },
-                            mimeType = mimeTypeForFileName(child.name),
-                            sizeBytes = child.length(),
-                            modifiedAt = child.lastModified(),
-                            rootLabel = "Phone storage",
-                            relativePath = relativePath,
-                            type = type,
-                            isSupported = true
-                        )
+                    val browserFile = VeritasBrowserFile(
+                        uri = Uri.fromFile(child),
+                        name = child.name.ifBlank { "Untitled file" },
+                        mimeType = mimeTypeForFileName(child.name),
+                        sizeBytes = child.length(),
+                        modifiedAt = child.lastModified(),
+                        rootLabel = "Phone storage",
+                        relativePath = relativePath,
+                        type = type,
+                        isSupported = true,
+                        filePath = child.absolutePath
+                    )
+                    if (type == VeritasBrowserTab.OCR) {
+                        if (imageResults.size < MAX_IMAGE_RESULTS) {
+                            imageResults.add(browserFile)
+                        }
+                    } else {
+                        if (docResults.size < MAX_DOCUMENT_RESULTS) {
+                            docResults.add(browserFile)
+                        }
+                    }
+                }
+            }
+        }
+        return docResults + imageResults
+    }
+
+    internal fun deduplicateBrowserFiles(files: List<VeritasBrowserFile>): List<VeritasBrowserFile> {
+        return deduplicateFiles(
+            items = files,
+            isDirectory = { it.isDirectory },
+            filePath = { it.filePath },
+            uriString = { runCatching { it.uri.toString() }.getOrDefault("") },
+            name = { it.name },
+            sizeBytes = { it.sizeBytes },
+            relativePath = { it.relativePath },
+            targetLocationFilePath = { it.targetLocation?.filePath }
+        )
+    }
+
+    internal fun <T> deduplicateFiles(
+        items: List<T>,
+        isDirectory: (T) -> Boolean,
+        filePath: (T) -> String?,
+        uriString: (T) -> String,
+        name: (T) -> String,
+        sizeBytes: (T) -> Long,
+        relativePath: (T) -> String,
+        targetLocationFilePath: (T) -> String? = { null }
+    ): List<T> {
+        val seenDirectories = HashSet<String>()
+        val result = mutableListOf<T>()
+
+        val seenPaths = HashMap<String, Int>()
+        val seenNameFolders = HashMap<String, Int>()
+        val seenNameSizes = HashMap<String, Int>()
+        val seenUris = HashMap<String, Int>()
+        val folderForIndex = HashMap<Int, String>()
+
+        for (item in items) {
+            val isDir = isDirectory(item)
+            val path = filePath(item)
+            val uriStr = uriString(item)
+            val itemName = name(item)
+            val size = sizeBytes(item)
+
+            if (isDir) {
+                val dirTarget = targetLocationFilePath(item)
+                val rawDir = path ?: dirTarget ?: uriStr
+                val dirKey = "dir:" + runCatching { File(rawDir).canonicalPath.lowercase(Locale.ROOT) }
+                    .getOrDefault(rawDir.lowercase(Locale.ROOT))
+                if (seenDirectories.add(dirKey)) {
+                    result.add(item)
+                }
+                continue
+            }
+
+            val canonicalPath = when {
+                !path.isNullOrBlank() -> {
+                    runCatching { File(path).canonicalPath.lowercase(Locale.ROOT) }
+                        .getOrDefault(path.lowercase(Locale.ROOT))
+                }
+                uriStr.startsWith("file://", ignoreCase = true) -> {
+                    val p = uriStr.removePrefix("file://").substringBefore('?').substringBefore('#')
+                    runCatching { File(p).canonicalPath.lowercase(Locale.ROOT) }
+                        .getOrDefault(p.lowercase(Locale.ROOT))
+                }
+                else -> null
+            }
+
+            val normName = itemName.trim().lowercase(Locale.ROOT)
+            val rawRel = relativePath(item).replace('\\', '/').trim('/')
+            val parentFolder = when {
+                rawRel.endsWith(itemName, ignoreCase = true) -> {
+                    rawRel.dropLast(itemName.length).trim('/').lowercase(Locale.ROOT)
+                }
+                rawRel.isNotBlank() -> rawRel.lowercase(Locale.ROOT)
+                !canonicalPath.isNullOrBlank() -> File(canonicalPath).parentFile?.name?.lowercase(Locale.ROOT).orEmpty()
+                else -> ""
+            }
+
+            val pathKey = canonicalPath?.let { "path:$it" }
+            val uriKey = if (uriStr.isNotBlank()) "uri:$uriStr" else null
+            val nameFolderKey = if (parentFolder.isNotBlank()) "name_folder:$normName|$parentFolder" else null
+            val nameSizeKey = if (size > 0L) "name_size:$normName|$size" else null
+
+            // Check if this item is a duplicate of an already seen item:
+            // 1. Direct path match
+            // 2. Name + parent folder match (e.g. same filename in same folder)
+            // 3. Name + size match (if either item has an unknown/blank folder, or folders match)
+            // 4. URI match
+            val sizeMatchIndex = nameSizeKey?.let { seenNameSizes[it] }
+            val isCompatibleFolder = sizeMatchIndex != null && (
+                parentFolder.isBlank() ||
+                folderForIndex[sizeMatchIndex].isNullOrBlank() ||
+                folderForIndex[sizeMatchIndex] == parentFolder
+            )
+
+            val existingIndex = (pathKey?.let { seenPaths[it] })
+                ?: (nameFolderKey?.let { seenNameFolders[it] })
+                ?: (if (isCompatibleFolder) sizeMatchIndex else null)
+                ?: (uriKey?.let { seenUris[it] })
+
+            if (existingIndex == null) {
+                val newIndex = result.size
+                result.add(item)
+                pathKey?.let { seenPaths[it] = newIndex }
+                nameFolderKey?.let { seenNameFolders[it] = newIndex }
+                nameSizeKey?.let { seenNameSizes[it] = newIndex }
+                uriKey?.let { seenUris[it] = newIndex }
+                folderForIndex[newIndex] = parentFolder
+            } else {
+                // If the new item has a real direct file path while the existing one doesn't (e.g. disk scan vs MediaStore),
+                // replace the existing item with the richer disk item!
+                val existingItem = result[existingIndex]
+                val existingHasPath = !filePath(existingItem).isNullOrBlank()
+                val newHasPath = !path.isNullOrBlank()
+                if (!existingHasPath && newHasPath) {
+                    result[existingIndex] = item
+                    pathKey?.let { seenPaths[it] = existingIndex }
+                    nameFolderKey?.let { seenNameFolders[it] = existingIndex }
+                    nameSizeKey?.let { seenNameSizes[it] = existingIndex }
+                    uriKey?.let { seenUris[it] = existingIndex }
+                    folderForIndex[existingIndex] = parentFolder
+                }
+            }
+        }
+        return result
+    }
+
+    internal fun shouldSkipRecursiveDirectory(folder: File, storageRoot: File): Boolean {
+        val relative = folder.relativeToOrSelf(storageRoot).path.replace(File.separatorChar, '/')
+            .lowercase(Locale.ROOT)
+        if (relative.isBlank() || relative == ".") return false
+        val nameLower = folder.name.lowercase(Locale.ROOT)
+        if (nameLower.startsWith(".") && nameLower != ".documents") return true
+        if (nameLower == "thumbnails" || nameLower == ".thumbnails" || nameLower == "cache" || nameLower == ".cache") return true
+        if (nameLower == ".git" || nameLower == ".gradle" || nameLower == "node_modules" || nameLower == ".idea") return true
+        // android/data and android/obb are unreadable on Android 11+ whatever permission we hold.
+        if (relative.startsWith("android/data") || relative.startsWith("android/obb")) return true
+        if (relative.contains("/cache") || relative.endsWith("/cache")) return true
+        // Skip audio/sticker message dumps that never contain readable books/documents
+        if (nameLower.contains("voice notes") || nameLower.contains("stickers") || nameLower.contains("animated gifs")) return true
+        if (nameLower == "wallpapers" || nameLower == ".trash" || nameLower == ".trashed") return true
+        // Skip descending into pure camera burst / DCIM camera rolls during recursive walks,
+        // unless the user specifically started browsing inside DCIM
+        if ((relative.startsWith("dcim/camera") || relative.contains("/dcim/camera")) &&
+            !storageRoot.absolutePath.lowercase(Locale.ROOT).contains("dcim")) return true
+        return false
+    }
+
+    private fun collectSafSupportedDocumentFiles(
+        context: Context,
+        root: VeritasBrowserRoot,
+        parentDocumentId: String,
+        parentPath: String,
+        diagnostics: MutableList<String>,
+        depth: Int,
+        docResults: MutableList<VeritasBrowserFile>,
+        imageResults: MutableList<VeritasBrowserFile>
+    ) {
+        if (depth > MAX_SCAN_DEPTH ||
+            (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS)
+        ) return
+
+        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(root.uri, parentDocumentId)
+        runCatching {
+            context.contentResolver.query(childrenUri, childProjection, null, null, null)?.use { cursor ->
+                val subdirs = mutableListOf<Pair<String, String>>()
+                while (cursor.moveToNext()) {
+                    val childId = cursor.stringValue(DocumentsContract.Document.COLUMN_DOCUMENT_ID) ?: continue
+                    val name = cursor.stringValue(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty()
+                    if (name.startsWith(".")) continue
+                    val mimeType = cursor.stringValue(DocumentsContract.Document.COLUMN_MIME_TYPE).orEmpty()
+                    val childPath = if (parentPath.isBlank()) name else "$parentPath/$name"
+                    if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
+                        subdirs.add(childId to childPath)
+                    } else {
+                        val type = fileTypeFor(name, mimeType)
+                        if (type != null) {
+                            val size = cursor.longValue(DocumentsContract.Document.COLUMN_SIZE)
+                            val modified = cursor.longValue(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+                            val browserFile = VeritasBrowserFile(
+                                uri = DocumentsContract.buildDocumentUriUsingTree(root.uri, childId),
+                                name = name.ifBlank { "Untitled file" },
+                                mimeType = mimeType,
+                                sizeBytes = size,
+                                modifiedAt = modified,
+                                rootLabel = root.label,
+                                relativePath = childPath,
+                                type = type,
+                                isSupported = true
+                            )
+                            if (type == VeritasBrowserTab.OCR) {
+                                if (imageResults.size < MAX_IMAGE_RESULTS) {
+                                    imageResults.add(browserFile)
+                                }
+                            } else {
+                                if (docResults.size < MAX_DOCUMENT_RESULTS) {
+                                    docResults.add(browserFile)
+                                }
+                            }
+                        }
+                    }
+                }
+                for ((subId, subPath) in subdirs) {
+                    if (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS) break
+                    collectSafSupportedDocumentFiles(
+                        context, root, subId, subPath, diagnostics, depth + 1, docResults, imageResults
                     )
                 }
             }
         }
-        return results
-    }
-
-    private fun shouldSkipRecursiveDirectory(folder: File, storageRoot: File): Boolean {
-        val relative = folder.relativeToOrSelf(storageRoot).path.replace(File.separatorChar, '/')
-            .lowercase(Locale.getDefault())
-        if (relative.isBlank() || relative == ".") return false
-        // android/data and android/obb are unreadable on Android 11+ whatever permission we
-        // hold, so descending them only wastes time. Everything else — including hidden
-        // folders and Android/media, where messaging apps keep received documents — is fair game.
-        return relative.startsWith("android/data") ||
-                relative.startsWith("android/obb") ||
-                relative.contains("/cache")
     }
 
     private fun listSafDirectory(
@@ -422,6 +661,7 @@ object VeritasFileBrowserScanner {
     ): List<VeritasBrowserFile> {
         val documentId = location.documentId ?: return emptyList()
         val entries = mutableListOf<VeritasBrowserFile>()
+        val immediateSubdirs = mutableListOf<Pair<String, String>>()
         val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(root.uri, documentId)
         runCatching {
             context.contentResolver.query(childrenUri, childProjection, null, null, null)
@@ -452,7 +692,6 @@ object VeritasFileBrowserScanner {
                                     nameLower.endsWith(".sqlite") ||
                                     nameLower.endsWith(".sys") ||
                                     nameLower.endsWith(".dll") ||
-                                    nameLower.endsWith(".log") ||
                                     nameLower.endsWith(".dat")
                             if (isBinaryOrSystem) continue
                         }
@@ -462,6 +701,7 @@ object VeritasFileBrowserScanner {
                         val childPath =
                             if (location.relativePath.isBlank()) name else "${location.relativePath}/$name"
                         if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
+                            immediateSubdirs.add(childId to childPath)
                             entries.add(
                                 VeritasBrowserFile(
                                     uri = DocumentsContract.buildDocumentUriUsingTree(
@@ -507,65 +747,119 @@ object VeritasFileBrowserScanner {
         }.onFailure { error ->
             diagnostics.add("Android blocked access to ${location.label}: ${error.message ?: "folder is protected"}.")
         }
-        return entries.sortedWith(compareBy<VeritasBrowserFile> { !it.isDirectory }.thenBy {
-            it.name.lowercase(
-                Locale.getDefault()
+
+        // Recurse into SAF subfolders up to 10 levels deep to uncover all nested documents
+        val docResults = mutableListOf<VeritasBrowserFile>()
+        val imageResults = mutableListOf<VeritasBrowserFile>()
+        for ((subId, subPath) in immediateSubdirs) {
+            collectSafSupportedDocumentFiles(
+                context = context,
+                root = root,
+                parentDocumentId = subId,
+                parentPath = subPath,
+                diagnostics = diagnostics,
+                depth = 1,
+                docResults = docResults,
+                imageResults = imageResults
             )
-        })
+        }
+
+        return deduplicateBrowserFiles(entries + docResults + imageResults)
+            .sortedWith(
+                compareBy<VeritasBrowserFile> { it.isDirectory }
+                    .thenBy { it.type == VeritasBrowserTab.OCR }
+                    .thenByDescending { it.modifiedAt }
+            )
     }
 
-    private fun fileTypeFor(name: String, mimeType: String): VeritasBrowserTab? {
+    internal fun fileTypeFor(name: String, mimeType: String): VeritasBrowserTab? {
         val lowerName = name.lowercase(Locale.getDefault())
         val lowerMime = mimeType.lowercase(Locale.getDefault())
+        // Explicitly exclude .xml files from being added to the file browser
+        if (lowerName.endsWith(".xml") || lowerMime == "text/xml" || lowerMime == "application/xml") {
+            return null
+        }
         fun named(vararg suffixes: String) = suffixes.any { lowerName.endsWith(it) }
         return when {
             lowerMime.contains("pdf") || named(".pdf") -> VeritasBrowserTab.PDF
-            // .docm is the macro-enabled variant of the same OOXML package the parser reads.
-            lowerMime.contains("wordprocessingml") || named(".docx", ".docm") -> VeritasBrowserTab.DOC
-            // .ppt shipped a parser in 2.1.0 (PptLegacyExtractor) but was never listed here,
-            // so the browser hid every legacy deck on the device.
+            // Word & Office documents
+            lowerMime.contains("wordprocessingml") ||
+                lowerMime.contains("msword") ||
+                lowerMime.contains("opendocument.text") ||
+                lowerMime.contains("rtf") ||
+                named(".docx", ".docm", ".doc", ".dot", ".dotx", ".rtf", ".odt", ".wpd", ".wps") -> VeritasBrowserTab.DOC
+            // Presentations
             lowerMime.contains("presentationml") ||
                 lowerMime.contains("ms-powerpoint") ||
-                named(".pptx", ".pptm", ".ppt") -> VeritasBrowserTab.SLIDES
-            lowerMime.contains("epub") || named(".epub") -> VeritasBrowserTab.BOOKS
-            lowerMime.contains("html") || named(".html", ".htm", ".xhtml") -> VeritasBrowserTab.HTML
-            // Anything the plain-text fallback can read. Phones are full of .log and .json
-            // that were previously greyed out for no reason.
+                lowerMime.contains("opendocument.presentation") ||
+                named(".pptx", ".pptm", ".ppt", ".pps", ".ppsx", ".odp", ".pot", ".potx") -> VeritasBrowserTab.SLIDES
+            // E-Books
+            lowerMime.contains("epub") ||
+                lowerMime.contains("mobipocket") ||
+                lowerMime.contains("amazon.ebook") ||
+                lowerMime.contains("fictionbook") ||
+                named(".epub", ".mobi", ".azw", ".azw3", ".fb2", ".ibooks", ".cbz", ".cbr") -> VeritasBrowserTab.BOOKS
+            // Web documents
+            lowerMime.contains("html") || named(".html", ".htm", ".xhtml", ".mhtml") -> VeritasBrowserTab.HTML
+            // Text & Markdown & Config & Source docs
             lowerMime.startsWith("text/") ||
-                named(".txt", ".text", ".md", ".markdown", ".csv", ".tsv", ".log",
-                      ".json", ".xml", ".yml", ".yaml", ".rst", ".srt", ".vtt") -> VeritasBrowserTab.TXT
-
-            // HEIC/HEIF is the default camera format on modern Samsung and iPhone handsets;
-            // omitting it hid most of the photos on the device from OCR import.
+                lowerMime.contains("json") ||
+                lowerMime.contains("yaml") ||
+                lowerMime.contains("latex") ||
+                named(
+                    ".txt", ".text", ".md", ".markdown", ".csv", ".tsv", ".log",
+                    ".json", ".yml", ".yaml", ".rst", ".srt", ".vtt",
+                    ".tex", ".latex", ".ini", ".conf", ".properties", ".asciidoc", ".adoc"
+                ) -> VeritasBrowserTab.TXT
+            // Images (least priority in browser)
             lowerMime.startsWith("image/") ||
-                named(".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff",
-                      ".heic", ".heif", ".avif", ".gif") -> VeritasBrowserTab.OCR
+                named(
+                    ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff",
+                    ".heic", ".heif", ".avif", ".gif"
+                ) -> VeritasBrowserTab.OCR
 
             else -> null
         }
     }
 
-    private fun mimeTypeForFileName(name: String): String {
+    internal fun mimeTypeForFileName(name: String): String {
         val lowerName = name.lowercase(Locale.getDefault())
         return when {
             lowerName.endsWith(".pdf") -> "application/pdf"
             lowerName.endsWith(".docx") -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            lowerName.endsWith(".docm") -> "application/vnd.ms-word.document.macroEnabled.12"
+            lowerName.endsWith(".doc") || lowerName.endsWith(".dot") -> "application/msword"
+            lowerName.endsWith(".dotx") -> "application/vnd.openxmlformats-officedocument.wordprocessingml.template"
+            lowerName.endsWith(".rtf") -> "application/rtf"
+            lowerName.endsWith(".odt") -> "application/vnd.oasis.opendocument.text"
+            lowerName.endsWith(".wpd") -> "application/wordperfect"
+            lowerName.endsWith(".wps") -> "application/vnd.ms-works"
             lowerName.endsWith(".pptx") -> "application/vnd.openxmlformats-officedocument.presentationml.presentation"
             lowerName.endsWith(".pptm") -> "application/vnd.ms-powerpoint.presentation.macroEnabled.12"
-            lowerName.endsWith(".ppt") -> "application/vnd.ms-powerpoint"
-            lowerName.endsWith(".docm") -> "application/vnd.ms-word.document.macroEnabled.12"
+            lowerName.endsWith(".ppt") || lowerName.endsWith(".pps") -> "application/vnd.ms-powerpoint"
+            lowerName.endsWith(".ppsx") -> "application/vnd.openxmlformats-officedocument.presentationml.slideshow"
+            lowerName.endsWith(".potx") -> "application/vnd.openxmlformats-officedocument.presentationml.template"
+            lowerName.endsWith(".pot") -> "application/vnd.ms-powerpoint"
+            lowerName.endsWith(".odp") -> "application/vnd.oasis.opendocument.presentation"
             lowerName.endsWith(".epub") -> "application/epub+zip"
+            lowerName.endsWith(".mobi") -> "application/x-mobipocket-ebook"
+            lowerName.endsWith(".azw") || lowerName.endsWith(".azw3") -> "application/vnd.amazon.ebook"
+            lowerName.endsWith(".fb2") -> "application/x-fictionbook+xml"
+            lowerName.endsWith(".ibooks") -> "application/x-ibooks+zip"
+            lowerName.endsWith(".cbz") -> "application/vnd.comicbook+zip"
+            lowerName.endsWith(".cbr") -> "application/vnd.comicbook-rar"
             lowerName.endsWith(".xhtml") -> "application/xhtml+xml"
-            lowerName.endsWith(".html") || lowerName.endsWith(".htm") -> "text/html"
+            lowerName.endsWith(".html") || lowerName.endsWith(".htm") || lowerName.endsWith(".mhtml") -> "text/html"
             lowerName.endsWith(".txt") || lowerName.endsWith(".text") || lowerName.endsWith(".md") ||
                 lowerName.endsWith(".markdown") || lowerName.endsWith(".csv") || lowerName.endsWith(".tsv") ||
-                lowerName.endsWith(".log") || lowerName.endsWith(".json") || lowerName.endsWith(".xml") ||
+                lowerName.endsWith(".log") || lowerName.endsWith(".json") ||
                 lowerName.endsWith(".yml") || lowerName.endsWith(".yaml") || lowerName.endsWith(".rst") ||
-                lowerName.endsWith(".srt") || lowerName.endsWith(".vtt") -> "text/plain"
+                lowerName.endsWith(".srt") || lowerName.endsWith(".vtt") || lowerName.endsWith(".tex") ||
+                lowerName.endsWith(".latex") || lowerName.endsWith(".ini") || lowerName.endsWith(".conf") ||
+                lowerName.endsWith(".properties") || lowerName.endsWith(".asciidoc") || lowerName.endsWith(".adoc") -> "text/plain"
             lowerName.endsWith(".png") -> "image/png"
             lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") -> "image/jpeg"
             lowerName.endsWith(".webp") -> "image/webp"
-            // Reported as octet-stream before, which the OCR import path skipped as non-image.
             lowerName.endsWith(".heic") -> "image/heic"
             lowerName.endsWith(".heif") -> "image/heif"
             lowerName.endsWith(".avif") -> "image/avif"
@@ -608,21 +902,29 @@ object VeritasFileBrowserScanner {
 /** Walk stops at ten levels. Android/media/<app>/<app>/Media/<folder>/Sent is seven, so
  *  messaging-app documents are comfortably inside it. */
 private const val MAX_SCAN_DEPTH = 10
-private const val MAX_SCAN_RESULTS = 2000
+private const val MAX_DOCUMENT_RESULTS = 5000
+private const val MAX_IMAGE_RESULTS = 300
+private const val MAX_SCAN_RESULTS = 5000
 
 internal fun readableImportMimeTypes(): Array<String> = arrayOf(
     "text/plain",
     "text/*",
     "text/html",
+    "text/rtf",
+    "application/rtf",
     "application/pdf",
+    "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    // Legacy decks: PptLegacyExtractor reads these, but without the type here the system
-    // picker greyed every .ppt out.
     "application/vnd.ms-powerpoint",
     "application/vnd.ms-powerpoint.presentation.macroEnabled.12",
     "application/vnd.ms-word.document.macroEnabled.12",
+    "application/vnd.oasis.opendocument.text",
+    "application/vnd.oasis.opendocument.presentation",
     "application/epub+zip",
+    "application/x-mobipocket-ebook",
+    "application/vnd.amazon.ebook",
+    "application/x-fictionbook+xml",
     "application/xhtml+xml",
     "application/octet-stream",
     "image/*"

@@ -1,7 +1,5 @@
 package com.veritas.reader.ui
 
-import com.veritas.reader.*
-
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.AnnotationType
@@ -12,20 +10,32 @@ import com.veritas.reader.PlaybackStateStore
 import com.veritas.reader.ReaderAnnotation
 import com.veritas.reader.ReaderTextIndex
 import com.veritas.reader.VoiceNoteRecorder
+import com.veritas.reader.deleteDocumentNotes
 import com.veritas.reader.documentIdFromDocumentNoteStableKey
 import com.veritas.reader.documentNoteStableKey
+import com.veritas.reader.loadAllAnnotations
+import com.veritas.reader.loadAllDocumentNotes
+import com.veritas.reader.loadAnnotations
+import com.veritas.reader.loadDocumentNote
+import com.veritas.reader.loadGeneralNotes
 import com.veritas.reader.parseVocabularyNoteContent
+import com.veritas.reader.removeAnnotation
+import com.veritas.reader.removeAnnotations
+import com.veritas.reader.saveAllAnnotations
+import com.veritas.reader.saveDocumentNote
+import com.veritas.reader.saveGeneralNotes
+import com.veritas.reader.upsertAnnotation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONArray
 
 fun ReaderViewModel.addBookmarkGroup(indexes: List<Int>, colorHex: String) {
     val docId = uiState.value.activeDocument?.id ?: return

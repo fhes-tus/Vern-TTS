@@ -1,28 +1,30 @@
 package com.veritas.reader
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.core.content.edit
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
+import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.interactive.action.PDActionGoTo
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.destination.PDNamedDestination
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem
 import com.veritas.reader.ui.screens.cleanTocTitle
+import com.veritas.reader.ui.screens.isSelfReferentialTocHeading
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
-import java.util.zip.ZipInputStream
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import java.util.zip.ZipInputStream
 import kotlin.math.roundToInt
-import org.json.JSONArray
-import org.json.JSONObject
+
+private val NON_ALPHANUM_LOWER_REGEX = Regex("[^a-z0-9 ]")
 class DocumentRepository(context: Context) {
     internal val appContext = context.applicationContext
     internal val prefs = appContext.getSharedPreferences("veritas_reader_library", Context.MODE_PRIVATE)
@@ -545,6 +547,7 @@ class DocumentRepository(context: Context) {
         val documents = loadDocuments()
         val target = documents.firstOrNull { it.id == documentId } ?: return null
         ReaderTextModelCache.invalidate(documentId)
+        outlineCache.remove(documentId)
         
         val file = File(docsDir, target.fileName)
         if (cleanText.isNotBlank()) {
@@ -824,7 +827,13 @@ class DocumentRepository(context: Context) {
         prefs.edit { putBoolean(KEY_HAS_IMPORTED_OR_OPENED_DOCUMENT, true) }
     }
 
+    private val outlineCache = java.util.concurrent.ConcurrentHashMap<String, List<VeritasDocumentOutlineEntry>>()
+
     fun loadDocumentOutline(document: SavedDocument, chunks: List<String>): List<VeritasDocumentOutlineEntry> {
+        val docId = document.id
+        if (!docId.isNullOrBlank()) {
+            outlineCache[docId]?.let { return it }
+        }
         val original = originalFile(document) ?: return emptyList()
         // Sniff the header rather than trusting the name or the mime type. Originals
         // are stored as "<uuid>.bin" and originalMimeType is empty on every document,
@@ -840,19 +849,23 @@ class DocumentRepository(context: Context) {
         if (!isPdf) return emptyList()
         return runCatching {
             PDFBoxResourceLoader.init(appContext)
-            val memorySetting = com.tom_roush.pdfbox.io.MemoryUsageSetting.setupMixed(10L * 1024 * 1024).apply {
-                setTempDir(File(appContext.cacheDir, "pdfbox_temp").apply { mkdirs() })
-            }
+            val memorySetting = DocumentExtractor.defaultPdfMemorySetting(appContext)
             PDDocument.load(original, memorySetting).use { pdf ->
                 val outline = pdf.documentCatalog.documentOutline ?: return@use emptyList()
+                val pageToIndexMap = HashMap<PDPage, Int>(pdf.numberOfPages)
+                pdf.pages.forEachIndexed { idx, page -> pageToIndexMap[page] = idx }
                 val textModel = runCatching {
                     ReaderTextModelCache.get(document.id, readText(document), pdf.numberOfPages)
                 }.getOrNull()
+                val sentencesByPage = textModel?.sentences?.groupBy { it.pageNumber }
                 val entries = mutableListOf<VeritasDocumentOutlineEntry>()
                 var child = outline.firstChild
                 while (child != null) {
-                    collectPdfOutlineEntries(pdf, child, chunks, 0, entries, textModel)
+                    collectPdfOutlineEntries(pdf, child, chunks, 0, entries, textModel, pageToIndexMap, sentencesByPage)
                     child = child.nextSibling
+                }
+                if (!docId.isNullOrBlank() && !document.partial) {
+                    outlineCache[docId] = entries
                 }
                 entries
             }
@@ -868,15 +881,17 @@ class DocumentRepository(context: Context) {
         chunks: List<String>,
         level: Int,
         entries: MutableList<VeritasDocumentOutlineEntry>,
-        textModel: ReaderTextModel? = null
+        textModel: ReaderTextModel? = null,
+        pageToIndexMap: Map<PDPage, Int>? = null,
+        sentencesByPage: Map<Int, List<ReaderSentence>>? = null
     ) {
         val title = cleanTocTitle(item.title.orEmpty())
-        val pageIndex = pdfOutlinePageIndex(item, pdf)
-        if (title.isNotBlank() && !title.all { it == '.' || it.isWhitespace() || it == '•' || it == '·' }) {
+        val pageIndex = pdfOutlinePageIndex(item, pdf, pageToIndexMap)
+        if (title.isNotBlank() && !isSelfReferentialTocHeading(title) && !title.all { it == '.' || it.isWhitespace() || it == '•' || it == '·' }) {
             entries.add(
                 VeritasDocumentOutlineEntry(
                     title = title.take(120),
-                    targetIndex = outlineTargetIndex(pageIndex, pdf.numberOfPages, chunks, textModel),
+                    targetIndex = outlineTargetIndex(pageIndex, pdf.numberOfPages, chunks, textModel, title, sentencesByPage),
                     pageNumber = pageIndex?.plus(1),
                     level = level.coerceIn(0, 6),
                     source = "PDF table of contents"
@@ -885,12 +900,16 @@ class DocumentRepository(context: Context) {
         }
         var child = item.firstChild
         while (child != null) {
-            collectPdfOutlineEntries(pdf, child, chunks, level + 1, entries, textModel)
+            collectPdfOutlineEntries(pdf, child, chunks, level + 1, entries, textModel, pageToIndexMap, sentencesByPage)
             child = child.nextSibling
         }
     }
 
-    private fun pdfOutlinePageIndex(item: PDOutlineItem, pdDoc: PDDocument): Int? {
+    private fun pdfOutlinePageIndex(
+        item: PDOutlineItem,
+        pdDoc: PDDocument,
+        pageToIndexMap: Map<PDPage, Int>? = null
+    ): Int? {
         return runCatching {
             var dest = item.destination
             if (dest == null && item.action is PDActionGoTo) {
@@ -899,7 +918,7 @@ class DocumentRepository(context: Context) {
             if (dest is PDPageDestination) {
                 val p = dest.page
                 if (p != null) {
-                    val idx = pdDoc.pages.indexOf(p)
+                    val idx = pageToIndexMap?.get(p) ?: pdDoc.pages.indexOf(p)
                     if (idx >= 0) return idx
                 }
                 val pageNumber = dest.pageNumber
@@ -909,7 +928,7 @@ class DocumentRepository(context: Context) {
                 if (pageDest is PDPageDestination) {
                     val p = pageDest.page
                     if (p != null) {
-                        val idx = pdDoc.pages.indexOf(p)
+                        val idx = pageToIndexMap?.get(p) ?: pdDoc.pages.indexOf(p)
                         if (idx >= 0) return idx
                     }
                 }
@@ -922,15 +941,40 @@ class DocumentRepository(context: Context) {
         pageIndex: Int?,
         pageCount: Int,
         chunks: List<String>,
-        textModel: ReaderTextModel? = null
+        textModel: ReaderTextModel? = null,
+        title: String? = null,
+        sentencesByPage: Map<Int, List<ReaderSentence>>? = null
     ): Int {
         if (chunks.isEmpty()) return 0
         if (pageIndex != null && textModel != null) {
             val targetPage = pageIndex + 1
-            val matchingSentence = textModel.sentences.firstOrNull { it.pageNumber == targetPage }
-                ?: textModel.sentences.firstOrNull { it.pageNumber > targetPage }
-            if (matchingSentence != null && matchingSentence.index in chunks.indices) {
-                return matchingSentence.index
+            val pageSentences = sentencesByPage?.get(targetPage) ?: textModel.sentences.filter { it.pageNumber == targetPage }
+            if (pageSentences.isNotEmpty()) {
+                if (!title.isNullOrBlank()) {
+                    val cleanHeading = title.trim().lowercase().replace(NON_ALPHANUM_LOWER_REGEX, "")
+                    if (cleanHeading.isNotBlank()) {
+                        val match = pageSentences.firstOrNull { s ->
+                            val cleanS = s.text.trim().lowercase().replace(NON_ALPHANUM_LOWER_REGEX, "")
+                            cleanS.startsWith(cleanHeading) || cleanHeading.startsWith(cleanS) || cleanS.contains(cleanHeading)
+                        }
+                        if (match != null && match.index in chunks.indices) {
+                            return match.index
+                        }
+                    }
+                }
+                val firstSentence = pageSentences.first()
+                if (firstSentence.index in chunks.indices) {
+                    return firstSentence.index
+                }
+            }
+            val nextSentence = if (sentencesByPage != null) {
+                val nextP = sentencesByPage.keys.filter { it > targetPage }.minOrNull()
+                nextP?.let { sentencesByPage[it]?.firstOrNull() }
+            } else {
+                textModel.sentences.firstOrNull { it.pageNumber > targetPage }
+            }
+            if (nextSentence != null && nextSentence.index in chunks.indices) {
+                return nextSentence.index
             }
         }
         val page = pageIndex ?: 0
@@ -949,8 +993,36 @@ class DocumentRepository(context: Context) {
         }.apply()
     }
 
+    fun isHeroContinueDismissed(): Boolean = prefs.getBoolean("hero_continue_dismissed", false)
+
+    fun setHeroContinueDismissed(dismissed: Boolean) {
+        prefs.edit().putBoolean("hero_continue_dismissed", dismissed).apply()
+    }
+
+    fun getDismissedHeroDocIds(): Set<String> =
+        prefs.getStringSet("dismissed_hero_doc_ids", emptySet()) ?: emptySet()
+
+    fun addDismissedHeroDocId(documentId: String) {
+        val current = getDismissedHeroDocIds().toMutableSet()
+        current.add(documentId)
+        prefs.edit().putStringSet("dismissed_hero_doc_ids", current).apply()
+    }
+
+    fun removeDismissedHeroDocId(documentId: String) {
+        val current = getDismissedHeroDocIds().toMutableSet()
+        if (current.remove(documentId)) {
+            prefs.edit().putStringSet("dismissed_hero_doc_ids", current).apply()
+        }
+    }
+
+    fun clearDismissedHeroDocIds() {
+        prefs.edit().remove("dismissed_hero_doc_ids").remove("dismissed_hero_doc_id").apply()
+    }
+
     fun updateProgress(documentId: String, currentIndex: Int, chunkCount: Int): List<SavedDocument> {
         val now = System.currentTimeMillis()
+        removeDismissedHeroDocId(documentId)
+        setHeroContinueDismissed(false)
         if (documentId == getDismissedHeroDocId()) {
             setDismissedHeroDocId(null)
         }
@@ -967,6 +1039,7 @@ class DocumentRepository(context: Context) {
     }
 
     fun clearProgress(documentId: String): List<SavedDocument> {
+        removeDismissedHeroDocId(documentId)
         if (documentId == getDismissedHeroDocId()) {
             setDismissedHeroDocId(null)
         }
@@ -1135,7 +1208,7 @@ class DocumentRepository(context: Context) {
         )
     }
 
-    internal fun saveDocuments(documents: List<SavedDocument>) {
+    internal fun saveDocuments(documents: List<SavedDocument>) = synchronized(LIBRARY_WRITE_LOCK) {
         runCatching { dbHelper.replaceAllDocuments(documents) }
         val array = JSONArray()
         documents.forEach { array.put(it.toJson()) }

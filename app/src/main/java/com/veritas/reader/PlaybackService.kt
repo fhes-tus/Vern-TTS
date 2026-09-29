@@ -1,6 +1,5 @@
 package com.veritas.reader
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.hardware.Sensor
@@ -15,10 +14,10 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import java.util.UUID
 
 @OptIn(UnstableApi::class)
 class PlaybackService : MediaSessionService() {
@@ -443,6 +442,7 @@ class PlaybackService : MediaSessionService() {
                         activeChunkBaseOffset = promotedBaseOffset
 
                         PlaybackStateStore.currentIndex = promotedIndex
+                        PlaybackStateStore.activeTableColumnIndex = if (SpeechSanitizer.isTableRow(promotedSpeechText)) 0 else -1
                         activeDocument?.let { repository.updateProgress(it.id, promotedIndex, chunks.size) }
                         updateMediaSessionMetadata()
                         updateMediaSessionState()
@@ -456,6 +456,9 @@ class PlaybackService : MediaSessionService() {
                         spokenCharOffset = absoluteStart
                         spokenWordCount = wordCountBefore(activeChunkSpeechText, absoluteStart)
                         updateCurrentSentenceBounds(absoluteStart)
+                        if (SpeechSanitizer.isTableRow(activeChunkSpeechText)) {
+                            PlaybackStateStore.activeTableColumnIndex = SpeechSanitizer.tableColumnIndexAt(activeChunkSpeechText, start)
+                        }
                     }
                 }
             }
@@ -571,6 +574,7 @@ class PlaybackService : MediaSessionService() {
         }
         PlaybackStateStore.currentIndex = index
         PlaybackStateStore.isPlaying = true
+        PlaybackStateStore.activeTableColumnIndex = if (SpeechSanitizer.isTableRow(text)) 0 else -1
         PlaybackStateStore.statusMessage = if (narrationSettings.enabled) {
             "Reading ${NarrationAnalyzer.labelFor(text, narrationSettings).lowercase()} sentence."
         } else {
@@ -849,16 +853,20 @@ class PlaybackService : MediaSessionService() {
         // its title line. Snappy on purpose — the user asked for rhythm, not lag.
         internal const val SLIDE_TRANSITION_SILENCE_MS = 300L
         internal const val TITLE_BEAT_SILENCE_MS = 250L
+        internal const val TABLE_ROW_SILENCE_MS = 350L
         internal const val RESUME_WORD_THRESHOLD = 8
         internal const val RESUME_SKIP_CHARS = ".,;:!?)]}\"'»›—–-"
 
         /**
          * Silence to queue ahead of the chunk at [index], given the slide each chunk
-         * belongs to. Pure so the cadence can be checked without a running service:
-         * a full beat when the slide changes, a shorter one after the title line,
+         * belongs to or if it is a table row. Pure so the cadence can be checked without a running service:
+         * a breathing pause for table rows, a full beat when the slide changes, a shorter one after the title line,
          * nothing thereafter. A null [pages] means the document is not a deck.
          */
-        fun leadingSilenceMs(pages: IntArray?, index: Int): Long {
+        fun leadingSilenceMs(pages: IntArray?, index: Int, chunkText: String? = null): Long {
+            if (chunkText != null && SpeechSanitizer.isTableRow(chunkText)) {
+                return TABLE_ROW_SILENCE_MS
+            }
             if (pages == null || index !in pages.indices) return 0L
             val page = pages[index]
             val firstOfSlide = index == 0 || pages[index - 1] != page

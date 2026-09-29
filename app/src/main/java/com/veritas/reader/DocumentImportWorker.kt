@@ -14,10 +14,6 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import java.io.File
 
 class DocumentImportWorker(
     appContext: Context,
@@ -41,7 +37,7 @@ class DocumentImportWorker(
             )
             notificationManager.createNotificationChannel(channel)
         }
-        
+
         // Show foreground notification while running
         val notification = NotificationCompat.Builder(applicationContext, "import_channel")
             .setContentTitle("Importing $title")
@@ -96,14 +92,16 @@ class DocumentImportWorker(
                 ocrSlideImages = inputData.getBoolean("pptx_ocrSlideImages", true)
             )
 
-            val mimeType = applicationContext.contentResolver.getType(uri).orEmpty().lowercase(java.util.Locale.getDefault())
-            val extension = title.substringAfterLast('.', missingDelimiterValue = "").lowercase(java.util.Locale.getDefault())
-            val isPdf = mimeType.contains("pdf") || extension == "pdf" || uri.path?.lowercase(java.util.Locale.getDefault())?.endsWith(".pdf") == true
+            val isPdf = applicationContext.contentResolver.getType(uri)?.contains("pdf") == true ||
+                uri.path?.lowercase()?.endsWith(".pdf") == true ||
+                title.lowercase().endsWith(".pdf")
 
             if (isPdf) {
                 try {
-                    val (document, totalPages) = DocumentExtractor.openPdfDocument(applicationContext, uri)
+                    val managedPdf = DocumentExtractor.openPdfDocument(applicationContext, uri)
                     try {
+                        val document = managedPdf.document
+                        val totalPages = managedPdf.pageCount
                         if (totalPages > 0) {
                             // Apply crop rect once to all pages before chunking
                             if (pdfOptions.cropRect != null) {
@@ -175,7 +173,7 @@ class DocumentImportWorker(
                             return Result.success(workDataOf("documentId" to documentId))
                         }
                     } finally {
-                        document.close()
+                        managedPdf.close()
                     }
                 } catch (e: Exception) {
                     Log.w("DocumentImportWorker", "PDF chunked extraction failed, falling back to generic extract", e)

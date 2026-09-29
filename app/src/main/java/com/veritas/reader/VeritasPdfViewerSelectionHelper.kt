@@ -6,20 +6,16 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
-import android.view.Gravity
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-    internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view.ActionMode?) {
+internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view.ActionMode?) {
                 val menu = mode?.menu ?: return
 
         val readItem = menu.findItem(1001) ?: menu.add(0, 1001, 1, "Read from here")

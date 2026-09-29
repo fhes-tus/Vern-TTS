@@ -4,7 +4,6 @@ import android.animation.ValueAnimator
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Typeface
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.text.TextUtils
 import android.view.Gravity
@@ -21,7 +20,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
-    internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
+internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         // FrameLayout so the PDF stays full-screen underneath and the bars float
         // OVER it — sliding them away never resizes or jumps the document.
         val root = FrameLayout(this).apply {

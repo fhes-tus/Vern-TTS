@@ -1,7 +1,5 @@
 package com.veritas.reader.ui
 
-import com.veritas.reader.*
-
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
@@ -9,18 +7,16 @@ import android.provider.Settings
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.BuildConfig
-import java.io.File
-import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 fun ReaderViewModel.checkForUpdates(isManual: Boolean = false) {
     viewModelScope.launch(Dispatchers.IO) {

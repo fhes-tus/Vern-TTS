@@ -1,8 +1,8 @@
 package com.veritas.reader
 
-import java.util.UUID
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.UUID
 
 enum class VeritasReadingListSortMode {
     MANUAL,

@@ -80,4 +80,10 @@ class PlaybackPipelineLogicTest {
         assertEquals(0L, PlaybackService.leadingSilenceMs(pages, 3))
         assertEquals(0L, PlaybackService.leadingSilenceMs(intArrayOf(), 0))
     }
+
+    @Test
+    fun tableRowGetsBreathingSilence() {
+        val row = "| Quarter | Revenue | Profit |"
+        assertEquals(350L, PlaybackService.leadingSilenceMs(null, 0, row))
+    }
 }

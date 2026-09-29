@@ -1,7 +1,5 @@
 package com.veritas.reader.ui
 
-import com.veritas.reader.*
-
 import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.viewModelScope
@@ -15,7 +13,15 @@ import com.veritas.reader.TtsVoiceOption
 import com.veritas.reader.VeritasThemeState
 import com.veritas.reader.VoiceManager
 import com.veritas.reader.VoiceSettings
+import com.veritas.reader.addAiPromptHistory
+import com.veritas.reader.addAiPromptTemplate
+import com.veritas.reader.addPronunciationRule
+import com.veritas.reader.clearAiPromptHistory
+import com.veritas.reader.deleteAiPromptTemplate
+import com.veritas.reader.loadPronunciationRules
+import com.veritas.reader.removePronunciationRule
 import com.veritas.reader.sendPlaybackIntent
+import com.veritas.reader.togglePronunciationRule
 import com.veritas.reader.updateVeritasWidgets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update

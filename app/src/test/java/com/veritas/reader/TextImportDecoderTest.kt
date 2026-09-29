@@ -1,9 +1,9 @@
 package com.veritas.reader
 
-import java.nio.charset.Charset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.nio.charset.Charset
 
 class TextImportDecoderTest {
     @Test

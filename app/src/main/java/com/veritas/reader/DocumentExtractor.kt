@@ -4,48 +4,35 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color as AndroidColor
 import android.graphics.RectF
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.text.Html
-import android.util.Xml
 import androidx.core.graphics.createBitmap
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.Text as MlText
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.io.MemoryUsageSetting
 import com.tom_roush.pdfbox.pdmodel.PDDocument
-import com.tom_roush.pdfbox.pdmodel.PDPage
-import com.tom_roush.pdfbox.text.PDFTextStripper
-import com.tom_roush.pdfbox.text.PDFTextStripperByArea
-import com.tom_roush.pdfbox.text.TextPosition
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.yield
 import java.io.ByteArrayInputStream
-import java.io.StringReader
-import java.net.URLDecoder
-import java.nio.ByteBuffer
-import java.nio.charset.CharacterCodingException
-import java.nio.charset.Charset
-import java.nio.charset.CodingErrorAction
-import java.nio.charset.StandardCharsets
 import java.util.Locale
 import java.util.zip.ZipInputStream
 import kotlin.coroutines.coroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.math.roundToInt
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.yield
-import kotlinx.coroutines.sync.withPermit
-import org.xmlpull.v1.XmlPullParser
+import android.graphics.Color as AndroidColor
+import com.google.mlkit.vision.text.Text as MlText
 
 data class PdfImportOptions(
     val startPage: Int? = null,
@@ -99,34 +86,50 @@ object DocumentExtractor {
         }.getOrDefault(0)
     }
 
-    /**
-     * Opens a PDF document and returns the PDDocument and page count.
-     * Caller is responsible for closing the document via document.close().
-     */
-    fun openPdfDocument(context: Context, uri: Uri): Pair<PDDocument, Int> {
-        PDFBoxResourceLoader.init(context.applicationContext)
-        val tempFile = java.io.File(context.cacheDir, "temp_pdf_load_${System.currentTimeMillis()}.pdf").apply {
-            deleteOnExit()
-        }
-        context.contentResolver.openInputStream(uri)?.use { stream ->
-            tempFile.outputStream().use { out ->
-                stream.copyTo(out)
+    data class ManagedPdfDocument(
+        val document: PDDocument,
+        val pageCount: Int,
+        private val tempFile: java.io.File? = null
+    ) : java.io.Closeable {
+        override fun close() {
+            try {
+                document.close()
+            } finally {
+                runCatching { tempFile?.delete() }
             }
-        } ?: throw IllegalStateException("Cannot open PDF URI")
+        }
+    }
 
-        val document = try {
-            PDDocument.load(tempFile, defaultPdfMemorySetting(context))
-        } catch (e: com.tom_roush.pdfbox.pdmodel.encryption.InvalidPasswordException) {
-            throw IllegalArgumentException("This PDF is password-protected. Please remove password protection before importing.", e)
-        } catch (e: java.io.IOException) {
-            if (e.message?.contains("password", ignoreCase = true) == true || e.message?.contains("encrypted", ignoreCase = true) == true) {
-                throw IllegalArgumentException("This PDF is password-protected or encrypted. Please remove password protection before importing.", e)
+    /**
+     * Opens a PDF document and returns the ManagedPdfDocument (which holds the PDDocument,
+     * total page count, and backing temporary file).
+     * Caller MUST close the result via managedPdf.close() in a finally block.
+     */
+    fun openPdfDocument(context: Context, uri: Uri): ManagedPdfDocument {
+        PDFBoxResourceLoader.init(context.applicationContext)
+        val tempFile = java.io.File(context.cacheDir, "temp_pdf_load_${System.currentTimeMillis()}.pdf")
+        try {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                tempFile.outputStream().use { out ->
+                    stream.copyTo(out)
+                }
+            } ?: throw IllegalStateException("Cannot open PDF URI")
+
+            val document = try {
+                PDDocument.load(tempFile, defaultPdfMemorySetting(context))
+            } catch (e: com.tom_roush.pdfbox.pdmodel.encryption.InvalidPasswordException) {
+                throw IllegalArgumentException("This PDF is password-protected. Please remove password protection before importing.", e)
+            } catch (e: java.io.IOException) {
+                if (e.message?.contains("password", ignoreCase = true) == true || e.message?.contains("encrypted", ignoreCase = true) == true) {
+                    throw IllegalArgumentException("This PDF is password-protected or encrypted. Please remove password protection before importing.", e)
+                }
+                throw e
             }
-            throw e
-        } finally {
+            return ManagedPdfDocument(document, document.numberOfPages, tempFile)
+        } catch (e: Exception) {
             runCatching { tempFile.delete() }
+            throw e
         }
-        return document to document.numberOfPages
     }
 
     /**
@@ -498,15 +501,19 @@ object DocumentExtractor {
         }
     }
 
+    private val PARAGRAPH_SPLIT_REGEX = Regex("""\n\s*\n+""")
+    private val NUMBERED_LIST_ITEM_REGEX = Regex("""^\d+\.""")
+
     internal fun normalizePlainTextParagraphs(raw: String): String {
         val clean = raw.replace("\r\n", "\n").replace('\r', '\n')
-        val blocks = clean.split(Regex("""\n\s*\n+"""))
+        val blocks = clean.split(PARAGRAPH_SPLIT_REGEX)
         return blocks.mapNotNull { block ->
-            val lines = block.lines().map { it.trim() }.filter { it.isNotBlank() }
-            if (lines.isEmpty()) return@mapNotNull null
+            val rawLines = block.lines().map { it.trim() }.filter { it.isNotBlank() }
+            if (rawLines.isEmpty()) return@mapNotNull null
+            val lines = rawLines
 
             val isTable = lines.all { it.startsWith("|") && it.endsWith("|") }
-            val isList = lines.all { it.startsWith("•") || it.startsWith("-") || it.startsWith("*") || Regex("""^\d+\.""").containsMatchIn(it) }
+            val isList = lines.all { it.startsWith("•") || it.startsWith("-") || it.startsWith("*") || NUMBERED_LIST_ITEM_REGEX.containsMatchIn(it) }
 
             if (isTable || isList) {
                 lines.joinToString("\n")
@@ -696,11 +703,20 @@ object DocumentExtractor {
         // Cells are joined with a comma rather than run together: the previous XML walk
         // emitted them with no separator at all, which the speech engine read as one
         // long compound word.
-        is DocxBlock.Table -> block.rows
-            .filter { row -> row.any { it.isNotBlank() } }
-            .map { row -> "| " + row.joinToString(" | ") { it.trim() } + " |" }
-            .joinToString("\n")
-            .takeIf { it.isNotBlank() }
+        is DocxBlock.Table -> {
+            val validRows = block.rows.filter { row -> row.any { it.isNotBlank() } }
+            if (validRows.isEmpty()) null
+            else {
+                val colCount = validRows.maxOf { it.size }
+                val header = "| " + validRows.first().joinToString(" | ") { it.trim() } + " |"
+                val separator = "| " + List(colCount) { "---" }.joinToString(" | ") + " |"
+                val body = validRows.drop(1).map { row ->
+                    val padded = if (row.size < colCount) row + List(colCount - row.size) { "" } else row
+                    "| " + padded.joinToString(" | ") { it.trim() } + " |"
+                }
+                (listOf(header, separator) + body).joinToString("\n").takeIf { it.isNotBlank() }
+            }
+        }
         is DocxBlock.Image -> "[[VERITAS_IMAGE:${nextImageIndex()}]]"
     }
 
@@ -842,9 +858,14 @@ object DocumentExtractor {
             }
             if (rows.isEmpty()) ""
             else {
-                "\n\n" + rows.joinToString("\n") { row ->
-                    "| " + row.joinToString(" | ") + " |"
-                } + "\n\n"
+                val colCount = rows.maxOf { it.size }
+                val header = "| " + rows.first().joinToString(" | ") + " |"
+                val separator = "| " + List(colCount) { "---" }.joinToString(" | ") + " |"
+                val body = rows.drop(1).map { row ->
+                    val padded = if (row.size < colCount) row + List(colCount - row.size) { "" } else row
+                    "| " + padded.joinToString(" | ") + " |"
+                }
+                "\n\n" + (listOf(header, separator) + body).joinToString("\n") + "\n\n"
             }
         }
     }
@@ -886,6 +907,21 @@ data class ExtractionBody(
     val partial: Boolean = false
 )
 
+private val MULTI_SPACE_3_REGEX = Regex(" {3,}")
+private val MULTI_NEWLINE_4_REGEX = Regex("\n{4,}")
+private val MULTI_NEWLINE_3_REGEX = Regex("\n{3,}")
+private val PDF_CHAPTER_OR_SECTION_REGEX = Regex("""^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PREFACE|Preface|PART|Part|BOOK|Book|SECTION|Section|ACT|Act|SCENE|Scene)\b.*""", RegexOption.IGNORE_CASE)
+private val PDF_NUMBERED_HEADING_REGEX = Regex("""^\d+(\.\d+)*\s+[A-Z0-9].*""")
+private val EPOCH_PREFIX_REGEX = Regex("""^\d{6,}[_\-\s.]+""")
+private val OCEAN_PDF_WRAPPED_REGEX = Regex("""(?i)[/_(\[]?OceanofPDF(\.com)?[/_\])]?""")
+private val OCEAN_PDF_WORD_REGEX = Regex("""(?i)\bOceanofPDF(\.com)?\b""")
+private val PDF_EPUB_BRACKET_REGEX = Regex("""(?i)\[(PDF|EPUB)\]""")
+private val PDF_EPUB_PAREN_REGEX = Regex("""(?i)\((PDF|EPUB)\)""")
+private val DOWNLOAD_WORD_REGEX = Regex("""(?i)\bDownload\b""")
+private val COPY_COUNTER_REGEX = Regex("""\s*[_\-]?\(\d+\)$""")
+private val COPY_DASH_REGEX = Regex("""\s*-\s*Copy$""", RegexOption.IGNORE_CASE)
+private val MULTI_SPACE_2_REGEX = Regex("""\s{2,}""")
+
 fun String.normalizeExtractedText(): String {
     return replace('\u00A0', ' ')
         .replace("\r\n", "\n")
@@ -897,7 +933,7 @@ fun String.normalizeExtractedText(): String {
             val leadingIndent = " ".repeat(leadingSpaces)
             val body = expanded
                 .drop(leadingSpaces)
-                .replace(Regex(" {3,}"), "  ")
+                .replace(MULTI_SPACE_3_REGEX, "  ")
                 .trimEnd()
             if (body.isBlank()) {
                 ""
@@ -905,7 +941,7 @@ fun String.normalizeExtractedText(): String {
                 "$leadingIndent${body.trimStart()}"
             }
         }
-        .replace(Regex("\n{4,}"), "\n\n\n")
+        .replace(MULTI_NEWLINE_4_REGEX, "\n\n\n")
         .trim()
 }
 
@@ -933,14 +969,14 @@ fun String.smartFormatPdfContent(): String {
 
         val prevEndsTerminal = prevLine.isEmpty() ||
             prevLine.startsWith("#") ||
-            Regex("""^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PREFACE|Preface|PART|Part|BOOK|Book|SECTION|Section|ACT|Act|SCENE|Scene)\b.*""", RegexOption.IGNORE_CASE).matches(prevLine) ||
+            PDF_CHAPTER_OR_SECTION_REGEX.matches(prevLine) ||
             prevLine.lastOrNull() in listOf('.', '!', '?', ':', '"', '”', '’', '\'')
         val nextStartsLower = nextLine.firstOrNull()?.isLowerCase() == true
 
         val isMiddleOfSentence = !prevEndsTerminal || nextStartsLower
 
-        val isExplicitChapterOrSection = Regex("""^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PREFACE|Preface|PART|Part|BOOK|Book|SECTION|Section|ACT|Act|SCENE|Scene)\b.*""", RegexOption.IGNORE_CASE).matches(trimmed) ||
-            Regex("""^\d+(\.\d+)*\s+[A-Z0-9].*""").matches(trimmed)
+        val isExplicitChapterOrSection = PDF_CHAPTER_OR_SECTION_REGEX.matches(trimmed) ||
+            PDF_NUMBERED_HEADING_REGEX.matches(trimmed)
 
         // Only convert to heading if it is an explicit chapter/section label,
         // or an isolated all-caps header surrounded by blank lines. Never convert normal lines based on title-casing words.
@@ -962,7 +998,7 @@ fun String.smartFormatPdfContent(): String {
     }
     
     return formatted.joinToString("\n")
-        .replace(Regex("\n{3,}"), "\n\n")
+        .replace(MULTI_NEWLINE_3_REGEX, "\n\n")
         .trim()
 }
 
@@ -991,23 +1027,23 @@ fun cleanDocumentTitle(fileName: String): String {
     var title = withoutExtension
         // "1741927936_Good_Vibes" / "20260802-notes" — a long digit run up front is
         // a timestamp or export id, never part of the title.
-        .replace(Regex("^\\d{6,}[_\\-\\s.]+"), "")
+        .replace(EPOCH_PREFIX_REGEX, "")
         // OceanofPDF download prefixes/suffixes/tags with any wrapping slashes, brackets, or delimiters
-        .replace(Regex("""(?i)[/_(\[]?OceanofPDF(\.com)?[/_\])]?"""), "")
-        .replace(Regex("""(?i)\bOceanofPDF(\.com)?\b"""), "")
-        .replace(Regex("""(?i)\[(PDF|EPUB)\]"""), "")
-        .replace(Regex("""(?i)\((PDF|EPUB)\)"""), "")
-        .replace(Regex("""(?i)\bDownload\b"""), "")
+        .replace(OCEAN_PDF_WRAPPED_REGEX, "")
+        .replace(OCEAN_PDF_WORD_REGEX, "")
+        .replace(PDF_EPUB_BRACKET_REGEX, "")
+        .replace(PDF_EPUB_PAREN_REGEX, "")
+        .replace(DOWNLOAD_WORD_REGEX, "")
         // "report (1)" / "report(2)" / "report - Copy" — download de-duplication.
-        .replace(Regex("\\s*[_\\-]?\\(\\d+\\)$"), "")
-        .replace(Regex("\\s*-\\s*Copy$", RegexOption.IGNORE_CASE), "")
+        .replace(COPY_COUNTER_REGEX, "")
+        .replace(COPY_DASH_REGEX, "")
 
     // Underscores are separators in file names but never in prose.
     if (title.contains('_')) title = title.replace('_', ' ')
     // Same for dot-separated names, but only when there are no spaces already.
     if (!title.contains(' ') && title.count { it == '.' } >= 2) title = title.replace('.', ' ')
 
-    title = title.replace(Regex("\\s{2,}"), " ")
+    title = title.replace(MULTI_SPACE_2_REGEX, " ")
         .trim()
         .trim('-', '_', '.', ' ', '/', '\\', ':', '|', '•')
 

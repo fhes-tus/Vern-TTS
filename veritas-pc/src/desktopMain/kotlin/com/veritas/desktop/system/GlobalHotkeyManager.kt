@@ -2,7 +2,6 @@ package com.veritas.desktop.system
 
 import com.sun.jna.Platform
 import com.sun.jna.platform.win32.User32
-import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinUser
 import java.awt.Robot
 import java.awt.Toolkit

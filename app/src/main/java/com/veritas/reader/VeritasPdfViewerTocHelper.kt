@@ -1,6 +1,5 @@
 package com.veritas.reader
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.RectF
 import android.graphics.Typeface
@@ -16,14 +15,13 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
+import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.interactive.action.PDActionGoTo
 import com.tom_roush.pdfbox.pdmodel.interactive.action.PDActionURI
 import com.tom_roush.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink
-import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.destination.PDNamedDestination
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination
 import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem
@@ -32,7 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-    internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
+internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
         if (isExtractingToc) return
         isExtractingToc = true
         lifecycleScope.launch(Dispatchers.IO) {
@@ -44,10 +42,12 @@ import kotlinx.coroutines.withContext
                 contentResolver.openInputStream(uri)?.use { stream ->
                     PDDocument.load(stream, memorySetting).use { pdDoc ->
                         val toc = extractTocFromPdf(pdDoc)
+                        withContext(Dispatchers.Main) {
+                            pdfTocItems = toc
+                        }
                         val links = extractLinksFromPdf(pdDoc)
                         val allLinks = links.values.flatten()
                         withContext(Dispatchers.Main) {
-                            pdfTocItems = toc
                             pdfLinksByPage = links
                             allDocumentLinks = allLinks
                         }
@@ -60,14 +60,17 @@ import kotlinx.coroutines.withContext
 
     internal fun VeritasPdfViewerActivity.extractTocFromPdf(pdDocument: PDDocument): List<PdfTocItem> {
         val outline = pdDocument.documentCatalog.documentOutline ?: return emptyList()
+        val pageToIndexMap = HashMap<PDPage, Int>(pdDocument.numberOfPages)
+        pdDocument.pages.forEachIndexed { idx, page -> pageToIndexMap[page] = idx }
         val result = mutableListOf<PdfTocItem>()
 
         fun walkOutline(node: PDOutlineNode, level: Int) {
             var current: PDOutlineItem? = node.firstChild
             while (current != null) {
-                val title = current.title.orEmpty().trim()
-                val targetPage = resolveDestinationPage(current, pdDocument)
-                if (title.isNotBlank() && targetPage != null && targetPage >= 0) {
+                val rawTitle = current.title.orEmpty().trim()
+                val title = com.veritas.reader.ui.screens.cleanTocTitle(rawTitle)
+                val targetPage = resolveDestinationPage(current, pdDocument, pageToIndexMap)
+                if (title.isNotBlank() && !com.veritas.reader.ui.screens.isSelfReferentialTocHeading(title) && targetPage != null && targetPage >= 0) {
                     result.add(
                         PdfTocItem(
                             title = title,
@@ -88,7 +91,11 @@ import kotlinx.coroutines.withContext
         return result
     }
 
-    private fun resolveDestinationPage(item: PDOutlineItem, pdDoc: PDDocument): Int? {
+    private fun resolveDestinationPage(
+        item: PDOutlineItem,
+        pdDoc: PDDocument,
+        pageToIndexMap: Map<PDPage, Int>? = null
+    ): Int? {
         return runCatching {
             var dest = item.destination
             if (dest == null && item.action is PDActionGoTo) {
@@ -97,7 +104,7 @@ import kotlinx.coroutines.withContext
             if (dest is PDPageDestination) {
                 val p = dest.page
                 if (p != null) {
-                    val idx = pdDoc.pages.indexOf(p)
+                    val idx = pageToIndexMap?.get(p) ?: pdDoc.pages.indexOf(p)
                     if (idx >= 0) return idx
                 }
                 val pageNumber = dest.pageNumber
@@ -107,7 +114,7 @@ import kotlinx.coroutines.withContext
                 if (pageDest is PDPageDestination) {
                     val p = pageDest.page
                     if (p != null) {
-                        val idx = pdDoc.pages.indexOf(p)
+                        val idx = pageToIndexMap?.get(p) ?: pdDoc.pages.indexOf(p)
                         if (idx >= 0) return idx
                     }
                 }
@@ -188,18 +195,24 @@ import kotlinx.coroutines.withContext
 
     internal fun VeritasPdfViewerActivity.buildFallbackToc(pageCount: Int): List<PdfTocItem> {
         val model = readerTextModel
-        if (model != null && model.parts.size > 1) {
-            return model.parts.mapIndexed { idx, part ->
-                val firstSentence = model.sentences.getOrNull(part.sentenceStartIndex)
-                val pageNum = part.pageRange.startPage.takeIf { it > 0 } ?: (firstSentence?.pageNumber ?: ((idx * pageCount) / model.parts.size + 1))
-                val titleSnippet = firstSentence?.text?.take(40)?.replace("\n", " ")?.trim()
-                val partTitle = if (!titleSnippet.isNullOrBlank()) "Part ${idx + 1}: $titleSnippet..." else "Part ${idx + 1}"
-                PdfTocItem(
-                    title = partTitle,
-                    pageNumber = pageNum,
-                    pageIndex = (pageNum - 1).coerceIn(0, pageCount - 1),
-                    level = 0
-                )
+        if (model != null && model.sentences.isNotEmpty()) {
+            val smartEntries = com.veritas.reader.ui.screens.buildSmartOutline(
+                model.sentences.map { it.text },
+                model
+            )
+            val validPageEntries = smartEntries.mapNotNull { entry ->
+                val p = entry.pageNumber ?: return@mapNotNull null
+                if (p in 1..pageCount) {
+                    PdfTocItem(
+                        title = entry.title,
+                        pageNumber = p,
+                        pageIndex = p - 1,
+                        level = entry.level.coerceIn(0, 3)
+                    )
+                } else null
+            }
+            if (validPageEntries.isNotEmpty()) {
+                return validPageEntries
             }
         }
         if (pageCount > 1) {
@@ -267,7 +280,8 @@ import kotlinx.coroutines.withContext
         val pageCount = runCatching { pdfView?.pdfDocument?.pageCount }.getOrNull() ?: 1
         val currentPage = (pdfView?.firstVisiblePage ?: 0) + 1
 
-        val allTocItems = if (pdfTocItems.isNotEmpty()) pdfTocItems else buildFallbackToc(pageCount)
+        val allTocItems = (if (pdfTocItems.isNotEmpty()) pdfTocItems else buildFallbackToc(pageCount))
+            .filterNot { com.veritas.reader.ui.screens.isSelfReferentialTocHeading(it.title) }
         val displayedToc = allTocItems
         val displayedLinks = allDocumentLinks
 

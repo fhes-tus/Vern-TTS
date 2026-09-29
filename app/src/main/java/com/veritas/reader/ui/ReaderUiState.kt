@@ -1,7 +1,34 @@
 package com.veritas.reader.ui
 
 import android.net.Uri
-import com.veritas.reader.*
+import com.veritas.reader.AiPromptHistoryEntry
+import com.veritas.reader.AiPromptTemplate
+import com.veritas.reader.AskAiSettings
+import com.veritas.reader.FlashcardProgress
+import com.veritas.reader.GeneralNote
+import com.veritas.reader.LibrarySearchHit
+import com.veritas.reader.NarrationSettings
+import com.veritas.reader.PdfImportOptions
+import com.veritas.reader.PptxImportOptions
+import com.veritas.reader.PronunciationRule
+import com.veritas.reader.QuizSet
+import com.veritas.reader.ReaderAnnotation
+import com.veritas.reader.ReaderDocument
+import com.veritas.reader.ReaderSettings
+import com.veritas.reader.ReaderTrackerSnapshot
+import com.veritas.reader.ReadingHistoryEntry
+import com.veritas.reader.SavedDocument
+import com.veritas.reader.TextImportOptions
+import com.veritas.reader.TtsEngineOption
+import com.veritas.reader.TtsVoiceOption
+import com.veritas.reader.VeritasBrowserFile
+import com.veritas.reader.VeritasBrowserLocation
+import com.veritas.reader.VeritasBrowserRoot
+import com.veritas.reader.VeritasDocumentOutlineEntry
+import com.veritas.reader.VeritasReadingListCatalog
+import com.veritas.reader.VeritasScreen
+import com.veritas.reader.VeritasTextEditTarget
+import com.veritas.reader.VoiceSettings
 import com.veritas.reader.ui.screens.VeritasHomeTab
 import java.io.File
 
@@ -22,6 +49,8 @@ data class VeritasPendingImport(
 data class ReaderUiState(
     val documents: List<SavedDocument> = emptyList(),
     val dismissedHeroDocId: String? = null,
+    val dismissedHeroDocIds: Set<String> = emptySet(),
+    val isHeroContinueDismissed: Boolean = false,
     val generalNotes: List<GeneralNote> = emptyList(),
     val showGeneralNotesEditor: Boolean = false,
     val generalNoteEditorTarget: GeneralNote? = null,

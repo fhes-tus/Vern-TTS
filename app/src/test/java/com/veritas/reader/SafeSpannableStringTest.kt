@@ -5,7 +5,6 @@ import com.veritas.reader.ui.screens.DelegatingActionModeCallback
 import com.veritas.reader.ui.screens.SafeSpannableString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SafeSpannableStringTest {

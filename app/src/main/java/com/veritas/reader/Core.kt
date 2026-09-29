@@ -1,31 +1,15 @@
 package com.veritas.reader
 
 import android.content.Context
-import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.edit
-import androidx.core.content.FileProvider
-import android.content.Intent
-import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
-import com.tom_roush.pdfbox.pdmodel.PDDocument
-import com.tom_roush.pdfbox.pdmodel.interactive.action.PDActionGoTo
-import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination
-import com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem
-import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
-import kotlin.math.roundToInt
-import org.json.JSONArray
-import org.json.JSONObject
 
 object PlaybackActions {
     const val ACTION_PLAY = "com.veritas.reader.action.PLAY"
@@ -78,6 +62,7 @@ object PlaybackStateStore {
     var autoPlayQueue by mutableStateOf(true)
     var currentSentenceStart by mutableIntStateOf(0)
     var currentSentenceEnd by mutableIntStateOf(0)
+    var activeTableColumnIndex by mutableIntStateOf(-1)
     var sleepTimerDurationMillis by mutableLongStateOf(0L)
     var sleepTimerEndsAtMillis by mutableLongStateOf(0L)
     var sleepTimerStopAtEndOfSection by mutableStateOf(false)
@@ -122,6 +107,7 @@ object PlaybackStateStore {
         queueCount = 0
         currentSentenceStart = 0
         currentSentenceEnd = 0
+        activeTableColumnIndex = -1
         clearSleepTimer()
     }
 
@@ -184,13 +170,12 @@ object ReaderTextModelCache {
 }
 
 fun buildReaderDocument(metadata: SavedDocument, rawText: String): ReaderDocument {
-    val cleanText = DocumentTextRepairer.repairPseudoTables(rawText)
-    val model = ReaderTextModelCache.get(metadata.id, cleanText, metadata.pageCount)
+    val model = ReaderTextModelCache.get(metadata.id, rawText, metadata.pageCount)
     return ReaderDocument(
         id = metadata.id,
         title = metadata.title.ifBlank { "Untitled reading" },
         sourceLabel = metadata.sourceLabel,
-        rawText = cleanText,
+        rawText = rawText,
         sentences = model.sentences.map { it.text },
         pageCount = model.pageCount
     )

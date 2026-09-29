@@ -4,12 +4,12 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import com.veritas.reader.PlaybackService.Companion.RESUME_SKIP_CHARS
+import com.veritas.reader.PlaybackService.Companion.RESUME_WORD_THRESHOLD
 import com.veritas.reader.tts.KokoroTtsEngine
 import com.veritas.reader.tts.PiperEngine
 import com.veritas.reader.tts.VeritasAudioBuffer
 import com.veritas.reader.tts.VoiceModelManager
-import com.veritas.reader.PlaybackService.Companion.RESUME_WORD_THRESHOLD
-import com.veritas.reader.PlaybackService.Companion.RESUME_SKIP_CHARS
 
 internal fun PlaybackService.veritasBufferFor(voiceSettings: VoiceSettings): VeritasAudioBuffer {
     var voiceName = voiceSettings.voiceName
@@ -176,9 +176,10 @@ internal fun PlaybackService.clearResumePoint() {
     resumeWordCount = 0
     PlaybackStateStore.currentSentenceStart = 0
     PlaybackStateStore.currentSentenceEnd = 0
+    PlaybackStateStore.activeTableColumnIndex = -1
     repository.clearPersistedResumePoint()
     clearQueuedChunk()
 }
 
 internal fun PlaybackService.leadingSilenceMsFor(index: Int): Long =
-    PlaybackService.leadingSilenceMs(chunkPageNumbers, index)
+    PlaybackService.leadingSilenceMs(chunkPageNumbers, index, chunks.getOrNull(index))

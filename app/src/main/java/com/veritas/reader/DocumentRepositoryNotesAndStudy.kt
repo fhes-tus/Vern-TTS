@@ -1,9 +1,9 @@
 package com.veritas.reader
 
 import androidx.core.content.edit
-import java.util.UUID
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.UUID
 
 fun DocumentRepository.loadAiPromptTemplates(): List<AiPromptTemplate> {
     val raw = prefs.getString(DocumentRepository.KEY_AI_TEMPLATES, "[]") ?: "[]"

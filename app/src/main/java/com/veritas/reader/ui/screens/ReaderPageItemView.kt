@@ -1,44 +1,19 @@
 package com.veritas.reader.ui.screens
 
 
-import android.content.Context
-import android.content.Intent
-import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Typeface
-import android.graphics.text.LineBreaker
-import android.os.Build
-import android.text.Layout
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.BackgroundColorSpan
-import android.text.style.RelativeSizeSpan
-import android.text.style.ReplacementSpan
-import android.text.style.StrikethroughSpan
-import android.text.style.StyleSpan
-import android.text.style.TypefaceSpan
-import android.view.ActionMode
 import android.view.GestureDetector
-import android.view.Menu
-import android.view.MenuItem
 import android.view.MotionEvent
 import android.widget.TextView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.graphics.asImageBitmap
-import com.veritas.reader.aiAssistantIcon
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -46,210 +21,62 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.AnchoredDraggableState
-import androidx.compose.foundation.gestures.DraggableAnchors
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.anchoredDraggable
-import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.NavigateBefore
-import androidx.compose.material.icons.automirrored.filled.NavigateNext
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Headphones
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.BookmarkAdd
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.CollectionsBookmark
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
-import androidx.compose.material.icons.automirrored.filled.PlaylistAddCheck
-import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.EditNote
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.outlined.BookmarkRemove
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.CollectionsBookmark
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.RecordVoiceOver
-import androidx.compose.material.icons.outlined.TheaterComedy
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Psychology
-import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.Spellcheck
-import androidx.compose.material.icons.outlined.Bolt
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.GraphicEq
-import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.material.icons.outlined.Info
-import com.veritas.reader.DocumentRepository
-import com.veritas.reader.DocumentPageImageLoader
-import com.veritas.reader.PaperToneMode
-import com.veritas.reader.getCanvasColors
-import com.veritas.reader.blendColors
-import com.veritas.reader.ShareScope
-import com.veritas.reader.AiAssistantOption
 import com.veritas.reader.AnnotationPill
 import com.veritas.reader.AnnotationType
-import com.veritas.reader.AskAiSettings
-import com.veritas.reader.BouncyFilledButton
-import com.veritas.reader.BouncyTextButton
-import com.veritas.reader.BrandMark
-import com.veritas.reader.NarrationSettings
-import com.veritas.reader.PlaybackActions
-import com.veritas.reader.PlaybackService
+import com.veritas.reader.CoverExtractor
+import com.veritas.reader.DocumentPageImageLoader
+import com.veritas.reader.DocumentRepository
+import com.veritas.reader.PaperToneMode
+import com.veritas.reader.PlaybackStateStore
 import com.veritas.reader.ReaderAnnotation
 import com.veritas.reader.ReaderDocument
-import com.veritas.reader.ReaderPageRange
 import com.veritas.reader.ReaderPart
 import com.veritas.reader.ReaderPartSentenceRange
 import com.veritas.reader.ReaderSettings
-import com.veritas.reader.CoverExtractor
-import com.veritas.reader.ReaderTextModelCache
-import com.veritas.reader.ResolvedVeritasFeature
-import com.veritas.reader.VeritasDocumentOutlineEntry
-import com.veritas.reader.VeritasFeatureContext
-import com.veritas.reader.VeritasFeatureId
-import com.veritas.reader.VeritasFeatureRegistry
-import com.veritas.reader.VeritasFeatureSurface
-import com.veritas.reader.VeritasSleepTimerAction
-import com.veritas.reader.VeritasSleepTimerFormatter
-import com.veritas.reader.VeritasSleepTimerPresets
-import com.veritas.reader.VeritasSleepTimerRequest
-import com.veritas.reader.VeritasSleepTimerSnapshot
-import com.veritas.reader.VoiceSettings
-import com.veritas.reader.TtsVoiceOption
-import com.veritas.reader.VeritasPackStyle
-import com.veritas.reader.ReaderMode
-import com.veritas.reader.ReaderModeToggle
-import com.veritas.reader.aiAssistantOptions
-import com.veritas.reader.capWords
-import com.veritas.reader.installedPackageForOption
+import com.veritas.reader.ReaderTextModel
+import com.veritas.reader.getCanvasColors
+import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.VeritasUiFont
 import com.veritas.reader.ui.asTypeface
-import com.veritas.reader.openPlayStoreForPackage
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import androidx.compose.ui.layout.onGloballyPositioned
-import com.veritas.reader.ui.OnboardingController
-import com.veritas.reader.ui.rememberSliderHaptics
-import com.veritas.reader.ui.VeritasSleekSlider
-import com.veritas.reader.ui.VeritasThinRoundSlider
-import com.veritas.reader.SlimPageSlider
-import java.util.Locale
-import kotlin.math.roundToInt
-
-
-
-import com.veritas.reader.ReaderTextModel
 
 private class TextViewHolder(
     var renderedPage: Any? = null,
@@ -258,6 +85,7 @@ private class TextViewHolder(
     var lineMultiplier: Float = -1f,
     var textColor: Int = 0,
     var uiFontId: String? = null,
+    var targetWeight: Int = -1,
     var onToggleBars: () -> Unit = {},
     var onSentenceDoubleTap: (Int) -> Unit = {},
     var isCollapsible: Boolean = false,
@@ -531,256 +359,138 @@ internal fun ReaderPageItemView(
                                             }
                                         }
 
-                                        val isCurrentOnThisPage = currentIndex in part.sentenceStartIndex until part.sentenceEndIndexExclusive
-                                        val activeSentenceOnThisPage = if (isCurrentOnThisPage) currentIndex else -1
-                                        val renderedPage = remember(
-                                            part.text,
-                                            activeSentenceOnThisPage,
-                                            isPlaying,
-                                            feedbackSentenceIndex,
-                                            bookmarkedSentences,
-                                            searchMatches,
-                                            searchCursor,
-                                            activeSentenceColor,
-                                            highlightColor,
-                                            feedbackColor,
-                                            searchMatchColor,
-                                            activeSearchMatchColor,
-                                            state.readerSettings.bionicReading,
-                                            pageBitmaps,
-                                            readerSettings.sectionSpacingDp,
-                                            state.searchQuery
-                                        ) {
-                                            buildReaderPartSpannable(
-                                                part = part,
-                                                activeSentenceIndex = activeSentenceOnThisPage,
-                                                feedbackSentenceIndex = feedbackSentenceIndex,
-                                                highlightedSentences = bookmarkedSentences,
-                                                searchMatches = searchMatches,
-                                                searchCursor = searchCursor,
-                                                activeSentenceColor = activeSentenceColor,
-                                                defaultHighlightColor = highlightColor,
-                                                feedbackColor = feedbackColor,
-                                                searchMatchColor = searchMatchColor,
-                                                activeSearchMatchColor = activeSearchMatchColor,
-                                                bionicReading = state.readerSettings.bionicReading,
-                                                context = context,
-                                                pageBitmaps = pageBitmaps,
-                                                sectionSpacingDp = readerSettings.sectionSpacingDp,
-                                                searchQuery = state.searchQuery,
-                                                textColor = textColor
-                                            )
+                                        val currentFontId = readerSettings.uiFontId
+                                        val uiFont = remember(currentFontId) { VeritasUiFont.fromId(currentFontId) }
+                                        val boldTypeface = remember(uiFont, context) {
+                                            uiFont.asTypeface(context, weight = 700, isBold = true)
                                         }
 
-                                        if (part.text.isNotBlank()) {
-                                            AndroidView(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .onGloballyPositioned {
-                                                        OnboardingController.updateBounds("reader_text_view", it)
-                                                    },
-                                                factory = { viewContext ->
-                                                    TextView(viewContext).apply {
-                                                        setTextIsSelectable(true)
-                                                        isFocusable = true
-                                                        isFocusableInTouchMode = true
-                                                        includeFontPadding = false
-                                                        setSpannableFactory(object : android.text.Spannable.Factory() {
-                                                            override fun newSpannable(source: CharSequence): android.text.Spannable {
-                                                                return if (source is SafeSpannableString) source else SafeSpannableString(source)
-                                                            }
-                                                        })
-                                                        val delegator = DelegatingActionModeCallback()
-                                                        customSelectionActionModeCallback = delegator
-                                                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                                            justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
-                                                        }
-                                                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                                                            breakStrategy = android.text.Layout.BREAK_STRATEGY_BALANCED
-                                                            hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_NONE
-                                                        }
-                                                        val holder = TextViewHolder()
-                                                        val touchSlop = android.view.ViewConfiguration.get(viewContext).scaledTouchSlop
-                                                        var downX = 0f
-                                                        var downY = 0f
-                                                        var doubleTapHandled = false
+                                        val isCurrentOnThisPage = currentIndex in part.sentenceStartIndex until part.sentenceEndIndexExclusive
+                                        val activeSentenceOnThisPage = if (isCurrentOnThisPage) currentIndex else -1
+                                        val segments = remember(part) { parsePageContentSegments(part) }
+                                        val segmentTopPx = remember { mutableStateMapOf<Int, Float>() }
+                                        val segmentTextViews = remember { mutableMapOf<Int, TextView>() }
+                                        var activeTextView by remember { mutableStateOf<TextView?>(null) }
+                                        var textViewContentTopPx by remember { mutableFloatStateOf(0f) }
 
-                                                        val detector = GestureDetector(
-                                                            viewContext,
-                                                            object : GestureDetector.SimpleOnGestureListener() {
-                                                                override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
-                                                                    if (this@apply.hasSelection()) {
-                                                                        return false
-                                                                    }
-                                                                    if (holder.isCollapsible) {
-                                                                        holder.onToggleBars()
-                                                                        return true
-                                                                    }
-                                                                    return false
-                                                                }
+                                        LaunchedEffect(activeSentenceOnThisPage, activeTextView, segments) {
+                                            if (activeSentenceOnThisPage >= 0) {
+                                                val activeSegment = segments.firstOrNull { segment ->
+                                                    when (segment) {
+                                                        is PageContentSegment.Prose -> activeSentenceOnThisPage in segment.subPart.sentenceStartIndex until segment.subPart.sentenceEndIndexExclusive
+                                                        is PageContentSegment.Table -> activeSentenceOnThisPage in segment.sentenceStartIndex until segment.sentenceEndIndexExclusive
+                                                    }
+                                                }
+                                                if (activeSegment is PageContentSegment.Table) {
+                                                    val tableTop = segmentTopPx[activeSegment.segmentIndex] ?: 0f
+                                                    val currentScroll = pageScrollState.value
+                                                    val viewportHeight = pageScrollState.viewportSize
+                                                    val isVisible = viewportHeight > 0 && tableTop >= currentScroll && tableTop <= (currentScroll + viewportHeight - 80)
+                                                    if (!isVisible) {
+                                                        pageScrollState.animateScrollTo((tableTop - 60).toInt().coerceAtLeast(0))
+                                                    }
+                                                } else if (activeSegment is PageContentSegment.Prose) {
+                                                    val tv = segmentTextViews[activeSegment.segmentIndex] ?: activeTextView ?: return@LaunchedEffect
+                                                    var attempts = 0
+                                                    while (tv.layout == null && attempts < 10) {
+                                                        kotlinx.coroutines.delay(30)
+                                                        attempts++
+                                                    }
+                                                    val layout = tv.layout ?: return@LaunchedEffect
+                                                    val range = activeSegment.subPart.sentenceRanges.firstOrNull { it.sentenceIndex == activeSentenceOnThisPage } ?: return@LaunchedEffect
+                                                    val safeOffset = range.start.coerceIn(0, (tv.text?.length ?: 1) - 1)
+                                                    val line = layout.getLineForOffset(safeOffset)
+                                                    val lineTop = layout.getLineTop(line)
+                                                    val lineBottom = layout.getLineBottom(line)
+                                                    val segmentTop = segmentTopPx[activeSegment.segmentIndex] ?: textViewContentTopPx
+                                                    val sentenceY = (segmentTop + lineTop).toInt()
+                                                    val currentScroll = pageScrollState.value
+                                                    val viewportHeight = pageScrollState.viewportSize
+                                                    val isVisible = viewportHeight > 0 &&
+                                                        sentenceY >= currentScroll &&
+                                                        (sentenceY + (lineBottom - lineTop)) <= (currentScroll + viewportHeight - 80)
+                                                    if (!isVisible) {
+                                                        val targetY = (sentenceY - 60).coerceAtLeast(0)
+                                                        pageScrollState.animateScrollTo(targetY)
+                                                    }
+                                                }
+                                            }
+                                        }
 
-                                                                override fun onDoubleTap(event: MotionEvent): Boolean {
-                                                                    val currentPart = holder.part ?: return false
-                                                                    val offset = this@apply.getOffsetForPosition(
-                                                                        event.x,
-                                                                        event.y
-                                                                    ).coerceIn(0, currentPart.text.length)
-                                                                    val hitRange = currentPart.sentenceRanges.firstOrNull { offset in it.start until it.endExclusive }
-                                                                    if (hitRange != null) {
-                                                                        clearNativeTextSelection(this@apply)
-                                                                        holder.haptics?.performHapticFeedback(HapticFeedbackType.Confirm)
-                                                                        holder.onSentenceDoubleTap(hitRange.sentenceIndex)
-                                                                        doubleTapHandled = true
-                                                                        return true
-                                                                    }
-                                                                    return false
-                                                                }
-                                                            }
-                                                        )
-                                                        holder.detector = detector
-                                                        tag = holder
-
-                                                        setOnTouchListener { v, event ->
-                                                            when (event.actionMasked) {
-                                                                MotionEvent.ACTION_DOWN -> {
-                                                                    downX = event.x
-                                                                    downY = event.y
-                                                                    doubleTapHandled = false
-                                                                    if (this.hasSelection()) {
-                                                                        v.parent?.requestDisallowInterceptTouchEvent(true)
-                                                                    }
-                                                                }
-                                                                MotionEvent.ACTION_MOVE -> {
-                                                                    val dx = kotlin.math.abs(event.x - downX)
-                                                                    val dy = kotlin.math.abs(event.y - downY)
-                                                                    if (this.hasSelection()) {
-                                                                        if (dx > touchSlop * 2 && dx > dy * 1.5f) {
-                                                                            clearNativeTextSelection(this)
-                                                                            this.clearFocus()
-                                                                            onSelectionChanged(null)
-                                                                            v.parent?.requestDisallowInterceptTouchEvent(false)
-                                                                        } else {
-                                                                            v.parent?.requestDisallowInterceptTouchEvent(true)
-                                                                        }
-                                                                    } else {
-                                                                        if (dx > touchSlop || dy > touchSlop) {
-                                                                            v.parent?.requestDisallowInterceptTouchEvent(false)
-                                                                        }
-                                                                    }
-                                                                }
-                                                                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                                                                    if (!this.hasSelection()) {
-                                                                        v.parent?.requestDisallowInterceptTouchEvent(false)
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            detector.onTouchEvent(event)
-
-                                                            if (doubleTapHandled) {
-                                                                true
-                                                            } else {
-                                                                false
-                                                            }
-                                                        }
-                                                    }
-                                                },
-                                                onRelease = { released ->
-                                                    runCatching {
-                                                        clearNativeTextSelection(released)
-                                                        released.clearFocus()
-                                                    }
-                                                },
-                                                update = { textView ->
-                                                    val holder = textView.tag as? TextViewHolder ?: TextViewHolder().also { textView.tag = it }
-
-                                                    if (currentPageNumber == pageNumber) {
-                                                        onTextViewBound(textView)
-                                                    } else {
-                                                        if (textView.hasSelection() || textView.isFocused) {
-                                                            clearNativeTextSelection(textView)
-                                                            textView.clearFocus()
-                                                        }
-                                                    }
-                                                    holder.onToggleBars = onToggleBars
-                                                    holder.onSentenceDoubleTap = onSentenceDoubleTap
-                                                    holder.isCollapsible = isCollapsible
-                                                    holder.part = part
-                                                    holder.haptics = haptics
-
-                                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                                        textView.justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
-                                                    }
-                                                    if (holder.renderedPage !== renderedPage) {
-                                                        if (!textView.hasSelection() || textView.text.toString() != renderedPage.toString()) {
-                                                            holder.renderedPage = renderedPage
-                                                            textView.text = renderedPage
-                                                        }
-                                                    }
-                                                    if (holder.textColor != textColor) {
-                                                        holder.textColor = textColor
-                                                        textView.setTextColor(textColor)
-                                                    }
-                                                    if (holder.fontSizeSp != readerSettings.fontSizeSp) {
-                                                        holder.fontSizeSp = readerSettings.fontSizeSp
-                                                        textView.textSize = readerSettings.fontSizeSp.toFloat()
-                                                    }
-                                                    val currentFontId = readerSettings.uiFontId
-                                                    if (holder.uiFontId != currentFontId) {
-                                                        holder.uiFontId = currentFontId
-                                                        val uiFont = VeritasUiFont.fromId(currentFontId)
-                                                        textView.typeface = uiFont.asTypeface(context)
-                                                    }
-                                                    val extraSpacingPx = 0f
-                                                    val lineMult = 1.0f + ((readerSettings.sectionSpacingDp - 6).coerceAtLeast(0) * (0.6f / 18f))
-                                                    if (holder.lineMultiplier != lineMult || holder.extraSpacingPx != extraSpacingPx) {
-                                                        holder.lineMultiplier = lineMult
-                                                        holder.extraSpacingPx = extraSpacingPx
-                                                        textView.setLineSpacing(
-                                                            extraSpacingPx,
-                                                            lineMult
-                                                        )
-                                                    }
-                                                    val actionModeCb = readerSelectionActionModeCallback(
-                                                        textView = textView,
-                                                        part = part,
-                                                        documentId = document.id,
-                                                        context = context,
-                                                        haptics = haptics,
+                                        segments.forEach { segment ->
+                                            when (segment) {
+                                                is PageContentSegment.Prose -> {
+                                                    ReaderProseBlock(
+                                                        subPart = segment.subPart,
+                                                        segmentIndex = segment.segmentIndex,
+                                                        activeSentenceOnThisPage = activeSentenceOnThisPage,
+                                                        isPlaying = isPlaying,
+                                                        feedbackSentenceIndex = feedbackSentenceIndex,
+                                                        bookmarkedSentences = bookmarkedSentences,
+                                                        searchMatches = searchMatches,
+                                                        searchCursor = searchCursor,
+                                                        activeSentenceColor = activeSentenceColor,
+                                                        highlightColor = highlightColor,
+                                                        feedbackColor = feedbackColor,
+                                                        searchMatchColor = searchMatchColor,
+                                                        activeSearchMatchColor = activeSearchMatchColor,
+                                                        state = state,
+                                                        readerSettings = readerSettings,
+                                                        paperTone = paperTone,
+                                                        pageBitmaps = pageBitmaps,
+                                                        textColor = textColor,
+                                                        boldTypeface = boldTypeface,
+                                                        currentPageNumber = currentPageNumber,
+                                                        pageNumber = pageNumber,
+                                                        document = document,
                                                         bookmarkedSentenceIndexes = bookmarkedSentenceIndexes,
-                                                        onSelectionChanged = { sel ->
-                                                            if (sel != null) onTextViewBound(textView)
-                                                            onSelectionChanged(sel)
-                                                        },
-                                                        onSearchQueryChange = {
-                                                            onSearchTriggered(it)
-                                                        },
-                                                        onToggleBookmark = { idx ->
-                                                            onToggleBookmark(idx)
-                                                        },
-                                                        onHighlightSelection = { sel ->
-                                                            onOpenColorPalette(sel.sentenceIndexes)
-                                                        },
+                                                        isCollapsible = isCollapsible,
+                                                        onToggleBars = onToggleBars,
+                                                        onSentenceDoubleTap = onSentenceDoubleTap,
+                                                        onTextViewBound = onTextViewBound,
+                                                        onSelectionChanged = onSelectionChanged,
+                                                        onSearchTriggered = onSearchTriggered,
+                                                        onToggleBookmark = onToggleBookmark,
+                                                        onOpenColorPalette = onOpenColorPalette,
                                                         onEditNotes = onEditNotes,
                                                         onTranslateSelection = onTranslateSelection,
                                                         onCopySelection = onCopySelection,
                                                         onGoogleSelection = onGoogleSelection,
                                                         onShareSelection = onShareSelection,
-                                                        onShareSelectionToAi = { sel ->
-                                                            onOpenShareToAi(sel, false)
-                                                        },
+                                                        onOpenShareToAi = onOpenShareToAi,
                                                         onEditSpeechSelection = onEditSpeechSelection,
                                                         onEditExtractedSelection = onEditExtractedSelection,
                                                         onAskAiSelection = onAskAiSelection,
-                                                        onReadSelection = onReadSelection
-                                                    )
-                                                    val delegator = (textView.customSelectionActionModeCallback as? DelegatingActionModeCallback)
-                                                        ?: DelegatingActionModeCallback().also {
-                                                            textView.customSelectionActionModeCallback = it
+                                                        onReadSelection = onReadSelection,
+                                                        onGloballyPositionedTop = { top ->
+                                                            segmentTopPx[segment.segmentIndex] = top
+                                                            if (segment.segmentIndex == 0) textViewContentTopPx = top
+                                                        },
+                                                        onTextViewActive = { tv ->
+                                                            activeTextView = tv
+                                                            segmentTextViews[segment.segmentIndex] = tv
                                                         }
-                                                    delegator.delegate = actionModeCb
+                                                    )
                                                 }
-                                            )
+                                                is PageContentSegment.Table -> {
+                                                    ReaderComposeTableCard(
+                                                        table = segment,
+                                                        activeSentenceIndex = activeSentenceOnThisPage,
+                                                        paperTone = paperTone,
+                                                        canvasTextColor = canvasTextColor,
+                                                        onSentenceClick = onSentenceClick,
+                                                        onSentenceDoubleTap = onSentenceDoubleTap,
+                                                        onSkipTable = {
+                                                            onSentenceClick(segment.sentenceEndIndexExclusive.coerceAtMost((document.chunks.size - 1).coerceAtLeast(0)))
+                                                        },
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .onGloballyPositioned {
+                                                                segmentTopPx[segment.segmentIndex] = it.positionInParent().y + pageScrollState.value
+                                                            }
+                                                    )
+                                                }
+                                            }
                                         }
 
                                         if (unplacedBitmaps.isNotEmpty()) {
@@ -866,4 +576,664 @@ internal fun ReaderPageItemView(
                     }
                 }
 
+}
+
+internal sealed class PageContentSegment {
+    data class Prose(
+        val subPart: ReaderPart,
+        val segmentIndex: Int
+    ) : PageContentSegment()
+
+    data class Table(
+        val rows: List<List<String>>,
+        val sentenceStartIndex: Int,
+        val sentenceEndIndexExclusive: Int,
+        val segmentIndex: Int,
+        val rowSentenceIndices: List<Int> = emptyList()
+    ) : PageContentSegment()
+}
+
+internal fun parsePageContentSegments(part: ReaderPart): List<PageContentSegment> {
+    val text = part.text
+    if (text.isBlank()) return emptyList()
+
+    if (!text.contains('|')) {
+        return listOf(PageContentSegment.Prose(part, 0))
+    }
+
+    data class LineInfo(val text: String, val start: Int, val end: Int)
+    val lines = mutableListOf<LineInfo>()
+    var lineStart = 0
+    while (lineStart <= text.length) {
+        val newline = text.indexOf('\n', lineStart)
+        val lineEnd = if (newline == -1) text.length else newline
+        lines.add(LineInfo(text.substring(lineStart, lineEnd), lineStart, lineEnd))
+        if (newline == -1) break
+        lineStart = newline + 1
+    }
+
+    data class TableRange(
+        val startLineIdx: Int,
+        val endLineIdxExclusive: Int,
+        val startOffset: Int,
+        val endOffset: Int
+    )
+    val tableRanges = mutableListOf<TableRange>()
+
+    var idx = 0
+    while (idx < lines.size) {
+        val trimmed = lines[idx].text.trim()
+        val isTable = isTableLine(trimmed)
+        val isSep = isTableSeparator(trimmed)
+
+        if (isTable || isSep) {
+            val tableStartLine = idx
+            val tableStartOffset = lines[idx].start
+
+            var endIdx = idx + 1
+            while (endIdx < lines.size) {
+                val nextTrimmed = lines[endIdx].text.trim()
+                if (isTableLine(nextTrimmed) || isTableSeparator(nextTrimmed)) {
+                    endIdx++
+                } else if (nextTrimmed.isEmpty()) {
+                    // Check if there is another table line or separator after empty lines
+                    var lookAhead = endIdx + 1
+                    while (lookAhead < lines.size && lines[lookAhead].text.trim().isEmpty()) {
+                        lookAhead++
+                    }
+                    if (lookAhead < lines.size && (isTableLine(lines[lookAhead].text.trim()) || isTableSeparator(lines[lookAhead].text.trim()))) {
+                        endIdx = lookAhead + 1
+                    } else {
+                        break
+                    }
+                } else {
+                    break
+                }
+            }
+
+            val groupLines = lines.subList(tableStartLine, endIdx)
+            val contentRows = groupLines.filter {
+                val t = it.text.trim()
+                t.isNotEmpty() && !isTableSeparator(t)
+            }
+            if (contentRows.isNotEmpty()) {
+                val endOffset = lines[endIdx - 1].end
+                tableRanges.add(TableRange(tableStartLine, endIdx, tableStartOffset, endOffset))
+            }
+            idx = endIdx
+        } else {
+            idx++
+        }
+    }
+
+    if (tableRanges.isEmpty()) {
+        return listOf(PageContentSegment.Prose(part, 0))
+    }
+
+    val segments = mutableListOf<PageContentSegment>()
+    var currentOffset = 0
+    var segIndex = 0
+
+    for (range in tableRanges) {
+        if (range.startOffset > currentOffset) {
+            val proseText = text.substring(currentOffset, range.startOffset)
+            if (proseText.isNotBlank()) {
+                segments.add(createSubPart(part, currentOffset, range.startOffset, segIndex++))
+            }
+        }
+
+        val groupLines = lines.subList(range.startLineIdx, range.endLineIdxExclusive)
+        val parsedRows = mutableListOf<List<String>>()
+        val rowSentenceIndices = mutableListOf<Int>()
+
+        groupLines.forEach { lineInfo ->
+            val rowStr = lineInfo.text.trim()
+            if (isTableSeparator(rowStr) || rowStr.isEmpty()) return@forEach
+
+            val matchingSentence = part.sentenceRanges.maxByOrNull { sr ->
+                maxOf(0, minOf(sr.endExclusive, lineInfo.end) - maxOf(sr.start, lineInfo.start))
+            }?.takeIf { sr ->
+                maxOf(0, minOf(sr.endExclusive, lineInfo.end) - maxOf(sr.start, lineInfo.start)) > 0
+            }?.sentenceIndex
+
+            if (isTableLine(rowStr)) {
+                val cells = rowStr.trim('|')
+                    .split('|')
+                    .map { it.trim() }
+                if (cells.any { it.isNotBlank() }) {
+                    parsedRows.add(cells)
+                    val fallback = (rowSentenceIndices.lastOrNull()?.plus(1)) ?: part.sentenceStartIndex
+                    rowSentenceIndices.add(matchingSentence ?: fallback)
+                }
+            }
+        }
+
+        if (parsedRows.isNotEmpty()) {
+            val tableSentenceRanges = part.sentenceRanges.filter {
+                it.endExclusive > range.startOffset && it.start < range.endOffset
+            }
+            val startSentence = rowSentenceIndices.minOrNull()
+                ?: tableSentenceRanges.minOfOrNull { it.sentenceIndex }
+                ?: part.sentenceStartIndex
+            val endSentence = (rowSentenceIndices.maxOrNull()?.plus(1))
+                ?: (tableSentenceRanges.maxOfOrNull { it.sentenceIndex }?.plus(1))
+                ?: (startSentence + parsedRows.size)
+
+            segments.add(
+                PageContentSegment.Table(
+                    rows = parsedRows,
+                    sentenceStartIndex = startSentence,
+                    sentenceEndIndexExclusive = endSentence,
+                    segmentIndex = segIndex++,
+                    rowSentenceIndices = rowSentenceIndices
+                )
+            )
+        }
+
+        currentOffset = range.endOffset
+    }
+
+    if (currentOffset < text.length) {
+        val proseText = text.substring(currentOffset)
+        if (proseText.isNotBlank()) {
+            segments.add(createSubPart(part, currentOffset, text.length, segIndex++))
+        }
+    }
+
+    return segments.ifEmpty { listOf(PageContentSegment.Prose(part, 0)) }
+}
+
+private fun createSubPart(part: ReaderPart, startOffset: Int, endOffset: Int, segmentIndex: Int): PageContentSegment.Prose {
+    val subText = part.text.substring(startOffset, endOffset)
+    val subSentenceRanges = part.sentenceRanges.mapNotNull { r ->
+        if (r.endExclusive <= startOffset || r.start >= endOffset) null
+        else {
+            val shiftedStart = (r.start - startOffset).coerceIn(0, subText.length)
+            val shiftedEnd = (r.endExclusive - startOffset).coerceIn(shiftedStart, subText.length)
+            if (shiftedEnd > shiftedStart) {
+                ReaderPartSentenceRange(r.sentenceIndex, shiftedStart, shiftedEnd)
+            } else null
+        }
+    }
+    val startSentence = subSentenceRanges.minOfOrNull { it.sentenceIndex } ?: part.sentenceStartIndex
+    val endSentence = (subSentenceRanges.maxOfOrNull { it.sentenceIndex }?.plus(1)) ?: (startSentence + 1)
+    val subPart = ReaderPart(
+        index = part.index,
+        pageRange = part.pageRange,
+        sentenceStartIndex = startSentence,
+        sentenceEndIndexExclusive = endSentence,
+        text = subText,
+        sentenceRanges = subSentenceRanges
+    )
+    return PageContentSegment.Prose(subPart, segmentIndex)
+}
+
+@Composable
+internal fun ReaderComposeTableCard(
+    table: PageContentSegment.Table,
+    activeSentenceIndex: Int,
+    paperTone: PaperToneMode,
+    canvasTextColor: Color,
+    onSentenceClick: (Int) -> Unit,
+    onSentenceDoubleTap: (Int) -> Unit,
+    onSkipTable: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val maxCols = (table.rows.maxOfOrNull { it.size } ?: 1).coerceAtLeast(1)
+    val isWide = maxCols >= 3 || table.rows.any { row -> row.any { it.length > 25 } }
+    val cardBg = when (paperTone) {
+        PaperToneMode.WARM_SEPIA -> Color(0xFFF3ECE0)
+        PaperToneMode.DARK -> Color(0xFF22252A)
+        PaperToneMode.NATURAL_WHITE -> Color(0xFFF8F9FA)
+        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+    }
+    val borderColor = when (paperTone) {
+        PaperToneMode.WARM_SEPIA -> Color(0xFF8D6E63).copy(alpha = 0.25f)
+        PaperToneMode.DARK -> Color(0xFF44474E).copy(alpha = 0.35f)
+        PaperToneMode.NATURAL_WHITE -> Color(0xFFE2E4E8)
+        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
+    }
+    val headerBg = when (paperTone) {
+        PaperToneMode.NATURAL_WHITE -> MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+        PaperToneMode.WARM_SEPIA -> Color(0xFF8D6E63).copy(alpha = 0.12f)
+        else -> MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+    }
+    val rowTextColor = when (paperTone) {
+        PaperToneMode.NATURAL_WHITE -> Color(0xFF1C1B1F)
+        else -> canvasTextColor
+    }
+    val activeRowBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+
+    Surface(
+        modifier = modifier.padding(vertical = 6.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = cardBg,
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
+        tonalElevation = 1.dp
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Table • ${table.rows.size} rows",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    modifier = Modifier.clickable { onSkipTable() }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "Skip Table",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "⏭",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            HorizontalDivider(
+                color = borderColor.copy(alpha = 0.5f),
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            val contentModifier = if (isWide) {
+                Modifier.horizontalScroll(rememberScrollState())
+            } else {
+                Modifier.fillMaxWidth()
+            }
+
+            Column(modifier = contentModifier) {
+                table.rows.forEachIndexed { rowIndex, row ->
+                    val isHeaderRow = (rowIndex == 0)
+                    val rowSentenceIndex = table.rowSentenceIndices.getOrNull(rowIndex)
+                        ?: (table.sentenceStartIndex + rowIndex)
+                            .coerceAtMost((table.sentenceEndIndexExclusive - 1).coerceAtLeast(table.sentenceStartIndex))
+                    val isRowActive = (activeSentenceIndex == rowSentenceIndex)
+                    val activeColIndex = if (isRowActive) PlaybackStateStore.activeTableColumnIndex else -1
+
+                    val rowBg = when {
+                        isRowActive -> activeRowBg
+                        isHeaderRow -> headerBg
+                        else -> Color.Transparent
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .then(if (isWide) Modifier.widthIn(min = (maxCols * 115).dp) else Modifier.fillMaxWidth())
+                            .background(rowBg)
+                            .clickable { onSentenceClick(rowSentenceIndex) }
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        for (colIdx in 0 until maxCols) {
+                            val cellText = row.getOrNull(colIdx).orEmpty()
+                            val isCellSpotlighted = isRowActive && (activeColIndex == colIdx || (activeColIndex == -1 && colIdx == 0))
+                            val cellModifier = if (isWide) {
+                                Modifier.widthIn(min = 105.dp, max = 220.dp)
+                            } else {
+                                Modifier.weight(1f)
+                            }
+
+                            Box(
+                                modifier = cellModifier
+                                    .background(
+                                        if (isCellSpotlighted) MaterialTheme.colorScheme.primary.copy(alpha = 0.22f) else Color.Transparent,
+                                        RoundedCornerShape(4.dp)
+                                    )
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = cellText,
+                                    style = if (isHeaderRow) MaterialTheme.typography.labelMedium else MaterialTheme.typography.bodySmall,
+                                    fontWeight = if (isHeaderRow || isRowActive) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isCellSpotlighted || isHeaderRow) MaterialTheme.colorScheme.primary else rowTextColor,
+                                    maxLines = 4,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+
+                    if (rowIndex < table.rows.lastIndex) {
+                        HorizontalDivider(
+                            color = borderColor.copy(alpha = 0.3f),
+                            modifier = Modifier.padding(horizontal = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReaderProseBlock(
+    subPart: ReaderPart,
+    segmentIndex: Int,
+    activeSentenceOnThisPage: Int,
+    isPlaying: Boolean,
+    feedbackSentenceIndex: Int?,
+    bookmarkedSentences: Map<Int, String>,
+    searchMatches: List<Int>,
+    searchCursor: Int,
+    activeSentenceColor: Int,
+    highlightColor: Int,
+    feedbackColor: Int,
+    searchMatchColor: Int,
+    activeSearchMatchColor: Int,
+    state: ReaderScreenState,
+    readerSettings: ReaderSettings,
+    paperTone: PaperToneMode,
+    pageBitmaps: List<android.graphics.Bitmap>,
+    textColor: Int,
+    boldTypeface: android.graphics.Typeface?,
+    currentPageNumber: Int,
+    pageNumber: Int,
+    document: ReaderDocument,
+    bookmarkedSentenceIndexes: Set<Int>,
+    isCollapsible: Boolean,
+    onToggleBars: () -> Unit,
+    onSentenceDoubleTap: (Int) -> Unit,
+    onTextViewBound: (TextView?) -> Unit,
+    onSelectionChanged: (ReaderTextSelection?) -> Unit,
+    onSearchTriggered: (String) -> Unit,
+    onToggleBookmark: (Int) -> Unit,
+    onOpenColorPalette: (List<Int>) -> Unit,
+    onEditNotes: (List<Int>) -> Unit,
+    onTranslateSelection: (String) -> Unit,
+    onCopySelection: (String) -> Unit,
+    onGoogleSelection: (String) -> Unit,
+    onShareSelection: (String) -> Unit,
+    onOpenShareToAi: (ReaderTextSelection?, Boolean) -> Unit,
+    onEditSpeechSelection: (String) -> Unit,
+    onEditExtractedSelection: (ReaderTextSelection) -> Unit,
+    onAskAiSelection: (String) -> Unit,
+    onReadSelection: (String) -> Unit,
+    onGloballyPositionedTop: (Float) -> Unit,
+    onTextViewActive: (TextView) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val haptics = LocalHapticFeedback.current
+
+    val renderedPage = remember(
+        subPart.text,
+        activeSentenceOnThisPage,
+        isPlaying,
+        feedbackSentenceIndex,
+        bookmarkedSentences,
+        searchMatches,
+        searchCursor,
+        activeSentenceColor,
+        highlightColor,
+        feedbackColor,
+        searchMatchColor,
+        activeSearchMatchColor,
+        state.readerSettings.bionicReading,
+        pageBitmaps,
+        readerSettings.sectionSpacingDp,
+        state.searchQuery,
+        boldTypeface
+    ) {
+        buildReaderPartSpannable(
+            part = subPart,
+            activeSentenceIndex = activeSentenceOnThisPage,
+            feedbackSentenceIndex = feedbackSentenceIndex,
+            highlightedSentences = bookmarkedSentences,
+            searchMatches = searchMatches,
+            searchCursor = searchCursor,
+            activeSentenceColor = activeSentenceColor,
+            defaultHighlightColor = highlightColor,
+            feedbackColor = feedbackColor,
+            searchMatchColor = searchMatchColor,
+            activeSearchMatchColor = activeSearchMatchColor,
+            bionicReading = state.readerSettings.bionicReading,
+            context = context,
+            pageBitmaps = pageBitmaps,
+            sectionSpacingDp = readerSettings.sectionSpacingDp,
+            searchQuery = state.searchQuery,
+            textColor = textColor,
+            boldTypeface = boldTypeface
+        )
+    }
+
+    if (subPart.text.isNotBlank()) {
+        AndroidView(
+            modifier = modifier
+                .fillMaxWidth()
+                .onGloballyPositioned {
+                    if (segmentIndex == 0) {
+                        OnboardingController.updateBounds("reader_text_view", it)
+                    }
+                    onGloballyPositionedTop(it.positionInParent().y)
+                },
+            factory = { viewContext ->
+                TextView(viewContext).apply {
+                    setTextIsSelectable(true)
+                    isFocusable = true
+                    isFocusableInTouchMode = true
+                    includeFontPadding = false
+                    paintFlags = paintFlags or Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG
+                    setSpannableFactory(object : android.text.Spannable.Factory() {
+                        override fun newSpannable(source: CharSequence): android.text.Spannable {
+                            return if (source is SafeSpannableString) source else SafeSpannableString(source)
+                        }
+                    })
+                    val delegator = DelegatingActionModeCallback()
+                    customSelectionActionModeCallback = delegator
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
+                    }
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        breakStrategy = android.text.Layout.BREAK_STRATEGY_BALANCED
+                        hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_NONE
+                    }
+                    val holder = TextViewHolder()
+                    val touchSlop = android.view.ViewConfiguration.get(viewContext).scaledTouchSlop
+                    var downX = 0f
+                    var downY = 0f
+                    var doubleTapHandled = false
+
+                    val detector = GestureDetector(
+                        viewContext,
+                        object : GestureDetector.SimpleOnGestureListener() {
+                            override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
+                                if (this@apply.hasSelection()) {
+                                    return false
+                                }
+                                if (holder.isCollapsible) {
+                                    holder.onToggleBars()
+                                    return true
+                                }
+                                return false
+                            }
+
+                            override fun onDoubleTap(event: MotionEvent): Boolean {
+                                val currentPart = holder.part ?: return false
+                                val offset = this@apply.getOffsetForPosition(
+                                    event.x,
+                                    event.y
+                                ).coerceIn(0, currentPart.text.length)
+                                val hitRange = currentPart.sentenceRanges.firstOrNull { offset in it.start until it.endExclusive }
+                                if (hitRange != null) {
+                                    clearNativeTextSelection(this@apply)
+                                    holder.haptics?.performHapticFeedback(HapticFeedbackType.Confirm)
+                                    holder.onSentenceDoubleTap(hitRange.sentenceIndex)
+                                    doubleTapHandled = true
+                                    return true
+                                }
+                                return false
+                            }
+                        }
+                    )
+                    holder.detector = detector
+                    tag = holder
+
+                    setOnTouchListener { v, event ->
+                        when (event.actionMasked) {
+                            MotionEvent.ACTION_DOWN -> {
+                                downX = event.x
+                                downY = event.y
+                                doubleTapHandled = false
+                                if (this.hasSelection()) {
+                                    v.parent?.requestDisallowInterceptTouchEvent(true)
+                                }
+                            }
+                            MotionEvent.ACTION_MOVE -> {
+                                val dx = kotlin.math.abs(event.x - downX)
+                                val dy = kotlin.math.abs(event.y - downY)
+                                if (this.hasSelection()) {
+                                    if (dx > touchSlop * 2 && dx > dy * 1.5f) {
+                                        clearNativeTextSelection(this)
+                                        this.clearFocus()
+                                        onSelectionChanged(null)
+                                        v.parent?.requestDisallowInterceptTouchEvent(false)
+                                    } else {
+                                        v.parent?.requestDisallowInterceptTouchEvent(true)
+                                    }
+                                } else {
+                                    if (dx > touchSlop || dy > touchSlop) {
+                                        v.parent?.requestDisallowInterceptTouchEvent(false)
+                                    }
+                                }
+                            }
+                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                if (!this.hasSelection()) {
+                                    v.parent?.requestDisallowInterceptTouchEvent(false)
+                                }
+                            }
+                        }
+
+                        detector.onTouchEvent(event)
+
+                        if (doubleTapHandled) {
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                }
+            },
+            onRelease = { released ->
+                runCatching {
+                    clearNativeTextSelection(released)
+                    released.clearFocus()
+                }
+            },
+            update = { textView ->
+                onTextViewActive(textView)
+                val holder = textView.tag as? TextViewHolder ?: TextViewHolder().also { textView.tag = it }
+
+                if (currentPageNumber == pageNumber) {
+                    onTextViewBound(textView)
+                } else {
+                    if (textView.hasSelection() || textView.isFocused) {
+                        clearNativeTextSelection(textView)
+                        textView.clearFocus()
+                    }
+                }
+                holder.onToggleBars = onToggleBars
+                holder.onSentenceDoubleTap = onSentenceDoubleTap
+                holder.isCollapsible = isCollapsible
+                holder.part = subPart
+                holder.haptics = haptics
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    textView.justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
+                }
+                if (holder.renderedPage !== renderedPage) {
+                    if (!textView.hasSelection() || textView.text.toString() != renderedPage.toString()) {
+                        holder.renderedPage = renderedPage
+                        textView.text = renderedPage
+                    }
+                }
+                if (holder.textColor != textColor) {
+                    holder.textColor = textColor
+                    textView.setTextColor(textColor)
+                }
+                if (holder.fontSizeSp != readerSettings.fontSizeSp) {
+                    holder.fontSizeSp = readerSettings.fontSizeSp
+                    textView.textSize = readerSettings.fontSizeSp.toFloat()
+                }
+                val currentFontId = readerSettings.uiFontId
+                val targetWeight = if (paperTone == PaperToneMode.DARK) 400 else 450
+                if (holder.uiFontId != currentFontId || holder.targetWeight != targetWeight) {
+                    holder.uiFontId = currentFontId
+                    holder.targetWeight = targetWeight
+                    val uiFont = VeritasUiFont.fromId(currentFontId)
+                    textView.typeface = uiFont.asTypeface(context, weight = targetWeight)
+                }
+                val extraSpacingPx = 0f
+                val lineMult = 1.0f + ((readerSettings.sectionSpacingDp - 6).coerceAtLeast(0) * (0.6f / 18f))
+                if (holder.lineMultiplier != lineMult || holder.extraSpacingPx != extraSpacingPx) {
+                    holder.lineMultiplier = lineMult
+                    holder.extraSpacingPx = extraSpacingPx
+                    textView.setLineSpacing(
+                        extraSpacingPx,
+                        lineMult
+                    )
+                }
+                val actionModeCb = readerSelectionActionModeCallback(
+                    textView = textView,
+                    part = subPart,
+                    documentId = document.id,
+                    context = context,
+                    haptics = haptics,
+                    bookmarkedSentenceIndexes = bookmarkedSentenceIndexes,
+                    onSelectionChanged = { sel ->
+                        if (sel != null) onTextViewBound(textView)
+                        onSelectionChanged(sel)
+                    },
+                    onSearchQueryChange = {
+                        onSearchTriggered(it)
+                    },
+                    onToggleBookmark = { idx ->
+                        onToggleBookmark(idx)
+                    },
+                    onHighlightSelection = { sel ->
+                        onOpenColorPalette(sel.sentenceIndexes)
+                    },
+                    onEditNotes = onEditNotes,
+                    onTranslateSelection = onTranslateSelection,
+                    onCopySelection = onCopySelection,
+                    onGoogleSelection = onGoogleSelection,
+                    onShareSelection = onShareSelection,
+                    onShareSelectionToAi = { sel ->
+                        onOpenShareToAi(sel, false)
+                    },
+                    onEditSpeechSelection = onEditSpeechSelection,
+                    onEditExtractedSelection = onEditExtractedSelection,
+                    onAskAiSelection = onAskAiSelection,
+                    onReadSelection = onReadSelection
+                )
+                val delegator = (textView.customSelectionActionModeCallback as? DelegatingActionModeCallback)
+                    ?: DelegatingActionModeCallback().also {
+                        textView.customSelectionActionModeCallback = it
+                    }
+                delegator.delegate = actionModeCb
+            }
+        )
+    }
 }

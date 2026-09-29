@@ -6,244 +6,35 @@ import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
-import android.graphics.text.LineBreaker
 import android.os.Build
-import android.text.Layout
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
+import android.text.TextPaint
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.LineBackgroundSpan
+import android.text.style.MetricAffectingSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.ReplacementSpan
 import android.text.style.StrikethroughSpan
 import android.text.style.StyleSpan
 import android.text.style.TypefaceSpan
 import android.view.ActionMode
-import android.view.GestureDetector
 import android.view.Menu
 import android.view.MenuItem
-import android.view.MotionEvent
 import android.widget.TextView
-import androidx.compose.foundation.background
-import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.graphics.asImageBitmap
-import com.veritas.reader.aiAssistantIcon
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.AnchoredDraggableState
-import androidx.compose.foundation.gestures.DraggableAnchors
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.anchoredDraggable
-import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.NavigateBefore
-import androidx.compose.material.icons.automirrored.filled.NavigateNext
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Headphones
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.BookmarkAdd
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.CollectionsBookmark
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
-import androidx.compose.material.icons.automirrored.filled.PlaylistAddCheck
-import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.EditNote
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.outlined.BookmarkRemove
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.CollectionsBookmark
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.RecordVoiceOver
-import androidx.compose.material.icons.outlined.TheaterComedy
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Psychology
-import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.Spellcheck
-import androidx.compose.material.icons.outlined.Bolt
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.GraphicEq
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.material.icons.outlined.Info
-import com.veritas.reader.DocumentRepository
-import com.veritas.reader.blendColors
-import com.veritas.reader.ShareScope
-import com.veritas.reader.AiAssistantOption
-import com.veritas.reader.AnnotationPill
-import com.veritas.reader.AnnotationType
-import com.veritas.reader.AskAiSettings
-import com.veritas.reader.BouncyFilledButton
-import com.veritas.reader.BouncyTextButton
-import com.veritas.reader.BrandMark
-import com.veritas.reader.NarrationSettings
 import com.veritas.reader.PlaybackActions
 import com.veritas.reader.PlaybackService
-import com.veritas.reader.ReaderAnnotation
-import com.veritas.reader.ReaderDocument
-import com.veritas.reader.ReaderPageRange
 import com.veritas.reader.ReaderPart
-import com.veritas.reader.ReaderPartSentenceRange
-import com.veritas.reader.ReaderSettings
-import com.veritas.reader.CoverExtractor
-import com.veritas.reader.ReaderTextModelCache
 import com.veritas.reader.ResolvedVeritasFeature
-import com.veritas.reader.VeritasDocumentOutlineEntry
 import com.veritas.reader.VeritasFeatureContext
 import com.veritas.reader.VeritasFeatureId
 import com.veritas.reader.VeritasFeatureRegistry
 import com.veritas.reader.VeritasFeatureSurface
-import com.veritas.reader.VeritasSleepTimerAction
-import com.veritas.reader.VeritasSleepTimerFormatter
-import com.veritas.reader.VeritasSleepTimerPresets
-import com.veritas.reader.VeritasSleepTimerRequest
-import com.veritas.reader.VeritasSleepTimerSnapshot
-import com.veritas.reader.VoiceSettings
-import com.veritas.reader.TtsVoiceOption
-import com.veritas.reader.VeritasPackStyle
-import com.veritas.reader.ReaderMode
-import com.veritas.reader.ReaderModeToggle
-import com.veritas.reader.aiAssistantOptions
-import com.veritas.reader.capWords
-import com.veritas.reader.installedPackageForOption
-import com.veritas.reader.openPlayStoreForPackage
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import androidx.compose.ui.layout.onGloballyPositioned
-import com.veritas.reader.ui.OnboardingController
-import com.veritas.reader.ui.rememberSliderHaptics
-import com.veritas.reader.ui.VeritasSleekSlider
-import com.veritas.reader.ui.VeritasThinRoundSlider
-import com.veritas.reader.SlimPageSlider
 import java.util.Locale
-import kotlin.math.roundToInt
-
-
-
-import com.veritas.reader.ReaderTextModel
 
 
 data class ReaderTextSelection(
@@ -303,7 +94,8 @@ internal fun buildReaderPartSpannable(
     pageBitmaps: List<android.graphics.Bitmap> = emptyList(),
     sectionSpacingDp: Int = 10,
     searchQuery: String = "",
-    textColor: Int = 0
+    textColor: Int = 0,
+    boldTypeface: Typeface? = null
 ): Spannable {
     val spannable = SpannableString(part.text)
     // Render inline markdown (bold/italic/headings/etc.) and inline images that text carries,
@@ -318,7 +110,8 @@ internal fun buildReaderPartSpannable(
         pageBitmaps = pageBitmaps,
         textColor = textColor,
         activeSentenceColor = activeSentenceColor,
-        activeSearchMatchColor = activeSearchMatchColor
+        activeSearchMatchColor = activeSearchMatchColor,
+        boldTypeface = boldTypeface
     )
 
     // Apply custom paragraph spacing over double newlines
@@ -344,7 +137,7 @@ internal fun buildReaderPartSpannable(
     if (bionicReading) {
         val activeRange = part.sentenceRanges.firstOrNull { it.sentenceIndex == activeSentenceIndex }
         if (activeRange != null) {
-            applyBionicFormatting(spannable, part.text, activeRange.start, activeRange.endExclusive)
+            applyBionicFormatting(spannable, part.text, activeRange.start, activeRange.endExclusive, boldTypeface)
         }
     }
     fun addBackground(start: Int, endExclusive: Int, color: Int) {
@@ -396,7 +189,7 @@ internal fun buildReaderPartSpannable(
                 val wordFg = 0xFF000000.toInt()
                 spannable.setSpan(BackgroundColorSpan(wordBg), matchIdx, matchEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 spannable.setSpan(ForegroundColorSpan(wordFg), matchIdx, matchEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                spannable.setSpan(StyleSpan(Typeface.BOLD), matchIdx, matchEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannable.setSpan(VeritasBoldSpan(boldTypeface), matchIdx, matchEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 matchIdx = part.text.indexOf(cleanQuery, matchEnd, ignoreCase = true)
             }
         }
@@ -413,7 +206,8 @@ internal fun applyBionicFormatting(
     spannable: SpannableString,
     text: String,
     startOffset: Int = 0,
-    endOffset: Int = text.length
+    endOffset: Int = text.length,
+    boldTypeface: Typeface? = null
 ) {
     var inWord = false
     var wordStart = 0
@@ -439,7 +233,7 @@ internal fun applyBionicFormatting(
             val fixationEnd = (wordStart + fixationLen).coerceAtMost(i)
             if (fixationEnd > wordStart) {
                 spannable.setSpan(
-                    StyleSpan(Typeface.BOLD),
+                    VeritasBoldSpan(boldTypeface),
                     wordStart,
                     fixationEnd,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -475,6 +269,41 @@ internal class HiddenMarkupSpan : ReplacementSpan() {
         paint: Paint
     ) {
         // Intentionally draw nothing.
+    }
+}
+
+/**
+ * A bold span engineered for variable fonts (e.g. Gazette / Bitter, Crisp / Outfit) and
+ * static fonts in Android TextView.
+ *
+ * Android's framework StyleSpan(Typeface.BOLD) was built in API 1 and calls Typeface.create(old, 1).
+ * On variable fonts without companion bold TTF files, Typeface.create(old, 1) does NOT shift the
+ * 'wght' axis to 700 and fails to trigger fake bold.
+ *
+ * VeritasBoldSpan explicitly sets target weight 700 via Typeface.create(old, 700, false) on API 28+
+ * AND sets isFakeBoldText = true for punchy, prominent ink weight across all rendering engines.
+ */
+internal class VeritasBoldSpan(
+    private val boldTypeface: Typeface? = null
+) : MetricAffectingSpan() {
+    override fun updateMeasureState(textPaint: TextPaint) {
+        apply(textPaint)
+    }
+
+    override fun updateDrawState(tp: TextPaint) {
+        apply(tp)
+    }
+
+    private fun apply(paint: TextPaint) {
+        val current = boldTypeface ?: paint.typeface
+        if (current != null) {
+            paint.typeface = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                Typeface.create(current, 700, false)
+            } else {
+                Typeface.create(current, Typeface.BOLD)
+            }
+        }
+        paint.isFakeBoldText = true
     }
 }
 
@@ -575,7 +404,8 @@ internal fun applyTableFormatting(
     text: String,
     textColor: Int = 0,
     activeSentenceColor: Int = 0,
-    activeSearchMatchColor: Int = 0
+    activeSearchMatchColor: Int = 0,
+    boldTypeface: Typeface? = null
 ) {
     if (text.isEmpty()) return
 
@@ -649,7 +479,7 @@ internal fun applyTableFormatting(
             val isHeader = (row == headerRow)
 
             if (isHeader) {
-                spannable.styleRange(StyleSpan(Typeface.BOLD), row.lineStart, row.lineEnd)
+                spannable.styleRange(VeritasBoldSpan(boldTypeface), row.lineStart, row.lineEnd)
                 spannable.styleRange(ForegroundColorSpan(headerTextColor), row.lineStart, row.lineEnd)
             }
 
@@ -707,7 +537,8 @@ internal fun applyMarkdownFormatting(
     pageBitmaps: List<android.graphics.Bitmap> = emptyList(),
     textColor: Int = 0,
     activeSentenceColor: Int = 0,
-    activeSearchMatchColor: Int = 0
+    activeSearchMatchColor: Int = 0,
+    boldTypeface: Typeface? = null
 ) {
     if (text.isEmpty()) return
 
@@ -716,14 +547,15 @@ internal fun applyMarkdownFormatting(
         text = text,
         textColor = textColor,
         activeSentenceColor = activeSentenceColor,
-        activeSearchMatchColor = activeSearchMatchColor
+        activeSearchMatchColor = activeSearchMatchColor,
+        boldTypeface = boldTypeface
     )
 
     var lineStart = 0
     while (lineStart <= text.length) {
         val newline = text.indexOf('\n', lineStart)
         val lineEnd = if (newline == -1) text.length else newline
-        applyMarkdownLine(spannable, text, lineStart, lineEnd, context, pageBitmaps)
+        applyMarkdownLine(spannable, text, lineStart, lineEnd, context, pageBitmaps, boldTypeface)
         if (newline == -1) break
         lineStart = newline + 1
     }
@@ -735,7 +567,8 @@ internal fun applyMarkdownLine(
     lineStart: Int,
     lineEnd: Int,
     context: Context? = null,
-    pageBitmaps: List<android.graphics.Bitmap> = emptyList()
+    pageBitmaps: List<android.graphics.Bitmap> = emptyList(),
+    boldTypeface: Typeface? = null
 ) {
     if (lineStart >= lineEnd) return
     val trimmedLine = text.substring(lineStart, lineEnd).trim()
@@ -788,14 +621,18 @@ internal fun applyMarkdownLine(
     if (hashes in 1..6 && cursor < lineEnd && text[cursor] == ' ') {
         val contentStart = cursor + 1
         spannable.hideMarkup(lineStart, contentStart)
-        val relativeSize = when (hashes) {
-            1 -> 1.45f
-            2 -> 1.28f
-            else -> 1.18f
+        val headingText = text.substring(contentStart, lineEnd).trim()
+        val isDemoted = isDemotedFalseHeading(headingText)
+        if (!isDemoted) {
+            val relativeSize = when (hashes) {
+                1 -> 1.45f
+                2 -> 1.28f
+                else -> 1.18f
+            }
+            spannable.styleRange(RelativeSizeSpan(relativeSize), contentStart, lineEnd)
+            spannable.styleRange(VeritasBoldSpan(boldTypeface), contentStart, lineEnd)
         }
-        spannable.styleRange(RelativeSizeSpan(relativeSize), contentStart, lineEnd)
-        spannable.styleRange(StyleSpan(Typeface.BOLD), contentStart, lineEnd)
-        applyInlineMarkdown(spannable, text, contentStart, lineEnd)
+        applyInlineMarkdown(spannable, text, contentStart, lineEnd, boldTypeface)
         return
     }
 
@@ -804,42 +641,65 @@ internal fun applyMarkdownLine(
         val quoteStart = if (cursor + 1 < lineEnd && text[cursor + 1] == ' ') cursor + 2 else cursor + 1
         spannable.hideMarkup(lineStart, quoteStart)
         spannable.styleRange(StyleSpan(Typeface.ITALIC), quoteStart, lineEnd)
-        applyInlineMarkdown(spannable, text, quoteStart, lineEnd)
+        applyInlineMarkdown(spannable, text, quoteStart, lineEnd, boldTypeface)
         return
     }
 
     // Bullet items: starts with "- ", "* ", or "• "
     if (cursor < lineEnd && (text.startsWith("- ", cursor) || text.startsWith("* ", cursor) || text.startsWith("• ", cursor))) {
-        spannable.styleRange(StyleSpan(Typeface.BOLD), cursor, cursor + 1)
-        applyInlineMarkdown(spannable, text, cursor + 2, lineEnd)
+        spannable.styleRange(VeritasBoldSpan(boldTypeface), cursor, cursor + 1)
+        applyInlineMarkdown(spannable, text, cursor + 2, lineEnd, boldTypeface)
         return
     }
 
     // Tabular formatting: card background, headers, and column dividers are handled by applyTableFormatting
     if (isTableLine(trimmedLine)) {
-        applyInlineMarkdown(spannable, text, lineStart, lineEnd)
+        applyInlineMarkdown(spannable, text, lineStart, lineEnd, boldTypeface)
         return
     }
 
     // Chapter / section heading detection (e.g. "CHAPTER ONE", "Chapter 1", "Prologue")
     val isChapterHeading = Regex("""^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PREFACE|Preface|PART|Part|BOOK|Book)\b.*""", RegexOption.IGNORE_CASE).matches(trimmedLine)
-    if (isChapterHeading) {
+    if (isChapterHeading && !isDemotedFalseHeading(trimmedLine)) {
         spannable.styleRange(RelativeSizeSpan(1.35f), lineStart, lineEnd)
-        spannable.styleRange(StyleSpan(Typeface.BOLD), lineStart, lineEnd)
+        spannable.styleRange(VeritasBoldSpan(boldTypeface), lineStart, lineEnd)
         return
     }
 
     // Standalone uppercase headings
     if (trimmedLine.length in 4..60 && trimmedLine.any { it.isLetter() } && trimmedLine.all { !it.isLetter() || it.isUpperCase() }) {
         spannable.styleRange(RelativeSizeSpan(1.22f), lineStart, lineEnd)
-        spannable.styleRange(StyleSpan(Typeface.BOLD), lineStart, lineEnd)
+        spannable.styleRange(VeritasBoldSpan(boldTypeface), lineStart, lineEnd)
         return
     }
 
-    applyInlineMarkdown(spannable, text, lineStart, lineEnd)
+    applyInlineMarkdown(spannable, text, lineStart, lineEnd, boldTypeface)
 }
 
-internal fun applyInlineMarkdown(spannable: SpannableString, text: String, start: Int, end: Int) {
+private fun isDemotedFalseHeading(headingText: String): Boolean {
+    val trimmed = headingText.trim()
+    if (trimmed.length > 90) return true
+    if (trimmed.endsWith(",") || trimmed.endsWith(";") || trimmed.endsWith("—") || trimmed.endsWith("-")) return true
+    if (trimmed.contains(". ") && !Regex("""^(CHAPTER|Chapter|PART|Part|SECTION|Section|BOOK|Book)\s*[IVXLCDM\d]+(\.[IVXLCDM\d]+)*\.""", RegexOption.IGNORE_CASE).containsMatchIn(trimmed)) {
+        return true
+    }
+    val words = trimmed.split(Regex("""\s+""")).filter { it.isNotBlank() }
+    if (words.size >= 3) {
+        val thirdWord = words[2].lowercase(Locale.ROOT).trim('.', ',', ':', ';')
+        if (thirdWord in setOf("is", "are", "was", "were", "has", "have", "had", "will", "would", "can", "could", "should", "describes", "discusses", "explores", "presents", "provides", "examines", "shows", "deals", "focuses", "covers")) {
+            return true
+        }
+    }
+    return false
+}
+
+internal fun applyInlineMarkdown(
+    spannable: SpannableString,
+    text: String,
+    start: Int,
+    end: Int,
+    boldTypeface: Typeface? = null
+) {
     var i = start
     while (i < end) {
         val c = text[i]
@@ -848,7 +708,18 @@ internal fun applyInlineMarkdown(spannable: SpannableString, text: String, start
             c == '*' && i + 1 < end && text[i + 1] == '*' -> {
                 val close = text.indexOf("**", i + 2)
                 if (close != -1 && close + 2 <= end && close > i + 2) {
-                    spannable.styleRange(StyleSpan(Typeface.BOLD), i + 2, close)
+                    spannable.styleRange(VeritasBoldSpan(boldTypeface), i + 2, close)
+                    spannable.hideMarkup(i, i + 2)
+                    spannable.hideMarkup(close, close + 2)
+                    i = close + 2
+                    continue
+                }
+            }
+            // __bold__
+            c == '_' && i + 1 < end && text[i + 1] == '_' -> {
+                val close = text.indexOf("__", i + 2)
+                if (close != -1 && close + 2 <= end && close > i + 2) {
+                    spannable.styleRange(VeritasBoldSpan(boldTypeface), i + 2, close)
                     spannable.hideMarkup(i, i + 2)
                     spannable.hideMarkup(close, close + 2)
                     i = close + 2
@@ -886,6 +757,27 @@ internal fun applyInlineMarkdown(spannable: SpannableString, text: String, start
                     val cj = text[j]
                     if (cj == '\n') break
                     if (cj == '*' && !text[j - 1].isWhitespace()) {
+                        close = j
+                        break
+                    }
+                    j++
+                }
+                if (close > i + 1) {
+                    spannable.styleRange(StyleSpan(Typeface.ITALIC), i + 1, close)
+                    spannable.hideMarkup(i, i + 1)
+                    spannable.hideMarkup(close, close + 1)
+                    i = close + 1
+                    continue
+                }
+            }
+            // _italic_
+            c == '_' && i + 1 < end && !text[i + 1].isWhitespace() -> {
+                var j = i + 1
+                var close = -1
+                while (j < end) {
+                    val cj = text[j]
+                    if (cj == '\n') break
+                    if (cj == '_' && !text[j - 1].isWhitespace()) {
                         close = j
                         break
                     }

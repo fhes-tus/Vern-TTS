@@ -1,6 +1,5 @@
 package com.veritas.reader
 
-import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.StandardCharsets

@@ -1,10 +1,8 @@
 package com.veritas.reader.ui
 
-import com.veritas.reader.*
-
 import android.app.Application
-import android.graphics.Bitmap
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.CoverExtractor
@@ -16,15 +14,17 @@ import com.veritas.reader.PptxImportOptions
 import com.veritas.reader.SavedDocument
 import com.veritas.reader.TextImportOptions
 import com.veritas.reader.WebArticleExtractor
+import com.veritas.reader.addToQueue
 import com.veritas.reader.cleanDocumentTitle
 import com.veritas.reader.getDisplayName
-import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
+import com.veritas.reader.loadAnnotations
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 
 fun ReaderViewModel.createAndOpenDocument(
     title: String,
@@ -159,12 +159,15 @@ fun ReaderViewModel.prepareImport(uri: Uri, sourceNameHint: String? = null) {
             val titleMatches = doc.title.trim().equals(baseName, ignoreCase = true) ||
                 doc.title.trim().equals(name.trim(), ignoreCase = true) ||
                 doc.title.trim().equals(cleanedName, ignoreCase = true)
-            titleMatches && sizeBytes > 0L && repository.originalFile(doc)?.length() == sizeBytes
+            val originalMatches = sizeBytes > 0L && repository.originalFile(doc)?.length() == sizeBytes
+            val textExists = File(repository.docsDir, doc.fileName).let { it.exists() && it.length() > 0L }
+            titleMatches && originalMatches && textExists && !doc.partial
         }
         if (duplicate != null) {
             withContext(Dispatchers.Main) {
                 _uiState.update {
                     it.copy(
+                        showFileBrowser = false,
                         isOpeningDocument = false,
                         importMessage = "Already in your library - opening \"${duplicate.title}\"."
                     )
@@ -240,7 +243,12 @@ fun ReaderViewModel.importDocumentFromUri(
         ?: cleanDocumentTitle(getDisplayName(app, uri)).ifBlank { "Imported document" }
     _uiState.update {
         if (openAfterImport) {
-            it.copy(showFileBrowser = false, importMessage = "Importing $title in background...", isOpeningDocument = true)
+            it.copy(
+                showFileBrowser = false,
+                importMessage = "Importing $title in background...",
+                isOpeningDocument = true,
+                importSourceName = title
+            )
         } else {
             it.copy(importMessage = "Importing $title in background...")
         }
@@ -480,19 +488,25 @@ fun ReaderViewModel.downloadClassicBook(book: com.veritas.reader.ui.screens.Clas
     }
 }
 
+private val GUTENBERG_START_REGEX = Regex("""\*\*\*\s*START OF (THE|THIS) PROJECT GUTENBERG[^\n]*\*\*\*""", RegexOption.IGNORE_CASE)
+private val GUTENBERG_END_REGEX = Regex("""\*\*\*\s*END OF (THE|THIS) PROJECT GUTENBERG[^\n]*\*\*\*""", RegexOption.IGNORE_CASE)
+private val DOUBLE_NEWLINE_SPLIT_REGEX = Regex("""\n\s*\n+""")
+private val LIST_NUMBERED_REGEX = Regex("""^\d+[.)]""")
+private val CLASSIC_HEADING_REGEX = Regex("""^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PREFACE|Preface|PART|Part|BOOK|Book|ACT|Act|SCENE|Scene)\b.*""", RegexOption.IGNORE_CASE)
+
 private fun cleanAndUnwrapClassicBookText(rawText: String): String {
     val normalized = rawText.replace("\r\n", "\n").replace('\r', '\n')
     var body = normalized
-    val startMarker = Regex("""\*\*\*\s*START OF (THE|THIS) PROJECT GUTENBERG[^\n]*\*\*\*""", RegexOption.IGNORE_CASE).find(body)
+    val startMarker = GUTENBERG_START_REGEX.find(body)
     if (startMarker != null) {
         body = body.substring(startMarker.range.last + 1).trimStart()
     }
-    val endMarker = Regex("""\*\*\*\s*END OF (THE|THIS) PROJECT GUTENBERG[^\n]*\*\*\*""", RegexOption.IGNORE_CASE).find(body)
+    val endMarker = GUTENBERG_END_REGEX.find(body)
     if (endMarker != null) {
         body = body.substring(0, endMarker.range.first).trimEnd()
     }
 
-    val paragraphs = body.split(Regex("""\n\s*\n+"""))
+    val paragraphs = body.split(DOUBLE_NEWLINE_SPLIT_REGEX)
     val result = StringBuilder()
 
     paragraphs.forEach { paragraph ->
@@ -506,11 +520,11 @@ private fun cleanAndUnwrapClassicBookText(rawText: String): String {
             result.append("\n\n")
         }
 
-        val isList = lines.all { it.startsWith("-") || it.startsWith("*") || it.startsWith("•") || Regex("""^\d+[.)]""").containsMatchIn(it) }
+        val isList = lines.all { it.startsWith("-") || it.startsWith("*") || it.startsWith("•") || LIST_NUMBERED_REGEX.containsMatchIn(it) }
         val isShortLinesPoetry = lines.size >= 3 && lines.all { it.length < 45 }
         val isExplicitHeading = lines.size == 1 && (
             lines[0].startsWith("#") ||
-            Regex("""^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PREFACE|Preface|PART|Part|BOOK|Book|ACT|Act|SCENE|Scene)\b.*""", RegexOption.IGNORE_CASE).matches(lines[0]) ||
+            CLASSIC_HEADING_REGEX.matches(lines[0]) ||
             (lines[0].length in 3..60 && lines[0].filter { it.isLetter() }.all { it.isUpperCase() })
         )
 

@@ -1,250 +1,79 @@
 package com.veritas.reader.ui.screens
 
-import android.content.Context
-import android.content.Intent
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Typeface
-import android.graphics.text.LineBreaker
-import android.os.Build
-import android.text.Layout
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.BackgroundColorSpan
-import android.text.style.RelativeSizeSpan
-import android.text.style.ReplacementSpan
-import android.text.style.StrikethroughSpan
-import android.text.style.StyleSpan
-import android.text.style.TypefaceSpan
-import android.view.ActionMode
-import android.view.GestureDetector
-import android.view.Menu
-import android.view.MenuItem
-import android.view.MotionEvent
 import android.widget.TextView
-import androidx.compose.foundation.background
-import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.graphics.asImageBitmap
-import com.veritas.reader.aiAssistantIcon
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.AnchoredDraggableState
-import androidx.compose.foundation.gestures.DraggableAnchors
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.anchoredDraggable
-import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.NavigateBefore
-import androidx.compose.material.icons.automirrored.filled.NavigateNext
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Headphones
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.BookmarkAdd
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.CollectionsBookmark
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
-import androidx.compose.material.icons.automirrored.filled.PlaylistAddCheck
-import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.EditNote
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.outlined.BookmarkRemove
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.CollectionsBookmark
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.RecordVoiceOver
-import androidx.compose.material.icons.outlined.TheaterComedy
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Psychology
-import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.Spellcheck
-import androidx.compose.material.icons.outlined.Bolt
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.GraphicEq
-import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.hapticfeedback.HapticFeedback
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.material.icons.outlined.Info
-import com.veritas.reader.DocumentRepository
-import com.veritas.reader.blendColors
-import com.veritas.reader.ShareScope
 import com.veritas.reader.AiAssistantOption
-import com.veritas.reader.AnnotationPill
 import com.veritas.reader.AnnotationType
 import com.veritas.reader.AskAiSettings
-import com.veritas.reader.BouncyFilledButton
-import com.veritas.reader.BouncyTextButton
-import com.veritas.reader.BrandMark
+import com.veritas.reader.DocumentPageImageLoader
+import com.veritas.reader.DocumentRepository
 import com.veritas.reader.NarrationSettings
-import com.veritas.reader.PlaybackActions
-import com.veritas.reader.PlaybackService
+import com.veritas.reader.PaperToneMode
 import com.veritas.reader.ReaderAnnotation
 import com.veritas.reader.ReaderDocument
+import com.veritas.reader.ReaderMode
 import com.veritas.reader.ReaderPageRange
 import com.veritas.reader.ReaderPart
 import com.veritas.reader.ReaderPartSentenceRange
 import com.veritas.reader.ReaderSettings
-import com.veritas.reader.PaperToneMode
-import com.veritas.reader.CoverExtractor
+import com.veritas.reader.ReaderTextIndex
 import com.veritas.reader.ReaderTextModelCache
-import com.veritas.reader.ResolvedVeritasFeature
+import com.veritas.reader.ShareScope
+import com.veritas.reader.SpeechSanitizer
+import com.veritas.reader.TtsVoiceOption
 import com.veritas.reader.VeritasDocumentOutlineEntry
-import com.veritas.reader.VeritasFeatureContext
-import com.veritas.reader.VeritasFeatureId
-import com.veritas.reader.VeritasFeatureRegistry
-import com.veritas.reader.VeritasFeatureSurface
+import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.VeritasSleepTimerAction
-import com.veritas.reader.VeritasSleepTimerFormatter
-import com.veritas.reader.VeritasSleepTimerPresets
-import com.veritas.reader.VeritasSleepTimerRequest
 import com.veritas.reader.VeritasSleepTimerSnapshot
 import com.veritas.reader.VoiceSettings
-import com.veritas.reader.TtsVoiceOption
-import com.veritas.reader.VeritasPackStyle
-import com.veritas.reader.ReaderMode
-import com.veritas.reader.ReaderModeToggle
-import com.veritas.reader.aiAssistantOptions
-import com.veritas.reader.capWords
-import com.veritas.reader.installedPackageForOption
-import com.veritas.reader.openPlayStoreForPackage
-import com.veritas.reader.DocumentPageImageLoader
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import androidx.compose.ui.layout.onGloballyPositioned
-import com.veritas.reader.ui.OnboardingController
-import com.veritas.reader.ui.rememberSliderHaptics
-import com.veritas.reader.ui.VeritasSleekSlider
-import com.veritas.reader.ui.VeritasThinRoundSlider
-import com.veritas.reader.SlimPageSlider
-import java.util.Locale
-import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 data class ReaderScreenState(
@@ -355,6 +184,7 @@ fun ReaderScreen(
     onShareToAi: (ShareScope, ReaderTextSelection?, IntRange?, Boolean) -> Unit = { _, _, _, _ -> },
     showShareToAi: Boolean = false,
     onDismissShareToAi: () -> Unit = {},
+    onDismissGestureTipsPermanently: () -> Unit = {},
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null
 ) {
@@ -400,6 +230,8 @@ fun ReaderScreen(
     var showShareToAiSheet by remember { mutableStateOf(false) }
     var shareToAiSelection by remember { mutableStateOf<ReaderTextSelection?>(null) }
     var shareToAiNoPrompt by remember { mutableStateOf(false) }
+    var sessionGestureTipsDismissed by remember(document.id) { mutableStateOf(false) }
+    val showGestureTips = readerSettings.showGestureTips && !sessionGestureTipsDismissed
     // Bumped to force the auto-scroll effect to re-anchor the active sentence after events
     // that otherwise leave its keys unchanged (bookmarking, switching reader modes), which
     // previously left the page locked at the top of the section.
@@ -455,7 +287,12 @@ fun ReaderScreen(
                 val textBuilder = StringBuilder()
                 val ranges = mutableListOf<ReaderPartSentenceRange>()
                 pageSentences.forEachIndexed { i, sentence ->
-                    val sep = if (i == 0) "" else if (sentence.separatorBefore.isNotEmpty()) sentence.separatorBefore else " "
+                    val prevSentence = pageSentences.getOrNull(i - 1)
+                    val sep = if (i == 0) "" else ReaderTextIndex.displaySeparator(
+                        rawSeparator = sentence.separatorBefore,
+                        previousSentence = prevSentence,
+                        currentSentence = sentence
+                    )
                     textBuilder.append(sep)
                     val start = textBuilder.length
                     textBuilder.append(sentence.text)
@@ -515,6 +352,19 @@ fun ReaderScreen(
     val handleSentenceClick: (Int) -> Unit = remember(onSentenceClick) {
         { idx ->
             onSentenceClick(idx)
+        }
+    }
+    val handleJumpToDestination: (Int?, Int) -> Unit = remember(onSentenceClick) {
+        { targetPageNum, targetSentenceIdx ->
+            if (targetPageNum != null) {
+                val pageIdx = (latestPageItems.value.indexOfFirst { it.pageNumber == targetPageNum }
+                    .takeIf { it >= 0 } ?: (targetPageNum - 1))
+                    .coerceIn(0, (latestPageItems.value.size - 1).coerceAtLeast(0))
+                coroutineScope.launch {
+                    pagerState.scrollToPage(pageIdx)
+                }
+            }
+            onSentenceClick(targetSentenceIdx)
         }
     }
     val handleSentenceDoubleTap: (Int) -> Unit = remember(onSentenceDoubleTap) {
@@ -581,9 +431,11 @@ fun ReaderScreen(
                     // immediately flip away from the blank page the user just swiped to.
                     val hasOwnSentences = targetPageItem != null && targetPageItem.sentenceRanges.isNotEmpty()
                     if (targetPageItem != null && hasOwnSentences && !latestIsPlaying.value) {
+                        val activeIdx = latestCurrentIndex.value
+                        val isAlreadyOnTargetPage = activeIdx in targetPageItem.sentenceStartIndex until targetPageItem.sentenceEndIndexExclusive
                         val currentSentencePage =
-                            latestSentences.value.getOrNull(latestCurrentIndex.value)?.pageNumber ?: 1
-                        if (currentSentencePage != targetPageItem.pageNumber) {
+                            latestSentences.value.getOrNull(activeIdx)?.pageNumber ?: 1
+                        if (!isAlreadyOnTargetPage && currentSentencePage != targetPageItem.pageNumber) {
                             onSentenceClick(targetPageItem.sentenceStartIndex)
                         }
                     }
@@ -623,7 +475,7 @@ fun ReaderScreen(
     val progressLabel = if (document.chunks.isEmpty()) {
         "0 / 0"
     } else {
-        "Section ${currentPartIndex + 1}/${readerModel.parts.size.coerceAtLeast(1)} • Sentence ${currentIndex + 1}/${document.chunks.size}"
+        "Page $currentPageNumber of $totalPages • Sentence ${currentIndex + 1}/${document.chunks.size}"
     }
     annotations.count { it.type == AnnotationType.BOOKMARK }
     annotations.count { it.type == AnnotationType.NOTE }
@@ -662,7 +514,7 @@ fun ReaderScreen(
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val animatedTopPadding by animateDpAsState(
-        targetValue = if (effectiveTopBarVisible) topInset + 132.dp else topInset + 8.dp,
+        targetValue = if (effectiveTopBarVisible) topInset + 114.dp else topInset + 8.dp,
         animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "animatedTopPadding"
     )
@@ -835,6 +687,17 @@ fun ReaderScreen(
             onPaperToneModeChange = onPaperToneModeChange,
             onSentenceClick = handleSentenceClick
         )
+        val currentChunkText = remember(currentIndex, document.chunks) {
+            document.chunks.getOrNull(currentIndex)?.trim().orEmpty()
+        }
+        val isTablePlaying = remember(currentChunkText) {
+            SpeechSanitizer.isTableRow(currentChunkText)
+        }
+        val isFigurePlaying = remember(currentChunkText) {
+            currentChunkText.startsWith("Figure", ignoreCase = true) ||
+                currentChunkText.startsWith("Fig.", ignoreCase = true)
+        }
+
         // 3. Floating Bottom Player Panel (Collapsible)
         Box(
             modifier = Modifier
@@ -842,40 +705,87 @@ fun ReaderScreen(
                 .fillMaxWidth()
                 .graphicsLayer { translationY = bottomBarOffset }
         ) {
-            PlayerPanel(
-                isPlaying = isPlaying,
-                isBackgroundActive = isBackgroundActive,
-                statusMessage = statusMessage,
-                rate = rate,
-                pitch = pitch,
-                fontSizeSp = readerSettings.fontSizeSp,
-                sectionSpacingDp = readerSettings.sectionSpacingDp,
-                queueCount = queueCount,
-                canGoPrevious = currentIndex > 0,
-                canGoNext = currentIndex < document.chunks.lastIndex || queueCount > 0,
-                onPrevious = onPrevious,
-                onPlayPause = onPlayPause,
-                onStop = onStop,
-                onNext = onNext,
-                onRateChange = onRateChange,
-                onPitchChange = onPitchChange,
-                onFontSizeChange = onFontSizeChange,
-                onSectionSpacingChange = onSectionSpacingChange,
-                onOpenVoiceStudio = onOpenVoiceStudio,
-                onPlayQueue = onPlayQueue,
-                onOpenAudioMode = { onReaderModeChange(ReaderMode.LISTEN) },
-                voices = state.voices,
-                voiceSettings = state.voiceSettings,
-                onVoiceSelected = onVoiceSelected,
-                documentId = document.id,
-                onToggleDocumentMode = {
-                    if (hasCanvas) {
-                        onOpenCanvas()
-                    } else {
-                        onReaderModeChange(ReaderMode.ORIGINAL)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ReaderGestureTipsBanner(
+                    visible = showGestureTips && !isPlaying,
+                    onDismissCurrent = { sessionGestureTipsDismissed = true },
+                    onDismissPermanently = {
+                        sessionGestureTipsDismissed = true
+                        onDismissGestureTipsPermanently()
+                    }
+                )
+                AnimatedVisibility(
+                    visible = isPlaying && (isTablePlaying || isFigurePlaying),
+                    enter = fadeIn() + slideInVertically { it / 2 },
+                    exit = fadeOut() + slideOutVertically { it / 2 }
+                ) {
+                    val label = if (isTablePlaying) "Skip Table ⏭" else "Skip Figure ⏭"
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shadowElevation = 6.dp,
+                        modifier = Modifier
+                            .padding(bottom = 6.dp)
+                            .clickable {
+                                val target = if (isTablePlaying) {
+                                    (currentIndex + 1 until document.chunks.size).firstOrNull { i ->
+                                        val t = document.chunks[i].trim()
+                                        !SpeechSanitizer.isTableRow(t) && !SpeechSanitizer.isTableSeparatorLine(t)
+                                    } ?: (document.chunks.size - 1)
+                                } else {
+                                    (currentIndex + 1).coerceAtMost(document.chunks.lastIndex)
+                                }
+                                handleSentenceClick(target)
+                            }
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                        )
                     }
                 }
-            )
+
+                PlayerPanel(
+                    isPlaying = isPlaying,
+                    isBackgroundActive = isBackgroundActive,
+                    statusMessage = statusMessage,
+                    rate = rate,
+                    pitch = pitch,
+                    fontSizeSp = readerSettings.fontSizeSp,
+                    sectionSpacingDp = readerSettings.sectionSpacingDp,
+                    queueCount = queueCount,
+                    canGoPrevious = currentIndex > 0,
+                    canGoNext = currentIndex < document.chunks.lastIndex || queueCount > 0,
+                    onPrevious = onPrevious,
+                    onPlayPause = onPlayPause,
+                    onStop = onStop,
+                    onNext = onNext,
+                    onRateChange = onRateChange,
+                    onPitchChange = onPitchChange,
+                    onFontSizeChange = onFontSizeChange,
+                    onSectionSpacingChange = onSectionSpacingChange,
+                    onOpenVoiceStudio = onOpenVoiceStudio,
+                    onPlayQueue = onPlayQueue,
+                    onOpenAudioMode = { onReaderModeChange(ReaderMode.LISTEN) },
+                    voices = state.voices,
+                    voiceSettings = state.voiceSettings,
+                    onVoiceSelected = onVoiceSelected,
+                    documentId = document.id,
+                    onToggleDocumentMode = {
+                        if (hasCanvas) {
+                            onOpenCanvas()
+                        } else {
+                            onReaderModeChange(ReaderMode.ORIGINAL)
+                        }
+                    }
+                )
+            }
         }
 
         // 4. Floating Search Panel (Anchored cleanly to IME keyboard)
@@ -913,6 +823,7 @@ fun ReaderScreen(
         onRateChange = onRateChange,
         onSentenceClick = handleSentenceClick,
         onSentenceDoubleTap = handleSentenceDoubleTap,
+        onJumpToDestination = handleJumpToDestination,
         onOpenSleepTimer = onOpenSleepTimer,
         onOpenVoiceStudio = onOpenVoiceStudio,
         onOpenNarrationStudio = onOpenNarrationStudio,

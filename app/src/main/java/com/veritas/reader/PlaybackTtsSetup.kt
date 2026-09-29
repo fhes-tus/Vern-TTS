@@ -2,9 +2,9 @@ package com.veritas.reader
 
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import com.veritas.reader.PlaybackService.Companion.TAG
 import com.veritas.reader.tts.OfflineEngineType
 import com.veritas.reader.tts.VoiceModelManager
-import com.veritas.reader.PlaybackService.Companion.TAG
 
 internal fun PlaybackService.ensureTtsReadyAndSpeak() {
     val voiceSettings = repository.loadVoiceSettings()

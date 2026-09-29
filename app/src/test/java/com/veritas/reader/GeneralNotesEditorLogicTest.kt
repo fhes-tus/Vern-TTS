@@ -1,6 +1,5 @@
 package com.veritas.reader
 
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import com.veritas.reader.ui.screens.NoteBlock
 import com.veritas.reader.ui.screens.RichTextFormatter

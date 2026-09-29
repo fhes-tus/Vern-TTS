@@ -1,7 +1,5 @@
 package com.veritas.reader.ui
 
-import com.veritas.reader.*
-
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
@@ -12,17 +10,35 @@ import com.veritas.reader.GeneralNote
 import com.veritas.reader.PlaybackStateStore
 import com.veritas.reader.ReaderTextIndex
 import com.veritas.reader.StudyGuidePdfExporter
+import com.veritas.reader.applyPronunciationRules
+import com.veritas.reader.buildBackupJson
 import com.veritas.reader.buildDocumentNotesExport
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.UUID
+import com.veritas.reader.estimateFullBackupBytes
+import com.veritas.reader.loadAiPromptHistory
+import com.veritas.reader.loadAiPromptTemplates
+import com.veritas.reader.loadAllAnnotations
+import com.veritas.reader.loadAllDocumentNotes
+import com.veritas.reader.loadAnnotationCount
+import com.veritas.reader.loadAnnotations
+import com.veritas.reader.loadDocumentNote
+import com.veritas.reader.loadGeneralNotes
+import com.veritas.reader.loadPronunciationRules
+import com.veritas.reader.loadQueueDocuments
+import com.veritas.reader.loadReadingHistory
+import com.veritas.reader.loadReadingListCatalog
+import com.veritas.reader.restoreBackupAuto
+import com.veritas.reader.saveGeneralNotes
+import com.veritas.reader.writeFullBackupZip
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 
 fun ReaderViewModel.exportActiveDocumentToAudio() {
     val doc = uiState.value.activeDocument ?: return

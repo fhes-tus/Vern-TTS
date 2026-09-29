@@ -1,6 +1,7 @@
 package com.veritas.reader
 
 import org.json.JSONArray
+import java.util.Locale
 
 /**
  * Pure decision logic for playback advancement, extracted from PlaybackService so the
@@ -47,12 +48,134 @@ object SpeechSanitizer {
         '❤' // ❤
     )
 
+    private val MONTH_TICK_TOKENS = setOf(
+        "jan", "january", "feb", "february", "mar", "march", "apr", "april",
+        "may", "jun", "june", "jul", "july", "aug", "august", "sep", "sept", "september",
+        "oct", "october", "nov", "november", "dec", "december"
+    )
+
+    private val DAY_TICK_TOKENS = setOf(
+        "mon", "monday", "tue", "tues", "tuesday", "wed", "wednesday",
+        "thu", "thur", "thursday", "fri", "friday", "sat", "saturday", "sun", "sunday"
+    )
+
+    private val AXIS_TICK_PATTERN = Regex(
+        """^[-+]?[$€£¥]?\d+(?:[.,]\d+)?(?:%|[kmbx]|ms|s)?$""",
+        RegexOption.IGNORE_CASE
+    )
+
+    private val QUARTER_TICK_PATTERN = Regex(
+        """^q[1-4]$""",
+        RegexOption.IGNORE_CASE
+    )
+
     private fun isSilent(char: Char): Boolean {
         val code = char.code
         return char in extraSilentGlyphs ||
             code in 0x2190..0x21FF || // arrows
             code in 0x2500..0x25FF || // box drawing, blocks, geometric shapes
             code in 0x2700..0x27BF    // dingbats
+    }
+
+    /**
+     * Identifies markdown table divider lines (e.g. `| --- | --- |` or `|:---|---:|`)
+     * which must be silently bypassed so TTS never verbalizes dashes or colons.
+     */
+    fun isTableSeparatorLine(text: String): Boolean {
+        val trimmed = text.trim()
+        if (!trimmed.contains('|')) return false
+        val content = trimmed.removePrefix("|").removeSuffix("|").trim()
+        if (content.isEmpty()) return false
+        val cells = content.split('|')
+        return cells.all { cell ->
+            val c = cell.trim()
+            c.isNotEmpty() && c.all { it == '-' || it == ':' || it == ' ' } && c.contains('-')
+        }
+    }
+
+    /**
+     * Identifies markdown pipe table content rows (excluding pure separator lines).
+     */
+    fun isTableRow(text: String): Boolean {
+        val trimmed = text.trim()
+        if (!trimmed.contains('|')) return false
+        if (isTableSeparatorLine(trimmed)) return false
+        return trimmed.startsWith("|") || trimmed.endsWith("|") || trimmed.count { it == '|' } >= 2
+    }
+
+    /**
+     * Determines if an individual token is an axis tick (numeric, currency, percentage, quarter, month, day).
+     */
+    fun isAxisTickToken(rawToken: String): Boolean {
+        val token = rawToken.trim().trimEnd('.', ',', ';', ':')
+        if (token.isEmpty()) return false
+        val lower = token.lowercase(Locale.ROOT)
+        return lower in MONTH_TICK_TOKENS ||
+            lower in DAY_TICK_TOKENS ||
+            QUARTER_TICK_PATTERN.matches(lower) ||
+            AXIS_TICK_PATTERN.matches(token)
+    }
+
+    /**
+     * Detects floating graph axis tick sequences (e.g. "0 10 20 30 40 50", "0% 25% 50% 75%", "Jan Feb Mar Apr")
+     * extracted from charts, returning true to mute them while letting figure captions be spoken.
+     */
+    fun isGraphAxisNoise(text: String): Boolean {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return false
+        if (trimmed.startsWith("#") || trimmed.startsWith("|")) return false
+
+        val tokens = trimmed.split(Regex("""[\s,;]+""")).filter { it.isNotBlank() }
+        if (tokens.size < 3) return false
+
+        val tickCount = tokens.count { isAxisTickToken(it) }
+        val tickRatio = tickCount.toDouble() / tokens.size.toDouble()
+        return tickRatio >= 0.80
+    }
+
+    /**
+     * Formats an individual table cell for natural speech with full-stop pitch drops and empty-cell handling.
+     */
+    fun formatTableCellForSpeech(cell: String): String {
+        val cleaned = cell.trim()
+        return when {
+            cleaned.isEmpty() || cleaned == "-" || cleaned == "—" || cleaned == "–" ||
+                cleaned.equals("N/A", ignoreCase = true) || cleaned.equals("NA", ignoreCase = true) ||
+                cleaned.equals("None", ignoreCase = true) -> "None."
+            cleaned.endsWith(".") || cleaned.endsWith("!") || cleaned.endsWith("?") || cleaned.endsWith(":") -> cleaned
+            else -> "$cleaned."
+        }
+    }
+
+    /**
+     * Turns a table row into spaced sentences where each column ends with a period (.) to trigger
+     * a natural vocal pitch drop and breathing pause between columns.
+     */
+    fun formatTableRowForSpeech(rowText: String): String {
+        val trimmed = rowText.trim()
+        val content = trimmed.removePrefix("|").removeSuffix("|")
+        val cells = content.split('|').map { it.trim() }
+        return cells.joinToString(" ") { formatTableCellForSpeech(it) }
+    }
+
+    /**
+     * Maps spoken character offset within a table row back to the corresponding column index (0-based).
+     */
+    fun tableColumnIndexAt(rowText: String, spokenCharOffset: Int): Int {
+        if (!isTableRow(rowText)) return -1
+        val content = rowText.trim().removePrefix("|").removeSuffix("|")
+        val cells = content.split('|').map { it.trim() }
+        if (cells.isEmpty()) return -1
+        var cumulative = 0
+        cells.forEachIndexed { index, cell ->
+            val spokenCell = formatTableCellForSpeech(cell)
+            val cellLen = spokenCell.length
+            if (spokenCharOffset in cumulative..(cumulative + cellLen)) {
+                return index
+            }
+            cumulative += cellLen + 1
+        }
+        return cells.lastIndex
     }
 
     fun forSpeech(text: String): String {
@@ -63,6 +186,16 @@ object SpeechSanitizer {
             text
         }
         if (raw.isEmpty()) return ""
+
+        // Mute table separator lines (e.g. | --- | --- |)
+        if (isTableSeparatorLine(raw)) return ""
+
+        // Mute floating graph axis ticks (e.g. 0 10 20 30...)
+        if (isGraphAxisNoise(raw)) return ""
+
+        // Table content row: speak column by column with punctuation cadence
+        if (isTableRow(raw)) return formatTableRowForSpeech(raw)
+
         val chars = CharArray(raw.length) { index ->
             val char = raw[index]
             when {

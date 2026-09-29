@@ -1,18 +1,16 @@
 package com.veritas.reader.ui
 
-import com.veritas.reader.*
-
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.VeritasBrowserFile
 import com.veritas.reader.VeritasFileBrowserScanner
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 fun ReaderViewModel.approveFileBrowserFolder(uri: Uri?) {
     if (uri == null) return
@@ -130,14 +128,24 @@ fun ReaderViewModel.deleteBrowserFiles(files: List<VeritasBrowserFile>) {
 
 fun ReaderViewModel.refreshFileBrowser() {
     scanJob?.cancel()
-    refreshFileBrowserAccessState()
     _uiState.update { it.copy(fileBrowserScanning = true, fileBrowserMessage = null) }
     scanJob = viewModelScope.launch(Dispatchers.IO) {
+        val context = getApplication<Application>()
+        val roots = VeritasFileBrowserScanner.persistedRoots(context)
+        val allFilesGranted = hasAllFilesAccess()
+        withContext(Dispatchers.Main) {
+            _uiState.update {
+                it.copy(
+                    fileBrowserRoots = roots,
+                    fileBrowserAllFilesGranted = allFilesGranted
+                )
+            }
+        }
         val result = runCatching {
             VeritasFileBrowserScanner.scan(
-                context = getApplication(),
-                roots = uiState.value.fileBrowserRoots,
-                includeAllFilesAccess = hasAllFilesAccess(),
+                context = context,
+                roots = roots,
+                includeAllFilesAccess = allFilesGranted,
                 location = uiState.value.fileBrowserLocation
             )
         }

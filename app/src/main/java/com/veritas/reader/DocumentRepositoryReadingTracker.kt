@@ -1,11 +1,11 @@
 ﻿package com.veritas.reader
 
 import androidx.core.content.edit
+import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import org.json.JSONArray
 
 fun DocumentRepository.recordAppOpen(nowMillis: Long = System.currentTimeMillis()): ReaderTrackerSnapshot {
     val key = trackerDateKey(nowMillis)

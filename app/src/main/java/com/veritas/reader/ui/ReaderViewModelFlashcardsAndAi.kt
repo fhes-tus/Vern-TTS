@@ -1,7 +1,5 @@
 package com.veritas.reader.ui
 
-import com.veritas.reader.*
-
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.Flashcard
 import com.veritas.reader.FlashcardProgress
@@ -11,11 +9,19 @@ import com.veritas.reader.ReaderDocument
 import com.veritas.reader.SavedDocument
 import com.veritas.reader.SpacedRepetitionScheduler
 import com.veritas.reader.TextChunker
-import java.util.UUID
+import com.veritas.reader.deleteFlashcardSet
+import com.veritas.reader.deleteQuiz
+import com.veritas.reader.loadAllFlashcards
+import com.veritas.reader.loadAllQuizzes
+import com.veritas.reader.renameFlashcardSet
+import com.veritas.reader.saveAllFlashcards
+import com.veritas.reader.saveAllQuizzes
+import com.veritas.reader.saveQuiz
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 fun ReaderViewModel.importFlashcards(documentId: String, setName: String, cards: List<Flashcard>) {
     if (cards.isEmpty()) return

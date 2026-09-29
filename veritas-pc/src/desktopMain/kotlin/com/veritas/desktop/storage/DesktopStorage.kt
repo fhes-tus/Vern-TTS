@@ -1,12 +1,24 @@
 package com.veritas.desktop.storage
 
-import com.veritas.desktop.models.*
+import com.veritas.desktop.models.Bookmark
+import com.veritas.desktop.models.ChecklistItem
+import com.veritas.desktop.models.DesktopDocument
+import com.veritas.desktop.models.DesktopFontFamily
+import com.veritas.desktop.models.DesktopThemeType
+import com.veritas.desktop.models.HabitTracker
+import com.veritas.desktop.models.PronunciationRule
+import com.veritas.desktop.models.ReaderSettings
+import com.veritas.desktop.models.ReadingList
+import com.veritas.desktop.models.RichNote
+import com.veritas.desktop.models.TextAnnotation
+import com.veritas.desktop.models.VoiceSettings
 import com.veritas.desktop.parser.TextChunker
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 object DesktopStorage {
     private val dataDir: File by lazy {

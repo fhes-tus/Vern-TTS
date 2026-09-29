@@ -24,13 +24,12 @@ import androidx.core.graphics.createBitmap
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaStyleNotificationHelper
-import java.io.File
-import kotlin.math.min
 import com.veritas.reader.PlaybackService.Companion.CHANNEL_ID
 import com.veritas.reader.PlaybackService.Companion.NOTIFICATION_ID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.min
 
 @OptIn(UnstableApi::class)
 internal fun PlaybackService.refreshForegroundNotification() {

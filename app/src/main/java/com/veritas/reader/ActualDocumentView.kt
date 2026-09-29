@@ -1,133 +1,54 @@
 package com.veritas.reader
 
-import com.veritas.reader.ui.screens.SmartOutlineDialog
-
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color as AndroidColor
-import android.graphics.pdf.PdfRenderer
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.AnchoredDraggableState
-import androidx.compose.foundation.gestures.DraggableAnchors
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.anchoredDraggable
-import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.border
-import androidx.compose.ui.draw.shadow
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.ui.graphics.luminance
-import com.veritas.reader.blendColors
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.*
-import androidx.compose.material.icons.automirrored.outlined.*
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import com.veritas.reader.ui.VeritasSleekSlider
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.graphics.createBitmap
-import android.content.Intent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.math.roundToInt
 import com.veritas.reader.ui.screens.KeepScreenAwake
-import com.veritas.reader.ui.rememberSliderHaptics
+import com.veritas.reader.ui.screens.SmartOutlineDialog
 import com.veritas.reader.ui.screens.monitorReadingActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -164,6 +85,7 @@ internal fun ActualDocumentView(
     onReadFromSentence: ((String, Int) -> Unit)? = null,
     initialPaperToneMode: PaperToneMode = PaperToneMode.fromString(repository.loadReaderSettings().paperToneMode),
     onPaperToneModeChange: ((PaperToneMode) -> Unit)? = null,
+    readerDocument: ReaderDocument? = null,
     onClose: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -192,8 +114,16 @@ internal fun ActualDocumentView(
     var showJumpToPageDialog by remember { mutableStateOf(false) }
     var showDocInfoDialog by remember { mutableStateOf(false) }
     var showOutlineDialog by remember { mutableStateOf(false) }
-    val readerDocument = remember(document) { buildReaderDocument(document, repository.readText(document)) }
-    val documentOutline = remember(document.id) { repository.loadDocumentOutline(document, readerDocument.chunks) }
+    val actualReaderDoc = remember(document.id, readerDocument) {
+        readerDocument ?: buildReaderDocument(document, repository.readText(document))
+    }
+    var documentOutline by remember(document.id) { mutableStateOf<List<VeritasDocumentOutlineEntry>>(emptyList()) }
+    LaunchedEffect(document.id, actualReaderDoc.chunks.size) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val loaded = repository.loadDocumentOutline(document, actualReaderDoc.chunks)
+            documentOutline = loaded
+        }
+    }
     var interactionTrigger by remember { mutableStateOf(0L) }
     KeepScreenAwake(enabled = true, interactionTrigger = interactionTrigger)
 
@@ -818,19 +748,23 @@ internal fun ActualDocumentView(
 
         // Table of Contents / Smart Outline Dialog
         if (showOutlineDialog) {
+            val model = remember(document.id, actualReaderDoc.rawText, document.pageCount) {
+                ReaderTextModelCache.get(document.id, actualReaderDoc.rawText, document.pageCount)
+            }
             SmartOutlineDialog(
-                document = readerDocument,
+                document = actualReaderDoc,
                 documentOutline = documentOutline,
                 currentIndex = 0,
-                onJumpToSection = { targetIndex ->
+                onJumpToDestination = { targetPage, targetIndex ->
                     showOutlineDialog = false
-                    val model = ReaderTextModelCache.get(document.id, readerDocument.rawText, document.pageCount)
-                    val targetPage = model.sentences.getOrNull(targetIndex)?.pageNumber
+                    val resolvedPage = targetPage
+                        ?: model.sentences.getOrNull(targetIndex)?.pageNumber
                         ?: documentOutline.firstOrNull { it.targetIndex == targetIndex }?.pageNumber
                         ?: 1
-                    selectPage((targetPage - 1).coerceIn(0, (pageCount - 1).coerceAtLeast(0)))
+                    selectPage((resolvedPage - 1).coerceIn(0, (pageCount - 1).coerceAtLeast(0)))
                 },
-                onDismiss = { showOutlineDialog = false }
+                onDismiss = { showOutlineDialog = false },
+                readerModel = model
             )
         }
 

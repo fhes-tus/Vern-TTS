@@ -1,16 +1,14 @@
 package com.veritas.reader.ui
 
-import com.veritas.reader.*
-
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.CoverExtractor
-import java.io.File
-import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.util.Locale
 
 fun ReaderViewModel.finishTutorial() {
     finishOnboarding(uiState.value.userName)

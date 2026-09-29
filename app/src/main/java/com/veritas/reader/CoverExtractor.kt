@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color as AndroidColor
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.util.Log
@@ -15,6 +14,7 @@ import java.net.URLDecoder
 import java.util.Locale
 import java.util.zip.ZipInputStream
 import kotlin.math.roundToInt
+import android.graphics.Color as AndroidColor
 
 /**
  * Extracts cover images (first page thumbnails) from PDF documents

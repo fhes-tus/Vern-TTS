@@ -1,5 +1,7 @@
 package com.veritas.reader
 
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -9,8 +11,6 @@ import java.util.UUID
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
-import org.json.JSONArray
-import org.json.JSONObject
 
 fun DocumentRepository.buildBackupJson(): String {
     val root = JSONObject()
