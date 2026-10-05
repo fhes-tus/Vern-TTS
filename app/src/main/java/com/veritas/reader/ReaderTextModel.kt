@@ -22,7 +22,8 @@ data class ReaderSentence(
 data class ReaderPartSentenceRange(
     val sentenceIndex: Int,
     val start: Int,
-    val endExclusive: Int
+    val endExclusive: Int,
+    val sentenceCharOffset: Int = 0
 )
 
 data class ReaderPart(
@@ -124,12 +125,12 @@ object ReaderTextIndex {
             .trim()
     }
 
-    fun build(rawText: String, storedPageCount: Int = 0): ReaderTextModel {
+    fun build(rawText: String, storedPageCount: Int = 0, legacySentenceBoundaries: Boolean = false): ReaderTextModel {
         val pages = extractPages(rawText, storedPageCount)
         val cleanText = pages.joinToString("\n\n") { it.text }.trim()
         val sentences = mutableListOf<ReaderSentence>()
         pages.forEach { page ->
-            splitSentenceFragments(page.text).forEach { sentence ->
+            splitSentenceFragments(page.text, legacySentenceBoundaries).forEach { sentence ->
                 sentences.add(
                     ReaderSentence(
                         index = sentences.size,
@@ -376,7 +377,7 @@ object ReaderTextIndex {
         return splitSentenceFragments(source).map { it.text }
     }
 
-    private fun splitSentenceFragments(source: String): List<SentenceFragment> {
+    private fun splitSentenceFragments(source: String, legacy: Boolean = false): List<SentenceFragment> {
         val text = source.replace('\r', '\n').trim()
         if (text.isBlank()) return emptyList()
         val sentences = mutableListOf<SentenceFragment>()
@@ -386,13 +387,18 @@ object ReaderTextIndex {
         while (index < text.length) {
             val char = text[index]
             val boundary = when {
-                char in sentenceEndMarks -> isSentenceBoundary(text, index)
-                char == '\n' -> isLineBoundary(text, index)
+                char in sentenceEndMarks -> if (legacy) isLegacySentenceBoundary(text, index) else isSentenceBoundary(text, index)
+                char == '\n' -> isLineBoundary(text, index) || (!legacy && LiteraryDialogue.hasSpeakerLabel(text.substring(index + 1, (index + 121).coerceAtMost(text.length)).substringBefore('\n')))
                 else -> false
             }
             if (boundary) {
-                previousEnd = addTrimmedSentence(text, start, index + 1, previousEnd, sentences)
-                start = index + 1
+                var end = index + 1
+                if (!legacy && char in sentenceEndMarks) {
+                    while (end < text.length && text[end] in "!?.”’\"')]}»") end++
+                }
+                previousEnd = addTrimmedSentence(text, start, end, previousEnd, sentences)
+                start = end
+                index = end - 1
             }
             index++
         }
@@ -444,7 +450,35 @@ object ReaderTextIndex {
         return previousEnd
     }
 
+    private val NUMBERED_LINE_PREFIX = Regex("(?:#+\\s*)?(?:(?:[0-9]+\\.)*[0-9]+|[IVXLCDM]+)", RegexOption.IGNORE_CASE)
+
     private fun isSentenceBoundary(text: String, markIndex: Int): Boolean {
+        val mark = text[markIndex]
+        if (mark == '.' && text.getOrNull(markIndex + 1)?.isDigit() == true && text.getOrNull(markIndex - 1)?.isDigit() == true) return false
+        var end = markIndex + 1
+        while (end < text.length && text[end] in "!?.”’\"')]}»") end++
+        if (end < text.length && !text[end].isWhitespace()) return false
+        val next = text.indexOfFirstAfter(end - 1) { !it.isWhitespace() } ?: return true
+        if (mark == '.') {
+            var tokenStart = markIndex
+            while (tokenStart > 0 && (text[tokenStart - 1].isLetterOrDigit() || text[tokenStart - 1] == '.')) tokenStart--
+            val token = text.substring(tokenStart, markIndex).trim('.').lowercase(Locale.ROOT)
+            if (token in abbreviations || token in LiteraryDialogue.speakerAbbreviations) return false
+            if (token.length == 1 && token.firstOrNull()?.isLetter() == true) return false
+            if (MULTI_INITIALS_PATTERN.matches(token)) return false
+            val lineStart = text.lastIndexOf('\n', markIndex).let { if (it < 0) 0 else it + 1 }
+            val line = text.substring(lineStart, markIndex).trim()
+            if (line.matches(NUMBERED_LINE_PREFIX)) return false
+            if (looksLikeTableOfContentsRow(text.substring(lineStart, text.indexOf('\n', markIndex).takeIf { it >= 0 } ?: text.length))) return false
+            if (end - markIndex > 1 && text.substring(markIndex, end).count { it == '.' } >= 2 && text[next].isLowerCase()) return false
+        }
+        // A closing speech quote followed by its attribution is one sentence, not a second utterance.
+        if (text.substring(markIndex + 1, end).any { it in "”’\"'" } &&
+            LiteraryDialogue.startsWithAttribution(text.substring(next, (next + 100).coerceAtMost(text.length)))) return false
+        return true
+    }
+
+    private fun isLegacySentenceBoundary(text: String, markIndex: Int): Boolean {
         val mark = text[markIndex]
         if (mark == '.') {
             // Check if this dot is part of a run of dots (e.g. "...", "......")

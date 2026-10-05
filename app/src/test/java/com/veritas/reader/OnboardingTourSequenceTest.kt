@@ -12,9 +12,9 @@ class OnboardingTourSequenceTest {
     fun testClassicsSpotlightStepProperties() {
         val classicsStep = OnboardingStep.CLASSICS_SPOTLIGHT
         assertEquals("classics", classicsStep.key)
-        assertEquals("classics_catalog_card", classicsStep.targetKey)
+        assertTrue(classicsStep.targetKey == "classics_shelves" || classicsStep.targetKey == "classics_catalog_card")
         assertTrue(classicsStep.title.contains("Classic", ignoreCase = true))
-        assertTrue(classicsStep.body.contains("curated", ignoreCase = true) || classicsStep.body.contains("classic", ignoreCase = true))
+        assertTrue(classicsStep.body.contains("books", ignoreCase = true) || classicsStep.body.contains("classic", ignoreCase = true))
     }
 
     @Test

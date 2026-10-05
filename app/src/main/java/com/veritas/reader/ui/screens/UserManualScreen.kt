@@ -338,7 +338,7 @@ fun UserManualDialog(
                         title = "Theme Packs & Paired Colours",
                         icon = Icons.Outlined.Palette,
                         subtitle = "Liquid Glass, One UI, Material You, and Dark palettes",
-                        content = "Personalize the entire app interface. Choose between 4 distinct Theme Packs (Vern Media, Liquid Glass, One UI, Material You) and comprehensive color schemes (Light, Dark, Midnight Dark, GitHub Dark/Light, Dracula, One Dark Pro, Neon, and Blue High Contrast).",
+                        content = "Personalize the entire app interface. Choose between 4 distinct Theme Packs (Vern Media, Liquid Glass, One UI, Material You) and comprehensive paired color schemes (Light, Dark, Dracula Light/Dark, Midnight Light/Dark, One Light/Dark Pro, GitHub Light/Dark, Neon, and Blue High Contrast).",
                         ctaText = "Configure Appearance",
                         ctaAction = "reader_settings",
                         flowSteps = listOf(
@@ -347,7 +347,7 @@ fun UserManualDialog(
                             "Enjoy a cohesive visual style with dedicated card surfaces and container tones"
                         ),
                         imageResId = R.drawable.manual_reader_settings,
-                        tags = listOf("theme", "theme packs", "liquid glass", "one ui", "material you", "dark", "midnight dark", "dracula", "github", "neon")
+                        tags = listOf("theme", "theme packs", "liquid glass", "one ui", "material you", "dark", "dracula", "dracula light", "midnight light", "midnight dark", "one light", "github", "neon")
                     ),
                     ManualChapter(
                         title = "Reader Tools Overflow",

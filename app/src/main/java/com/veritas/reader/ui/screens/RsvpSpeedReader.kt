@@ -128,13 +128,16 @@ fun RsvpSpeedReader(
         sendPlaybackIntent(context, PlaybackActions.ACTION_PAUSE)
     }
 
+    val neuralVoice = com.veritas.reader.VoiceManager.isVeritasEngine(voiceSettings.enginePackage)
     var ttsEngine by remember { mutableStateOf<TextToSpeech?>(null) }
     var isTtsReady by remember { mutableStateOf(false) }
 
-    DisposableEffect(context) {
+    DisposableEffect(context, voiceSettings.enginePackage) {
+        if (neuralVoice) return@DisposableEffect onDispose { }
+        var disposed = false
         var tts: TextToSpeech? = null
-        tts = TextToSpeech(context.applicationContext) { status ->
-            if (status == TextToSpeech.SUCCESS) {
+        val initListener = TextToSpeech.OnInitListener { status ->
+            if (!disposed && status == TextToSpeech.SUCCESS) {
                 tts?.let { engine ->
                     VoiceConfigurator.apply(engine, voiceSettings)
                     engine.setPitch(voiceSettings.preferredPitch)
@@ -142,10 +145,13 @@ fun RsvpSpeedReader(
                 isTtsReady = true
             }
         }
+        tts = if (voiceSettings.enginePackage.isBlank()) TextToSpeech(context.applicationContext, initListener)
+            else TextToSpeech(context.applicationContext, initListener, voiceSettings.enginePackage)
         ttsEngine = tts
         onDispose {
-            tts.stop()
-            tts.shutdown()
+            disposed = true
+            tts?.stop()
+            tts?.shutdown()
         }
     }
 
@@ -178,7 +184,7 @@ fun RsvpSpeedReader(
                     val ttsRate = (wordsPerMinute / 200f).coerceIn(0.5f, 3.0f)
                     ttsEngine?.setSpeechRate(ttsRate)
                     ttsEngine?.setPitch(voiceSettings.preferredPitch)
-                    ttsEngine?.speak(sentenceText, TextToSpeech.QUEUE_FLUSH, null, "rsvp_$activeSentenceIndex")
+                    ttsEngine?.speak(com.veritas.reader.ReadingSymbols.prepare(sentenceText, ttsEngine?.voice?.locale?.language == "en").text, TextToSpeech.QUEUE_FLUSH, null, "rsvp_$activeSentenceIndex")
                 }
             }
         } else {
@@ -454,7 +460,7 @@ fun RsvpSpeedReader(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = if (audioNarration) "Audio Pacing (Sync Voice)" else "Silent Visual RSVP",
+                                    text = if (audioNarration) "Read sentences aloud" else if (neuralVoice) "Silent RSVP · neural audio not available yet" else "Silent visual RSVP",
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -462,7 +468,8 @@ fun RsvpSpeedReader(
                             }
                             Switch(
                                 checked = audioNarration,
-                                onCheckedChange = { audioNarration = it }
+                                onCheckedChange = { audioNarration = it },
+                                enabled = !neuralVoice && isTtsReady
                             )
                         }
                     }

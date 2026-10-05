@@ -19,7 +19,8 @@ data class PptxSlideContent(
     val contentLines: List<String>,
     val notesLines: List<String>,
     // Zip paths of images referenced by this slide (for optional OCR).
-    val mediaPaths: List<String>
+    val mediaPaths: List<String>,
+    val layout: PptxSlideLayout? = null
 )
 
 data class PptxDeck(
@@ -50,11 +51,20 @@ object PptxExtractor {
         val slideXml = sortedMapOf<Int, String>()
         val notesXml = mutableMapOf<Int, String>()
         val relsXml = mutableMapOf<Int, String>()
+        var presentationXml = ""
+        var presentationRels = ""
+        val sourceStyles = mutableMapOf<String, String>()
         ZipInputStream(ByteArrayInputStream(zipBytes)).use { zip ->
             while (true) {
                 val entry = zip.nextEntry ?: break
                 if (entry.isDirectory) continue
                 val name = entry.name.trimStart('/')
+                if ((name.startsWith("ppt/theme/") || name.startsWith("ppt/slideLayouts/") || name.startsWith("ppt/slideMasters/")) &&
+                    (name.endsWith(".xml") || name.endsWith(".rels"))) {
+                    sourceStyles[name] = OriginalArchiveEntries.readBounded(zip, 16 * 1024 * 1024).toString(Charsets.UTF_8)
+                }
+                if (name == "ppt/presentation.xml") presentationXml = OriginalArchiveEntries.readBounded(zip, 16 * 1024 * 1024).toString(Charsets.UTF_8)
+                if (name == "ppt/_rels/presentation.xml.rels") presentationRels = OriginalArchiveEntries.readBounded(zip, 16 * 1024 * 1024).toString(Charsets.UTF_8)
                 slidePathRegex.matchEntire(name)?.let {
                     slideXml[it.groupValues[1].toInt()] = zip.readBytes().toString(Charsets.UTF_8)
                 }
@@ -69,20 +79,48 @@ object PptxExtractor {
             }
         }
 
-        val slides = slideXml.map { (number, xml) ->
+        return parseEntries(slideXml, notesXml, relsXml, presentationXml, presentationRels, sourceStyles)
+    }
+
+    fun parseDeck(file: java.io.File, includeSpeakerNotes: Boolean): PptxDeck {
+        val archive = OriginalArchiveEntries(file)
+        val entries = archive.textMap { it.endsWith(".xml") || it.endsWith(".rels") }
+        fun byPattern(pattern: Regex): Map<Int, String> = entries.keys.mapNotNull { path ->
+            pattern.matchEntire(path)?.let { it.groupValues[1].toInt() to entries.getValue(path) }
+        }.toMap()
+        return parseEntries(byPattern(slidePathRegex), if (includeSpeakerNotes) byPattern(notesPathRegex) else emptyMap(), byPattern(relsPathRegex),
+            entries["ppt/presentation.xml"].orEmpty(), entries["ppt/_rels/presentation.xml.rels"].orEmpty(), entries)
+    }
+
+    private fun parseEntries(slideXml: Map<Int, String>, notesXml: Map<Int, String>, relsXml: Map<Int, String>, presentationXml: String, presentationRels: String,
+        sourceStyles: Map<String, String> = emptyMap()): PptxDeck {
+        val orderedNumbers = PptxSlideLayoutParser.slideOrder(presentationXml, presentationRels).filter { it in slideXml.keys }
+            .takeIf { it.isNotEmpty() } ?: slideXml.keys.sorted()
+        val slides = orderedNumbers.mapIndexed { index, sourceNumber ->
+            val number = index + 1
+            val xml = slideXml.getValue(sourceNumber)
             val body = parseSlideBody(xml)
             // PowerPoint pairs notesSlideN with slideN by number.
-            val notes = notesXml[number]?.let { parseNotesBody(it) }.orEmpty()
-            val media = resolveMediaPaths(xml, relsXml[number])
+            val notesNumber = PptxSlideLayoutParser.relatedNumber(relsXml[sourceNumber].orEmpty(), "notesSlides/notesSlide") ?: sourceNumber
+            val notes = notesXml[notesNumber]?.let { parseNotesBody(it) }.orEmpty()
+            val media = resolveMediaPaths(xml, relsXml[sourceNumber])
+            fun relationshipXml(part: String?): String = part?.let {
+                sourceStyles[it.substringBeforeLast('/') + "/_rels/" + it.substringAfterLast('/') + ".rels"]
+            }.orEmpty()
+            val layoutPath = PptxSlideLayoutParser.relatedPart("ppt/slides/slide$sourceNumber.xml", relsXml[sourceNumber].orEmpty(), "slideLayout")
+            val masterPath = layoutPath?.let { PptxSlideLayoutParser.relatedPart(it, relationshipXml(it), "slideMaster") }
+            val themePath = masterPath?.let { PptxSlideLayoutParser.relatedPart(it, relationshipXml(it), "theme") }
             PptxSlideContent(
                 number = number,
                 titleLines = body.titleLines,
                 contentLines = body.contentLines,
                 notesLines = notes,
-                mediaPaths = media
+                mediaPaths = media,
+                layout = PptxSlideLayoutParser.parse(xml, relsXml[sourceNumber].orEmpty(), presentationXml,
+                    sourceStyles[themePath].orEmpty(), sourceStyles[masterPath].orEmpty(), sourceStyles[layoutPath].orEmpty())
             )
         }
-        return PptxDeck(slides = slides, slideCount = slides.maxOfOrNull { it.number } ?: 0)
+        return PptxDeck(slides = slides, slideCount = slides.size)
     }
 
     /**
@@ -294,16 +332,7 @@ object PptxExtractor {
     }
 
     private fun resolveMediaPaths(slideXml: String, relsXml: String?): List<String> {
-        if (relsXml == null) return emptyList()
-        val targetsById = relationshipRegex.findAll(relsXml).associate { match ->
-            match.groupValues[1] to match.groupValues[2]
-        }
-        return embedRegex.findAll(slideXml)
-            .mapNotNull { targetsById[it.groupValues[1]] }
-            .filter { it.contains("media/") }
-            .map { "ppt/media/" + it.substringAfterLast("media/") }
-            .distinct()
-            .toList()
+        return PptxSlideLayoutParser.embeddedMediaPaths(slideXml, relsXml.orEmpty())
     }
 
     private fun attributeValue(tag: String, attribute: String): String? =

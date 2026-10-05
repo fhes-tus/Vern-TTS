@@ -180,13 +180,8 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
         val clean = selectedText.trim()
         if (clean.isBlank()) return PlaybackStateStore.currentIndex
         val model = readerTextModel ?: return PlaybackStateStore.currentIndex
-        val index = model.sentences.indexOfFirst { it.text.contains(clean, ignoreCase = true) }
-        if (index != -1) return index
-        val bestMatch = model.sentences.maxByOrNull { sentence ->
-            val common = sentence.text.split(" ").filter { it.length > 3 && clean.contains(it, ignoreCase = true) }
-            common.size
-        }
-        return bestMatch?.index ?: PlaybackStateStore.currentIndex
+        return PdfSelectionLocator.findMatch(clean, model, pdfView?.firstVisiblePage?.plus(1), PlaybackStateStore.currentIndex)?.chunkIndex
+            ?: PlaybackStateStore.currentIndex
     }
 
     private fun VeritasPdfViewerActivity.appendVocabularyWord(word: String, explanation: String) {
@@ -306,7 +301,7 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
     private fun restoreClipboard(clipboard: ClipboardManager, previousClip: ClipData?) {
         if (previousClip != null) {
             clipboard.setPrimaryClip(previousClip)
-        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+        } else {
             clipboard.clearPrimaryClip()
         }
     }
@@ -331,7 +326,7 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
                 action = PlaybackActions.ACTION_JUMP_TO
                 putExtra(PlaybackActions.EXTRA_DOCUMENT_ID, docId)
                 putExtra(PlaybackActions.EXTRA_START_INDEX, match.chunkIndex)
-                putExtra(PlaybackActions.EXTRA_CHAR_OFFSET, 0)
+                putExtra(PlaybackActions.EXTRA_CHAR_OFFSET, match.charOffset)
             }
             startService(intent)
             Toast.makeText(this, "Reading from selection", Toast.LENGTH_SHORT).show()

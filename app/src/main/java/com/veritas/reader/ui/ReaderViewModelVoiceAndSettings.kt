@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.AskAiSettings
+import com.veritas.reader.DocumentRepository
 import com.veritas.reader.NarrationSettings
 import com.veritas.reader.PlaybackActions
 import com.veritas.reader.PlaybackStateStore
@@ -26,28 +27,60 @@ import com.veritas.reader.updateVeritasWidgets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 fun ReaderViewModel.saveReaderSettings(update: ReaderSettings) {
-    viewModelScope.launch(Dispatchers.IO) {
-        val saved = repository.saveReaderSettings(update)
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(readerSettings = saved) }
-            VeritasThemeState.themeId = saved.themeId
-            VeritasThemeState.themePackId = saved.themePackId
-            VeritasThemeState.uiFontId = saved.uiFontId
-            VeritasThemeState.amoledMode = saved.amoledMode
-            PlaybackStateStore.autoPlayQueue = saved.autoPlayQueue
-            updateVeritasWidgets(getApplication())
+    val previous = uiState.value.readerSettings
+    val revision = ++readerSettingsSaveRevision
+    val normalized = update.copy(fontSizeSp = update.fontSizeSp.coerceIn(10, 28),
+        sectionSpacingDp = update.sectionSpacingDp.coerceIn(6, 24),
+        themeId = com.veritas.reader.VeritasThemeCatalog.normalizeThemeId(update.themeId),
+        themePackId = com.veritas.reader.VeritasThemePackCatalog.normalizePackId(update.themePackId))
+    _uiState.update { it.copy(readerSettings = normalized) }
+    PlaybackStateStore.autoPlayQueue = normalized.autoPlayQueue
+    viewModelScope.launch {
+        try {
+            val saved = withContext(Dispatchers.IO) {
+                synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+                    if (revision != readerSettingsSaveRevision) return@synchronized null
+                    repository.saveReaderSettings(normalized)
+                }
+            } ?: return@launch
+            if (revision == readerSettingsSaveRevision) _uiState.update { it.copy(readerSettings = saved) }
+        } catch (error: Exception) {
+            if (error is kotlinx.coroutines.CancellationException) throw error
+            if (revision == readerSettingsSaveRevision) {
+                _uiState.update { it.copy(readerSettings = previous, importMessage = "Could not save display preferences. Please try again.") }
+                PlaybackStateStore.autoPlayQueue = previous.autoPlayQueue
+            }
         }
     }
 }
 
 fun ReaderViewModel.reloadReaderSettings() {
+    val revision = readerSettingsSaveRevision
     viewModelScope.launch(Dispatchers.IO) {
         val loaded = repository.loadReaderSettings()
         withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(readerSettings = loaded) }
+            if (revision == readerSettingsSaveRevision) _uiState.update { it.copy(readerSettings = loaded) }
+        }
+    }
+}
+
+fun ReaderViewModel.saveNotesSettings(update: NotesSettings) {
+    val previous = uiState.value.notesSettings
+    val normalized = update.normalized()
+    _uiState.update { it.copy(notesSettings = normalized) }
+    viewModelScope.launch(Dispatchers.IO) {
+        notesSettingsSaveMutex.withLock {
+            if (uiState.value.notesSettings != normalized) return@withLock
+            runCatching { NotesSettingsStore.save(getApplication(), normalized) }.onFailure {
+                _uiState.update { state ->
+                    if (state.notesSettings == normalized) state.copy(notesSettings = previous) else state
+                }
+                withContext(Dispatchers.Main) { android.widget.Toast.makeText(getApplication(), "Could not save Notes preferences. Please try again.", android.widget.Toast.LENGTH_LONG).show() }
+            }
         }
     }
 }
@@ -71,8 +104,8 @@ fun ReaderViewModel.addPronunciationRule() {
             _uiState.update {
                 it.copy(
                     pronunciationRules = rules,
-                    newRuleFind = "",
-                    newRuleReplaceWith = ""
+                    newRuleFind = if (it.newRuleFind.trim() == find && it.newRuleReplaceWith.trim() == replaceWith) "" else it.newRuleFind,
+                    newRuleReplaceWith = if (it.newRuleFind.trim() == find && it.newRuleReplaceWith.trim() == replaceWith) "" else it.newRuleReplaceWith
                 )
             }
             restartCurrentSectionIfPlaying()
@@ -103,44 +136,67 @@ fun ReaderViewModel.removePronunciationRule(rule: PronunciationRule) {
 fun ReaderViewModel.restartCurrentSectionIfPlaying() {
     val doc = uiState.value.activeDocument ?: return
     val docId = doc.id ?: return
-    if (PlaybackStateStore.isPlaying) {
+    if (isReaderPlaying) {
         requestNotificationPermissionForPlayback()
         sendPlaybackIntent(
             context = getApplication(),
             action = PlaybackActions.ACTION_PLAY,
             documentId = docId,
-            startIndex = PlaybackStateStore.currentIndex
+            startIndex = currentReaderIndex
         )
     }
 }
 
 fun ReaderViewModel.saveVoiceSettings(update: VoiceSettings) {
-    viewModelScope.launch(Dispatchers.IO) {
-        val saved = repository.saveVoiceSettings(update)
-        val docId = uiState.value.activeDocument?.id
-        if (docId != null) {
-            repository.saveDocVoiceMemory(docId, saved.preferredRate, saved.preferredPitch)
-        }
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(voiceSettings = saved) }
-            PlaybackStateStore.rate = saved.preferredRate
-            PlaybackStateStore.pitch = saved.preferredPitch
-            PlaybackStateStore.statusMessage = "Voice updated: ${saved.displayName}."
-            sendPlaybackIntent(
-                context = getApplication(),
-                action = PlaybackActions.ACTION_UPDATE_PLAYBACK_SETTINGS,
-                rate = saved.preferredRate,
-                pitch = saved.preferredPitch
-            )
-            completeQuestSpeed()
+    val revision = ++voiceSettingsSaveRevision
+    voiceSettingsSaveJob?.cancel()
+    PlaybackStateStore.pendingVoiceSettings = true
+    // Show every gesture immediately; apply only the latest settled value to
+    // speech, rather than flushing the sentence for each slider movement.
+    _uiState.update { it.copy(voiceSettings = update) }
+    PlaybackStateStore.rate = update.preferredRate
+    PlaybackStateStore.pitch = update.preferredPitch
+    voiceSettingsSaveJob = viewModelScope.launch {
+        try {
+            kotlinx.coroutines.delay(150)
+            val docId = uiState.value.activeDocument?.id
+            val saved = withContext(Dispatchers.IO) {
+                synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+                    if (revision != voiceSettingsSaveRevision) return@synchronized repository.loadVoiceSettings()
+                    val result = repository.saveVoiceSettings(update)
+                    if (docId != null) repository.saveDocVoiceMemory(docId, result.preferredRate, result.preferredPitch)
+                    result
+                }
+            }
+            if (revision != voiceSettingsSaveRevision) return@launch
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(voiceSettings = saved) }
+                PlaybackStateStore.rate = saved.preferredRate
+                PlaybackStateStore.pitch = saved.preferredPitch
+                PlaybackStateStore.statusMessage = "Voice updated: ${saved.displayName}."
+                sendPlaybackIntent(
+                    context = getApplication(),
+                    action = PlaybackActions.ACTION_UPDATE_PLAYBACK_SETTINGS,
+                    rate = saved.preferredRate,
+                    pitch = saved.preferredPitch
+                )
+                completeQuestSpeed()
+            }
+        } finally {
+            if (revision == voiceSettingsSaveRevision) PlaybackStateStore.pendingVoiceSettings = false
         }
     }
 }
 
 fun ReaderViewModel.saveNarrationSettings(update: NarrationSettings) {
+    _uiState.update { it.copy(narrationSettings = update) }
     viewModelScope.launch(Dispatchers.IO) {
-        val saved = repository.saveNarrationSettings(update)
+        val saved = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+            if (uiState.value.narrationSettings != update) return@synchronized null
+            repository.saveNarrationSettings(update)
+        } ?: return@launch
         withContext(Dispatchers.Main) {
+            if (uiState.value.narrationSettings != update) return@withContext
             _uiState.update { it.copy(narrationSettings = saved) }
             PlaybackStateStore.statusMessage = if (saved.enabled) "Narration mode enabled." else "Narration mode disabled."
             restartCurrentSectionIfPlaying()
@@ -149,12 +205,16 @@ fun ReaderViewModel.saveNarrationSettings(update: NarrationSettings) {
 }
 
 fun ReaderViewModel.saveAskAiSettings(update: AskAiSettings) {
+    _uiState.update { it.copy(askAiSettings = update) }
     viewModelScope.launch(Dispatchers.IO) {
-        val saved = repository.saveAskAiSettings(update)
+        val saved = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+            if (uiState.value.askAiSettings != update) return@synchronized null
+            repository.saveAskAiSettings(update)
+        } ?: return@launch
         withContext(Dispatchers.Main) {
             _uiState.update { 
                 it.copy(
-                    askAiSettings = saved,
+                    askAiSettings = if (it.askAiSettings == update) saved else it.askAiSettings,
                     importMessage = "Ask AI preference updated: ${saved.assistantLabel}."
                 )
             }
@@ -272,4 +332,3 @@ fun ReaderViewModel.openSystemTtsSettings() {
         runCatching { getApplication<Application>().startActivity(fallback) }
     }
 }
-

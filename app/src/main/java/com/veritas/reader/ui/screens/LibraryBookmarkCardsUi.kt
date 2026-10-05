@@ -188,7 +188,7 @@ internal fun BookmarkDocumentCard(
         modifier = Modifier.fillMaxWidth(),
         shape = VeritasPackStyle.cardShape(),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())),
+        colors = CardDefaults.cardColors(containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -346,7 +346,7 @@ internal fun BookmarkGroupCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
-            .animateContentSize(),
+            .animateContentSize(animationSpec = com.veritas.reader.ui.VeritasMotion.spatial()),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)

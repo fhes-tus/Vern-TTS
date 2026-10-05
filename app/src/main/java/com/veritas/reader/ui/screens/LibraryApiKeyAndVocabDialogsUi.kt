@@ -317,7 +317,7 @@ internal fun VocabularyEntryRow(
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { onOpenDocumentAt(document, entry.sentenceIndex) }
+                modifier = Modifier.clickable(enabled = entry.sentenceIndex >= 0) { onOpenDocumentAt(document, entry.sentenceIndex) }
             )
         }
 

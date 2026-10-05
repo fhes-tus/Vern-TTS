@@ -1,5 +1,7 @@
 package com.veritas.reader
 
+import com.veritas.reader.ui.openLibrarySection
+import com.veritas.reader.ui.withVisibility
 
 import android.content.Context
 import android.net.Uri
@@ -34,6 +36,9 @@ internal fun MainIntentAndRoutingEffects(
     onOpenInNotes: (String, Uri?) -> Unit,
     onPendingShareChooserChange: (Pair<String, Uri?>?) -> Unit
 ) {
+    LaunchedEffect(uiState.showClassicsCatalog) {
+        if (uiState.showClassicsCatalog) viewModel.openLibrarySection(com.veritas.reader.ui.screens.LibrarySection.CLASSICS)
+    }
     val documentRepository = remember(context) { DocumentRepository(context.applicationContext) }
     LaunchedEffect(Unit) {
         if (!uiState.handledInitialShare) {
@@ -45,7 +50,7 @@ internal fun MainIntentAndRoutingEffects(
                 onPendingShareChooserChange(Pair(initialSharedText, initialSharedUri))
             }
             if (openVoiceStudioOnStart) {
-                viewModel.updateState { it.copy(showVoiceStudio = true) }
+                viewModel.updateState { it.withVisibility(VeritasScreen.VOICE_STUDIO, true) }
             }
             viewModel.updateState { it.copy(handledInitialShare = true) }
         }
@@ -53,25 +58,36 @@ internal fun MainIntentAndRoutingEffects(
 
     LaunchedEffect(uiState.pendingWidgetAction) {
         val action = uiState.pendingWidgetAction
-        val docId = uiState.pendingWidgetDocId
+        uiState.pendingWidgetDocId
         val noteId = uiState.pendingWidgetNoteId
 
         if (action != null) {
             when (action) {
                 MainActivity.ACTION_NEW_NOTE -> {
-                    viewModel.updateState { it.copy(showGeneralNotesEditor = true, generalNoteEditorTarget = null) }
+                    viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, true).copy(
+                        generalNoteEditorTarget = null
+                    ) }
                 }
                 MainActivity.ACTION_SHOW_NOTES -> {
                     viewModel.navigateToHomeTab(VeritasHomeTab.NOTES)
                 }
                 MainActivity.ACTION_NEW_CHECKLIST_NOTE -> {
-                    viewModel.updateState { it.copy(showGeneralNotesEditor = true, generalNoteEditorTarget = null, noteEditorChecklistOnStart = true) }
+                    viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, true).copy(
+                        generalNoteEditorTarget = null,
+                        noteEditorChecklistOnStart = true
+                    ) }
                 }
                 MainActivity.ACTION_NEW_REMINDER_NOTE -> {
-                    viewModel.updateState { it.copy(showGeneralNotesEditor = true, generalNoteEditorTarget = null, noteEditorReminderOnStart = true) }
+                    viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, true).copy(
+                        generalNoteEditorTarget = null,
+                        noteEditorReminderOnStart = true
+                    ) }
                 }
                 MainActivity.ACTION_NEW_IMAGE_NOTE -> {
-                    viewModel.updateState { it.copy(showGeneralNotesEditor = true, generalNoteEditorTarget = null, noteEditorImageOnStart = true) }
+                    viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, true).copy(
+                        generalNoteEditorTarget = null,
+                        noteEditorImageOnStart = true
+                    ) }
                 }
                 MainActivity.ACTION_OPEN_LIBRARY -> {
                     viewModel.navigateToHomeTab(VeritasHomeTab.LIBRARY)
@@ -105,22 +121,28 @@ internal fun MainIntentAndRoutingEffects(
                 }
                 MainActivity.ACTION_NEW_READING_NOTE -> {
                     if (uiState.activeDocument != null) {
-                        viewModel.updateState { it.copy(showDocumentNotes = true) }
+                        viewModel.updateState { it.withVisibility(VeritasScreen.DOCUMENT_NOTES, true) }
                     } else {
-                        viewModel.updateState { it.copy(showGeneralNotesEditor = true, generalNoteEditorTarget = null) }
+                        viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, true).copy(
+                            generalNoteEditorTarget = null
+                        ) }
                     }
                 }
                 MainActivity.ACTION_NEW_STUDY_NOTE -> {
-                    viewModel.updateState { it.copy(showGeneralNotesEditor = true, generalNoteEditorTarget = null) }
+                    viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, true).copy(
+                        generalNoteEditorTarget = null
+                    ) }
                 }
                 MainActivity.ACTION_VOICE_NOTE -> {
-                    viewModel.updateState { it.copy(showVoiceStudio = true) }
+                    viewModel.updateState { it.withVisibility(VeritasScreen.VOICE_STUDIO, true) }
                 }
                 MainActivity.ACTION_EDIT_NOTE -> {
                     noteId?.let { nid ->
                         val note = documentRepository.loadGeneralNotes().firstOrNull { it.id == nid }
                         if (note != null) {
-                            viewModel.updateState { it.copy(showGeneralNotesEditor = true, generalNoteEditorTarget = note) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, true).copy(
+                                generalNoteEditorTarget = note
+                            ) }
                         }
                     }
                 }
@@ -133,8 +155,7 @@ internal fun MainIntentAndRoutingEffects(
     LaunchedEffect(pendingFixWord) {
         if (pendingFixWord != null) {
             viewModel.updateState {
-                it.copy(
-                    showPronunciationRules = true,
+                it.withVisibility(VeritasScreen.PRONUNCIATION_RULES, true).copy(
                     newRuleFind = pendingFixWord,
                     newRuleReplaceWith = ""
                 )
@@ -167,7 +188,7 @@ internal fun MainIntentAndRoutingEffects(
                     )
                     PlaybackStateStore.readerMode = ReaderMode.TEXT
                 } else {
-                    viewModel.updateState { it.copy(showCanvasView = true) }
+                    viewModel.updateState { it.withVisibility(VeritasScreen.CANVAS_VIEW, true) }
                     PlaybackStateStore.readerMode = ReaderMode.TEXT
                 }
             }
@@ -183,23 +204,25 @@ internal fun MainIntentAndRoutingEffects(
             uiState.showClassicsCatalog -> viewModel.updateState { it.copy(showClassicsCatalog = false) }
             uiState.showOceanOfPdfBrowser -> viewModel.updateState { it.copy(showOceanOfPdfBrowser = false) }
             uiState.showBookBrowser -> viewModel.updateState { it.copy(showBookBrowser = false) }
-            uiState.showUserManual -> viewModel.updateState { it.copy(showUserManual = false) }
-            uiState.showAccessibilitySettings -> viewModel.updateState { it.copy(showAccessibilitySettings = false) }
+            uiState.showUserManual -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
+            uiState.showAccessibilitySettings -> viewModel.updateState { it.withVisibility(VeritasScreen.ACCESSIBILITY_SETTINGS, false) }
             uiState.showTextEditor -> viewModel.dismissTextEditor()
-            uiState.showReadingHistory -> viewModel.updateState { it.copy(showReadingHistory = false) }
-            uiState.showDocumentNotes -> viewModel.updateState { it.copy(showDocumentNotes = false) }
-            uiState.showAiStudyTools -> viewModel.updateState { it.copy(showAiStudyTools = false) }
-            uiState.showReadingLists -> viewModel.updateState { it.copy(showReadingLists = false) }
-            uiState.showReaderSettings -> viewModel.updateState { it.copy(showReaderSettings = false) }
-            uiState.showVoiceStudio -> viewModel.updateState { it.copy(showVoiceStudio = false) }
-            uiState.showNarrationStudio -> viewModel.updateState { it.copy(showNarrationStudio = false) }
-            uiState.showPronunciationRules -> viewModel.updateState { it.copy(showPronunciationRules = false) }
-            uiState.showSleepTimerDialog -> viewModel.updateState { it.copy(showSleepTimerDialog = false) }
-            uiState.showGeneralNotesEditor -> viewModel.updateState { it.copy(showGeneralNotesEditor = false, generalNoteEditorTarget = null) }
+            uiState.showReadingHistory -> viewModel.updateState { it.withVisibility(VeritasScreen.READING_HISTORY, false) }
+            uiState.showDocumentNotes -> viewModel.updateState { it.withVisibility(VeritasScreen.DOCUMENT_NOTES, false) }
+            uiState.showAiStudyTools -> viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false) }
+            uiState.showReadingLists -> viewModel.updateState { it.withVisibility(VeritasScreen.READING_LISTS, false) }
+            uiState.showReaderSettings -> viewModel.updateState { it.withVisibility(VeritasScreen.READER_SETTINGS, false) }
+            uiState.showVoiceStudio -> viewModel.updateState { it.withVisibility(VeritasScreen.VOICE_STUDIO, false) }
+            uiState.showNarrationStudio -> viewModel.updateState { it.withVisibility(VeritasScreen.NARRATION_STUDIO, false) }
+            uiState.showPronunciationRules -> viewModel.updateState { it.withVisibility(VeritasScreen.PRONUNCIATION_RULES, false) }
+            uiState.showSleepTimerDialog -> viewModel.updateState { it.withVisibility(VeritasScreen.SLEEP_TIMER, false) }
+            uiState.showGeneralNotesEditor -> viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, false).copy(
+                generalNoteEditorTarget = null
+            ) }
             uiState.noteTargetIndexes.isNotEmpty() || uiState.noteTargetIndex != null -> viewModel.dismissSentenceNote()
-            uiState.showCanvasView -> viewModel.updateState { it.copy(showCanvasView = false) }
+            uiState.showCanvasView -> viewModel.updateState { it.withVisibility(VeritasScreen.CANVAS_VIEW, false) }
             uiState.showFileBrowser && uiState.fileBrowserBackStack.isNotEmpty() -> viewModel.goUpFileBrowserDirectory()
-            uiState.showFileBrowser -> viewModel.updateState { it.copy(showFileBrowser = false) }
+            uiState.showFileBrowser -> viewModel.updateState { it.withVisibility(VeritasScreen.FILE_BROWSER, false) }
             uiState.navStack.isNotEmpty() -> viewModel.navigateBack()
             uiState.activeDocument != null -> viewModel.returnToLibrary()
             else -> viewModel.updateState { it.copy(showExitConfirmationDialog = true) }

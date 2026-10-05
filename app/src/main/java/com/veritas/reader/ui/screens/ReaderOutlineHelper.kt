@@ -16,6 +16,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -92,7 +95,7 @@ private val LEADING_HASH_REGEX = Regex("""^#{1,6}\s*""")
 private val LEADING_PRINTED_PAGE_REGEX = Regex("""^(\d{1,4})\s+(\p{L}.*)$""")
 private val SCENE_BREAK_PATTERN = Regex("""^(\*[\s*]{2,}|\-{3,}|§{1,3}|#{3,}|_{3,}|~{3,})$""")
 private val LEADING_DIGITS_REGEX = Regex("""^\d+(\.\d+)*\s+""")
-private val NON_ALPHANUM_REGEX = Regex("""[^A-Za-z0-9 ]+""")
+private val NON_ALPHANUM_REGEX = Regex("""[^\p{L}\p{N} ]+""")
 private val HEADING_KEYWORD_REGEX = Regex(
     pattern = "^(chapter|section|part|unit|lesson|module|book|article|introduction|conclusion|summary|abstract|contents|references|appendix|glossary|index|foreword|preface|prologue|epilogue|bibliography|afterword|notes|citations|sources)\\b",
     option = RegexOption.IGNORE_CASE
@@ -119,7 +122,7 @@ internal fun parseNumeralValue(s: String): Int? {
 }
 
 private fun romanToInt(s: String): Int? {
-    if (!ROMAN_NUMERAL_REGEX.matches(s)) return null
+    if (s.isEmpty() || !Regex("M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})").matches(s)) return null
     val values = mapOf('I' to 1, 'V' to 5, 'X' to 10, 'L' to 50, 'C' to 100, 'D' to 500, 'M' to 1000)
     var sum = 0
     var prev = 0
@@ -237,12 +240,15 @@ internal fun SmartOutlineDialog(
     readerModel: ReaderTextModel? = null
 ) {
     var query by remember(document.id) { mutableStateOf("") }
+    var jumpPage by remember(document.id) { mutableStateOf("") }
+    val pageCount = readerModel?.pageCount?.coerceAtLeast(1) ?: 1
+    val requestedPage = jumpPage.toIntOrNull()?.takeIf { it in 1..pageCount }
     var entries by remember(document.id, document.chunks.size, documentOutline.size) {
         mutableStateOf<List<SmartOutlineEntry>>(emptyList())
     }
     LaunchedEffect(document.id, document.chunks.size, documentOutline, readerModel) {
         withContext(Dispatchers.Default) {
-            val cacheKey = "${document.id.orEmpty()}:${document.chunks.size}:${documentOutline.size}:${document.rawText.hashCode()}"
+            val cacheKey = "${document.id.orEmpty()}:${document.chunks.size}:${documentOutline.hashCode()}:${document.rawText.hashCode()}"
             val cached = SmartOutlineCache.get(cacheKey)
             if (cached != null) {
                 entries = cached
@@ -250,8 +256,8 @@ internal fun SmartOutlineDialog(
             }
             val result = if (documentOutline.isNotEmpty()) {
                 documentOutline.mapNotNull { outline ->
-                    val title = cleanTocTitle(outline.title)
-                    if (title.isBlank() || isSelfReferentialTocHeading(title) || title.all { it == '.' || it.isWhitespace() || it == '•' || it == '·' }) return@mapNotNull null
+                    val title = outline.title.replace(WHITESPACE_REGEX, " ").trim()
+                    if (title.isBlank()) return@mapNotNull null
                     val preview = document.chunks.getOrNull(outline.targetIndex).orEmpty()
                         .replace(WHITESPACE_REGEX, " ").trim()
                     SmartOutlineEntry(
@@ -263,7 +269,7 @@ internal fun SmartOutlineDialog(
                         pageNumber = outline.pageNumber,
                         source = outline.source
                     )
-                }.let(::filterAndFormatNumberedOutlineEntries)
+                }.distinctBy { Triple(it.title, it.pageNumber, it.index) }
             } else {
                 buildSmartOutline(document.chunks, readerModel)
             }
@@ -288,7 +294,12 @@ internal fun SmartOutlineDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (documentOutline.isNotEmpty()) "📇 Table of contents" else "📇 Smart outline") },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Icon(Icons.AutoMirrored.Filled.List, contentDescription = null)
+                Text(if (documentOutline.isNotEmpty()) "Table of contents" else "Smart outline")
+            }
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
@@ -307,6 +318,23 @@ internal fun SmartOutlineDialog(
                     singleLine = true,
                     shape = VeritasPackStyle.chipShape()
                 )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = jumpPage,
+                        onValueChange = { jumpPage = it.filter(Char::isDigit).take(6) },
+                        modifier = Modifier.weight(1f),
+                        label = { Text("Jump to page (1–$pageCount)") },
+                        singleLine = true,
+                        isError = jumpPage.isNotEmpty() && requestedPage == null,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
+                    )
+                    Button(enabled = requestedPage != null, onClick = {
+                        requestedPage?.let { page ->
+                            val index = readerModel?.sentences?.firstOrNull { it.pageNumber >= page }?.index ?: currentIndex
+                            onJumpToDestination(page, index)
+                        }
+                    }) { Text("Go") }
+                }
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -390,7 +418,7 @@ internal fun SmartOutlineDialog(
 }
 
 internal fun isSelfReferentialTocHeading(title: String): Boolean {
-    val clean = cleanTocTitle(title).lowercase(Locale.getDefault())
+    val clean = cleanTocTitle(title).lowercase(Locale.ROOT)
         .trim(':', '-', '•', '·', ' ')
     return clean == "contents" || clean == "table of contents" ||
         clean == "brief contents" || clean == "summary of contents" ||
@@ -468,27 +496,8 @@ internal fun buildSmartOutline(
             hasBodyPages && contentsRange != null && entry.index in contentsRange
         }
 
-    // Deduplicate entries by normalized title: prefer entries with body pages over TOC pages
-    val deduplicated = mutableListOf<SmartOutlineEntry>()
-    val seenTitles = mutableMapOf<String, SmartOutlineEntry>()
-    validEntries.forEach { entry ->
-        val key = normalizeOutlineNeedle(entry.title)
-        val existing = seenTitles[key]
-        if (existing == null) {
-            seenTitles[key] = entry
-            deduplicated.add(entry)
-        } else {
-            val existingIsTocPage = tocPage != null && existing.pageNumber == tocPage
-            val entryIsBodyPage = tocPage != null && (entry.pageNumber ?: 0) > tocPage
-            if (existingIsTocPage && entryIsBodyPage) {
-                val idx = deduplicated.indexOf(existing)
-                if (idx >= 0) {
-                    deduplicated[idx] = entry
-                    seenTitles[key] = entry
-                }
-            }
-        }
-    }
+    val deduplicated = dropRunningHeaders(validEntries)
+        .distinctBy { it.index to normalizeOutlineNeedle(it.title) }
 
     val structuralEntries = deduplicated
         .distinctBy { it.index }
@@ -569,11 +578,11 @@ internal fun extractTableOfContentsOutline(
     val tocEnd = if (tocPage != null) {
         val maxTocPage = tocPage + 2
         val lastSentenceOnTocPage = readerModel.sentences
-            .indexOfLast { it.pageNumber <= maxTocPage && it.index <= tocStart + 40 }
+            .indexOfLast { it.pageNumber <= maxTocPage && it.index <= tocStart + MAX_SMART_OUTLINE_TOC_SPAN }
             .takeIf { it >= tocStart } ?: tocStart
         contentsRange?.last?.coerceAtMost(lastSentenceOnTocPage) ?: lastSentenceOnTocPage
     } else {
-        contentsRange?.last?.coerceAtMost(tocStart + 30) ?: (tocStart + 15).coerceAtMost(chunks.lastIndex)
+        contentsRange?.last ?: (tocStart + 15).coerceAtMost(chunks.lastIndex)
     }
     val bodyStart = if (tocPage != null) {
         readerModel.sentences.indexOfFirst { it.pageNumber > tocPage && it.index > tocEnd }
@@ -582,15 +591,26 @@ internal fun extractTableOfContentsOutline(
         (tocEnd + 1).coerceAtMost(chunks.lastIndex)
     }
 
+    // Reassemble sentence fragments before parsing rows: dot leaders often split one row into many sentences.
+    val contentsText = if (readerModel != null && readerModel.sentences.size == chunks.size) {
+        (tocStart..tocEnd).joinToString("") { index -> readerModel.sentences[index].separatorBefore + chunks[index] }
+    } else (tocStart..tocEnd).joinToString("\n") { chunks[it] }
+    val contentsLines = contentsText.lineSequence().map(String::trim).filter(String::isNotBlank).toList()
+    val verifiedOffsets = contentsLines.mapNotNull { line ->
+        val parsed = parseTocLine(line) ?: return@mapNotNull null
+        val target = locateOutlineTarget(chunks, cleanTocTitle(parsed.first), bodyStart) ?: return@mapNotNull null
+        readerModel?.sentences?.getOrNull(target)?.pageNumber?.minus(parsed.second)
+    }.groupingBy { it }.eachCount()
+    val pageOffset = verifiedOffsets.entries.maxByOrNull { it.value }?.takeIf { it.value >= 2 }?.key
+
     val seen = mutableSetOf<String>()
     val entries = mutableListOf<SmartOutlineEntry>()
 
     // First pass: try standard numbered/dot-leader TOC lines
-    for (index in tocStart..tocEnd) {
-        chunks.getOrNull(index)?.lineSequence()
-            ?.map { it.trim() }
-            ?.filter { it.length in 4..160 }
-            ?.forEach { line ->
+    run {
+        contentsLines.asSequence()
+            .filter { it.length in 4..160 }
+            .forEach { line ->
                 val parsed = parseTocLine(line) ?: return@forEach
                 val rawTitle = parsed.first
                 val printedPage = parsed.second
@@ -603,22 +623,14 @@ internal fun extractTableOfContentsOutline(
 
                 var targetIndex: Int? = locateOutlineTarget(chunks, formattedTitle, bodyStart)
                     ?: if (isNum) locateOutlineTarget(chunks, title, bodyStart) else null
-                var resolvedPage: Int? = printedPage
+                var resolvedPage: Int? = targetIndex?.let { readerModel?.sentences?.getOrNull(it)?.pageNumber } ?: printedPage
 
-                if (targetIndex == null && printedPage != null && readerModel != null) {
-                    val pageSentences = readerModel.sentences.filter { it.pageNumber == printedPage }
-                    if (pageSentences.isNotEmpty()) {
-                        val matchOnPage = pageSentences.firstOrNull { s ->
-                            val cleanS = normalizeOutlineNeedle(s.text)
-                            cleanS.contains(key) || key.contains(cleanS)
-                        }
-                        targetIndex = matchOnPage?.index ?: pageSentences.first().index
+                if (targetIndex == null && pageOffset != null && readerModel != null) {
+                    val physicalPage = printedPage + pageOffset
+                    if (physicalPage > (tocPage ?: 0) && physicalPage <= readerModel.pageCount) {
+                        targetIndex = readerModel.sentences.firstOrNull { it.pageNumber >= physicalPage }?.index
+                        resolvedPage = physicalPage
                     }
-                }
-
-                if (targetIndex == null && printedPage != null && readerModel != null) {
-                    val approximatePage = readerModel.sentences.firstOrNull { it.pageNumber >= printedPage }
-                    targetIndex = approximatePage?.index
                 }
 
                 if (targetIndex == null) return@forEach
@@ -650,11 +662,10 @@ internal fun extractTableOfContentsOutline(
     }
 
     // Second pass: unnumbered / hyperlinked / title-style TOC lines (e.g. Kahneman PDF Page 4: "Introduction", "Part 1: Two Systems", "1. The Characters of the Story", etc.)
-    for (index in tocStart..tocEnd) {
-        chunks.getOrNull(index)?.lineSequence()
-            ?.map { it.trim() }
-            ?.filter { it.length in 3..120 }
-            ?.forEach { line ->
+    run {
+        contentsLines.asSequence()
+            .filter { it.length in 3..120 }
+            .forEach { line ->
                 if (isSelfReferentialTocHeading(line)) return@forEach
                 val isChapterListing = looksLikeOutlineHeading(line) ||
                     UNNUMBERED_TOC_LINE_REGEX.containsMatchIn(line) ||
@@ -811,8 +822,23 @@ internal fun extractHeadingOutline(
     contentsRange: IntRange? = null,
     readerModel: ReaderTextModel? = null
 ): List<SmartOutlineEntry> {
+    // An adjacent run of numbered items is a list, not several section starts.
+    // Real numbered sections have body text between them. Embedded bookmarks and
+    // verified printed contents use their own paths and retain their numbering.
+    val numberedItem = Regex("""^\s*(\d+|[IVXLCDM]+)[.)]\s+\S""")
+    val listChunks = chunks.indices.filter { index ->
+        val lines = chunks[index].lineSequence().map(String::trim).filter(String::isNotBlank).toList()
+        val first = lines.firstOrNull().orEmpty()
+        numberedItem.containsMatchIn(first) && (
+            lines.count { numberedItem.containsMatchIn(it) } >= 2 ||
+            listOf(index - 1, index + 1).any { other ->
+                chunks.getOrNull(other)?.trim()?.let { numberedItem.containsMatchIn(it) && it.length <= 120 } == true
+            }
+        )
+    }.toSet()
     return chunks.mapIndexedNotNull { index, chunk ->
         if (contentsRange != null && index in contentsRange) return@mapIndexedNotNull null
+        if (index in listChunks) return@mapIndexedNotNull null
         if (looksLikeTableOfContentsRow(chunk)) return@mapIndexedNotNull null
 
         var headingText: String? = null
@@ -832,7 +858,6 @@ internal fun extractHeadingOutline(
                 .take(8)
                 .firstOrNull { looksLikeOutlineHeading(it) }
                 ?: chunk.replace(WHITESPACE_REGEX, " ").trim()
-                    .take(120)
                     .takeIf { looksLikeOutlineHeading(it) }
                 ?: return@mapIndexedNotNull null
         }
@@ -951,7 +976,7 @@ internal fun extractPageMilestones(
         if (clean.isBlank()) return@mapNotNull null
         SmartOutlineEntry(
             index = index,
-            title = outlineTitle(clean, index),
+            title = "Sentence ${index + 1}",
             preview = clean.take(180),
             isHeading = false,
             level = 0,
@@ -985,6 +1010,9 @@ internal fun looksLikeTableOfContentsRow(chunk: String): Boolean {
 internal fun locateOutlineTarget(chunks: List<String>, title: String, from: Int = 0): Int? {
     val needle = normalizeOutlineNeedle(title)
     if (needle.length < 4) return null
+    for (index in from.coerceAtLeast(0)..chunks.lastIndex) {
+        if (chunks[index].lineSequence().any { normalizeOutlineNeedle(it) == needle }) return index
+    }
     val firstWord = needle.split(' ').firstOrNull { it.length >= 3 }
     for (index in from..chunks.lastIndex) {
         val chunk = chunks[index]
@@ -1008,7 +1036,7 @@ internal fun normalizeOutlineNeedle(value: String): String {
         .replace(NON_ALPHANUM_REGEX, " ")
         .replace(WHITESPACE_REGEX, " ")
         .trim()
-        .lowercase(Locale.getDefault())
+        .lowercase(Locale.ROOT)
 }
 
 internal fun outlineTitle(source: String, index: Int): String {
@@ -1022,7 +1050,8 @@ internal fun outlineTitle(source: String, index: Int): String {
 
 internal fun looksLikeOutlineHeading(firstLine: String): Boolean {
     val trimmed = firstLine.trim()
-    if (trimmed.startsWith("#")) return true
+    if (Regex("^#{1,6}\\s+\\S").containsMatchIn(trimmed)) return trimmed.length <= 160
+    if (Regex("""^(?:[•●◦▪‣⁃*+-]|\[[ xX]\])\s+""").containsMatchIn(trimmed)) return false
 
     val clean = trimmed.trim(':', '-', '•', '#').trim()
     val isNumeralCandidate = isPureNumeral(clean)
@@ -1048,8 +1077,9 @@ internal fun looksLikeOutlineHeading(firstLine: String): Boolean {
 
     // A heading is a label, not a sentence. Sentence-like punctuation disqualifies the
     // weaker signals even when a keyword matched.
-    val sentenceLike = clean.length > 90 || clean.count { it == ',' } > 1 ||
-        SENTENCE_LIKE_REGEX.containsMatchIn(clean)
+    val structuralNumber = Regex("^(chapter|part|book|section|unit|lesson|module|volume)\\s+(?:[IVXLCDM]+|\\d+)[.:]?$", RegexOption.IGNORE_CASE).matches(clean)
+    val sentenceLike = (clean.endsWith(".") && !structuralNumber) || clean.endsWith("?") || clean.endsWith("!") || clean.length > 90 || clean.count { it == ',' } > 1 ||
+        SENTENCE_LIKE_REGEX.containsMatchIn(clean.replace(Regex("""^(?:\d+|[IVXLCDM]+)[.)]\s+"""), ""))
     if (sentenceLike) return false
 
     // A bare page number off a running header is not a heading (unless it is a candidate numeral evaluated in sequence)

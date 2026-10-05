@@ -169,7 +169,7 @@ class MainActivity : ComponentActivity() {
                     startActivity(
                         Intent(
                             Intent.ACTION_VIEW,
-                            android.net.Uri.parse("market://details?id=com.google.android.tts")
+                            Uri.parse("market://details?id=com.google.android.tts")
                         )
                     )
                 }.onFailure {
@@ -177,7 +177,7 @@ class MainActivity : ComponentActivity() {
                         startActivity(
                             Intent(
                                 Intent.ACTION_VIEW,
-                                android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.tts")
+                                Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.tts")
                             )
                         )
                     }
@@ -258,13 +258,22 @@ class MainActivity : ComponentActivity() {
 
         // Synchronously load saved reader settings and initialize theme state before setContent
         // to guarantee zero-flash frame-1 rendering in the user's chosen theme, font, and pack.
-        val initialSettings = DocumentRepository(this).loadReaderSettings()
+        // Read only the small appearance preference here. Library migration,
+        // credential migration and study loading belong to ViewModel's I/O startup.
+        val initialSettings = runCatching {
+            getSharedPreferences("veritas_reader_library", MODE_PRIVATE)
+                .getString(DocumentRepository.KEY_READER_SETTINGS, null)
+                ?.let { ReaderSettings.fromJson(org.json.JSONObject(it)) } ?: ReaderSettings()
+        }.getOrDefault(ReaderSettings())
+        viewModel.updateState { it.copy(readerSettings = initialSettings) }
         PlaybackStateStore.restoreFromPersistence(this)
         VeritasThemeState.themeId = initialSettings.themeId
         VeritasThemeState.themePackId = initialSettings.themePackId
         VeritasThemeState.adaptiveCover = initialSettings.adaptiveCover
         VeritasThemeState.uiFontId = initialSettings.uiFontId
         VeritasThemeState.reduceMotion = initialSettings.reduceMotion
+        VeritasThemeState.reduceTransparency = initialSettings.reduceTransparency
+        VeritasThemeState.glassFloatingControls = initialSettings.glassFloatingControls
         VeritasThemeState.amoledMode = initialSettings.amoledMode
 
         setContent {

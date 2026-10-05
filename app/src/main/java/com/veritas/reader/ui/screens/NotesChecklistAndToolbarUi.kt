@@ -1,5 +1,8 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.ui.text.TextLayoutResult
+import com.veritas.reader.ui.NotesPaperTemplate
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,6 +43,7 @@ import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.FormatUnderlined
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.PushPin
@@ -50,7 +54,10 @@ import androidx.compose.material.icons.filled.StrikethroughS
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.NotificationAdd
@@ -118,7 +125,8 @@ internal fun NotesTopAppBar(
     onSetReminderTomorrow: () -> Unit,
     onPickReminderDateTime: () -> Unit,
     onRemoveReminder: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    onOpenSettings: () -> Unit = {}
 ) {
     TopAppBar(
         title = { },
@@ -128,6 +136,7 @@ internal fun NotesTopAppBar(
             }
         },
         actions = {
+            IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, "Notes Settings") }
             IconButton(onClick = onTogglePin) {
                 Icon(
                     imageVector = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
@@ -219,12 +228,12 @@ internal fun NotesColorPaletteRow(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .background(color, shape = RoundedCornerShape(18.dp))
+                    .background(color, shape = com.veritas.reader.VeritasPackStyle.compactShape())
                     .clickable { onColorSelected(hex) }
                     .border(
                         width = if (selectedColorHex == hex) 2.dp else 1.dp,
                         color = if (selectedColorHex == hex) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                        shape = RoundedCornerShape(18.dp)
+                        shape = com.veritas.reader.VeritasPackStyle.compactShape()
                     )
             )
         }
@@ -237,6 +246,9 @@ internal fun NoteChecklistSection(
     focusRequesters: MutableMap<Int, FocusRequester>,
     onCardColor: Color,
     onChecklistChanged: () -> Unit,
+    moveCheckedToBottom: Boolean = true,
+    addNewItemsToTop: Boolean = false,
+    paperTemplate: NotesPaperTemplate = NotesPaperTemplate.BLANK,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -248,7 +260,8 @@ internal fun NoteChecklistSection(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items.forEachIndexed { idx, (checked, tfv) ->
-            val focusRequester = focusRequesters.getOrPut(idx) { FocusRequester() }
+            val focusRequester = remember(idx) { focusRequesters.getOrPut(idx) { FocusRequester() } }
+            var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -256,7 +269,7 @@ internal fun NoteChecklistSection(
                 Checkbox(
                     checked = checked,
                     onCheckedChange = { isChecked ->
-                        items[idx] = isChecked to tfv
+                        VeritasNoteEditing.toggleChecklistItem(items, idx, isChecked, moveCheckedToBottom = moveCheckedToBottom)
                         onChecklistChanged()
                     },
                     colors = CheckboxDefaults.colors(
@@ -266,6 +279,7 @@ internal fun NoteChecklistSection(
                 )
                 BasicTextField(
                     value = tfv,
+                    onTextLayout = { layout = it },
                     onValueChange = { newTfv ->
                         items[idx] = checked to newTfv
                         onChecklistChanged()
@@ -276,6 +290,7 @@ internal fun NoteChecklistSection(
                     ),
                     modifier = Modifier
                         .weight(1f)
+                        .notesTextPaper(paperTemplate, onCardColor.copy(alpha = .10f), layout)
                         .focusRequester(focusRequester)
                         .onPreviewKeyEvent { keyEvent ->
                             if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyDown) {
@@ -285,12 +300,13 @@ internal fun NoteChecklistSection(
 
                                 items[idx] = checked to tfv.copy(text = textBefore, selection = TextRange(textBefore.length))
                                 val newItem = false to TextFieldValue(textAfter, TextRange(0))
-                                items.add(idx + 1, newItem)
+                                val insertAt = if (addNewItemsToTop) 0 else idx + 1
+                                items.add(insertAt, newItem)
                                 onChecklistChanged()
 
                                 coroutineScope.launch {
                                     delay(50)
-                                    focusRequesters[idx + 1]?.requestFocus()
+                                    focusRequesters[insertAt]?.requestFocus()
                                 }
                                 true
                             } else {
@@ -322,9 +338,12 @@ internal fun NoteChecklistSection(
 
         TextButton(
             onClick = {
-                items.add(false to TextFieldValue(""))
+                val nextIdx = VeritasNoteEditing.addNewChecklistItem(
+                    items = items,
+                    addNewItemsToTop = addNewItemsToTop,
+                    moveCheckedToBottom = moveCheckedToBottom
+                )
                 onChecklistChanged()
-                val nextIdx = items.lastIndex
                 coroutineScope.launch {
                     delay(50)
                     focusRequesters[nextIdx]?.requestFocus()
@@ -345,6 +364,7 @@ internal fun NoteChecklistSection(
 
 @Composable
 internal fun NotesBottomToolbar(
+    onNotebooks: () -> Unit = {},
     onCardColor: Color,
     cardBgColor: Color,
     expandedMenu: NotesToolbarMenu,
@@ -379,6 +399,8 @@ internal fun NotesBottomToolbar(
     onToggleChecklist: () -> Unit,
     onPickImage: () -> Unit,
     onPickVideo: () -> Unit,
+    onPickFile: () -> Unit = {},
+    onTakePhoto: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -438,6 +460,7 @@ internal fun NotesBottomToolbar(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
                             .padding(horizontal = 8.dp, vertical = 6.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -461,6 +484,9 @@ internal fun NotesBottomToolbar(
                             )
                         }
 
+                        IconButton(onClick = onTakePhoto) {
+                            Icon(Icons.Outlined.PhotoCamera, "Take photo", tint = onCardColor.copy(alpha = 0.8f))
+                        }
                         // Attach Image
                         IconButton(onClick = onPickImage) {
                             Icon(
@@ -475,6 +501,15 @@ internal fun NotesBottomToolbar(
                             Icon(
                                 imageVector = Icons.Outlined.VideoLibrary,
                                 contentDescription = "Attach Video",
+                                tint = onCardColor.copy(alpha = 0.8f)
+                            )
+                        }
+
+                        // Attach File
+                        IconButton(onClick = onPickFile) {
+                            Icon(
+                                imageVector = Icons.Outlined.AttachFile,
+                                contentDescription = "Attach File",
                                 tint = onCardColor.copy(alpha = 0.8f)
                             )
                         }
@@ -555,6 +590,8 @@ internal fun NotesBottomToolbar(
                                     expanded = showOverflow,
                                     onDismissRequest = { showOverflow = false }
                                 ) {
+                                    DropdownMenuItem(text = { Text("Notebooks") },
+                                        onClick = { showOverflow = false; onNotebooks() })
                                     DropdownMenuItem(
                                         text = { Text("Share") },
                                         onClick = {

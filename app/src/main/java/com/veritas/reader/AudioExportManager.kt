@@ -11,10 +11,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -24,10 +21,11 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /**
- * Exports a saved reading to a local WAV file using Android's installed TTS engine.
+ * Exports a saved reading with its selected Android, Kokoro or Piper voice.
  *
  * Android's platform TTS API can synthesize speech to files. Long documents are synthesized
  * section-by-section, then the PCM data chunks are merged into a single WAV file.
+ * Neural voices stream sentence PCM directly into the same WAV format.
  */
 class AudioExportManager(private val context: Context) {
     data class ExportResult(
@@ -43,15 +41,19 @@ class AudioExportManager(private val context: Context) {
         pitch: Float,
         transformText: (String) -> String
     ): ExportResult {
+        val repository = DocumentRepository(context)
+        val voiceSettings = repository.loadVoiceSettings()
+        val english = (voiceSettings.localeTag.takeIf { it.isNotBlank() }?.let(Locale::forLanguageTag) ?: Locale.getDefault()).language == "en"
         val cleanChunks = chunks
-            .map { transformText(it).replace(Regex("\\s+"), " ").trim() }
+            .map { ReadingSymbols.prepare(SpeechPunctuation.normalize(transformText(it)), english).text.replace(Regex("\\s+"), " ").trim() }
             .filter { it.isNotBlank() }
 
         require(cleanChunks.isNotEmpty()) { "This document has no readable text to export." }
 
-        val repository = DocumentRepository(context)
-        val voiceSettings = repository.loadVoiceSettings()
         val narrationSettings = repository.loadNarrationSettings()
+        if (VoiceManager.isVeritasEngine(voiceSettings.enginePackage) || VoiceManager.isVeritasEngine(VoiceManager.engineForVoice(voiceSettings.voiceName))) {
+            return NeuralAudioExporter(context).export(title, cleanChunks, voiceSettings, narrationSettings, rate, pitch)
+        }
         val tts = createReadyTts(voiceSettings)
         // Keep the configured engine voice so a per-character voice does not spill into
         // following parts that intentionally use the default voice.
@@ -66,6 +68,9 @@ class AudioExportManager(private val context: Context) {
             speechParts.forEachIndexed { index, text ->
                 coroutineContext.ensureActive()
                 val activeChar = NarrationAnalyzer.getActiveCharacter(text, narrationSettings)
+                require(!(narrationSettings.enabled && narrationSettings.fullCastEnabled && VoiceManager.isVeritasEngine(VoiceManager.engineForVoice(activeChar.voiceName)))) {
+                    "Mixed Android and neural character voices cannot yet be exported together. Choose Android character voices or turn off full cast."
+                }
                 val characterVoice = if (narrationSettings.enabled && narrationSettings.fullCastEnabled) {
                     activeChar.voiceName?.let { name -> tts.voices?.find { it.name == name } }
                 } else {
@@ -75,70 +80,34 @@ class AudioExportManager(private val context: Context) {
                 tts.setSpeechRate(NarrationAnalyzer.effectiveRate(rate, narrationSettings, text))
                 tts.setPitch(NarrationAnalyzer.effectivePitch(pitch, narrationSettings, text))
                 val partFile = File(tempDir, "part_${index.toString().padStart(5, '0')}.wav")
-                withTimeout(30_000L) {
+                withTimeout((30_000L + (text.length / (8f * rate.coerceAtLeast(0.5f)) * 1000).toLong()).coerceAtMost(600_000L)) {
                     synthesizePart(tts, text, partFile, "vern_export_$index")
                 }
-                if (partFile.exists() && partFile.length() > 44L) partFiles.add(partFile)
+                require(partFile.exists() && partFile.length() > 44L) { "The voice produced no audio for part ${index + 1}." }
+                partFiles.add(partFile)
             }
 
             require(partFiles.isNotEmpty()) { "The TTS engine did not create audio. Try another installed voice/engine." }
 
             val exportDir = File(context.cacheDir, "VernExports").apply { mkdirs() }
-            val displayName = "${safeFileName(title)}_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())}.wav"
+            val displayName = "${safeFileName(title)}_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())}_${UUID.randomUUID().toString().take(8)}.wav"
             val finalFile = File(exportDir, displayName)
 
-            withContext(Dispatchers.IO) {
-                if (partFiles.size == 1) {
-                    val parsed = WavFile.read(partFiles.first())
-                    if (parsed == null) {
-                        partFiles.first().copyTo(finalFile, overwrite = true)
-                    } else {
-                        WavFile.write(finalFile, parsed.formatChunk, listOf(parsed.dataChunk))
-                    }
-                } else {
-                    val parsedParts = partFiles.mapNotNull { WavFile.read(it) }
-                    require(parsedParts.size == partFiles.size) {
-                        "Could not parse all exported audio parts. Try exporting a shorter document or using a different voice."
-                    }
-                    val firstFormat = parsedParts.first().formatChunk
-                    val mismatchIndex = parsedParts.indexOfFirst { !it.formatChunk.contentEquals(firstFormat) }
-                    require(mismatchIndex == -1) {
-                        "The TTS engine produced incompatible WAV chunks at part ${mismatchIndex + 1}. " +
-                            "Try another voice, another engine, or export a shorter range."
-                    }
-                    WavFile.write(finalFile, firstFormat, parsedParts.map { it.dataChunk })
+            val staging = File(exportDir, ".${finalFile.name}.partial")
+            val exportContext = coroutineContext
+            try {
+                withContext(Dispatchers.IO) {
+                    StreamingWavMerger.merge(partFiles, staging) { exportContext.ensureActive() }
+                    exportContext.ensureActive()
+                    java.nio.file.Files.move(staging.toPath(), finalFile.toPath())
                 }
+            } finally {
+                staging.delete()
             }
-
-            Log.i(TAG, "Successfully exported $title to ${finalFile.absolutePath} (${finalFile.length()} bytes, ${partFiles.size} parts)")
-            return ExportResult(finalFile, displayName, chunks.size)
+            Log.i(TAG, "Exported $title (${partFiles.size} audio parts)")
+            return ExportResult(finalFile, displayName, partFiles.size)
         } catch (e: CancellationException) {
-            Log.i(TAG, "WAV export cancelled for $title, synthesized ${partFiles.size} parts")
-            if (partFiles.isNotEmpty()) {
-                val exportDir = File(context.cacheDir, "VernExports").apply { mkdirs() }
-                val displayName = "${safeFileName(title)}_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())}.wav"
-                val finalFile = File(exportDir, displayName)
-                runCatching {
-                    if (partFiles.size == 1) {
-                        val parsed = WavFile.read(partFiles.first())
-                        if (parsed == null) {
-                            partFiles.first().copyTo(finalFile, overwrite = true)
-                        } else {
-                            WavFile.write(finalFile, parsed.formatChunk, listOf(parsed.dataChunk))
-                        }
-                    } else {
-                        val parsedParts = partFiles.mapNotNull { WavFile.read(it) }
-                        if (parsedParts.isNotEmpty()) {
-                            val firstFormat = parsedParts.first().formatChunk
-                            val compatible = parsedParts.filter { it.formatChunk.contentEquals(firstFormat) }
-                            WavFile.write(finalFile, firstFormat, compatible.map { it.dataChunk })
-                        }
-                    }
-                }
-                if (finalFile.exists() && finalFile.length() > 44L) {
-                    return ExportResult(finalFile, displayName, partFiles.size)
-                }
-            }
+            Log.i(TAG, "WAV export cancelled for $title")
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "WAV export failed for $title: ${e.message}", e)
@@ -243,66 +212,6 @@ class AudioExportManager(private val context: Context) {
             .trim('_', '.', ' ')
             .ifBlank { "vern_audio" }
             .take(50)
-    }
-
-    private data class ParsedWav(val formatChunk: ByteArray, val dataChunk: ByteArray)
-
-    private object WavFile {
-        fun read(file: File): ParsedWav? {
-            val bytes = file.readBytes()
-            if (bytes.size < 44) return null
-            if (String(bytes, 0, 4, Charsets.US_ASCII) != "RIFF" || String(bytes, 8, 4, Charsets.US_ASCII) != "WAVE") return null
-
-            var offset = 12
-            var fmt: ByteArray? = null
-            var data: ByteArray? = null
-            while (offset + 8 <= bytes.size) {
-                val id = String(bytes, offset, 4, Charsets.US_ASCII)
-                val size = littleEndianInt(bytes, offset + 4)
-                val start = offset + 8
-                val end = (start + size).coerceAtMost(bytes.size)
-                if (end < start) return null
-                when (id) {
-                    "fmt " -> fmt = bytes.copyOfRange(start, end)
-                    "data" -> data = bytes.copyOfRange(start, end)
-                }
-                offset = end + (size % 2)
-            }
-            val formatChunk = fmt ?: return null
-            val dataChunk = data ?: return null
-            return ParsedWav(formatChunk, dataChunk)
-        }
-
-        fun write(file: File, formatChunk: ByteArray, dataChunks: List<ByteArray>) {
-            val dataSize = dataChunks.sumOf { it.size }
-            val formatPadding = if (formatChunk.size % 2 == 1) 1 else 0
-            val riffSize = 4 + (8 + formatChunk.size + formatPadding) + (8 + dataSize)
-            ByteArrayOutputStream().use { out ->
-                out.writeAscii("RIFF")
-                out.writeIntLE(riffSize)
-                out.writeAscii("WAVE")
-                out.writeAscii("fmt ")
-                out.writeIntLE(formatChunk.size)
-                out.write(formatChunk)
-                if (formatChunk.size % 2 == 1) out.write(0)
-                out.writeAscii("data")
-                out.writeIntLE(dataSize)
-                dataChunks.forEach { out.write(it) }
-                file.writeBytes(out.toByteArray())
-            }
-        }
-
-        private fun littleEndianInt(bytes: ByteArray, offset: Int): Int {
-            return ByteBuffer.wrap(bytes, offset, 4).order(ByteOrder.LITTLE_ENDIAN).int
-        }
-
-        private fun ByteArrayOutputStream.writeAscii(value: String) {
-            write(value.toByteArray(Charsets.US_ASCII))
-        }
-
-        private fun ByteArrayOutputStream.writeIntLE(value: Int) {
-            write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array())
-        }
     }
 
     private companion object {

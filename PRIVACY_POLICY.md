@@ -28,7 +28,7 @@ The application handles the following data strictly locally on your Android devi
 *   **Local Storage:** All reading files, extracted text database files, and system preferences are stored inside the application's private storage sandbox (`Context.filesDir` and `SharedPreferences`).
 *   **Backup Integrity:** Stored database configurations use a resilient double-write backup system to prevent file corruption on sudden device restarts.
 *   **Cloud Synchronization:** The application does not feature a cloud account registration system or synchronization servers in this build.
-*   **System Backups:** Android's automatic system cloud backups are disabled (`android:allowBackup="false"` in the Manifest) to ensure your imported documents remain strictly confined to your physical device.
+*   **System Backups:** Android may back up preferences, the reading database, and eligible app files according to your device backup settings. Original imported documents, restore staging files, and API credentials are excluded from cloud backup. API credentials are also excluded from device transfer, encrypted with a device-bound Android Keystore key, and must be entered again on a new device. Full backups created explicitly in Vern can include original documents and note attachments.
 
 ---
 

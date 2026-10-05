@@ -399,7 +399,6 @@ internal fun ReaderDialogsAndSheetsHost(
     onDismissShareToAi: () -> Unit
 ) {
     val context = LocalContext.current
-    var activeColorPaletteTargets by remember(colorPaletteTargetIndexes) { mutableStateOf(colorPaletteTargetIndexes) }
 
     if (showAudioMode) {
         val coverFile = remember(document.id) { CoverExtractor.coverFile(context, document.id.orEmpty()) }
@@ -468,7 +467,7 @@ internal fun ReaderDialogsAndSheetsHost(
     }
 
     if (colorPaletteTargetIndexes != null) {
-        val targetIndexes = colorPaletteTargetIndexes ?: emptyList()
+        val targetIndexes = colorPaletteTargetIndexes
         val existingBookmarks = remember(targetIndexes, state.annotations) {
             state.annotations.filter { it.type == AnnotationType.BOOKMARK && targetIndexes.contains(it.chunkIndex) }
         }
@@ -476,6 +475,7 @@ internal fun ReaderDialogsAndSheetsHost(
         val currentHex = existingBookmarks.firstOrNull()?.highlightColor
         val colorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
+        shape = com.veritas.reader.VeritasPackStyle.sheetShape(),
             onDismissRequest = {
                 onDismissColorPalette()
                 clearNativeTextSelection(selectedTextView)
@@ -512,7 +512,7 @@ internal fun ReaderDialogsAndSheetsHost(
                                 onDismissColorPalette()
                                 clearNativeTextSelection(selectedTextView)
                             },
-                            shape = RoundedCornerShape(50),
+                            shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -547,7 +547,7 @@ internal fun ReaderDialogsAndSheetsHost(
                         "#B39DDB" to "Purple",
                         "#FFCC80" to "Orange"
                     )
-                    colors.forEach { (hex, name) ->
+                    colors.forEach { (hex, _) ->
                         val isSelectedColor = isAlreadyBookmarked && (currentHex.equals(hex, ignoreCase = true) || (currentHex.isNullOrBlank() && hex == "#FFE082"))
                         Box(
                             modifier = Modifier
@@ -559,9 +559,7 @@ internal fun ReaderDialogsAndSheetsHost(
                                     shape = CircleShape
                                 )
                                 .clickable {
-                                    colorPaletteTargetIndexes?.let { indexes ->
-                                        onAddBookmarkGroup(indexes, hex)
-                                    }
+                                     onAddBookmarkGroup(targetIndexes, hex)
                                     onDismissColorPalette()
                                     clearNativeTextSelection(selectedTextView)
                                 },
@@ -806,7 +804,7 @@ fun JumpToPageDialog(
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     ),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                         keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
                     ),
@@ -819,7 +817,7 @@ fun JumpToPageDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    if (isValid && parsed != null) {
+                    if (isValid) {
                         onConfirm(parsed - 1)
                         onDismiss()
                     }

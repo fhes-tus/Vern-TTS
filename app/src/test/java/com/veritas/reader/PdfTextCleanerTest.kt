@@ -5,6 +5,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PdfTextCleanerTest {
+    @Test fun `page metadata never becomes spoken prose`() {
+        val text = PdfTextCleaner.cleanPages(listOf("A readable paragraph."), listOf(47),
+            PdfImportOptions(includePageMarkers = true)).text
+        assertTrue(text.contains(ReaderTextIndex.pageMarker(47)))
+        assertFalse(text.contains("Page 47"))
+    }
+
+    @Test fun `legacy page labels are silent without shifting offsets`() {
+        val original = "Page 102\nHe would hardly reply to my questions, and waited."
+        val spoken = SpeechSanitizer.forSpeech(original)
+        assertTrue(spoken.length == original.length)
+        assertFalse(spoken.contains("Page 102"))
+        assertTrue(spoken.indexOf("questions") == original.indexOf("questions"))
+    }
 
     @Test
     fun `cleanPages does not turn book text with wide spacing or tabs into pipe tables`() {
@@ -205,4 +219,3 @@ class PdfTextCleanerTest {
         assertTrue("Dialogue quote should start on a new paragraph below the heading", text.contains("\n\n“I had to turn my mind away"))
     }
 }
-

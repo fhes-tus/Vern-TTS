@@ -1,5 +1,6 @@
 package com.veritas.reader
 
+import android.annotation.SuppressLint
 import android.animation.ValueAnimator
 import android.content.res.Configuration
 import android.graphics.Color
@@ -125,8 +126,8 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             if (!isLightTheme) {
                 val settings = repository.loadReaderSettings()
                 val resolvedTheme = if (settings.themeId == "system") {
-                    val mode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-                    if (mode == android.content.res.Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
+                    val mode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                    if (mode == Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
                 } else settings.themeId
                 val scheme = veritasPackColorScheme(veritasColorScheme(resolvedTheme, activity), settings.themePackId)
                 val bgR = scheme.surface.red
@@ -582,12 +583,19 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         }
     }
 
-    internal fun VeritasPdfViewerActivity.statusBarHeight(): Int = systemBarHeight("status_bar")
+    internal fun VeritasPdfViewerActivity.statusBarHeight(): Int =
+        systemBarHeight(WindowInsetsCompat.Type.statusBars(), "status_bar_height", top = true)
 
-    internal fun VeritasPdfViewerActivity.navigationBarHeight(): Int = systemBarHeight("navigation_bar")
+    internal fun VeritasPdfViewerActivity.navigationBarHeight(): Int =
+        systemBarHeight(WindowInsetsCompat.Type.navigationBars(), "navigation_bar_height", top = false)
 
-    internal fun VeritasPdfViewerActivity.systemBarHeight(name: String): Int {
-        val id = resources.getIdentifier(name, "dimen", "android")
+    @SuppressLint("DiscouragedApi")
+    internal fun VeritasPdfViewerActivity.systemBarHeight(type: Int, fallbackName: String, top: Boolean): Int {
+        ViewCompat.getRootWindowInsets(window.decorView)?.getInsets(type)?.let { insets ->
+            return if (top) insets.top else insets.bottom
+        }
+        // Layout may run before window insets arrive; use the framework dimension until then.
+        val id = resources.getIdentifier(fallbackName, "dimen", "android")
         return if (id > 0) resources.getDimensionPixelSize(id) else 0
     }
 

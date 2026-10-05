@@ -1,5 +1,10 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.ui.platform.testTag
+
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.BorderStroke
@@ -90,6 +95,15 @@ import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.OnboardingStep
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.veritas.reader.classicEdition
+
+data class BookEditionOption(
+    val id: String,
+    val name: String,
+    val description: String,
+    val downloadUrl: String,
+    val tag: String = ""
+)
 
 data class ClassicBookEntry(
     val id: String,
@@ -102,8 +116,13 @@ data class ClassicBookEntry(
     val coverGradient: List<Color>,
     val accentColor: Color,
     val quote: String = "",
-    val category: String = "Popular"
-)
+    val category: String = "Popular",
+    val editions: List<BookEditionOption> = emptyList(),
+    val legacyCatalogId: String = ""
+) {
+    val hasDirectTextDownload: Boolean
+        get() = downloadUrl.substringBefore('?').endsWith(".txt", ignoreCase = true)
+}
 
 data class FreeBookSite(
     val name: String,
@@ -588,11 +607,69 @@ val CURATED_CLASSICS = listOf(
         coverGradient = listOf(Color(0xFF20382B), Color(0xFF335C45)),
         accentColor = Color(0xFFC6F6D5),
         quote = "I went to the woods because I wished to live deliberately."
+    ),
+
+    // --- 8. Faith & Spirit ---
+    ClassicBookEntry(
+        id = "classic_pilgrims_progress",
+        title = "The Pilgrim's Progress",
+        author = "John Bunyan",
+        genre = "Faith & Spirit",
+        category = "Faith & Spirit",
+        description = "An epic allegorical journey of Christian from the City of Destruction to the Celestial City, navigating timeless perils of faith and endurance.",
+        downloadUrl = "https://www.gutenberg.org/cache/epub/39452/pg39452.txt",
+        estimatedMinutes = 320,
+        coverGradient = listOf(Color(0xFF1A365D), Color(0xFF2B6CB0)),
+        accentColor = Color(0xFF90CDF4),
+        quote = "He that is down needs fear no fall; he that is low, no pride.",
+        editions = listOf(
+            BookEditionOption(
+                id = "modern",
+                name = "Modern English",
+                description = "Jesse Lyman's edition",
+                downloadUrl = "https://www.gutenberg.org/cache/epub/39452/pg39452.txt",
+                tag = "Recommended"
+            ),
+            BookEditionOption(
+                id = "original",
+                name = "Original 1678 English",
+                description = "The old unabridged version",
+                downloadUrl = "https://www.gutenberg.org/cache/epub/131/pg131.txt",
+                tag = "Classic 1678"
+            )
+        )
+    ),
+    ClassicBookEntry(
+        id = "classic_good_morning_holy_spirit",
+        title = "Good Morning, Holy Spirit",
+        author = "Benny Hinn",
+        genre = "Faith & Spirit",
+        category = "Faith & Spirit",
+        description = "A personal encounter with the Holy Spirit. This source requires library access; a direct download is unavailable. Open the source page for borrowing and purchase options, or import a copy you own.",
+        downloadUrl = "https://archive.org/details/goodmorningholys00hinn",
+        estimatedMinutes = 240,
+        coverGradient = listOf(Color(0xFF3B1E54), Color(0xFF5B2E84)),
+        accentColor = Color(0xFFD6BCFA),
+        quote = "The Holy Spirit is not some shadowy, ethereal mist. He is a person, no less so than Jesus."
+    ),
+    ClassicBookEntry(
+        id = "classic_power_of_imagination",
+        title = "The Power of Imagination",
+        author = "Andrew Wommack",
+        genre = "Faith & Spirit",
+        category = "Faith & Spirit",
+        description = "Unlocking God's blueprint for your life by understanding the creative spiritual power of your inner imagination and faith.",
+        downloadUrl = "https://www.awmi.net",
+        estimatedMinutes = 210,
+        coverGradient = listOf(Color(0xFF1B3B2B), Color(0xFF2E6B4B)),
+        accentColor = Color(0xFF9AE6B4),
+        quote = "Your imagination is like your spiritual womb; what you conceive there is what you will birth in your life."
     )
 )
 
 val CATALOG_CATEGORIES = listOf(
     "All",
+    "🕊️ Faith & Spirit",
     "🧸 Family & Youth",
     "🔍 Mystery",
     "🗺️ Adventure",
@@ -626,11 +703,7 @@ fun ClassicBookCover(
     var coverBmp by remember(book.id) { mutableStateOf<Bitmap?>(null) }
     LaunchedEffect(book.id) {
         coverBmp = withContext(Dispatchers.IO) {
-            runCatching {
-                context.assets.open("covers/${book.id}.jpg").use { stream ->
-                    BitmapFactory.decodeStream(stream)
-                }
-            }.getOrNull()
+            com.veritas.reader.BookCoverLoader.asset(context, book.id)
         }
     }
 
@@ -776,420 +849,15 @@ fun ClassicsCatalogDialog(
     onOpenBookBrowser: (url: String, name: String, searchQuery: String) -> Unit = { _, _, q -> onOpenOceanOfPdf(q) },
     onDismiss: () -> Unit
 ) {
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedCategory by rememberSaveable { mutableStateOf("All") }
-    var isGridView by rememberSaveable { mutableStateOf(true) }
-    var downloadingId by remember { mutableStateOf<String?>(null) }
-    var previewBook by remember { mutableStateOf<ClassicBookEntry?>(null) }
-
-    val filteredList = remember(searchQuery, selectedCategory) {
-        CURATED_CLASSICS.filter { book ->
-            val matchesCategory = when (selectedCategory) {
-                "All" -> true
-                "⚡ Quick Reads" -> book.estimatedMinutes <= 60 || book.category == "Quick Reads"
-                "🧸 Family & Youth" -> book.category == "Family & Youth" || book.genre.contains("Family", ignoreCase = true)
-                "🔍 Mystery" -> book.category == "Mystery" || book.genre.contains("Mystery", ignoreCase = true)
-                "🗺️ Adventure" -> book.category == "Adventure" || book.genre.contains("Adventure", ignoreCase = true)
-                "❤️ Romance" -> book.category == "Romance" || book.genre.contains("Romance", ignoreCase = true) || book.genre.contains("Drama", ignoreCase = true)
-                "💡 Life & Habits" -> book.category == "Life & Habits" || book.genre.contains("Habits", ignoreCase = true)
-                "🏛️ Epic Classics" -> book.category == "Epic Classics" || book.estimatedMinutes > 300
-                else -> book.category.contains(selectedCategory, ignoreCase = true) || book.genre.contains(selectedCategory, ignoreCase = true)
-            }
-            val matchesSearch = searchQuery.isBlank() ||
-                book.title.contains(searchQuery, ignoreCase = true) ||
-                book.author.contains(searchQuery, ignoreCase = true) ||
-                book.genre.contains(searchQuery, ignoreCase = true) ||
-                book.description.contains(searchQuery, ignoreCase = true)
-            matchesCategory && matchesSearch
-        }
-    }
-
-    // Pick a featured book of the day
-    val spotlightBook = remember { getBookOfTheDay() }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false
-        )
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .statusBarsPadding()
-                        .navigationBarsPadding()
-                ) {
-                // Top Header with Back, Title, Grid/List Toggle, and Archives Button
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            IconButton(onClick = onDismiss) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Close")
-                            }
-                            Column {
-                                Text(
-                                    text = "Classics Catalog",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = "Masterpieces for everyone",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            // Grid vs. List View Toggle Button
-                            IconButton(onClick = { isGridView = !isGridView }) {
-                                Icon(
-                                    imageVector = if (isGridView) Icons.AutoMirrored.Filled.List else Icons.Filled.GridView,
-                                    contentDescription = if (isGridView) "Switch to List View" else "Switch to Grid View",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            // Subtle Ocean of PDF Action
-                            Surface(
-                                onClick = { onOpenOceanOfPdf(searchQuery) },
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Language,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(13.dp)
-                                    )
-                                    Text(
-                                        text = "Archives",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Search Box
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    androidx.compose.material3.OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        placeholder = { Text("Search 35+ classics by title, author, or theme…", fontSize = 13.sp) },
-                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.size(20.dp)) },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(Icons.Filled.Close, contentDescription = "Clear", modifier = Modifier.size(18.dp))
-                                }
-                            }
-                        },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp)
-                    )
-
-                    // Inclusive Category & Mood Filter Chips
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(CATALOG_CATEGORIES) { category ->
-                            FilterChip(
-                                selected = selectedCategory == category,
-                                onClick = { selectedCategory = category },
-                                label = { Text(category, fontSize = 12.sp) }
-                            )
-                        }
-                    }
-
-                    // Free Online Book Archives Horizontal Strip
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth().padding(top = 2.dp)
-                    ) {
-                        items(FREE_BOOK_SITES) { site ->
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
-                                modifier = Modifier.clickable {
-                                    onOpenBookBrowser(site.url, site.name, searchQuery)
-                                }
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                                ) {
-                                    Text(site.icon, fontSize = 13.sp)
-                                    Text(
-                                        text = site.name,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Catalog Grid or List View
-                if (isGridView) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 14.dp),
-                        contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // Spotlight Hero Card at the top if no search query & "All" category selected
-                        if (searchQuery.isBlank() && selectedCategory == "All") {
-                            item(span = { GridItemSpan(2) }) {
-                                SpotlightBookCard(
-                                    book = spotlightBook,
-                                    existingDocuments = existingDocuments,
-                                    isDownloading = downloadingId == spotlightBook.id,
-                                    onDownload = {
-                                        downloadingId = spotlightBook.id
-                                        onDownloadBook(spotlightBook)
-                                    },
-                                    onOpen = onOpenBook,
-                                    onCardClick = { previewBook = spotlightBook }
-                                )
-                            }
-                        }
-
-                        if (filteredList.isEmpty()) {
-                            item(span = { GridItemSpan(2) }) {
-                                EmptyCatalogSearchCard(
-                                    searchQuery = searchQuery,
-                                    onOpenBookBrowser = onOpenBookBrowser
-                                )
-                            }
-                        }
-
-                        items(filteredList, key = { it.id }) { book ->
-                            val installedDoc = existingDocuments.firstOrNull {
-                                it.title.contains(book.title, ignoreCase = true) ||
-                                it.originalFileName.contains(book.id, ignoreCase = true)
-                            }
-                            ClassicBookGridCard(
-                                book = book,
-                                installedDoc = installedDoc,
-                                isDownloading = downloadingId == book.id,
-                                onDownload = {
-                                    downloadingId = book.id
-                                    onDownloadBook(book)
-                                },
-                                onOpen = onOpenBook,
-                                onCardClick = { previewBook = book }
-                            )
-                        }
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 14.dp),
-                        contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        if (searchQuery.isBlank() && selectedCategory == "All") {
-                            item {
-                                SpotlightBookCard(
-                                    book = spotlightBook,
-                                    existingDocuments = existingDocuments,
-                                    isDownloading = downloadingId == spotlightBook.id,
-                                    onDownload = {
-                                        downloadingId = spotlightBook.id
-                                        onDownloadBook(spotlightBook)
-                                    },
-                                    onOpen = onOpenBook,
-                                    onCardClick = { previewBook = spotlightBook }
-                                )
-                            }
-                        }
-
-                        if (filteredList.isEmpty()) {
-                            item {
-                                EmptyCatalogSearchCard(
-                                    searchQuery = searchQuery,
-                                    onOpenBookBrowser = onOpenBookBrowser
-                                )
-                            }
-                        }
-
-                        items(filteredList, key = { it.id }) { book ->
-                            val installedDoc = existingDocuments.firstOrNull {
-                                it.title.contains(book.title, ignoreCase = true) ||
-                                it.originalFileName.contains(book.id, ignoreCase = true)
-                            }
-                            ClassicBookListCard(
-                                book = book,
-                                installedDoc = installedDoc,
-                                isDownloading = downloadingId == book.id,
-                                onDownload = {
-                                    downloadingId = book.id
-                                    onDownloadBook(book)
-                                },
-                                onOpen = onOpenBook,
-                                onCardClick = { previewBook = book }
-                            )
-                        }
-                    }
-                }
-            }
-
-            if (OnboardingController.activeStep == OnboardingStep.CLASSICS_SPOTLIGHT) {
-                Card(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .widthIn(max = 380.dp)
-                        .padding(16.dp)
-                        .navigationBarsPadding()
-                        .shadow(16.dp, RoundedCornerShape(24.dp)),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(20.dp)
-                            .fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = OnboardingStep.CLASSICS_SPOTLIGHT.title,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            IconButton(
-                                onClick = {
-                                    OnboardingController.activeStep = null
-                                    onDismiss()
-                                },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Dismiss Tour",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = OnboardingStep.CLASSICS_SPOTLIGHT.body,
-                            style = MaterialTheme.typography.bodyMedium,
-                            lineHeight = 20.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            TextButton(onClick = {
-                                onDismiss()
-                                OnboardingController.activeStep = OnboardingStep.CHECKLIST_SPOTLIGHT
-                            }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Back", style = MaterialTheme.typography.labelMedium)
-                            }
-
-                            Button(
-                                onClick = {
-                                    onDismiss()
-                                    OnboardingController.activeStep = OnboardingStep.INSIGHTS_SPOTLIGHT
-                                },
-                                shape = RoundedCornerShape(50)
-                            ) {
-                                Text("Next", style = MaterialTheme.typography.labelMedium)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDescription = "Next",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    }
-                }
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+                TextButton(onDismiss) { Text("Back to library") }
+                ClassicsCatalogContent(existingDocuments, emptyMap(), onDownloadBook, {}, onOpenBook, onOpenBookBrowser)
             }
         }
     }
-
-        // Interactive Book Details Bottom Sheet
-        previewBook?.let { book ->
-            ClassicBookDetailSheet(
-                book = book,
-                existingDocuments = existingDocuments,
-                isDownloading = downloadingId == book.id,
-                onDismiss = { previewBook = null },
-                onDownloadBook = { onDownloadBook(it) },
-                onOpenBook = { onOpenBook(it) }
-            )
-        }
-            }
-        }
-
+}
 /**
  * Universal Classic Book Detail Bottom Sheet showing full synopsis, quote, and direct 1-tap download/open.
  */
@@ -1201,15 +869,22 @@ fun ClassicBookDetailSheet(
     isDownloading: Boolean = false,
     onDismiss: () -> Unit,
     onDownloadBook: (ClassicBookEntry) -> Unit,
-    onOpenBook: (SavedDocument) -> Unit
+    onOpenBook: (SavedDocument) -> Unit,
+    downloadState: com.veritas.reader.ClassicDownloadState = com.veritas.reader.ClassicDownloadState(),
+    onCancelDownload: () -> Unit = {},
+    editionDownloadStates: Map<String, com.veritas.reader.ClassicDownloadState> = emptyMap(),
+    onCancelEdition: (ClassicBookEntry) -> Unit = {}
 ) {
-    val installedDoc = existingDocuments.firstOrNull {
-        it.title.contains(book.title, ignoreCase = true) ||
-        it.originalFileName.contains(book.id, ignoreCase = true)
-    }
+    var editionId by rememberSaveable(book.id) { mutableStateOf(book.editions.firstOrNull()?.id) }
+    val selectedBook = book.editions.firstOrNull { it.id == editionId }?.let { classicEdition(book, it) } ?: book
+    val installedDoc = com.veritas.reader.findCatalogDocument(selectedBook, existingDocuments)
+    val selectedState = if (book.editions.isEmpty()) downloadState else editionDownloadStates[selectedBook.id]
+        ?.takeUnless { it.phase == com.veritas.reader.ClassicDownloadPhase.AVAILABLE } ?: com.veritas.reader.ClassicDownloadState()
+    val selectedBusy = selectedState.busy || (book.editions.isEmpty() && isDownloading)
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
+        shape = com.veritas.reader.VeritasPackStyle.sheetShape(),
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface
@@ -1217,7 +892,7 @@ fun ClassicBookDetailSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()).padding(horizontal = 24.dp)
                 .padding(bottom = 36.dp)
                 .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -1301,6 +976,28 @@ fun ClassicBookDetailSheet(
                 }
             }
 
+            if (book.editions.isNotEmpty()) {
+                Text("Choose an edition", style = MaterialTheme.typography.titleSmall, modifier = Modifier.fillMaxWidth())
+                book.editions.chunked(2).forEach { pair ->
+                    Row(Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Max),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        pair.forEach { edition ->
+                            Surface(modifier = Modifier.weight(1f).fillMaxHeight().testTag("edition_${edition.id}").clickable { editionId = edition.id },
+                                shape = com.veritas.reader.VeritasPackStyle.cardShape(),
+                                color = if (edition.id == editionId) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant) {
+                                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        androidx.compose.material3.RadioButton(edition.id == editionId, { editionId = edition.id }, Modifier.size(24.dp))
+                                        Text(edition.name, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                                    }
+                                    Text(edition.description, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
+                        if (pair.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
             // Full Synopsis
             Text(
                 text = book.description,
@@ -1312,6 +1009,8 @@ fun ClassicBookDetailSheet(
 
             Spacer(modifier = Modifier.height(4.dp))
 
+            if (downloadState.message.isNotBlank()) Text(downloadState.message, color = MaterialTheme.colorScheme.error)
+            if (selectedBusy) TextButton({ if (book.editions.isEmpty()) onCancelDownload() else onCancelEdition(selectedBook) }) { Text("Cancel download") }
             // Primary Action Button
             if (installedDoc != null) {
                 Button(
@@ -1322,447 +1021,31 @@ fun ClassicBookDetailSheet(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Filled.AutoStories, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Open in Library", fontWeight = FontWeight.Bold)
+                    Text("Open book", fontWeight = FontWeight.Bold)
                 }
             } else {
                 Button(
                     onClick = {
-                        onDownloadBook(book)
+                        onDownloadBook(selectedBook)
                     },
-                    enabled = !isDownloading,
+                    enabled = !selectedBusy,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    if (isDownloading) {
+                    if (selectedBusy) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Downloading to Library…")
+                        Text(selectedState.actionLabel)
                     } else {
-                        Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(if (book.hasDirectTextDownload) Icons.Filled.Download else Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Download & Read Aloud", fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * Spotlight Book Card for the featured book of the day
- */
-@Composable
-private fun SpotlightBookCard(
-    book: ClassicBookEntry,
-    existingDocuments: List<SavedDocument>,
-    isDownloading: Boolean,
-    onDownload: () -> Unit,
-    onOpen: (SavedDocument) -> Unit,
-    onCardClick: () -> Unit
-) {
-    val installedDoc = existingDocuments.firstOrNull {
-        it.title.contains(book.title, ignoreCase = true) ||
-        it.originalFileName.contains(book.id, ignoreCase = true)
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCardClick() },
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ClassicBookCover(
-                book = book,
-                width = 86.dp,
-                height = 126.dp,
-                large = false
-            )
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = CircleShape
-                    ) {
-                        Text(
-                            text = "✨ BOOK OF THE DAY",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-
-                Text(
-                    text = book.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    text = "${book.author} • ${book.genre}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                if (book.quote.isNotBlank()) {
-                    Text(
-                        text = "“${book.quote}”",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "⏱️ ~${book.estimatedMinutes}m read",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-
-                    if (installedDoc != null) {
-                        Button(
-                            onClick = { onOpen(installedDoc) },
-                            shape = CircleShape,
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
-                            modifier = Modifier.height(28.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors()
-                        ) {
-                            Text("Open", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
-                    } else {
-                        Button(
-                            onClick = onDownload,
-                            enabled = !isDownloading,
-                            shape = CircleShape,
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
-                            modifier = Modifier.height(28.dp)
-                        ) {
-                            if (isDownloading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(11.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            } else {
-                                Text("Get", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * Bookstore Shelf Card (Grid View - 2 Columns)
- */
-@Composable
-private fun ClassicBookGridCard(
-    book: ClassicBookEntry,
-    installedDoc: SavedDocument?,
-    isDownloading: Boolean,
-    onDownload: () -> Unit,
-    onOpen: (SavedDocument) -> Unit,
-    onCardClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCardClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
-    ) {
-        Column(
-            modifier = Modifier.padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Book cover centered
-            ClassicBookCover(
-                book = book,
-                width = 86.dp,
-                height = 126.dp,
-                large = false
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = book.title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
-
-            Text(
-                text = book.author,
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "~${book.estimatedMinutes}m",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.outline
-                )
-
-                if (installedDoc != null) {
-                    Surface(
-                        onClick = { onOpen(installedDoc) },
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier.height(26.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp)
-                        ) {
-                            Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(10.dp))
-                            Text("Open", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                } else {
-                    Button(
-                        onClick = onDownload,
-                        enabled = !isDownloading,
-                        shape = CircleShape,
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-                        modifier = Modifier.height(26.dp)
-                    ) {
-                        if (isDownloading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(10.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Text("Get", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * Detailed Book Card (List View)
- */
-@Composable
-private fun ClassicBookListCard(
-    book: ClassicBookEntry,
-    installedDoc: SavedDocument?,
-    isDownloading: Boolean,
-    onDownload: () -> Unit,
-    onOpen: (SavedDocument) -> Unit,
-    onCardClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCardClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ClassicBookCover(
-                book = book,
-                width = 72.dp,
-                height = 106.dp,
-                large = false
-            )
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(3.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = book.title,
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = "${book.author} • ${book.genre}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-
-                    if (installedDoc != null) {
-                        Surface(
-                            onClick = { onOpen(installedDoc) },
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = CircleShape,
-                            modifier = Modifier.height(28.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 9.dp, vertical = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(3.dp)
-                            ) {
-                                Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(11.dp))
-                                Text("Open", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    } else {
-                        Button(
-                            onClick = onDownload,
-                            enabled = !isDownloading,
-                            shape = CircleShape,
-                            contentPadding = PaddingValues(horizontal = 11.dp, vertical = 2.dp),
-                            modifier = Modifier.height(28.dp)
-                        ) {
-                            if (isDownloading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(11.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            } else {
-                                Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(11.dp))
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text("Get", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                }
-
-                Text(
-                    text = book.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    text = "⏱️ ~${book.estimatedMinutes} min read",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline
-                )
-            }
-        }
-    }
-}
-
-/**
- * Empty search results fallback card with quick archive search buttons
- */
-@Composable
-private fun EmptyCatalogSearchCard(
-    searchQuery: String,
-    onOpenBookBrowser: (url: String, name: String, searchQuery: String) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = Icons.Filled.AutoStories,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(36.dp)
-            )
-            Text(
-                text = "Search \"$searchQuery\" on Free Book Archives",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "Explore millions of free books with sandboxed 1-tap download into Veritas.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                FREE_BOOK_SITES.forEach { site ->
-                    Button(
-                        onClick = { onOpenBookBrowser(site.url, site.name, searchQuery) },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = if (site.name == "Ocean of PDF") ButtonDefaults.buttonColors() else ButtonDefaults.filledTonalButtonColors()
-                    ) {
-                        Text("${site.icon} Search ${site.name}")
+                        Text(if (book.hasDirectTextDownload) selectedState.actionLabel else "Visit website", fontWeight = FontWeight.Bold)
                     }
                 }
             }

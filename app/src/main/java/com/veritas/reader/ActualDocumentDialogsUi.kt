@@ -180,7 +180,7 @@ internal fun SelectedTextActionCard(
             .padding(bottom = if (bottomBarVisible && !isLandscape) 96.dp else 16.dp, start = 16.dp, end = 16.dp)
             .fillMaxWidth()
             .navigationBarsPadding(),
-        shape = RoundedCornerShape(16.dp),
+        shape = com.veritas.reader.VeritasPackStyle.compactShape(),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         tonalElevation = 8.dp,
         shadowElevation = 6.dp,
@@ -291,7 +291,7 @@ internal fun ActualDocumentUnavailableNotice(
         modifier = modifier
             .fillMaxWidth()
             .padding(24.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape = com.veritas.reader.VeritasPackStyle.compactShape(),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
     ) {
         Column(

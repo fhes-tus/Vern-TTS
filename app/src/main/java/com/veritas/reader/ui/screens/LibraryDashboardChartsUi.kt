@@ -55,6 +55,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -102,7 +103,7 @@ internal fun DashboardDonutChart(
     var animationPlayed by remember { mutableStateOf(false) }
     val entryAnimFraction by animateFloatAsState(
         targetValue = if (animationPlayed) 1f else 0f,
-        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow(),
         label = "dashboardDonutChartEntryAnim"
     )
     LaunchedEffect(Unit) {
@@ -486,7 +487,6 @@ internal fun AnnotationDocumentCard(
     val noteAnnotations = remember(annotations) { annotations.filter { it.type == AnnotationType.NOTE } }
     
     var expanded by rememberSaveable(document.id) { mutableStateOf(false) }
-    var expandedNoteKeys by remember { mutableStateOf(setOf<String>()) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -519,7 +519,7 @@ internal fun AnnotationDocumentCard(
         modifier = Modifier.fillMaxWidth(),
         shape = VeritasPackStyle.cardShape(),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())),
+        colors = CardDefaults.cardColors(containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -730,8 +730,8 @@ internal fun AudioVoiceMemoWaveform(
     onSeek: ((Float) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    var waveformWidthPx by remember { mutableStateOf(1f) }
-    val heights = remember {
+    var waveformWidthPx by remember { mutableFloatStateOf(1f) }
+    remember {
         listOf(8, 14, 22, 12, 18, 26, 16, 28, 20, 12, 24, 18, 10, 16, 22, 14, 20, 28, 16, 10, 24, 18, 12, 8)
     }
 
@@ -807,7 +807,7 @@ internal fun AudioVoiceMemoWaveform(
                     val ripple = kotlin.math.sin(i * 0.85f) * 0.28f + kotlin.math.cos(i * 1.6f) * 0.18f
                     val heightRatio = (waveBase * 0.65f + ripple + 0.35f).coerceIn(0.18f, 0.95f)
                     val currentH = if (isPlaying && x <= progressX) {
-                        val animWave = kotlin.math.sin((System.currentTimeMillis() / 150.0 + i * 0.5).toDouble()).toFloat() * 0.15f
+                        val animWave = kotlin.math.sin(System.currentTimeMillis() / 150.0 + i * 0.5).toFloat() * 0.15f
                         ((heightRatio + animWave) * (canvasH - 4.dp.toPx())).coerceIn(4.dp.toPx(), canvasH - 2.dp.toPx())
                     } else {
                         (heightRatio * (canvasH - 4.dp.toPx())).coerceIn(4.dp.toPx(), canvasH - 2.dp.toPx())
@@ -816,8 +816,8 @@ internal fun AudioVoiceMemoWaveform(
                     val isPlayed = x <= progressX
                     drawLine(
                         color = if (isPlayed) primaryColor else unplayedColor,
-                        start = androidx.compose.ui.geometry.Offset(x, centerY - halfH),
-                        end = androidx.compose.ui.geometry.Offset(x, centerY + halfH),
+                        start = Offset(x, centerY - halfH),
+                        end = Offset(x, centerY + halfH),
                         strokeWidth = barW,
                         cap = androidx.compose.ui.graphics.StrokeCap.Round
                     )

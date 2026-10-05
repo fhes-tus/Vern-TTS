@@ -1,23 +1,26 @@
 package com.veritas.reader
 
 import android.content.ContentValues
+import android.annotation.SuppressLint
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import java.io.File
 
-class VeritasDatabaseHelper(private val context: Context) :
-    SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+class VeritasDatabaseHelper(context: Context) :
+    SQLiteOpenHelper(context.applicationContext, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
         const val DATABASE_NAME = "veritas_reader.db"
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 3
 
         private const val TABLE_DOCUMENTS = "documents"
         private const val TABLE_ANNOTATIONS = "annotations"
         private const val TABLE_FLASHCARDS = "flashcards"
 
+        // The singleton is constructed only with applicationContext, so it cannot retain an Activity.
+        @SuppressLint("StaticFieldLeak")
         @Volatile
         private var instance: VeritasDatabaseHelper? = null
 
@@ -46,7 +49,9 @@ class VeritasDatabaseHelper(private val context: Context) :
                 original_mime_type TEXT NOT NULL DEFAULT '',
                 page_count INTEGER NOT NULL DEFAULT 0,
                 partial INTEGER NOT NULL DEFAULT 0,
-                language TEXT NOT NULL DEFAULT ''
+                language TEXT NOT NULL DEFAULT '',
+                catalog_id TEXT NOT NULL DEFAULT '',
+                sentence_index_version INTEGER NOT NULL DEFAULT 1
             )
         """.trimIndent())
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_docs_updated ON $TABLE_DOCUMENTS (updated_at DESC)")
@@ -87,7 +92,18 @@ class VeritasDatabaseHelper(private val context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Migration logic for future schema versions
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE $TABLE_DOCUMENTS ADD COLUMN catalog_id TEXT NOT NULL DEFAULT ''")
+        }
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE $TABLE_DOCUMENTS ADD COLUMN sentence_index_version INTEGER NOT NULL DEFAULT 1")
+        }
+    }
+
+    fun setDocumentCatalogId(id: String, catalogId: String) {
+        writableDatabase.update(TABLE_DOCUMENTS, ContentValues().apply {
+            put("catalog_id", catalogId)
+        }, "id = ? AND catalog_id = ''", arrayOf(id))
     }
 
     /**
@@ -95,6 +111,7 @@ class VeritasDatabaseHelper(private val context: Context) :
      * on first run, preserving 100% of user data without any manual intervention.
      */
     fun ensureMigratedFromPrefs(
+        context: Context,
         loadDocsFromPrefs: () -> List<SavedDocument>,
         loadAnnotationsFromPrefs: () -> List<ReaderAnnotation>,
         loadFlashcardsFromPrefs: () -> List<FlashcardProgress>
@@ -134,7 +151,7 @@ class VeritasDatabaseHelper(private val context: Context) :
 
     // --- Document Operations ---
 
-    fun getAllDocuments(docsDir: File): List<SavedDocument> {
+    fun getAllDocuments(docsDir: File, verifyFiles: Boolean = true): List<SavedDocument> {
         val list = mutableListOf<SavedDocument>()
         val db = readableDatabase
         val cursor = db.query(
@@ -149,7 +166,7 @@ class VeritasDatabaseHelper(private val context: Context) :
         cursor.use {
             while (it.moveToNext()) {
                 val doc = parseDocument(it)
-                if (doc.id.isNotBlank() && doc.fileName.isNotBlank() && File(docsDir, doc.fileName).exists()) {
+                if (doc.id.isNotBlank() && doc.fileName.isNotBlank() && (!verifyFiles || File(docsDir, doc.fileName).exists())) {
                     list.add(doc)
                 }
             }
@@ -183,6 +200,25 @@ class VeritasDatabaseHelper(private val context: Context) :
     fun upsertDocument(doc: SavedDocument) {
         val db = writableDatabase
         insertOrReplaceDocumentInternal(db, doc)
+    }
+
+    fun updateDocumentProgress(documentId: String, index: Int, now: Long) {
+        writableDatabase.execSQL(
+            "UPDATE $TABLE_DOCUMENTS SET current_index = CASE WHEN chunk_count > 0 THEN MAX(0, MIN(?, chunk_count - 1)) ELSE 0 END, updated_at = ? WHERE id = ?",
+            arrayOf<Any>(index, now, documentId)
+        )
+    }
+
+    fun renameDocument(id: String, title: String, now: Long) {
+        writableDatabase.execSQL("UPDATE $TABLE_DOCUMENTS SET title = ?, updated_at = ? WHERE id = ?", arrayOf<Any>(title, now, id))
+    }
+
+    fun toggleDocumentFavorite(id: String, now: Long) {
+        writableDatabase.execSQL("UPDATE $TABLE_DOCUMENTS SET favorite = CASE WHEN favorite = 0 THEN 1 ELSE 0 END, updated_at = ? WHERE id = ?", arrayOf<Any>(now, id))
+    }
+
+    fun setDocumentCollection(id: String, collection: String, now: Long) {
+        writableDatabase.execSQL("UPDATE $TABLE_DOCUMENTS SET collection = ?, updated_at = ? WHERE id = ?", arrayOf<Any>(collection, now, id))
     }
 
     fun upsertDocuments(docs: List<SavedDocument>) {
@@ -232,8 +268,10 @@ class VeritasDatabaseHelper(private val context: Context) :
             put("page_count", doc.pageCount)
             put("partial", if (doc.partial) 1 else 0)
             put("language", doc.language)
+            put("catalog_id", doc.catalogId)
+            put("sentence_index_version", doc.sentenceIndexVersion)
         }
-        db.insertWithOnConflict(TABLE_DOCUMENTS, null, values, SQLiteDatabase.CONFLICT_REPLACE)
+        check(db.insertWithOnConflict(TABLE_DOCUMENTS, null, values, SQLiteDatabase.CONFLICT_REPLACE) != -1L) { "Could not save document." }
     }
 
     private fun parseDocument(c: Cursor): SavedDocument {
@@ -254,11 +292,27 @@ class VeritasDatabaseHelper(private val context: Context) :
             originalMimeType = c.getString(c.getColumnIndexOrThrow("original_mime_type")),
             pageCount = c.getInt(c.getColumnIndexOrThrow("page_count")),
             partial = c.getInt(c.getColumnIndexOrThrow("partial")) == 1,
-            language = c.getString(c.getColumnIndexOrThrow("language"))
+            language = c.getString(c.getColumnIndexOrThrow("language")),
+            catalogId = c.getString(c.getColumnIndexOrThrow("catalog_id")),
+            sentenceIndexVersion = c.getInt(c.getColumnIndexOrThrow("sentence_index_version"))
         )
     }
 
     // --- Annotations Operations ---
+
+    /** The index version and its anchors must move together, even if the app is interrupted. */
+    fun migrateSentenceAnchors(document: SavedDocument, annotations: List<ReaderAnnotation>) {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            insertOrReplaceDocumentInternal(db, document)
+            db.delete(TABLE_ANNOTATIONS, "document_id = ?", arrayOf(document.id))
+            annotations.forEach { insertOrReplaceAnnotationInternal(db, it) }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
 
     fun getAllAnnotations(): List<ReaderAnnotation> {
         val list = mutableListOf<ReaderAnnotation>()
@@ -307,7 +361,7 @@ class VeritasDatabaseHelper(private val context: Context) :
             put("audio_path", ann.audioPath)
             put("audio_duration_seconds", ann.audioDurationSeconds)
         }
-        db.insertWithOnConflict(TABLE_ANNOTATIONS, null, values, SQLiteDatabase.CONFLICT_REPLACE)
+        check(db.insertWithOnConflict(TABLE_ANNOTATIONS, null, values, SQLiteDatabase.CONFLICT_REPLACE) != -1L) { "Could not save annotation." }
     }
 
     private fun parseAnnotation(c: Cursor): ReaderAnnotation? {
@@ -367,7 +421,7 @@ class VeritasDatabaseHelper(private val context: Context) :
             put("repetition_count", card.repetitionCount)
             put("ease_factor", card.easeFactor)
         }
-        db.insertWithOnConflict(TABLE_FLASHCARDS, null, values, SQLiteDatabase.CONFLICT_REPLACE)
+        check(db.insertWithOnConflict(TABLE_FLASHCARDS, null, values, SQLiteDatabase.CONFLICT_REPLACE) != -1L) { "Could not save flashcard." }
     }
 
     private fun parseFlashcard(c: Cursor): FlashcardProgress {

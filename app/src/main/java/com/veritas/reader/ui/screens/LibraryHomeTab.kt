@@ -84,13 +84,15 @@ internal fun LibraryHomeTab(
     onShowDetails: (SavedDocument) -> Unit,
     onDeleteDocument: (SavedDocument) -> Unit,
     onDownloadClassicBook: (ClassicBookEntry) -> Unit = {},
+    onCancelClassicBook: (ClassicBookEntry) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val floatingBottomPadding = LocalHomeBottomPadding.current
+
     var previewClassicBook by remember { mutableStateOf<ClassicBookEntry?>(null) }
     var lastMainPageRefreshAt by remember { mutableLongStateOf(0L) }
-    var internalIsHomeGridView by remember(isHomeGridView) { mutableStateOf(isHomeGridView) }
     val context = LocalContext.current
-    val libraryPrefs = remember { context.getSharedPreferences("veritas_library_settings", Context.MODE_PRIVATE) }
+    remember { context.getSharedPreferences("veritas_library_settings", Context.MODE_PRIVATE) }
 
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
@@ -169,7 +171,7 @@ internal fun LibraryHomeTab(
             if (readingTime > 0L) doc to readingTime else null
         }.sortedByDescending { it.second }
 
-        val totalTime = docTimes.sumOf { it.second }
+        docTimes.sumOf { it.second }
 
         if (docTimes.isEmpty()) {
             emptyList()
@@ -210,7 +212,7 @@ internal fun LibraryHomeTab(
         }
     }
     val welcomeName = uiState.userName.trim().ifBlank { "Reader" }
-    val (dashboardHeadline, dashboardSubtitle) = when {
+    val (_, _) = when {
         documents.isEmpty() -> {
             "Welcome to Veritas." to "Add your first reading to get started."
         }
@@ -288,7 +290,7 @@ internal fun LibraryHomeTab(
                                         }
                                         .padding(horizontal = 18.dp),
                                     state = homeListState,
-                                    contentPadding = PaddingValues(top = 10.dp, bottom = 22.dp),
+                                    contentPadding = PaddingValues(top = 10.dp, bottom = floatingBottomPadding + 22.dp),
                                     verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
                                     // 1. Hero Card: continue-reading-first, playback-aware,
@@ -313,12 +315,11 @@ internal fun LibraryHomeTab(
                                             onAddContent = { onShowImportSheet() },
                                             onPreviewClassic = { previewClassicBook = it },
                                             onDownloadAndOpenClassic = { book ->
-                                                val installed = documents.firstOrNull {
-                                                    it.title.contains(book.title, ignoreCase = true) ||
-                                                    it.originalFileName.contains(book.id, ignoreCase = true)
-                                                }
+                                                val installed = com.veritas.reader.findCatalogDocument(book, documents)
                                                 if (installed != null) {
                                                     onOpenDocument(installed)
+                                                } else if (book.editions.isNotEmpty()) {
+                                                    previewClassicBook = book
                                                 } else {
                                                     onDownloadClassicBook(book)
                                                 }
@@ -380,7 +381,7 @@ internal fun LibraryHomeTab(
                                                     recentImports.chunked(2).forEach { row ->
                                                         Row(
                                                             modifier = Modifier.fillMaxWidth(),
-                                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                                                         ) {
                                                             row.forEach { doc ->
                                                                 HomeRecentBookGridItem(
@@ -397,7 +398,7 @@ internal fun LibraryHomeTab(
                                         } else {
                                             item {
                                                 Column(
-                                                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                                                    verticalArrangement = Arrangement.spacedBy(2.dp),
                                                     modifier = Modifier.staggeredEntrance(3).fillMaxWidth()
                                                 ) {
                                                     recentImports.forEach { doc ->
@@ -429,7 +430,7 @@ internal fun LibraryHomeTab(
                                         Card(
                                             modifier = Modifier.staggeredEntrance(4).fillMaxWidth(),
                                             shape = VeritasPackStyle.cardShape(),
-                                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())),
+                                            colors = CardDefaults.cardColors(containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)),
                                             border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
                                         ) {
                                             Box {
@@ -454,7 +455,7 @@ internal fun LibraryHomeTab(
                                                 .padding(top = 8.dp)
                                                 .onGloballyPositioned { OnboardingController.updateBounds("classics_catalog_card", it) },
                                             shape = VeritasPackStyle.cardShape(),
-                                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())),
+                                            colors = CardDefaults.cardColors(containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)),
                                             border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
                                         ) {
                                             HomeActionRow(
@@ -528,9 +529,12 @@ internal fun LibraryHomeTab(
         ClassicBookDetailSheet(
             book = book,
             existingDocuments = documents,
+            editionDownloadStates = uiState.classicDownloads,
+            onCancelEdition = onCancelClassicBook,
+            downloadState = if (com.veritas.reader.findCatalogDocument(book, documents) != null) com.veritas.reader.ClassicDownloadState(com.veritas.reader.ClassicDownloadPhase.AVAILABLE) else uiState.classicDownloads[book.id]?.takeUnless { it.phase == com.veritas.reader.ClassicDownloadPhase.AVAILABLE } ?: com.veritas.reader.ClassicDownloadState(),
+            onCancelDownload = { onCancelClassicBook(book) },
             onDismiss = { previewClassicBook = null },
             onDownloadBook = { b ->
-                previewClassicBook = null
                 onDownloadClassicBook(b)
             },
             onOpenBook = { doc ->

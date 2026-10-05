@@ -36,7 +36,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.OnboardingStep
+import com.veritas.reader.ui.screens.NoteCollectionActions
 import com.veritas.reader.ui.ReaderViewModel
+import com.veritas.reader.ui.setDraftNoteLabels
+import com.veritas.reader.ui.createNoteLabel
+import com.veritas.reader.ui.setGeneralNoteLabels
+import com.veritas.reader.ui.restoreGeneralNoteRevision
+import com.veritas.reader.ui.noteRevisions
+import com.veritas.reader.ui.permanentlyDeleteTrashedGeneralNote
+import com.veritas.reader.ui.restoreTrashedGeneralNote
+import com.veritas.reader.ui.deleteNoteNotebook
+import com.veritas.reader.ui.renameNoteNotebook
+import com.veritas.reader.ui.moveGeneralNoteToNotebook
+import com.veritas.reader.ui.createNoteNotebook
+import com.veritas.reader.ui.saveNotesSettings
 import com.veritas.reader.ui.addBookmarkGroup
 import com.veritas.reader.ui.addDocumentToReadingList
 import com.veritas.reader.ui.appendVocabularyWord
@@ -212,6 +225,10 @@ internal fun VeritasReaderApp(
         uiState.readerSettings.themePackId,
         uiState.readerSettings.adaptiveCover,
         uiState.readerSettings.amoledMode,
+        uiState.readerSettings.reduceMotion,
+        uiState.readerSettings.reduceTransparency,
+        uiState.readerSettings.glassFloatingControls,
+        uiState.readerSettings.uiFontId,
         activeDocId
     ) {
         VeritasThemeState.themeId = uiState.readerSettings.themeId
@@ -219,6 +236,8 @@ internal fun VeritasReaderApp(
         VeritasThemeState.adaptiveCover = uiState.readerSettings.adaptiveCover
         VeritasThemeState.uiFontId = uiState.readerSettings.uiFontId
         VeritasThemeState.reduceMotion = uiState.readerSettings.reduceMotion
+        VeritasThemeState.reduceTransparency = uiState.readerSettings.reduceTransparency
+        VeritasThemeState.glassFloatingControls = uiState.readerSettings.glassFloatingControls
         VeritasThemeState.amoledMode = uiState.readerSettings.amoledMode
         VeritasThemeState.activeDocumentId = activeDocId
     }
@@ -353,6 +372,21 @@ internal fun VeritasReaderApp(
                     onRenameFlashcardSet = viewModel::renameFlashcardSet,
                     onDeleteFlashcardSet = viewModel::deleteFlashcardSet,
                     onSaveReaderSettings = { viewModel.saveReaderSettings(it) },
+                    notesSettings = uiState.notesSettings,
+                    onSaveNotesSettings = viewModel::saveNotesSettings,
+                    noteCollectionActions = NoteCollectionActions(
+                        createNotebook = viewModel::createNoteNotebook,
+                        moveNote = viewModel::moveGeneralNoteToNotebook,
+                        setLabels = viewModel::setGeneralNoteLabels,
+                        createLabel = viewModel::createNoteLabel,
+                        setDraftLabels = viewModel::setDraftNoteLabels,
+                        renameNotebook = viewModel::renameNoteNotebook,
+                        deleteNotebook = viewModel::deleteNoteNotebook,
+                        restoreNote = viewModel::restoreTrashedGeneralNote,
+                        permanentlyDeleteNote = viewModel::permanentlyDeleteTrashedGeneralNote,
+                        revisionsFor = viewModel::noteRevisions,
+                        restoreRevision = viewModel::restoreGeneralNoteRevision
+                    ),
                     onSearchLibraryContent = viewModel::searchLibraryContent,
                     onSaveQuiz = viewModel::saveQuiz,
                     onDeleteQuiz = viewModel::deleteQuiz,
@@ -537,13 +571,9 @@ internal fun VeritasReaderApp(
                                     currentPage = selectionPage,
                                     preferredSentenceIndex = PlaybackStateStore.currentIndex
                                 )
-                                val targetIndex = match?.chunkIndex
-                                    ?: readerModel.sentences
-                                        .indexOfFirst { it.pageNumber == selectionPage }
-                                        .takeIf { it >= 0 }
-                                if (targetIndex != null) {
-                                    viewModel.moveTo(targetIndex, autoPlay = true, forcePlaybackStart = true)
-                                }
+                                if (match != null) {
+                                    viewModel.moveTo(match.chunkIndex, autoPlay = true, forcePlaybackStart = true, charOffset = match.charOffset)
+                                } else android.widget.Toast.makeText(context, "This selection could not be located in the extracted text.", android.widget.Toast.LENGTH_SHORT).show()
                             }
                         },
                         initialPaperToneMode = PaperToneMode.fromString(uiState.readerSettings.paperToneMode),
@@ -740,12 +770,12 @@ internal fun VeritasReaderApp(
                         onCopySelection = { copyTextToClipboard(context, "Vern selection", it) },
                         onShareSelection = { sharePlainText(context, "Vern selection", it) },
                         onGoogleSelection = {
-                            viewModel.appendVocabularyWord(it, "Looked up definition / web references.")
-                            openGoogleSearch(context, it)
+                            viewModel.appendVocabularyWord(it.text, "Looked up definition / web references.", selectedSentenceIndex = it.firstSentenceIndex)
+                            openGoogleSearch(context, it.text)
                         },
                         onTranslateSelection = {
-                            viewModel.appendVocabularyWord(it, "Looked up translation.")
-                            openGoogleTranslate(context, it)
+                            viewModel.appendVocabularyWord(it.text, "Looked up translation.", selectedSentenceIndex = it.firstSentenceIndex)
+                            openGoogleTranslate(context, it.text)
                         },
                         onAskAiSelection = {
                             viewModel.appendVocabularyWord(it, "Asked AI for explanation.")
@@ -851,11 +881,7 @@ internal fun VeritasReaderApp(
             )
         }
 
-        if (uiState.importInProgress) {
-            ImportProgressOverlay(
-                title = uiState.importSourceName.ifBlank { "document" }
-            )
-        }
+
 
 
 

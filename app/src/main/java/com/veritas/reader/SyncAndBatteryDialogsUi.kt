@@ -38,8 +38,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,7 +50,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.ui.VeritasSwitch
-import java.util.Locale
 
 
 @Composable
@@ -102,6 +104,7 @@ internal fun SyncAndBackupCenterDialog(
     onToggleAutoBackup: () -> Unit = {},
     onExportFull: () -> Unit = {}
 ) {
+    val locale = LocalConfiguration.current.locales[0]
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
@@ -248,7 +251,7 @@ internal fun SyncAndBackupCenterDialog(
                             ) {
                                 Text(
                                     if (fullBackupEstimateBytes > 0)
-                                        String.format(Locale.getDefault(), "Export Full Library (.zip ~%.1f MB)", fullBackupSizeMb)
+                                        String.format(locale, "Export Full Library (.zip ~%.1f MB)", fullBackupSizeMb)
                                     else
                                         "Export Full Library (.zip)",
                                     fontWeight = FontWeight.Bold
@@ -330,55 +333,51 @@ internal fun SyncInfoRow(label: String, value: String) {
 }
 
 fun isBatteryOptimizationIgnored(context: Context): Boolean {
-    val pm = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager ?: return true
+    val pm = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager ?: return false
     return pm.isIgnoringBatteryOptimizations(context.packageName)
 }
 
+/** Opens a reversible settings screen, even when the exemption is already enabled. */
+fun openAppBatterySettings(context: Context) {
+    val packageUri = Uri.fromParts("package", context.packageName, null)
+    val routes = listOf(
+        // Android Settings' app-specific battery detail action; OEMs may not expose it.
+        Intent("android.settings.VIEW_ADVANCED_POWER_USAGE_DETAIL").setData(packageUri)
+            .putExtra(Intent.EXTRA_PACKAGE_NAME, context.packageName),
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(packageUri),
+        Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+    )
+    for (intent in routes) {
+        if (runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true }.getOrDefault(false)) return
+    }
+    android.widget.Toast.makeText(context, "Open phone Settings → Apps → Vern → Battery.", android.widget.Toast.LENGTH_LONG).show()
+}
+
 fun requestIgnoreBatteryOptimizations(context: Context) {
-    // 1. First try direct system permission dialog (REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-    val requestIntent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-        data = Uri.parse("package:${context.packageName}")
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    if (!isBatteryOptimizationIgnored(context)) {
+        val request = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+            .setData(Uri.fromParts("package", context.packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        // Try the intent directly: package visibility can hide a valid system handler from queries.
+        if (runCatching { context.startActivity(request); true }.getOrDefault(false)) return
     }
-    val directPromptLaunched = runCatching {
-        if (context.packageManager.queryIntentActivities(requestIntent, 0).isNotEmpty()) {
-            context.startActivity(requestIntent)
-            true
-        } else false
-    }.getOrDefault(false)
+    openAppBatterySettings(context)
+}
 
-    if (directPromptLaunched) return
-
-    // 2. Try direct App Battery Usage page (Android 14+ / One UI 6-8 / Pixel)
-    runCatching {
-        val intent = Intent("android.settings.APP_BATTERY_USAGE").apply {
-            data = Uri.fromParts("package", context.packageName, null)
-            putExtra(Intent.EXTRA_PACKAGE_NAME, context.packageName)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+@Composable
+fun rememberBatteryOptimizationIgnored(): Boolean {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    var ignored by androidx.compose.runtime.remember(context) { androidx.compose.runtime.mutableStateOf(isBatteryOptimizationIgnored(context)) }
+    androidx.compose.runtime.DisposableEffect(lifecycle, context) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) ignored = isBatteryOptimizationIgnored(context)
         }
-        if (context.packageManager.queryIntentActivities(intent, 0).isNotEmpty()) {
-            context.startActivity(intent)
-            return
-        }
+        lifecycle.addObserver(observer)
+        ignored = isBatteryOptimizationIgnored(context)
+        onDispose { lifecycle.removeObserver(observer) }
     }
-
-    // 3. Open App Info page where the user can tap "Battery" (Unrestricted / Optimized)
-    runCatching {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.fromParts("package", context.packageName, null)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        context.startActivity(intent)
-        return
-    }
-
-    // 4. Fallback to general battery optimization list if OEM blocks all app-specific routes
-    runCatching {
-        val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        context.startActivity(intent)
-    }
+    return ignored
 }
 
 @Composable

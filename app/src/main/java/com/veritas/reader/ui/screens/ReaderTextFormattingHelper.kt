@@ -42,7 +42,8 @@ data class ReaderTextSelection(
     val start: Int,
     val endExclusive: Int,
     val text: String,
-    val sentenceIndexes: List<Int>
+    val sentenceIndexes: List<Int>,
+    val sentenceCharOffset: Int = 0
 ) {
     val firstSentenceIndex: Int
         get() = sentenceIndexes.firstOrNull() ?: 0
@@ -57,7 +58,7 @@ internal fun buildReaderTextSelection(
     rawEnd: Int
 ): ReaderTextSelection? {
     val source = part.text
-    if (source.isBlank()) return null
+    if (source.isBlank() || rawStart < 0 || rawEnd < 0) return null
     val anchor = rawStart.coerceIn(0, source.length)
     val focus = rawEnd.coerceIn(0, source.length)
     var start = minOf(anchor, focus)
@@ -74,7 +75,24 @@ internal fun buildReaderTextSelection(
         .map { it.sentenceIndex }
         .distinct()
     if (sentenceIndexes.isEmpty()) return null
-    return ReaderTextSelection(part.index, start, endExclusive, selected, sentenceIndexes)
+    val firstRange = part.sentenceRanges.firstOrNull { it.sentenceIndex == sentenceIndexes.first() }
+    val sentenceOffset = (firstRange?.sentenceCharOffset ?: 0) + (start - (firstRange?.start ?: start)).coerceAtLeast(0)
+    return ReaderTextSelection(part.index, start, endExclusive, selected, sentenceIndexes, sentenceOffset)
+}
+
+/** Replace only spans owned by the reader, preserving Android selection/editor spans. */
+internal fun updateReaderPresentationSpans(
+    current: Spannable,
+    previousSpans: List<Any>,
+    next: Spanned
+): List<Any> {
+    require(current.toString() == next.toString()) { "Presentation updates must preserve text offsets." }
+    previousSpans.forEach(current::removeSpan)
+    val nextSpans = next.getSpans(0, next.length, Any::class.java).toList()
+    nextSpans.forEach { span ->
+        current.setSpan(span, next.getSpanStart(span), next.getSpanEnd(span), next.getSpanFlags(span))
+    }
+    return nextSpans
 }
 
 internal fun buildReaderPartSpannable(
@@ -98,6 +116,11 @@ internal fun buildReaderPartSpannable(
     boldTypeface: Typeface? = null
 ): Spannable {
     val spannable = SpannableString(part.text)
+    // Synthetic labels from existing PDF imports are metadata, not prose.
+    val pageLabel = "Page ${part.pageRange.startPage}"
+    if (part.text == pageLabel || part.text.startsWith("$pageLabel\n")) {
+        spannable.hideMarkup(0, pageLabel.length)
+    }
     // Render inline markdown (bold/italic/headings/etc.) and inline images that text carries,
     // so the reader shows formatting instead of literal ** and ## markers. Crucially the
     // delimiter characters are kept in the text and only drawn zero-width, so every
@@ -297,11 +320,7 @@ internal class VeritasBoldSpan(
     private fun apply(paint: TextPaint) {
         val current = boldTypeface ?: paint.typeface
         if (current != null) {
-            paint.typeface = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                Typeface.create(current, 700, false)
-            } else {
-                Typeface.create(current, Typeface.BOLD)
-            }
+            paint.typeface = Typeface.create(current, 700, false)
         }
         paint.isFakeBoldText = true
     }
@@ -798,7 +817,7 @@ internal fun applyInlineMarkdown(
 
 internal fun clearNativeTextSelection(textView: TextView?) {
     val text = textView?.text
-    if (text is android.text.Spannable) {
+    if (text is Spannable) {
         android.text.Selection.removeSelection(text)
     }
     textView?.clearFocus()
@@ -816,9 +835,9 @@ internal fun readerSelectionActionModeCallback(
     onToggleBookmark: (Int) -> Unit,
     onHighlightSelection: (ReaderTextSelection) -> Unit,
     onEditNotes: (List<Int>) -> Unit,
-    onTranslateSelection: (String) -> Unit,
+    onTranslateSelection: (ReaderTextSelection) -> Unit,
     onCopySelection: (String) -> Unit,
-    onGoogleSelection: (String) -> Unit,
+    onGoogleSelection: (ReaderTextSelection) -> Unit,
     onShareSelection: (String) -> Unit,
     onShareSelectionToAi: (ReaderTextSelection) -> Unit,
     onEditSpeechSelection: (String) -> Unit,
@@ -827,7 +846,9 @@ internal fun readerSelectionActionModeCallback(
     onReadSelection: (String) -> Unit
 ): ActionMode.Callback {
     fun currentSelection(): ReaderTextSelection? =
-        buildReaderTextSelection(part, textView.selectionStart, textView.selectionEnd)
+        // Use the same buffer Android drew the selection on. Never slice a
+        // newer model snapshot with offsets from an older displayed buffer.
+        buildReaderTextSelection(part.copy(text = textView.text.toString()), textView.selectionStart, textView.selectionEnd)
 
     fun finish(mode: ActionMode, selection: ReaderTextSelection? = null) {
         onSelectionChanged(selection)
@@ -914,7 +935,7 @@ internal fun readerSelectionActionModeCallback(
                                 PlaybackActions.EXTRA_START_INDEX,
                                 selection.firstSentenceIndex
                             )
-                            putExtra(PlaybackActions.EXTRA_CHAR_OFFSET, 0)
+                            putExtra(PlaybackActions.EXTRA_CHAR_OFFSET, selection.sentenceCharOffset)
                         }
                         context.startService(intent)
                     }
@@ -925,8 +946,8 @@ internal fun readerSelectionActionModeCallback(
 
                 READER_SELECTION_COPY -> onCopySelection(selection.text)
                 READER_SELECTION_SEARCH -> onSearchQueryChange(selection.text.take(80))
-                READER_SELECTION_TRANSLATE -> onTranslateSelection(selection.text)
-                READER_SELECTION_GOOGLE -> onGoogleSelection(selection.text)
+                READER_SELECTION_TRANSLATE -> onTranslateSelection(selection)
+                READER_SELECTION_GOOGLE -> onGoogleSelection(selection)
                 READER_SELECTION_EDIT_TEXT -> onEditExtractedSelection(selection)
                 READER_SELECTION_EDIT_SPEECH -> onEditSpeechSelection(selection.text)
                 READER_SELECTION_READ_ALOUD -> onReadSelection(selection.text)

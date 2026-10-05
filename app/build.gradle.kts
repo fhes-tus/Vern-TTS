@@ -28,7 +28,9 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".preview"
+            // Instrumentation can use a separate package without uninstalling the
+            // preview library that the user is currently testing.
+            applicationIdSuffix = providers.gradleProperty("debugApplicationIdSuffix").getOrElse(".preview")
             signingConfig = signingConfigs.getByName("release")
         }
         release {
@@ -43,18 +45,15 @@ android {
     }
 
     namespace = "com.veritas.reader"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.veritas.reader"
         minSdk = 28
         targetSdk = 36
-        versionCode = 39
-        versionName = "2.5.1"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = 40
+        versionName = "2.6.0"
 
         ndk {
             abiFilters.addAll(setOf("armeabi-v7a", "arm64-v8a"))
@@ -105,6 +104,14 @@ kotlin {
 }
 
 dependencies {
+    implementation("io.github.kyant0:backdrop-android:2.0.1") {
+        exclude(group = "org.jetbrains.compose.ui")
+        exclude(group = "org.jetbrains.compose.foundation")
+    }
+    implementation("io.github.kyant0:shapes-android:1.2.1") {
+        exclude(group = "org.jetbrains.compose.ui")
+        exclude(group = "org.jetbrains.compose.foundation")
+    }
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation(platform("androidx.compose:compose-bom:2026.05.00"))
     implementation("androidx.activity:activity-compose:1.13.0")

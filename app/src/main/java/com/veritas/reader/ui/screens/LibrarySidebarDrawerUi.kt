@@ -1,9 +1,7 @@
 package com.veritas.reader.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -55,7 +53,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -67,6 +67,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.BrandMark
 import com.veritas.reader.ReaderTrackerSnapshot
 import com.veritas.reader.VeritasPackStyle
+import com.veritas.reader.ui.VeritasMotion
 
 @Composable
 internal fun HomeSidebarDialog(
@@ -79,8 +80,16 @@ internal fun HomeSidebarDialog(
     onOpenReadingLists: () -> Unit = {},
     onOpenReadingHistory: () -> Unit = {}
 ) {
+    val visibility = remember { MutableTransitionState(false).apply { targetState = true } }
+    val latestDismiss = rememberUpdatedState(onDismiss)
+    val closeDrawer = { visibility.targetState = false }
+    val spatial = VeritasMotion.spatial<androidx.compose.ui.unit.IntOffset>()
+    val effects = VeritasMotion.effectsFast<Float>()
+    LaunchedEffect(visibility.isIdle, visibility.currentState, visibility.targetState) {
+        if (visibility.isIdle && !visibility.currentState && !visibility.targetState) latestDismiss.value()
+    }
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = closeDrawer,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -92,20 +101,20 @@ internal fun HomeSidebarDialog(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
-                    ) { onDismiss() }
+                    ) { closeDrawer() }
             )
 
             // Animated Drawer Sheet
             AnimatedVisibility(
-                visible = true,
+                visibleState = visibility,
                 enter = slideInHorizontally(
                     initialOffsetX = { -it },
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)
-                ) + fadeIn(),
+                    animationSpec = spatial
+                ) + fadeIn(effects),
                 exit = slideOutHorizontally(
                     targetOffsetX = { -it },
-                    animationSpec = tween(220)
-                ) + fadeOut(),
+                    animationSpec = spatial
+                ) + fadeOut(effects),
                 modifier = Modifier.align(Alignment.CenterStart)
             ) {
                 Surface(
@@ -113,12 +122,12 @@ internal fun HomeSidebarDialog(
                         .fillMaxHeight()
                         .widthIn(min = 320.dp, max = 340.dp),
                     shape = RoundedCornerShape(
-                        topEnd = 32.dp,
-                        bottomEnd = 32.dp,
+                        topEnd = VeritasPackStyle.navigationCornerRadius(),
+                        bottomEnd = VeritasPackStyle.navigationCornerRadius(),
                         topStart = 0.dp,
                         bottomStart = 0.dp
                     ),
-                    color = MaterialTheme.colorScheme.surface,
+                    color = VeritasPackStyle.panelColor(MaterialTheme.colorScheme).copy(alpha = 1f),
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     tonalElevation = 8.dp,
                     shadowElevation = 16.dp,
@@ -161,7 +170,7 @@ internal fun HomeSidebarDialog(
                                 }
                             }
                             IconButton(
-                                onClick = onDismiss,
+                                onClick = closeDrawer,
                                 colors = IconButtonDefaults.filledTonalIconButtonColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                 )
@@ -290,7 +299,7 @@ internal fun HomeSidebarDialog(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    "100% On-Device Privacy • Vern TTS",
+                                    "100% On-Device Privacy • Vern",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

@@ -47,6 +47,17 @@ object EpubDocumentParser {
             }
         }
 
+        return parseEntries(entries, imageEntries, knownImagePaths, defaultTitle)
+    }
+
+    fun parse(file: java.io.File, defaultTitle: String, includeImages: Boolean = true): EpubBook {
+        val archive = OriginalArchiveEntries(file)
+        val imageNames = archive.names.filter { it.substringAfterLast('.').lowercase(Locale.ROOT) in setOf("jpg", "jpeg", "png", "webp", "gif") }.toSet()
+        val entries = archive.textMap { it.equals("META-INF/container.xml", true) || it.endsWith(".opf", true) || isHtmlish(it) }
+        return parseEntries(entries, if (includeImages) archive.imageMap { it in imageNames } else emptyMap(), imageNames, defaultTitle)
+    }
+
+    private fun parseEntries(entries: Map<String, String>, imageEntries: Map<String, ByteArray>, knownImagePaths: Set<String>, defaultTitle: String): EpubBook {
         val containerXml = entries.entries.firstOrNull { it.key.equals("META-INF/container.xml", ignoreCase = true) }?.value
         val opfPath = containerXml?.let { findContainerRootFile(it) }
         val opfXml = opfPath?.let { path -> entries[path] ?: entries.entries.firstOrNull { it.key.equals(path, ignoreCase = true) }?.value }
@@ -174,7 +185,7 @@ object EpubDocumentParser {
             }
         }
 
-        val images = mutableListOf<ByteArray>()
+        val imagePaths = mutableListOf<String>()
         val imgRegex = Regex("""<img\b[^>]*src=["']([^"']+)["'][^>]*>""", RegexOption.IGNORE_CASE)
         var imgCounter = 0
         val htmlWithImageMarkers = imgRegex.replace(html) { match ->
@@ -186,11 +197,9 @@ object EpubDocumentParser {
                 imageEntries.keys.any { it.endsWith(src.substringAfterLast('/'), ignoreCase = true) }
 
             if (hasImage) {
-                val imgBytes = imageEntries[resolved]
-                    ?: imageEntries.entries.firstOrNull { it.key.endsWith(src.substringAfterLast('/'), ignoreCase = true) }?.value
-                if (imgBytes != null && imgBytes.isNotEmpty()) {
-                    images.add(imgBytes)
-                }
+                val imagePath = resolved.takeIf { imageEntries.containsKey(it) }
+                    ?: imageEntries.keys.firstOrNull { it.endsWith(src.substringAfterLast('/'), ignoreCase = true) }
+                if (imagePath != null) imagePaths.add(imagePath)
                 val marker = "\n\n[[VERITAS_IMAGE:$imgCounter]]\n\n"
                 imgCounter++
                 marker
@@ -211,6 +220,10 @@ object EpubDocumentParser {
             }
             .filter { it.isNotBlank() && it != chapterTitle }
 
+        val images = object : AbstractList<ByteArray>() {
+            override val size = imagePaths.size
+            override fun get(index: Int): ByteArray = imageEntries[imagePaths[index]] ?: ByteArray(0)
+        }
         return Triple(chapterTitle, paragraphs, images)
     }
 

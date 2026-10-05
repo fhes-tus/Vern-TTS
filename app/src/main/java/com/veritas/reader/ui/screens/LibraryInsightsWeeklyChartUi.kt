@@ -91,13 +91,13 @@ internal fun dayLabel(dayIndex: Int, weekStartMonday: Long): String {
 internal fun UsageTooltip(visible: Boolean, label: String, duration: String) {
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(tween(180)) +
-                slideInVertically(tween(180)) { it / 2 },
-        exit = fadeOut(tween(140)) +
-               slideOutVertically(tween(140)) { it / 2 }
+        enter = fadeIn(com.veritas.reader.ui.VeritasMotion.effectsFast()) +
+                slideInVertically(com.veritas.reader.ui.VeritasMotion.spatialFast()) { it / 2 },
+        exit = fadeOut(com.veritas.reader.ui.VeritasMotion.effectsFast()) +
+               slideOutVertically(com.veritas.reader.ui.VeritasMotion.spatialFast()) { it / 2 }
     ) {
         Surface(
-            shape = RoundedCornerShape(50),
+            shape = com.veritas.reader.VeritasPackStyle.chipShape(),
             color = MaterialTheme.colorScheme.surfaceVariant,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f)),
             tonalElevation = 6.dp,
@@ -152,7 +152,7 @@ internal fun MiniWeekBars(
             if (v > 0L) (v.toFloat() / max).coerceIn(0.14f, 1f) else 0f
         }
         val animatedFracs = fracs.mapIndexed { i, f ->
-            animateFloatAsState(f, tween(550, easing = FastOutSlowInEasing), label = "areaFrac$i").value
+            animateFloatAsState(f, com.veritas.reader.ui.VeritasMotion.spatialSlow(), label = "areaFrac$i").value
         }
         Box(modifier = Modifier.fillMaxWidth().height(height)) {
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -197,7 +197,7 @@ internal fun MiniWeekBars(
                     val targetFrac = if (value > 0L) (value.toFloat() / max).coerceIn(0.14f, 1f) else 0f
                     val frac by animateFloatAsState(
                         targetValue = targetFrac,
-                        animationSpec = tween(durationMillis = 550, easing = FastOutSlowInEasing),
+                        animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow(),
                         label = "barFrac$i"
                     )
                     val dayDesc = if (weekStartMonday > 0L && value > 0L)
@@ -351,7 +351,7 @@ internal fun WeeklyReadingBarsPager(
                         )
                     }
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = if (visibleWeek.isCurrentWeek) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surfaceContainerHigh
                     ) {
                         Text(
@@ -381,7 +381,7 @@ internal fun WeeklyReadingBarsPager(
                 }
 
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = MaterialTheme.shapes.extraSmall,
                     color = MaterialTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Text(
@@ -413,7 +413,7 @@ internal fun WeeklyReadingBarsPager(
 
             if (tooltipVisible) {
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
+                    shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
                     modifier = Modifier.fillMaxWidth()

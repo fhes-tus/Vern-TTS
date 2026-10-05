@@ -20,45 +20,39 @@ enum class OnboardingPage(
     WELCOME_HERO(
         pageIndex = 0,
         title = "Read at the Speed of Thought",
-        subtitle = "Vern combines high-fidelity text-to-speech, multi-format document reading, and intelligent AI study tools.",
-        spokenDescription = "Welcome to Vern! Your personalized sanctuary for reading, listening, and study. Let's take a quick moment to tune your experience."
+        subtitle = "Transform your reading experience with neural narration, intelligent study handoffs, and distraction-free clarity.",
+        spokenDescription = "Welcome to Vern. Your personalized sanctuary for reading, listening, and study."
     ),
     PERSONA_SELECTION(
         pageIndex = 1,
-        title = "What best describes you?",
-        subtitle = "This information will help guide our development efforts to provide features and improvements that are relevant to you.",
-        spokenDescription = "Tell us how you read so Vern can tailor your narration speed, document tools, and study preferences."
+        title = "How do you read?",
+        subtitle = "Vern adapts its layout, AI summaries, and pacing to your focus.",
+        spokenDescription = "Choose how you read to tailor your voice speed, document view, and study tools."
     ),
-    NAME_INPUT(
+    AI_SELECTION(
         pageIndex = 2,
-        title = "What should we call you?",
-        subtitle = "Enter your name so Vern can welcome you every time you open your library and personalize your study decks.",
-        spokenDescription = "What should we call you? Enter your name so Vern can personalize your greeting, study sessions, and daily insights."
+        title = "Pair Your AI Study Partner",
+        subtitle = "Choose your default assistant for instant study handoffs, summaries, quizzes, and vocabulary.",
+        spokenDescription = "Pair your preferred AI partner for contextual summaries, quizzes, and active recall study decks."
     ),
     VOICE_AUDITION(
         pageIndex = 3,
-        title = "Meet Your Narrator",
-        subtitle = "Audition playback presets with interactive live speech before you dive into reading.",
-        spokenDescription = "Meet your narrator. Tap any preset to audition live playback and find your favorite reading rhythm."
-    ),
-    AI_SELECTION(
-        pageIndex = 4,
-        title = "Pair Your AI Assistant",
-        subtitle = "Choose your preferred assistant for instant study handoffs, explanations, and flashcards.",
-        spokenDescription = "Pair your favorite AI assistant for instant study explanations, summaries, and flashcard quizzes."
-    ),
-    FEATURE_SHOWCASE(
-        pageIndex = 5,
-        title = "Your Reading Superpowers",
-        subtitle = "Everything you need to read, listen, study, and remember.",
-        spokenDescription = "Explore your reading superpowers, including dual-engine PDF text switching and private reading insights."
+        title = "Choose Your Voice",
+        subtitle = "Experience voices crafted for effortless immersion.",
+        spokenDescription = "Audition live voice presets to find your ideal narration rhythm."
     ),
     READY_CELEBRATION(
-        pageIndex = 6,
-        title = "You're Ready to Read!",
-        subtitle = "Your personalized reading studio is prepped and waiting.",
-        spokenDescription = "Your personalized reading studio is ready. Tap Start Guided Tour to explore your library."
-    )
+        pageIndex = 4,
+        title = "Your Library Awaits",
+        subtitle = "Enter your name to personalize your reading journey.",
+        spokenDescription = "What should we call you? Enter your name so Vern can personalize your library and study greetings."
+    );
+
+    companion object {
+        // Compatibility aliases for legacy step references
+        val NAME_INPUT get() = READY_CELEBRATION
+        val FEATURE_SHOWCASE get() = READY_CELEBRATION
+    }
 }
 
 /**
@@ -75,30 +69,30 @@ data class ReaderPersona(
 val ReaderPersonas = listOf(
     ReaderPersona(
         id = "student",
-        title = "Student",
-        subtitle = "Textbooks, study notes & flashcard quizzes",
+        title = "Deep Study",
+        subtitle = "Textbooks, research, flashcards & notes",
         defaultPresetId = "speed",
         defaultAiFocus = "flashcards"
     ),
     ReaderPersona(
-        id = "educator",
-        title = "Educator",
-        subtitle = "Curated readings, pronunciation & lesson notes",
-        defaultPresetId = "expressive",
-        defaultAiFocus = "deep_dive"
-    ),
-    ReaderPersona(
         id = "professional",
-        title = "Professional",
-        subtitle = "Reports, technical docs & fast summaries",
+        title = "Speed & Work",
+        subtitle = "Fast audio, reports & instant summaries",
         defaultPresetId = "speed",
         defaultAiFocus = "summary"
     ),
     ReaderPersona(
         id = "book_lover",
-        title = "Book Lover",
-        subtitle = "Novels, literature & calm immersive reading",
-        defaultPresetId = "natural",
+        title = "Literature",
+        subtitle = "Novels, calm pacing & immersive reading",
+        defaultPresetId = "calm",
+        defaultAiFocus = "deep_dive"
+    ),
+    ReaderPersona(
+        id = "educator",
+        title = "Audio First",
+        subtitle = "Hands-free listening & fluid pronunciation",
+        defaultPresetId = "expressive",
         defaultAiFocus = "deep_dive"
     )
 )
@@ -119,7 +113,7 @@ data class VoiceAuditionPreset(
 val VoiceAuditionPresets = listOf(
     VoiceAuditionPreset(
         id = "natural",
-        title = "Natural Narrator",
+        title = "Aura",
         description = "Balanced, clear, and easy to follow for long reading sessions.",
         iconEmoji = "🎙️",
         speed = 1.0f,
@@ -128,29 +122,29 @@ val VoiceAuditionPresets = listOf(
     ),
     VoiceAuditionPreset(
         id = "speed",
-        title = "Speed Reader",
+        title = "Atlas",
         description = "Accelerated pace tuned for high-speed information capture.",
         iconEmoji = "⏩",
-        speed = 1.28f,
+        speed = 1.25f,
         pitch = 1.01f,
         sampleText = "Absorb articles, papers, and research in half the time without missing key details."
     ),
     VoiceAuditionPreset(
         id = "calm",
-        title = "Calm & Reflective",
-        description = "Relaxed, soothing cadence for thoughtful literature and bedtime reading.",
+        title = "Nova",
+        description = "Relaxed, soothing cadence for thoughtful literature and quiet focus.",
         iconEmoji = "☕",
-        speed = 0.90f,
+        speed = 0.92f,
         pitch = 0.98f,
         sampleText = "Take a breath, slow down, and immerse yourself in the beauty of the written word."
     ),
     VoiceAuditionPreset(
         id = "expressive",
-        title = "Expressive Drama",
+        title = "Sol",
         description = "Dynamic pitch and pacing for dialogue and narrative depth.",
         iconEmoji = "🎭",
-        speed = 1.02f,
-        pitch = 1.04f,
+        speed = 1.05f,
+        pitch = 1.03f,
         sampleText = "Stories come alive when every character and nuance finds its true voice."
     )
 )
@@ -244,9 +238,9 @@ enum class OnboardingStep(
     ),
     CLASSICS_SPOTLIGHT(
         key = "classics",
-        targetKey = "classics_catalog_card",
+        targetKey = "classics_shelves",
         title = "Classic Books Catalog",
-        body = "Explore 36 curated timeless classics across 7 categories — from family stories and adventures to mindset and mysteries — ready to download and read in one tap."
+        body = "Browse timeless books by genre, swipe through each shelf, and add a favourite to My Library. Your reading and listening stay close at hand."
     ),
     INSIGHTS_SPOTLIGHT(
         key = "insights",

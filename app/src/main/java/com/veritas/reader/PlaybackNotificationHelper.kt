@@ -82,7 +82,7 @@ internal fun PlaybackService.seekToEstimatedPosition(positionMs: Long) {
     val targetIndex = indexForEstimatedPosition(positionMs).coerceIn(0, chunks.lastIndex)
     clearResumePoint()
     PlaybackStateStore.currentIndex = targetIndex
-    activeDocument?.let { repository.updateProgress(it.id, targetIndex, chunks.size) }
+    activeDocument?.let { repository.saveProgress(it.id, targetIndex) }
     if (PlaybackStateStore.isPlaying) {
         speakCurrent()
     } else {

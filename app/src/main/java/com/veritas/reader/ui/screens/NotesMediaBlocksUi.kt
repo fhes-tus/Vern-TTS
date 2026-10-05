@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import com.veritas.reader.ui.NotesPaperTemplate
+
 import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
 import android.provider.MediaStore
@@ -30,9 +32,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
@@ -57,9 +61,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.io.File
 import java.util.Locale
 
@@ -75,7 +82,7 @@ internal fun NoteLiveRecordingBar(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = com.veritas.reader.VeritasPackStyle.cardShape(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f)
         ),
@@ -152,7 +159,7 @@ internal fun NoteLiveRecordingBar(
                 Button(
                     onClick = onStop,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(50),
+                    shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                 ) {
                     Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -230,7 +237,7 @@ internal fun NoteImageBlockItem(
             .fillMaxWidth()
             .height(220.dp)
             .clickable { onViewImage(block.path) },
-        shape = RoundedCornerShape(14.dp),
+        shape = com.veritas.reader.VeritasPackStyle.compactShape(),
         colors = CardDefaults.cardColors(containerColor = onCardColor.copy(alpha = 0.05f))
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -248,7 +255,7 @@ internal fun NoteImageBlockItem(
             }
             Surface(
                 color = Color.Black.copy(alpha = 0.55f),
-                shape = RoundedCornerShape(50),
+                shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(8.dp)
@@ -385,7 +392,7 @@ internal fun NoteVideoBlockItem(
             .fillMaxWidth()
             .height(190.dp)
             .clickable { onViewVideo(videoPath) },
-        shape = RoundedCornerShape(14.dp),
+        shape = com.veritas.reader.VeritasPackStyle.compactShape(),
         colors = CardDefaults.cardColors(containerColor = onCardColor.copy(alpha = 0.08f)),
         border = BorderStroke(1.dp, onCardColor.copy(alpha = 0.2f))
     ) {
@@ -433,7 +440,7 @@ internal fun NoteVideoBlockItem(
 
             Surface(
                 color = Color.Black.copy(alpha = 0.55f),
-                shape = RoundedCornerShape(50),
+                shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(8.dp)
@@ -473,6 +480,130 @@ internal fun NoteVideoBlockItem(
 }
 
 @Composable
+internal fun NoteFileBlockItem(
+    block: NoteBlock.File,
+    index: Int,
+    totalBlocks: Int,
+    onCardColor: Color,
+    onOpenFile: (String) -> Unit,
+    onShareFile: (String) -> Unit,
+    onCopyAttachment: (String) -> Unit,
+    onMoveUp: (Int) -> Unit,
+    onMoveDown: (Int) -> Unit,
+    onRemove: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val fileName = block.fileName.ifBlank { File(block.path).name }
+    val sizeText = remember(block.sizeBytes, block.path) {
+        val size = if (block.sizeBytes > 0L) block.sizeBytes else runCatching { File(block.path).length() }.getOrDefault(0L)
+        if (size <= 0L) "Document"
+        else {
+            val kb = size / 1024.0
+            val mb = kb / 1024.0
+            if (mb >= 1.0) String.format(Locale.US, "%.1f MB", mb)
+            else String.format(Locale.US, "%.0f KB", kb.coerceAtLeast(1.0))
+        }
+    }
+    val ext = remember(fileName) {
+        val dot = fileName.lastIndexOf('.')
+        if (dot >= 0 && dot < fileName.length - 1) fileName.substring(dot + 1).uppercase() else "FILE"
+    }
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onOpenFile(block.path) },
+        shape = com.veritas.reader.VeritasPackStyle.compactShape(),
+        colors = CardDefaults.cardColors(containerColor = onCardColor.copy(alpha = 0.06f)),
+        border = BorderStroke(1.dp, onCardColor.copy(alpha = 0.15f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                shape = com.veritas.reader.VeritasPackStyle.compactShape(),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(46.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Description,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = ext.take(4),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 9.sp
+                        )
+                    }
+                }
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = fileName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = onCardColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = sizeText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = onCardColor.copy(alpha = 0.6f)
+                    )
+                    Text(
+                        text = "• Tap to open",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                IconButton(
+                    onClick = { onShareFile(block.path) },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Share,
+                        contentDescription = "Share file",
+                        tint = onCardColor.copy(alpha = 0.7f),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+
+                NoteAttachmentMenu(
+                    onCopy = { onCopyAttachment(block.path) },
+                    canMoveUp = index > 0,
+                    onMoveUp = { onMoveUp(index) },
+                    canMoveDown = index < totalBlocks - 1,
+                    onMoveDown = { onMoveDown(index) },
+                    onDelete = { onRemove(index) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
 internal fun NotesBlocksList(
     blocks: List<NoteBlock>,
     isChecklist: Boolean,
@@ -490,6 +621,8 @@ internal fun NotesBlocksList(
     onTextBlockBackspaceAtStart: (index: Int) -> Boolean,
     onViewImage: (String) -> Unit,
     onViewVideo: (String) -> Unit,
+    onOpenFile: (String) -> Unit = {},
+    onShareFile: (String) -> Unit = {},
     onCopyAttachment: (String) -> Unit,
     onMoveBlockUp: (Int) -> Unit,
     onMoveBlockDown: (Int) -> Unit,
@@ -497,6 +630,10 @@ internal fun NotesBlocksList(
     onTogglePlayAudio: (String) -> Unit,
     onSeekAudio: (Float, String) -> Unit,
     onChecklistChanged: () -> Unit,
+    moveCheckedToBottom: Boolean = true,
+    addNewItemsToTop: Boolean = false,
+    paperTemplate: NotesPaperTemplate = NotesPaperTemplate.BLANK,
+    hasLinkPreviews: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     if (!isChecklist) {
@@ -514,7 +651,8 @@ internal fun NotesBlocksList(
                             onBackspaceAtStart = { onTextBlockBackspaceAtStart(index) },
                             visualTransformation = richTextTransformation,
                             onCardColor = onCardColor,
-                            isOnlyBlock = blocks.size == 1
+                            isOnlyBlock = blocks.size == 1 && !hasLinkPreviews,
+                            paperTemplate = paperTemplate
                         )
                     }
                     is NoteBlock.Image -> {
@@ -554,6 +692,20 @@ internal fun NotesBlocksList(
                             totalBlocks = blocks.size,
                             onCardColor = onCardColor,
                             onViewVideo = onViewVideo,
+                            onCopyAttachment = onCopyAttachment,
+                            onMoveUp = onMoveBlockUp,
+                            onMoveDown = onMoveBlockDown,
+                            onRemove = onRemoveBlock
+                        )
+                    }
+                    is NoteBlock.File -> {
+                        NoteFileBlockItem(
+                            block = block,
+                            index = index,
+                            totalBlocks = blocks.size,
+                            onCardColor = onCardColor,
+                            onOpenFile = onOpenFile,
+                            onShareFile = onShareFile,
                             onCopyAttachment = onCopyAttachment,
                             onMoveUp = onMoveBlockUp,
                             onMoveDown = onMoveBlockDown,
@@ -620,6 +772,20 @@ internal fun NotesBlocksList(
                                     onRemove = onRemoveBlock
                                 )
                             }
+                            is NoteBlock.File -> {
+                                NoteFileBlockItem(
+                                    block = mediaBlock,
+                                    index = index,
+                                    totalBlocks = blocks.size,
+                                    onCardColor = onCardColor,
+                                    onOpenFile = onOpenFile,
+                                    onShareFile = onShareFile,
+                                    onCopyAttachment = onCopyAttachment,
+                                    onMoveUp = onMoveBlockUp,
+                                    onMoveDown = onMoveBlockDown,
+                                    onRemove = onRemoveBlock
+                                )
+                            }
                             else -> {}
                         }
                     }
@@ -629,7 +795,10 @@ internal fun NotesBlocksList(
                 items = items,
                 focusRequesters = focusRequesters,
                 onCardColor = onCardColor,
-                onChecklistChanged = onChecklistChanged
+                onChecklistChanged = onChecklistChanged,
+                moveCheckedToBottom = moveCheckedToBottom,
+                addNewItemsToTop = addNewItemsToTop,
+                paperTemplate = paperTemplate
             )
         }
     }

@@ -124,32 +124,45 @@ internal fun AiFreeModeDialog(
 @Composable
 internal fun AiCenterDialog(
     installedAiCount: Int,
+    askAiSettings: AskAiSettings,
     documentCount: Int,
     onOpenAskAiSettings: () -> Unit,
     onOpenStudyTools: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
-        title = { Text("AI tools") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    "Use installed AI apps or local study tools without adding paid APIs or account-gated services inside Vern.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text("$installedAiCount compatible AI app${if (installedAiCount == 1) "" else "s"} detected.")
-                Text("$documentCount reading${if (documentCount == 1) "" else "s"} available for study workflows.")
-                Button(onClick = onOpenStudyTools, modifier = Modifier.fillMaxWidth()) {
-                    Text("Open AI Study Tools")
-                }
-                OutlinedButton(onClick = onOpenAskAiSettings, modifier = Modifier.fillMaxWidth()) {
-                    Text("Ask AI app settings")
-                }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val provider = remember { GeminiStudyService.getProvider(context) }
+    val configured = remember { GeminiStudyService.hasApiKey(context) }
+    com.veritas.reader.ui.screens.FullScreenSettingsScaffold(title = "AI tools", onBack = onDismiss) {
+        Text("Work with a passage from your reading, or send it to an assistant you already use.",
+            style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Card(shape = VeritasPackStyle.cardShape(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Study a reading", style = MaterialTheme.typography.titleLarge)
+                Text("Create flashcards, quizzes, summaries and explanations. Review the results alongside the source text.")
+                Text(if (configured) "${provider.label} · API key saved" else "In-app generation needs your provider's API key. External assistant apps can be used without adding one here.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Button(onClick = onOpenStudyTools, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text("Open study tools") }
+                if (documentCount == 0) Text("Add a reading to choose a passage.", style = MaterialTheme.typography.bodySmall)
             }
         }
-    )
+        Card(shape = VeritasPackStyle.cardShape(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Ask another assistant", style = MaterialTheme.typography.titleLarge)
+                Text("${installedAiCount} compatible app${if (installedAiCount == 1) "" else "s"} detected. Choose your assistant and the instructions to send with selected text.")
+                Text("A handoff opens the other app; its response is not automatically read or imported by Vern.", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedButton(onClick = onOpenAskAiSettings, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text("Assistant and prompt settings") }
+            }
+        }
+        CustomAiHandoffCard(includeContextField = true) { instructions, passage ->
+            AiPromptLauncher.launchCustomPrompt(context, instructions, passage, askAiSettings)
+        }
+        Text("AI output can contain mistakes. Keep the original passage available when using generated study material.",
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable
@@ -223,10 +236,12 @@ internal fun AiAppStudyDialog(
     onSaveQuiz: ((QuizSet) -> Unit)? = null,
     onRecordQuizScore: ((String, Int) -> Unit)? = null,
     onRateFlashcard: ((String, String) -> Unit)? = null,
-    onOpenStudyHub: (() -> Unit)? = null
+    onOpenStudyHub: (() -> Unit)? = null,
+    onCancelGeneration: () -> Unit = {}
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
+    rememberCoroutineScope()
+    DisposableEffect(Unit) { onDispose { onCancelGeneration() } }
     val clipboard = remember { context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
 
     val safeIndex = if (document.chunks.isEmpty()) 0 else currentIndex.coerceIn(0, document.chunks.lastIndex)
@@ -244,8 +259,6 @@ internal fun AiAppStudyDialog(
     var showAssistantChooser by remember { mutableStateOf(false) }
     var showPasteFlashcards by remember { mutableStateOf(false) }
     var showPasteQuiz by remember { mutableStateOf(false) }
-    var showManualTools by remember { mutableStateOf(false) }
-    var manualInputDraft by remember { mutableStateOf("") }
 
     var isGenerating by remember { mutableStateOf(false) }
     var generatingStatus by remember { mutableStateOf("Generating with AI...") }
@@ -387,7 +400,7 @@ internal fun AiAppStudyDialog(
     }
 
     fun handleExternalHandoff(type: AiPromptType) {
-        val prompt = AiPromptLauncher.buildPrompt(
+        AiPromptLauncher.buildPrompt(
             title = document.title,
             chunks = document.chunks,
             currentIndex = PlaybackStateStore.currentIndex,
@@ -680,12 +693,12 @@ internal fun AiAppStudyDialog(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        "Analyzing with Google Gemini...",
+                                        "Waiting for ${GeminiStudyService.getProvider(context).label}…",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                TextButton(onClick = { isGenerating = false }) {
+                                TextButton(onClick = { onCancelGeneration(); isGenerating = false }) {
                                     Text("Cancel")
                                 }
                             }
@@ -722,6 +735,7 @@ internal fun AiAppStudyDialog(
                         scopeText = scopeText,
                         selectedScope = selectedScope,
                         hasGeminiKey = hasGeminiKey,
+                        generationBusy = isGenerating,
                         defaultAiName = defaultAiName,
                         onImportFlashcards = onImportFlashcards,
                         onSaveQuiz = onSaveQuiz,
@@ -739,6 +753,10 @@ internal fun AiAppStudyDialog(
                         onSetResultPreview = { activeResultPreview = it },
                         onExternalHandoff = { handleExternalHandoff(it) }
                     )
+
+                    CustomAiHandoffCard(includeContextField = false) { instructions, _ ->
+                        onSendToAiApp(AiPromptType.CUSTOM, instructions, selectedScope, currentRange)
+                    }
 
                     // Manual Importer & Advanced Accordion
                     AiStudyManualAccordion(

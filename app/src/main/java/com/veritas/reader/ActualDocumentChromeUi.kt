@@ -68,9 +68,9 @@ internal fun ActualDocumentZoomPill(
     Surface(
         modifier = modifier
             .padding(end = 12.dp, bottom = if (bottomBarVisible && !isLandscape) 96.dp else 16.dp),
-        shape = RoundedCornerShape(18.dp),
+        shape = com.veritas.reader.VeritasPackStyle.compactShape(),
         tonalElevation = 4.dp,
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.78f)
+        color = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
@@ -177,7 +177,7 @@ internal fun ActualDocumentTopBar(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Surface(
-                        shape = RoundedCornerShape(6.dp),
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
                     ) {
                         Text(

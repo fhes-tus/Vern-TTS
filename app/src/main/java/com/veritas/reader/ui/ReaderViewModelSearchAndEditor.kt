@@ -1,5 +1,6 @@
 package com.veritas.reader.ui
 
+import com.veritas.reader.VeritasScreen
 import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.viewModelScope
@@ -19,7 +20,7 @@ fun ReaderViewModel.updateSearchQuery(query: String) {
     val doc = uiState.value.activeDocument
     val cleanQuery = query.take(120)
     val matches = buildSearchMatches(doc, cleanQuery)
-    val currentIndex = PlaybackStateStore.currentIndex
+    val currentIndex = currentReaderIndex
     val cursor = if (matches.isEmpty()) {
         0
     } else {
@@ -50,7 +51,7 @@ internal fun ReaderViewModel.moveToSearchMatch(offset: Int) {
         _uiState.update { it.copy(searchMatches = emptyList(), searchCursor = 0) }
         return
     }
-    val currentIndex = PlaybackStateStore.currentIndex
+    val currentIndex = currentReaderIndex
     val currentMatchCursor = matches.indexOf(currentIndex)
     val nextCursor = when {
         currentMatchCursor >= 0 -> Math.floorMod(currentMatchCursor + offset, matches.size)
@@ -77,10 +78,9 @@ internal fun ReaderViewModel.buildSearchMatches(document: ReaderDocument?, query
 fun ReaderViewModel.openCurrentPartTextEditor() {
     val doc = uiState.value.activeDocument ?: return
     val model = ReaderTextModelCache.get(doc.id, doc.rawText, doc.pageCount)
-    val part = model.partForSentence(PlaybackStateStore.currentIndex) ?: model.parts.firstOrNull() ?: return
+    val part = model.partForSentence(currentReaderIndex) ?: model.parts.firstOrNull() ?: return
     _uiState.update {
-        it.copy(
-            showTextEditor = true,
+        it.withVisibility(VeritasScreen.TEXT_EDITOR, true).copy(
             editorText = part.text,
             editorTarget = VeritasTextEditTarget.Part(
                 partIndex = part.index,
@@ -105,8 +105,7 @@ fun ReaderViewModel.openSelectionTextEditor(indexes: List<Int>) {
         "sentences ${start + 1}-$endExclusive"
     }
     _uiState.update {
-        it.copy(
-            showTextEditor = true,
+        it.withVisibility(VeritasScreen.TEXT_EDITOR, true).copy(
             editorText = doc.chunks.subList(start, endExclusive).joinToString("\n\n"),
             editorTarget = VeritasTextEditTarget.SentenceRange(
                 startSentenceIndex = start,
@@ -158,20 +157,19 @@ fun ReaderViewModel.saveTextEditorChanges(partIndex: Int? = null, text: String? 
                     .parts
                     .getOrNull(target.partIndex)
                     ?.sentenceStartIndex
-                    ?: PlaybackStateStore.currentIndex
+                    ?: currentReaderIndex
             }
             is VeritasTextEditTarget.SentenceRange -> target.startSentenceIndex
         }.coerceIn(0, (updatedDocument.chunks.size - 1).coerceAtLeast(0))
         withContext(Dispatchers.Main) {
             syncPlaybackStateForDocument(updatedDocument, startIndex)
             _uiState.update {
-                it.copy(
+                it.withVisibility(VeritasScreen.TEXT_EDITOR, false).copy(
                     documents = documents,
                     activeDocument = updatedDocument,
                     annotations = annotations,
                     annotationCount = annotationCount,
                     documentOutline = outline,
-                    showTextEditor = false,
                     editorText = "",
                     editorTarget = null,
                     searchMatches = buildSearchMatches(updatedDocument, it.searchQuery),
@@ -184,7 +182,10 @@ fun ReaderViewModel.saveTextEditorChanges(partIndex: Int? = null, text: String? 
 }
 
 fun ReaderViewModel.dismissTextEditor() {
-    _uiState.update { it.copy(showTextEditor = false, editorText = "", editorTarget = null) }
+    _uiState.update { it.withVisibility(VeritasScreen.TEXT_EDITOR, false).copy(
+        editorText = "",
+        editorTarget = null
+    ) }
 }
 
 fun ReaderViewModel.openTtsDataInstaller() {

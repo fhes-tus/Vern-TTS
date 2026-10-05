@@ -155,7 +155,6 @@ object SpacedRepetitionScheduler {
     fun previewNextInterval(card: FlashcardProgress, rating: String): String {
         val rated = rateCard(card, rating)
         return when {
-            rating.equals(BUCKET_AGAIN, ignoreCase = true) -> "<1d"
             rated.intervalDays <= 1 -> "1d"
             else -> "${rated.intervalDays}d"
         }

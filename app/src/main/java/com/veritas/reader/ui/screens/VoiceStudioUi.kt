@@ -48,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -273,7 +274,7 @@ fun VoiceStudioDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
                 tonalElevation = 2.dp
             ) {
@@ -300,7 +301,7 @@ fun VoiceStudioDialog(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Surface(
-                                shape = RoundedCornerShape(6.dp),
+                                shape = MaterialTheme.shapes.extraSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(start = 4.dp)
                             ) {
@@ -590,7 +591,7 @@ fun VoiceStudioDialog(
             val context = LocalContext.current
             val coroutineScope = rememberCoroutineScope()
             val downloadStates by com.veritas.reader.tts.VoiceModelManager.downloadState.collectAsState()
-            var refreshTrigger by remember { mutableStateOf(0) }
+            var refreshTrigger by remember { mutableIntStateOf(0) }
 
             Column(
                 modifier = Modifier.padding(14.dp),

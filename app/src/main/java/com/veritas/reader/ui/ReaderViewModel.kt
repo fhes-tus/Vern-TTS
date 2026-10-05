@@ -11,6 +11,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.CoverExtractor
 import com.veritas.reader.DocumentPageImageLoader
+import com.veritas.reader.migrateClassicProvenance
 import com.veritas.reader.DocumentRepository
 import com.veritas.reader.DocumentTextRepairer
 import com.veritas.reader.PlaybackActions
@@ -39,6 +40,8 @@ import com.veritas.reader.loadPronunciationRules
 import com.veritas.reader.loadQueueDocuments
 import com.veritas.reader.loadReaderTrackerSnapshot
 import com.veritas.reader.loadReadingHistory
+import com.veritas.reader.loadTrashedGeneralNotes
+import com.veritas.reader.loadNoteNotebooks
 import com.veritas.reader.loadReadingListCatalog
 import com.veritas.reader.recordAppOpen
 import com.veritas.reader.recordDocumentProgress
@@ -49,6 +52,8 @@ import com.veritas.reader.ui.screens.VeritasHomeTab
 import com.veritas.reader.updateVeritasWidgets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,78 +65,34 @@ import java.util.Locale
 
 class ReaderViewModel(application: Application) : AndroidViewModel(application) {
 
-    internal val repository = DocumentRepository(application)
-    internal val delegateUiState = MutableStateFlow(
-        run {
-            val hasCompleted = repository.hasSeenOnboardingTutorial()
-            val questProgress = repository.loadQuestProgress()
-            val allQuestsDone = questProgress.tourDone && questProgress.importDone && questProgress.speedDone && questProgress.bookmarkDone
-            val savedReaderSettings = repository.loadReaderSettings()
-            val savedVoiceSettings = repository.loadVoiceSettings()
-            val savedNarrationSettings = repository.loadNarrationSettings()
-            val savedAskAiSettings = repository.loadAskAiSettings()
-            val savedUserName = repository.loadUserName()
-            val savedReadingInterest = repository.loadReadingInterest()
-            val savedReadingTimes = repository.loadDocReadingTimes()
-            val savedFlashcards = repository.loadAllFlashcards()
-            val savedQuizzes = repository.loadAllQuizzes()
-            ReaderUiState(
-                readerSettings = savedReaderSettings,
-                voiceSettings = savedVoiceSettings,
-                narrationSettings = savedNarrationSettings,
-                askAiSettings = savedAskAiSettings,
-                userName = savedUserName,
-                readingInterest = savedReadingInterest,
-                documentReadingTimes = savedReadingTimes,
-                flashcards = savedFlashcards,
-                quizzes = savedQuizzes,
-                hasCompletedOnboarding = hasCompleted,
-                questTourDone = questProgress.tourDone,
-                questImportDone = questProgress.importDone,
-                questSpeedDone = questProgress.speedDone,
-                questBookmarkDone = questProgress.bookmarkDone,
-                questChecklistDismissed = allQuestsDone || repository.isQuestChecklistDismissed(),
-                dismissedHeroDocId = repository.getDismissedHeroDocId(),
-                dismissedHeroDocIds = repository.getDismissedHeroDocIds(),
-                isHeroContinueDismissed = repository.isHeroContinueDismissed(),
-                showTutorial = !hasCompleted
-            )
-        }
-    )
-    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class, kotlinx.coroutines.InternalCoroutinesApi::class)
-    internal val _uiState = object : MutableStateFlow<ReaderUiState> by delegateUiState {
-        override var value: ReaderUiState
-            get() = delegateUiState.value
-            set(newVal) {
-                delegateUiState.value = synchronizeNavStack(delegateUiState.value, newVal)
-            }
-
-        override fun tryEmit(value: ReaderUiState): Boolean {
-            val synced = synchronizeNavStack(delegateUiState.value, value)
-            return delegateUiState.tryEmit(synced)
-        }
-
-        override suspend fun emit(value: ReaderUiState) {
-            val synced = synchronizeNavStack(delegateUiState.value, value)
-            delegateUiState.emit(synced)
-        }
-
-        override fun compareAndSet(expect: ReaderUiState, update: ReaderUiState): Boolean {
-            val synced = synchronizeNavStack(expect, update)
-            return delegateUiState.compareAndSet(expect, synced)
-        }
-    }
+    internal val repository by lazy { DocumentRepository(application) }
+    internal val delegateUiState = MutableStateFlow(ReaderUiState())
+    internal val _uiState = delegateUiState
     val uiState: StateFlow<ReaderUiState> = _uiState.asStateFlow()
 
     fun updateState(block: (ReaderUiState) -> ReaderUiState) {
         _uiState.update(block)
     }
 
+    internal val notesSettingsSaveMutex = kotlinx.coroutines.sync.Mutex()
+    internal val noteCollectionMutex = kotlinx.coroutines.sync.Mutex()
+    internal var generalNoteSaveJob: Job? = null
+    internal var generalNoteSaveRevision = 0L
     internal var importJob: Job? = null
+    internal var batchImportJob: Job? = null
+    internal val fileBrowserCache = android.util.LruCache<com.veritas.reader.VeritasBrowserLocation, com.veritas.reader.VeritasFileBrowserScanResult>(4)
+    internal var documentOpenJob: Job? = null
+    internal var autoOpenImportId: java.util.UUID? = null
+    internal val pendingImportIds = java.util.concurrent.ConcurrentHashMap.newKeySet<java.util.UUID>()
     internal var exportJob: Job? = null
     internal var backupJob: Job? = null
     internal var outlineJob: Job? = null
     internal var voiceJob: Job? = null
+    internal var aiStudyJob: Job? = null
+    internal var aiStudyRevision = 0L
+    internal var voiceSettingsSaveJob: Job? = null
+    @Volatile internal var voiceSettingsSaveRevision = 0L
+    @Volatile internal var readerSettingsSaveRevision = 0L
     internal var scanJob: Job? = null
     internal var downloadJob: Job? = null
     internal var sleepTimerJob: Job? = null
@@ -139,6 +100,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     internal var activeDocStartedAt: Long = 0L
 
     init {
+        resumeBatchImports()
         viewModelScope.launch(Dispatchers.IO) {
             checkForUpdates()
         }
@@ -174,7 +136,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         }
         viewModelScope.launch(Dispatchers.IO) {
             val trackerSnapshot = repository.recordAppOpen()
-            var documents = repository.loadDocuments()
+            var documents = repository.migrateClassicProvenance()
             val documentReadingTimes = repository.loadDocReadingTimes()
             val queuedDocuments = repository.loadQueueDocuments()
             val pronunciationRules = repository.loadPronunciationRules()
@@ -192,6 +154,8 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             val annotationCount = repository.loadAnnotationCount()
             val fileBrowserRoots = VeritasFileBrowserScanner.persistedRoots(application)
             val generalNotes = repository.loadGeneralNotes()
+            val trashedGeneralNotes = repository.loadTrashedGeneralNotes()
+            val noteNotebooks = repository.loadNoteNotebooks()
             val flashcards = repository.loadAllFlashcards()
             val quizzes = repository.loadAllQuizzes()
             val userName = repository.loadUserName()
@@ -200,7 +164,11 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             val hasImportedOrOpenedDocument = repository.hasImportedOrOpenedDocument()
             val questProgress = repository.loadQuestProgress()
             val hasCheeseDoc = documents.any { it.title.contains("Who Moved My Cheese", ignoreCase = true) }
-            if (!hasCheeseDoc) {
+            val seedPrefs = application.getSharedPreferences("veritas_reader_library", android.content.Context.MODE_PRIVATE)
+            val initializeSamples = !seedPrefs.getBoolean("bundled_samples_initialized", false)
+            // Existing users may already have deleted the samples before upgrading.
+            val seedSamples = initializeSamples && documents.isEmpty() && !hasImportedOrOpenedDocument
+            if (seedSamples && !hasCheeseDoc) {
                 val cheeseText = runCatching {
                     application.assets.open("books/who_moved_my_cheese.txt").bufferedReader().use { it.readText() }
                 }.getOrNull()
@@ -222,27 +190,35 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                     }
                 }
             }
-            if (documents.isEmpty()) {
+            if (seedSamples && documents.isEmpty()) {
                 repository.createDocument(
                     title = "Vern Welcome Guide",
                     text = "Welcome to Vern! This is a sample document designed to help you explore the reading environment. Vern lets you convert research papers, textbooks, EPUBs, docx files, web articles, and images into high-quality spoken audio. Long-press any sentence in this guide to try highlighting, bookmarking, adding study notes, or asking the AI Assistant a question. Adjust the voice speed or select premium voices in the expandable player panel below. Toggle different layout modes like TEXT for clean reading or LISTEN to follow along sentence-by-sentence. Enjoy your reading journey!",
                     sourceLabel = "System"
                 )
             }
-            if (!hasCheeseDoc || documents.isEmpty()) {
+            if (initializeSamples) {
+                check(seedPrefs.edit().putBoolean("bundled_samples_initialized", true).commit()) { "Could not save sample initialization." }
+            }
+            if (seedSamples && (!hasCheeseDoc || documents.isEmpty())) {
                 documents = repository.loadDocuments()
             }
 
+            val notesSettings = NotesSettingsStore.load(application)
+
             // Immediately emit library state so the user sees their documents, notes, and settings instantly
             _uiState.update {
-                it.copy(
+                it.withVisibility(VeritasScreen.TUTORIAL, !hasCompletedOnboarding && it.activeDocument == null && !it.isOpeningDocument && it.navStack.isEmpty()).copy(
                     documents = documents,
                     generalNotes = generalNotes,
+                    trashedGeneralNotes = trashedGeneralNotes,
+                    noteNotebooks = noteNotebooks,
                     queuedDocuments = queuedDocuments,
                     pronunciationRules = pronunciationRules,
-                    voiceSettings = voiceSettings,
+                    voiceSettings = if (voiceSettingsSaveRevision == 0L) voiceSettings else it.voiceSettings,
                     narrationSettings = narrationSettings,
-                    readerSettings = readerSettings,
+                    readerSettings = if (readerSettingsSaveRevision == 0L) readerSettings else it.readerSettings,
+                    notesSettings = notesSettings,
                     askAiSettings = askAiSettings,
                     aiPromptTemplates = aiPromptTemplates,
                     aiPromptHistory = aiPromptHistory,
@@ -266,10 +242,14 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                     questBookmarkDone = questProgress.bookmarkDone,
                     readerTrackerSnapshot = trackerSnapshot,
                     documentReadingTimes = documentReadingTimes,
-                    showTutorial = !hasCompletedOnboarding
+                    questChecklistDismissed = (questProgress.tourDone && questProgress.importDone && questProgress.speedDone && questProgress.bookmarkDone) || repository.isQuestChecklistDismissed(),
+                    dismissedHeroDocId = repository.getDismissedHeroDocId(),
+                    dismissedHeroDocIds = repository.getDismissedHeroDocIds(),
+                    isHeroContinueDismissed = repository.isHeroContinueDismissed()
                 )
             }
 
+            observeClassicDownloads()
             // Repair missing covers for existing files in the background without blocking UI
             documents.forEach { doc ->
                 if (doc.title.contains("Who Moved My Cheese", ignoreCase = true)) {
@@ -286,10 +266,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                         }
                     }
                 } else if (CoverExtractor.coverFile(application, doc.id) == null) {
-                    val classic = com.veritas.reader.ui.screens.CURATED_CLASSICS.firstOrNull { c ->
-                        doc.title.contains(c.title, ignoreCase = true) ||
-                        (doc.originalFileName.isNotBlank() && doc.originalFileName.contains(c.id, ignoreCase = true))
-                    }
+                    val classic = com.veritas.reader.ui.screens.CURATED_CLASSICS.firstOrNull { it.id == doc.catalogId && doc.catalogId.isNotBlank() }
                     if (classic != null) {
                         runCatching {
                             application.assets.open("covers/${classic.id}.jpg").use { input ->
@@ -341,10 +318,13 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
         viewModelScope.launch {
+            var previousSessionId = PlaybackStateStore.activeDocumentId
             androidx.compose.runtime.snapshotFlow { PlaybackStateStore.activeDocumentId }
                 .collect { newDocId ->
                     val currentId = uiState.value.activeDocument?.id
-                    if (newDocId != null && currentId != newDocId) {
+                    val previousId = previousSessionId
+                    previousSessionId = newDocId
+                    if (newDocId != null && currentId != null && currentId == previousId && currentId != newDocId) {
                         val saved = repository.findDocument(newDocId)
                         if (saved != null) {
                             withContext(Dispatchers.Main) {
@@ -423,7 +403,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         val doc = uiState.value.activeDocument
         val docId = doc?.id
         if (doc != null && docId != null) {
-            val currentIndex = PlaybackStateStore.currentIndex
+            val currentIndex = currentReaderIndex
             viewModelScope.launch(Dispatchers.IO) {
                 repository.updateProgress(docId, currentIndex, doc.chunks.size)
             }
@@ -509,10 +489,14 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     fun stopPlaybackIfDocumentsRemoved(documentIds: Set<String>) {
         val activeId = uiState.value.activeDocument?.id
         val serviceId = PlaybackStateStore.activeDocumentId
-        if ((activeId != null && activeId in documentIds) || (serviceId != null && serviceId in documentIds)) {
-            stopAndForgetPlayback("Reading removed.")
+        if (serviceId != null && serviceId in documentIds) stopAndForgetPlayback("Reading removed.")
+        if (activeId != null && activeId in documentIds) {
             recordActiveDocSessionTime()
-            _uiState.update { it.copy(activeDocument = null, annotations = emptyList(), documentNoteDraft = "", showCanvasView = false) }
+            _uiState.update { it.withVisibility(VeritasScreen.CANVAS_VIEW, false).copy(
+                activeDocument = null,
+                annotations = emptyList(),
+                documentNoteDraft = ""
+            ) }
         }
     }
 
@@ -566,19 +550,11 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun syncPlaybackStateForDocument(readerDocument: ReaderDocument, startIndex: Int) {
-        val liveSameDocument = PlaybackStateStore.isPlaying &&
-            PlaybackStateStore.activeDocumentId == readerDocument.id
-        if (liveSameDocument) {
-            // The service is actively reading this document; its position is the source
-            // of truth. Overwriting it here would yank playback to a stale index.
-            return
-        }
-        if (PlaybackStateStore.isPlaying) {
-            // A different document is being read aloud; pause it before this one takes
-            // over the shared playback state, otherwise the service keeps mutating it.
-            sendPlaybackIntent(getApplication(), PlaybackActions.ACTION_PAUSE)
-        }
         val safeIndex = if (readerDocument.chunks.isEmpty()) 0 else startIndex.coerceIn(0, readerDocument.chunks.lastIndex)
+        _uiState.update { it.copy(readerPosition = safeIndex) }
+        // Keep the audio session tied to its book when another reading view opens.
+        if (PlaybackStateStore.activeDocumentId != null && PlaybackStateStore.activeDocumentId != readerDocument.id) return
+        if (PlaybackStateStore.isPlaying && PlaybackStateStore.activeDocumentId == readerDocument.id) return
         PlaybackStateStore.activeDocumentId = readerDocument.id
         PlaybackStateStore.documentTitle = readerDocument.title
         PlaybackStateStore.sourceLabel = readerDocument.sourceLabel
@@ -587,22 +563,28 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         PlaybackStateStore.statusMessage = "Ready."
         PlaybackStateStore.queueCount = uiState.value.queuedDocuments.size
     }
-
     internal suspend fun loadReaderDocument(metadata: SavedDocument): ReaderDocument = withContext(Dispatchers.IO) {
         val rawText = repository.readText(metadata)
-        val repairedText = DocumentTextRepairer.repairPseudoTables(rawText)
-        if (repairedText != rawText) {
-            runCatching { repository.updateDocumentText(metadata.id, repairedText) }
-        }
-        buildReaderDocument(metadata, repairedText)
+        // Appending pages owns partial content. Do not persist a repair made from
+        // an earlier snapshot over pages the worker may just have published.
+        val repairedText = if (metadata.partial) rawText else DocumentTextRepairer.repairPseudoTables(rawText)
+        val updatedMetadata = if (repairedText != rawText) {
+            repository.updateDocumentText(metadata.id, repairedText) ?: metadata
+        } else metadata
+        buildReaderDocument(updatedMetadata, repairedText)
     }
 
     fun openSavedDocument(metadata: SavedDocument, startIndex: Int? = null) {
+        if (autoOpenImportId?.toString() != metadata.id) {
+            autoOpenImportId = null
+            _uiState.update { it.copy(importAwaitingReadyPages = false) }
+        }
+        documentOpenJob?.cancel()
         val currentActive = _uiState.value.activeDocument
         val currentActiveId = currentActive?.id
         if (currentActive != null && currentActiveId != null && currentActiveId != metadata.id) {
             recordActiveDocSessionTime()
-            val lastIndex = PlaybackStateStore.currentIndex
+            val lastIndex = currentReaderIndex
             val totalChunks = currentActive.chunks.size
             viewModelScope.launch(Dispatchers.IO) {
                 repository.updateProgress(currentActiveId, lastIndex, totalChunks)
@@ -614,85 +596,96 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             repository.setDismissedHeroDocId(null)
         }
         _uiState.update {
-            it.copy(
-                showFileBrowser = false,
+            it.withVisibility(VeritasScreen.FILE_BROWSER, false).copy(
                 isOpeningDocument = true,
+                importSourceName = metadata.title,
                 dismissedHeroDocId = if (it.dismissedHeroDocId == metadata.id) null else it.dismissedHeroDocId,
                 dismissedHeroDocIds = it.dismissedHeroDocIds - metadata.id,
                 isHeroContinueDismissed = false
             )
         }
-        viewModelScope.launch(Dispatchers.IO) {
-            val latestMetadata = repository.findDocument(metadata.id) ?: metadata
-            val readerDocument = loadReaderDocument(latestMetadata)
-            
-            if (latestMetadata.language.isNotBlank()) {
-                val currentVoiceSettings = repository.loadVoiceSettings()
-                // Only realign the locale for the SYSTEM DEFAULT voice. If the user has
-                // explicitly chosen a voice (voiceName set), that voice carries its own
-                // locale and must be preserved — previously we wiped voiceName here, which
-                // reset the chosen voice to default on almost every document open.
-                if (currentVoiceSettings.voiceName.isBlank() &&
-                    currentVoiceSettings.localeTag != latestMetadata.language) {
-                    val updated = currentVoiceSettings.copy(localeTag = latestMetadata.language)
-                    repository.saveVoiceSettings(updated)
-                    withContext(Dispatchers.Main) {
-                        _uiState.update { it.copy(voiceSettings = updated) }
+        documentOpenJob = viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val latestMetadata = repository.findDocument(metadata.id) ?: metadata
+                val readerDocument = loadReaderDocument(latestMetadata)
+                coroutineContext.ensureActive()
+
+                if (latestMetadata.language.isNotBlank()) {
+                    val currentVoiceSettings = repository.loadVoiceSettings()
+                    // Only realign the locale for the SYSTEM DEFAULT voice. If the user has
+                    // explicitly chosen a voice (voiceName set), that voice carries its own
+                    // locale and must be preserved — previously we wiped voiceName here, which
+                    // reset the chosen voice to default on almost every document open.
+                    if (currentVoiceSettings.voiceName.isBlank() &&
+                        currentVoiceSettings.localeTag != latestMetadata.language) {
+                        val updated = currentVoiceSettings.copy(localeTag = latestMetadata.language)
+                        repository.saveVoiceSettings(updated)
+                        withContext(Dispatchers.Main) {
+                            _uiState.update { it.copy(voiceSettings = updated) }
+                        }
                     }
                 }
-            }
 
-            val annotations = repository.loadAnnotations(latestMetadata.id)
-            val documentNote = repository.loadDocumentNote(latestMetadata.id)
-            val targetIndex = startIndex 
-                ?: (if (PlaybackStateStore.activeDocumentId == latestMetadata.id) PlaybackStateStore.currentIndex else latestMetadata.currentIndex)
-            repository.markImportedOrOpenedDocument()
-            val tracker = repository.recordDocumentRead(latestMetadata.id, latestMetadata.title)
-            val history = repository.addReadingHistory(latestMetadata, targetIndex)
+                val annotations = repository.loadAnnotations(latestMetadata.id)
+                val documentNote = repository.loadDocumentNote(latestMetadata.id)
+                val targetIndex = startIndex
+                    ?: (if (PlaybackStateStore.activeDocumentId == latestMetadata.id) PlaybackStateStore.currentIndex else latestMetadata.currentIndex)
+                repository.markImportedOrOpenedDocument()
+                val tracker = repository.recordDocumentRead(latestMetadata.id, latestMetadata.title)
+                val history = repository.addReadingHistory(latestMetadata, targetIndex)
 
-            withContext(Dispatchers.Main) {
-                _uiState.update {
-                    it.copy(
-                        activeDocument = readerDocument,
-                        annotations = annotations,
-                        documentNoteDraft = documentNote,
-                        // Filled in by loadOutlineInBackground once PDFBox has parsed the
-                        // file; the reader must not wait on it.
-                        documentOutline = emptyList(),
-                        searchQuery = "",
-                        searchMatches = emptyList(),
-                        searchCursor = 0,
-                        showCanvasView = false,
-                        hasImportedOrOpenedDocument = true,
-                        readerTrackerSnapshot = tracker,
-                        readingHistory = history,
-                        isOpeningDocument = false
-                    )
-                }
-                startActiveDocSessionTime()
-                syncPlaybackStateForDocument(readerDocument, targetIndex)
-            }
-            loadOutlineInBackground(latestMetadata, readerDocument.chunks)
-
-            // Pre-warm initial page images into cache in background after opening without delaying the reader UI
-            launch(Dispatchers.IO) {
-                runCatching {
-                    kotlinx.coroutines.delay(600L)
-                    val model = ReaderTextModelCache.get(latestMetadata.id, readerDocument.rawText, readerDocument.pageCount)
-                    val startPage = model.sentences.getOrNull(targetIndex)?.pageNumber ?: 1
-                    DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage)
-                    kotlinx.coroutines.delay(1200L)
-                    if (startPage > 1) {
-                        DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage - 1)
+                withContext(Dispatchers.Main) {
+                    _uiState.update {
+                        it.withVisibility(VeritasScreen.CANVAS_VIEW, false).copy(
+                            activeDocument = readerDocument,
+                            annotations = annotations,
+                            documentNoteDraft = documentNote,
+                            // Filled in by loadOutlineInBackground once PDFBox has parsed the
+                            // file; the reader must not wait on it.
+                            documentOutline = emptyList(),
+                            searchQuery = "",
+                            searchMatches = emptyList(),
+                            searchCursor = 0,
+                            hasImportedOrOpenedDocument = true,
+                            readerTrackerSnapshot = tracker,
+                            readingHistory = history,
+                            isOpeningDocument = false
+                        )
                     }
-                    DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage + 1)
+                    startActiveDocSessionTime()
+                    syncPlaybackStateForDocument(readerDocument, targetIndex)
+                }
+                loadOutlineInBackground(latestMetadata, readerDocument.chunks)
+
+                // Pre-warm initial page images into cache in background after opening without delaying the reader UI
+                launch(Dispatchers.IO) {
+                    runCatching {
+                        kotlinx.coroutines.delay(600L)
+                        val model = ReaderTextModelCache.get(latestMetadata.id, readerDocument.rawText, readerDocument.pageCount)
+                        val startPage = model.sentences.getOrNull(targetIndex)?.pageNumber ?: 1
+                        DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage)
+                        kotlinx.coroutines.delay(1200L)
+                        if (startPage > 1) {
+                            DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage - 1)
+                        }
+                        DocumentPageImageLoader.loadPageImages(getApplication(), repository, latestMetadata.id, startPage + 1)
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                withContext(Dispatchers.Main) {
+                    _uiState.update { it.copy(isOpeningDocument = false,
+                        importMessage = "Could not open ${metadata.title}: ${error.message ?: "unknown error"}") }
                 }
             }
         }
     }
 
     fun dismissOpeningDocument() {
-        _uiState.update { it.copy(isOpeningDocument = false) }
+        autoOpenImportId = null
+        documentOpenJob?.cancel()
+        _uiState.update { it.copy(isOpeningDocument = false, importAwaitingReadyPages = false) }
     }
 
     /**
@@ -721,13 +714,15 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     fun moveTo(
         index: Int,
-        autoPlay: Boolean = PlaybackStateStore.isPlaying,
-        forcePlaybackStart: Boolean = false
+        autoPlay: Boolean = isReaderPlaying,
+        forcePlaybackStart: Boolean = false,
+        charOffset: Int? = null
     ) {
         val doc = uiState.value.activeDocument ?: return
         if (doc.chunks.isEmpty()) return
         val safeIndex = index.coerceIn(0, doc.chunks.lastIndex)
-        PlaybackStateStore.currentIndex = safeIndex
+        _uiState.update { it.copy(readerPosition = safeIndex) }
+        if (PlaybackStateStore.activeDocumentId == doc.id) PlaybackStateStore.currentIndex = safeIndex
         persistProgress(safeIndex)
         val matches = uiState.value.searchMatches
         val matchIndex = matches.indexOf(safeIndex)
@@ -737,14 +732,15 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         // While the service is actively speaking, every index move must be sent to it.
         // Otherwise the service finishes its current sentence and then advances from the
         // mutated shared index, speaking the wrong sentence.
-        val notifyService = autoPlay || PlaybackStateStore.isPlaying
+        val notifyService = autoPlay || isReaderPlaying
         if (notifyService && doc.id != null) {
             if (forcePlaybackStart) requestNotificationPermissionForPlayback()
             sendPlaybackIntent(
                 context = getApplication(),
-                action = if (forcePlaybackStart) PlaybackActions.ACTION_PLAY else PlaybackActions.ACTION_JUMP_TO,
+                action = if (forcePlaybackStart || PlaybackStateStore.activeDocumentId != doc.id) PlaybackActions.ACTION_PLAY else PlaybackActions.ACTION_JUMP_TO,
                 documentId = doc.id,
-                startIndex = safeIndex
+                startIndex = safeIndex,
+                charOffset = charOffset?.coerceIn(0, doc.chunks[safeIndex].length)
             )
         }
     }
@@ -752,7 +748,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     fun playOrPause() {
         val doc = uiState.value.activeDocument ?: return
         val docId = doc.id ?: return
-        if (PlaybackStateStore.isPlaying) {
+        if (isReaderPlaying) {
             sendPlaybackIntent(getApplication(), PlaybackActions.ACTION_PAUSE)
         } else {
             requestNotificationPermissionForPlayback()
@@ -760,7 +756,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 context = getApplication(),
                 action = PlaybackActions.ACTION_PLAY,
                 documentId = docId,
-                startIndex = PlaybackStateStore.currentIndex
+                startIndex = currentReaderIndex
             )
         }
     }
@@ -842,14 +838,14 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     fun goToNextSectionOrQueuedDocument() {
         val doc = uiState.value.activeDocument ?: return
-        val atLastSection = doc.chunks.isNotEmpty() && PlaybackStateStore.currentIndex >= doc.chunks.lastIndex
+        val atLastSection = doc.chunks.isNotEmpty() && currentReaderIndex >= doc.chunks.lastIndex
         if (!atLastSection) {
-            moveTo(PlaybackStateStore.currentIndex + 1, autoPlay = PlaybackStateStore.isPlaying)
+            moveTo(currentReaderIndex + 1, autoPlay = isReaderPlaying)
             return
         }
 
         if (uiState.value.readerSettings.autoPlayQueue && uiState.value.queuedDocuments.isNotEmpty()) {
-            if (PlaybackStateStore.isPlaying) {
+            if (isReaderPlaying) {
                 sendPlaybackIntent(getApplication(), PlaybackActions.ACTION_NEXT)
             } else {
                 openNextQueuedAfterCurrent(autoPlay = false)
@@ -858,9 +854,10 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun returnToLibrary() {
+        dismissOpeningDocument()
         val doc = uiState.value.activeDocument
         val docId = doc?.id
-        val currentIndex = PlaybackStateStore.currentIndex
+        val currentIndex = currentReaderIndex
         PlaybackStateStore.readerMode = ReaderMode.TEXT
         recordActiveDocSessionTime()
         _uiState.update {
@@ -898,55 +895,11 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     fun navigateToHomeTab(tab: VeritasHomeTab) {
         returnToLibrary()
-        _uiState.update { it.copy(targetHomeTab = tab) }
+        _uiState.update { it.copy(targetHomeTab = tab, targetLibrarySection = if (tab == VeritasHomeTab.LIBRARY) com.veritas.reader.ui.screens.LibrarySection.MY_LIBRARY else null) }
     }
 
     fun clearTargetHomeTab() {
-        _uiState.update { it.copy(targetHomeTab = null) }
-    }
-
-    private fun synchronizeNavStack(old: ReaderUiState, next: ReaderUiState): ReaderUiState {
-        var newStack = next.navStack
-        val mappings = listOf(
-            VeritasScreen.TEXT_EDITOR to { state: ReaderUiState -> state.showTextEditor },
-            VeritasScreen.FILE_BROWSER to { state: ReaderUiState -> state.showFileBrowser },
-            VeritasScreen.PDF_IMPORT_TOOLS to { state: ReaderUiState -> state.showPdfImportTools },
-            VeritasScreen.READER_SETTINGS to { state: ReaderUiState -> state.showReaderSettings },
-            VeritasScreen.PRONUNCIATION_RULES to { state: ReaderUiState -> state.showPronunciationRules },
-            VeritasScreen.VOICE_STUDIO to { state: ReaderUiState -> state.showVoiceStudio },
-            VeritasScreen.NARRATION_STUDIO to { state: ReaderUiState -> state.showNarrationStudio },
-            VeritasScreen.AI_STUDY_TOOLS to { state: ReaderUiState -> state.showAiStudyTools },
-            VeritasScreen.AI_CENTER to { state: ReaderUiState -> state.showAiCenter },
-            VeritasScreen.ASK_AI_SETTINGS to { state: ReaderUiState -> state.showAskAiSettings },
-            VeritasScreen.TRANSLATION_TOOLS to { state: ReaderUiState -> state.showTranslationTools },
-            VeritasScreen.SLEEP_TIMER to { state: ReaderUiState -> state.showSleepTimerDialog },
-            VeritasScreen.READING_LISTS to { state: ReaderUiState -> state.showReadingLists },
-            VeritasScreen.READING_HISTORY to { state: ReaderUiState -> state.showReadingHistory },
-            VeritasScreen.DOCUMENT_NOTES to { state: ReaderUiState -> state.showDocumentNotes },
-            VeritasScreen.SETTINGS_HUB to { state: ReaderUiState -> state.showSettingsHub },
-            VeritasScreen.BACKUP_TOOLS to { state: ReaderUiState -> state.showBackupTools },
-            VeritasScreen.SYNC_CENTER to { state: ReaderUiState -> state.showSyncCenter },
-            VeritasScreen.APP_HEALTH to { state: ReaderUiState -> state.showAppHealth },
-            VeritasScreen.TUTORIAL to { state: ReaderUiState -> state.showTutorial },
-            VeritasScreen.CANVAS_VIEW to { state: ReaderUiState -> state.showCanvasView },
-            VeritasScreen.GENERAL_NOTES_EDITOR to { state: ReaderUiState -> state.showGeneralNotesEditor },
-            VeritasScreen.USER_MANUAL to { state: ReaderUiState -> state.showUserManual },
-            VeritasScreen.ACCESSIBILITY_SETTINGS to { state: ReaderUiState -> state.showAccessibilitySettings }
-        )
-        for ((screen, getter) in mappings) {
-            val wasVisible = getter(old)
-            val isVisible = getter(next)
-            if (wasVisible != isVisible) {
-                if (isVisible) {
-                    if (!newStack.contains(screen)) {
-                        newStack = newStack + screen
-                    }
-                } else {
-                    newStack = newStack.filter { it != screen }
-                }
-            }
-        }
-        return next.copy(navStack = newStack)
+        _uiState.update { it.copy(targetHomeTab = null, targetLibrarySection = null) }
     }
 
     fun navigateBack() {
@@ -958,28 +911,29 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             else -> {
                 updateState {
                     when (top) {
-                        VeritasScreen.FILE_BROWSER -> it.copy(showFileBrowser = false)
-                        VeritasScreen.PDF_IMPORT_TOOLS -> it.copy(showPdfImportTools = false)
-                        VeritasScreen.READER_SETTINGS -> it.copy(showReaderSettings = false)
-                        VeritasScreen.PRONUNCIATION_RULES -> it.copy(showPronunciationRules = false)
-                        VeritasScreen.VOICE_STUDIO -> it.copy(showVoiceStudio = false)
-                        VeritasScreen.NARRATION_STUDIO -> it.copy(showNarrationStudio = false)
-                        VeritasScreen.AI_STUDY_TOOLS -> it.copy(showAiStudyTools = false)
-                        VeritasScreen.AI_CENTER -> it.copy(showAiCenter = false)
-                        VeritasScreen.ASK_AI_SETTINGS -> it.copy(showAskAiSettings = false)
-                        VeritasScreen.TRANSLATION_TOOLS -> it.copy(showTranslationTools = false)
-                        VeritasScreen.SLEEP_TIMER -> it.copy(showSleepTimerDialog = false)
-                        VeritasScreen.READING_LISTS -> it.copy(showReadingLists = false)
-                        VeritasScreen.READING_HISTORY -> it.copy(showReadingHistory = false)
-                        VeritasScreen.DOCUMENT_NOTES -> it.copy(showDocumentNotes = false)
-                        VeritasScreen.SETTINGS_HUB -> it.copy(showSettingsHub = false)
-                        VeritasScreen.BACKUP_TOOLS -> it.copy(showBackupTools = false)
-                        VeritasScreen.SYNC_CENTER -> it.copy(showSyncCenter = false)
-                        VeritasScreen.APP_HEALTH -> it.copy(showAppHealth = false)
-                        VeritasScreen.CANVAS_VIEW -> it.copy(showCanvasView = false)
-                        VeritasScreen.GENERAL_NOTES_EDITOR -> it.copy(showGeneralNotesEditor = false)
-                        VeritasScreen.USER_MANUAL -> it.copy(showUserManual = false)
-                        VeritasScreen.ACCESSIBILITY_SETTINGS -> it.copy(showAccessibilitySettings = false)
+                        VeritasScreen.FILE_BROWSER -> it.withVisibility(VeritasScreen.FILE_BROWSER, false)
+                        VeritasScreen.PDF_IMPORT_TOOLS -> it.withVisibility(VeritasScreen.PDF_IMPORT_TOOLS, false)
+                        VeritasScreen.READER_SETTINGS -> it.withVisibility(VeritasScreen.READER_SETTINGS, false)
+                        VeritasScreen.PRONUNCIATION_RULES -> it.withVisibility(VeritasScreen.PRONUNCIATION_RULES, false)
+                        VeritasScreen.VOICE_STUDIO -> it.withVisibility(VeritasScreen.VOICE_STUDIO, false)
+                        VeritasScreen.NARRATION_STUDIO -> it.withVisibility(VeritasScreen.NARRATION_STUDIO, false)
+                        VeritasScreen.AI_STUDY_TOOLS -> it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false)
+                        VeritasScreen.AI_CENTER -> it.withVisibility(VeritasScreen.AI_CENTER, false)
+                        VeritasScreen.ASK_AI_SETTINGS -> it.withVisibility(VeritasScreen.ASK_AI_SETTINGS, false)
+                        VeritasScreen.TRANSLATION_TOOLS -> it.withVisibility(VeritasScreen.TRANSLATION_TOOLS, false)
+                        VeritasScreen.SLEEP_TIMER -> it.withVisibility(VeritasScreen.SLEEP_TIMER, false)
+                        VeritasScreen.READING_LISTS -> it.withVisibility(VeritasScreen.READING_LISTS, false)
+                        VeritasScreen.READING_HISTORY -> it.withVisibility(VeritasScreen.READING_HISTORY, false)
+                        VeritasScreen.DOCUMENT_NOTES -> it.withVisibility(VeritasScreen.DOCUMENT_NOTES, false)
+                        VeritasScreen.SETTINGS_HUB -> it.withVisibility(VeritasScreen.SETTINGS_HUB, false)
+                        VeritasScreen.BACKUP_TOOLS -> it.withVisibility(VeritasScreen.BACKUP_TOOLS, false)
+                        VeritasScreen.SYNC_CENTER -> it.withVisibility(VeritasScreen.SYNC_CENTER, false)
+                        VeritasScreen.APP_HEALTH -> it.withVisibility(VeritasScreen.APP_HEALTH, false)
+                        VeritasScreen.CANVAS_VIEW -> it.withVisibility(VeritasScreen.CANVAS_VIEW, false)
+                        VeritasScreen.GENERAL_NOTES_EDITOR -> it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, false)
+                        VeritasScreen.USER_MANUAL -> it.withVisibility(VeritasScreen.USER_MANUAL, false)
+                        VeritasScreen.ACCESSIBILITY_SETTINGS -> it.withVisibility(VeritasScreen.ACCESSIBILITY_SETTINGS, false)
+                        VeritasScreen.NOTES_SETTINGS -> it.withVisibility(VeritasScreen.NOTES_SETTINGS, false)
                     }
                 }
             }
@@ -989,7 +943,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     companion object {
         fun cleanVersionString(version: String): String {
-            var clean = version.trim().lowercase(java.util.Locale.getDefault())
+            var clean = version.trim().lowercase(Locale.getDefault())
             if (clean.startsWith("v_")) {
                 clean = clean.substring(2)
             } else if (clean.startsWith("v")) {
@@ -1036,7 +990,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
          */
         fun selectOptimalApkUrl(
             assets: org.json.JSONArray?,
-            supportedAbis: Array<String> = android.os.Build.SUPPORTED_ABIS
+            supportedAbis: Array<String> = Build.SUPPORTED_ABIS
         ): String {
             if (assets == null) return ""
             val apks = mutableListOf<Pair<String, String>>()

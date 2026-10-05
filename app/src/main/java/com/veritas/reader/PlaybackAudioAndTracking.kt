@@ -135,25 +135,10 @@ internal fun PlaybackService.updateCurrentSentenceBounds(charOffset: Int) {
         PlaybackStateStore.currentSentenceEnd = 0
         return
     }
-    val safeOffset = charOffset.coerceIn(0, text.length)
-    val sentenceStart = text
-        .lastIndexOfAny(charArrayOf('.', '!', '?', '\n'), (safeOffset - 1).coerceAtLeast(0))
-        .let { if (it < 0) 0 else (it + 1).coerceAtMost(text.length) }
-        .let { start ->
-            var adjusted = start
-            while (adjusted < text.length && text[adjusted].isWhitespace()) adjusted++
-            adjusted
-        }
-    val sentenceEnd = text
-        .indexOfAny(charArrayOf('.', '!', '?', '\n'), safeOffset)
-        .let { if (it < 0) text.length else (it + 1).coerceAtMost(text.length) }
-    if (sentenceEnd > sentenceStart) {
-        PlaybackStateStore.currentSentenceStart = sentenceStart
-        PlaybackStateStore.currentSentenceEnd = sentenceEnd
-    } else {
-        PlaybackStateStore.currentSentenceStart = safeOffset
-        PlaybackStateStore.currentSentenceEnd = safeOffset
-    }
+    // Playback chunks and the reader use the same sentence index. A second punctuation
+    // scan here used to stop at Dr./initials and disagree with the on-page highlight.
+    PlaybackStateStore.currentSentenceStart = 0
+    PlaybackStateStore.currentSentenceEnd = text.length
 }
 
 internal fun PlaybackService.clearQueuedChunk() {
@@ -161,6 +146,7 @@ internal fun PlaybackService.clearQueuedChunk() {
     queuedChunkIndex = -1
     queuedChunkSpeechText = ""
     queuedChunkBaseOffset = 0
+    queuedSpokenText = null
 }
 
 internal fun PlaybackService.clearResumePoint() {
@@ -168,6 +154,7 @@ internal fun PlaybackService.clearResumePoint() {
     activeChunkIndex = -1
     activeChunkSpeechText = ""
     activeChunkBaseOffset = 0
+    activeSpokenText = null
     spokenCharOffset = 0
     spokenWordCount = 0
     resumeDocumentId = null
@@ -182,4 +169,4 @@ internal fun PlaybackService.clearResumePoint() {
 }
 
 internal fun PlaybackService.leadingSilenceMsFor(index: Int): Long =
-    PlaybackService.leadingSilenceMs(chunkPageNumbers, index, chunks.getOrNull(index))
+    maxOf(PlaybackService.leadingSilenceMs(chunkPageNumbers, index, chunks.getOrNull(index)), literaryTurnPauseMs(index))

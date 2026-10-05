@@ -1,6 +1,7 @@
 package com.veritas.reader.ui.screens
 
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -30,6 +32,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
@@ -63,17 +71,25 @@ internal fun LibraryTopAndFilterBar(
     onSelectedGeneralNoteTagChange: (String) -> Unit,
     onOpenHomeSidebar: () -> Unit,
     onOpenSettingsHub: () -> Unit,
+    librarySection: LibrarySection = LibrarySection.MY_LIBRARY,
+    librarySelectedSection: LibrarySection = librarySection,
+    libraryTabProgress: () -> Float = { librarySelectedSection.ordinal.toFloat() },
+    isActiveHeader: Boolean = true,
+    onLibrarySectionChange: (LibrarySection) -> Unit = {},
+    onOpenNotesSettings: () -> Unit = onOpenSettingsHub,
+    headerActions: @Composable () -> Unit = {},
+    notesSearch: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
                 val scheme = MaterialTheme.colorScheme
                 val isDark = scheme.surface.luminance() < 0.5f
-                val topBarColor = if (isDark) scheme.surface else scheme.primaryContainer
-                val topBarContentColor = if (isDark) scheme.onSurface else scheme.onPrimaryContainer
+                val topBarColor = VeritasPackStyle.headerColor(scheme)
+                val topBarContentColor = scheme.onSurface
                 Surface(
                     color = topBarColor,
                     contentColor = topBarContentColor,
                     tonalElevation = if (isDark) 0.dp else 3.dp,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = modifier.fillMaxWidth().testTag("shared_home_header")
                 ) {
                     Box(
                         modifier = Modifier.fillMaxWidth(),
@@ -85,7 +101,7 @@ internal fun LibraryTopAndFilterBar(
                                 .fillMaxWidth()
                                 .statusBarsPadding()
                                 .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                            verticalArrangement = Arrangement.spacedBy(if (activeNavTab == VeritasHomeTab.LIBRARY) 0.dp else 6.dp)
                         ) {
                             when (activeNavTab) {
                                 VeritasHomeTab.HOME -> {
@@ -103,7 +119,7 @@ internal fun LibraryTopAndFilterBar(
                                                 contentPadding = PaddingValues(horizontal = 0.dp),
                                                 modifier = Modifier
                                                     .size(40.dp)
-                                                    .onGloballyPositioned { OnboardingController.updateBounds("insights_trigger", it) }
+                                                    .onGloballyPositioned { if (isActiveHeader) OnboardingController.updateBounds("insights_trigger", it) }
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Filled.Menu,
@@ -115,7 +131,7 @@ internal fun LibraryTopAndFilterBar(
                                         }
                                         IconButton(
                                             onClick = onOpenSettingsHub,
-                                            modifier = Modifier.onGloballyPositioned { OnboardingController.updateBounds("settings_trigger", it) }
+                                            modifier = Modifier.onGloballyPositioned { if (isActiveHeader) OnboardingController.updateBounds("settings_trigger", it) }
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Settings,
@@ -127,19 +143,21 @@ internal fun LibraryTopAndFilterBar(
                                 }
                                 VeritasHomeTab.LIBRARY -> {
                                     Row(
-                                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            "Your library",
+                                            "My Library",
+                                            modifier = Modifier.weight(1f),
                                             style = MaterialTheme.typography.titleLarge,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
+                                        headerActions()
                                         IconButton(
                                             onClick = onOpenSettingsHub,
-                                            modifier = Modifier.onGloballyPositioned { OnboardingController.updateBounds("settings_trigger", it) }
+                                            modifier = Modifier.onGloballyPositioned { if (isActiveHeader) OnboardingController.updateBounds("settings_trigger", it) }
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Settings,
@@ -148,6 +166,190 @@ internal fun LibraryTopAndFilterBar(
                                             )
                                         }
                                     }
+                                    Row(Modifier.fillMaxWidth()) {
+                                        LibrarySection.entries.forEach { section ->
+                                            androidx.compose.material3.Tab(selected = section == librarySelectedSection,
+                                                onClick = { onLibrarySectionChange(section) }, modifier = Modifier.weight(1f).height(40.dp),
+                                                selectedContentColor = MaterialTheme.colorScheme.primary,
+                                                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant) {
+                                                Text(section.label, fontWeight = FontWeight.SemiBold)
+                                            }
+                                        }
+                                    }
+                                    val indicatorColor = MaterialTheme.colorScheme.primary
+                                    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+                                    Canvas(Modifier.fillMaxWidth().height(3.dp).testTag("library_section_indicator")
+                                        .semantics { this[LibraryTabProgress] = libraryTabProgress() }) {
+                                        val progress = libraryTabProgress().coerceIn(0f, 1f)
+                                        drawRect(indicatorColor, Offset(size.width / 2f * (if (rtl) 1f - progress else progress), 0f), Size(size.width / 2f, size.height))
+                                    }
+                                }
+                                VeritasHomeTab.NOTES -> {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                "Notes & Annotations",
+                                                style = MaterialTheme.typography.titleLarge,
+                                                fontWeight = MaterialTheme.typography.titleLarge.fontWeight,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                                }
+                                    headerActions()
+                                    }
+                                    notesSearch()
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .horizontalScroll(rememberScrollState()),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        val noteFilterOptions = remember(uiState.generalNotes, uiState.allAnnotations) {
+                                            buildList {
+                                                add("All Notes")
+                                                if (uiState.generalNotes.any { it.pinned }) add("Pinned")
+                                                if (uiState.generalNotes.any { it.allAudioUrls.isNotEmpty() }) add("Voice Memos")
+                                                if (uiState.generalNotes.any { it.isChecklist }) add("Checklists")
+                                                if (uiState.generalNotes.any { it.reminderAt != null }) add("Reminders")
+                                                if (uiState.allAnnotations.isNotEmpty()) add("Highlights")
+                                            }
+                                        }
+                                        noteFilterOptions.forEach { option ->
+                                            val active = when (option) {
+                                                "All Notes" -> selectedGeneralNoteTag == "All"
+                                                "Pinned" -> selectedGeneralNoteTag == "Pinned"
+                                                "Voice Memos" -> selectedGeneralNoteTag == "Audio"
+                                                "Checklists" -> selectedGeneralNoteTag == "Checklists"
+                                                "Reminders" -> selectedGeneralNoteTag == "Reminders"
+                                                "Highlights" -> selectedGeneralNoteTag == "Highlights"
+                                                else -> selectedGeneralNoteTag == option
+                                            }
+                                            if (active) {
+                                                Button(
+                                                    onClick = {
+                                                        onSelectedGeneralNoteTagChange(when (option) {
+                                                            "All Notes" -> "All"
+                                                            "Pinned" -> "Pinned"
+                                                            "Voice Memos" -> "Audio"
+                                                            "Checklists" -> "Checklists"
+                                                            "Reminders" -> "Reminders"
+                                                            "Highlights" -> "Highlights"
+                                                            else -> option
+                                                        })
+                                                    },
+                                                    shape = VeritasPackStyle.chipShape(),
+                                                    colors = ButtonDefaults.buttonColors(
+                                                        containerColor = VeritasPackStyle.filterContainerColor(MaterialTheme.colorScheme),
+                                                        contentColor = VeritasPackStyle.onFilterContainerColor(MaterialTheme.colorScheme)
+                                                    ),
+                                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
+                                                ) {
+                                                    Text(option, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                                                }
+                                            } else {
+                                                OutlinedButton(
+                                                    onClick = {
+                                                        onSelectedGeneralNoteTagChange(when (option) {
+                                                            "All Notes" -> "All"
+                                                            "Pinned" -> "Pinned"
+                                                            "Voice Memos" -> "Audio"
+                                                            "Checklists" -> "Checklists"
+                                                            "Reminders" -> "Reminders"
+                                                            "Highlights" -> "Highlights"
+                                                            else -> option
+                                                        })
+                                                    },
+                                                    shape = VeritasPackStyle.chipShape(),
+                                                    border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
+                                                    colors = ButtonDefaults.outlinedButtonColors(
+                                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    ),
+                                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
+                                                ) {
+                                                    Text(option, style = MaterialTheme.typography.labelMedium)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                VeritasHomeTab.STUDY -> {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            "Study Hub",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Surface(
+                                            shape = RoundedCornerShape(50),
+                                            color = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                            ) {
+                                                Text("🔥", fontSize = 14.sp)
+                                                val streak = uiState.readerTrackerSnapshot.currentStreak
+                                                Text(
+                                                    text = if (streak > 0) "$streak-Day Streak" else "0-Day Streak",
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text("🔥", fontSize = 14.sp)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+}
+
+@Preview(showBackground = true)
+@Composable
+internal fun LibraryTopAndFilterBarPreview() {
+    MaterialTheme {
+        LibraryTopAndFilterBar(
+            activeNavTab = VeritasHomeTab.HOME,
+            documents = emptyList(),
+            queuedDocuments = emptyList(),
+            uiState = ReaderUiState(),
+            currentStreak = 3,
+            statusFilter = "All",
+            onStatusFilterChange = {},
+            sourceFilter = "All",
+            onSourceFilterChange = {},
+            collectionFilter = "All",
+            onCollectionFilterChange = {},
+            readingListFilter = "All",
+            onReadingListFilterChange = {},
+            selectedGeneralNoteTag = "All",
+            onSelectedGeneralNoteTagChange = {},
+            onOpenHomeSidebar = {},
+            onOpenSettingsHub = {}
+        )
+    }
+}
+
+@Composable
+internal fun LibraryDocumentFilters(
+    documents: List<SavedDocument>, queuedDocuments: List<SavedDocument>, uiState: ReaderUiState,
+    statusFilter: String, onStatusFilterChange: (String) -> Unit,
+    sourceFilter: String, onSourceFilterChange: (String) -> Unit,
+    collectionFilter: String, onCollectionFilterChange: (String) -> Unit,
+    readingListFilter: String, onReadingListFilterChange: (String) -> Unit
+) {
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -259,8 +461,8 @@ internal fun LibraryTopAndFilterBar(
                                                     onClick = chip.apply,
                                                     shape = VeritasPackStyle.chipShape(),
                                                     colors = ButtonDefaults.buttonColors(
-                                                        containerColor = MaterialTheme.colorScheme.primary,
-                                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                                        containerColor = VeritasPackStyle.filterContainerColor(MaterialTheme.colorScheme),
+                                                        contentColor = VeritasPackStyle.onFilterContainerColor(MaterialTheme.colorScheme)
                                                     ),
                                                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                 ) {
@@ -281,172 +483,5 @@ internal fun LibraryTopAndFilterBar(
                                             }
                                         }
                                     }
-                                }
-                                VeritasHomeTab.NOTES -> {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(
-                                                "Notes & Annotations",
-                                                style = MaterialTheme.typography.titleLarge,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            val totalNotesCount = remember(uiState.generalNotes) { uiState.generalNotes.size }
-                                            Text(
-                                                "$totalNotesCount note${if (totalNotesCount == 1) "" else "s"}",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                                            )
-                                        }
-                                        IconButton(onClick = onOpenSettingsHub) {
-                                            Icon(
-                                                imageVector = Icons.Filled.Settings,
-                                                contentDescription = "Settings",
-                                                tint = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        }
-                                    }
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .horizontalScroll(rememberScrollState()),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        val noteFilterOptions = remember(uiState.generalNotes, uiState.allAnnotations) {
-                                            buildList {
-                                                add("All Notes")
-                                                if (uiState.generalNotes.any { it.pinned }) add("Pinned")
-                                                if (uiState.generalNotes.any { it.allAudioUrls.isNotEmpty() }) add("Voice Memos")
-                                                if (uiState.generalNotes.any { it.isChecklist }) add("Checklists")
-                                                if (uiState.generalNotes.any { it.reminderAt != null }) add("Reminders")
-                                                if (uiState.allAnnotations.isNotEmpty()) add("Highlights")
-                                            }
-                                        }
-                                        noteFilterOptions.forEach { option ->
-                                            val active = when (option) {
-                                                "All Notes" -> selectedGeneralNoteTag == "All"
-                                                "Pinned" -> selectedGeneralNoteTag == "Pinned"
-                                                "Voice Memos" -> selectedGeneralNoteTag == "Audio"
-                                                "Checklists" -> selectedGeneralNoteTag == "Checklists"
-                                                "Reminders" -> selectedGeneralNoteTag == "Reminders"
-                                                "Highlights" -> selectedGeneralNoteTag == "Highlights"
-                                                else -> selectedGeneralNoteTag == option
-                                            }
-                                            if (active) {
-                                                Button(
-                                                    onClick = {
-                                                        onSelectedGeneralNoteTagChange(when (option) {
-                                                            "All Notes" -> "All"
-                                                            "Pinned" -> "Pinned"
-                                                            "Voice Memos" -> "Audio"
-                                                            "Checklists" -> "Checklists"
-                                                            "Reminders" -> "Reminders"
-                                                            "Highlights" -> "Highlights"
-                                                            else -> option
-                                                        })
-                                                    },
-                                                    shape = VeritasPackStyle.chipShape(),
-                                                    colors = ButtonDefaults.buttonColors(
-                                                        containerColor = MaterialTheme.colorScheme.primary,
-                                                        contentColor = MaterialTheme.colorScheme.onPrimary
-                                                    ),
-                                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
-                                                ) {
-                                                    Text(option, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                                                }
-                                            } else {
-                                                OutlinedButton(
-                                                    onClick = {
-                                                        onSelectedGeneralNoteTagChange(when (option) {
-                                                            "All Notes" -> "All"
-                                                            "Pinned" -> "Pinned"
-                                                            "Voice Memos" -> "Audio"
-                                                            "Checklists" -> "Checklists"
-                                                            "Reminders" -> "Reminders"
-                                                            "Highlights" -> "Highlights"
-                                                            else -> option
-                                                        })
-                                                    },
-                                                    shape = VeritasPackStyle.chipShape(),
-                                                    border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
-                                                    colors = ButtonDefaults.outlinedButtonColors(
-                                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                                    ),
-                                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
-                                                ) {
-                                                    Text(option, style = MaterialTheme.typography.labelMedium)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                VeritasHomeTab.STUDY -> {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            "Study Hub",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Surface(
-                                            shape = RoundedCornerShape(50),
-                                            color = MaterialTheme.colorScheme.primaryContainer,
-                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                            ) {
-                                                Text("🔥", fontSize = 14.sp)
-                                                val streak = uiState.readerTrackerSnapshot.currentStreak
-                                                Text(
-                                                    text = if (streak > 0) "$streak-Day Streak" else "0-Day Streak",
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                                Text("🔥", fontSize = 14.sp)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
 
-}
-
-@Preview(showBackground = true)
-@Composable
-internal fun LibraryTopAndFilterBarPreview() {
-    MaterialTheme {
-        LibraryTopAndFilterBar(
-            activeNavTab = VeritasHomeTab.HOME,
-            documents = emptyList(),
-            queuedDocuments = emptyList(),
-            uiState = ReaderUiState(),
-            currentStreak = 3,
-            statusFilter = "All",
-            onStatusFilterChange = {},
-            sourceFilter = "All",
-            onSourceFilterChange = {},
-            collectionFilter = "All",
-            onCollectionFilterChange = {},
-            readingListFilter = "All",
-            onReadingListFilterChange = {},
-            selectedGeneralNoteTag = "All",
-            onSelectedGeneralNoteTagChange = {},
-            onOpenHomeSidebar = {},
-            onOpenSettingsHub = {}
-        )
-    }
 }

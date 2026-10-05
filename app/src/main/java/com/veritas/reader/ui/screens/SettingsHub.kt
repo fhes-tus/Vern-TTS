@@ -76,14 +76,13 @@ import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.ResolvedVeritasFeature
 import com.veritas.reader.SavedDocument
 import com.veritas.reader.StorageBreakdown
-import com.veritas.reader.UnrestrictedBatteryDialog
 import com.veritas.reader.VeritasFeatureContext
 import com.veritas.reader.VeritasFeatureId
 import com.veritas.reader.VeritasFeatureRegistry
 import com.veritas.reader.VeritasFeatureSurface
 import com.veritas.reader.VeritasPackStyle
-import com.veritas.reader.isBatteryOptimizationIgnored
-import com.veritas.reader.requestIgnoreBatteryOptimizations
+import com.veritas.reader.openAppBatterySettings
+import com.veritas.reader.rememberBatteryOptimizationIgnored
 import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.OnboardingStep
 import com.veritas.reader.ui.ReaderUiState
@@ -133,7 +132,7 @@ fun SettingsHubDialog(
         settingsFeatures.requireResolvedFeature(id)
 
     var showAboutDialog by remember { mutableStateOf(false) }
-    var showBatteryDialog by remember { mutableStateOf(false) }
+    val batteryExempt = rememberBatteryOptimizationIgnored()
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -198,15 +197,9 @@ fun SettingsHubDialog(
                     ),
                     SettingsRowSpec(
                         "Background playback",
-                        if (isBatteryOptimizationIgnored(LocalContext.current)) "Battery optimization unrestricted (Optimal)" else "Battery optimized (Tap to enable unrestricted)",
+                        if (batteryExempt) "Battery exemption enabled · Tap to manage" else "Battery optimized · Tap to manage",
                         Icons.Outlined.PowerSettingsNew,
-                        {
-                            if (isBatteryOptimizationIgnored(context)) {
-                                requestIgnoreBatteryOptimizations(context)
-                            } else {
-                                showBatteryDialog = true
-                            }
-                        }
+                        { openAppBatterySettings(context) }
                     )
                 ))
 
@@ -388,12 +381,7 @@ fun SettingsHubDialog(
         )
     }
 
-    if (showBatteryDialog) {
-        UnrestrictedBatteryDialog(
-            onDismiss = { showBatteryDialog = false },
-            onOpenSettings = { requestIgnoreBatteryOptimizations(context) }
-        )
-    }
+
 }
 
 fun formatVeritasBytes(bytes: Long): String {

@@ -154,7 +154,7 @@ internal fun NoteGroupCard(
 
     val memoDuration = remember(group.audioPath, group.audioDurationSeconds) {
         if (group.audioDurationSeconds > 0) {
-            String.format(java.util.Locale.US, "%02d:%02d", group.audioDurationSeconds / 60, group.audioDurationSeconds % 60)
+            String.format(Locale.US, "%02d:%02d", group.audioDurationSeconds / 60, group.audioDurationSeconds % 60)
         } else if (!group.audioPath.isNullOrBlank()) {
             try {
                 val file = java.io.File(group.audioPath)
@@ -165,7 +165,7 @@ internal fun NoteGroupCard(
                     val durMs = durStr?.toLongOrNull() ?: 0L
                     val totalSec = durMs / 1000
                     retriever.release()
-                    String.format(java.util.Locale.US, "%02d:%02d", totalSec / 60, totalSec % 60)
+                    String.format(Locale.US, "%02d:%02d", totalSec / 60, totalSec % 60)
                 } else "0:00"
             } catch (_: Exception) {
                 "0:00"
@@ -188,7 +188,7 @@ internal fun NoteGroupCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
-            .animateContentSize(),
+            .animateContentSize(animationSpec = com.veritas.reader.ui.VeritasMotion.spatial()),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)

@@ -109,20 +109,23 @@ internal fun ReadingStatsDashboardDialog(
     val longestStreakDuration = (kotlin.math.abs(targetLongestStreak - prevLongestStreak) * 70).coerceIn(220, 650)
     val currentStreakAnimated by animateIntAsState(
         targetValue = targetCurrentStreak,
-        animationSpec = tween(durationMillis = currentStreakDuration, easing = FastOutSlowInEasing),
+        animationSpec = if (com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion) androidx.compose.animation.core.snap()
+            else tween(durationMillis = currentStreakDuration, easing = FastOutSlowInEasing),
         label = "currentStreakAnim"
     )
     val longestStreakAnimated by animateIntAsState(
         targetValue = targetLongestStreak,
-        animationSpec = tween(durationMillis = longestStreakDuration, easing = FastOutSlowInEasing),
+        animationSpec = if (com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion) androidx.compose.animation.core.snap()
+            else tween(durationMillis = longestStreakDuration, easing = FastOutSlowInEasing),
         label = "longestStreakAnim"
     )
     LaunchedEffect(targetCurrentStreak) { prevCurrentStreak = targetCurrentStreak }
     LaunchedEffect(targetLongestStreak) { prevLongestStreak = targetLongestStreak }
 
     // Pulsing/floating emoji transition
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val emojiScale by infiniteTransition.animateFloat(
+    val emojiScale = if (com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion) 1f else {
+        val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+        val scale by infiniteTransition.animateFloat(
         initialValue = 0.9f,
         targetValue = 1.15f,
         animationSpec = infiniteRepeatable(
@@ -130,7 +133,9 @@ internal fun ReadingStatsDashboardDialog(
             repeatMode = RepeatMode.Reverse
         ),
         label = "scale"
-    )
+        )
+        scale
+    }
 
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
@@ -356,7 +361,7 @@ internal fun ReadingStatsDashboardDialog(
                                             textAlign = TextAlign.Center
                                         )
                                         Surface(
-                                            shape = RoundedCornerShape(50),
+                                            shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                         ) {
                                             Text(
@@ -405,7 +410,7 @@ internal fun ReadingStatsDashboardDialog(
                                             textAlign = TextAlign.Center
                                         )
                                         Surface(
-                                            shape = RoundedCornerShape(50),
+                                            shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                             color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
                                         ) {
                                             Text(
@@ -501,7 +506,7 @@ internal fun ReadingStatsDashboardDialog(
                             )
                             if (snapshot.recentCompletions.isNotEmpty()) {
                                 Surface(
-                                    shape = RoundedCornerShape(12.dp),
+                                    shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                                     color = MaterialTheme.colorScheme.primaryContainer,
                                     modifier = Modifier.padding(start = 2.dp)
                                 ) {
@@ -604,7 +609,7 @@ internal fun ReadingStatsDashboardDialog(
                         .padding(16.dp)
                         .navigationBarsPadding()
                         .shadow(16.dp, RoundedCornerShape(24.dp)),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = com.veritas.reader.VeritasPackStyle.cardShape(),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                     ),
@@ -672,7 +677,7 @@ internal fun ReadingStatsDashboardDialog(
                                     onDismiss()
                                     OnboardingController.activeStep = OnboardingStep.NOTES_TAB_SPOTLIGHT
                                 },
-                                shape = RoundedCornerShape(50)
+                                shape = com.veritas.reader.VeritasPackStyle.chipShape()
                             ) {
                                 Text("Next", style = MaterialTheme.typography.labelMedium)
                                 Spacer(modifier = Modifier.width(4.dp))
@@ -764,7 +769,8 @@ internal fun animatedTrackerDuration(millis: Long): String {
     LaunchedEffect(goal) { target = goal }
     val animated by animateIntAsState(
         targetValue = target,
-        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+        animationSpec = if (com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion) androidx.compose.animation.core.snap()
+            else tween(durationMillis = 600, easing = FastOutSlowInEasing),
         label = "trackerDurationCountUp"
     )
     return formatTrackerDuration(animated.toLong() * 60_000L)

@@ -58,6 +58,7 @@ object PlaybackStateStore {
         }
     var rate by mutableFloatStateOf(1.0f)
     var pitch by mutableFloatStateOf(1.0f)
+    @Volatile internal var pendingVoiceSettings = false
     var queueCount by mutableIntStateOf(0)
     var autoPlayQueue by mutableStateOf(true)
     var currentSentenceStart by mutableIntStateOf(0)
@@ -177,7 +178,8 @@ fun buildReaderDocument(metadata: SavedDocument, rawText: String): ReaderDocumen
         sourceLabel = metadata.sourceLabel,
         rawText = rawText,
         sentences = model.sentences.map { it.text },
-        pageCount = model.pageCount
+        pageCount = model.pageCount,
+        partial = metadata.partial
     )
 }
 

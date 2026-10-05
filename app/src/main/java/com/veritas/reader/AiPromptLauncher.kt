@@ -30,6 +30,28 @@ enum class AiPromptType(val label: String) {
 }
 
 object AiPromptLauncher {
+    internal fun customPromptBody(instructions: String, passage: String = ""): String =
+        instructions.trim() + passage.trim().takeIf { it.isNotEmpty() }?.let { "\n\nPassage:\n$it" }.orEmpty()
+
+    fun launchCustomPrompt(context: Context, instructions: String, passage: String = "", settings: AskAiSettings? = null): Boolean {
+        if (instructions.isBlank()) return false
+        val body = customPromptBody(instructions, passage)
+        copyPromptToClipboard(context, body)
+        val preferred = if (settings?.assistantId == "chooser") null else preferredAiPackage(context, settings)
+        val share = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, body)
+            if (!preferred.isNullOrBlank()) setPackage(preferred)
+        }
+        return try {
+            context.startActivity(if (preferred.isNullOrBlank()) Intent.createChooser(share, "Send prompt to assistant") else share)
+            true
+        } catch (_: Exception) {
+            try { context.startActivity(Intent.createChooser(share.setPackage(null), "Send prompt to assistant")); true }
+            catch (_: Exception) { Toast.makeText(context, "Prompt copied. Open your assistant and paste it.", Toast.LENGTH_LONG).show(); false }
+        }
+    }
+
     fun getSelectedSentences(
         document: ReaderDocument,
         currentIndex: Int,

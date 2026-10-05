@@ -240,7 +240,7 @@ fun BooknotesDialog(
                 // General Note Voice Recording Bar
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
                 ) {
                     Row(
@@ -280,16 +280,14 @@ fun BooknotesDialog(
                             )
                             OutlinedButton(
                                 onClick = {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                                        androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED
-                                    ) {
+                                    if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                                         permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
                                     } else {
                                         isRecordingGeneral = true
                                         VoiceNoteRecorder.startRecording(context, document.id.orEmpty(), -1)
                                     }
                                 },
-                                shape = RoundedCornerShape(50)
+                                shape = com.veritas.reader.VeritasPackStyle.chipShape()
                             ) {
                                 Icon(Icons.Outlined.Mic, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
@@ -374,7 +372,7 @@ fun BooknotesDialog(
                                     ) {
                                         memoPaths.forEachIndexed { aIdx, aPath ->
                                             AssistChip(
-                                                onClick = { com.veritas.reader.VoiceNoteRecorder.playAudio(aPath) },
+                                                onClick = { VoiceNoteRecorder.playAudio(aPath) },
                                                 label = { Text(if (memoPaths.size > 1) "🎙️ Memo ${aIdx + 1}" else "🎙️ Voice Memo (${note.audioDurationSeconds}s)") },
                                                 leadingIcon = {
                                                     Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))

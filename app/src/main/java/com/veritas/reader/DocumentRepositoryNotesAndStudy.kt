@@ -93,8 +93,9 @@ fun DocumentRepository.upsertAnnotation(
     highlightColor: String? = null,
     selectionGroupId: String? = null,
     audioPath: String? = null,
-    audioDurationSeconds: Int = 0
-): List<ReaderAnnotation> {
+    audioDurationSeconds: Int = 0,
+    replaceAudio: Boolean = false
+): List<ReaderAnnotation> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val now = System.currentTimeMillis()
     val existing = loadAllAnnotations().toMutableList()
     val index = existing.indexOfFirst { it.documentId == documentId && it.chunkIndex == chunkIndex && it.type == type }
@@ -105,8 +106,8 @@ fun DocumentRepository.upsertAnnotation(
             updatedAt = now,
             highlightColor = highlightColor ?: old.highlightColor,
             selectionGroupId = selectionGroupId ?: old.selectionGroupId,
-            audioPath = audioPath ?: old.audioPath,
-            audioDurationSeconds = if (audioDurationSeconds > 0) audioDurationSeconds else old.audioDurationSeconds
+            audioPath = if (replaceAudio) audioPath else audioPath ?: old.audioPath,
+            audioDurationSeconds = if (replaceAudio) audioDurationSeconds else if (audioDurationSeconds > 0) audioDurationSeconds else old.audioDurationSeconds
         )
     } else {
         existing.add(
@@ -125,28 +126,28 @@ fun DocumentRepository.upsertAnnotation(
         )
     }
     saveAllAnnotations(existing)
-    return loadAnnotations(documentId)
+    return@synchronized loadAnnotations(documentId)
 }
 
-fun DocumentRepository.removeAnnotation(documentId: String, chunkIndex: Int, type: AnnotationType): List<ReaderAnnotation> {
+fun DocumentRepository.removeAnnotation(documentId: String, chunkIndex: Int, type: AnnotationType): List<ReaderAnnotation> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     saveAllAnnotations(loadAllAnnotations().filterNot {
         it.documentId == documentId && it.chunkIndex == chunkIndex && it.type == type
     })
-    return loadAnnotations(documentId)
+    return@synchronized loadAnnotations(documentId)
 }
 
-fun DocumentRepository.removeAnnotations(stableKeys: Set<String>): List<ReaderAnnotation> {
-    if (stableKeys.isEmpty()) return loadAllAnnotations()
+fun DocumentRepository.removeAnnotations(stableKeys: Set<String>): List<ReaderAnnotation> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    if (stableKeys.isEmpty()) return@synchronized loadAllAnnotations()
     saveAllAnnotations(loadAllAnnotations().filterNot { it.stableKey in stableKeys })
-    return loadAllAnnotations()
+    return@synchronized loadAllAnnotations()
 }
 
-fun DocumentRepository.toggleAnnotation(documentId: String, chunkIndex: Int, type: AnnotationType): List<ReaderAnnotation> {
+fun DocumentRepository.toggleAnnotation(documentId: String, chunkIndex: Int, type: AnnotationType): List<ReaderAnnotation> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val exists = loadAllAnnotations().any { it.documentId == documentId && it.chunkIndex == chunkIndex && it.type == type }
-    return if (exists) removeAnnotation(documentId, chunkIndex, type) else upsertAnnotation(documentId, chunkIndex, type)
+    return@synchronized if (exists) removeAnnotation(documentId, chunkIndex, type) else upsertAnnotation(documentId, chunkIndex, type)
 }
 
-fun DocumentRepository.deleteAnnotationsForDocument(documentId: String) {
+fun DocumentRepository.deleteAnnotationsForDocument(documentId: String): Unit = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     saveAllAnnotations(loadAllAnnotations().filterNot { it.documentId == documentId })
 }
 
@@ -156,8 +157,8 @@ fun DocumentRepository.loadDocumentNote(documentId: String): String {
 
 fun DocumentRepository.loadAllDocumentNotes(): Map<String, String> = loadDocumentNotes()
 
-fun DocumentRepository.saveDocumentNote(documentId: String, note: String): String {
-    if (findDocument(documentId) == null) return ""
+fun DocumentRepository.saveDocumentNote(documentId: String, note: String): String = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    if (findDocument(documentId) == null) return@synchronized ""
     val updated = loadDocumentNotes().toMutableMap()
     val cleanNote = note.trim()
     if (cleanNote.isBlank()) {
@@ -166,17 +167,17 @@ fun DocumentRepository.saveDocumentNote(documentId: String, note: String): Strin
         updated[documentId] = cleanNote
     }
     saveDocumentNotes(updated)
-    return loadDocumentNote(documentId)
+    return@synchronized loadDocumentNote(documentId)
 }
 
-fun DocumentRepository.deleteDocumentNote(documentId: String) {
+fun DocumentRepository.deleteDocumentNote(documentId: String): Unit = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     saveDocumentNotes(loadDocumentNotes().filterKeys { it != documentId })
 }
 
-fun DocumentRepository.deleteDocumentNotes(documentIds: Set<String>): Map<String, String> {
-    if (documentIds.isEmpty()) return loadDocumentNotes()
+fun DocumentRepository.deleteDocumentNotes(documentIds: Set<String>): Map<String, String> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    if (documentIds.isEmpty()) return@synchronized loadDocumentNotes()
     saveDocumentNotes(loadDocumentNotes().filterKeys { it !in documentIds })
-    return loadDocumentNotes()
+    return@synchronized loadDocumentNotes()
 }
 
 fun DocumentRepository.loadDocumentNoteAudio(documentId: String): List<Pair<String, Int>> {
@@ -216,71 +217,37 @@ fun DocumentRepository.loadPronunciationRules(): List<PronunciationRule> {
     return rules.sortedByDescending { it.createdAt }
 }
 
-fun DocumentRepository.addPronunciationRule(find: String, replaceWith: String): List<PronunciationRule> {
-    val cleanFind = find.trim()
-    if (cleanFind.isBlank()) return loadPronunciationRules()
-    val cleanReplace = replaceWith.trim()
-    val rule = PronunciationRule(
-        id = UUID.randomUUID().toString(),
-        find = cleanFind,
-        replaceWith = cleanReplace,
-        enabled = true,
-        createdAt = System.currentTimeMillis()
-    )
-    savePronunciationRules(listOf(rule) + loadPronunciationRules())
-    return loadPronunciationRules()
+fun DocumentRepository.addPronunciationRule(find: String, replaceWith: String): List<PronunciationRule> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val cleanFind = find.trim().take(120)
+    if (cleanFind.isBlank()) return@synchronized loadPronunciationRules()
+    val current = loadPronunciationRules()
+    val existing = current.firstOrNull { it.find.equals(cleanFind, ignoreCase = true) }
+    val rule = existing?.copy(replaceWith = replaceWith.trim().take(120), enabled = true)
+        ?: PronunciationRule(UUID.randomUUID().toString(), cleanFind, replaceWith.trim().take(120), true, System.currentTimeMillis())
+    savePronunciationRules(listOf(rule) + current.filterNot { it.find.equals(cleanFind, ignoreCase = true) })
+    loadPronunciationRules()
 }
 
-fun DocumentRepository.removePronunciationRule(ruleId: String): List<PronunciationRule> {
+fun DocumentRepository.removePronunciationRule(ruleId: String): List<PronunciationRule> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     savePronunciationRules(loadPronunciationRules().filterNot { it.id == ruleId })
-    return loadPronunciationRules()
+    loadPronunciationRules()
 }
 
-fun DocumentRepository.togglePronunciationRule(ruleId: String): List<PronunciationRule> {
-    savePronunciationRules(loadPronunciationRules().map { rule ->
-        if (rule.id == ruleId) rule.copy(enabled = !rule.enabled) else rule
-    })
-    return loadPronunciationRules()
+fun DocumentRepository.togglePronunciationRule(ruleId: String): List<PronunciationRule> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    savePronunciationRules(loadPronunciationRules().map { if (it.id == ruleId) it.copy(enabled = !it.enabled) else it })
+    loadPronunciationRules()
 }
 
-fun DocumentRepository.applyPronunciationRules(text: String): String {
-    val rules = compiledPronunciationRules()
-    if (rules.isEmpty()) return text
-    var output = text
-    rules.forEach { rule ->
-        output = rule.regex.replace(output) { matchResult ->
-            val matchedText = matchResult.value
-            val replacement = rule.replaceWith
-            when {
-                replacement.isEmpty() -> ""
-                matchedText.all { it.isUpperCase() } -> replacement.uppercase()
-                matchedText.firstOrNull()?.isUpperCase() == true -> {
-                    replacement.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-                }
-                else -> replacement
-            }
-        }
-    }
-    return output
-}
+fun DocumentRepository.applyPronunciationRules(text: String): String =
+    PronunciationRulesEngine.applyCompiled(text, compiledPronunciationRules())
 
-internal fun DocumentRepository.compiledPronunciationRules(): List<DocumentRepository.CompiledPronunciationRule> {
+internal fun DocumentRepository.compiledPronunciationRules(): List<DocumentRepository.CompiledPronunciationRule> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val raw = prefs.getString(DocumentRepository.KEY_PRONUNCIATION_RULES, "[]") ?: "[]"
-    if (raw == pronunciationRulesRaw) return compiledPronunciationRules
-    val compiled = loadPronunciationRules()
-        .filter { it.enabled && it.find.isNotBlank() }
-        .map { rule ->
-            val escapedFind = Regex.escape(rule.find)
-            val startsWithWordChar = rule.find.firstOrNull()?.let { it.isLetterOrDigit() || it == '_' } == true
-            val endsWithWordChar = rule.find.lastOrNull()?.let { it.isLetterOrDigit() || it == '_' } == true
-            val prefix = if (startsWithWordChar) "\\b" else ""
-            val suffix = if (endsWithWordChar) "\\b" else ""
-            val pattern = "$prefix$escapedFind$suffix"
-            DocumentRepository.CompiledPronunciationRule(Regex(pattern, RegexOption.IGNORE_CASE), rule.replaceWith)
-        }
+    if (raw == pronunciationRulesRaw) return@synchronized compiledPronunciationRules
+    val compiled = PronunciationRulesEngine.compile(loadPronunciationRules())
     pronunciationRulesRaw = raw
     compiledPronunciationRules = compiled
-    return compiled
+    compiled
 }
 
 internal fun DocumentRepository.savePronunciationRules(rules: List<PronunciationRule>) {
@@ -290,6 +257,10 @@ internal fun DocumentRepository.savePronunciationRules(rules: List<Pronunciation
 }
 
 fun DocumentRepository.loadGeneralNotes(): List<GeneralNote> {
+    return loadStoredGeneralNotes().filter { it.deletedAt == null }.sortedByDescending { it.updatedAt }
+}
+
+private fun DocumentRepository.loadStoredGeneralNotes(): List<GeneralNote> {
     val array = readResilientJsonArray("general_notes")
     val notes = mutableListOf<GeneralNote>()
     for (i in 0 until array.length()) {
@@ -297,17 +268,175 @@ fun DocumentRepository.loadGeneralNotes(): List<GeneralNote> {
         val note = runCatching { GeneralNote.fromJson(item) }.getOrNull() ?: continue
         notes.add(note)
     }
-    return notes.sortedByDescending { it.updatedAt }
+    return notes
 }
 
-fun DocumentRepository.saveGeneralNotes(notes: List<GeneralNote>) {
+fun DocumentRepository.loadTrashedGeneralNotes(): List<GeneralNote> =
+    loadStoredGeneralNotes().filter { it.deletedAt != null }.sortedByDescending { it.deletedAt }
+
+fun DocumentRepository.saveGeneralNotes(notes: List<GeneralNote>) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val array = JSONArray()
-    notes.forEach { array.put(it.toJson()) }
-    commitResilientJson("general_notes", array.toString())
+    val preservedTrash = loadStoredGeneralNotes().filter { it.deletedAt != null }
+    (notes.filter { it.deletedAt == null } + notes.filter { it.deletedAt != null } + preservedTrash)
+        .distinctBy { it.id }.forEach { array.put(it.toJson()) }
+    val previous = prefs.getString("general_notes", null)
+    val editor = prefs.edit().putString("general_notes", array.toString())
+    if (previous != null) editor.putString("general_notes__bak", previous)
+    check(editor.commit()) { "Unable to persist notes" }
     updateVeritasWidgets(appContext)
 }
 
-fun DocumentRepository.loadAllAnnotations(): List<ReaderAnnotation> {
+/** Read and publish together so simultaneous dictionary responses retain both entries. */
+fun DocumentRepository.mutateGeneralNotes(transform: (List<GeneralNote>) -> List<GeneralNote>): List<GeneralNote> =
+    synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+        val preservedTrash = loadStoredGeneralNotes().filter { it.deletedAt != null }
+        saveGeneralNotes(transform(loadGeneralNotes()) + preservedTrash)
+        loadGeneralNotes()
+    }
+
+private fun DocumentRepository.mutateStoredGeneralNotes(transform: (List<GeneralNote>) -> List<GeneralNote>) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val all = loadStoredGeneralNotes()
+    val next = transform(all)
+    val array = JSONArray().also { out -> next.distinctBy { it.id }.forEach { out.put(it.toJson()) } }
+    val previous = prefs.getString("general_notes", null)
+    val editor = prefs.edit().putString("general_notes", array.toString())
+    if (previous != null) editor.putString("general_notes__bak", previous)
+    check(editor.commit()) { "Unable to persist notes" }
+    updateVeritasWidgets(appContext)
+}
+
+/** Restore owns the complete active/trash snapshot; normal saves preserve Trash. */
+internal fun DocumentRepository.replaceStoredGeneralNotes(notes: List<GeneralNote>) =
+    mutateStoredGeneralNotes { notes }
+
+fun DocumentRepository.moveGeneralNoteToTrash(noteId: String): List<GeneralNote> {
+    val now = System.currentTimeMillis()
+    mutateStoredGeneralNotes { all -> all.map { if (it.id == noteId && it.deletedAt == null) it.copy(deletedAt = now) else it } }
+    return loadGeneralNotes()
+}
+
+fun DocumentRepository.restoreGeneralNote(noteId: String): List<GeneralNote> {
+    mutateStoredGeneralNotes { all -> all.map { if (it.id == noteId) it.copy(deletedAt = null, updatedAt = System.currentTimeMillis()) else it } }
+    return loadGeneralNotes()
+}
+
+fun DocumentRepository.permanentlyDeleteTrashedNote(noteId: String) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    if (loadStoredGeneralNotes().none { it.id == noteId && it.deletedAt != null }) return@synchronized
+    mutateStoredGeneralNotes { all -> all.filterNot { it.id == noteId && it.deletedAt != null } }
+    deleteNoteRevisions(noteId)
+}
+
+fun DocumentRepository.loadNoteNotebooks(): List<NoteNotebook> {
+    val array = readResilientJsonArray("general_note_notebooks")
+    return (0 until array.length()).mapNotNull { i -> array.optJSONObject(i)?.let { runCatching { NoteNotebook.fromJson(it) }.getOrNull() } }
+        .filter { it.id.isNotBlank() && it.name.isNotBlank() }.sortedBy { it.name.lowercase() }
+}
+
+fun DocumentRepository.saveNoteNotebooks(notebooks: List<NoteNotebook>) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val array = JSONArray().also { out -> notebooks.distinctBy { it.id }.forEach { out.put(it.toJson()) } }
+    check(prefs.edit().putString("general_note_notebooks", array.toString()).commit()) { "Unable to persist labels" }
+}
+
+fun DocumentRepository.renameNoteNotebook(notebookId: String, newName: String): List<NoteNotebook> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val clean = newName.trim().take(60)
+    require(clean.isNotBlank()) { "Enter a label name." }
+    val now = System.currentTimeMillis()
+    val current = loadNoteNotebooks()
+    require(current.none { it.id != notebookId && it.name.equals(clean, ignoreCase = true) }) { "A label with this name already exists." }
+    val renamed = current.map { if (it.id == notebookId) it.copy(name = clean, updatedAt = now) else it }
+    saveNoteNotebooks(renamed)
+    renamed
+}
+
+fun DocumentRepository.createNoteNotebook(name: String): List<NoteNotebook> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val clean = name.trim().take(60)
+    require(clean.isNotBlank()) { "Enter a label name." }
+    val current = loadNoteNotebooks()
+    require(current.none { it.name.equals(clean, ignoreCase = true) }) { "A label with this name already exists." }
+    saveNoteNotebooks(current + NoteNotebook(java.util.UUID.randomUUID().toString(), clean, System.currentTimeMillis()))
+    loadNoteNotebooks()
+}
+
+fun DocumentRepository.setGeneralNoteLabels(noteId: String, labelIds: List<String>): List<GeneralNote> =
+    synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+        val available = loadNoteNotebooks().map { it.id }.toSet()
+        require(labelIds.all { it in available }) { "A selected label no longer exists." }
+        mutateGeneralNotes { notes -> notes.map { if (it.id == noteId) it.withLabels(labelIds) else it } }
+    }
+
+// Compatibility for callers restoring an older single-notebook assignment.
+fun DocumentRepository.moveGeneralNoteToNotebook(noteId: String, notebookId: String?): List<GeneralNote> =
+    setGeneralNoteLabels(noteId, listOfNotNull(notebookId))
+
+fun DocumentRepository.deleteNoteNotebook(notebookId: String) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    // One commit removes the notebook and its assignments, including notes currently in Trash.
+    val notebooks = JSONArray().also { out -> loadNoteNotebooks().filterNot { it.id == notebookId }.forEach { out.put(it.toJson()) } }
+    val notes = JSONArray().also { out -> loadStoredGeneralNotes().forEach {
+        out.put((if (notebookId in it.allLabelIds) it.withLabels(it.allLabelIds - notebookId) else it).toJson())
+    } }
+    val editor = prefs.edit().putString("general_note_notebooks", notebooks.toString()).putString("general_notes", notes.toString())
+    prefs.getString("general_notes", null)?.let { editor.putString("general_notes__bak", it) }
+    check(editor.commit()) { "Unable to delete label" }
+    updateVeritasWidgets(appContext)
+}
+
+fun DocumentRepository.loadNoteRevisions(noteId: String): List<NoteRevision> {
+    val array = readResilientJsonArray("general_note_revisions")
+    return (0 until array.length()).mapNotNull { i ->
+        val item = array.optJSONObject(i) ?: return@mapNotNull null
+        if (item.optString("noteId") != noteId) return@mapNotNull null
+        val snapshot = item.optJSONObject("snapshot")?.let { runCatching { GeneralNote.fromJson(it) }.getOrNull() } ?: return@mapNotNull null
+        NoteRevision(noteId, item.optLong("savedAt"), snapshot)
+    }.sortedByDescending { it.savedAt }
+}
+
+fun DocumentRepository.loadAllNoteRevisions(): List<NoteRevision> {
+    val array = readResilientJsonArray("general_note_revisions")
+    return (0 until array.length()).mapNotNull { i ->
+        val item = array.optJSONObject(i) ?: return@mapNotNull null
+        val id = item.optString("noteId")
+        val snapshot = item.optJSONObject("snapshot")?.let { runCatching { GeneralNote.fromJson(it) }.getOrNull() } ?: return@mapNotNull null
+        if (id.isBlank()) null else NoteRevision(id, item.optLong("savedAt"), snapshot)
+    }.sortedByDescending { it.savedAt }
+}
+
+fun DocumentRepository.saveNoteRevisions(revisions: List<NoteRevision>) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val array = JSONArray()
+    revisions.filter { it.noteId.isNotBlank() && it.snapshot.id == it.noteId }
+        .sortedByDescending { it.savedAt }.groupBy { it.noteId }.values.flatMap { it.take(30) }
+        .sortedByDescending { it.savedAt }.take(200).forEach { revision ->
+        array.put(JSONObject().put("noteId", revision.noteId).put("savedAt", revision.savedAt).put("snapshot", revision.snapshot.toJson()))
+    }
+    check(prefs.edit().putString("general_note_revisions", array.toString()).commit()) { "Unable to persist note revisions" }
+}
+
+fun DocumentRepository.deleteNoteRevisions(noteId: String) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val retained = loadAllNoteRevisions().filterNot { it.noteId == noteId }
+    saveNoteRevisions(retained)
+}
+
+fun DocumentRepository.archiveGeneralNoteRevision(note: GeneralNote) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val existing = loadAllNoteRevisions()
+    val latest = existing.firstOrNull { it.noteId == note.id }
+    if (latest?.snapshot == note) return@synchronized
+    // Always retain newest first; reversing an already reversed array discarded recent versions.
+    saveNoteRevisions(listOf(NoteRevision(note.id, System.currentTimeMillis(), note)) + existing)
+}
+
+fun DocumentRepository.restoreNoteRevision(revision: NoteRevision): List<GeneralNote> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val current = loadGeneralNotes().firstOrNull { it.id == revision.noteId }
+        ?: error("This note is no longer available. Restore it from Trash first.")
+    require(revision.snapshot.id == revision.noteId) { "This revision does not belong to the note." }
+    archiveGeneralNoteRevision(current)
+    mutateGeneralNotes { notes ->
+        notes.map { if (it.id == revision.noteId) revision.snapshot.copy(
+            id = it.id, createdAt = it.createdAt, updatedAt = System.currentTimeMillis(),
+            notebookId = null, labelIds = it.allLabelIds, pinned = it.pinned, deletedAt = null
+        ) else it }
+    }
+}
+
+fun DocumentRepository.loadAllAnnotations(): List<ReaderAnnotation> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val existingIds = loadDocuments().map { it.id }.toSet()
     val dbList = runCatching { dbHelper.getAllAnnotations() }.getOrDefault(emptyList())
     val sourceList = if (dbList.isEmpty()) {
@@ -337,7 +466,7 @@ fun DocumentRepository.loadAllAnnotations(): List<ReaderAnnotation> {
         }
     }
     if (changed || annotations.size != sourceList.size) saveAllAnnotations(annotations)
-    return annotations
+    return@synchronized annotations
 }
 
 internal fun DocumentRepository.loadAllAnnotationsFromPrefsRaw(): List<ReaderAnnotation> {
@@ -360,8 +489,8 @@ internal fun DocumentRepository.loadAllAnnotationsFromPrefsRaw(): List<ReaderAnn
     return annotations
 }
 
-fun DocumentRepository.saveAllAnnotations(annotations: List<ReaderAnnotation>) {
-    runCatching { dbHelper.replaceAllAnnotations(annotations) }
+fun DocumentRepository.saveAllAnnotations(annotations: List<ReaderAnnotation>): Unit = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    dbHelper.replaceAllAnnotations(annotations)
     val array = JSONArray()
     annotations.sortedWith(compareBy<ReaderAnnotation> { it.documentId }.thenBy { it.chunkIndex }.thenBy { it.type.name })
         .forEach { array.put(it.toJson()) }
@@ -409,7 +538,7 @@ internal fun DocumentRepository.loadAllFlashcardsFromPrefsRaw(): List<FlashcardP
 }
 
 fun DocumentRepository.saveAllFlashcards(list: List<FlashcardProgress>) {
-    runCatching { dbHelper.replaceAllFlashcards(list) }
+    dbHelper.replaceAllFlashcards(list)
     val array = JSONArray()
     list.forEach { array.put(it.toJson()) }
     prefs.edit { putString("study_flashcards", array.toString()) }
@@ -428,19 +557,19 @@ fun DocumentRepository.loadFlashcardSets(): List<FlashcardSet> {
         }
 }
 
-fun DocumentRepository.renameFlashcardSet(setId: String, newName: String): List<FlashcardProgress> {
+fun DocumentRepository.renameFlashcardSet(setId: String, newName: String): List<FlashcardProgress> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val clean = newName.trim().ifBlank { "Untitled set" }
     val updated = loadAllFlashcards().map {
         if (it.setId == setId) it.copy(setName = clean) else it
     }
     saveAllFlashcards(updated)
-    return updated
+    updated
 }
 
-fun DocumentRepository.deleteFlashcardSet(setId: String): List<FlashcardProgress> {
+fun DocumentRepository.deleteFlashcardSet(setId: String): List<FlashcardProgress> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val remaining = loadAllFlashcards().filterNot { it.setId == setId }
     saveAllFlashcards(remaining)
-    return remaining
+    remaining
 }
 
 fun DocumentRepository.loadAllQuizzes(): List<QuizSet> {
@@ -462,17 +591,20 @@ fun DocumentRepository.saveAllQuizzes(list: List<QuizSet>) {
     prefs.edit { putString("study_quizzes", array.toString()) }
 }
 
-fun DocumentRepository.saveQuiz(quiz: QuizSet): List<QuizSet> {
-    val current = loadAllQuizzes().filterNot { it.id == quiz.id }.toMutableList()
-    current.add(0, quiz)
+fun DocumentRepository.saveQuiz(quiz: QuizSet): List<QuizSet> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val all = loadAllQuizzes()
+    val previous = all.firstOrNull { it.id == quiz.id }
+    val current = all.filterNot { it.id == quiz.id }.toMutableList()
+    val saved = if (previous?.questions == quiz.questions) quiz.copy(bestScore = maxOf(previous.bestScore, quiz.bestScore)) else quiz
+    current.add(0, saved)
     saveAllQuizzes(current)
-    return current
+    current
 }
 
-fun DocumentRepository.deleteQuiz(quizId: String): List<QuizSet> {
+fun DocumentRepository.deleteQuiz(quizId: String): List<QuizSet> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val remaining = loadAllQuizzes().filterNot { it.id == quizId }
     saveAllQuizzes(remaining)
-    return remaining
+    remaining
 }
 
 internal fun DocumentRepository.loadDocumentNotes(): Map<String, String> {
@@ -503,3 +635,14 @@ internal fun DocumentRepository.saveDocumentNotes(notes: Map<String, String>) {
     }
     prefs.edit { putString(DocumentRepository.KEY_DOCUMENT_NOTES, obj.toString()) }
 }
+
+fun DocumentRepository.mutateAnnotations(transform: (List<ReaderAnnotation>) -> List<ReaderAnnotation>): List<ReaderAnnotation> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    saveAllAnnotations(transform(loadAllAnnotations()))
+    loadAllAnnotations()
+}
+
+internal fun DocumentRepository.mutateStudyFlashcards(transform: (List<FlashcardProgress>) -> List<FlashcardProgress>): List<FlashcardProgress> =
+    synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) { transform(loadAllFlashcards()).also(::saveAllFlashcards) }
+
+internal fun DocumentRepository.mutateStudyQuizzes(transform: (List<QuizSet>) -> List<QuizSet>): List<QuizSet> =
+    synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) { transform(loadAllQuizzes()).also(::saveAllQuizzes) }

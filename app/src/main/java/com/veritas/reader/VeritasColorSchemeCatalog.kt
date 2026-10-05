@@ -10,7 +10,14 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 internal fun veritasColorScheme(themeId: String, context: Context): ColorScheme {
-    return when (VeritasThemeCatalog.normalizeThemeId(themeId)) {
+    val isSystemDark = try {
+        (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+    } catch (_: Exception) {
+        false
+    }
+    val concreteId = VeritasThemeCatalog.resolveConcreteThemeId(themeId, isSystemDark)
+
+    return when (concreteId) {
         "light" -> lightColorScheme(
             primary = Color(0xFFC07318),          // Rich Darker Amber Gold
             onPrimary = Color.White,
@@ -247,59 +254,33 @@ internal fun veritasColorScheme(themeId: String, context: Context): ColorScheme 
             outlineVariant = Color(0xFF242424)
         )
 
-        "blue_high_contrast" -> darkColorScheme(
-            primary = Color(0xFFBDE9FF),
-            onPrimary = Color(0xFF001E30),
-            primaryContainer = Color(0xFF00517A),
-            onPrimaryContainer = Color(0xFFE9F7FF),
-            secondary = Color(0xFFFFF176),
-            secondaryContainer = Color(0xFF4A4500),
-            onSecondaryContainer = Color(0xFFFFFBD0),
-            tertiary = Color(0xFFFFFFFF),
-            tertiaryContainer = Color(0xFF263B67),
-            onTertiaryContainer = Color(0xFFE0ECFF),
-            background = Color(0xFF001B3A),
-            onBackground = Color(0xFFFFFFFF),
-            surface = Color(0xFF002857),
-            onSurface = Color(0xFFFFFFFF),
-            surfaceVariant = Color(0xFF003B7A),
-            surfaceContainerLowest = Color(0xFF00142C),
-            surfaceContainerLow = Color(0xFF001E40),
-            surfaceContainer = Color(0xFF002857),
-            surfaceContainerHigh = Color(0xFF00336E),
-            surfaceContainerHighest = Color(0xFF003F88),
-            onSurfaceVariant = Color(0xFFD9E9FF),
-            outline = Color(0xFF4B7BB0),
-            outlineVariant = Color(0xFF003B7A)
+        "github_light", "one_light" -> lightColorScheme(
+            primary = Color(0xFF4078F2),          // Atom / One Light Blue
+            onPrimary = Color.White,
+            primaryContainer = Color(0xFFE5EDFF),
+            onPrimaryContainer = Color(0xFF0D328C),
+            secondary = Color(0xFF50A14F),        // One Light Meadow Green
+            secondaryContainer = Color(0xFFE6F4E6),
+            onSecondaryContainer = Color(0xFF194D18),
+            tertiary = Color(0xFFA626A4),         // One Light Mulberry
+            tertiaryContainer = Color(0xFFFCEBFC),
+            onTertiaryContainer = Color(0xFF4E074D),
+            background = Color(0xFFFAFAFA),       // One Light Warm Platinum
+            onBackground = Color(0xFF383A42),     // One Light Dark Charcoal
+            surface = Color(0xFFFFFFFF),
+            onSurface = Color(0xFF383A42),
+            surfaceVariant = Color(0xFFEAEAEB),
+            surfaceContainerLowest = Color(0xFFFFFFFF),
+            surfaceContainerLow = Color(0xFFF7F7F8),
+            surfaceContainer = Color(0xFFF0F0F1),
+            surfaceContainerHigh = Color(0xFFE5E5E6),
+            surfaceContainerHighest = Color(0xFFDCDDDE),
+            onSurfaceVariant = Color(0xFF696C77), // One Light Secondary Muted
+            outline = Color(0xFFBDC0C4),
+            outlineVariant = Color(0xFFE5E5E6)
         )
 
-        "one_dark_pro" -> darkColorScheme(
-            primary = Color(0xFF61AFEF),
-            onPrimary = Color(0xFF21252B),
-            primaryContainer = Color(0xFF1D222A),
-            onPrimaryContainer = Color(0xFF61AFEF),
-            secondary = Color(0xFF98C379),
-            secondaryContainer = Color(0xFF21252B),
-            onSecondaryContainer = Color(0xFF98C379),
-            tertiary = Color(0xFFC678DD),
-            tertiaryContainer = Color(0xFF282C34),
-            onTertiaryContainer = Color(0xFFECCBFF),
-            background = Color(0xFF21252B),
-            onBackground = Color(0xFFE5E9F0),
-            surface = Color(0xFF282C34),
-            onSurface = Color(0xFFE5E9F0),        // Lighter high contrast text
-            surfaceVariant = Color(0xFF353B45),
-            surfaceContainerLowest = Color(0xFF1A1D22),
-            surfaceContainerLow = Color(0xFF21252B),
-            surfaceContainer = Color(0xFF282C34),
-            surfaceContainerHigh = Color(0xFF2F343E),
-            surfaceContainerHighest = Color(0xFF353B45),
-            onSurfaceVariant = Color(0xFFABB2BF), // Secondary text
-            outline = Color(0xFF4B5263),
-            outlineVariant = Color(0xFF353B45)
-        )
-
-        "github_dark" -> darkColorScheme(
+        "github_dark", "one_dark_pro" -> darkColorScheme(
             primary = Color(0xFF58A6FF),
             onPrimary = Color(0xFF0D1117),
             primaryContainer = Color(0xFF124391),
@@ -325,29 +306,30 @@ internal fun veritasColorScheme(themeId: String, context: Context): ColorScheme 
             outlineVariant = Color(0xFF21262D)
         )
 
-        "github_light" -> lightColorScheme(
-            primary = Color(0xFF0969DA),
+        "dracula_light" -> lightColorScheme(
+            primary = Color(0xFF7D4EBA),          // Deep Dracula Purple (High contrast daylight)
             onPrimary = Color.White,
-            primaryContainer = Color(0xFFDDF4FF),
-            onPrimaryContainer = Color(0xFF0969DA),
-            secondary = Color(0xFF1A7F37),
-            secondaryContainer = Color(0xFFFFFFFF),
-            onSecondaryContainer = Color(0xFF1A7F37),
-            tertiary = Color(0xFF9A6700),
-            tertiaryContainer = Color(0xFFF6F8FA),
-            onTertiaryContainer = Color(0xFF5C3D00),
-            background = Color(0xFFFFFFFF),
-            surface = Color(0xFFF6F8FA),
-            surfaceVariant = Color(0xFFEAEFF4),
+            primaryContainer = Color(0xFFEFE7FB), // Soft lilac purple
+            onPrimaryContainer = Color(0xFF351B5A),
+            secondary = Color(0xFF1E7E34),        // Dracula Forest Green
+            secondaryContainer = Color(0xFFE1F5E8),
+            onSecondaryContainer = Color(0xFF0D3E18),
+            tertiary = Color(0xFFC72C76),         // Vibrant Dracula Pink / Magenta
+            tertiaryContainer = Color(0xFFFDE8F1),
+            onTertiaryContainer = Color(0xFF500827),
+            background = Color(0xFFF8F7FA),       // Alabaster Lilac
+            onBackground = Color(0xFF282A36),     // Classic Dracula Dark Slate text
+            surface = Color(0xFFFFFFFF),          // Pure White Card
+            onSurface = Color(0xFF282A36),        // High Contrast Dracula text
+            surfaceVariant = Color(0xFFEDEAF2),   // Soft Lavender container
             surfaceContainerLowest = Color(0xFFFFFFFF),
-            surfaceContainerLow = Color(0xFFF6F8FA),
-            surfaceContainer = Color(0xFFEFF2F5),
-            surfaceContainerHigh = Color(0xFFE6EAEF),
-            surfaceContainerHighest = Color(0xFFDDE2E8),
-            onSurface = Color(0xFF24292F),
-            onSurfaceVariant = Color(0xFF57606A),
-            outline = Color(0xFFD0D7DE),
-            outlineVariant = Color(0xFFEAEFF4)
+            surfaceContainerLow = Color(0xFFF6F4F9),
+            surfaceContainer = Color(0xFFF0EDF5),
+            surfaceContainerHigh = Color(0xFFEAE5F0),
+            surfaceContainerHighest = Color(0xFFE2DEEB),
+            onSurfaceVariant = Color(0xFF6272A4), // Dracula Comment Blue-Slate
+            outline = Color(0xFFCBD0E0),
+            outlineVariant = Color(0xFFE4E7F0)
         )
 
         "dracula" -> darkColorScheme(
@@ -399,6 +381,32 @@ internal fun veritasColorScheme(themeId: String, context: Context): ColorScheme 
                 )
             }
         }
+
+        "midnight_light" -> lightColorScheme(
+            primary = Color(0xFF4338CA),          // Stellar Indigo
+            onPrimary = Color.White,
+            primaryContainer = Color(0xFFE0E7FF), // Soft Periwinkle
+            onPrimaryContainer = Color(0xFF1E1B4B),
+            secondary = Color(0xFF0E7490),        // Oceanic Cyan
+            secondaryContainer = Color(0xFFCFFAFE),
+            onSecondaryContainer = Color(0xFF155E75),
+            tertiary = Color(0xFF6D28D9),         // Twilight Violet
+            tertiaryContainer = Color(0xFFEDE9FE),
+            onTertiaryContainer = Color(0xFF2E1065),
+            background = Color(0xFFF8FAFC),       // Frosted Ice Slate
+            onBackground = Color(0xFF0F172A),     // Midnight Navy text
+            surface = Color(0xFFFFFFFF),          // Pure White
+            onSurface = Color(0xFF0F172A),
+            surfaceVariant = Color(0xFFE2E8F0),   // Soft Slate Container
+            surfaceContainerLowest = Color(0xFFFFFFFF),
+            surfaceContainerLow = Color(0xFFF8FAFC),
+            surfaceContainer = Color(0xFFF1F5F9),
+            surfaceContainerHigh = Color(0xFFE2E8F0),
+            surfaceContainerHighest = Color(0xFFCBD5E1),
+            onSurfaceVariant = Color(0xFF475569), // Slate 600
+            outline = Color(0xFF94A3B8),
+            outlineVariant = Color(0xFFE2E8F0)
+        )
 
         "midnight_dark" -> darkColorScheme(
             primary = Color(0xFFA79BFF),

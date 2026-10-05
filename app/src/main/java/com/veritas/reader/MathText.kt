@@ -18,6 +18,12 @@ object MathText {
         '6' to '⁶', '7' to '⁷', '8' to '⁸', '9' to '⁹', '+' to '⁺', '-' to '⁻',
         '=' to '⁼', '(' to '⁽', ')' to '⁾', 'n' to 'ⁿ', 'i' to 'ⁱ'
     )
+
+    private val commandPatterns by lazy {
+        commands.sortedByDescending { it.first.length }.map { (command, replacement) ->
+            Regex(Regex.escape(command) + if (command.last().isLetter()) "(?![A-Za-z])" else "") to replacement
+        }
+    }
     private val subscripts = mapOf(
         '0' to '₀', '1' to '₁', '2' to '₂', '3' to '₃', '4' to '₄', '5' to '₅',
         '6' to '₆', '7' to '₇', '8' to '₈', '9' to '₉', '+' to '₊', '-' to '₋',
@@ -77,7 +83,7 @@ object MathText {
             "$np⁄$dp"
         }
         // LaTeX commands → Unicode.
-        for ((cmd, uni) in commands) s = s.replace(cmd, uni)
+        for ((pattern, uni) in commandPatterns) s = pattern.replace(s) { uni }
         // √{x} → √(x)
         s = sqrtArgRegex.replace(s) { m ->
             val inner = m.groupValues[1].trim()

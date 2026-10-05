@@ -13,10 +13,13 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.core.content.FileProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Job
@@ -28,6 +31,7 @@ import java.util.Locale
 
 internal class GeneralNotesMediaManager(
     val isRecording: Boolean,
+    val isImporting: Boolean,
     val recordingDurationSec: Int,
     val recordingAmplitudes: List<Int>,
     val isPlaying: Boolean,
@@ -39,21 +43,22 @@ internal class GeneralNotesMediaManager(
     val onTogglePlayAudio: (String) -> Unit,
     val onSeekAudio: (Float, String) -> Unit,
     val onPickImage: () -> Unit,
-    val onPickVideo: () -> Unit
+    val onTakePhoto: () -> Unit,
+    val onPickVideo: () -> Unit,
+    val onPickFile: () -> Unit
 )
 
 @Composable
 internal fun rememberGeneralNotesMediaManager(
     onInsertAttachment: (NoteBlock) -> Unit,
     audioUrls: List<String>,
-    onAudioUrlsChanged: (List<String>) -> Unit,
-    onImageUrlChanged: (String) -> Unit,
     focusedBlockIndex: Int,
     blocksCount: Int
 ): GeneralNotesMediaManager {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
+    var isImporting by remember { mutableStateOf(false) }
     var isRecording by remember { mutableStateOf(false) }
     var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var recordFilePath by remember { mutableStateOf<String?>(null) }
@@ -75,7 +80,6 @@ internal fun rememberGeneralNotesMediaManager(
             val newPath = recordFilePath
             if (!newPath.isNullOrBlank() && File(newPath).exists()) {
                 onInsertAttachment(NoteBlock.Audio(newPath))
-                onAudioUrlsChanged((audioUrls + newPath).distinct())
                 Toast.makeText(context, "Voice memo inserted in note", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
@@ -173,61 +177,72 @@ internal fun rememberGeneralNotesMediaManager(
         }
     }
 
-    val imageLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
+    fun importAttachment(uri: android.net.Uri, video: Boolean) {
+        if (isImporting) return
+        isImporting = true
+        coroutineScope.launch {
             try {
-                val inputStream = context.contentResolver.openInputStream(uri)
-                if (inputStream != null) {
-                    val mediaDir = File(context.filesDir, "notes_media")
-                    if (!mediaDir.exists()) mediaDir.mkdirs()
-                    val fileName = "img_${System.currentTimeMillis()}.jpg"
-                    val file = File(mediaDir, fileName)
-                    val outputStream = FileOutputStream(file)
-                    inputStream.copyTo(outputStream)
-                    inputStream.close()
-                    outputStream.close()
-                    onImageUrlChanged(file.absolutePath)
-                    onInsertAttachment(NoteBlock.Image(file.absolutePath))
-                    Toast.makeText(context, "Image inserted in note", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(context, "Failed to attach image: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                val file = com.veritas.reader.NoteAttachmentStore.copy(context, uri, video)
+                onInsertAttachment(if (video) NoteBlock.Video(file.absolutePath) else NoteBlock.Image(file.absolutePath))
+                Toast.makeText(context, if (video) "Video attached to note" else "Image inserted in note", Toast.LENGTH_SHORT).show()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                android.util.Log.e("Notes", "Could not attach media", failure)
+                Toast.makeText(context, "Could not attach media: ${failure.localizedMessage}", Toast.LENGTH_SHORT).show()
+            } finally { isImporting = false }
+        }
+    }
+    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { importAttachment(it, false) }
+    }
+    // Keep the pending destination across recreation while the external camera is open.
+    var pendingPhoto by rememberSaveable { mutableStateOf<String?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { captured ->
+        val path = pendingPhoto
+        pendingPhoto = null
+        if (path != null) {
+            isImporting = true
+            coroutineScope.launch {
+                try {
+                    val photo = com.veritas.reader.NoteCameraCapture.finish(context, path, captured)
+                    if (photo != null) onInsertAttachment(NoteBlock.Image(photo.absolutePath))
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    Toast.makeText(context, "Could not attach photo: ${failure.localizedMessage}", Toast.LENGTH_SHORT).show()
+                } finally { isImporting = false }
             }
         }
     }
+    val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { importAttachment(it, true) }
+    }
 
-    val videoLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
+    fun importDocument(uri: android.net.Uri) {
+        if (isImporting) return
+        isImporting = true
+        coroutineScope.launch {
             try {
-                val inputStream = context.contentResolver.openInputStream(uri)
-                if (inputStream != null) {
-                    val mediaDir = File(context.filesDir, "notes_media")
-                    if (!mediaDir.exists()) mediaDir.mkdirs()
-                    val fileName = "vid_${System.currentTimeMillis()}.mp4"
-                    val file = File(mediaDir, fileName)
-                    val outputStream = FileOutputStream(file)
-                    inputStream.copyTo(outputStream)
-                    inputStream.close()
-                    outputStream.close()
-                    onInsertAttachment(NoteBlock.Video(file.absolutePath))
-                    Toast.makeText(context, "Video attached to note", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(context, "Failed to attach video: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-            }
+                val (file, name, size) = com.veritas.reader.NoteAttachmentStore.copyDocument(context, uri)
+                onInsertAttachment(NoteBlock.File(path = file.absolutePath, fileName = name, sizeBytes = size))
+                Toast.makeText(context, "Attached: $name", Toast.LENGTH_SHORT).show()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                android.util.Log.e("Notes", "Could not attach file", failure)
+                Toast.makeText(context, "Could not attach file: ${failure.localizedMessage}", Toast.LENGTH_SHORT).show()
+            } finally { isImporting = false }
         }
+    }
+    val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { importDocument(it) }
     }
 
     var activePlayingAudioPath by remember { mutableStateOf<String?>(null) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
-    var playProgress by remember { mutableStateOf(0f) }
+    var playProgress by remember { mutableFloatStateOf(0f) }
     var currentPosition by remember { mutableStateOf("0:00") }
 
     fun seekAudio(fraction: Float, path: String) {
@@ -317,7 +332,7 @@ internal fun rememberGeneralNotesMediaManager(
                     playProgress = current.toFloat() / duration.coerceAtLeast(1)
 
                     val curSecs = current / 1000
-                    val durSecs = duration / 1000
+                    duration / 1000
                     currentPosition = String.format(Locale.US, "%d:%02d", curSecs / 60, curSecs % 60)
                 } catch (e: Exception) {
                     // ignore
@@ -336,12 +351,9 @@ internal fun rememberGeneralNotesMediaManager(
         }
     }
 
-    return remember(
-        isRecording, recordingDurationSec, recordingAmplitudes,
-        isPlaying, activePlayingAudioPath, playProgress, currentPosition
-    ) {
-        GeneralNotesMediaManager(
+    return GeneralNotesMediaManager(
             isRecording = isRecording,
+            isImporting = isImporting,
             recordingDurationSec = recordingDurationSec,
             recordingAmplitudes = recordingAmplitudes,
             isPlaying = isPlaying,
@@ -364,8 +376,21 @@ internal fun rememberGeneralNotesMediaManager(
             onCancelRecording = { cancelRecording() },
             onTogglePlayAudio = { togglePlayPause(it) },
             onSeekAudio = { frac, path -> seekAudio(frac, path) },
-            onPickImage = { imageLauncher.launch("image/*") },
-            onPickVideo = { videoLauncher.launch("video/*") }
+            onPickImage = { if (!isImporting) imageLauncher.launch("image/*") },
+            onTakePhoto = {
+                if (!isImporting && pendingPhoto == null) {
+                    try {
+                        val photo = com.veritas.reader.NoteCameraCapture.create(context)
+                        pendingPhoto = photo.absolutePath
+                        cameraLauncher.launch(FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", photo))
+                    } catch (failure: Exception) {
+                        pendingPhoto?.let { com.veritas.reader.NoteCameraCapture.discard(context, it) }
+                        pendingPhoto = null
+                        Toast.makeText(context, "Could not open camera", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            onPickVideo = { if (!isImporting) videoLauncher.launch("video/*") },
+            onPickFile = { if (!isImporting) fileLauncher.launch(arrayOf("*/*")) }
         )
-    }
 }

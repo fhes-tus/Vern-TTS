@@ -57,6 +57,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -286,7 +287,7 @@ internal fun FlashcardSetTile(
                 set.name,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth()
@@ -296,7 +297,7 @@ internal fun FlashcardSetTile(
                 "${set.cards.size} card${if (set.cards.size == 1) "" else "s"}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -313,7 +314,7 @@ internal fun FlashcardSetTile(
                         val n = counts[key] ?: 0
                         if (n > 0) {
                             Surface(
-                                shape = RoundedCornerShape(50),
+                                shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                 color = color.copy(alpha = 0.16f),
                                 modifier = Modifier.clickable { onViewBucket(key) }
                             ) {
@@ -357,7 +358,7 @@ internal fun FlashcardViewerDialog(
     onDismiss: () -> Unit
 ) {
     var order by remember(cards) { mutableStateOf(cards) }
-    var index by remember { mutableStateOf(0) }
+    var index by remember { mutableIntStateOf(0) }
     var flipped by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val dragOffsetX = remember { Animatable(0f) }
@@ -372,9 +373,12 @@ internal fun FlashcardViewerDialog(
     val safeIndex = index.coerceIn(0, order.lastIndex)
     val card = order[safeIndex]
 
+    val reduceMotion = com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion
+    val swipeMotion = com.veritas.reader.ui.VeritasMotion.spatial<Float>()
+    val resetMotion = com.veritas.reader.ui.VeritasMotion.spatialFast<Float>()
     val animatedRotation by animateFloatAsState(
         targetValue = if (flipped) 180f else 0f,
-        animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
+        animationSpec = swipeMotion,
         label = "flashcardFlip"
     )
     val isShowingBack = animatedRotation > 90f
@@ -382,6 +386,25 @@ internal fun FlashcardViewerDialog(
     fun goTo(next: Int) {
         index = next.coerceIn(0, order.lastIndex)
         flipped = false
+    }
+
+    // One transition owns a card until it settles; repeated taps cannot rate twice.
+    fun advanceCard(next: Int, x: Float = 0f, y: Float = 0f, recall: String? = null) {
+        if (isSwipingOut) return
+        isSwipingOut = true
+        if (recall != null) {
+            onRate(card.id, recall)
+            order = order.map { if (it.id == card.id) it.copy(recall = recall) else it }
+        }
+        coroutineScope.launch {
+            try {
+                if (y != 0f) dragOffsetY.animateTo(y, swipeMotion)
+                else dragOffsetX.animateTo(x, swipeMotion)
+                goTo(next)
+                dragOffsetX.snapTo(0f)
+                dragOffsetY.snapTo(0f)
+            } finally { isSwipingOut = false }
+        }
     }
 
     if (showDeleteCardConfirm) {
@@ -436,15 +459,15 @@ internal fun FlashcardViewerDialog(
                                 cameraDistance = 12f * density
                                 translationX = dragOffsetX.value
                                 translationY = dragOffsetY.value
-                                rotationZ = (dragOffsetX.value / 35f).coerceIn(-12f, 12f)
+                                rotationZ = if (reduceMotion) 0f else (dragOffsetX.value / 35f).coerceIn(-12f, 12f)
                                 alpha = if (isSwipingOut) (1f - (kotlin.math.abs(dragOffsetX.value) / 1600f)).coerceIn(0.1f, 1f) else 1f
                             }
-                            .pointerInput(safeIndex) {
+                            .pointerInput(safeIndex, reduceMotion) {
                                 detectTapGestures(
-                                    onTap = { flipped = !flipped }
+                                    onTap = { if (!isSwipingOut) flipped = !flipped }
                                 )
                             }
-                            .pointerInput(safeIndex) {
+                            .pointerInput(safeIndex, reduceMotion) {
                                 var accumulatedX = 0f
                                 var accumulatedY = 0f
                                 detectDragGestures(
@@ -452,7 +475,8 @@ internal fun FlashcardViewerDialog(
                                         accumulatedX = 0f
                                         accumulatedY = 0f
                                     },
-                                    onDrag = { change, dragAmount ->
+                                    onDrag = drag@ { change, dragAmount ->
+                                        if (isSwipingOut) return@drag
                                         change.consume()
                                         accumulatedX += dragAmount.x
                                         accumulatedY += dragAmount.y
@@ -462,47 +486,26 @@ internal fun FlashcardViewerDialog(
                                         }
                                     },
                                     onDragEnd = {
-                                        val threshold = 90f
-                                        coroutineScope.launch {
+                                        if (!isSwipingOut) {
+                                            val threshold = 90f
                                             when {
-                                                accumulatedY < -threshold && kotlin.math.abs(accumulatedY) > kotlin.math.abs(accumulatedX) -> {
-                                                    // Total swipe Up: Fly off top of screen
-                                                    isSwipingOut = true
-                                                    dragOffsetY.animateTo(-1600f, tween(220, easing = LinearOutSlowInEasing))
-                                                    goTo(safeIndex + 1)
-                                                    dragOffsetX.snapTo(0f)
-                                                    dragOffsetY.snapTo(0f)
-                                                    isSwipingOut = false
-                                                }
-                                                accumulatedX < -threshold -> {
-                                                    // Total swipe Left: Fly completely off screen to left
-                                                    isSwipingOut = true
-                                                    dragOffsetX.animateTo(-1800f, tween(220, easing = LinearOutSlowInEasing))
-                                                    if (safeIndex < order.lastIndex) goTo(safeIndex + 1)
-                                                    dragOffsetX.snapTo(0f)
-                                                    dragOffsetY.snapTo(0f)
-                                                    isSwipingOut = false
-                                                }
-                                                accumulatedX > threshold -> {
-                                                    // Total swipe Right: Fly completely off screen to right
-                                                    isSwipingOut = true
-                                                    dragOffsetX.animateTo(1800f, tween(220, easing = LinearOutSlowInEasing))
-                                                    if (safeIndex > 0) goTo(safeIndex - 1)
-                                                    dragOffsetX.snapTo(0f)
-                                                    dragOffsetY.snapTo(0f)
-                                                    isSwipingOut = false
-                                                }
-                                                else -> {
-                                                    dragOffsetX.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
-                                                    dragOffsetY.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
+                                                accumulatedY < -threshold && kotlin.math.abs(accumulatedY) > kotlin.math.abs(accumulatedX) ->
+                                                    advanceCard(safeIndex + 1, y = -1600f)
+                                                accumulatedX < -threshold && safeIndex < order.lastIndex ->
+                                                    advanceCard(safeIndex + 1, x = -1800f)
+                                                accumulatedX > threshold && safeIndex > 0 ->
+                                                    advanceCard(safeIndex - 1, x = 1800f)
+                                                else -> coroutineScope.launch {
+                                                    dragOffsetX.animateTo(0f, resetMotion)
+                                                    dragOffsetY.animateTo(0f, resetMotion)
                                                 }
                                             }
                                         }
                                     },
                                     onDragCancel = {
-                                        coroutineScope.launch {
-                                            dragOffsetX.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
-                                            dragOffsetY.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
+                                        if (!isSwipingOut) coroutineScope.launch {
+                                            dragOffsetX.animateTo(0f, resetMotion)
+                                            dragOffsetY.animateTo(0f, resetMotion)
                                         }
                                     }
                                 )
@@ -532,7 +535,7 @@ internal fun FlashcardViewerDialog(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Surface(
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = MaterialTheme.shapes.extraSmall,
                                     color = if (isShowingBack)
                                         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                     else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
@@ -565,7 +568,7 @@ internal fun FlashcardViewerDialog(
 
                             // Subtle per-card delete with confirmation
                             IconButton(
-                                onClick = { showDeleteCardConfirm = true },
+                                onClick = { if (!isSwipingOut) showDeleteCardConfirm = true },
                                 modifier = Modifier.align(Alignment.TopEnd)
                             ) {
                                 Icon(
@@ -611,22 +614,13 @@ internal fun FlashcardViewerDialog(
                         val intervalHint = com.veritas.reader.SpacedRepetitionScheduler.previewNextInterval(card, key)
                         Button(
                             onClick = {
-                                onRate(card.id, key)
-                                order = order.map { if (it.id == card.id) it.copy(recall = key) else it }
-                                coroutineScope.launch {
-                                    val targetX = if (key == "again") -1800f else 1800f
-                                    isSwipingOut = true
-                                    dragOffsetX.animateTo(targetX, tween(200, easing = LinearOutSlowInEasing))
-                                    if (safeIndex < order.lastIndex) goTo(safeIndex + 1)
-                                    dragOffsetX.snapTo(0f)
-                                    dragOffsetY.snapTo(0f)
-                                    isSwipingOut = false
-                                }
+                                advanceCard(safeIndex + 1, x = if (key == "again") -1800f else 1800f, recall = key)
                             },
+                            enabled = !isSwipingOut,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (selected) color else color.copy(alpha = 0.65f)
                             ),
-                            shape = RoundedCornerShape(14.dp),
+                            shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                             modifier = Modifier.weight(1f).height(52.dp),
                             contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp)
                         ) {
@@ -657,7 +651,7 @@ internal fun FlashcardViewerDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    IconButton(onClick = { goTo(safeIndex - 1) }, enabled = safeIndex > 0) {
+                    IconButton(onClick = { if (!isSwipingOut) goTo(safeIndex - 1) }, enabled = !isSwipingOut && safeIndex > 0) {
                         Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous card")
                     }
                     Text(
@@ -665,7 +659,7 @@ internal fun FlashcardViewerDialog(
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
-                    IconButton(onClick = { goTo(safeIndex + 1) }, enabled = safeIndex < order.lastIndex) {
+                    IconButton(onClick = { if (!isSwipingOut) goTo(safeIndex + 1) }, enabled = !isSwipingOut && safeIndex < order.lastIndex) {
                         Icon(Icons.Filled.ChevronRight, contentDescription = "Next card")
                     }
                 }
@@ -685,9 +679,9 @@ internal fun StudyDailyReviewHeroCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = com.veritas.reader.VeritasPackStyle.cardShape(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
+            containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
@@ -707,7 +701,7 @@ internal fun StudyDailyReviewHeroCard(
                 val trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
                 val animatedProgress by animateFloatAsState(
                     targetValue = (completionPercent.coerceIn(0, 100)) / 100f,
-                    animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
+                    animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow(),
                     label = "review_gauge"
                 )
 
@@ -752,7 +746,7 @@ internal fun StudyDailyReviewHeroCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Button(
                     onClick = onStartReview,
-                    shape = RoundedCornerShape(50),
+                    shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -791,9 +785,9 @@ internal fun StudyAiToolCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
+        shape = com.veritas.reader.VeritasPackStyle.compactShape(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
+            containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
@@ -840,9 +834,9 @@ internal fun StudyActiveDeckItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(14.dp),
+        shape = com.veritas.reader.VeritasPackStyle.compactShape(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
+            containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
         ),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
     ) {

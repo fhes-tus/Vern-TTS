@@ -57,6 +57,7 @@ fun AccessibilitySettingsDialog(
     onGoalMinutesChange: (Int) -> Unit,
     onToggleStreakReminder: () -> Unit,
     onToggleReduceMotion: () -> Unit,
+    onToggleReduceTransparency: () -> Unit,
     onToggleBionicReading: () -> Unit = {},
     onToggleShakeToExtend: () -> Unit = {},
     onToggleCollapsibleBars: () -> Unit = {},
@@ -162,6 +163,14 @@ fun AccessibilitySettingsDialog(
                     VeritasSwitch(checked = settings.reduceMotion, onCheckedChange = { onToggleReduceMotion() })
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Reduce transparency", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Use solid surfaces for clearer text and controls", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    VeritasSwitch(checked = settings.reduceTransparency, onCheckedChange = { onToggleReduceTransparency() })
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("High-contrast quick presets", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                     
@@ -174,7 +183,7 @@ fun AccessibilitySettingsDialog(
                         if (settings.themeId == targetThemeId) {
                             // Toggle OFF: restore previous theme before high contrast was activated
                             val restoreTheme = settings.previousThemeId?.takeIf {
-                                it.isNotBlank() && it != "dark_high_contrast" && it != "white_high_contrast" && it != "blue_high_contrast" && it != "amoled"
+                                it.isNotBlank() && it != "dark_high_contrast" && it != "white_high_contrast" && it != "amoled"
                             } ?: if (targetThemeId == "white_high_contrast") "light" else "dark"
                             onToggleContrastTheme(restoreTheme, null)
                         } else {

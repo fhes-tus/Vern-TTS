@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Vern TTS</string>
+    <string name="app_name">Vern</string>
     <string name="widget_player_description">Vern playback controls</string>
     <string name="widget_cover_description">Vern current reading cover</string>
     <string name="widget_quick_note_description">Vern quick note list</string>

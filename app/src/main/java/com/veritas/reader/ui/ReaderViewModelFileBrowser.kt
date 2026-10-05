@@ -1,5 +1,6 @@
 package com.veritas.reader.ui
 
+import com.veritas.reader.VeritasScreen
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
@@ -7,6 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.veritas.reader.VeritasBrowserFile
 import com.veritas.reader.VeritasFileBrowserScanner
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,7 +65,7 @@ fun ReaderViewModel.clearFileBrowserAccess() {
 }
 
 fun ReaderViewModel.openFileBrowser() {
-    _uiState.update { it.copy(showFileBrowser = true) }
+    _uiState.update { it.withVisibility(VeritasScreen.FILE_BROWSER, true) }
     refreshFileBrowser()
 }
 
@@ -70,6 +75,7 @@ fun ReaderViewModel.enterFileBrowserDirectory(entry: VeritasBrowserFile) {
     _uiState.update {
         it.copy(
             fileBrowserLocation = next,
+            fileBrowserFiles = fileBrowserCache.get(next)?.files.orEmpty(),
             fileBrowserBackStack = if (current == null) it.fileBrowserBackStack else it.fileBrowserBackStack + current
         )
     }
@@ -82,6 +88,7 @@ fun ReaderViewModel.goUpFileBrowserDirectory() {
     _uiState.update {
         it.copy(
             fileBrowserLocation = previous,
+            fileBrowserFiles = fileBrowserCache.get(previous)?.files.orEmpty(),
             fileBrowserBackStack = stack.dropLast(1)
         )
     }
@@ -130,6 +137,7 @@ fun ReaderViewModel.refreshFileBrowser() {
     scanJob?.cancel()
     _uiState.update { it.copy(fileBrowserScanning = true, fileBrowserMessage = null) }
     scanJob = viewModelScope.launch(Dispatchers.IO) {
+        val owner = coroutineContext[Job]
         val context = getApplication<Application>()
         val roots = VeritasFileBrowserScanner.persistedRoots(context)
         val allFilesGranted = hasAllFilesAccess()
@@ -146,16 +154,27 @@ fun ReaderViewModel.refreshFileBrowser() {
                 context = context,
                 roots = roots,
                 includeAllFilesAccess = allFilesGranted,
-                location = uiState.value.fileBrowserLocation
+                location = uiState.value.fileBrowserLocation,
+                checkCancelled = { owner?.ensureActive() },
+                onProgress = { partial ->
+                    viewModelScope.launch(Dispatchers.Main) {
+                        if (scanJob === owner && owner?.isActive == true) {
+                            _uiState.update { it.copy(fileBrowserFiles = partial.files, fileBrowserLocation = partial.location) }
+                        }
+                    }
+                }
             )
         }
         val scanResult = result.getOrElse { error ->
+            if (error is CancellationException) throw error
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(fileBrowserScanning = false, fileBrowserMessage = "Scan failed: ${error.message}") }
             }
             return@launch
         }
         withContext(Dispatchers.Main) {
+            if (scanJob !== owner) return@withContext
+            scanResult.location?.let { fileBrowserCache.put(it, scanResult) }
             _uiState.update { it.copy(
                 fileBrowserScanning = false,
                 fileBrowserFiles = scanResult.files,
@@ -168,4 +187,3 @@ fun ReaderViewModel.refreshFileBrowser() {
         }
     }
 }
-

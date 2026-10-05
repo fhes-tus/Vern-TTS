@@ -374,3 +374,17 @@ fun updateVeritasWidgets(context: Context) {
         runCatching { StudyDashboardWidget().updateAll(appContext) }
     }
 }
+
+// Coalesce sentence progress into one refresh per five-second window. Library
+// edits still call updateVeritasWidgets immediately.
+private val readingWidgetRefreshPending = java.util.concurrent.atomic.AtomicBoolean(false)
+fun scheduleReadingWidgetRefresh(context: Context) {
+    if (!readingWidgetRefreshPending.compareAndSet(false, true)) return
+    val appContext = context.applicationContext
+    widgetRefreshScope.launch {
+        try {
+            kotlinx.coroutines.delay(5_000)
+            updateVeritasWidgets(appContext)
+        } finally { readingWidgetRefreshPending.set(false) }
+    }
+}

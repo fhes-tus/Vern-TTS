@@ -1,7 +1,6 @@
 package com.veritas.reader
 
 import android.view.Menu
-import androidx.compose.runtime.Composable
 
 
 fun Map<VeritasFeatureId, ResolvedVeritasFeature>.requireResolvedFeature(
@@ -21,8 +20,6 @@ data class ReaderTextSelection(
     val endSentenceIndexExclusive: Int
         get() = (sentenceIndexes.lastOrNull() ?: firstSentenceIndex) + 1
 }
-
-@Composable
 
 internal fun Menu.addReaderSelectionFeature(
     itemId: Int,

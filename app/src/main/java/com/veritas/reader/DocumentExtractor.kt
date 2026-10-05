@@ -425,7 +425,7 @@ object DocumentExtractor {
                 results.forEach { (pageIndex, pageText) ->
                     if (pageText.isNotBlank()) {
                         if (output.isNotBlank()) output.append("\n\n")
-                        output.append("Page ${pageIndex + 1}\n")
+                        output.append(ReaderTextIndex.pageMarker(pageIndex + 1)).append('\n')
                         output.append(pageText)
                     } else {
                         val cacheFile = java.io.File(cacheDir, "page_${pageIndex}.txt")

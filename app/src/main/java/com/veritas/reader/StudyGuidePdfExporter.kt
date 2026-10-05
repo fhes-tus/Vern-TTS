@@ -4,7 +4,7 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
-import android.graphics.Color
+import androidx.core.graphics.toColorInt
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
@@ -38,49 +38,49 @@ object StudyGuidePdfExporter {
             val dateString = dateFormat.format(Date())
 
             val titlePaint = Paint().apply {
-                color = Color.parseColor("#1C1B1F")
+                color = "#1C1B1F".toColorInt()
                 textSize = 18f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 isAntiAlias = true
             }
 
             val subtitlePaint = Paint().apply {
-                color = Color.parseColor("#49454F")
+                color = "#49454F".toColorInt()
                 textSize = 10f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val sectionPaint = Paint().apply {
-                color = Color.parseColor("#6750A4")
+                color = "#6750A4".toColorInt()
                 textSize = 13f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 isAntiAlias = true
             }
 
             val bodyPaint = Paint().apply {
-                color = Color.parseColor("#1C1B1F")
+                color = "#1C1B1F".toColorInt()
                 textSize = 10f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val quotePaint = Paint().apply {
-                color = Color.parseColor("#313033")
+                color = "#313033".toColorInt()
                 textSize = 9.5f
                 typeface = Typeface.create(Typeface.SERIF, Typeface.ITALIC)
                 isAntiAlias = true
             }
 
             val tagPaint = Paint().apply {
-                color = Color.parseColor("#79747E")
+                color = "#79747E".toColorInt()
                 textSize = 8.5f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val linePaint = Paint().apply {
-                color = Color.parseColor("#E7E0EC")
+                color = "#E7E0EC".toColorInt()
                 strokeWidth = 1f
                 isAntiAlias = true
             }
@@ -130,7 +130,7 @@ object StudyGuidePdfExporter {
 
                 val boxTop = y
                 val boxHeight = (noteLines.size * 14f) + 14f
-                val bgPaint = Paint().apply { color = Color.parseColor("#F7F2FA"); isAntiAlias = true }
+                val bgPaint = Paint().apply { color = "#F7F2FA".toColorInt(); isAntiAlias = true }
                 canvas.drawRoundRect(MARGIN, boxTop, PAGE_WIDTH - MARGIN, boxTop + boxHeight, 6f, 6f, bgPaint)
 
                 var lineY = boxTop + 18f
@@ -187,12 +187,12 @@ object StudyGuidePdfExporter {
                         checkNewPage(totalH)
 
                         val barColor = when (hl.highlightColor?.lowercase(Locale.getDefault())) {
-                            "yellow", "#fff59d" -> Color.parseColor("#FBC02D")
-                            "green", "#c8e6c9" -> Color.parseColor("#4CAF50")
-                            "blue", "#bbdefb" -> Color.parseColor("#2196F3")
-                            "purple", "#e1bee7" -> Color.parseColor("#9C27B0")
-                            "orange", "#ffe0b2" -> Color.parseColor("#FF9800")
-                            else -> Color.parseColor("#6750A4")
+                            "yellow", "#fff59d" -> "#FBC02D".toColorInt()
+                            "green", "#c8e6c9" -> "#4CAF50".toColorInt()
+                            "blue", "#bbdefb" -> "#2196F3".toColorInt()
+                            "purple", "#e1bee7" -> "#9C27B0".toColorInt()
+                            "orange", "#ffe0b2" -> "#FF9800".toColorInt()
+                            else -> "#6750A4".toColorInt()
                         }
                         highlightBarPaint.color = barColor
 
@@ -277,67 +277,67 @@ object StudyGuidePdfExporter {
             val dateString = dateFormat.format(Date())
 
             val titlePaint = Paint().apply {
-                color = Color.parseColor("#1C1B1F")
+                color = "#1C1B1F".toColorInt()
                 textSize = 18f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 isAntiAlias = true
             }
 
             val subtitlePaint = Paint().apply {
-                color = Color.parseColor("#49454F")
+                color = "#49454F".toColorInt()
                 textSize = 10f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val wordPaint = Paint().apply {
-                color = Color.parseColor("#1C1B1F")
+                color = "#1C1B1F".toColorInt()
                 textSize = 13f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 isAntiAlias = true
             }
 
             val pronPaint = Paint().apply {
-                color = Color.parseColor("#6750A4")
+                color = "#6750A4".toColorInt()
                 textSize = 10f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
                 isAntiAlias = true
             }
 
             val bodyPaint = Paint().apply {
-                color = Color.parseColor("#313033")
+                color = "#313033".toColorInt()
                 textSize = 10f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val quotePaint = Paint().apply {
-                color = Color.parseColor("#49454F")
+                color = "#49454F".toColorInt()
                 textSize = 9.5f
                 typeface = Typeface.create(Typeface.SERIF, Typeface.ITALIC)
                 isAntiAlias = true
             }
 
             val tagPaint = Paint().apply {
-                color = Color.parseColor("#79747E")
+                color = "#79747E".toColorInt()
                 textSize = 8.5f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val linePaint = Paint().apply {
-                color = Color.parseColor("#E7E0EC")
+                color = "#E7E0EC".toColorInt()
                 strokeWidth = 1f
                 isAntiAlias = true
             }
 
             val quoteBgPaint = Paint().apply {
-                color = Color.parseColor("#F7F2FA")
+                color = "#F7F2FA".toColorInt()
                 isAntiAlias = true
             }
 
             val accentBarPaint = Paint().apply {
-                color = Color.parseColor("#6750A4")
+                color = "#6750A4".toColorInt()
                 isAntiAlias = true
             }
 
@@ -450,48 +450,48 @@ object StudyGuidePdfExporter {
             val dateString = dateFormat.format(Date())
 
             val titlePaint = Paint().apply {
-                color = Color.parseColor("#1C1B1F")
+                color = "#1C1B1F".toColorInt()
                 textSize = 18f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 isAntiAlias = true
             }
 
             val subtitlePaint = Paint().apply {
-                color = Color.parseColor("#49454F")
+                color = "#49454F".toColorInt()
                 textSize = 10f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val bodyPaint = Paint().apply {
-                color = Color.parseColor("#313033")
+                color = "#313033".toColorInt()
                 textSize = 10f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val quotePaint = Paint().apply {
-                color = Color.parseColor("#1C1B1F")
+                color = "#1C1B1F".toColorInt()
                 textSize = 10f
                 typeface = Typeface.create(Typeface.SERIF, Typeface.ITALIC)
                 isAntiAlias = true
             }
 
             val tagPaint = Paint().apply {
-                color = Color.parseColor("#79747E")
+                color = "#79747E".toColorInt()
                 textSize = 8.5f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val linePaint = Paint().apply {
-                color = Color.parseColor("#E7E0EC")
+                color = "#E7E0EC".toColorInt()
                 strokeWidth = 1f
                 isAntiAlias = true
             }
 
             val barPaint = Paint().apply {
-                color = Color.parseColor("#6750A4")
+                color = "#6750A4".toColorInt()
                 isAntiAlias = true
             }
 
@@ -536,7 +536,7 @@ object StudyGuidePdfExporter {
 
                 val itemTop = y
                 val colorHex = bm.highlightColor ?: "#6750A4"
-                barPaint.color = runCatching { Color.parseColor(colorHex) }.getOrDefault(Color.parseColor("#6750A4"))
+                barPaint.color = runCatching { colorHex.toColorInt() }.getOrDefault("#6750A4".toColorInt())
                 canvas.drawRect(MARGIN, itemTop + 4f, MARGIN + 4f, itemTop + totalH - 8f, barPaint)
 
                 canvas.drawText("${index + 1}. Sentence #${bm.chunkIndex + 1}$audioLabel", MARGIN + 12f, itemTop + 12f, tagPaint)
@@ -586,49 +586,49 @@ object StudyGuidePdfExporter {
             val dateString = dateFormat.format(Date())
 
             val titlePaint = Paint().apply {
-                color = Color.parseColor("#1C1B1F")
+                color = "#1C1B1F".toColorInt()
                 textSize = 18f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 isAntiAlias = true
             }
 
             val subtitlePaint = Paint().apply {
-                color = Color.parseColor("#49454F")
+                color = "#49454F".toColorInt()
                 textSize = 10f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val sectionPaint = Paint().apply {
-                color = Color.parseColor("#6750A4")
+                color = "#6750A4".toColorInt()
                 textSize = 12f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 isAntiAlias = true
             }
 
             val bodyPaint = Paint().apply {
-                color = Color.parseColor("#1C1B1F")
+                color = "#1C1B1F".toColorInt()
                 textSize = 10f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val quotePaint = Paint().apply {
-                color = Color.parseColor("#49454F")
+                color = "#49454F".toColorInt()
                 textSize = 9.5f
                 typeface = Typeface.create(Typeface.SERIF, Typeface.ITALIC)
                 isAntiAlias = true
             }
 
             val tagPaint = Paint().apply {
-                color = Color.parseColor("#79747E")
+                color = "#79747E".toColorInt()
                 textSize = 8.5f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 isAntiAlias = true
             }
 
             val linePaint = Paint().apply {
-                color = Color.parseColor("#E7E0EC")
+                color = "#E7E0EC".toColorInt()
                 strokeWidth = 1f
                 isAntiAlias = true
             }
@@ -674,7 +674,7 @@ object StudyGuidePdfExporter {
                 checkNewPage(boxH + 16f)
 
                 val boxTop = y
-                val bgPaint = Paint().apply { color = Color.parseColor("#F7F2FA"); isAntiAlias = true }
+                val bgPaint = Paint().apply { color = "#F7F2FA".toColorInt(); isAntiAlias = true }
                 canvas.drawRoundRect(MARGIN, boxTop, PAGE_WIDTH - MARGIN, boxTop + boxH, 6f, 6f, bgPaint)
 
                 var lineY = boxTop + 16f

@@ -1,5 +1,6 @@
 package com.veritas.reader.ui
 
+import com.veritas.reader.VeritasScreen
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.CoverExtractor
@@ -36,8 +37,7 @@ fun ReaderViewModel.finishOnboarding(name: String) {
         val savedName = repository.loadUserName()
         withContext(Dispatchers.Main) {
             _uiState.update {
-                it.copy(
-                    showTutorial = false,
+                it.withVisibility(VeritasScreen.TUTORIAL, false).copy(
                     userName = savedName,
                     hasCompletedOnboarding = true
                 )
@@ -56,12 +56,13 @@ fun ReaderViewModel.completeRevampedOnboarding(
     val cleanName = name.trim().ifBlank { "Reader" }
     val cleanInterest = interest.trim()
     viewModelScope.launch(Dispatchers.IO) {
-        repository.markOnboardingComplete(cleanName)
         repository.saveReadingInterest(cleanInterest)
         val currentAi = repository.loadAskAiSettings()
         val updatedAi = currentAi.copy(
             assistantId = aiAssistant,
-            assistantLabel = when (aiAssistant.lowercase(Locale.getDefault())) {
+            packageName = if (currentAi.assistantId == aiAssistant) currentAi.packageName else "",
+            assistantLabel = when (aiAssistant.lowercase(Locale.ROOT)) {
+                "chooser" -> "Choose each time"
                 "gemini" -> "Google Gemini"
                 "chatgpt" -> "ChatGPT"
                 "claude" -> "Claude"
@@ -77,11 +78,11 @@ fun ReaderViewModel.completeRevampedOnboarding(
             preferredPitch = pitchRate
         )
         repository.saveVoiceSettings(updatedVoice)
+        repository.markOnboardingComplete(cleanName)
         val savedName = repository.loadUserName()
         withContext(Dispatchers.Main) {
             _uiState.update {
-                it.copy(
-                    showTutorial = true,
+                it.withVisibility(VeritasScreen.TUTORIAL, false).copy(
                     userName = savedName,
                     readingInterest = cleanInterest,
                     hasCompletedOnboarding = true,
@@ -100,12 +101,11 @@ fun ReaderViewModel.resetQuestProgress() {
         repository.resetOnboardingState()
         withContext(Dispatchers.Main) {
             _uiState.update {
-                it.copy(
+                it.withVisibility(VeritasScreen.TUTORIAL, true).copy(
                     questTourDone = false,
                     questImportDone = false,
                     questSpeedDone = false,
                     questBookmarkDone = false,
-                    showTutorial = true,
                     hasCompletedOnboarding = false
                 )
             }
@@ -250,4 +250,3 @@ fun ReaderViewModel.createWelcomeDocumentSilently() {
         }
     }
 }
-

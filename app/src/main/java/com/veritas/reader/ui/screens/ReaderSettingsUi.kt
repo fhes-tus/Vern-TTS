@@ -17,9 +17,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -54,6 +64,7 @@ import com.veritas.reader.PaperToneMode
 import com.veritas.reader.R
 import com.veritas.reader.ReaderSettings
 import com.veritas.reader.VeritasPackStyle
+import com.veritas.reader.LocalVeritasPackId
 import com.veritas.reader.VeritasThemeCatalog
 import com.veritas.reader.VeritasThemePackCatalog
 import com.veritas.reader.blendColors
@@ -164,41 +175,24 @@ fun VeritasThemePackPicker(
 
 @Composable
 fun PackPalettePreview(packId: String) {
-    val primary = MaterialTheme.colorScheme.primary
-    val secondary = MaterialTheme.colorScheme.secondary
-    val tertiary = MaterialTheme.colorScheme.tertiary
-    
-    val shape = when (VeritasThemePackCatalog.normalizePackId(packId)) {
-        "material_you" -> RoundedCornerShape(6.dp)
-        "liquid_glass" -> RoundedCornerShape(10.dp)
-        "one_ui" -> RoundedCornerShape(3.dp)
-        else -> RoundedCornerShape(1.dp)
-    }
-    
-    val alpha = when (VeritasThemePackCatalog.normalizePackId(packId)) {
-        "liquid_glass" -> 0.62f
-        else -> 1.0f
-    }
-    
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(16.dp)
-                .background(primary.copy(alpha = alpha), shape)
-        )
-        Box(
-            modifier = Modifier
-                .size(16.dp)
-                .background(secondary.copy(alpha = alpha), shape)
-        )
-        Box(
-            modifier = Modifier
-                .size(16.dp)
-                .background(tertiary.copy(alpha = alpha), shape)
-        )
+    val normalized = VeritasThemePackCatalog.normalizePackId(packId)
+    val context = LocalContext.current
+    val resolved = VeritasThemeCatalog.resolveConcreteThemeId(com.veritas.reader.VeritasThemeState.themeId, isSystemInDarkTheme())
+    val packed = com.veritas.reader.veritasPackColorScheme(veritasColorScheme(resolved, context), normalized, resolved)
+    val scheme = if (VeritasThemeCatalog.isDark(resolved) && (com.veritas.reader.VeritasThemeState.amoledMode || resolved == "amoled")) com.veritas.reader.veritasAmoledColorScheme(packed) else packed
+    androidx.compose.runtime.CompositionLocalProvider(LocalVeritasPackId provides normalized) {
+        MaterialTheme(colorScheme = scheme, shapes = com.veritas.reader.veritasPackShapes(normalized),
+            typography = com.veritas.reader.veritasPackTypography(com.veritas.reader.ui.veritasTypography(com.veritas.reader.ui.VeritasUiFont.fromId(com.veritas.reader.VeritasThemeState.uiFontId)), normalized)) {
+            val shape = VeritasPackStyle.compactShape()
+            Row(Modifier.fillMaxWidth().height(34.dp).clip(shape)
+                .background(VeritasPackStyle.panelColor(scheme))
+                .border(VeritasPackStyle.cardBorder(scheme), shape).padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("Aa", color = scheme.onSurface, style = MaterialTheme.typography.labelLarge)
+                Box(Modifier.weight(1f).height(2.dp).background(scheme.onSurfaceVariant.copy(alpha = .45f), VeritasPackStyle.chipShape()))
+                Box(Modifier.width(38.dp).height(16.dp).background(scheme.primary, VeritasPackStyle.chipShape()))
+            }
+        }
     }
 }
 
@@ -220,7 +214,9 @@ fun PackChoiceContent(label: String, packId: String, selected: Boolean) {
 fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean = false) {
     val context = LocalContext.current
     val normalizedPack = VeritasThemePackCatalog.normalizePackId(themePackId)
-    val scheme = veritasColorScheme(themeId, context)
+    val resolvedTheme = VeritasThemeCatalog.resolveConcreteThemeId(themeId, isSystemInDarkTheme())
+    val packed = com.veritas.reader.veritasPackColorScheme(veritasColorScheme(resolvedTheme, context), normalizedPack, resolvedTheme)
+    val scheme = if (VeritasThemeCatalog.isDark(resolvedTheme) && (com.veritas.reader.VeritasThemeState.amoledMode || resolvedTheme == "amoled")) com.veritas.reader.veritasAmoledColorScheme(packed) else packed
     // Mirror the hero-card style toggle: vibrant = accent poster gradient with a
     // luminance-picked text colour; subtle = container tones.
     val heroGradient: Brush
@@ -237,28 +233,27 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
         heroGradient = Brush.linearGradient(listOf(scheme.primaryContainer, blendColors(scheme.primaryContainer, scheme.surface, 0.5f)))
         heroOnColor = scheme.onPrimaryContainer
     }
-    val cardCorner = when (normalizedPack) {
-        "material_you" -> 22.dp
-        "liquid_glass" -> 26.dp
-        "one_ui" -> 18.dp
-        else -> 16.dp
-    }
-
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             "Live preview",
-            fontWeight = FontWeight.Black,
+            fontWeight = MaterialTheme.typography.titleLarge.fontWeight,
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleMedium
         )
-        MaterialTheme(colorScheme = scheme) {
+        androidx.compose.runtime.CompositionLocalProvider(LocalVeritasPackId provides normalizedPack) {
+        MaterialTheme(
+            colorScheme = scheme,
+            shapes = com.veritas.reader.veritasPackShapes(normalizedPack),
+            typography = com.veritas.reader.veritasPackTypography(com.veritas.reader.ui.veritasTypography(com.veritas.reader.ui.VeritasUiFont.fromId(com.veritas.reader.VeritasThemeState.uiFontId)), normalizedPack)
+        ) {
+            val previewCardShape = VeritasPackStyle.cardShape()
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(226.dp)
-                    .clip(RoundedCornerShape(22.dp))
+                    .height(386.dp)
+                    .clip(VeritasPackStyle.cardShape())
                     .background(VeritasPackStyle.backgroundBrush(scheme))
-                    .border(1.5.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(22.dp))
+                    .border(VeritasPackStyle.cardBorder(scheme), VeritasPackStyle.cardShape())
                     .padding(14.dp)
             ) {
                 Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -270,7 +265,7 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
                             modifier = Modifier.size(24.dp).clip(RoundedCornerShape(6.dp))
                         )
                         Spacer(Modifier.width(6.dp))
-                        Text("Vern", fontWeight = FontWeight.Black, color = scheme.onBackground, style = MaterialTheme.typography.titleMedium)
+                        Text("Vern", fontWeight = MaterialTheme.typography.titleLarge.fontWeight, color = scheme.onBackground, style = MaterialTheme.typography.titleMedium)
                         Spacer(Modifier.weight(1f))
                         Box(modifier = Modifier.size(22.dp).background(scheme.surfaceVariant, CircleShape))
                     }
@@ -279,7 +274,7 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(78.dp)
-                            .clip(RoundedCornerShape(cardCorner))
+                            .clip(previewCardShape)
                             .background(heroGradient)
                             .padding(12.dp)
                     ) {
@@ -288,7 +283,6 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
                                 "Lorem ipsum dolor",
                                 color = heroOnColor,
                                 style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -316,28 +310,47 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape((cardCorner.value - 4).coerceAtLeast(6f).dp))
-                                .background(scheme.surface.copy(alpha = 0.85f))
+                                .clip(VeritasPackStyle.compactShape())
+                                .background(VeritasPackStyle.panelColor(scheme))
                                 .padding(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(modifier = Modifier.size(22.dp).background(scheme.secondaryContainer, RoundedCornerShape(6.dp)))
                             Spacer(Modifier.width(8.dp))
                             Column {
-                                Text(title, color = scheme.onSurface, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(title, color = scheme.onSurface, style = MaterialTheme.typography.labelMedium, fontWeight = MaterialTheme.typography.labelMedium.fontWeight, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(sub, color = scheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
                     Spacer(Modifier.weight(1f))
+                    Row(Modifier.fillMaxWidth().height(48.dp)
+                        .background(VeritasPackStyle.playerSurfaceColor(scheme), previewCardShape)
+                        .border(VeritasPackStyle.cardBorder(scheme), previewCardShape)
+                        .padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.PlayArrow, null, tint = scheme.primary, modifier = Modifier.size(22.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Continue reading", style = MaterialTheme.typography.labelLarge, color = scheme.onSurface)
+                    }
                     // Bottom nav — active tab in primary, others muted
-                    Row(horizontalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        repeat(3) { i ->
-                            Box(modifier = Modifier.size(if (i == 0) 24.dp else 18.dp).background(if (i == 0) scheme.primary else scheme.onSurfaceVariant.copy(alpha = 0.5f), CircleShape))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(VeritasPackStyle.navigationHeight(normalizedPack, true).coerceAtMost(40.dp))
+                            .clip(RoundedCornerShape(VeritasPackStyle.navigationCornerRadius()))
+                            .background(VeritasPackStyle.navigationBrush(scheme))
+                            .border(1.dp, VeritasPackStyle.navigationBorderBrush(scheme), RoundedCornerShape(VeritasPackStyle.navigationCornerRadius()))
+                            .padding(horizontal = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        listOf(Icons.Default.Home, Icons.Default.Book, Icons.Default.Layers, Icons.Default.EditNote).forEachIndexed { index, icon ->
+                            Box(Modifier.size(30.dp).background(if (index == 0) scheme.primaryContainer else Color.Transparent, VeritasPackStyle.chipShape()), contentAlignment = Alignment.Center) {
+                                Icon(icon, null, tint = if (index == 0) scheme.onPrimaryContainer else scheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                            }
                         }
                     }
                 }
             }
+        }
         }
         Text(
             "${VeritasThemePackCatalog.displayName(normalizedPack)} · ${VeritasThemeCatalog.displayName(themeId)}",
@@ -352,87 +365,151 @@ fun VeritasThemePicker(
     selectedThemeId: String,
     onThemeChange: (String) -> Unit
 ) {
-    val normalizedSelected = VeritasThemeCatalog.normalizeThemeId(selectedThemeId)
+    val currentFamily = VeritasThemeCatalog.familyForThemeId(selectedThemeId)
+    val currentMode = VeritasThemeCatalog.modeForThemeId(selectedThemeId)
+    val isSystemDark = isSystemInDarkTheme()
 
-    val col1Themes = listOf(
-        "system" to "System Default",
-        "light" to "Light",
-        "github_light" to "GitHub Light",
-        "bw_gradient_light" to "B/W Gradient Light",
-        "blue_high_contrast" to "Blue High Contrast",
-        "one_dark_pro" to "One Dark Pro"
-    )
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // ── 1. Appearance Mode (System Default / Light / Dark) ──
+        Text(
+            text = "Appearance Mode",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
-    val col2Themes = listOf(
-        "dark" to "Dark",
-        "midnight_dark" to "Midnight Dark",
-        "github_dark" to "GitHub Dark",
-        "bw_gradient_dark" to "B/W Gradient Dark",
-        "dracula" to "Dracula",
-        "neon" to "Neon"
-    )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val modes = listOf(
+                Triple("system", "System", Icons.Filled.BrightnessAuto),
+                Triple("light", "Light", Icons.Filled.LightMode),
+                Triple("dark", "Dark", Icons.Filled.DarkMode)
+            )
+            modes.forEach { (modeId, label, icon) ->
+                val isSelected = currentMode == modeId && currentFamily != "neon"
+                val isNeonActive = currentFamily == "neon"
 
-    val rowCount = maxOf(col1Themes.size, col2Themes.size)
-
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        for (i in 0 until rowCount) {
-            val item1 = col1Themes.getOrNull(i)
-            val item2 = col2Themes.getOrNull(i)
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                if (item1 != null) {
-                    val (id1, label1) = item1
-                    val selected1 = normalizedSelected == id1
-                    val colors1 = themePreviewColors(id1)
-                    if (selected1) {
-                        Button(
-                            onClick = { onThemeChange(id1) },
-                            shape = VeritasPackStyle.chipShape(),
-                            modifier = Modifier.weight(1f)
+                if (isSelected) {
+                    Button(
+                        onClick = {
+                            val newId = VeritasThemeCatalog.resolveThemeIdForStorage(currentFamily, modeId)
+                            onThemeChange(newId)
+                        },
+                        shape = VeritasPackStyle.chipShape(),
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
                         ) {
-                            ThemeChoiceContent(label = label1, previewColors = colors1, selected = true)
-                        }
-                    } else {
-                        OutlinedButton(
-                            onClick = { onThemeChange(id1) },
-                            shape = VeritasPackStyle.chipShape(),
-                            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            ThemeChoiceContent(label = label1, previewColors = colors1, selected = false)
-                        }
-                    }
-                } else {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-
-                if (item2 != null) {
-                    val (id2, label2) = item2
-                    val selected2 = normalizedSelected == id2
-                    val colors2 = themePreviewColors(id2)
-                    if (selected2) {
-                        Button(
-                            onClick = { onThemeChange(id2) },
-                            shape = VeritasPackStyle.chipShape(),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            ThemeChoiceContent(label = label2, previewColors = colors2, selected = true)
-                        }
-                    } else {
-                        OutlinedButton(
-                            onClick = { onThemeChange(id2) },
-                            shape = VeritasPackStyle.chipShape(),
-                            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            ThemeChoiceContent(label = label2, previewColors = colors2, selected = false)
+                            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
+                            )
                         }
                     }
                 } else {
-                    Spacer(modifier = Modifier.weight(1f))
+                    OutlinedButton(
+                        onClick = {
+                            val targetFamily = if (isNeonActive) "sage" else currentFamily
+                            val newId = VeritasThemeCatalog.resolveThemeIdForStorage(targetFamily, modeId)
+                            onThemeChange(newId)
+                        },
+                        shape = VeritasPackStyle.chipShape(),
+                        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Normal,
+                                maxLines = 1
+                            )
+                        }
+                    }
                 }
             }
         }
+
+        // ── 2. Palette Families (5 Sets) ──
+        Text(
+            text = "Theme Palette Sets",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        val coreFamilies = VeritasThemeCatalog.families
+        val pairs = coreFamilies.chunked(2)
+        pairs.forEach { rowFamilies ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                rowFamilies.forEach { family ->
+                    val isFamilySelected = currentFamily == family.id
+                    val previewThemeId = when (currentMode) {
+                        "light" -> family.lightThemeId
+                        "dark" -> family.darkThemeId
+                        else -> if (isSystemDark) family.darkThemeId else family.lightThemeId
+                    }
+                    val colors = themePreviewColors(previewThemeId)
+                    val cardModifier = Modifier.weight(1f)
+
+                    if (isFamilySelected) {
+                        Button(
+                            onClick = {
+                                val newId = VeritasThemeCatalog.resolveThemeIdForStorage(family.id, currentMode)
+                                onThemeChange(newId)
+                            },
+                            shape = VeritasPackStyle.chipShape(),
+                            modifier = cardModifier
+                        ) {
+                            ThemeChoiceContent(
+                                label = if (family.isAccent) "Neon" else family.displayName,
+                                previewColors = colors,
+                                selected = true
+                            )
+                        }
+                    } else {
+                        OutlinedButton(
+                            onClick = {
+                                val newId = VeritasThemeCatalog.resolveThemeIdForStorage(family.id, currentMode)
+                                onThemeChange(newId)
+                            },
+                            shape = VeritasPackStyle.chipShape(),
+                            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
+                            modifier = cardModifier
+                        ) {
+                            ThemeChoiceContent(
+                                label = if (family.isAccent) "Neon" else family.displayName,
+                                previewColors = colors,
+                                selected = false
+                            )
+                        }
+                    }
+                }
+                if (rowFamilies.size == 1) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+
+
     }
 }
 
@@ -462,6 +539,7 @@ fun ReaderSettingsDialog(
     onUiFontChange: (String) -> Unit = {},
     onPaperToneModeChange: (PaperToneMode) -> Unit = {},
     onToggleAmoledMode: () -> Unit = {},
+    onToggleGlassFloatingControls: () -> Unit = {},
     currentPage: Int = 1,
     totalPages: Int = 1,
     onJumpToPage: ((Int) -> Unit)? = null
@@ -839,6 +917,18 @@ fun ReaderSettingsDialog(
 
         // Preferences Section
         SettingsHubSectionTitle("Display preferences")
+        Card(Modifier.fillMaxWidth(), shape = VeritasPackStyle.cardShape()) {
+            Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f).padding(end = 12.dp)) {
+                    Text("Glass in other theme packs", style = MaterialTheme.typography.titleMedium)
+                    Text("Blurred, glossy navigation, player and floating Add, Note and Import controls. Liquid glass includes this look.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (settings.reduceTransparency) Text("Reduce transparency currently keeps controls opaque.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                VeritasSwitch(checked = settings.glassFloatingControls, onCheckedChange = { onToggleGlassFloatingControls() })
+            }
+        }
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = VeritasPackStyle.cardShape(),

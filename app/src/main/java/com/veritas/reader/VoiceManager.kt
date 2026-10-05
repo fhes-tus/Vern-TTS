@@ -3,8 +3,12 @@ package com.veritas.reader
 import android.content.Context
 import android.content.Intent
 import android.speech.tts.TextToSpeech
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
@@ -316,7 +320,8 @@ object VoiceManager {
         voiceName: String
     ): com.veritas.reader.tts.TtsEngine {
         previewEngine?.let { if (previewEngineVoiceId == voiceName) return it }
-        releasePreviewEngine()
+        previewEngine?.shutdown()
+        previewEngine = null
         val isPiper = voiceName.contains("piper", ignoreCase = true)
         val engine: com.veritas.reader.tts.TtsEngine = if (isPiper) {
             com.veritas.reader.tts.PiperEngine(appContext, voiceName)
@@ -331,8 +336,9 @@ object VoiceManager {
     private val previewScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default + kotlinx.coroutines.SupervisorJob())
     private var previewJob: kotlinx.coroutines.Job? = null
     private var previewSystemTts: TextToSpeech? = null
-    private var lastPreviewTapTime: Long = 0L
-    private var lastPreviewVoiceId: String = ""
+    private val previewSynthesisMutex = kotlinx.coroutines.sync.Mutex()
+    @Volatile private var previewGeneration = 0
+    private val previewHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
     private fun releasePreviewTrack() {
         previewTrack?.let { track ->
@@ -352,13 +358,21 @@ object VoiceManager {
 
     /** Frees the cached preview engine, active preview coroutine, and any track still holding its audio. */
     fun releasePreviewEngine() {
+        previewGeneration++
         previewJob?.cancel()
         previewJob = null
         releasePreviewTrack()
         releaseSystemTts()
-        previewEngine?.shutdown()
-        previewEngine = null
-        previewEngineVoiceId = null
+        val generation = previewGeneration
+        previewScope.launch {
+            previewSynthesisMutex.withLock {
+                if (generation == previewGeneration) {
+                    previewEngine?.shutdown()
+                    previewEngine = null
+                    previewEngineVoiceId = null
+                }
+            }
+        }
     }
 
     fun previewVoice(
@@ -367,15 +381,13 @@ object VoiceManager {
         voiceName: String,
         text: String = "This is a preview of the selected voice.",
         rate: Float = 1.0f,
-        pitch: Float = 1.0f
+        pitch: Float = 1.0f,
+        onFinished: (String?) -> Unit = {}
     ) {
-        val now = System.currentTimeMillis()
-        if (voiceName == lastPreviewVoiceId && now - lastPreviewTapTime < 450L) {
-            // Ignore rapid duplicate tap on the exact same voice preview
-            return
+        val generation = ++previewGeneration
+        fun finish(error: String? = null) {
+            previewHandler.post { if (generation == previewGeneration) onFinished(error) }
         }
-        lastPreviewTapTime = now
-        lastPreviewVoiceId = voiceName
 
         // Cancel previous preview immediately so multiple previews never overlap
         previewJob?.cancel()
@@ -388,8 +400,13 @@ object VoiceManager {
                 // Auditioning voices used to build a whole engine per tap — a 114MB
                 // model load and teardown to speak one phrase. Keep the last one and
                 // only rebuild when the voice actually changes.
-                val ttsEngine = previewEngineFor(context.applicationContext, voiceName)
-                if (!ttsEngine.isReady()) {
+                try {
+                val synthesized = previewSynthesisMutex.withLock {
+                    kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                    val ttsEngine = previewEngineFor(context.applicationContext, voiceName)
+                    if (!ttsEngine.isReady()) null else ttsEngine.synthesize(text, rate, pitch)?.let { it to ttsEngine.sampleRate }
+                }
+                if (synthesized == null) {
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                         android.widget.Toast.makeText(
                             context.applicationContext,
@@ -397,11 +414,16 @@ object VoiceManager {
                             android.widget.Toast.LENGTH_LONG
                         ).show()
                     }
-                    releasePreviewEngine()
+                    finish("Download this voice model in Settings before previewing it.")
                     return@launch
                 }
-                val pcm = ttsEngine.synthesize(text, rate, pitch)
-                if (pcm != null && pcm.isNotEmpty()) {
+                val (pcm, sampleRate) = synthesized
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                if (generation != previewGeneration) return@launch
+                if (pcm.isNotEmpty()) {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                    if (generation != previewGeneration) return@withContext
                     releasePreviewTrack()
                     val audioTrack = android.media.AudioTrack.Builder()
                         .setAudioAttributes(
@@ -413,7 +435,7 @@ object VoiceManager {
                         .setAudioFormat(
                             android.media.AudioFormat.Builder()
                                 .setEncoding(android.media.AudioFormat.ENCODING_PCM_16BIT)
-                                .setSampleRate(ttsEngine.sampleRate)
+                                .setSampleRate(sampleRate)
                                 .setChannelMask(android.media.AudioFormat.CHANNEL_OUT_MONO)
                                 .build()
                         )
@@ -422,8 +444,20 @@ object VoiceManager {
                         .build()
                     audioTrack.write(pcm, 0, pcm.size)
                     previewTrack = audioTrack
+                    audioTrack.setNotificationMarkerPosition(pcm.size)
+                    audioTrack.setPlaybackPositionUpdateListener(object : android.media.AudioTrack.OnPlaybackPositionUpdateListener {
+                        override fun onPeriodicNotification(track: android.media.AudioTrack?) = Unit
+                        override fun onMarkerReached(track: android.media.AudioTrack?) {
+                            if (generation == previewGeneration && previewTrack === audioTrack) {
+                                releasePreviewTrack()
+                                finish()
+                            }
+                        }
+                    }, previewHandler)
                     audioTrack.play()
+                    }
                 } else {
+                    finish("Voice synthesis failed. Check the downloaded voice model.")
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                         android.widget.Toast.makeText(
                             context.applicationContext,
@@ -432,6 +466,8 @@ object VoiceManager {
                         ).show()
                     }
                 }
+                } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                catch (failure: Exception) { finish("Could not play this voice. Check the voice model and try again.") }
             }
             return
         }
@@ -447,20 +483,28 @@ object VoiceManager {
                 engine?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {}
                     override fun onDone(utteranceId: String?) {
-                        if (previewSystemTts === engine) {
-                            releaseSystemTts()
+                        previewHandler.post {
+                            if (generation == previewGeneration && previewSystemTts === engine) {
+                                releaseSystemTts()
+                                finish()
+                            }
                         }
                     }
                     @Deprecated("Deprecated in Java")
                     override fun onError(utteranceId: String?) {
-                        if (previewSystemTts === engine) {
-                            releaseSystemTts()
+                        previewHandler.post {
+                            if (generation == previewGeneration && previewSystemTts === engine) {
+                                releaseSystemTts()
+                                finish("The speech engine could not play this voice.")
+                            }
                         }
                     }
                 })
-                engine?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "preview")
+                if (engine?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "preview") == TextToSpeech.ERROR)
+                    finish("The speech engine could not play this voice.")
             } else {
                 runCatching { engine?.shutdown() }
+                finish("The speech engine could not be started.")
             }
         }
         engine = if (enginePackage.isBlank()) {
@@ -492,17 +536,39 @@ object VoiceConfigurator {
 object TutorialSpeaker {
     private var tts: TextToSpeech? = null
     private var isInitialized = false
-    private var pendingText: String? = null
+    private data class Preview(val text: String, val speed: Float, val pitch: Float)
+    private var pendingText: Preview? = null
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var utteranceId = ""
+    private var initializationGeneration = 0
+    var previewActive by androidx.compose.runtime.mutableStateOf(false)
+        private set
+    var previewError by androidx.compose.runtime.mutableStateOf<String?>(null)
+        private set
 
     fun init(context: Context) {
         if (tts == null) {
+            val generation = ++initializationGeneration
             tts = TextToSpeech(context.applicationContext) { status ->
+                if (generation != initializationGeneration) return@TextToSpeech
                 if (status == TextToSpeech.SUCCESS) {
                     isInitialized = true
-                    pendingText?.let {
-                        tts?.speak(it, TextToSpeech.QUEUE_FLUSH, null, "tutorial")
+                    tts?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
+                        override fun onStart(id: String?) = Unit
+                        override fun onDone(id: String?) { finish(id, null) }
+                        @Deprecated("Legacy TTS callback")
+                        override fun onError(id: String?) { finish(id, "This voice could not play the preview.") }
+                        override fun onError(id: String?, errorCode: Int) { finish(id, "This voice could not play the preview.") }
+                        override fun onStop(id: String?, interrupted: Boolean) { finish(id, null) }
+                    })
+                    pendingText?.let { preview ->
                         pendingText = null
+                        speakWithTuning(preview.text, preview.speed, preview.pitch)
                     }
+                } else {
+                    pendingText = null
+                    previewActive = false
+                    previewError = "No speech engine is available. Install or enable one in Android settings."
                 }
             }
         }
@@ -513,12 +579,25 @@ object TutorialSpeaker {
     }
 
     fun speakWithTuning(text: String, speed: Float = 1.0f, pitch: Float = 1.0f) {
+        if (text.isBlank()) return
+        previewError = null
+        previewActive = true
+        utteranceId = java.util.UUID.randomUUID().toString()
         if (tts != null && isInitialized) {
             tts?.setSpeechRate(speed.coerceIn(0.5f, 2.5f))
             tts?.setPitch(pitch.coerceIn(0.5f, 2.0f))
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tutorial")
+            if (tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId) == TextToSpeech.ERROR) {
+                previewActive = false
+                previewError = "This voice could not play the preview."
+            }
         } else {
-            pendingText = text
+            pendingText = Preview(text, speed, pitch)
+        }
+    }
+
+    private fun finish(id: String?, error: String?) {
+        mainHandler.post {
+            if (id == utteranceId) { previewActive = false; previewError = error }
         }
     }
 
@@ -528,13 +607,16 @@ object TutorialSpeaker {
 
     fun stop() {
         pendingText = null
+        utteranceId = ""
+        previewActive = false
         if (tts != null && isInitialized) {
             tts?.stop()
         }
     }
 
     fun shutdown() {
-        pendingText = null
+        initializationGeneration++
+        stop()
         tts?.shutdown()
         tts = null
         isInitialized = false

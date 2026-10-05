@@ -2,10 +2,9 @@ package com.veritas.reader.ui.screens
 
 import android.widget.TextView
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import com.veritas.reader.ui.VeritasMotion
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -32,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -169,8 +169,8 @@ fun ReaderScreen(
     onExportAudio: () -> Unit,
     onCopySelection: (String) -> Unit,
     onShareSelection: (String) -> Unit,
-    onGoogleSelection: (String) -> Unit,
-    onTranslateSelection: (String) -> Unit,
+    onGoogleSelection: (ReaderTextSelection) -> Unit,
+    onTranslateSelection: (ReaderTextSelection) -> Unit,
     onAskAiSelection: (String) -> Unit,
     onEditSpeechSelection: (String) -> Unit,
     onReadSelection: (String) -> Unit,
@@ -213,8 +213,8 @@ fun ReaderScreen(
     val searchCursor = state.searchCursor
     val hasCanvas = state.hasCanvas
     val context = LocalContext.current
-    val density = LocalDensity.current
-    val haptics = LocalHapticFeedback.current
+    LocalDensity.current
+    LocalHapticFeedback.current
     var showTools by remember { mutableStateOf(false) }
     var showDocumentDetails by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
@@ -235,8 +235,7 @@ fun ReaderScreen(
     // Bumped to force the auto-scroll effect to re-anchor the active sentence after events
     // that otherwise leave its keys unchanged (bookmarking, switching reader modes), which
     // previously left the page locked at the top of the section.
-    var scrollTick by remember(document.id) { mutableStateOf(0) }
-    var interactionTrigger by remember { mutableStateOf(0L) }
+    var interactionTrigger by remember { mutableLongStateOf(0L) }
     LaunchedEffect(showShareToAi) {
         if (showShareToAi) {
             shareToAiSelection = null
@@ -374,8 +373,12 @@ fun ReaderScreen(
         }
     }
 
+    val pageSyncMotion = VeritasMotion.spatialSlow<Float>()
     // Page sync: whether playing TTS or user jumps to a section/sentence via outline/bookmarks/slider
-    LaunchedEffect(currentPageNumber, pageItems.size) {
+    LaunchedEffect(currentPageNumber, pageItems.size, selectedTextSelection != null) {
+        // Reading may continue while the user selects a word on this page.
+        // Keep that page in place until the native selection is dismissed.
+        if (selectedTextSelection != null || selectedTextView?.hasSelection() == true) return@LaunchedEffect
         val targetPage = (pageItems.indexOfFirst { it.pageNumber == currentPageNumber }.takeIf { it >= 0 } ?: (currentPageNumber - 1))
             .coerceIn(0, (pageItems.size - 1).coerceAtLeast(0))
         // A sync landing mid-scroll used to be dropped outright, and because this effect only
@@ -391,7 +394,7 @@ fun ReaderScreen(
             if (latestIsPlaying.value) {
                 pagerState.animateScrollToPage(
                     page = targetPage,
-                    animationSpec = tween(durationMillis = 380, easing = FastOutSlowInEasing)
+                    animationSpec = pageSyncMotion
                 )
             } else {
                 pagerState.scrollToPage(targetPage)
@@ -479,13 +482,11 @@ fun ReaderScreen(
     }
     annotations.count { it.type == AnnotationType.BOOKMARK }
     annotations.count { it.type == AnnotationType.NOTE }
-    val canGoPreviousPart = currentPartIndex > 0
-    val canGoNextPart = currentPartIndex < readerModel.parts.lastIndex
-    val previousPartStart =
-        readerModel.parts.getOrNull(currentPartIndex - 1)?.sentenceStartIndex ?: 0
-    val nextPartStart = readerModel.parts.getOrNull(currentPartIndex + 1)?.sentenceStartIndex
+    currentPartIndex > 0
+    currentPartIndex < readerModel.parts.lastIndex
+    readerModel.parts.getOrNull(currentPartIndex - 1)?.sentenceStartIndex ?: 0
+    readerModel.parts.getOrNull(currentPartIndex + 1)?.sentenceStartIndex
         ?: document.chunks.lastIndex
-    val partListItemIndex = 1
 
     LaunchedEffect(feedbackSentenceIndex) {
         if (feedbackSentenceIndex != null) {
@@ -503,24 +504,24 @@ fun ReaderScreen(
 
     val topBarOffset by animateFloatAsState(
         targetValue = if (effectiveTopBarVisible) 0f else -650f,
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        animationSpec = VeritasMotion.spatial(),
         label = "readerTopBarOffset"
     )
     val bottomBarOffset by animateFloatAsState(
         targetValue = if (effectiveBottomBarVisible) 0f else 450f,
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        animationSpec = VeritasMotion.spatial(),
         label = "readerBottomBarOffset"
     )
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val animatedTopPadding by animateDpAsState(
         targetValue = if (effectiveTopBarVisible) topInset + 114.dp else topInset + 8.dp,
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        animationSpec = VeritasMotion.spatial(),
         label = "animatedTopPadding"
     )
     val animatedBottomPadding by animateDpAsState(
         targetValue = if (effectiveBottomBarVisible) bottomInset + 64.dp else bottomInset + 12.dp,
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        animationSpec = VeritasMotion.spatial(),
         label = "animatedBottomPadding"
     )
 

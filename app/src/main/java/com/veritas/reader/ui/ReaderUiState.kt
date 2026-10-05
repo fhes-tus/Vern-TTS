@@ -6,6 +6,7 @@ import com.veritas.reader.AiPromptTemplate
 import com.veritas.reader.AskAiSettings
 import com.veritas.reader.FlashcardProgress
 import com.veritas.reader.GeneralNote
+import com.veritas.reader.NoteNotebook
 import com.veritas.reader.LibrarySearchHit
 import com.veritas.reader.NarrationSettings
 import com.veritas.reader.PdfImportOptions
@@ -52,8 +53,11 @@ data class ReaderUiState(
     val dismissedHeroDocIds: Set<String> = emptySet(),
     val isHeroContinueDismissed: Boolean = false,
     val generalNotes: List<GeneralNote> = emptyList(),
+    val trashedGeneralNotes: List<GeneralNote> = emptyList(),
+    val noteNotebooks: List<NoteNotebook> = emptyList(),
     val showGeneralNotesEditor: Boolean = false,
     val generalNoteEditorTarget: GeneralNote? = null,
+    val generalNoteSaveStatus: String = "",
     val noteEditorChecklistOnStart: Boolean = false,
     val noteEditorReminderOnStart: Boolean = false,
     val noteEditorImageOnStart: Boolean = false,
@@ -70,6 +74,7 @@ data class ReaderUiState(
     val deleteTarget: SavedDocument? = null,
     val importMessage: String? = null,
     val importInProgress: Boolean = false,
+    val importAwaitingReadyPages: Boolean = false,
     val isOpeningDocument: Boolean = false,
     val importSourceName: String = "",
     val handledInitialShare: Boolean = false,
@@ -102,6 +107,8 @@ data class ReaderUiState(
     val voiceMessage: String? = null,
     val readerSettings: ReaderSettings = ReaderSettings(),
     val askAiSettings: AskAiSettings = AskAiSettings(),
+    val notesSettings: NotesSettings = NotesSettings(),
+    val showNotesSettings: Boolean = false,
     val showReaderSettings: Boolean = false,
     val showAccessibilitySettings: Boolean = false,
     val showPronunciationRules: Boolean = false,
@@ -193,8 +200,12 @@ data class ReaderUiState(
     val bookBrowserTitle: String = "",
     val bookBrowserQuery: String = "",
     val targetHomeTab: VeritasHomeTab? = null,
+    val targetLibrarySection: com.veritas.reader.ui.screens.LibrarySection? = null,
+    val readerPosition: Int = 0,
+    val classicDownloads: Map<String, com.veritas.reader.ClassicDownloadState> = emptyMap(),
     val showExitConfirmationDialog: Boolean = false,
     val isBatchImporting: Boolean = false,
     val batchImportTotal: Int = 0,
-    val batchImportCurrent: Int = 0
+    val batchImportCurrent: Int = 0,
+    val batchImportFailed: Int = 0
 )

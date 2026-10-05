@@ -290,8 +290,8 @@ fun parseVocabularyNoteContent(content: String): List<VocabularyEntry> {
         val source = lines.getOrNull(2).orEmpty()
         val sentenceIndex = runCatching {
             val match = Regex("""sentence\s+(\d+)""", RegexOption.IGNORE_CASE).find(source)
-            match?.groupValues?.getOrNull(1)?.toInt()?.minus(1) ?: 0
-        }.getOrDefault(0)
+            match?.groupValues?.getOrNull(1)?.toIntOrNull()?.minus(1) ?: -1
+        }.getOrDefault(-1)
 
         var context: String? = null
         var pron: String? = null

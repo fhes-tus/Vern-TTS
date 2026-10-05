@@ -110,7 +110,7 @@ class KokoroTtsEngine(context: Context, private val voiceId: String) : TtsEngine
         }.getOrElse {
             Log.w(TAG, "Synthesis failed for sid $safeSid, trying fallback sid 0", it)
             runCatching { tts.generate(sentence, sid = 0, speed = safeSpeed).samples.toPcm16() }.getOrNull()
-        }
+        }?.let { PcmPitchShift.apply(it, sampleRate, pitch) }
     }
 
     override fun shutdown() {

@@ -214,14 +214,12 @@ fun ReaderViewModel.cancelUpdateDownload() {
 internal fun ReaderViewModel.triggerApkInstallation(apkFile: File, fallbackUrl: String = "") {
     val context = getApplication<Application>()
     try {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            if (!context.packageManager.canRequestPackageInstalls()) {
-                val settingsIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                    data = Uri.parse("package:${context.packageName}")
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                context.startActivity(settingsIntent)
+        if (!context.packageManager.canRequestPackageInstalls()) {
+            val settingsIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                data = Uri.parse("package:${context.packageName}")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
+            context.startActivity(settingsIntent)
         }
         val authority = "${context.packageName}.fileprovider"
         val apkUri = FileProvider.getUriForFile(context, authority, apkFile)
@@ -268,12 +266,12 @@ fun isInstalledFromGooglePlay(context: android.content.Context): Boolean {
 fun openGooglePlayStore(context: android.content.Context) {
     val pkg = context.packageName
     try {
-        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=$pkg")).apply {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg")).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(intent)
     } catch (_: Exception) {
-        val webIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://play.google.com/store/apps/details?id=$pkg")).apply {
+        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$pkg")).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(webIntent)

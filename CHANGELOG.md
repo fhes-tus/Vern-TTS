@@ -4,6 +4,47 @@ All notable changes to the Veritas Reader application will be documented in this
 
 ---
 
+## [Unreleased]
+
+---
+
+## [2.6.0] - 2026-10-05
+
+### Added
+*   **Library and Classics:** Shared My Library / Classics sections, portrait cover cards, searchable horizontal genre shelves and sorting, preserving catalog additions and their bundled covers.
+*   **Live playback:** Cover-based player above navigation; tap the book to open its live position and use separate play/pause. Home's repeated row play buttons are removed; reading another book preserves the audio session.
+*   **Catalog downloads:** Durable per-book progress, cancel/retry and stable catalog identity with atomic duplicate prevention. Website-only catalog entries open their source instead of importing HTML as a book.
+
+### Fixed
+*   **Non-blocking Imports and Batch Reliability:** Remove the dark full-screen import overlays from the reader host and file browser. Persist batches as sequential WorkManager jobs, continue after rejected files, deduplicate selections, keep queued readings in selected order, report actual completion/failures, and restore batch progress when the app reopens. Back dismisses the browser without cancelling extraction.
+*   **Book Details:** Build an overview from an abstract or representative complete sentences across the document, with optional explicit AI summarization. Load covers off the UI thread and keep longer details scrollable.
+*   **Original Documents:** Load EPUB/DOCX media on demand, parse Word blocks incrementally, decode images in the background, and improve viewport use and table scrolling. PPTX follows actual presentation order and notes relationships; supported slides preserve positioned source objects, with readable fallbacks for complex layouts.
+*   **Pitch and Neural Export:** Remove whole-sentence punctuation pitch boosts, settle rapid voice-setting gestures, restore book pitch on ordinary Play while respecting pending/manual controls, and apply duration-preserving pitch adjustment to Kokoro/Piper PCM. WAV export supports selected neural voices without substituting system TTS.
+*   **Library and Startup:** Use targeted SQL for secondary edits, avoid catalog reads per playback sentence, coalesce widget updates, load startup data off the UI thread, and keep deleted samples deleted. Update navigation history explicitly when screens change.
+*   **Credential Storage:** Migrate AI credentials to Android Keystore encrypted storage, exclude it from backup, and align the privacy policy with Android backup behavior.
+*   **Playback and Selection Regressions:** Reuse the audio-focus client so repeated Play requests cannot pause the app itself. Route cold Read from Here through normal engine initialization. Preserve native selections during highlight updates and search the actual displayed text buffer.
+*   **Reader Page Loading:** Expose text after a short illustration preparation window; late uncertain illustrations use the page-end fallback. Reuse one parsed PDF, probe columns only when an illustration needs them, and remove explicit page-number prose from new extraction while hiding/silencing legacy prefixes. Blank pages now say only “No readable text on this page.”
+*   **Phone File Browsing:** Show folders and indexed files while the full discovery scan continues, publish progress snapshots, cancel obsolete scans, and cache recent folder results.
+*   **Outlines:** Preserve embedded bookmark labels, match contents titles to actual body pages, reconstruct fragmented contents rows, retain repeated chapters in collections, and reject prose, bullets, checklists and adjacent short numbered-list candidates. Smart Outline now includes a validated page-jump field and a Material vector title icon.
+*   **Reading Symbols:** Expand clear mathematical and scientific notation, contextual Roman numerals, ISO dates, numeric ranges, Greek symbols, common Latin abbreviations, and recognized chemical formulas for English voices. Map spoken offsets back to the displayed source. LaTeX display replacements now respect whole command names.
+*   **Notes Reliability:** Serialize autosaves under a stable note identity, confirm disk persistence, display save status, preserve drafts across recreation/backgrounding, and protect concurrent note/annotation mutations. Undo/Redo restores the real document including attachment and checklist changes; Share and Make a Copy use the current complete draft. Pinned notes sort first and vocabulary records stay out of general notes.
+*   **Note Attachments:** Copy selected media off the UI thread using bounded buffers and publish complete files only. Full ZIP backups now include referenced app-owned note media and remap restored image, audio, video, and inline paths through the existing restore transaction.
+*   **Add Menu Feedback:** Add a visible pressed fill and scale to Add Something actions.
+*   **PDF Columns and Chapter Headings:** Reconstruct complete visual rows before detecting gutters; preserve headings spanning columns and read interrupted column bands in order. Verified against the reported Sherlock Holmes pages. Existing extracted copies need fresh extraction to receive the correction.
+*   **Inline Illustrations:** Place supported images between prose blocks without changing sentence identities. Bound initial media preparation, keep stable image frames, and cache image/anchor data together. Late, ambiguous and rotated PDF placements retain the bottom-of-page fallback for that visit.
+*   **Vocabulary Source Sentences:** Web lookup uses the selected word's sentence rather than playback's highlight. Concurrent additions/removals preserve entries and context; failed definition fetches show an unavailable message.
+*   **Neural Playback Output:** Reject stale synthesis/results after interruption, handle partial/error writes, wait for rendered audio with bounded completion checks, and handle playback-counter wrap. Align transient audio-focus pauses, leading silence, and background listening accounting.
+*   **WAV Export Memory:** Stream and validate WAV parts with bounded PCM memory, cancellation cleanup, and completed-file publication. Neural voices use their PCM synthesis path; mixed Android/neural casts report an explicit limitation.
+*   **System Voice Punctuation:** Normalize Unicode question/exclamation marks and pause punctuation without shifting text offsets. Preserve quoted question endings in table cells. Add optional punctuation expression with adjustable strength in Narration Studio for Android voices; apply the same preparation to selection reading, preview, and system audio export. Natural question intonation remains voice-dependent.
+*   **Import Status Messages:** Status toasts are shown once across app screens, replace older toasts, and stop when the app goes into the background. Opening dialogs use the actual document title; dismissing them cancels the pending load.
+*   **Progressive PDF Imports:** Publish the first five readable pages before processing larger background batches. Dismiss the blocking import overlay once ready pages open, refresh the reader as later batches arrive, and finish without reopening the book or interrupting a return to the library. Preserve source-page markers, normalize page ranges, reuse the worker's document identity on restart, and keep partial readings after extraction failure without silently creating a second copy. Playback refreshes its text when more pages arrive.
+*   **Import Navigation:** Older imports no longer automatically reopen a document after the reader has moved elsewhere. Finished import observers stop collecting, and simultaneous imports retain their own notifications and pending state.
+*   **Extracted Text Display:** Refresh reader formatting and highlights in place while preserving Android selection spans. Pause automatic scrolling during text selection and include paper-tone changes in rendered formatting updates.
+*   **Progress Persistence:** Update the document's progress row without rewriting the whole library or replacing extraction's current sentence count with a stale player count. Text repairs preserve incomplete-import state.
+*   **Restore Validation and Recovery:** Validate schemas, sections, IDs, filenames, duplicate entries, and size limits before restoring. Stage document files and ZIP assets, retain previous text until success, and roll back staged output and metadata on handled failures. A durable file/preference journal and SQLite commit marker recover interrupted publication when the repository reopens.
+
+---
+
 ## [2.5.1] - 2026-09-25
 
 ### Added

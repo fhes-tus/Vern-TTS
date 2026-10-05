@@ -42,6 +42,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -116,6 +117,8 @@ internal fun LibraryStudyTab(
     onImportFile: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val floatingBottomPadding = LocalHomeBottomPadding.current
+
     var lastMainPageRefreshAt by remember { mutableLongStateOf(0L) }
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
@@ -261,14 +264,14 @@ internal fun LibraryStudyTab(
                                         }
                                         .padding(horizontal = 18.dp),
                                     state = studyListState,
-                                    contentPadding = PaddingValues(top = 10.dp, bottom = 22.dp),
+                                    contentPadding = PaddingValues(top = 10.dp, bottom = floatingBottomPadding + 22.dp),
                                     verticalArrangement = Arrangement.spacedBy(14.dp)
                                 ) {
                                     if (uiState.isGeneratingAiStudy) {
                                         item(key = "study-generating-banner") {
                                             Card(
                                                 modifier = Modifier.fillMaxWidth(),
-                                                shape = RoundedCornerShape(16.dp),
+                                                shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                                                 colors = CardDefaults.cardColors(
                                                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
                                                 ),
@@ -295,7 +298,7 @@ internal fun LibraryStudyTab(
                                         item(key = "study-clipboard-banner") {
                                             Card(
                                                 modifier = Modifier.fillMaxWidth(),
-                                                shape = RoundedCornerShape(16.dp),
+                                                shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                                                 colors = CardDefaults.cardColors(
                                                     containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.85f)
                                                 ),
@@ -338,7 +341,7 @@ internal fun LibraryStudyTab(
                                                             detectedClipboardFlashcards = emptyList()
                                                             detectedClipboardQuiz = emptyList()
                                                         },
-                                                        shape = RoundedCornerShape(50),
+                                                        shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                     ) {
                                                         Text("1-Tap Import", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
@@ -446,7 +449,7 @@ internal fun LibraryStudyTab(
                                             FilledTonalButton(
                                                 onClick = { onShowGeminiApiKeyDialog() },
                                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-                                                shape = RoundedCornerShape(50)
+                                                shape = com.veritas.reader.VeritasPackStyle.chipShape()
                                             ) {
                                                 Icon(
                                                     Icons.Filled.AutoAwesome,
@@ -499,32 +502,12 @@ internal fun LibraryStudyTab(
                                         ) {
                                             val filterOptions = listOf("Bookmarks", "Booknotes", "Vocab", "Flashcards", "Quizzes", "History")
                                             filterOptions.forEach { option ->
-                                                val active = annotationFilter == option
-                                                if (active) {
-                                                    Button(
-                                                        onClick = { onAnnotationFilterChange(option) },
-                                                        shape = VeritasPackStyle.chipShape(),
-                                                        colors = ButtonDefaults.buttonColors(
-                                                            containerColor = MaterialTheme.colorScheme.primary,
-                                                            contentColor = MaterialTheme.colorScheme.onPrimary
-                                                        ),
-                                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
-                                                    ) {
-                                                        Text(option, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                                                    }
-                                                } else {
-                                                    OutlinedButton(
-                                                        onClick = { onAnnotationFilterChange(option) },
-                                                        shape = VeritasPackStyle.chipShape(),
-                                                        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
-                                                        colors = ButtonDefaults.outlinedButtonColors(
-                                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                                        ),
-                                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
-                                                    ) {
-                                                        Text(option, style = MaterialTheme.typography.labelMedium)
-                                                    }
-                                                }
+                                                FilterChip(
+                                                    selected = annotationFilter == option,
+                                                    onClick = { onAnnotationFilterChange(option) },
+                                                    label = { Text(option) },
+                                                    shape = VeritasPackStyle.chipShape()
+                                                )
                                             }
                                         }
                                     }
@@ -623,7 +606,7 @@ internal fun LibraryStudyTab(
                                     Card(
                                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                         shape = VeritasPackStyle.compactShape(),
-                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())),
+                                        colors = CardDefaults.cardColors(containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)),
                                         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
                                     ) {
                                         Column(modifier = Modifier.fillMaxWidth()) {
@@ -783,7 +766,7 @@ internal fun LibraryStudyTab(
                             OutlinedButton(
                                 onClick = { onShowPasteFlashcards() },
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(50)
+                                shape = com.veritas.reader.VeritasPackStyle.chipShape()
                             ) {
                                 Text("Paste AI reply → add cards")
                             }

@@ -291,12 +291,13 @@ internal fun ModernToolActionCard(
     iconTint: Color,
     primaryActionLabel: String,
     isPrimaryInApp: Boolean,
+    enabled: Boolean = true,
     onPrimaryAction: () -> Unit,
     onCopyPrompt: () -> Unit,
     onExternalLaunch: () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(16.dp),
+        shape = VeritasPackStyle.cardShape(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
         modifier = Modifier.fillMaxWidth()
@@ -330,7 +331,7 @@ internal fun ModernToolActionCard(
                     Column {
                         Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
                         Surface(
-                            shape = RoundedCornerShape(50),
+                            shape = VeritasPackStyle.chipShape(),
                             color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
                             modifier = Modifier.padding(top = 2.dp)
                         ) {
@@ -359,8 +360,9 @@ internal fun ModernToolActionCard(
             if (isPrimaryInApp) {
                 Button(
                     onClick = onPrimaryAction,
+                    enabled = enabled,
                     modifier = Modifier.fillMaxWidth().height(38.dp),
-                    shape = RoundedCornerShape(50),
+                    shape = VeritasPackStyle.chipShape(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
@@ -379,7 +381,7 @@ internal fun ModernToolActionCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Surface(
-                        shape = RoundedCornerShape(50),
+                        shape = VeritasPackStyle.chipShape(),
                         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                         modifier = Modifier.clickable { onPrimaryAction() }

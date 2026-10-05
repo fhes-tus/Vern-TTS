@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
@@ -132,7 +133,9 @@ object VeritasFileBrowserScanner {
         context: Context,
         roots: List<VeritasBrowserRoot>,
         includeAllFilesAccess: Boolean = false,
-        location: VeritasBrowserLocation? = null
+        location: VeritasBrowserLocation? = null,
+        onProgress: (VeritasFileBrowserScanResult) -> Unit = {},
+        checkCancelled: () -> Unit = {}
     ): VeritasFileBrowserScanResult {
         val diagnostics = mutableListOf<String>()
         val activeLocation = location ?: initialLocation(context, roots, includeAllFilesAccess)
@@ -144,7 +147,8 @@ object VeritasFileBrowserScanner {
             )
         }
         val entries = when {
-            activeLocation.filePath != null -> listFileDirectory(context, activeLocation, diagnostics)
+            activeLocation.filePath != null -> listFileDirectory(context, activeLocation, diagnostics,
+                { files -> onProgress(VeritasFileBrowserScanResult(files, activeLocation, diagnostics.toList())) }, checkCancelled)
             activeLocation.rootUri != null && activeLocation.documentId != null -> {
                 val root = roots.firstOrNull { it.uri == activeLocation.rootUri }
                 if (root == null) {
@@ -210,24 +214,30 @@ object VeritasFileBrowserScanner {
         context: Context,
         diagnostics: MutableList<String>
     ): List<VeritasBrowserFile> {
-        val projection = arrayOf(
-            MediaStore.Files.FileColumns._ID,
-            MediaStore.Files.FileColumns.DISPLAY_NAME,
-            MediaStore.Files.FileColumns.MIME_TYPE,
-            MediaStore.Files.FileColumns.SIZE,
-            MediaStore.Files.FileColumns.DATE_MODIFIED,
-            MediaStore.Files.FileColumns.RELATIVE_PATH,
-            MediaStore.Files.FileColumns.DATA
-        )
+        val projection = buildList {
+            add(MediaStore.Files.FileColumns._ID)
+            add(MediaStore.Files.FileColumns.DISPLAY_NAME)
+            add(MediaStore.Files.FileColumns.MIME_TYPE)
+            add(MediaStore.Files.FileColumns.SIZE)
+            add(MediaStore.Files.FileColumns.DATE_MODIFIED)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                add(MediaStore.Files.FileColumns.RELATIVE_PATH)
+            }
+            add(MediaStore.Files.FileColumns.DATA)
+        }.toTypedArray()
         val docResults = mutableListOf<VeritasBrowserFile>()
         val imageResults = mutableListOf<VeritasBrowserFile>()
         val seen = HashSet<String>()
         // Every mounted volume, collapsing external aggregate if present
-        val rawVolumes = runCatching { MediaStore.getExternalVolumeNames(context) }
-            .getOrDefault(setOf(MediaStore.VOLUME_EXTERNAL))
-            .ifEmpty { setOf(MediaStore.VOLUME_EXTERNAL) }
-        val volumes = if (rawVolumes.contains(MediaStore.VOLUME_EXTERNAL)) {
-            setOf(MediaStore.VOLUME_EXTERNAL)
+        val rawVolumes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            runCatching { MediaStore.getExternalVolumeNames(context) }
+                .getOrDefault(setOf(EXTERNAL_AGGREGATE_VOLUME))
+                .ifEmpty { setOf(EXTERNAL_AGGREGATE_VOLUME) }
+        } else {
+            setOf(EXTERNAL_AGGREGATE_VOLUME)
+        }
+        val volumes = if (rawVolumes.contains(EXTERNAL_AGGREGATE_VOLUME)) {
+            setOf(EXTERNAL_AGGREGATE_VOLUME)
         } else {
             rawVolumes
         }
@@ -243,15 +253,19 @@ object VeritasFileBrowserScanner {
                     val mimeCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE)
                     val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)
                     val dateCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATE_MODIFIED)
-                    val pathCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.RELATIVE_PATH)
+                    val pathCol = cursor.getColumnIndex(MediaStore.Files.FileColumns.RELATIVE_PATH)
                     val dataCol = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA)
                     while (cursor.moveToNext()) {
                         val name = cursor.getString(nameCol) ?: continue
                         val mime = cursor.getString(mimeCol).orEmpty()
                         val type = fileTypeFor(name, mime) ?: continue
-                        val relative = cursor.getString(pathCol).orEmpty().trimEnd('/')
                         val dataPath = if (dataCol >= 0 && !cursor.isNull(dataCol)) cursor.getString(dataCol) else null
                         val diskFile = dataPath?.let(::File)
+                        val relative = if (pathCol >= 0 && !cursor.isNull(pathCol)) {
+                            cursor.getString(pathCol).orEmpty().trimEnd('/')
+                        } else {
+                            diskFile?.parent.orEmpty()
+                        }
 
                         // If the path points to a file that doesn't exist on disk, skip stale MediaStore records
                         if (diskFile != null && !diskFile.exists()) continue
@@ -310,7 +324,9 @@ object VeritasFileBrowserScanner {
     private fun listFileDirectory(
         context: Context,
         location: VeritasBrowserLocation,
-        diagnostics: MutableList<String>
+        diagnostics: MutableList<String>,
+        onProgress: (List<VeritasBrowserFile>) -> Unit,
+        checkCancelled: () -> Unit
     ): List<VeritasBrowserFile> {
         val storageRoot = Environment.getExternalStorageDirectory()
         val volumeRoots = storageVolumeRoots(context)
@@ -365,6 +381,17 @@ object VeritasFileBrowserScanner {
         val docResults = mutableListOf<VeritasBrowserFile>()
         val imageResults = mutableListOf<VeritasBrowserFile>()
 
+        // Navigation is available before the recursive discovery completes.
+        checkCancelled()
+        onProgress(folderEntries)
+        val mediaStoreResults = if (atVolumeRoot) queryDeviceWideFiles(context, diagnostics) else emptyList()
+        checkCancelled()
+        fun snapshot() = deduplicateBrowserFiles(folderEntries + docResults + mediaStoreResults + imageResults)
+            .sortedWith(compareBy<VeritasBrowserFile> { !it.isDirectory }
+                .thenBy { it.type == VeritasBrowserTab.OCR }.thenByDescending { it.modifiedAt })
+        if (mediaStoreResults.isNotEmpty()) onProgress(snapshot())
+        var lastPublished = android.os.SystemClock.elapsedRealtime()
+
         // Always scan up to 10 levels deep from safeCurrent down through all subfolders!
         // At volume root, this traverses the whole device up to 10 levels deep.
         // Inside a subfolder (e.g. Download), it traverses all subfolders of that folder.
@@ -374,15 +401,16 @@ object VeritasFileBrowserScanner {
             diagnostics = diagnostics,
             depth = 0,
             docResults = docResults,
-            imageResults = imageResults
+            imageResults = imageResults,
+            checkCancelled = checkCancelled,
+            onDirectoryVisited = {
+                val now = android.os.SystemClock.elapsedRealtime()
+                if (now - lastPublished >= 500L) {
+                    onProgress(snapshot())
+                    lastPublished = now
+                }
+            }
         )
-
-        // Supplement with MediaStore results when at storage root to catch any indexed external files
-        val mediaStoreResults = if (atVolumeRoot) {
-            queryDeviceWideFiles(context, diagnostics)
-        } else {
-            emptyList()
-        }
 
         // Deduplicate everything so every file and folder appears exactly once!
         // Direct disk results come before MediaStore results to ensure real file paths are preserved.
@@ -401,8 +429,11 @@ object VeritasFileBrowserScanner {
         diagnostics: MutableList<String>,
         depth: Int = 0,
         docResults: MutableList<VeritasBrowserFile> = mutableListOf(),
-        imageResults: MutableList<VeritasBrowserFile> = mutableListOf()
+        imageResults: MutableList<VeritasBrowserFile> = mutableListOf(),
+        checkCancelled: () -> Unit = {},
+        onDirectoryVisited: () -> Unit = {}
     ): List<VeritasBrowserFile> {
+        checkCancelled()
         if (depth > MAX_SCAN_DEPTH ||
             (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS) ||
             shouldSkipRecursiveDirectory(current, storageRoot)
@@ -410,9 +441,10 @@ object VeritasFileBrowserScanner {
 
         val children = current.listFiles() ?: return docResults + imageResults
         for (child in children) {
+            checkCancelled()
             if (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS) break
             if (child.isDirectory) {
-                collectSupportedDocumentFiles(storageRoot, child, diagnostics, depth + 1, docResults, imageResults)
+                collectSupportedDocumentFiles(storageRoot, child, diagnostics, depth + 1, docResults, imageResults, checkCancelled, onDirectoryVisited)
             } else {
                 val type = fileTypeFor(child.name, "")
                 if (type != null) {
@@ -442,6 +474,7 @@ object VeritasFileBrowserScanner {
                 }
             }
         }
+        onDirectoryVisited()
         return docResults + imageResults
     }
 
@@ -903,6 +936,7 @@ object VeritasFileBrowserScanner {
  *  messaging-app documents are comfortably inside it. */
 private const val MAX_SCAN_DEPTH = 10
 private const val MAX_DOCUMENT_RESULTS = 5000
+private const val EXTERNAL_AGGREGATE_VOLUME = "external"
 private const val MAX_IMAGE_RESULTS = 300
 private const val MAX_SCAN_RESULTS = 5000
 

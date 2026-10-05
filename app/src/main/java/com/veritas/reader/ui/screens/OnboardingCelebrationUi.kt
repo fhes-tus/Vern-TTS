@@ -27,11 +27,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -53,6 +58,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.util.Random
 
 /**
@@ -205,15 +211,17 @@ fun CelebrationAnimatedBadge(modifier: Modifier = Modifier) {
 }
 
 /**
- * Onboarding screen displaying configured profile summary before tour start.
+ * Onboarding screen displaying configured profile summary in a VIP Studio Pass card
+ * and name personalization before library entrance (Sanctuary Climax).
  */
 @Composable
 fun OnboardingReadyCelebrationScreen(
     userName: String,
-    personaTitle: String = "Student",
-    interest: String,
-    voiceTitle: String,
-    aiTitle: String
+    onUserNameChange: (String) -> Unit = {},
+    personaTitle: String = "Deep Study",
+    interest: String = "Books & Novels",
+    voiceTitle: String = "Aura",
+    aiTitle: String = "Google Gemini"
 ) {
     Column(
         modifier = Modifier
@@ -229,7 +237,7 @@ fun OnboardingReadyCelebrationScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = if (userName.isNotBlank()) "You're Ready, ${userName.trim()}!" else "You're Ready to Read!",
+            text = if (userName.isNotBlank()) "Your Sanctuary is Ready, ${userName.trim()}." else "Your Sanctuary Awaits.",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
@@ -239,20 +247,32 @@ fun OnboardingReadyCelebrationScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Your personalized profile is configured. We're about to take a quick guided tour through your new reading environment.",
+            text = "Your studio profile, neural narration, and reading rhythms have been calibrated for effortless immersion.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 12.dp)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Profile Summary Card
+        // VIP Studio Pass Card (Frosted Glass & Holographic Specular Rim)
         Card(
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.70f)
+            ),
+            border = BorderStroke(
+                width = 1.5.dp,
+                brush = Brush.linearGradient(
+                    listOf(
+                        Color.White.copy(alpha = 0.35f),
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.40f),
+                        Color.White.copy(alpha = 0.12f)
+                    )
+                )
+            ),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -260,25 +280,229 @@ fun OnboardingReadyCelebrationScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = "Configured Reading Profile",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                // Pass Header: Title & Access Chip
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "VERITAS STUDIO PASS",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 1.8.sp
+                        )
+                    }
 
-                OnboardingSummaryRow(label = "Reader Name", value = userName.ifBlank { "Vern" })
-                OnboardingSummaryRow(label = "Reader Persona", value = personaTitle)
-                OnboardingSummaryRow(label = "Primary Focus", value = interest)
-                OnboardingSummaryRow(label = "Voice Preset", value = voiceTitle)
-                OnboardingSummaryRow(label = "AI Assistant", value = aiTitle)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                                RoundedCornerShape(50)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "SANCTUARY · 001",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.8.sp
+                        )
+                    }
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                    thickness = 1.dp
+                )
+
+                // Personalized Reader Identity & Name Input
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // Monogram Avatar Circle
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.radialGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+                                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.20f)
+                                    )
+                                )
+                            )
+                            .border(
+                                1.5.dp,
+                                Brush.sweepGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.tertiary,
+                                        MaterialTheme.colorScheme.primary
+                                    )
+                                ),
+                                CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val monogram = userName.trim().firstOrNull()?.uppercase() ?: "V"
+                        Text(
+                            text = monogram,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Reader Identity",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        OutlinedTextField(
+                            value = userName,
+                            onValueChange = onUserNameChange,
+                            placeholder = { Text("What should we call you? (e.g. Alex)") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.5f),
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.5f)
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                // Studio Calibration Matrix (2x2 Grid of frosted badges)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        VipStudioPassBadge(
+                            label = "Discipline",
+                            value = personaTitle,
+                            modifier = Modifier.weight(1f)
+                        )
+                        VipStudioPassBadge(
+                            label = "Narrator",
+                            value = "$voiceTitle · Calibrated",
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        VipStudioPassBadge(
+                            label = "Material",
+                            value = interest,
+                            modifier = Modifier.weight(1f)
+                        )
+                        VipStudioPassBadge(
+                            label = "AI Studio",
+                            value = aiTitle,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
+                // Security & Privacy Holographic Watermark Sheen
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.4f))
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "🔒 ENCRYPTED ON-DEVICE · ZERO TELEMETRY · LOSSLESS SOUND",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                        fontSize = 9.sp,
+                        letterSpacing = 0.8.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+/**
+ * Frosted badge for the VIP Studio Pass calibration row.
+ */
+@Composable
+fun VipStudioPassBadge(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.65f))
+            .border(
+                1.dp,
+                Brush.verticalGradient(
+                    listOf(
+                        Color.White.copy(alpha = 0.15f),
+                        Color.Transparent
+                    )
+                ),
+                RoundedCornerShape(14.dp)
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Column {
+            Text(
+                text = label.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.5.sp
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1
+            )
+        }
     }
 }
 

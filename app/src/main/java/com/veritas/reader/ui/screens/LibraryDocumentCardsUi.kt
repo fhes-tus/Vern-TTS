@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,34 +74,15 @@ import com.veritas.reader.ui.pressScale
 
 
 @Composable
-internal fun rememberDocumentCover(documentId: String, title: String, originalFileName: String): android.graphics.Bitmap? {
+internal fun rememberDocumentCover(documentId: String, title: String, originalFileName: String, catalogId: String = ""): android.graphics.Bitmap? {
     val context = LocalContext.current
-    val coverFile = remember(documentId) { CoverExtractor.coverFile(context, documentId) }
-    return remember(coverFile, documentId, title) {
-        coverFile?.takeIf { it.exists() }?.let { file ->
-            runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull()
-        } ?: run {
-            val classic = CURATED_CLASSICS.firstOrNull { c ->
-                title.contains(c.title, ignoreCase = true) ||
-                (originalFileName.isNotBlank() && originalFileName.contains(c.id, ignoreCase = true))
-            }
-            if (classic != null) {
-                runCatching {
-                    context.assets.open("covers/${classic.id}.jpg").use { stream ->
-                        BitmapFactory.decodeStream(stream)
-                    }
-                }.getOrNull()
-            } else if (title.contains("Who Moved My Cheese", ignoreCase = true)) {
-                runCatching {
-                    context.assets.open("covers/who_moved_my_cheese.jpg").use { stream ->
-                        BitmapFactory.decodeStream(stream)
-                    }
-                }.getOrNull()
-            } else null
+    val cover by androidx.compose.runtime.produceState<android.graphics.Bitmap?>(null, documentId, catalogId) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            com.veritas.reader.BookCoverLoader.document(context, documentId, catalogId)
         }
     }
+    return cover
 }
-
 @Composable
 internal fun RecentImportItem(
     document: SavedDocument,
@@ -117,19 +99,19 @@ internal fun RecentImportItem(
     onDelete: () -> Unit
 ) {
     var showActions by remember { mutableStateOf(false) }
-    val coverBitmap = rememberDocumentCover(document.id, document.title, document.originalFileName)
+    val coverBitmap = rememberDocumentCover(document.id, document.title, document.originalFileName, document.catalogId)
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onOpen() }
-            .padding(vertical = 10.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(56.dp)
                 .clip(RoundedCornerShape(6.dp))
                 .background(
                     Brush.linearGradient(
@@ -190,21 +172,6 @@ internal fun RecentImportItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
-                    .clickable { onOpen() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = "Play",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-
             Box {
                 Box(
                     modifier = Modifier
@@ -256,15 +223,15 @@ internal fun HomeRecentBookGridItem(
     onOpen: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val coverBitmap = rememberDocumentCover(document.id, document.title, document.originalFileName)
+    val coverBitmap = rememberDocumentCover(document.id, document.title, document.originalFileName, document.catalogId)
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onOpen() },
-        shape = RoundedCornerShape(16.dp),
+        shape = VeritasPackStyle.cardShape(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
+            containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
         ),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
     ) {
@@ -276,8 +243,8 @@ internal fun HomeRecentBookGridItem(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(138.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .height(166.dp)
+                    .clip(VeritasPackStyle.coverStageShape(inset = 10.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -285,7 +252,7 @@ internal fun HomeRecentBookGridItem(
                     Image(
                         bitmap = coverBitmap.asImageBitmap(),
                         contentDescription = "Cover",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.width(96.dp).height(144.dp).clip(RoundedCornerShape(6.dp)),
                         contentScale = ContentScale.Crop
                     )
                 } else {
@@ -293,7 +260,7 @@ internal fun HomeRecentBookGridItem(
                         documentId = document.id,
                         title = document.title,
                         sourceLabel = document.sourceLabel,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.width(96.dp).height(144.dp).clip(RoundedCornerShape(6.dp)),
                         compact = false
                     )
                 }
@@ -303,14 +270,15 @@ internal fun HomeRecentBookGridItem(
 
             Text(
                 text = document.title,
+                minLines = 2,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             val subtitleText = buildString {
                 append(document.sourceLabel.uppercase())
@@ -325,6 +293,7 @@ internal fun HomeRecentBookGridItem(
                 text = subtitleText,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                minLines = 1,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -381,7 +350,7 @@ fun DocumentCard(
     var showActions by remember { mutableStateOf(false) }
     val selectionScale by animateFloatAsState(
         targetValue = if (selected) 0.965f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
         label = "documentCardSelectionScale"
     )
     val coverSize = when (viewMode) {
@@ -392,7 +361,7 @@ fun DocumentCard(
     val showChips = viewMode == LibraryViewMode.MEDIUM || viewMode == LibraryViewMode.DETAILS
     val showPreview = viewMode == LibraryViewMode.DETAILS
 
-    val coverBitmap = rememberDocumentCover(document.id, document.title, document.originalFileName)
+    val coverBitmap = rememberDocumentCover(document.id, document.title, document.originalFileName, document.catalogId)
 
     // Dips the card while held. DocumentCard drives taps through
     // detectTapGestures, so the press flag is tracked here rather than
@@ -423,7 +392,7 @@ fun DocumentCard(
             containerColor = if (selected) {
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = VeritasPackStyle.surfaceAlpha())
             } else {
-                MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
+                com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
             }
         )
     ) {
@@ -616,12 +585,13 @@ fun DocumentTileCard(
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null
 ) {
     var showActions by remember { mutableStateOf(false) }
+    val locale = LocalConfiguration.current.locales[0]
     val selectionScale by animateFloatAsState(
         targetValue = if (selected) 0.965f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
         label = "documentTileSelectionScale"
     )
-    val coverBitmap = rememberDocumentCover(document.id, document.title, document.originalFileName)
+    val coverBitmap = rememberDocumentCover(document.id, document.title, document.originalFileName, document.catalogId)
     val isUnread = document.currentIndex == 0
 
     var pressed by remember { mutableStateOf(false) }
@@ -630,12 +600,12 @@ fun DocumentTileCard(
             .fillMaxWidth()
             .graphicsLayer(scaleX = selectionScale, scaleY = selectionScale)
             .pressScale(pressed),
-        shape = RoundedCornerShape(16.dp),
+        shape = VeritasPackStyle.cardShape(),
         colors = CardDefaults.cardColors(
             containerColor = if (selected) {
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = VeritasPackStyle.surfaceAlpha())
             } else {
-                MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
+                com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
             }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -664,8 +634,8 @@ fun DocumentTileCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(138.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .height(166.dp)
+                    .clip(VeritasPackStyle.coverStageShape(inset = 10.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                     .then(
                         if (sharedTransitionScope != null && animatedVisibilityScope != null) {
@@ -682,7 +652,7 @@ fun DocumentTileCard(
                     Image(
                         bitmap = coverBitmap.asImageBitmap(),
                         contentDescription = "Cover",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.width(96.dp).height(144.dp).align(Alignment.Center).clip(RoundedCornerShape(6.dp)),
                         contentScale = ContentScale.Crop
                     )
                 } else {
@@ -690,7 +660,7 @@ fun DocumentTileCard(
                         documentId = document.id,
                         title = document.title,
                         sourceLabel = document.sourceLabel,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.width(96.dp).height(144.dp).align(Alignment.Center).clip(RoundedCornerShape(6.dp)),
                         compact = false
                     )
                 }
@@ -795,7 +765,8 @@ fun DocumentTileCard(
 
             Text(
                 text = document.title,
-                maxLines = 1,
+                minLines = 2,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleSmall,
@@ -805,7 +776,7 @@ fun DocumentTileCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             val subtitleText = buildString {
-                append(document.sourceLabel.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() })
+                append(document.sourceLabel.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() })
                 append(" • ")
                 append(formatEstimatedReadTime(document))
                 val progress = progressPercent(document)

@@ -113,7 +113,7 @@ internal fun LazyListScope.studyQuizSection(
                                     Text("Saved Quizzes (${quizzes.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                     OutlinedButton(
                                         onClick = { onShowQuizLabMetrics() },
-                                        shape = RoundedCornerShape(50),
+                                        shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
                                     ) {
                                         Text("Quiz Lab 📊", style = MaterialTheme.typography.labelSmall)
@@ -121,7 +121,7 @@ internal fun LazyListScope.studyQuizSection(
                                 }
                                 FilledTonalButton(
                                     onClick = { onShowPasteQuiz() },
-                                    shape = RoundedCornerShape(50),
+                                    shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                                 ) {
                                     Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -134,7 +134,7 @@ internal fun LazyListScope.studyQuizSection(
                             Card(
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                 shape = VeritasPackStyle.compactShape(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())),
+                                colors = CardDefaults.cardColors(containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)),
                                 border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
                             ) {
                                 Row(
@@ -163,7 +163,7 @@ internal fun LazyListScope.studyQuizSection(
                                                 }
                                                 val isMastered = calibratedBest == quiz.totalQuestions
                                                 Surface(
-                                                    shape = RoundedCornerShape(8.dp),
+                                                    shape = MaterialTheme.shapes.extraSmall,
                                                     color = if (isMastered) Color(0xFF10B981).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                                                     modifier = Modifier.padding(start = 4.dp)
                                                 ) {
@@ -180,7 +180,7 @@ internal fun LazyListScope.studyQuizSection(
                                     }
                                     Button(
                                         onClick = { onPlayQuiz(quiz) },
-                                        shape = RoundedCornerShape(50),
+                                        shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                                     ) {
                                         Text("Play", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
@@ -251,18 +251,12 @@ internal fun LazyListScope.studyHistorySection(
                             val doc = documents.firstOrNull { it.id == historyEntry.documentId }
                             item(key = "history-entry-${historyEntry.documentId}-${historyEntry.openedAt}") {
                                 val isRemoved = doc == null
-                                val progress = if (historyEntry.chunkCount > 0)
-                                    (historyEntry.currentIndex.toFloat() / historyEntry.chunkCount).coerceIn(0f, 1f)
-                                else 0f
-
-                                val dismissState = rememberSwipeToDismissBoxState(
-                                    confirmValueChange = { newVal ->
-                                        if (newVal == SwipeToDismissBoxValue.EndToStart) {
-                                            onRemoveReadingHistoryEntry(historyEntry.documentId)
-                                            true
-                                        } else false
+                                val dismissState = rememberSwipeToDismissBoxState()
+                                LaunchedEffect(dismissState.currentValue) {
+                                    if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                                        onRemoveReadingHistoryEntry(historyEntry.documentId)
                                     }
-                                )
+                                }
 
                                 // Buzz the moment the swipe passes the point of no return, so the
                                 // commit is felt before the finger lifts — this delete has no undo.
@@ -313,13 +307,13 @@ internal fun LazyListScope.studyHistorySection(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .then(
-                                                if (!isRemoved) {
+                                                doc?.let { availableDoc ->
                                                     Modifier.clickable {
-                                                        onOpenDocumentAt(doc!!, historyEntry.currentIndex)
+                                                        onOpenDocumentAt(availableDoc, historyEntry.currentIndex)
                                                     }
-                                                } else Modifier
+                                                } ?: Modifier
                                             ),
-                                        shape = RoundedCornerShape(16.dp),
+                                        shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                                         colors = CardDefaults.cardColors(
                                             containerColor = if (isRemoved) {
                                                 MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
@@ -389,7 +383,7 @@ internal fun LazyListScope.studyHistorySection(
 
                                                 if (isRemoved) {
                                                     Surface(
-                                                        shape = RoundedCornerShape(4.dp),
+                                                        shape = MaterialTheme.shapes.extraSmall,
                                                         color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f)
                                                     ) {
                                                         Text(
@@ -406,7 +400,7 @@ internal fun LazyListScope.studyHistorySection(
                                                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                                                     ) {
                                                         Surface(
-                                                            shape = RoundedCornerShape(6.dp),
+                                                            shape = MaterialTheme.shapes.extraSmall,
                                                             color = MaterialTheme.colorScheme.secondaryContainer
                                                         ) {
                                                             Text(
@@ -444,7 +438,7 @@ internal fun LazyListScope.studyHistorySection(
 
                                             if (!isRemoved) {
                                                 IconButton(
-                                                    onClick = { onOpenDocumentAt(doc!!, historyEntry.currentIndex) },
+                                                    onClick = { onOpenDocumentAt(doc, historyEntry.currentIndex) },
                                                     modifier = Modifier
                                                         .size(40.dp)
                                                         .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)

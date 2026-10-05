@@ -1,5 +1,9 @@
 package com.veritas.reader
 
+import com.veritas.reader.ui.saveNotesSettings
+import com.veritas.reader.ui.currentReaderIndex
+
+import com.veritas.reader.ui.withVisibility
 
 import android.content.Intent
 import android.net.Uri
@@ -13,6 +17,7 @@ import com.veritas.reader.ui.ReaderUiState
 import com.veritas.reader.ui.ReaderViewModel
 import com.veritas.reader.ui.addDocumentToReadingList
 import com.veritas.reader.ui.archiveReadingList
+import com.veritas.reader.ui.cancelAiStudyGeneration
 import com.veritas.reader.ui.cancelAudioExport
 import com.veritas.reader.ui.cancelPendingImport
 import com.veritas.reader.ui.cancelSleepTimer
@@ -42,6 +47,7 @@ import com.veritas.reader.ui.recordQuizScore
 import com.veritas.reader.ui.removeDocumentFromReadingList
 import com.veritas.reader.ui.saveAiPromptTemplate
 import com.veritas.reader.ui.saveAskAiSettings
+import com.veritas.reader.ui.createNoteLabel
 import com.veritas.reader.ui.saveGeneralNote
 import com.veritas.reader.ui.saveNarrationSettings
 import com.veritas.reader.ui.saveQuiz
@@ -73,399 +79,369 @@ internal fun MainCatalogAndToolsDialogsHost(
 ) {
     val context = LocalContext.current
 
-        if (uiState.showNarrationStudio) {
-            NarrationStudioDialog(
-                settings = uiState.narrationSettings,
-                sampleText = uiState.activeDocument?.chunks?.getOrNull(PlaybackStateStore.currentIndex)
-                    .orEmpty(),
-                availableVoices = uiState.ttsVoices,
-                onSettingsChange = { settings -> viewModel.saveNarrationSettings(settings) },
-                onDismiss = { viewModel.updateState { it.copy(showNarrationStudio = false) } }
-            )
-        }
+    if (uiState.showNarrationStudio) {
+        NarrationStudioDialog(
+            settings = uiState.narrationSettings,
+            sampleText = uiState.activeDocument?.chunks?.getOrNull(viewModel.currentReaderIndex)
+                .orEmpty(),
+            availableVoices = uiState.ttsVoices,
+            voiceSettings = uiState.voiceSettings,
+            pronunciationRules = uiState.pronunciationRules,
+            onSettingsChange = { settings -> viewModel.saveNarrationSettings(settings) },
+            onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.NARRATION_STUDIO, false) } }
+        )
+    }
 
-        if (uiState.showAskAiSettings) {
-            AskAiSettingsDialog(
-                settings = uiState.askAiSettings,
-                onSettingsChange = { settings -> viewModel.saveAskAiSettings(settings) },
-                onInstallAssistant = { packageName ->
-                    openPlayStoreForPackage(
-                        context,
-                        packageName
+    if (uiState.showAskAiSettings) {
+        AskAiSettingsDialog(
+            settings = uiState.askAiSettings,
+            onSettingsChange = { settings -> viewModel.saveAskAiSettings(settings) },
+            onInstallAssistant = { packageName ->
+                openPlayStoreForPackage(
+                    context,
+                    packageName
+                )
+            },
+            onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.ASK_AI_SETTINGS, false) } }
+        )
+    }
+
+    if (uiState.showAiCenter) {
+        AiCenterDialog(
+            askAiSettings = uiState.askAiSettings,
+            installedAiCount = installedAiOptions(context).size,
+            documentCount = uiState.documents.size,
+            onOpenAskAiSettings = {
+                viewModel.updateState {
+                    it.withVisibility(VeritasScreen.AI_CENTER, false).withVisibility(VeritasScreen.ASK_AI_SETTINGS, true)
+                }
+            },
+            onOpenStudyTools = {
+                viewModel.updateState {
+                    it.withVisibility(VeritasScreen.AI_CENTER, false).withVisibility(VeritasScreen.AI_STUDY_TOOLS, true)
+                }
+            },
+            onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_CENTER, false) } }
+        )
+    }
+
+    if (uiState.showAiStudyTools && uiState.activeDocument == null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false) } },
+            title = { Text("AI Study Tools") },
+            text = { Text("Open a reading first, then AI Study Tools can prepare the current part or whole document.") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false) } }) {
+                    Text(
+                        "OK"
+                    )
+                }
+            }
+        )
+    }
+
+    uiState.activeDocument?.let { document ->
+        if (uiState.showAiStudyTools) {
+            AiAppStudyDialog(
+                document = document,
+                currentIndex = viewModel.currentReaderIndex,
+                templates = uiState.aiPromptTemplates,
+                history = uiState.aiPromptHistory,
+                askAiSettings = uiState.askAiSettings,
+                onUpdateAskAiSettings = { viewModel.saveAskAiSettings(it) },
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false) } },
+                onSendToAiApp = { type, customInstruction, scope, range ->
+                    val prompt = AiPromptLauncher.buildPrompt(
+                        title = document.title,
+                        chunks = document.chunks,
+                        currentIndex = viewModel.currentReaderIndex,
+                        type = type,
+                        customInstruction = customInstruction,
+                        scope = scope
+                    )
+                    AiPromptLauncher.launch(
+                        context = context,
+                        document = document,
+                        currentIndex = viewModel.currentReaderIndex,
+                        type = type,
+                        customInstruction = customInstruction,
+                        scope = scope,
+                        customPageRange = range,
+                        settings = uiState.askAiSettings,
+                        // false: the study-tool prompt must be copied to the clipboard
+                        // and prepended to the share body — noPrompt=true silently
+                        // dropped the user's edited instructions entirely.
+                        noPrompt = false
+                    )
+                    viewModel.recordAiPrompt(document.title, type.label, scope.label, prompt)
+                },
+                onSaveTemplate = { title, instruction ->
+                    viewModel.saveAiPromptTemplate(
+                        title,
+                        instruction
                     )
                 },
-                onDismiss = { viewModel.updateState { it.copy(showAskAiSettings = false) } }
-            )
-        }
-
-        if (uiState.showAiCenter) {
-            AiCenterDialog(
-                installedAiCount = installedAiOptions(context).size,
-                documentCount = uiState.documents.size,
-                onOpenAskAiSettings = {
+                onDeleteTemplate = { id -> viewModel.deleteAiPromptTemplate(id) },
+                onClearHistory = { viewModel.clearAiPromptHistory() },
+                onCopyText = { label, text -> copyTextToClipboard(context, label, text) },
+                onSaveAiResultAsNote = { result ->
                     viewModel.updateState {
                         it.copy(
-                            showAiCenter = false,
-                            showAskAiSettings = true
+                            noteDraft = result,
+                            noteTargetIndexes = listOf(viewModel.currentReaderIndex)
                         )
                     }
+                    viewModel.saveSentenceNote()
                 },
-                onOpenStudyTools = {
-                    viewModel.updateState {
-                        it.copy(
-                            showAiCenter = false,
-                            showAiStudyTools = true
-                        )
-                    }
+                onImportFlashcards = { name, cards ->
+                    viewModel.importFlashcards(document.id ?: "pasted", name, cards)
                 },
-                onDismiss = { viewModel.updateState { it.copy(showAiCenter = false) } }
-            )
-        }
-
-        if (uiState.showAiStudyTools && uiState.activeDocument == null) {
-            AlertDialog(
-                onDismissRequest = { viewModel.updateState { it.copy(showAiStudyTools = false) } },
-                title = { Text("AI Study Tools") },
-                text = { Text("Open a reading first, then AI Study Tools can prepare the current part or whole document.") },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.updateState { it.copy(showAiStudyTools = false) } }) {
-                        Text(
-                            "OK"
-                        )
-                    }
+                onCancelGeneration = { viewModel.cancelAiStudyGeneration() },
+                onGenerateInAppFlashcards = { scopeText, count, onComplete ->
+                    viewModel.generateInAppFlashcards(
+                        document = document,
+                        count = count,
+                        scopeText = scopeText,
+                        setName = "${document.title} Flashcards",
+                        onComplete = onComplete
+                    )
+                },
+                onGenerateInAppQuiz = { scopeText, count, onComplete ->
+                    viewModel.generateInAppQuiz(
+                        document = document,
+                        count = count,
+                        scopeText = scopeText,
+                        quizTitle = "${document.title} Quiz",
+                        onComplete = onComplete
+                    )
+                },
+                onGenerateInAppSummary = { scopeText, onComplete ->
+                    viewModel.generateInAppStudySummary(
+                        document = document,
+                        scopeText = scopeText,
+                        onComplete = onComplete
+                    )
+                },
+                onGenerateInAppExplanation = { scopeText, targetPassage, onComplete ->
+                    viewModel.generateInAppExplanation(
+                        document = document,
+                        scopeText = scopeText,
+                        targetPassage = targetPassage,
+                        onComplete = onComplete
+                    )
+                },
+                onGenerateInAppStudyGuide = { scopeText, onComplete ->
+                    viewModel.generateInAppStudyGuide(
+                        document = document,
+                        scopeText = scopeText,
+                        onComplete = onComplete
+                    )
+                },
+                onSaveQuiz = { quiz ->
+                    viewModel.saveQuiz(quiz)
+                },
+                onRecordQuizScore = { quizId, score ->
+                    viewModel.recordQuizScore(quizId, score)
+                },
+                onRateFlashcard = { cardId, recall ->
+                    viewModel.rateFlashcardRecall(cardId, recall)
+                },
+                onOpenStudyHub = {
+                    viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false).withVisibility(VeritasScreen.AI_CENTER, false) }
+                    viewModel.navigateToHomeTab(VeritasHomeTab.STUDY)
                 }
             )
         }
+    }
 
-        uiState.activeDocument?.let { document ->
-            if (uiState.showAiStudyTools) {
-                AiAppStudyDialog(
-                    document = document,
-                    currentIndex = PlaybackStateStore.currentIndex,
-                    templates = uiState.aiPromptTemplates,
-                    history = uiState.aiPromptHistory,
-                    askAiSettings = uiState.askAiSettings,
-                    onUpdateAskAiSettings = { viewModel.saveAskAiSettings(it) },
-                    onDismiss = { viewModel.updateState { it.copy(showAiStudyTools = false) } },
-                    onSendToAiApp = { type, customInstruction, scope, range ->
-                        val prompt = AiPromptLauncher.buildPrompt(
-                            title = document.title,
-                            chunks = document.chunks,
-                            currentIndex = PlaybackStateStore.currentIndex,
-                            type = type,
-                            customInstruction = customInstruction,
-                            scope = scope
-                        )
-                        AiPromptLauncher.launch(
-                            context = context,
-                            document = document,
-                            currentIndex = PlaybackStateStore.currentIndex,
-                            type = type,
-                            customInstruction = customInstruction,
-                            scope = scope,
-                            customPageRange = range,
-                            settings = uiState.askAiSettings,
-                            // false: the study-tool prompt must be copied to the clipboard
-                            // and prepended to the share body — noPrompt=true silently
-                            // dropped the user's edited instructions entirely.
-                            noPrompt = false
-                        )
-                        viewModel.recordAiPrompt(document.title, type.label, scope.label, prompt)
-                    },
-                    onSaveTemplate = { title, instruction ->
-                        viewModel.saveAiPromptTemplate(
-                            title,
-                            instruction
-                        )
-                    },
-                    onDeleteTemplate = { id -> viewModel.deleteAiPromptTemplate(id) },
-                    onClearHistory = { viewModel.clearAiPromptHistory() },
-                    onCopyText = { label, text -> copyTextToClipboard(context, label, text) },
-                    onSaveAiResultAsNote = { result ->
-                        viewModel.updateState {
-                            it.copy(
-                                noteDraft = result,
-                                noteTargetIndexes = listOf(PlaybackStateStore.currentIndex)
-                            )
-                        }
-                        viewModel.saveSentenceNote()
-                    },
-                    onImportFlashcards = { name, cards ->
-                        viewModel.importFlashcards(document.id ?: "pasted", name, cards)
-                    },
-                    onGenerateInAppFlashcards = { scopeText, count, onComplete ->
-                        viewModel.generateInAppFlashcards(
-                            document = document,
-                            count = count,
-                            scopeText = scopeText,
-                            setName = "${document.title} Flashcards",
-                            onComplete = onComplete
-                        )
-                    },
-                    onGenerateInAppQuiz = { scopeText, count, onComplete ->
-                        viewModel.generateInAppQuiz(
-                            document = document,
-                            count = count,
-                            scopeText = scopeText,
-                            quizTitle = "${document.title} Quiz",
-                            onComplete = onComplete
-                        )
-                    },
-                    onGenerateInAppSummary = { scopeText, onComplete ->
-                        viewModel.generateInAppStudySummary(
-                            document = document,
-                            scopeText = scopeText,
-                            onComplete = onComplete
-                        )
-                    },
-                    onGenerateInAppExplanation = { scopeText, targetPassage, onComplete ->
-                        viewModel.generateInAppExplanation(
-                            document = document,
-                            scopeText = scopeText,
-                            targetPassage = targetPassage,
-                            onComplete = onComplete
-                        )
-                    },
-                    onGenerateInAppStudyGuide = { scopeText, onComplete ->
-                        viewModel.generateInAppStudyGuide(
-                            document = document,
-                            scopeText = scopeText,
-                            onComplete = onComplete
-                        )
-                    },
-                    onSaveQuiz = { quiz ->
-                        viewModel.saveQuiz(quiz)
-                    },
-                    onRecordQuizScore = { quizId, score ->
-                        viewModel.recordQuizScore(quizId, score)
-                    },
-                    onRateFlashcard = { cardId, recall ->
-                        viewModel.rateFlashcardRecall(cardId, recall)
-                    },
-                    onOpenStudyHub = {
-                        viewModel.updateState { it.copy(showAiStudyTools = false, showAiCenter = false) }
-                        viewModel.navigateToHomeTab(VeritasHomeTab.STUDY)
-                    }
-                )
+    if ((uiState.exportInProgress || uiState.exportMessage != null || uiState.exportedAudioFile != null) && !uiState.recordMode && !uiState.recordAwaitingDecision) {
+        ExportAudioStatusDialog(
+            inProgress = uiState.exportInProgress,
+            message = uiState.exportMessage,
+            file = uiState.exportedAudioFile,
+            onShare = { file -> viewModel.shareExportedAudio(file) },
+            onCancel = { viewModel.cancelAudioExport() },
+            onDismiss = {
+                viewModel.updateState {
+                    it.copy(
+                        exportMessage = null,
+                        exportedAudioFile = null
+                    )
+                }
             }
-        }
+        )
+    }
 
-        if ((uiState.exportInProgress || uiState.exportMessage != null || uiState.exportedAudioFile != null) && !uiState.recordMode && !uiState.recordAwaitingDecision) {
-            ExportAudioStatusDialog(
-                inProgress = uiState.exportInProgress,
-                message = uiState.exportMessage,
-                file = uiState.exportedAudioFile,
-                onShare = { file -> viewModel.shareExportedAudio(file) },
-                onCancel = { viewModel.cancelAudioExport() },
-                onDismiss = {
-                    viewModel.updateState {
-                        it.copy(
-                            exportMessage = null,
-                            exportedAudioFile = null
-                        )
+    pendingShareChooser?.let { (text, uri) ->
+        ShareTargetChooserDialog(
+            sharedText = text,
+            sharedUri = uri,
+            onImportToReader = {
+                onDismissShareChooser()
+                onImportToReader(text, uri)
+            },
+            onAddToNotes = {
+                onDismissShareChooser()
+                onOpenInNotes(text, uri)
+            },
+            onDismiss = {
+                onDismissShareChooser()
+            }
+        )
+    }
+
+    if (uiState.showSleepTimerDialog) {
+        SleepTimerDialog(
+            activeTimer = PlaybackStateStore.activeSleepTimerSnapshot(),
+            onSetTimer = viewModel::setSleepTimer,
+            onCancelTimer = viewModel::cancelSleepTimer,
+            onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.SLEEP_TIMER, false) } }
+        )
+    }
+
+    if (uiState.showUpdateDialog) {
+        val context = LocalContext.current
+        val isPlayStore = remember(context) { isInstalledFromGooglePlay(context) }
+        UpdateAvailableDialog(
+            versionName = uiState.updateVersionName,
+            changelog = uiState.updateChangelog,
+            isDownloading = uiState.isDownloadingUpdate,
+            downloadProgress = uiState.updateDownloadProgress,
+            downloadError = uiState.updateDownloadError,
+            isPlayStoreInstall = isPlayStore,
+            onUpdate = {
+                if (uiState.updateApkUrl.isNotEmpty()) {
+                    viewModel.startUpdateDownload(uiState.updateApkUrl)
+                } else {
+                    runCatching {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uiState.updateUrl))
+                        context.startActivity(intent)
                     }
-                }
-            )
-        }
-
-        pendingShareChooser?.let { (text, uri) ->
-            ShareTargetChooserDialog(
-                sharedText = text,
-                sharedUri = uri,
-                onImportToReader = {
-                    onDismissShareChooser()
-                    onImportToReader(text, uri)
-                },
-                onAddToNotes = {
-                    onDismissShareChooser()
-                    onOpenInNotes(text, uri)
-                },
-                onDismiss = {
-                    onDismissShareChooser()
-                }
-            )
-        }
-
-        if (uiState.showSleepTimerDialog) {
-            SleepTimerDialog(
-                activeTimer = PlaybackStateStore.activeSleepTimerSnapshot(),
-                onSetTimer = viewModel::setSleepTimer,
-                onCancelTimer = viewModel::cancelSleepTimer,
-                onDismiss = { viewModel.updateState { it.copy(showSleepTimerDialog = false) } }
-            )
-        }
-
-        if (uiState.showUpdateDialog) {
-            val context = LocalContext.current
-            val isPlayStore = remember(context) { isInstalledFromGooglePlay(context) }
-            UpdateAvailableDialog(
-                versionName = uiState.updateVersionName,
-                changelog = uiState.updateChangelog,
-                isDownloading = uiState.isDownloadingUpdate,
-                downloadProgress = uiState.updateDownloadProgress,
-                downloadError = uiState.updateDownloadError,
-                isPlayStoreInstall = isPlayStore,
-                onUpdate = {
-                    if (uiState.updateApkUrl.isNotEmpty()) {
-                        viewModel.startUpdateDownload(uiState.updateApkUrl)
-                    } else {
-                        runCatching {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uiState.updateUrl))
-                            context.startActivity(intent)
-                        }
-                        viewModel.updateState { it.copy(showUpdateDialog = false) }
-                    }
-                },
-                onOpenPlayStore = {
-                    openGooglePlayStore(context)
-                },
-                onCancelDownload = {
-                    viewModel.cancelUpdateDownload()
-                },
-                onDismiss = {
-                    viewModel.cancelUpdateDownload()
                     viewModel.updateState { it.copy(showUpdateDialog = false) }
                 }
-            )
-        }
-
-        if (uiState.showReleaseNotesDialog) {
-            ReleaseNotesDialog(
-                versionName = uiState.releaseNotesVersionName,
-                changelog = uiState.releaseNotesChangelog,
-                onDismiss = {
-                    viewModel.dismissReleaseNotes()
-                }
-            )
-        }
-
-        if (uiState.showClassicsCatalog) {
-            ClassicsCatalogDialog(
-                existingDocuments = uiState.documents,
-                onDownloadBook = { book ->
-                    viewModel.downloadClassicBook(book)
-                },
-                onOpenBook = { doc ->
-                    viewModel.updateState { it.copy(showClassicsCatalog = false) }
-                    viewModel.openSavedDocument(doc)
-                },
-                onOpenOceanOfPdf = { query ->
-                    viewModel.updateState {
-                        it.copy(
-                            showBookBrowser = true,
-                            bookBrowserUrl = "https://oceanofpdf.com/",
-                            bookBrowserTitle = "Ocean of PDF",
-                            bookBrowserQuery = query
-                        )
-                    }
-                },
-                onOpenBookBrowser = { url, name, query ->
-                    viewModel.updateState {
-                        it.copy(
-                            showBookBrowser = true,
-                            bookBrowserUrl = url,
-                            bookBrowserTitle = name,
-                            bookBrowserQuery = query
-                        )
-                    }
-                },
-                onDismiss = {
-                    viewModel.updateState { it.copy(showClassicsCatalog = false) }
-                }
-            )
-        }
-
-        if (uiState.showBookBrowser || uiState.showOceanOfPdfBrowser) {
-            val url = uiState.bookBrowserUrl.ifBlank { "https://oceanofpdf.com/" }
-            val name = uiState.bookBrowserTitle.ifBlank { "Free Books" }
-            val query = uiState.bookBrowserQuery.ifBlank { uiState.oceanOfPdfQuery }
-            BookCatalogBrowserDialog(
-                initialUrl = url,
-                siteName = name,
-                initialQuery = query,
-                onImportDownloadedFile = { file, title ->
-                    viewModel.importDownloadedBook(file, title)
-                },
-                onDismiss = {
-                    viewModel.updateState {
-                        it.copy(
-                            showBookBrowser = false,
-                            showOceanOfPdfBrowser = false,
-                            bookBrowserUrl = "",
-                            bookBrowserTitle = "",
-                            bookBrowserQuery = "",
-                            oceanOfPdfQuery = ""
-                        )
-                    }
-                }
-            )
-        }
-
-        val pending = uiState.pendingImport
-        if (pending != null) {
-            VeritasImportPreviewDialog(
-                pendingImport = pending,
-                onConfirm = viewModel::executePendingImport,
-                onCancel = viewModel::cancelPendingImport
-            )
-        }
-
-        if (uiState.showReadingLists) {
-            ReadingListsDialog(
-                catalog = uiState.readingListCatalog,
-                documents = uiState.documents,
-                activeDocumentId = uiState.activeDocument?.id,
-                onDismiss = { viewModel.updateState { it.copy(showReadingLists = false) } },
-                onCreateList = { title -> viewModel.createReadingList(title) },
-                onAddDocument = viewModel::addDocumentToReadingList,
-                onRemoveDocument = viewModel::removeDocumentFromReadingList,
-                onOpenDocument = { doc ->
-                    viewModel.updateState { it.copy(showReadingLists = false) }
-                    viewModel.openSavedDocument(doc)
-                },
-                onMoveDocument = viewModel::moveReadingListDocument,
-                onSetSortMode = viewModel::setReadingListSortMode,
-                onArchiveList = viewModel::archiveReadingList,
-                onDeleteList = viewModel::deleteReadingList
-            )
-        }
-
-        if (uiState.showGeneralNotesEditor) {
-            GeneralNotesEditor(
-                note = uiState.generalNoteEditorTarget,
-                onSave = { title, content, color, pinned, isChecklist, imageUrl, audioUrl, reminderAt, closeEditor, audioUrls ->
-                    viewModel.saveGeneralNote(title, content, color, pinned, isChecklist, imageUrl, audioUrl, reminderAt, closeEditor, audioUrls)
-                },
-                onDelete = { noteId -> viewModel.deleteGeneralNote(noteId) },
-                onCopy = {
-                    uiState.generalNoteEditorTarget?.let { target ->
-                        viewModel.duplicateGeneralNote(target)
-                    }
-                },
-                onDismiss = { viewModel.updateState { it.copy(showGeneralNotesEditor = false, generalNoteEditorTarget = null) } }
-            )
-        }
-
-        uiState.activeDocument?.let { document ->
-            if (uiState.showTranslationTools) {
-                TranslationToolsDialog(
-                    document = document,
-                    currentIndex = PlaybackStateStore.currentIndex,
-                    onDismiss = { viewModel.updateState { it.copy(showTranslationTools = false) } },
-                    onSend = { targetLanguage, mode ->
-                        TranslationLauncher.launch(
-                            context = context,
-                            title = document.title,
-                            chunks = document.chunks,
-                            currentIndex = PlaybackStateStore.currentIndex,
-                            targetLanguage = targetLanguage,
-                            mode = mode
-                        )
-                        viewModel.updateState { it.copy(showTranslationTools = false) }
-                    }
-                )
+            },
+            onOpenPlayStore = {
+                openGooglePlayStore(context)
+            },
+            onCancelDownload = {
+                viewModel.cancelUpdateDownload()
+            },
+            onDismiss = {
+                viewModel.cancelUpdateDownload()
+                viewModel.updateState { it.copy(showUpdateDialog = false) }
             }
+        )
+    }
+
+    if (uiState.showReleaseNotesDialog) {
+        ReleaseNotesDialog(
+            versionName = uiState.releaseNotesVersionName,
+            changelog = uiState.releaseNotesChangelog,
+            onDismiss = {
+                viewModel.dismissReleaseNotes()
+            }
+        )
+    }
+
+    if (uiState.showBookBrowser || uiState.showOceanOfPdfBrowser) {
+        val url = uiState.bookBrowserUrl.ifBlank { "https://oceanofpdf.com/" }
+        val name = uiState.bookBrowserTitle.ifBlank { "Free Books" }
+        val query = uiState.bookBrowserQuery.ifBlank { uiState.oceanOfPdfQuery }
+        BookCatalogBrowserDialog(
+            initialUrl = url,
+            siteName = name,
+            initialQuery = query,
+            onImportDownloadedFile = { file, title ->
+                viewModel.importDownloadedBook(file, title)
+            },
+            onDismiss = {
+                viewModel.updateState {
+                    it.copy(
+                        showBookBrowser = false,
+                        showOceanOfPdfBrowser = false,
+                        bookBrowserUrl = "",
+                        bookBrowserTitle = "",
+                        bookBrowserQuery = "",
+                        oceanOfPdfQuery = ""
+                    )
+                }
+            }
+        )
+    }
+
+    val pending = uiState.pendingImport
+    if (pending != null) {
+        VeritasImportPreviewDialog(
+            pendingImport = pending,
+            onConfirm = viewModel::executePendingImport,
+            onCancel = viewModel::cancelPendingImport
+        )
+    }
+
+    if (uiState.showReadingLists) {
+        ReadingListsDialog(
+            catalog = uiState.readingListCatalog,
+            documents = uiState.documents,
+            activeDocumentId = uiState.activeDocument?.id,
+            onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.READING_LISTS, false) } },
+            onCreateList = { title -> viewModel.createReadingList(title) },
+            onAddDocument = viewModel::addDocumentToReadingList,
+            onRemoveDocument = viewModel::removeDocumentFromReadingList,
+            onOpenDocument = { doc ->
+                viewModel.updateState { it.withVisibility(VeritasScreen.READING_LISTS, false) }
+                viewModel.openSavedDocument(doc)
+            },
+            onMoveDocument = viewModel::moveReadingListDocument,
+            onSetSortMode = viewModel::setReadingListSortMode,
+            onArchiveList = viewModel::archiveReadingList,
+            onDeleteList = viewModel::deleteReadingList
+        )
+    }
+
+    if (uiState.showGeneralNotesEditor) {
+        GeneralNotesEditor(
+            notebooks = uiState.noteNotebooks,
+            onCreateNotebook = { viewModel.createNoteLabel(it) },
+            notesSettings = uiState.notesSettings,
+            onSaveNotesSettings = { viewModel.saveNotesSettings(it) },
+            note = uiState.generalNoteEditorTarget,
+            saveStatus = uiState.generalNoteSaveStatus,
+            onSave = { title, content, color, pinned, isChecklist, imageUrl, audioUrl, reminderAt, closeEditor, audioUrls, notebookIds ->
+                viewModel.saveGeneralNote(title, content, color, pinned, isChecklist, imageUrl, audioUrl, reminderAt, closeEditor, audioUrls, notebookIds)
+            },
+            onDelete = { noteId -> viewModel.deleteGeneralNote(noteId) },
+            onCopyDraft = { title, content, color, pinned, checklist, image, audios, reminder, notebookIds ->
+                val draft = GeneralNote(id = uiState.generalNoteEditorTarget?.id.orEmpty(), title = title, content = content,
+                    updatedAt = System.currentTimeMillis(), color = color, pinned = pinned, isChecklist = checklist,
+                    imageUrl = image, audioUrl = audios.firstOrNull(), audioUrls = audios, reminderAt = reminder).withLabels(notebookIds)
+                viewModel.duplicateGeneralNote(draft)
+            },
+            onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, false).copy(
+                generalNoteEditorTarget = null
+            ) } }
+        )
+    }
+
+    uiState.activeDocument?.let { document ->
+        if (uiState.showTranslationTools) {
+            TranslationToolsDialog(
+                document = document,
+                currentIndex = viewModel.currentReaderIndex,
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.TRANSLATION_TOOLS, false) } },
+                onSend = { targetLanguage, mode ->
+                    TranslationLauncher.launch(
+                        context = context,
+                        title = document.title,
+                        chunks = document.chunks,
+                        currentIndex = viewModel.currentReaderIndex,
+                        targetLanguage = targetLanguage,
+                        mode = mode
+                    )
+                    viewModel.updateState { it.withVisibility(VeritasScreen.TRANSLATION_TOOLS, false) }
+                }
+            )
         }
+    }
 
 
 }

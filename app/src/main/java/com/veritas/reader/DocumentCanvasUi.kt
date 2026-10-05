@@ -8,11 +8,16 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -74,6 +79,7 @@ internal fun PresentationSlideCanvas(
     slide: PptxSlideContent,
     slideCount: Int,
     slideImages: List<Bitmap>,
+    slideImagesByPath: Map<String, Bitmap> = emptyMap(),
     showNotes: Boolean,
     onToggleNotes: () -> Unit,
     onNextSlide: () -> Unit,
@@ -88,11 +94,15 @@ internal fun PresentationSlideCanvas(
     isLandscape: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    var dragAmountX by remember { mutableFloatStateOf(0f) }
+    if (slide.layout != null) {
+        PositionedPresentationCanvas(slide, slideCount, slideImagesByPath, showNotes, onToggleNotes, onNextSlide, onPrevSlide, onSelectText, modifier)
+        return
+    }
     val (cardBg, contentColor) = getCanvasColors(paperToneMode)
 
+    BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
     Card(
-        modifier = if (isLandscape) modifier.fillMaxSize() else modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().heightIn(max = maxHeight),
         shape = if (isLandscape) RectangleShape else RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = cardBg
@@ -101,7 +111,7 @@ internal fun PresentationSlideCanvas(
         elevation = CardDefaults.cardElevation(defaultElevation = if (isLandscape) 0.dp else 8.dp)
     ) {
         Column(
-            modifier = if (isLandscape) Modifier.fillMaxSize().padding(horizontal = 14.dp, vertical = 8.dp) else Modifier.fillMaxWidth().padding(20.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(if (isLandscape) 6.dp else 14.dp)
         ) {
             // Slide Top Bar (Badge + Notes Pill + Prev/Next Buttons)
@@ -134,7 +144,7 @@ internal fun PresentationSlideCanvas(
                             color = if (showNotes) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
                         ) {
                             Text(
-                                text = "📝 Notes (${slide.notesLines.size})",
+                                text = "Notes (${slide.notesLines.size})",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = if (showNotes) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -151,7 +161,7 @@ internal fun PresentationSlideCanvas(
                     IconButton(
                         onClick = onPrevSlide,
                         enabled = slide.number > 1,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateBefore,
@@ -162,7 +172,7 @@ internal fun PresentationSlideCanvas(
                     IconButton(
                         onClick = onNextSlide,
                         enabled = slide.number < slideCount,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateNext,
@@ -192,13 +202,10 @@ internal fun PresentationSlideCanvas(
             }
 
             // Slide Body Content (Scrollable with Selectable text & Speech highlighting)
-            androidx.compose.foundation.text.selection.SelectionContainer {
+            androidx.compose.runtime.key(slide.number) {
+            androidx.compose.foundation.text.selection.SelectionContainer(modifier = Modifier.weight(1f, fill = false)) {
                 Column(
-                    modifier = if (isLandscape) {
-                        Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState())
-                    } else {
-                        Modifier.fillMaxWidth().heightIn(max = 440.dp).verticalScroll(rememberScrollState())
-                    },
+                    modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     val totalLines = slide.contentLines.size
@@ -313,7 +320,9 @@ internal fun PresentationSlideCanvas(
                     }
                 }
             }
+            }
         }
+    }
     }
 }
 
@@ -334,7 +343,6 @@ internal fun EpubBookCanvas(
     isLandscape: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    var dragAmountX by remember { mutableFloatStateOf(0f) }
     val (cardBg, contentColor) = getCanvasColors(paperToneMode)
 
     Card(
@@ -347,7 +355,7 @@ internal fun EpubBookCanvas(
         elevation = CardDefaults.cardElevation(defaultElevation = if (isLandscape) 0.dp else 6.dp)
     ) {
         Column(
-            modifier = if (isLandscape) Modifier.fillMaxSize().padding(horizontal = 14.dp, vertical = 8.dp) else Modifier.fillMaxWidth().padding(22.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = if (isLandscape) 14.dp else 22.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(if (isLandscape) 6.dp else 14.dp)
         ) {
             // Book Header (Badge + Prev/Next buttons)
@@ -361,7 +369,7 @@ internal fun EpubBookCanvas(
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
-                        text = "📕 Chapter ${chapter.number} of $chapterCount",
+                        text = "Chapter ${chapter.number} of $chapterCount",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -419,51 +427,18 @@ internal fun EpubBookCanvas(
             }
 
             // Chapter Paragraphs (Scrollable with Selectable text & Speech highlighting)
-            androidx.compose.foundation.text.selection.SelectionContainer {
-                Column(
-                    modifier = if (isLandscape) {
-                        Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState())
-                    } else {
-                        Modifier.fillMaxWidth().heightIn(max = 460.dp).verticalScroll(rememberScrollState())
-                    },
+            androidx.compose.foundation.text.selection.SelectionContainer(modifier = Modifier.weight(1f)) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = androidx.compose.runtime.key(bookTitle,chapter.number) { rememberLazyListState() },
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    val totalParas = chapter.paragraphs.size
-                    val totalImages = chapter.images.size
-                    val imagesAfterPara = remember(totalParas, totalImages) {
-                        val map = mutableMapOf<Int, MutableList<Int>>()
-                        if (totalParas == 0) {
-                            map[-1] = (0 until totalImages).toMutableList()
-                        } else if (totalImages > 0) {
-                            for (imgIdx in 0 until totalImages) {
-                                val target = ((imgIdx + 1) * totalParas / (totalImages + 1)).coerceIn(0, totalParas - 1)
-                                map.getOrPut(target) { mutableListOf() }.add(imgIdx)
-                            }
+                    itemsIndexed(chapter.paragraphs, key = { index, _ -> "${chapter.number}:$index" }) { paraIdx, para ->
+                        val imageIndex = Regex("""^\[\[VERITAS_IMAGE:(\d+)]]$""").matchEntire(para.trim())?.groupValues?.get(1)?.toIntOrNull()
+                        if (imageIndex != null) {
+                            if (imageIndex < chapter.images.size) OriginalDocumentImage(chapter, imageIndex, "Chapter illustration") { chapter.images[imageIndex] }
+                            return@itemsIndexed
                         }
-                        map
-                    }
-
-                    // Render images before text if empty paragraphs
-                    imagesAfterPara[-1]?.forEach { imgIdx ->
-                        val bytes = chapter.images.getOrNull(imgIdx)
-                        if (bytes != null) {
-                            val bmp = remember(bytes) { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }
-                            if (bmp != null) {
-                                Image(
-                                    bitmap = bmp.asImageBitmap(),
-                                    contentDescription = "Chapter Illustration",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .heightIn(max = 240.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .padding(vertical = 6.dp),
-                                    contentScale = ContentScale.Fit
-                                )
-                            }
-                        }
-                    }
-
-                    chapter.paragraphs.forEachIndexed { paraIdx, para ->
                         val isHighlighted = isPlaying &&
                             chapter.number == activeSentencePage &&
                             ActiveSentenceMatcher.matches(para, activeSentenceText)
@@ -488,9 +463,9 @@ internal fun EpubBookCanvas(
                                     )
                                 }
                                 Text(
-                                    text = "    $para",
+                                    text = para,
                                     style = MaterialTheme.typography.bodyMedium.copy(
-                                        lineHeight = 22.sp
+                                        lineHeight = 25.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif
                                     ),
                                     color = contentColor,
                                     modifier = Modifier.weight(1f)
@@ -498,25 +473,6 @@ internal fun EpubBookCanvas(
                             }
                         }
 
-                        // Inline chapter image placed naturally between paragraphs
-                        imagesAfterPara[paraIdx]?.forEach { imgIdx ->
-                            val bytes = chapter.images.getOrNull(imgIdx)
-                            if (bytes != null) {
-                                val bmp = remember(bytes) { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }
-                                if (bmp != null) {
-                                    Image(
-                                        bitmap = bmp.asImageBitmap(),
-                                        contentDescription = "Chapter Illustration",
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .heightIn(max = 240.dp)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .padding(vertical = 6.dp),
-                                        contentScale = ContentScale.Fit
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -541,7 +497,6 @@ internal fun DocxDocumentCanvas(
     isLandscape: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    var dragAmountX by remember { mutableFloatStateOf(0f) }
     val (cardBg, contentColor) = getCanvasColors(paperToneMode)
 
     Card(
@@ -554,7 +509,7 @@ internal fun DocxDocumentCanvas(
         elevation = CardDefaults.cardElevation(defaultElevation = if (isLandscape) 0.dp else 6.dp)
     ) {
         Column(
-            modifier = if (isLandscape) Modifier.fillMaxSize().padding(horizontal = 14.dp, vertical = 8.dp) else Modifier.fillMaxWidth().padding(20.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = if (isLandscape) 14.dp else 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(if (isLandscape) 6.dp else 12.dp)
         ) {
             // Header
@@ -568,7 +523,7 @@ internal fun DocxDocumentCanvas(
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
-                        text = "📄 Page ${page.pageNumber} of $pageCount",
+                        text = "Page ${page.pageNumber} of $pageCount",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -606,16 +561,13 @@ internal fun DocxDocumentCanvas(
             }
 
             // Blocks (Scrollable with Selectable text & Speech highlighting)
-            androidx.compose.foundation.text.selection.SelectionContainer {
-                Column(
-                    modifier = if (isLandscape) {
-                        Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState())
-                    } else {
-                        Modifier.fillMaxWidth().heightIn(max = 460.dp).verticalScroll(rememberScrollState())
-                    },
+            androidx.compose.foundation.text.selection.SelectionContainer(modifier = Modifier.weight(1f)) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = androidx.compose.runtime.key(docTitle,page.pageNumber) { rememberLazyListState() },
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    page.blocks.forEachIndexed { blockIdx, block ->
+                    itemsIndexed(page.blocks, key = { index, _ -> "${page.pageNumber}:$index" }) { blockIdx, block ->
                         val isHighlighted = isPlaying &&
                             page.pageNumber == activeSentencePage &&
                             ActiveSentenceMatcher.matches(docxBlockPlainText(block), activeSentenceText)
@@ -635,12 +587,10 @@ internal fun DocxDocumentCanvas(
                                             .height(if (block.level == 1) 22.dp else 16.dp)
                                             .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50))
                                     )
-                                    Text(
-                                        text = block.text,
-                                        style = if (block.level == 1) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Black,
-                                        color = contentColor
-                                    )
+                                    DocxFormattedParagraph(DocxBlock.Paragraph(block.text, block.sourceFormat), contentColor,
+                                        MaterialTheme.colorScheme.surface, Modifier.weight(1f),
+                                        textStyle = (if (block.level == 1) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall)
+                                            .copy(fontWeight = FontWeight.Bold))
                                 }
                             }
                             is DocxBlock.Bullet -> {
@@ -663,11 +613,8 @@ internal fun DocxDocumentCanvas(
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary
                                         )
-                                        Text(
-                                            text = block.text,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = contentColor
-                                        )
+                                        DocxFormattedParagraph(DocxBlock.Paragraph(block.text, block.sourceFormat?.copy(indentPoints = 0f)),
+                                            contentColor, MaterialTheme.colorScheme.surface, Modifier.weight(1f))
                                     }
                                 }
                             }
@@ -692,10 +639,10 @@ internal fun DocxDocumentCanvas(
                                                     .background(MaterialTheme.colorScheme.primary, CircleShape)
                                             )
                                         }
-                                        Text(
-                                            text = block.text,
-                                            style = MaterialTheme.typography.bodyMedium,
+                                        DocxFormattedParagraph(
+                                            block = block,
                                             color = contentColor,
+                                            background = if (isHighlighted) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
                                             modifier = Modifier.weight(1f)
                                         )
                                     }
@@ -711,7 +658,7 @@ internal fun DocxDocumentCanvas(
                                     color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f),
                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                                 ) {
-                                    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Column(modifier = Modifier.horizontalScroll(rememberScrollState()).padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         block.rows.forEachIndexed { rowIndex, row ->
                                             Row(
                                                 modifier = Modifier.fillMaxWidth(),
@@ -723,7 +670,7 @@ internal fun DocxDocumentCanvas(
                                                         style = MaterialTheme.typography.bodySmall,
                                                         fontWeight = if (rowIndex == 0) FontWeight.Bold else FontWeight.Normal,
                                                         color = if (rowIndex == 0) MaterialTheme.colorScheme.primary else contentColor,
-                                                        modifier = Modifier.weight(1f)
+                                                        modifier = Modifier.width(160.dp)
                                                     )
                                                 }
                                             }
@@ -734,28 +681,7 @@ internal fun DocxDocumentCanvas(
                                     }
                                 }
                             }
-                            is DocxBlock.Image -> {
-                                val bitmap = remember(block.imageBytes) {
-                                    BitmapFactory.decodeByteArray(block.imageBytes, 0, block.imageBytes.size)?.asImageBitmap()
-                                }
-                                if (bitmap != null) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 6.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Image(
-                                            bitmap = bitmap,
-                                            contentDescription = block.description ?: "Document Image",
-                                            modifier = Modifier
-                                                .fillMaxWidth(0.92f)
-                                                .clip(RoundedCornerShape(8.dp)),
-                                            contentScale = ContentScale.FillWidth
-                                        )
-                                    }
-                                }
-                            }
+                            is DocxBlock.Image -> OriginalDocumentImage(block, blockIdx, block.description) { block.imageBytes }
                         }
                     }
                 }
@@ -783,7 +709,7 @@ private fun CanvasControlButton(
             onClick = onClick,
             enabled = enabled,
             interactionSource = interactionSource,
-            shape = androidx.compose.foundation.shape.CircleShape,
+            shape = CircleShape,
             contentPadding = ButtonDefaults.ContentPadding,
             modifier = Modifier.graphicsLayer(scaleX = scale, scaleY = scale)
         ) {

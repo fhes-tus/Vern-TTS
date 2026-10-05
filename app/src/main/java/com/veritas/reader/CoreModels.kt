@@ -87,9 +87,7 @@ internal fun extractSynopsisHeuristic(rawText: String, maxChars: Int = 360): Str
 
         // Dominated by digits
         val digits = p.filter { it.isDigit() }
-        if (digits.length > 8 && digits.toFloat() / p.length > 0.25f) return true
-
-        return false
+        return digits.length > 8 && digits.toFloat() / p.length > 0.25f
     }
 
     // 1. First pass: find substantive prose paragraph (>= 12 words, complete sentences)
@@ -151,7 +149,9 @@ data class SavedDocument(
     val originalMimeType: String = "",
     val pageCount: Int = 0,
     val partial: Boolean = false,
-    val language: String = ""
+    val language: String = "",
+    val catalogId: String = "",
+    val sentenceIndexVersion: Int = 2
 ) {
     val sentenceCount: Int
         get() = chunkCount
@@ -174,6 +174,8 @@ data class SavedDocument(
         .put("pageCount", pageCount)
         .put("partial", partial)
         .put("language", language)
+        .put("catalogId", catalogId)
+        .put("sentenceIndexVersion", sentenceIndexVersion)
 
     companion object {
         fun fromJson(obj: JSONObject): SavedDocument = SavedDocument(
@@ -193,7 +195,9 @@ data class SavedDocument(
             originalMimeType = obj.optString("originalMimeType", ""),
             pageCount = obj.optInt("pageCount", 0),
             partial = obj.optBoolean("partial", false),
-            language = obj.optString("language", "")
+            language = obj.optString("language", ""),
+            catalogId = obj.optString("catalogId", ""),
+            sentenceIndexVersion = obj.optInt("sentenceIndexVersion", 1)
         )
     }
 }
@@ -257,8 +261,18 @@ data class GeneralNote(
     val imageUrl: String? = null,
     val audioUrl: String? = null,
     val reminderAt: Long? = null,
-    val audioUrls: List<String> = emptyList()
+    val audioUrls: List<String> = emptyList(),
+    val createdAt: Long = updatedAt,
+    val notebookId: String? = null,
+    val deletedAt: Long? = null,
+    val labelIds: List<String> = emptyList()
 ) {
+    // Legacy notebook assignments become labels without rewriting existing backups.
+    val allLabelIds: List<String>
+        get() = (labelIds + listOfNotNull(notebookId)).filter { it.isNotBlank() }.distinct()
+
+    fun withLabels(ids: List<String>): GeneralNote = copy(notebookId = null, labelIds = ids.filter { it.isNotBlank() }.distinct())
+
     val allAudioUrls: List<String>
         get() {
             val list = mutableListOf<String>()
@@ -273,6 +287,9 @@ data class GeneralNote(
     val primaryImageUrl: String?
         get() = imageUrl?.takeIf { it.isNotBlank() } ?: extractInlineImages(content).firstOrNull()
 
+    val allImageUrls: List<String>
+        get() = (listOfNotNull(imageUrl?.takeIf { it.isNotBlank() }) + extractInlineImages(content)).distinct()
+
     val allVideoUrls: List<String>
         get() = extractInlineVideos(content)
 
@@ -285,6 +302,7 @@ data class GeneralNote(
             .put("title", title)
             .put("content", content)
             .put("updatedAt", updatedAt)
+            .put("createdAt", createdAt)
             .put("color", color ?: "")
             .put("pinned", pinned)
             .put("isChecklist", isChecklist)
@@ -292,6 +310,9 @@ data class GeneralNote(
             .put("audioUrl", urls.firstOrNull() ?: "")
             .put("audioUrls", jsonAudioUrls)
             .put("reminderAt", reminderAt ?: 0L)
+            .put("notebookId", allLabelIds.firstOrNull().orEmpty())
+            .put("labelIds", JSONArray(allLabelIds))
+            .put("deletedAt", deletedAt ?: 0L)
     }
 
     companion object {
@@ -313,17 +334,35 @@ data class GeneralNote(
                 title = obj.optString("title", ""),
                 content = obj.optString("content", ""),
                 updatedAt = obj.optLong("updatedAt", 0L),
+                createdAt = obj.optLong("createdAt", obj.optLong("updatedAt", 0L)),
                 color = obj.optString("color", "").takeIf { it.isNotBlank() },
                 pinned = obj.optBoolean("pinned", false),
                 isChecklist = obj.optBoolean("isChecklist", false),
                 imageUrl = obj.optString("imageUrl", "").takeIf { it.isNotBlank() },
                 audioUrl = list.firstOrNull(),
                 reminderAt = obj.optLong("reminderAt", 0L).takeIf { it > 0L },
-                audioUrls = list
+                audioUrls = list,
+                notebookId = if (obj.has("labelIds")) null else obj.optString("notebookId", "").takeIf { it.isNotBlank() },
+                labelIds = obj.optJSONArray("labelIds")?.let { labels ->
+                    (0 until labels.length()).map { labels.optString(it) }.filter { it.isNotBlank() }.distinct()
+                }.orEmpty(),
+                deletedAt = obj.optLong("deletedAt", 0L).takeIf { it > 0L }
             )
         }
     }
 }
+
+data class NoteNotebook(val id: String, val name: String, val createdAt: Long, val updatedAt: Long = createdAt) {
+    fun toJson() = JSONObject().put("id", id).put("name", name).put("createdAt", createdAt).put("updatedAt", updatedAt)
+    companion object {
+        fun fromJson(json: JSONObject) = NoteNotebook(
+            id = json.optString("id"), name = json.optString("name"),
+            createdAt = json.optLong("createdAt"), updatedAt = json.optLong("updatedAt", json.optLong("createdAt"))
+        )
+    }
+}
+
+data class NoteRevision(val noteId: String, val savedAt: Long, val snapshot: GeneralNote)
 
 private val INLINE_IMAGE_REGEX = Regex("""!\[(?:image|photo)?\]\(([^)]+)\)|\[image:([^]]+)\]""", RegexOption.IGNORE_CASE)
 private val INLINE_AUDIO_REGEX = Regex("""\[audio\]\(([^)]+)\)|\[audio:([^]]+)\]""", RegexOption.IGNORE_CASE)
@@ -383,7 +422,8 @@ enum class VeritasScreen {
     CANVAS_VIEW,
     GENERAL_NOTES_EDITOR,
     USER_MANUAL,
-    ACCESSIBILITY_SETTINGS
+    ACCESSIBILITY_SETTINGS,
+    NOTES_SETTINGS
 }
 
 enum class AnnotationType {
@@ -533,7 +573,8 @@ data class ReaderDocument(
     val sourceLabel: String,
     val rawText: String,
     val sentences: List<String>,
-    val pageCount: Int = 0
+    val pageCount: Int = 0,
+    val partial: Boolean = false
 ) {
     // Legacy alias while older playback/storage code is migrated from chunks to sentences.
     val chunks: List<String>
@@ -606,47 +647,119 @@ object VeritasThemePackCatalog {
 
 object VeritasThemeCatalog {
     const val DEFAULT_ID = "system"
+    const val DEFAULT_FAMILY = "sage"
+    const val DEFAULT_MODE = "system"
+
+    data class ThemeFamilyInfo(
+        val id: String,
+        val displayName: String,
+        val lightThemeId: String,
+        val darkThemeId: String,
+        val isAccent: Boolean = false
+    )
+
+    val families: List<ThemeFamilyInfo> = listOf(
+        ThemeFamilyInfo("sage", "Sage", "light", "dark"),
+        ThemeFamilyInfo("midnight", "Midnight", "midnight_light", "midnight_dark"),
+        ThemeFamilyInfo("dracula", "Dracula", "dracula_light", "dracula"),
+        ThemeFamilyInfo("github", "GitHub", "github_light", "github_dark"),
+        ThemeFamilyInfo("bw_gradient", "B/W Gradient", "bw_gradient_light", "bw_gradient_dark"),
+        ThemeFamilyInfo("neon", "Neon", "neon", "neon", isAccent = true)
+    )
 
     val themeOptions: List<Pair<String, String>> = listOf(
         "system" to "System Default",
-        "light" to "Light",
-        "dark" to "Dark",
+        "light" to "Sage Light",
+        "dark" to "Sage Dark",
+        "dracula_system" to "Dracula (System)",
+        "dracula_light" to "Dracula Light",
+        "dracula" to "Dracula",
+        "midnight_system" to "Midnight (System)",
+        "midnight_light" to "Midnight Light",
+        "midnight_dark" to "Midnight Dark",
+        "github_system" to "GitHub (System)",
         "github_light" to "GitHub Light",
         "github_dark" to "GitHub Dark",
+        "bw_gradient_system" to "B/W Gradient (System)",
         "bw_gradient_light" to "B/W Gradient Light",
         "bw_gradient_dark" to "B/W Gradient Dark",
-        "blue_high_contrast" to "Blue High Contrast",
-        "midnight_dark" to "Midnight Dark",
-        "one_dark_pro" to "One Dark Pro",
-        "dracula" to "Dracula",
         "neon" to "Neon",
-        "dark_high_contrast" to "Dark High Contrast",
-        "white_high_contrast" to "White High Contrast",
-        "amoled" to "AMOLED Pure Black"
+        "one_light" to "One Light",
+        "one_dark_pro" to "One Dark Pro"
     )
+
+    fun familyForThemeId(id: String): String {
+        val normalized = normalizeThemeId(id)
+        return when (normalized) {
+            "midnight", "midnight_system", "midnight_light", "midnight_dark" -> "midnight"
+            "dracula", "dracula_system", "dracula_light" -> "dracula"
+            "github", "github_system", "github_light", "github_dark", "one_light", "one_dark_pro" -> "github"
+            "bw_gradient", "bw_gradient_system", "bw_gradient_light", "bw_gradient_dark" -> "bw_gradient"
+            "neon" -> "neon"
+            else -> "sage"
+        }
+    }
+
+    fun modeForThemeId(id: String): String {
+        val normalized = normalizeThemeId(id)
+        return when (normalized) {
+            "system", "sage", "midnight_system", "dracula_system", "github_system", "bw_gradient_system" -> "system"
+            "light", "white_high_contrast", "midnight_light", "dracula_light", "github_light", "one_light", "bw_gradient_light" -> "light"
+            "dark", "dark_high_contrast", "amoled", "midnight_dark", "dracula", "github_dark", "one_dark_pro", "bw_gradient_dark", "neon" -> "dark"
+            else -> "system"
+        }
+    }
+
+    fun resolveThemeIdForStorage(familyId: String, mode: String): String {
+        val family = families.firstOrNull { it.id == familyId } ?: families.first()
+        if (family.isAccent) return family.darkThemeId
+        return when (mode) {
+            "light" -> family.lightThemeId
+            "dark" -> family.darkThemeId
+            else -> if (family.id == "sage") "system" else "${family.id}_system"
+        }
+    }
+
+    fun resolveConcreteThemeId(themeId: String, systemInDarkTheme: Boolean = false): String {
+        return when (themeId) {
+            "system" -> if (systemInDarkTheme) "dark" else "light"
+            "midnight_system" -> if (systemInDarkTheme) "midnight_dark" else "midnight_light"
+            "dracula_system" -> if (systemInDarkTheme) "dracula" else "dracula_light"
+            "github_system" -> if (systemInDarkTheme) "github_dark" else "github_light"
+            "bw_gradient_system" -> if (systemInDarkTheme) "bw_gradient_dark" else "bw_gradient_light"
+            "one_light" -> "github_light"
+            "one_dark_pro" -> "github_dark"
+            else -> normalizeThemeId(themeId)
+        }
+    }
 
     fun normalizeThemeId(id: String): String {
         val mapped = when (id) {
             "default_dark_2026" -> "dark"
+            "one_light" -> "github_light"
+            "one_dark_pro" -> "github_dark"
+            "blue_high_contrast" -> "dark"
             else -> id
         }
+        // Accessibility presets stay valid even though the palette picker omits them.
+        if (mapped in setOf("amoled", "dark_high_contrast", "white_high_contrast")) return mapped
         return themeOptions.firstOrNull { it.first == mapped }?.first ?: DEFAULT_ID
     }
 
     fun displayName(id: String): String {
         val normalized = normalizeThemeId(id)
-        return themeOptions.firstOrNull { it.first == normalized }?.second ?: "Dark"
+        return when (normalized) {
+            "dark_high_contrast" -> "Dark High Contrast"
+            "white_high_contrast" -> "White High Contrast"
+            "amoled" -> "AMOLED Pure Black"
+            else -> themeOptions.firstOrNull { it.first == normalized }?.second ?: "Sage"
+        }
     }
 
     fun isDark(themeId: String, systemInDarkTheme: Boolean = false): Boolean {
-        val normalized = normalizeThemeId(themeId)
-        val resolved = if (normalized == "system") {
-            if (systemInDarkTheme) "dark" else "light"
-        } else {
-            normalized
-        }
-        return when (resolved) {
-            "light", "white_high_contrast", "bw_gradient_light", "github_light" -> false
+        val concrete = resolveConcreteThemeId(themeId, systemInDarkTheme)
+        return when (concrete) {
+            "light", "white_high_contrast", "bw_gradient_light", "github_light", "dracula_light", "midnight_light", "one_light" -> false
             else -> true
         }
     }

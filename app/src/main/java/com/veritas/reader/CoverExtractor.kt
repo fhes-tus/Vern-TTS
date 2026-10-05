@@ -210,7 +210,7 @@ object CoverExtractor {
 
             if (isZip) {
                 runCatching {
-                    java.util.zip.ZipInputStream(originalFile.inputStream()).use { zip ->
+                    ZipInputStream(originalFile.inputStream()).use { zip ->
                         while (true) {
                             val entry = zip.nextEntry ?: break
                             val name = entry.name.trimStart('/').lowercase(Locale.getDefault())
@@ -444,7 +444,7 @@ object CoverExtractor {
     private fun extractDocxCover(context: Context, documentId: String, originalFile: File): String? {
         return try {
             var imageBytes: ByteArray? = null
-            java.util.zip.ZipInputStream(originalFile.inputStream()).use { zip ->
+            ZipInputStream(originalFile.inputStream()).use { zip ->
                 val entries = mutableMapOf<String, ByteArray>()
                 while (true) {
                     val entry = zip.nextEntry ?: break
@@ -485,7 +485,7 @@ object CoverExtractor {
     private fun extractPptxCover(context: Context, documentId: String, originalFile: File): String? {
         return try {
             var imageBytes: ByteArray? = null
-            java.util.zip.ZipInputStream(originalFile.inputStream()).use { zip ->
+            ZipInputStream(originalFile.inputStream()).use { zip ->
                 while (true) {
                     val entry = zip.nextEntry ?: break
                     val name = normalizeZipPath(entry.name.trimStart('/')).lowercase(Locale.getDefault())

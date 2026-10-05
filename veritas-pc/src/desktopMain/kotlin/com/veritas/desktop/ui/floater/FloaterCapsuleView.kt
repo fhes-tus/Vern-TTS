@@ -57,7 +57,7 @@ fun FloaterCapsuleView(
     val doc = state.activeDocument
     val totalChunks = doc?.chunks?.size ?: 0
     val currentIdx = state.currentIndex
-    val progress = if (totalChunks > 0) ((currentIdx + 1).toFloat() / totalChunks).coerceIn(0f, 1f) else 0f
+    if (totalChunks > 0) ((currentIdx + 1).toFloat() / totalChunks).coerceIn(0f, 1f) else 0f
 
     Surface(
         modifier = modifier

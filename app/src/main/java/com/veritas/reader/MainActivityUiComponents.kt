@@ -60,6 +60,8 @@ object VeritasThemeState {
     var adaptiveCover by mutableStateOf(false)
     // Accessibility: composables consult this to skip decorative animation.
     var reduceMotion by mutableStateOf(false)
+    var reduceTransparency by mutableStateOf(false)
+    var glassFloatingControls by mutableStateOf(false)
     // Typeface for the whole app; VeritasTheme builds its Typography from this.
     var uiFontId by mutableStateOf("system")
     // AMOLED mode: pure black background for dark themes

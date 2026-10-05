@@ -1,5 +1,8 @@
 package com.veritas.reader
 
+import com.veritas.reader.ui.currentReaderIndex
+
+import com.veritas.reader.ui.withVisibility
 
 import android.content.Context
 import androidx.compose.material3.AlertDialog
@@ -9,6 +12,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -67,30 +71,30 @@ internal fun MainSettingsDialogsHost(
         if (uiState.showSettingsHub) {
             SettingsHubDialog(
                 uiState = uiState,
-                onDismiss = { viewModel.updateState { it.copy(showSettingsHub = false) } },
-                onOpenReaderSettings = { viewModel.updateState { it.copy(showReaderSettings = true) } },
-                onOpenVoiceStudio = { viewModel.updateState { it.copy(showVoiceStudio = true) } },
-                onOpenNarrationStudio = { viewModel.updateState { it.copy(showNarrationStudio = true) } },
-                onOpenPronunciationRules = { viewModel.updateState { it.copy(showPronunciationRules = true) } },
-                onOpenBackupRestore = { viewModel.updateState { it.copy(showBackupTools = true) } },
-                onOpenSyncCenter = { viewModel.updateState { it.copy(showSyncCenter = true) } },
-                onOpenAiCenter = { viewModel.updateState { it.copy(showAiCenter = true) } },
-                onOpenAskAiSettings = { viewModel.updateState { it.copy(showAskAiSettings = true) } },
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.SETTINGS_HUB, false) } },
+                onOpenReaderSettings = { viewModel.updateState { it.withVisibility(VeritasScreen.READER_SETTINGS, true) } },
+                onOpenVoiceStudio = { viewModel.updateState { it.withVisibility(VeritasScreen.VOICE_STUDIO, true) } },
+                onOpenNarrationStudio = { viewModel.updateState { it.withVisibility(VeritasScreen.NARRATION_STUDIO, true) } },
+                onOpenPronunciationRules = { viewModel.updateState { it.withVisibility(VeritasScreen.PRONUNCIATION_RULES, true) } },
+                onOpenBackupRestore = { viewModel.updateState { it.withVisibility(VeritasScreen.BACKUP_TOOLS, true) } },
+                onOpenSyncCenter = { viewModel.updateState { it.withVisibility(VeritasScreen.SYNC_CENTER, true) } },
+                onOpenAiCenter = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_CENTER, true) } },
+                onOpenAskAiSettings = { viewModel.updateState { it.withVisibility(VeritasScreen.ASK_AI_SETTINGS, true) } },
                 onStartRecord = { viewModel.startRecordSoundFile() },
                 onOpenTextEditor = { viewModel.openCurrentPartTextEditor() },
                 onOpenTutorial = {
                     viewModel.resetQuestProgress()
-                    viewModel.updateState { it.copy(showSettingsHub = false) }
+                    viewModel.updateState { it.withVisibility(VeritasScreen.SETTINGS_HUB, false) }
                     viewModel.createWelcomeDocumentSilently()
                     OnboardingController.activeStep = null
                 },
-                onOpenPdfTools = { viewModel.updateState { it.copy(showPdfImportTools = true) } },
+                onOpenPdfTools = { viewModel.updateState { it.withVisibility(VeritasScreen.PDF_IMPORT_TOOLS, true) } },
                 onOpenFileBrowser = { viewModel.openFileBrowser() },
-                onOpenSleepTimer = { viewModel.updateState { it.copy(showSleepTimerDialog = true) } },
-                onOpenReadingLists = { viewModel.updateState { it.copy(showReadingLists = true) } },
-                onOpenUserManual = { viewModel.updateState { it.copy(showUserManual = true) } },
+                onOpenSleepTimer = { viewModel.updateState { it.withVisibility(VeritasScreen.SLEEP_TIMER, true) } },
+                onOpenReadingLists = { viewModel.updateState { it.withVisibility(VeritasScreen.READING_LISTS, true) } },
+                onOpenUserManual = { viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, true) } },
                 onOpenStorage = { showStorageTools = true },
-                onOpenAccessibility = { viewModel.updateState { it.copy(showAccessibilitySettings = true) } },
+                onOpenAccessibility = { viewModel.updateState { it.withVisibility(VeritasScreen.ACCESSIBILITY_SETTINGS, true) } },
                 onCheckForUpdates = { viewModel.checkForUpdates(isManual = true) }
             )
         }
@@ -99,7 +103,7 @@ internal fun MainSettingsDialogsHost(
             var breakdown by remember { mutableStateOf<StorageBreakdown?>(null) }
             var candidates by remember { mutableStateOf<List<Pair<SavedDocument, Long>>>(emptyList()) }
             var cleanupMessage by remember { mutableStateOf<String?>(null) }
-            var refreshTick by remember { mutableStateOf(0) }
+            var refreshTick by remember { mutableIntStateOf(0) }
             val storageScope = rememberCoroutineScope()
             LaunchedEffect(refreshTick) {
                 val (computedBreakdown, computedCandidates) = viewModel.computeStorage()
@@ -135,72 +139,74 @@ internal fun MainSettingsDialogsHost(
 
         if (uiState.showUserManual) {
             UserManualDialog(
-                onDismiss = { viewModel.updateState { it.copy(showUserManual = false) } },
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) } },
                 onNavigateToSetting = { setting ->
                     when (setting) {
-                        "settings_hub" -> viewModel.updateState { it.copy(showUserManual = false, showSettingsHub = true) }
-                        "reader_settings" -> viewModel.updateState { it.copy(showUserManual = false, showReaderSettings = true) }
-                        "voice_studio" -> viewModel.updateState { it.copy(showUserManual = false, showVoiceStudio = true) }
-                        "narration_studio" -> viewModel.updateState { it.copy(showUserManual = false, showNarrationStudio = true) }
-                        "pronunciation" -> viewModel.updateState { it.copy(showUserManual = false, showPronunciationRules = true) }
-                        "sleep_timer" -> viewModel.updateState { it.copy(showUserManual = false, showSleepTimerDialog = true) }
-                        "pdf_tools" -> viewModel.updateState { it.copy(showUserManual = false, showPdfImportTools = true) }
-                        "history" -> viewModel.updateState { it.copy(showUserManual = false, showReadingHistory = true) }
-                        "reading_lists" -> viewModel.updateState { it.copy(showUserManual = false, showReadingLists = true) }
-                        "sync_center" -> viewModel.updateState { it.copy(showUserManual = false, showSyncCenter = true) }
-                        "ai_center" -> viewModel.updateState { it.copy(showUserManual = false, showAiCenter = true) }
-                        "ask_ai" -> viewModel.updateState { it.copy(showUserManual = false, showAskAiSettings = true) }
+                        "settings_hub" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.SETTINGS_HUB, true) }
+                        "reader_settings" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.READER_SETTINGS, true) }
+                        "voice_studio" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.VOICE_STUDIO, true) }
+                        "narration_studio" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.NARRATION_STUDIO, true) }
+                        "pronunciation" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.PRONUNCIATION_RULES, true) }
+                        "sleep_timer" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.SLEEP_TIMER, true) }
+                        "pdf_tools" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.PDF_IMPORT_TOOLS, true) }
+                        "history" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.READING_HISTORY, true) }
+                        "reading_lists" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.READING_LISTS, true) }
+                        "sync_center" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.SYNC_CENTER, true) }
+                        "ai_center" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.AI_CENTER, true) }
+                        "ask_ai" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.ASK_AI_SETTINGS, true) }
                         "file_browser" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             viewModel.openFileBrowser()
                         }
-                        "backup_tools" -> viewModel.updateState { it.copy(showUserManual = false, showBackupTools = true) }
-                        "classics_catalog" -> viewModel.updateState { it.copy(showUserManual = false, showClassicsCatalog = true) }
+                        "backup_tools" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).withVisibility(VeritasScreen.BACKUP_TOOLS, true) }
+                        "classics_catalog" -> viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false).copy(
+                            showClassicsCatalog = true
+                        ) }
                         "storage_manager" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             showStorageTools = true
                         }
                         "about" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             showAboutDialog = true
                         }
                         "study_general", "study_flashcards" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             viewModel.navigateToHomeTab(VeritasHomeTab.STUDY)
                         }
                         "notes_tab" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             viewModel.navigateToHomeTab(VeritasHomeTab.NOTES)
                         }
                         "library" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             viewModel.navigateToHomeTab(VeritasHomeTab.LIBRARY)
                         }
                         "library_options" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             viewModel.navigateToHomeTab(VeritasHomeTab.LIBRARY)
                             userManualTipTitle = "Document Actions"
                             userManualTipText = "Tap the three-dot overflow button on any book card in your library to edit metadata, rename files, assign categories, add to custom lists, reset progress, or delete files from storage."
                         }
                         "bulk_edit" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             viewModel.navigateToHomeTab(VeritasHomeTab.LIBRARY)
                             userManualTipTitle = "Batch Organization"
                             userManualTipText = "Long-press any document card in your Library to enter multi-select mode. You can then tap other cards to select them and perform bulk actions like category assignment or batch deletion from the top toolbar."
                         }
                         "file_browser_filters" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             viewModel.openFileBrowser()
                             userManualTipTitle = "Browser Sorting & Filters"
                             userManualTipText = "Tap the options menu (three dots) at the top-right of the integrated File Browser to change sorting (name, date, size), filter by file type, or toggle hidden files and folders."
                         }
                         "text_selection" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             userManualTipTitle = "Interactive Text Selection"
                             userManualTipText = "Double-tap or long-press on any word or sentence in the reader screen to highlight it. Use the selection handles to expand the text range, and access options like copying, notes, dictionary definitions, and TTS narration controls."
                         }
                         "reader_tools" -> {
-                            viewModel.updateState { it.copy(showUserManual = false) }
+                            viewModel.updateState { it.withVisibility(VeritasScreen.USER_MANUAL, false) }
                             userManualTipTitle = "Reader Tools Menu"
                             userManualTipText = "Tap the top-right tool menu button (three dots) inside the Reader Screen to access bookmarks, text search inside the book, theme settings, and notes export actions."
                         }
@@ -348,44 +354,37 @@ internal fun MainSettingsDialogsHost(
                 onOpenSystemTtsSettings = { viewModel.openSystemTtsSettings() },
                 onOpenSpeechEdits = {
                     viewModel.updateState {
-                        it.copy(
-                            showVoiceStudio = false,
-                            showPronunciationRules = true
-                        )
+                        it.withVisibility(VeritasScreen.VOICE_STUDIO, false).withVisibility(VeritasScreen.PRONUNCIATION_RULES, true)
                     }
                 },
                 onOpenNarrationStudio = {
                     viewModel.updateState {
-                        it.copy(
-                            showVoiceStudio = false,
-                            showNarrationStudio = true
-                        )
+                        it.withVisibility(VeritasScreen.VOICE_STUDIO, false).withVisibility(VeritasScreen.NARRATION_STUDIO, true)
                     }
                 },
-                onDismiss = { viewModel.updateState { it.copy(showVoiceStudio = false) } }
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.VOICE_STUDIO, false) } }
             )
         }
 
         if (uiState.showReaderSettings) {
             val activeDoc = uiState.activeDocument
-            val totalSentences = activeDoc?.chunks?.size ?: 1
-            val totalPages = (activeDoc?.pageCount?.takeIf { it > 0 } ?: ((totalSentences + 19) / 20)).coerceAtLeast(1)
-            val currentSentence = PlaybackStateStore.currentIndex
-            val currentPage = if (activeDoc?.pageCount != null && activeDoc.pageCount > 0) {
-                (((currentSentence.toFloat() / totalSentences.coerceAtLeast(1).toFloat()) * totalPages).toInt() + 1).coerceIn(1, totalPages)
-            } else {
-                ((currentSentence / 20) + 1).coerceIn(1, totalPages)
-            }
+            val textModel = activeDoc?.let { ReaderTextModelCache.get(it.id, it.rawText, it.pageCount) }
+            val totalPages = textModel?.pageCount?.coerceAtLeast(1) ?: 1
+            val currentPage = textModel?.sentences?.getOrNull(viewModel.currentReaderIndex)?.pageNumber ?: 1
 
             ReaderSettingsDialog(
                 settings = uiState.readerSettings,
-                onDismiss = { viewModel.updateState { it.copy(showReaderSettings = false) } },
+                onToggleGlassFloatingControls = {
+                    viewModel.saveReaderSettings(uiState.readerSettings.copy(glassFloatingControls = !uiState.readerSettings.glassFloatingControls))
+                },
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.READER_SETTINGS, false) } },
                 currentPage = currentPage,
                 totalPages = totalPages,
                 onJumpToPage = if (activeDoc != null) {
                     { pageNo ->
-                        val targetSentence = ((pageNo - 1).toFloat() / totalPages.toFloat() * totalSentences).toInt().coerceIn(0, totalSentences - 1)
-                        viewModel.moveTo(targetSentence, false)
+                        textModel?.sentences?.firstOrNull { it.pageNumber >= pageNo }?.let {
+                            viewModel.moveTo(it.index, false)
+                        }
                     }
                 } else null,
                 onFontSizeChange = { size ->
@@ -403,7 +402,7 @@ internal fun MainSettingsDialogsHost(
                     )
                 },
                 onThemeChange = { themeId ->
-                    val isHc = themeId == "dark_high_contrast" || themeId == "white_high_contrast" || themeId == "blue_high_contrast"
+                    val isHc = themeId == "dark_high_contrast" || themeId == "white_high_contrast"
                     viewModel.saveReaderSettings(
                         uiState.readerSettings.copy(
                             themeId = themeId,
@@ -459,7 +458,7 @@ internal fun MainSettingsDialogsHost(
         if (uiState.showAccessibilitySettings) {
             AccessibilitySettingsDialog(
                 settings = uiState.readerSettings,
-                onDismiss = { viewModel.updateState { it.copy(showAccessibilitySettings = false) } },
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.ACCESSIBILITY_SETTINGS, false) } },
                 onThemeChange = { themeId ->
                     viewModel.saveReaderSettings(uiState.readerSettings.copy(themeId = themeId))
                 },
@@ -488,6 +487,9 @@ internal fun MainSettingsDialogsHost(
                     viewModel.saveReaderSettings(
                         uiState.readerSettings.copy(streakReminderEnabled = !uiState.readerSettings.streakReminderEnabled)
                     )
+                },
+                onToggleReduceTransparency = {
+                    viewModel.saveReaderSettings(uiState.readerSettings.copy(reduceTransparency = !uiState.readerSettings.reduceTransparency))
                 },
                 onToggleReduceMotion = {
                     viewModel.saveReaderSettings(
@@ -520,6 +522,7 @@ internal fun MainSettingsDialogsHost(
         if (uiState.showPronunciationRules) {
             PronunciationRulesDialog(
                 rules = uiState.pronunciationRules,
+                voiceSettings = uiState.voiceSettings,
                 newFind = uiState.newRuleFind,
                 newReplaceWith = uiState.newRuleReplaceWith,
                 onNewFindChange = { value ->
@@ -543,7 +546,7 @@ internal fun MainSettingsDialogsHost(
                 onAddRule = { viewModel.addPronunciationRule() },
                 onToggleRule = { rule -> viewModel.togglePronunciationRule(rule) },
                 onRemoveRule = { rule -> viewModel.removePronunciationRule(rule) },
-                onDismiss = { viewModel.updateState { it.copy(showPronunciationRules = false) } }
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.PRONUNCIATION_RULES, false) } }
             )
         }
 

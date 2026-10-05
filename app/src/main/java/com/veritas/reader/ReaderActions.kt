@@ -33,14 +33,19 @@ fun sendPlaybackIntent(
     action: String,
     documentId: String? = null,
     startIndex: Int = PlaybackStateStore.currentIndex,
-    rate: Float = PlaybackStateStore.rate,
-    pitch: Float = PlaybackStateStore.pitch
+    rate: Float? = null,
+    pitch: Float? = null,
+    charOffset: Int? = null
 ) {
     val intent = Intent(context, PlaybackService::class.java).setAction(action)
     documentId?.let { intent.putExtra(PlaybackActions.EXTRA_DOCUMENT_ID, it) }
     intent.putExtra(PlaybackActions.EXTRA_START_INDEX, startIndex)
-    intent.putExtra(PlaybackActions.EXTRA_RATE, rate)
-    intent.putExtra(PlaybackActions.EXTRA_PITCH, pitch)
+    charOffset?.let { intent.putExtra(PlaybackActions.EXTRA_CHAR_OFFSET, it.coerceAtLeast(0)) }
+    // Ordinary Play restores that book's memory. Explicit controls and a just-made
+    // gesture override it, including the short period before settings are saved.
+    val pendingGesture = action == PlaybackActions.ACTION_PLAY && PlaybackStateStore.pendingVoiceSettings
+    (rate ?: PlaybackStateStore.rate.takeIf { pendingGesture })?.let { intent.putExtra(PlaybackActions.EXTRA_RATE, it) }
+    (pitch ?: PlaybackStateStore.pitch.takeIf { pendingGesture })?.let { intent.putExtra(PlaybackActions.EXTRA_PITCH, it) }
     if (action == PlaybackActions.ACTION_PLAY) {
         ContextCompat.startForegroundService(context, intent)
     } else {
@@ -712,7 +717,8 @@ fun shareToAi(
     selection: ReaderTextSelection?,
     customPageRange: IntRange?,
     settings: AskAiSettings? = null,
-    noPrompt: Boolean = false
+    noPrompt: Boolean = false,
+    readerIndex: Int = PlaybackStateStore.currentIndex
 ) {
     val model = ReaderTextModelCache.get(document.id, document.rawText, document.pageCount)
     
@@ -722,7 +728,7 @@ fun shareToAi(
             model.sentences.filter { it.index in selection.sentenceIndexes }
         }
         ShareScope.CURRENT_SENTENCE -> {
-            val currentIndex = PlaybackStateStore.currentIndex
+            val currentIndex = readerIndex
             if (currentIndex in model.sentences.indices) {
                 listOf(model.sentences[currentIndex])
             } else {
@@ -730,7 +736,7 @@ fun shareToAi(
             }
         }
         ShareScope.CURRENT_SECTION -> {
-            val currentIndex = PlaybackStateStore.currentIndex
+            val currentIndex = readerIndex
             val part = model.partForSentence(currentIndex) ?: return
             model.sentences.subList(part.sentenceStartIndex, part.sentenceEndIndexExclusive)
         }
@@ -768,7 +774,7 @@ fun shareToAi(
 
     val fileNameMd = when (scope) {
         ShareScope.SELECTED_TEXT -> "Vern - $sanitizedTitle - Selection.md"
-        ShareScope.CURRENT_SENTENCE -> "Vern - $sanitizedTitle - Sentence ${PlaybackStateStore.currentIndex + 1}.md"
+        ShareScope.CURRENT_SENTENCE -> "Vern - $sanitizedTitle - Sentence ${readerIndex + 1}.md"
         ShareScope.CURRENT_SECTION -> {
             if (minPage == maxPage) "Vern - $sanitizedTitle - Page $minPage.md"
             else "Vern - $sanitizedTitle - Pages $minPage-$maxPage.md"

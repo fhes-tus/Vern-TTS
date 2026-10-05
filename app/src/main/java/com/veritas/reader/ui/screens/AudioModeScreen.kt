@@ -152,7 +152,7 @@ fun AudioModeScreen(
     val totalEstimatedSeconds = elapsedSeconds + estimatedRemainingSeconds
 
     val progress = if (totalChunks > 0) currentIndex.toFloat() / totalChunks else 0f
-    val animatedProgress by animateFloatAsState(targetValue = progress, animationSpec = tween(500))
+    val animatedProgress by animateFloatAsState(targetValue = progress, animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow())
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -365,21 +365,18 @@ fun AudioModeScreen(
                             // fading OUT dim faster so attention lands on the new sentence.
                             val alpha by animateFloatAsState(
                                 targetValue = if (isActive) 1.0f else 0.35f,
-                                animationSpec = if (isActive) {
-                                    tween(durationMillis = 550, easing = LinearOutSlowInEasing)
-                                } else {
-                                    tween(durationMillis = 300, easing = FastOutLinearInEasing)
-                                },
+                                animationSpec = if (isActive) com.veritas.reader.ui.VeritasMotion.effectsSlow()
+                                    else com.veritas.reader.ui.VeritasMotion.effectsFast(),
                                 label = "sentenceAlpha"
                             )
                             val fontSizeValue by animateFloatAsState(
                                 targetValue = if (isActive) 19f else 15f,
-                                animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+                                animationSpec = com.veritas.reader.ui.VeritasMotion.spatial(),
                                 label = "sentenceSize"
                             )
                             val lift by animateFloatAsState(
                                 targetValue = if (isActive) 0f else 1f,
-                                animationSpec = tween(durationMillis = 550, easing = LinearOutSlowInEasing),
+                                animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow(),
                                 label = "sentenceLift"
                             )
                             val fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal
@@ -713,9 +710,11 @@ fun AudioModeButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
+    val iconMotion = com.veritas.reader.ui.VeritasMotion.spatialFast<Float>()
+    val iconFade = com.veritas.reader.ui.VeritasMotion.effectsFast<Float>()
     val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.85f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
+        targetValue = if (pressed && !com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion) 0.97f else 1f,
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
         label = "audioModeButtonScale"
     )
 
@@ -738,8 +737,8 @@ fun AudioModeButton(
             AnimatedContent(
                 targetState = icon,
                 transitionSpec = {
-                    (scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)) + fadeIn(tween(150)))
-                        .togetherWith(fadeOut(tween(100)))
+                    (scaleIn(iconMotion, initialScale = .9f) + fadeIn(iconFade))
+                        .togetherWith(fadeOut(iconFade)).using(null)
                 },
                 label = "audioModeIconMorph"
             ) { targetIcon ->

@@ -15,6 +15,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -119,12 +121,12 @@ internal fun ActualDocumentView(
     }
     var documentOutline by remember(document.id) { mutableStateOf<List<VeritasDocumentOutlineEntry>>(emptyList()) }
     LaunchedEffect(document.id, actualReaderDoc.chunks.size) {
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             val loaded = repository.loadDocumentOutline(document, actualReaderDoc.chunks)
             documentOutline = loaded
         }
     }
-    var interactionTrigger by remember { mutableStateOf(0L) }
+    var interactionTrigger by remember { mutableLongStateOf(0L) }
     KeepScreenAwake(enabled = true, interactionTrigger = interactionTrigger)
 
     // Bars retire on their own after a quiet spell so the page owns the screen while reading.
@@ -168,7 +170,7 @@ internal fun ActualDocumentView(
     val isDocx = remember(document, isPdf, isImage, isPresentation, isEpub) { detectIsDocx(document, isPdf, isImage, isPresentation, isEpub) }
 
     var pptxDeck by remember { mutableStateOf<PptxDeck?>(null) }
-    var currentSlideImages by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
+    var currentSlideImages by remember { mutableStateOf<Map<String, Bitmap>>(emptyMap()) }
     var showSpeakerNotes by remember { mutableStateOf(false) }
     var epubBook by remember { mutableStateOf<EpubBook?>(null) }
     var docxDoc by remember { mutableStateOf<DocxDocument?>(null) }
@@ -194,7 +196,7 @@ internal fun ActualDocumentView(
             }
         } else if (isEpub) {
             val loaded = withContext(Dispatchers.IO) {
-                runCatching { loadEpubBook(context, original, document.title) }
+                runCatching { loadEpubBook(context, original, document.title, repository.originalFile(document)) }
             }
             loaded.onSuccess { book ->
                 epubBook = book
@@ -206,7 +208,7 @@ internal fun ActualDocumentView(
             }
         } else if (isDocx) {
             val loaded = withContext(Dispatchers.IO) {
-                runCatching { loadDocxDocument(context, original, document.title) }
+                runCatching { loadDocxDocument(context, original, document.title, repository.originalFile(document)) }
             }
             loaded.onSuccess { doc ->
                 docxDoc = doc
@@ -254,12 +256,13 @@ internal fun ActualDocumentView(
     // Slide images are page work and are re-read per slide rather than held for the whole deck.
     LaunchedEffect(original?.toString(), pageIndex, pptxDeck) {
         if (original == null || !isPresentation) return@LaunchedEffect
-        currentSlideImages = emptyList()
+        currentSlideImages = emptyMap()
         val deck = pptxDeck ?: return@LaunchedEffect
         val slide = deck.slides.getOrNull(pageIndex.coerceIn(0, (deck.slideCount - 1).coerceAtLeast(0)))
             ?: return@LaunchedEffect
+        currentSlideImages = emptyMap()
         val images = withContext(Dispatchers.IO) {
-            loadSlideImages(context, original, slide)
+            loadSlideImageMap(context, original, slide, repository.originalFile(document))
         }
         currentSlideImages = images
     }
@@ -464,17 +467,23 @@ internal fun ActualDocumentView(
                         translationY = zoomOffset.y
                         alpha = 0.3f + 0.7f * enter
                     }
-                    .pointerInput(pageIndex, pageCount, viewportWidthPx, viewportHeightPx, zoomScale) {
+                    .pointerInput(pageIndex, pageCount, viewportWidthPx, viewportHeightPx) {
                         awaitEachGesture {
                             val down = awaitFirstDown(requireUnconsumed = false)
                             var zoomCentroid = down.position
                             var dragTotalX = 0f
                             var dragTotalY = 0f
                             var isPinchZoom = false
+                            var childHandledGesture = false
+                            val swipeThreshold = 48.dp.toPx()
+                            val tapThreshold = viewConfiguration.touchSlop
+                            var lastTouchUptime = down.uptimeMillis
 
                             do {
                                 val event = awaitPointerEvent()
+                                lastTouchUptime = event.changes.maxOfOrNull { it.uptimeMillis } ?: lastTouchUptime
                                 val pressed = event.changes.filter { it.pressed }
+                                if (pressed.size == 1 && pressed.any { it.isConsumed }) childHandledGesture = true
                                 if (pressed.size > 1) {
                                     isPinchZoom = true
                                     val zoom = event.calculateZoom()
@@ -511,23 +520,23 @@ internal fun ActualDocumentView(
                                     } else if (!isPinchZoom) {
                                         dragTotalX += pan.x
                                         dragTotalY += pan.y
-                                        if (kotlin.math.abs(dragTotalX) > 24f && kotlin.math.abs(dragTotalX) > kotlin.math.abs(dragTotalY)) {
+                                        if (!childHandledGesture && kotlin.math.abs(dragTotalX) > swipeThreshold / 2 && kotlin.math.abs(dragTotalX) > kotlin.math.abs(dragTotalY) * 1.4f) {
                                             change.consume()
                                         }
                                     }
                                 }
                             } while (event.changes.any { it.pressed })
 
-                            if (!isPinchZoom && zoomScale <= 1.05f) {
+                            if (!isPinchZoom && !childHandledGesture && zoomScale <= 1.05f) {
                                 val absX = kotlin.math.abs(dragTotalX)
                                 val absY = kotlin.math.abs(dragTotalY)
-                                if (absX > 40f && absX > absY) {
-                                    if (dragTotalX < -40f) {
+                                if (absX > swipeThreshold && absX > absY * 1.4f) {
+                                    if (dragTotalX < -swipeThreshold) {
                                         selectPage(pageIndex + 1)
-                                    } else if (dragTotalX > 40f) {
+                                    } else if (dragTotalX > swipeThreshold) {
                                         selectPage(pageIndex - 1)
                                     }
-                                } else if (absX < 12f && absY < 12f) {
+                                } else if (absX < tapThreshold && absY < tapThreshold && lastTouchUptime - down.uptimeMillis < 300) {
                                     // Tapping the page is the only way back to the bars on this
                                     // path. Full Screen Mode is toggled from the overflow menu,
                                     // which lives in the top bar it hides, and landscape starts
@@ -559,7 +568,8 @@ internal fun ActualDocumentView(
                             PresentationSlideCanvas(
                                 slide = currentSlide,
                                 slideCount = pageCount,
-                                slideImages = currentSlideImages,
+                                slideImages = currentSlideImages.values.toList(),
+                                slideImagesByPath = currentSlideImages,
                                 showNotes = showSpeakerNotes,
                                 onToggleNotes = { showSpeakerNotes = !showSpeakerNotes },
                                 onNextSlide = { selectPage(pageIndex + 1) },
@@ -575,15 +585,10 @@ internal fun ActualDocumentView(
                                 paperToneMode = paperToneMode,
                                 rotationDegrees = rotationDegrees,
                                 isLandscape = isLandscape,
-                                modifier = if (isLandscape) {
-                                    Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 4.dp, vertical = if (topBarVisible) 40.dp else 4.dp)
-                                } else {
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = if (!topBarVisible) 4.dp else 72.dp)
-                                }
+                                modifier = Modifier.fillMaxSize().safeDrawingPadding()
+                                    .padding(horizontal = 5.dp)
+                                    .padding(top = if (topBarVisible) 56.dp else 4.dp,
+                                        bottom = if (bottomBarVisible) 76.dp else 4.dp)
                             )
                         }
                     }
@@ -607,15 +612,10 @@ internal fun ActualDocumentView(
                                 paperToneMode = paperToneMode,
                                 rotationDegrees = rotationDegrees,
                                 isLandscape = isLandscape,
-                                modifier = if (isLandscape) {
-                                    Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 4.dp, vertical = if (topBarVisible) 40.dp else 4.dp)
-                                } else {
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = if (!topBarVisible) 4.dp else 72.dp)
-                                }
+                                modifier = Modifier.fillMaxSize().safeDrawingPadding()
+                                    .padding(horizontal = 5.dp)
+                                    .padding(top = if (topBarVisible) 56.dp else 4.dp,
+                                        bottom = if (bottomBarVisible) 76.dp else 4.dp)
                             )
                         }
                     }
@@ -639,15 +639,10 @@ internal fun ActualDocumentView(
                                 paperToneMode = paperToneMode,
                                 rotationDegrees = rotationDegrees,
                                 isLandscape = isLandscape,
-                                modifier = if (isLandscape) {
-                                    Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 4.dp, vertical = if (topBarVisible) 40.dp else 4.dp)
-                                } else {
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = if (!topBarVisible) 4.dp else 72.dp)
-                                }
+                                modifier = Modifier.fillMaxSize().safeDrawingPadding()
+                                    .padding(horizontal = 5.dp)
+                                    .padding(top = if (topBarVisible) 56.dp else 4.dp,
+                                        bottom = if (bottomBarVisible) 76.dp else 4.dp)
                             )
                         }
                     }

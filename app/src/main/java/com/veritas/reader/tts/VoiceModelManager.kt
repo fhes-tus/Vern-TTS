@@ -459,7 +459,7 @@ object VoiceModelManager {
                         outFile.mkdirs()
                     } else {
                         outFile.parentFile?.mkdirs()
-                        java.io.FileOutputStream(outFile).use { out ->
+                        FileOutputStream(outFile).use { out ->
                             var count: Int
                             while (tarIn.read(buffer).also { count = it } != -1) out.write(buffer, 0, count)
                         }

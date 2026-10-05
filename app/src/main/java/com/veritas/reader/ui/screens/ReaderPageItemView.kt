@@ -1,6 +1,7 @@
 package com.veritas.reader.ui.screens
 
 
+import android.annotation.SuppressLint
 import android.graphics.Paint
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -8,6 +9,9 @@ import android.widget.TextView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -64,6 +68,7 @@ import com.veritas.reader.AnnotationPill
 import com.veritas.reader.AnnotationType
 import com.veritas.reader.CoverExtractor
 import com.veritas.reader.DocumentPageImageLoader
+import com.veritas.reader.InlineIllustrationPlanner
 import com.veritas.reader.DocumentRepository
 import com.veritas.reader.PaperToneMode
 import com.veritas.reader.PlaybackStateStore
@@ -77,9 +82,19 @@ import com.veritas.reader.getCanvasColors
 import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.VeritasUiFont
 import com.veritas.reader.ui.asTypeface
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+
+@SuppressLint("WrongConstant")
+private fun TextView.useNaturalWordSpacing() {
+    // Justification stretches spaces unevenly on narrow reader pages.
+    justificationMode = android.text.Layout.JUSTIFICATION_MODE_NONE
+}
 
 private class TextViewHolder(
+    var touchInProgress: Boolean = false,
     var renderedPage: Any? = null,
+    var presentationSpans: List<Any> = emptyList(),
     var fontSizeSp: Int = -1,
     var extraSpacingPx: Float = -1f,
     var lineMultiplier: Float = -1f,
@@ -121,9 +136,9 @@ internal fun ReaderPageItemView(
     onSentenceLongPress: (Int) -> Unit,
     onToggleBookmark: (Int) -> Unit,
     onEditNotes: (List<Int>) -> Unit,
-    onTranslateSelection: (String) -> Unit,
+    onTranslateSelection: (ReaderTextSelection) -> Unit,
     onCopySelection: (String) -> Unit,
-    onGoogleSelection: (String) -> Unit,
+    onGoogleSelection: (ReaderTextSelection) -> Unit,
     onShareSelection: (String) -> Unit,
     onEditSpeechSelection: (String) -> Unit,
     onEditExtractedSelection: (ReaderTextSelection) -> Unit,
@@ -138,7 +153,7 @@ internal fun ReaderPageItemView(
 ) {
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
-    val density = androidx.compose.ui.platform.LocalDensity.current
+    androidx.compose.ui.platform.LocalDensity.current
 
                     val pageItem = pageItems.getOrNull(pageIndex)
                     if (pageItem == null) {
@@ -152,12 +167,34 @@ internal fun ReaderPageItemView(
                         val docRepository = remember(context) {
                             DocumentRepository(context.applicationContext)
                         }
-                        var pageBitmaps by remember(document.id, pageNumber) {
-                            mutableStateOf(DocumentPageImageLoader.getCachedPageImages(document.id.orEmpty(), pageNumber).orEmpty())
+                        var pageMedia by remember(document.id, pageNumber) {
+                            mutableStateOf(DocumentPageImageLoader.getCachedPageMedia(document.id.orEmpty(), pageNumber)
+                                ?: com.veritas.reader.DocumentPageMedia(emptyList()))
+                        }
+                        val pageBitmaps = pageMedia.bitmaps
+                        var inlineFollowingTexts by remember(document.id, pageNumber) { mutableStateOf(pageMedia.followingTexts) }
+                        var pageMediaReady by remember(document.id, pageNumber) {
+                            mutableStateOf(DocumentPageImageLoader.getCachedPageImages(document.id.orEmpty(), pageNumber) != null)
                         }
                         LaunchedEffect(document.id, pageNumber) {
-                            if (pageBitmaps.isEmpty()) {
-                                pageBitmaps = DocumentPageImageLoader.loadPageImages(context, docRepository, document.id.orEmpty(), pageNumber)
+                            if (!pageMediaReady) {
+                                // Freeze placement when prose becomes visible. Slow media
+                                // falls below this visit's text; cached revisits can use its
+                                // inline anchors without inserting height during reading.
+                                try {
+                                    coroutineScope {
+                                        val loading = async { DocumentPageImageLoader.loadPageMedia(context, docRepository, document.id.orEmpty(), pageNumber) }
+                                        val early = kotlinx.coroutines.withTimeoutOrNull(300L) { loading.await() }
+                                        if (early != null) {
+                                            pageMedia = early
+                                            inlineFollowingTexts = early.followingTexts
+                                        }
+                                        pageMediaReady = true
+                                        if (early == null) pageMedia = loading.await()
+                                    }
+                                } finally {
+                                    pageMediaReady = true
+                                }
                             }
                         }
 
@@ -192,17 +229,38 @@ internal fun ReaderPageItemView(
                         val note =
                             annotations.firstOrNull { it.type == AnnotationType.NOTE && it.chunkIndex == currentIndex }
 
-                        val unplacedBitmaps = remember(pageBitmaps, part.text) {
-                            pageBitmaps.filterIndexed { idx, _ ->
-                                !part.text.contains("[[VERITAS_IMAGE:$idx]]")
-                            }
+                        val imageAnchors = remember(part, inlineFollowingTexts) {
+                            InlineIllustrationPlanner.anchors(part, inlineFollowingTexts)
                         }
+                        val placedImageIndexes = imageAnchors.map { it.imageIndex }.toSet()
+                        val unplacedBitmaps = pageBitmaps.filterIndexed { index, _ -> index !in placedImageIndexes }.filterNotNull()
 
+                        val latestToggleBars by rememberUpdatedState(onToggleBars)
                         var accumulatedPinchZoom by remember { mutableFloatStateOf(1f) }
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(horizontal = 4.dp, vertical = 4.dp)
+                                .pointerInput(isCollapsible) {
+                                    if (!isCollapsible) return@pointerInput
+                                    awaitEachGesture {
+                                        val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                                        val origin = down.position
+                                        var eligible = true
+                                        var released = false
+                                        do {
+                                            val event = awaitPointerEvent(PointerEventPass.Final)
+                                            val change = event.changes.firstOrNull { it.id == down.id }
+                                            if (event.changes.size > 1 || change == null) eligible = false
+                                            if (change != null) {
+                                                if (change.isConsumed || (change.position - origin).getDistance() > viewConfiguration.touchSlop ||
+                                                    change.uptimeMillis - down.uptimeMillis >= viewConfiguration.longPressTimeoutMillis) eligible = false
+                                                released = !change.pressed
+                                            }
+                                        } while (event.changes.any { it.pressed })
+                                        if (eligible && released) latestToggleBars()
+                                    }
+                                }
                                 .pointerInput(readerSettings.fontSizeSp) {
                                     awaitEachGesture {
                                         do {
@@ -216,14 +274,16 @@ internal fun ReaderPageItemView(
                                                         val next = (readerSettings.fontSizeSp + 1).coerceAtMost(28)
                                                         if (next != readerSettings.fontSizeSp) {
                                                             onFontSizeChange(next)
-                                                            haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                                            haptics.performHapticFeedback(
+                                                                HapticFeedbackType.TextHandleMove)
                                                         }
                                                         accumulatedPinchZoom = 1f
                                                     } else if (accumulatedPinchZoom < 0.85f) {
                                                         val next = (readerSettings.fontSizeSp - 1).coerceAtLeast(10)
                                                         if (next != readerSettings.fontSizeSp) {
                                                             onFontSizeChange(next)
-                                                            haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                                            haptics.performHapticFeedback(
+                                                                HapticFeedbackType.TextHandleMove)
                                                         }
                                                         accumulatedPinchZoom = 1f
                                                     }
@@ -308,7 +368,24 @@ internal fun ReaderPageItemView(
                                             .weight(1f)
                                             .verticalScroll(pageScrollState)
                                             .padding(bottom = 16.dp)
-                                    ) {
+                                    ) pageContent@{
+                                        if (!pageMediaReady) {
+                                            Text("Preparing page illustrations…", color = canvasTextColor,
+                                                modifier = Modifier.padding(vertical = 24.dp))
+                                            return@pageContent
+                                        }
+                                        if (pageItem.text.isBlank()) {
+                                            Text(
+                                                text = if (document.partial) {
+                                                    "Only part of this document has been extracted. No text is available for this page yet."
+                                                } else {
+                                                    "No readable text was extracted for this page."
+                                                },
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = canvasTextColor.copy(alpha = 0.7f),
+                                                modifier = Modifier.padding(vertical = 24.dp)
+                                            )
+                                        }
                                         if (pageNumber == 1) {
                                             val context = LocalContext.current
                                             val coverFile = remember(document.id) { CoverExtractor.coverFile(context, document.id.orEmpty()) }
@@ -367,18 +444,20 @@ internal fun ReaderPageItemView(
 
                                         val isCurrentOnThisPage = currentIndex in part.sentenceStartIndex until part.sentenceEndIndexExclusive
                                         val activeSentenceOnThisPage = if (isCurrentOnThisPage) currentIndex else -1
-                                        val segments = remember(part) { parsePageContentSegments(part) }
+                                        val segments = remember(part, imageAnchors) { parsePageContentSegments(part, imageAnchors) }
                                         val segmentTopPx = remember { mutableStateMapOf<Int, Float>() }
                                         val segmentTextViews = remember { mutableMapOf<Int, TextView>() }
                                         var activeTextView by remember { mutableStateOf<TextView?>(null) }
                                         var textViewContentTopPx by remember { mutableFloatStateOf(0f) }
 
-                                        LaunchedEffect(activeSentenceOnThisPage, activeTextView, segments) {
+                                        LaunchedEffect(activeSentenceOnThisPage) {
+                                            if (selectedTextSelection != null || segmentTextViews.values.any { it.hasSelection() }) return@LaunchedEffect
                                             if (activeSentenceOnThisPage >= 0) {
                                                 val activeSegment = segments.firstOrNull { segment ->
                                                     when (segment) {
                                                         is PageContentSegment.Prose -> activeSentenceOnThisPage in segment.subPart.sentenceStartIndex until segment.subPart.sentenceEndIndexExclusive
                                                         is PageContentSegment.Table -> activeSentenceOnThisPage in segment.sentenceStartIndex until segment.sentenceEndIndexExclusive
+                                                        is PageContentSegment.Image -> false
                                                     }
                                                 }
                                                 if (activeSegment is PageContentSegment.Table) {
@@ -390,7 +469,7 @@ internal fun ReaderPageItemView(
                                                         pageScrollState.animateScrollTo((tableTop - 60).toInt().coerceAtLeast(0))
                                                     }
                                                 } else if (activeSegment is PageContentSegment.Prose) {
-                                                    val tv = segmentTextViews[activeSegment.segmentIndex] ?: activeTextView ?: return@LaunchedEffect
+                                                    val tv = segmentTextViews[activeSegment.segmentIndex] ?: return@LaunchedEffect
                                                     var attempts = 0
                                                     while (tv.layout == null && attempts < 10) {
                                                         kotlinx.coroutines.delay(30)
@@ -418,7 +497,9 @@ internal fun ReaderPageItemView(
                                         }
 
                                         segments.forEach { segment ->
+                                            androidx.compose.runtime.key(segment.segmentIndex, segment::class) {
                                             when (segment) {
+                                                is PageContentSegment.Image -> ReaderInlineIllustration(pageBitmaps.getOrNull(segment.imageIndex), segment.imageIndex)
                                                 is PageContentSegment.Prose -> {
                                                     ReaderProseBlock(
                                                         subPart = segment.subPart,
@@ -441,6 +522,7 @@ internal fun ReaderPageItemView(
                                                         textColor = textColor,
                                                         boldTypeface = boldTypeface,
                                                         currentPageNumber = currentPageNumber,
+                                                        isVisiblePage = pagerState.currentPage == pageIndex,
                                                         pageNumber = pageNumber,
                                                         document = document,
                                                         bookmarkedSentenceIndexes = bookmarkedSentenceIndexes,
@@ -491,6 +573,8 @@ internal fun ReaderPageItemView(
                                                     )
                                                 }
                                             }
+                                        }
+
                                         }
 
                                         if (unplacedBitmaps.isNotEmpty()) {
@@ -578,22 +662,74 @@ internal fun ReaderPageItemView(
 
 }
 
+@Composable
+internal fun ReaderInlineIllustration(bitmap: android.graphics.Bitmap?, imageIndex: Int) {
+    // The frame exists before decoding and keeps the same height afterwards.
+    Box(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp).height(280.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
+        contentAlignment = Alignment.Center
+    ) {
+        if (bitmap != null) {
+            androidx.compose.foundation.Image(
+                bitmap = bitmap.asImageBitmap(), contentDescription = "Illustration ${imageIndex + 1}",
+                modifier = Modifier.fillMaxSize().padding(6.dp),
+                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+            )
+        } else {
+            Text("Illustration ${imageIndex + 1}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
 internal sealed class PageContentSegment {
+    abstract val segmentIndex: Int
+    data class Image(val imageIndex: Int, override val segmentIndex: Int) : PageContentSegment()
     data class Prose(
         val subPart: ReaderPart,
-        val segmentIndex: Int
+        override val segmentIndex: Int
     ) : PageContentSegment()
 
     data class Table(
         val rows: List<List<String>>,
         val sentenceStartIndex: Int,
         val sentenceEndIndexExclusive: Int,
-        val segmentIndex: Int,
+        override val segmentIndex: Int,
         val rowSentenceIndices: List<Int> = emptyList()
     ) : PageContentSegment()
 }
 
-internal fun parsePageContentSegments(part: ReaderPart): List<PageContentSegment> {
+internal fun parsePageContentSegments(
+    part: ReaderPart,
+    anchors: List<com.veritas.reader.InlineIllustrationAnchor> = InlineIllustrationPlanner.anchors(part)
+): List<PageContentSegment> {
+    if (anchors.isEmpty()) return parseTableContentSegments(part)
+    val result = mutableListOf<PageContentSegment>()
+    var cursor = 0
+    fun proseUntil(end: Int) {
+        if (end > cursor && part.text.substring(cursor, end).isNotBlank()) {
+            result.addAll(parseTableContentSegments(createSubPart(part, cursor, end, 0).subPart))
+        }
+    }
+    anchors.forEach { anchor ->
+        if (anchor.start >= cursor && anchor.endExclusive <= part.text.length) {
+            proseUntil(anchor.start)
+            result.add(PageContentSegment.Image(anchor.imageIndex, 0))
+            cursor = anchor.endExclusive
+        }
+    }
+    proseUntil(part.text.length)
+    return result.mapIndexed { index, segment ->
+        when (segment) {
+            is PageContentSegment.Prose -> segment.copy(segmentIndex = index)
+            is PageContentSegment.Table -> segment.copy(segmentIndex = index)
+            is PageContentSegment.Image -> segment.copy(segmentIndex = index)
+        }
+    }
+}
+
+private fun parseTableContentSegments(part: ReaderPart): List<PageContentSegment> {
     val text = part.text
     if (text.isBlank()) return emptyList()
 
@@ -751,7 +887,8 @@ private fun createSubPart(part: ReaderPart, startOffset: Int, endOffset: Int, se
             val shiftedStart = (r.start - startOffset).coerceIn(0, subText.length)
             val shiftedEnd = (r.endExclusive - startOffset).coerceIn(shiftedStart, subText.length)
             if (shiftedEnd > shiftedStart) {
-                ReaderPartSentenceRange(r.sentenceIndex, shiftedStart, shiftedEnd)
+                ReaderPartSentenceRange(r.sentenceIndex, shiftedStart, shiftedEnd,
+                    r.sentenceCharOffset + (startOffset - r.start).coerceAtLeast(0))
             } else null
         }
     }
@@ -946,10 +1083,11 @@ private fun ReaderProseBlock(
     state: ReaderScreenState,
     readerSettings: ReaderSettings,
     paperTone: PaperToneMode,
-    pageBitmaps: List<android.graphics.Bitmap>,
+    pageBitmaps: List<android.graphics.Bitmap?>,
     textColor: Int,
     boldTypeface: android.graphics.Typeface?,
     currentPageNumber: Int,
+    isVisiblePage: Boolean,
     pageNumber: Int,
     document: ReaderDocument,
     bookmarkedSentenceIndexes: Set<Int>,
@@ -962,9 +1100,9 @@ private fun ReaderProseBlock(
     onToggleBookmark: (Int) -> Unit,
     onOpenColorPalette: (List<Int>) -> Unit,
     onEditNotes: (List<Int>) -> Unit,
-    onTranslateSelection: (String) -> Unit,
+    onTranslateSelection: (ReaderTextSelection) -> Unit,
     onCopySelection: (String) -> Unit,
-    onGoogleSelection: (String) -> Unit,
+    onGoogleSelection: (ReaderTextSelection) -> Unit,
     onShareSelection: (String) -> Unit,
     onOpenShareToAi: (ReaderTextSelection?, Boolean) -> Unit,
     onEditSpeechSelection: (String) -> Unit,
@@ -979,7 +1117,7 @@ private fun ReaderProseBlock(
     val haptics = LocalHapticFeedback.current
 
     val renderedPage = remember(
-        subPart.text,
+        subPart,
         activeSentenceOnThisPage,
         isPlaying,
         feedbackSentenceIndex,
@@ -992,10 +1130,11 @@ private fun ReaderProseBlock(
         searchMatchColor,
         activeSearchMatchColor,
         state.readerSettings.bionicReading,
-        pageBitmaps,
         readerSettings.sectionSpacingDp,
         state.searchQuery,
-        boldTypeface
+        boldTypeface,
+        textColor,
+        context
     ) {
         buildReaderPartSpannable(
             part = subPart,
@@ -1011,7 +1150,7 @@ private fun ReaderProseBlock(
             activeSearchMatchColor = activeSearchMatchColor,
             bionicReading = state.readerSettings.bionicReading,
             context = context,
-            pageBitmaps = pageBitmaps,
+            pageBitmaps = emptyList(),
             sectionSpacingDp = readerSettings.sectionSpacingDp,
             searchQuery = state.searchQuery,
             textColor = textColor,
@@ -1043,11 +1182,9 @@ private fun ReaderProseBlock(
                     })
                     val delegator = DelegatingActionModeCallback()
                     customSelectionActionModeCallback = delegator
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
-                    }
+                    useNaturalWordSpacing()
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                        breakStrategy = android.text.Layout.BREAK_STRATEGY_BALANCED
+                        breakStrategy = android.graphics.text.LineBreaker.BREAK_STRATEGY_BALANCED
                         hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_NONE
                     }
                     val holder = TextViewHolder()
@@ -1094,6 +1231,7 @@ private fun ReaderProseBlock(
                     setOnTouchListener { v, event ->
                         when (event.actionMasked) {
                             MotionEvent.ACTION_DOWN -> {
+                                holder.touchInProgress = true
                                 downX = event.x
                                 downY = event.y
                                 doubleTapHandled = false
@@ -1105,14 +1243,9 @@ private fun ReaderProseBlock(
                                 val dx = kotlin.math.abs(event.x - downX)
                                 val dy = kotlin.math.abs(event.y - downY)
                                 if (this.hasSelection()) {
-                                    if (dx > touchSlop * 2 && dx > dy * 1.5f) {
-                                        clearNativeTextSelection(this)
-                                        this.clearFocus()
-                                        onSelectionChanged(null)
-                                        v.parent?.requestDisallowInterceptTouchEvent(false)
-                                    } else {
-                                        v.parent?.requestDisallowInterceptTouchEvent(true)
-                                    }
+                                    // Dragging a selection handle horizontally must not turn
+                                    // into a page swipe or discard the selected phrase.
+                                    v.parent?.requestDisallowInterceptTouchEvent(true)
                                 } else {
                                     if (dx > touchSlop || dy > touchSlop) {
                                         v.parent?.requestDisallowInterceptTouchEvent(false)
@@ -1120,6 +1253,7 @@ private fun ReaderProseBlock(
                                 }
                             }
                             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                holder.touchInProgress = false
                                 if (!this.hasSelection()) {
                                     v.parent?.requestDisallowInterceptTouchEvent(false)
                                 }
@@ -1128,11 +1262,7 @@ private fun ReaderProseBlock(
 
                         detector.onTouchEvent(event)
 
-                        if (doubleTapHandled) {
-                            true
-                        } else {
-                            false
-                        }
+                        doubleTapHandled
                     }
                 }
             },
@@ -1146,7 +1276,7 @@ private fun ReaderProseBlock(
                 onTextViewActive(textView)
                 val holder = textView.tag as? TextViewHolder ?: TextViewHolder().also { textView.tag = it }
 
-                if (currentPageNumber == pageNumber) {
+                if (isVisiblePage) {
                     onTextViewBound(textView)
                 } else {
                     if (textView.hasSelection() || textView.isFocused) {
@@ -1157,17 +1287,21 @@ private fun ReaderProseBlock(
                 holder.onToggleBars = onToggleBars
                 holder.onSentenceDoubleTap = onSentenceDoubleTap
                 holder.isCollapsible = isCollapsible
-                holder.part = subPart
                 holder.haptics = haptics
 
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    textView.justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
-                }
-                if (holder.renderedPage !== renderedPage) {
-                    if (!textView.hasSelection() || textView.text.toString() != renderedPage.toString()) {
-                        holder.renderedPage = renderedPage
+                textView.useNaturalWordSpacing()
+                if (holder.renderedPage !== renderedPage && !textView.hasSelection() && !holder.touchInProgress) {
+                    val currentText = textView.text
+                    if (currentText is android.text.Spannable && currentText.toString() == renderedPage.toString()) {
+                        holder.presentationSpans = updateReaderPresentationSpans(currentText, holder.presentationSpans, renderedPage)
+                        textView.invalidate()
+                    } else {
+                        clearNativeTextSelection(textView)
+                        holder.presentationSpans = renderedPage.getSpans(0, renderedPage.length, Any::class.java).toList()
                         textView.text = renderedPage
                     }
+                    holder.part = subPart
+                    holder.renderedPage = renderedPage
                 }
                 if (holder.textColor != textColor) {
                     holder.textColor = textColor
@@ -1197,7 +1331,7 @@ private fun ReaderProseBlock(
                 }
                 val actionModeCb = readerSelectionActionModeCallback(
                     textView = textView,
-                    part = subPart,
+                    part = holder.part ?: subPart,
                     documentId = document.id,
                     context = context,
                     haptics = haptics,

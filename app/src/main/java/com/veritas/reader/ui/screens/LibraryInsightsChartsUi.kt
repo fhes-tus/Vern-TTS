@@ -80,7 +80,7 @@ internal fun InteractiveDonutChart(
     var animationPlayed by remember { mutableStateOf(false) }
     val entryAnimFraction by animateFloatAsState(
         targetValue = if (animationPlayed) 1f else 0f,
-        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow(),
         label = "donutChartEntryAnim"
     )
     LaunchedEffect(Unit) {
@@ -90,7 +90,7 @@ internal fun InteractiveDonutChart(
     val scaleFactors = slices.indices.map { idx ->
         animateFloatAsState(
             targetValue = if (selectedIndex == idx) 1.15f else 1.0f,
-            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+            animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
             label = "sliceScale_$idx"
         )
     }

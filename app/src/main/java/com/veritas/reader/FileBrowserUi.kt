@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -126,13 +127,13 @@ internal fun FileBrowserDialog(
     var showSortDialog by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
     var showViewMenu by remember { mutableStateOf(false) }
-    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val columnCount = remember(configuration) {
-        when {
-            configuration.screenWidthDp >= 840 -> 4
-            configuration.screenWidthDp >= 600 -> 3
-            else -> 2
-        }
+    val windowWidthDp = with(androidx.compose.ui.platform.LocalDensity.current) {
+        androidx.compose.ui.platform.LocalWindowInfo.current.containerSize.width.toDp()
+    }
+    val columnCount = when {
+        windowWidthDp >= 840.dp -> 4
+        windowWidthDp >= 600.dp -> 3
+        else -> 2
     }
     val browserFeatures = remember(roots, allFilesAccessGranted) {
         VeritasFeatureRegistry.resolve(
@@ -140,9 +141,9 @@ internal fun FileBrowserDialog(
             VeritasFeatureContext(hasFileBrowserSession = roots.isNotEmpty() || allFilesAccessGranted)
         ).associateBy { it.definition.id }
     }
-    val distinctEntries = remember(entries) {
-        VeritasFileBrowserScanner.deduplicateBrowserFiles(entries)
-    }
+    // The scanner deduplicates on its IO thread; canonical path reads here
+    // would stall rendering each new batch.
+    val distinctEntries = entries
     val visibleEntries = remember(distinctEntries, query, selectedTab, sortMode, sortAscending) {
         val needle = query.trim()
         val filtered = distinctEntries
@@ -207,6 +208,8 @@ internal fun FileBrowserDialog(
         }
     }
 
+    val floatingGlass = VeritasPackStyle.glassChromeEnabled() && isDeviceGlassCapable()
+    val fileBackdrop = if (floatingGlass) rememberVeritasLayerBackdrop() else null
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -214,6 +217,8 @@ internal fun FileBrowserDialog(
             decorFitsSystemWindows = false
         )
     ) {
+        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+        VeritasBackdropProvider(fileBackdrop) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -223,88 +228,45 @@ internal fun FileBrowserDialog(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .recordVeritasBackdrop(fileBackdrop, floatingGlass)
+                        .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))
                         .statusBarsPadding()
                         .navigationBarsPadding()
                 ) {
                     if (selectedFiles.isNotEmpty()) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            IconButton(onClick = { selectedFiles.clear() }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Close,
-                                    contentDescription = "Clear selection",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = { selectedFiles.clear() }) {
+                                    Icon(Icons.Filled.Close, "Clear selection", tint = MaterialTheme.colorScheme.primary)
+                                }
+                                Column(Modifier.weight(1f)) {
+                                    Text("${selectedFiles.size} selected", style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                    Text(if (allVisibleSelected) "All ${selectedTab.label} selected" else
+                                        "${files.count { vf -> selectedFiles.any { it.uri == vf.uri } }} of ${files.size} in ${selectedTab.label}",
+                                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                }
+                                IconButton(onClick = { pendingDelete = selectedFiles.toList() }, enabled = !importing) {
+                                    Icon(Icons.Outlined.Delete, "Delete ${selectedFiles.size} files", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
                             }
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    "${selectedFiles.size} selected",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    if (allVisibleSelected) "All ${selectedTab.label} selected" else "${files.count { vf -> selectedFiles.any { it.uri == vf.uri } }} of ${files.size} in ${selectedTab.label}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            TextButton(
-                                onClick = toggleSelectAllForActiveFilter,
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (allVisibleSelected) Icons.Filled.Close else Icons.Filled.SelectAll,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = if (allVisibleSelected) "Deselect tab" else "Select tab (${files.size})",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            IconButton(
-                                onClick = { pendingDelete = selectedFiles.toList() }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Delete,
-                                    contentDescription = if (selectedFiles.size == 1) {
-                                        "Delete file"
-                                    } else {
-                                        "Delete ${selectedFiles.size} files"
-                                    },
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Button(
-                                onClick = {
-                                    val toImport = VeritasFileBrowserScanner.deduplicateBrowserFiles(selectedFiles.toList())
-                                    onImportMultipleFiles(toImport, false)
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(onClick = toggleSelectAllForActiveFilter, modifier = Modifier.weight(1f), enabled = !importing) {
+                                    Text(if (allVisibleSelected) "Deselect tab" else "Select tab (${files.size})",
+                                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                }
+                                Button(onClick = {
+                                    onImportMultipleFiles(VeritasFileBrowserScanner.deduplicateBrowserFiles(selectedFiles.toList()), false)
                                     selectedFiles.clear()
-                                },
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                shape = RoundedCornerShape(50)
-                            ) {
-                                Text("Import", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                            }
-                            Button(
-                                onClick = {
-                                    val toImport = VeritasFileBrowserScanner.deduplicateBrowserFiles(selectedFiles.toList())
-                                    onImportMultipleFiles(toImport, true)
+                                }, enabled = !importing, shape = VeritasPackStyle.chipShape()) { Text("Import") }
+                                Button(onClick = {
+                                    onImportMultipleFiles(VeritasFileBrowserScanner.deduplicateBrowserFiles(selectedFiles.toList()), true)
                                     selectedFiles.clear()
-                                },
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                shape = RoundedCornerShape(50),
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                            ) {
-                                Text("Queue", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                                }, enabled = !importing, shape = VeritasPackStyle.chipShape(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary,
+                                        contentColor = MaterialTheme.colorScheme.onSecondary)) { Text("Queue") }
                             }
                         }
                     } else {
@@ -381,7 +343,7 @@ internal fun FileBrowserDialog(
                                     )
                                     DropdownMenuItem(
                                         text = { Text("Go up") },
-                                        enabled = canGoUp && !scanning,
+                                        enabled = canGoUp,
                                         onClick = {
                                             showMoreMenu = false
                                             onGoUp()
@@ -650,7 +612,7 @@ internal fun FileBrowserDialog(
                             onRequestAllFilesAccess = onRequestAllFilesAccess
                         )
 
-                        scanning -> Box(
+                        scanning && entries.isEmpty() -> Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
@@ -684,6 +646,10 @@ internal fun FileBrowserDialog(
                             contentPadding = PaddingValues(vertical = 12.dp)
                         ) {
 
+                            if (scanning) {
+                                item("scan-progress") { Text("Finding more files…", style = MaterialTheme.typography.labelSmall) }
+                            }
+
                             if (files.isNotEmpty()) {
                                 item("files-header") {
                                     Row(
@@ -715,7 +681,7 @@ internal fun FileBrowserDialog(
 
                                         OutlinedButton(
                                             onClick = toggleSelectAllForActiveFilter,
-                                            shape = RoundedCornerShape(50),
+                                            shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
                                             border = BorderStroke(
                                                 1.dp,
@@ -854,22 +820,24 @@ internal fun FileBrowserDialog(
                         }
                     }
                 }
-                Button(
+                if (selectedFiles.isEmpty()) Button(
                     onClick = onOpenFilePicker,
                     enabled = !importing,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .navigationBarsPadding()
-                        .padding(22.dp),
-                    shape = MaterialTheme.shapes.medium,
+                        .padding(22.dp)
+                        .veritasGlassBackdrop(VeritasPackStyle.chipShape(), floatingGlass, surfaceOpacity = .72f),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = if (floatingGlass) androidx.compose.ui.graphics.Color.Transparent else MaterialTheme.colorScheme.primary,
+                        contentColor = if (floatingGlass) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary),
+                    shape = VeritasPackStyle.chipShape(),
                     contentPadding = PaddingValues(horizontal = 18.dp, vertical = 14.dp)
                 ) {
-                    Text("＋ Import")
+                    Icon(Icons.Outlined.Folder, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Browse storage")
                 }
-                if (importing) {
-                    ImportProgressOverlay(importingName.ifBlank { "selected file" })
-                }
-
                 if (showSortDialog) {
                     FileBrowserSortDialog(
                         sortMode = sortMode,
@@ -880,6 +848,8 @@ internal fun FileBrowserDialog(
                     )
                 }
             }
+        }
+        }
         }
     }
 

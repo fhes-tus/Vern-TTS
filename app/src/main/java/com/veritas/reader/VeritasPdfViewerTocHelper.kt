@@ -68,9 +68,10 @@ internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
             var current: PDOutlineItem? = node.firstChild
             while (current != null) {
                 val rawTitle = current.title.orEmpty().trim()
-                val title = com.veritas.reader.ui.screens.cleanTocTitle(rawTitle)
+                // Native bookmarks are authored structure, not inferred contents rows.
+                val title = rawTitle.replace(Regex("\\s+"), " ").trim()
                 val targetPage = resolveDestinationPage(current, pdDocument, pageToIndexMap)
-                if (title.isNotBlank() && !com.veritas.reader.ui.screens.isSelfReferentialTocHeading(title) && targetPage != null && targetPage >= 0) {
+                if (title.isNotBlank() && targetPage != null && targetPage in 0 until pdDocument.numberOfPages) {
                     result.add(
                         PdfTocItem(
                             title = title,
@@ -88,7 +89,7 @@ internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
         }
 
         walkOutline(outline, 0)
-        return result
+        return result.distinctBy { Triple(it.title, it.pageNumber, it.level) }
     }
 
     private fun resolveDestinationPage(
@@ -117,6 +118,7 @@ internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
                         val idx = pageToIndexMap?.get(p) ?: pdDoc.pages.indexOf(p)
                         if (idx >= 0) return idx
                     }
+                    if (pageDest.pageNumber in 0 until pdDoc.numberOfPages) return pageDest.pageNumber
                 }
             }
             null

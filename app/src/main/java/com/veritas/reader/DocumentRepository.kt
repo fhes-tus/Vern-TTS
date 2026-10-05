@@ -25,15 +25,19 @@ import java.util.zip.ZipInputStream
 import kotlin.math.roundToInt
 
 private val NON_ALPHANUM_LOWER_REGEX = Regex("[^a-z0-9 ]")
-class DocumentRepository(context: Context) {
+class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabaseHelper = VeritasDatabaseHelper.getInstance(context)) {
     internal val appContext = context.applicationContext
     internal val prefs = appContext.getSharedPreferences("veritas_reader_library", Context.MODE_PRIVATE)
     internal val docsDir: File = File(appContext.filesDir, "reader_documents").apply { mkdirs() }
     internal val originalsDir: File = File(appContext.filesDir, "original_documents").apply { mkdirs() }
-    internal val dbHelper = VeritasDatabaseHelper.getInstance(appContext)
 
     init {
+        synchronized(LIBRARY_WRITE_LOCK) {
+            RestoreRecoveryJournal.recover(appContext.filesDir, prefs, dbHelper.writableDatabase)
+            ApiCredentialStore.migrate(appContext)
+        }
         dbHelper.ensureMigratedFromPrefs(
+            context = appContext,
             loadDocsFromPrefs = { loadDocumentsFromPrefsRaw() },
             loadAnnotationsFromPrefs = { loadAllAnnotationsFromPrefsRaw() },
             loadFlashcardsFromPrefs = { loadAllFlashcardsFromPrefsRaw() }
@@ -295,7 +299,7 @@ class DocumentRepository(context: Context) {
                 while (reader.read(charBuffer, 0, bufferSize).also { charsRead = it } != -1) {
                     val chunk = buildString(carryOver.length + charsRead) {
                         append(carryOver)
-                        append(charBuffer, 0, charsRead)
+                        appendRange(charBuffer, 0, charsRead)
                     }
                     if (chunk.contains(needle, ignoreCase = true)) {
                         return@use true
@@ -369,14 +373,14 @@ class DocumentRepository(context: Context) {
 
     fun loadDocuments(): List<SavedDocument> {
         val docs = dbHelper.getAllDocuments(docsDir)
-        if (docs.isEmpty()) {
+        if (docs.isEmpty() && !prefs.getBoolean("db_migrated_v1", false)) {
             val fallback = loadDocumentsFromPrefsRaw()
             if (fallback.isNotEmpty()) {
                 dbHelper.upsertDocuments(fallback)
-                return fallback
+                return fallback.map(::ensureSentenceIndex)
             }
         }
-        return docs
+        return docs.map(::ensureSentenceIndex)
     }
 
     private fun loadDocumentsFromPrefsRaw(): List<SavedDocument> {
@@ -394,7 +398,8 @@ class DocumentRepository(context: Context) {
 
     fun findDocument(documentId: String): SavedDocument? {
         if (documentId.isBlank()) return null
-        return dbHelper.getDocumentById(documentId, docsDir) ?: loadDocuments().firstOrNull { it.id == documentId }
+        return dbHelper.getDocumentById(documentId, docsDir)?.let(::ensureSentenceIndex)
+            ?: loadDocuments().firstOrNull { it.id == documentId }
     }
 
     fun createDocument(
@@ -428,10 +433,13 @@ class DocumentRepository(context: Context) {
         originalMimeType: String = "",
         pageCount: Int = 0,
         partial: Boolean = false,
-        language: String = ""
-    ): DocumentCreateResult {
+        language: String = "",
+        documentId: String = UUID.randomUUID().toString(),
+        catalogId: String = ""
+    ): DocumentCreateResult = synchronized(LIBRARY_WRITE_LOCK) {
         val normalizedTitle = title.trim().ifBlank { "Untitled reading" }
-        val id = UUID.randomUUID().toString()
+        BackupRestoreSafety.requireFileName(documentId)
+        val id = documentId
         val fileName = "$id.txt"
         File(docsDir, fileName).writeText(text, Charsets.UTF_8)
         saveDocumentTitle(id, normalizedTitle)
@@ -460,28 +468,30 @@ class DocumentRepository(context: Context) {
             originalMimeType = originalMimeType,
             pageCount = pageCount.coerceAtLeast(0),
             partial = partial,
-            language = language
+            language = language,
+            catalogId = catalogId
         )
 
-        saveDocuments(listOf(doc) + loadDocuments().filterNot { it.id == id })
+        dbHelper.upsertDocument(doc)
+        updateVeritasWidgets(appContext)
 
         // Log file copy errors
         if (fileErrorNote != null) {
             Log.w(TAG, "Original file save error for $id: ${originalFileResult.exceptionOrNull()?.message}")
         }
 
-        return DocumentCreateResult(doc, fileErrorNote)
+        DocumentCreateResult(doc, fileErrorNote)
     }
 
-    fun readText(document: SavedDocument): String {
-        return runCatching { File(docsDir, document.fileName).readText(Charsets.UTF_8) }.getOrDefault("")
+    fun readText(document: SavedDocument): String = synchronized(LIBRARY_WRITE_LOCK) {
+        runCatching { File(docsDir, document.fileName).readText(Charsets.UTF_8) }.getOrDefault("")
     }
 
-    fun updateDocumentText(documentId: String, text: String): SavedDocument? {
+    fun updateDocumentText(documentId: String, text: String, partial: Boolean? = null): SavedDocument? = synchronized(LIBRARY_WRITE_LOCK) {
         val cleanText = text.trim()
-        if (cleanText.isBlank()) return null
+        if (cleanText.isBlank()) return@synchronized null
         val documents = loadDocuments()
-        val target = documents.firstOrNull { it.id == documentId } ?: return null
+        val target = documents.firstOrNull { it.id == documentId } ?: return@synchronized null
         val oldChunks = runCatching {
             File(docsDir, target.fileName).takeIf { it.exists() }
                 ?.readText(Charsets.UTF_8)
@@ -499,10 +509,10 @@ class DocumentRepository(context: Context) {
             charCount = cleanText.length,
             preview = previewText(cleanText),
             pageCount = target.pageCount.takeIf { it > 0 } ?: ReaderTextIndex.build(cleanText).pageCount,
-            partial = false
+            partial = partial ?: target.partial
         )
         saveDocuments(documents.map { if (it.id == documentId) updatedTarget else it })
-        return updatedTarget
+        updatedTarget
     }
 
     // Annotations are anchored by chunk index; an edit can renumber chunks and leave
@@ -540,12 +550,12 @@ class DocumentRepository(context: Context) {
     private fun normalizeChunkForRemap(chunk: String): String =
         chunk.trim().replace(Regex("\\s+"), " ").lowercase(Locale.US)
 
-    fun appendDocumentText(documentId: String, text: String, isComplete: Boolean = false): SavedDocument? {
+    fun appendDocumentText(documentId: String, text: String, isComplete: Boolean = false): SavedDocument? = synchronized(LIBRARY_WRITE_LOCK) {
         val cleanText = text.trim()
-        if (cleanText.isBlank() && !isComplete) return null
+        if (cleanText.isBlank() && !isComplete) return@synchronized null
         
         val documents = loadDocuments()
-        val target = documents.firstOrNull { it.id == documentId } ?: return null
+        val target = documents.firstOrNull { it.id == documentId } ?: return@synchronized null
         ReaderTextModelCache.invalidate(documentId)
         outlineCache.remove(documentId)
         
@@ -554,17 +564,18 @@ class DocumentRepository(context: Context) {
             file.appendText("\n\n" + cleanText, Charsets.UTF_8)
         }
         
-        val newChunks = TextChunker.chunk(cleanText)
+        val combinedText = file.readText(Charsets.UTF_8)
+        val newChunks = TextChunker.chunk(combinedText)
         val now = System.currentTimeMillis()
         
         val updatedTarget = target.copy(
             updatedAt = now,
-            chunkCount = target.chunkCount + newChunks.size,
-            charCount = target.charCount + cleanText.length + 2, // +2 for the \n\n
+            chunkCount = newChunks.size,
+            charCount = combinedText.length,
             partial = !isComplete
         )
         saveDocuments(listOf(updatedTarget) + documents.filterNot { it.id == documentId })
-        return updatedTarget
+        updatedTarget
     }
 
     fun originalFile(document: SavedDocument): File? {
@@ -885,9 +896,9 @@ class DocumentRepository(context: Context) {
         pageToIndexMap: Map<PDPage, Int>? = null,
         sentencesByPage: Map<Int, List<ReaderSentence>>? = null
     ) {
-        val title = cleanTocTitle(item.title.orEmpty())
+        val title = item.title.orEmpty().replace(Regex("\\s+"), " ").trim()
         val pageIndex = pdfOutlinePageIndex(item, pdf, pageToIndexMap)
-        if (title.isNotBlank() && !isSelfReferentialTocHeading(title) && !title.all { it == '.' || it.isWhitespace() || it == '•' || it == '·' }) {
+        if (title.isNotBlank() && !title.all { it == '.' || it.isWhitespace() || it == '•' || it == '·' }) {
             entries.add(
                 VeritasDocumentOutlineEntry(
                     title = title.take(120),
@@ -931,6 +942,7 @@ class DocumentRepository(context: Context) {
                         val idx = pageToIndexMap?.get(p) ?: pdDoc.pages.indexOf(p)
                         if (idx >= 0) return idx
                     }
+                    if (pageDest.pageNumber in 0 until pdDoc.numberOfPages) return pageDest.pageNumber
                 }
             }
             null
@@ -1019,81 +1031,57 @@ class DocumentRepository(context: Context) {
         prefs.edit().remove("dismissed_hero_doc_ids").remove("dismissed_hero_doc_id").apply()
     }
 
-    fun updateProgress(documentId: String, currentIndex: Int, chunkCount: Int): List<SavedDocument> {
-        val now = System.currentTimeMillis()
+    fun saveProgress(documentId: String, currentIndex: Int) = synchronized(LIBRARY_WRITE_LOCK) {
         removeDismissedHeroDocId(documentId)
         setHeroContinueDismissed(false)
-        if (documentId == getDismissedHeroDocId()) {
-            setDismissedHeroDocId(null)
-        }
-        val updated = loadDocuments().map { doc ->
-            if (doc.id == documentId) {
-                val safeIndex = if (chunkCount <= 0) 0 else currentIndex.coerceIn(0, chunkCount - 1)
-                doc.copy(currentIndex = safeIndex, chunkCount = chunkCount, updatedAt = now)
-            } else {
-                doc
-            }
-        }
-        saveDocuments(updated)
-        return loadDocuments()
+        if (documentId == getDismissedHeroDocId()) setDismissedHeroDocId(null)
+        dbHelper.updateDocumentProgress(documentId, currentIndex, System.currentTimeMillis())
+        scheduleReadingWidgetRefresh(appContext)
     }
 
-    fun clearProgress(documentId: String): List<SavedDocument> {
-        removeDismissedHeroDocId(documentId)
-        if (documentId == getDismissedHeroDocId()) {
-            setDismissedHeroDocId(null)
-        }
-        val updated = loadDocuments().map { doc ->
-            if (doc.id == documentId) doc.copy(currentIndex = 0) else doc
-        }
-        saveDocuments(updated)
-        return loadDocuments()
+    @Suppress("UNUSED_PARAMETER")
+    fun updateProgress(documentId: String, currentIndex: Int, chunkCount: Int): List<SavedDocument> = synchronized(LIBRARY_WRITE_LOCK) {
+        saveProgress(documentId, currentIndex)
+        // UI callers need metadata; checking every stored file is unnecessary here.
+        dbHelper.getAllDocuments(docsDir, verifyFiles = false)
     }
 
-    fun deleteDocument(documentId: String): List<SavedDocument> {
+    fun clearProgress(documentId: String): List<SavedDocument> = synchronized(LIBRARY_WRITE_LOCK) {
+        saveProgress(documentId, 0)
+        dbHelper.getAllDocuments(docsDir, verifyFiles = false)
+    }
+
+    fun deleteDocument(documentId: String): List<SavedDocument> = synchronized(LIBRARY_WRITE_LOCK) {
         ReaderTextModelCache.invalidate(documentId)
-        val docs = loadDocuments()
-        docs.firstOrNull { it.id == documentId }?.let { doc ->
+        dbHelper.getDocumentById(documentId, docsDir)?.let { doc ->
             runCatching { File(docsDir, doc.fileName).delete() }
             originalFile(doc)?.let { runCatching { it.delete() } }
             CoverExtractor.deleteCover(appContext, documentId)
         }
-        val updated = docs.filterNot { it.id == documentId }
-        saveDocuments(updated)
-        runCatching { dbHelper.deleteDocumentById(documentId) }
+        dbHelper.deleteDocumentById(documentId)
         removeFromQueue(documentId)
-        // Keep annotations, document notes, and reading history intact so they can still be viewed in Study tab
+        // Keep annotations, document notes, and history available after book deletion.
         saveReadingListCatalog(loadReadingListCatalog().removeDocumentEverywhere(documentId))
-        return updated
+        updateVeritasWidgets(appContext)
+        dbHelper.getAllDocuments(docsDir, verifyFiles = false)
     }
 
-    fun renameDocument(documentId: String, newTitle: String): List<SavedDocument> {
-        val cleanTitle = newTitle.trim().ifBlank { "Untitled reading" }
-        val now = System.currentTimeMillis()
-        val updated = loadDocuments().map { doc ->
-            if (doc.id == documentId) doc.copy(title = cleanTitle, updatedAt = now) else doc
-        }
-        saveDocuments(updated)
-        return loadDocuments()
+    fun renameDocument(documentId: String, newTitle: String): List<SavedDocument> = synchronized(LIBRARY_WRITE_LOCK) {
+        dbHelper.renameDocument(documentId, newTitle.trim().ifBlank { "Untitled reading" }, System.currentTimeMillis())
+        updateVeritasWidgets(appContext)
+        dbHelper.getAllDocuments(docsDir, verifyFiles = false)
     }
 
-    fun toggleFavorite(documentId: String): List<SavedDocument> {
-        val now = System.currentTimeMillis()
-        val updated = loadDocuments().map { doc ->
-            if (doc.id == documentId) doc.copy(favorite = !doc.favorite, updatedAt = now) else doc
-        }
-        saveDocuments(updated)
-        return loadDocuments()
+    fun toggleFavorite(documentId: String): List<SavedDocument> = synchronized(LIBRARY_WRITE_LOCK) {
+        dbHelper.toggleDocumentFavorite(documentId, System.currentTimeMillis())
+        updateVeritasWidgets(appContext)
+        dbHelper.getAllDocuments(docsDir, verifyFiles = false)
     }
 
-    fun setCollection(documentId: String, collectionName: String): List<SavedDocument> {
-        val cleanCollection = collectionName.trim()
-        val now = System.currentTimeMillis()
-        val updated = loadDocuments().map { doc ->
-            if (doc.id == documentId) doc.copy(collection = cleanCollection, updatedAt = now) else doc
-        }
-        saveDocuments(updated)
-        return loadDocuments()
+    fun setCollection(documentId: String, collectionName: String): List<SavedDocument> = synchronized(LIBRARY_WRITE_LOCK) {
+        dbHelper.setDocumentCollection(documentId, collectionName.trim(), System.currentTimeMillis())
+        updateVeritasWidgets(appContext)
+        dbHelper.getAllDocuments(docsDir, verifyFiles = false)
     }
 
     fun loadReaderSettings(): ReaderSettings {
@@ -1162,7 +1150,8 @@ class DocumentRepository(context: Context) {
             narratorRateMultiplier = settings.narratorRateMultiplier.coerceIn(0.75f, 1.25f),
             narratorPitchMultiplier = settings.narratorPitchMultiplier.coerceIn(0.80f, 1.25f),
             dialogueRateMultiplier = settings.dialogueRateMultiplier.coerceIn(0.75f, 1.25f),
-            dialoguePitchMultiplier = settings.dialoguePitchMultiplier.coerceIn(0.80f, 1.25f)
+            dialoguePitchMultiplier = settings.dialoguePitchMultiplier.coerceIn(0.80f, 1.25f),
+            punctuationExpressionStrength = settings.punctuationExpressionStrength.coerceIn(0f, 1f)
         )
         prefs.edit { putString(KEY_NARRATION_SETTINGS, normalized.toJson().toString()) }
         return normalized
@@ -1209,7 +1198,7 @@ class DocumentRepository(context: Context) {
     }
 
     internal fun saveDocuments(documents: List<SavedDocument>) = synchronized(LIBRARY_WRITE_LOCK) {
-        runCatching { dbHelper.replaceAllDocuments(documents) }
+        dbHelper.replaceAllDocuments(documents)
         val array = JSONArray()
         documents.forEach { array.put(it.toJson()) }
         commitResilientJson(KEY_DOCUMENTS, array.toString())

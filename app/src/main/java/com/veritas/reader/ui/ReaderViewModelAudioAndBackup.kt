@@ -48,7 +48,8 @@ fun ReaderViewModel.exportActiveDocumentToAudio() {
     }
     stopServicePlayback()
     exportJob?.cancel()
-    _uiState.update { it.copy(exportInProgress = true, exportedAudioFile = null, exportMessage = null) }
+    _uiState.update { it.copy(exportInProgress = true, exportedAudioFile = null,
+        exportMessage = "Playback stopped while creating the audio file.") }
     exportJob = viewModelScope.launch(Dispatchers.IO) {
         val result = runCatching {
             AudioExportManager(getApplication()).exportToWav(
@@ -401,6 +402,7 @@ fun ReaderViewModel.importLibraryBackup(uri: Uri) {
                     val documents = repository.loadDocuments()
                     val queuedDocuments = repository.loadQueueDocuments()
                     val pronunciationRules = repository.loadPronunciationRules()
+                    val notesSettings = NotesSettingsStore.load(getApplication())
                     val readerSettings = repository.loadReaderSettings()
                     val voiceSettings = repository.loadVoiceSettings()
                     val narrationSettings = repository.loadNarrationSettings()
@@ -420,6 +422,7 @@ fun ReaderViewModel.importLibraryBackup(uri: Uri) {
                                 documents = documents,
                                 queuedDocuments = queuedDocuments,
                                 pronunciationRules = pronunciationRules,
+                                notesSettings = notesSettings,
                                 readerSettings = readerSettings,
                                 voiceSettings = voiceSettings,
                                 narrationSettings = narrationSettings,
@@ -444,4 +447,3 @@ fun ReaderViewModel.importLibraryBackup(uri: Uri) {
         }
     }
 }
-

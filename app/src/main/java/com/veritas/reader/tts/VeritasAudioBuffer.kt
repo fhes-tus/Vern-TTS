@@ -14,6 +14,10 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
+import android.os.SystemClock
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -29,7 +33,11 @@ class VeritasAudioBuffer(
     private val engine: TtsEngine
 ) {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private val pcmCache = ConcurrentHashMap<Int, ShortArray>()
+    private data class CachedPcm(val text: String, val rate: Float, val pitch: Float, val generation: Long, val pcm: ShortArray)
+    private val pcmCache = ConcurrentHashMap<Int, CachedPcm>()
+    private val generation = PlaybackGeneration()
+    private val playbackMutex = Mutex()
+    private var playbackJob: Job? = null
     // Sherpa's native TTS object is not safe to generate audio from multiple coroutines.
     private val synthesisMutex = Mutex()
 
@@ -80,7 +88,7 @@ class VeritasAudioBuffer(
         if (rate != lastBufferRate || pitch != lastBufferPitch) {
             lastBufferRate = rate
             lastBufferPitch = pitch
-            pcmCache.clear()
+            generation.advance { pcmCache.clear() }
         }
         prebufferJob?.cancel()
         prebufferJob = scope.launch {
@@ -107,16 +115,27 @@ class VeritasAudioBuffer(
         text: String,
         rate: Float = 1.0f,
         pitch: Float = 1.0f,
+        leadingSilenceMs: Long = 0L,
         onComplete: (success: Boolean) -> Unit
     ) {
-        scope.launch(Dispatchers.IO) {
+        playbackJob?.cancel()
+        // Wake a cancelled blocking writer before the replacement waits for ownership.
+        synchronized(trackLock) {
+            if (writersInFlight > 0) {
+                runCatching { audioTrack?.pause() }
+                runCatching { audioTrack?.flush() }
+            }
+        }
+        playbackJob = scope.launch(Dispatchers.IO) {
+            playbackMutex.withLock {
             isPlaying = true
             if (rate != lastBufferRate || pitch != lastBufferPitch) {
                 lastBufferRate = rate
                 lastBufferPitch = pitch
-                pcmCache.clear()
+                generation.advance { pcmCache.clear() }
             }
-            var pcm = pcmCache[index]
+            val token = generation.current()
+            var pcm = pcmCache[index]?.takeIf { it.text == text.trim() && it.rate == rate && it.pitch == pitch && it.generation == token }?.pcm
             if (pcm == null) {
                 // kotlinx Mutex is FIFO-fair, so the sentence being waited on would
                 // otherwise sit behind every look-ahead item already queued — measured
@@ -131,26 +150,35 @@ class VeritasAudioBuffer(
 
             if (pcm == null || pcm.isEmpty()) {
                 Log.w(TAG, "No audio generated for sentence $index")
-                withContext(Dispatchers.Main) { onComplete(false) }
-                return@launch
+                withContext(Dispatchers.Main) { if (generation.isCurrent(token)) onComplete(false) }
+                return@withLock
             }
 
+            currentCoroutineContext().ensureActive()
+            if (!generation.isCurrent(token)) return@withLock
+            if (leadingSilenceMs > 0L) delay(leadingSilenceMs.coerceAtMost(5_000L))
+            if (!generation.isCurrent(token)) return@withLock
             val sampleRate = engine.sampleRate
-            val track = acquireTrack(sampleRate)
+            val track = try { acquireTrack(sampleRate) } catch (error: Exception) {
+                Log.w(TAG, "Could not initialize audio output", error)
+                null
+            }
             if (track == null) {
                 // shutdown() ran while this sentence was still being synthesized.
-                withContext(Dispatchers.Main) { onComplete(false) }
-                return@launch
+                withContext(Dispatchers.Main) { if (generation.isCurrent(token)) onComplete(false) }
+                return@withLock
             }
 
             val played = try {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                    runCatching {
-                        val params = android.media.PlaybackParams().apply {
-                            setPitch(pitch.coerceIn(0.5f, 2.0f))
-                        }
-                        track.playbackParams = params
+                runCatching {
+                    val params = android.media.PlaybackParams().apply {
+                        // Pitch is applied to PCM at synthesis, including WAV export.
+                        // Explicit defaults avoid incomplete PlaybackParams on OEMs.
+                        allowDefaults()
+                        setSpeed(1f)
+                        setPitch(1f)
                     }
+                    track.playbackParams = params
                 }
                 if (track.playState != AudioTrack.PLAYSTATE_PLAYING) {
                     track.play()
@@ -159,20 +187,13 @@ class VeritasAudioBuffer(
                 // queued, not once it has been heard. Sleeping for the clip's full
                 // duration on top of that added a gap at every sentence boundary, so
                 // wait on the head position actually reaching the end instead.
-                val startHead = track.playbackHeadPosition
-                track.write(pcm, 0, pcm.size)
-                pcmCache.remove(index)
-
-                val target = startHead.toLong() + pcm.size
-                val timeoutAt = System.currentTimeMillis() +
-                    (pcm.size.toDouble() / sampleRate * 1000).toLong() + 1_000L
-                while (isPlaying &&
-                    track.playbackHeadPosition.toLong() < target &&
-                    System.currentTimeMillis() < timeoutAt
-                ) {
-                    delay(15)
-                }
-                true
+                val playbackContext = currentCoroutineContext()
+                val played = PcmCompletion.play(pcm, sampleRate, object : PcmOutput {
+                    override fun write(samples: ShortArray, offset: Int, count: Int) = track.write(samples, offset, count)
+                    override fun renderedFrames() = track.playbackHeadPosition.toLong() and 0xffffffffL
+                }, { playbackContext.isActive && isPlaying && generation.isCurrent(token) }, SystemClock::elapsedRealtime) { delay(15) }
+                if (played) pcmCache.remove(index)
+                played
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (t: Throwable) {
@@ -184,22 +205,30 @@ class VeritasAudioBuffer(
                 releaseWriter()
             }
 
-            withContext(Dispatchers.Main) { onComplete(played) }
+            withContext(Dispatchers.Main) {
+                if (generation.isCurrent(token)) onComplete(played)
+            }
+            }
         }
     }
 
     private suspend fun synthesizeAndCache(index: Int, text: String, rate: Float = 1.0f, pitch: Float = 1.0f): ShortArray? = synthesisMutex.withLock {
-        pcmCache[index]?.let { return@withLock it }
+        val token = generation.current()
+        pcmCache[index]?.takeIf { it.text == text && it.rate == rate && it.pitch == pitch && it.generation == token }?.let { return@withLock it.pcm }
+        currentCoroutineContext().ensureActive()
         if (!beginSynthesis()) return@withLock null
         val pcm = try {
             engine.synthesize(text, rate, pitch)?.takeIf { it.isNotEmpty() }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Log.w(TAG, "Synthesis failed for sentence $index", error)
+            null
         } finally {
             endSynthesis()
         }
-        if (pcm != null) {
-            pcmCache[index] = pcm
-        }
-        pcm
+        currentCoroutineContext().ensureActive()
+        if (pcm != null && generation.publishIfCurrent(token) { pcmCache[index] = CachedPcm(text, rate, pitch, token, pcm) }) pcm else null
     }
 
     // engine.synthesize() is a blocking call into sherpa-onnx, and coroutine cancellation
@@ -279,6 +308,10 @@ class VeritasAudioBuffer(
                 .build()
         }
 
+        if (audioTrack?.state != AudioTrack.STATE_INITIALIZED) {
+            disposeTrackLocked()
+            return@synchronized null
+        }
         writersInFlight++
         audioTrack
     }
@@ -320,6 +353,7 @@ class VeritasAudioBuffer(
     }
 
     private fun stopPlayback(release: Boolean) {
+        generation.advance { pcmCache.clear() }
         isPlaying = false
         prebufferJob?.cancel()
         prebufferJob = null

@@ -5,11 +5,14 @@ import java.util.Locale
 import java.util.zip.ZipInputStream
 
 sealed class DocxBlock {
-    data class Heading(val level: Int, val text: String) : DocxBlock()
-    data class Paragraph(val text: String) : DocxBlock()
-    data class Bullet(val level: Int, val text: String) : DocxBlock()
+    data class Heading(val level: Int, val text: String, val sourceFormat: DocxSourceFormat? = null) : DocxBlock()
+    data class Paragraph(val text: String, val sourceFormat: DocxSourceFormat? = null) : DocxBlock()
+    data class Bullet(val level: Int, val text: String, val sourceFormat: DocxSourceFormat? = null) : DocxBlock()
     data class Table(val rows: List<List<String>>) : DocxBlock()
-    data class Image(val imageBytes: ByteArray, val description: String = "") : DocxBlock()
+    class Image(private val loadBytes: () -> ByteArray, val description: String = "") : DocxBlock() {
+        constructor(imageBytes: ByteArray, description: String = "") : this({ imageBytes }, description)
+        val imageBytes: ByteArray get() = loadBytes()
+    }
 }
 
 data class DocxPage(
@@ -25,9 +28,10 @@ data class DocxDocument(
 
 object DocxDocumentParser {
 
-    fun parse(bytes: ByteArray, defaultTitle: String, includeImages: Boolean = true): DocxDocument {
+    fun parse(bytes: ByteArray, defaultTitle: String, includeImages: Boolean = true, preserveSourceFormatting: Boolean = false): DocxDocument {
         var documentXml: String? = null
         var relsXml: String? = null
+        var stylesXml = ""
         val mediaMap = if (includeImages) mutableMapOf<String, ByteArray>() else emptyMap<String, ByteArray>()
         ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
             while (true) {
@@ -38,6 +42,8 @@ object DocxDocumentParser {
                         documentXml = zip.readBytes().toString(Charsets.UTF_8)
                     } else if (name == "word/_rels/document.xml.rels" || name == "_rels/document.xml.rels") {
                         relsXml = zip.readBytes().toString(Charsets.UTF_8)
+                    } else if (preserveSourceFormatting && name == "word/styles.xml") {
+                        stylesXml = zip.readBytes().toString(Charsets.UTF_8)
                     } else if (includeImages && (name.startsWith("word/media/") || name.startsWith("media/"))) {
                         (mediaMap as MutableMap)[name] = zip.readBytes()
                     }
@@ -45,6 +51,17 @@ object DocxDocumentParser {
             }
         }
 
+        return parseContents(documentXml, relsXml, mediaMap, defaultTitle, preserveSourceFormatting, stylesXml)
+    }
+
+    fun parse(file: java.io.File, defaultTitle: String, includeImages: Boolean = true, preserveSourceFormatting: Boolean = false): DocxDocument {
+        val archive = OriginalArchiveEntries(file)
+        val text = archive.textMap { it.endsWith("document.xml") || it.endsWith("document.xml.rels") || (preserveSourceFormatting && it == "word/styles.xml") }
+        val media = if (includeImages) archive.imageMap { it.startsWith("word/media/") || it.startsWith("media/") } else emptyMap()
+        return parseContents(text["word/document.xml"] ?: text["document.xml"], text["word/_rels/document.xml.rels"] ?: text["_rels/document.xml.rels"], media, defaultTitle, preserveSourceFormatting, text["word/styles.xml"].orEmpty())
+    }
+
+    private fun parseContents(documentXml: String?, relsXml: String?, mediaMap: Map<String, ByteArray>, defaultTitle: String, preserveSourceFormatting: Boolean, stylesXml: String = ""): DocxDocument {
         if (documentXml == null) {
             return DocxDocument(
                 title = defaultTitle,
@@ -68,7 +85,7 @@ object DocxDocumentParser {
             }
         }
 
-        val allBlocks = parseXmlBlocks(documentXml, relsMap, mediaMap)
+        val allBlocks = parseXmlBlocks(documentXml, relsMap, mediaMap, preserveSourceFormatting, DocxStyleResolver(stylesXml))
         val pages = paginateBlocks(allBlocks)
 
         return DocxDocument(
@@ -80,42 +97,63 @@ object DocxDocumentParser {
     private fun parseXmlBlocks(
         xml: String,
         relsMap: Map<String, String> = emptyMap(),
-        mediaMap: Map<String, ByteArray> = emptyMap()
+        mediaMap: Map<String, ByteArray> = emptyMap(),
+        preserveSourceFormatting: Boolean = false,
+        styles: DocxStyleResolver = DocxStyleResolver()
     ): List<DocxBlock> {
         val blocks = mutableListOf<DocxBlock>()
-        val dbFactory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
-        dbFactory.isNamespaceAware = false
-        val dBuilder = dbFactory.newDocumentBuilder()
-        val doc = dBuilder.parse(ByteArrayInputStream(xml.toByteArray(Charsets.UTF_8)))
-        doc.documentElement.normalize()
-
-        val bodyList = doc.getElementsByTagName("w:body")
-        val bodyNode = if (bodyList.length > 0) bodyList.item(0) else doc.documentElement
-        val bodyNodes = bodyNode?.childNodes ?: return blocks
-
-        for (i in 0 until bodyNodes.length) {
-            val node = bodyNodes.item(i)
-            if (node.nodeType != org.w3c.dom.Node.ELEMENT_NODE) continue
-            val element = node as org.w3c.dom.Element
-            val tagName = element.tagName.substringAfter(':').lowercase(Locale.getDefault())
-
-            when (tagName) {
-                "p" -> {
-                    val paragraphBlocks = parseParagraphElement(element)
-                    blocks.addAll(paragraphBlocks)
-
-                    // Check for inline images inside paragraph
-                    val imageBlocks = extractInlineImages(element, relsMap, mediaMap)
-                    blocks.addAll(imageBlocks)
+        val factory = javax.xml.parsers.SAXParserFactory.newInstance()
+        factory.isNamespaceAware = false
+        runCatching { factory.setFeature("http://xml.org/sax/features/external-general-entities", false) }
+        runCatching { factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false) }
+        runCatching { factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true) }
+        val domFactory = javax.xml.parsers.DocumentBuilderFactory.newInstance().apply { isNamespaceAware = false }
+        runCatching { domFactory.setFeature("http://xml.org/sax/features/external-general-entities", false) }
+        val builder = domFactory.newDocumentBuilder()
+        builder.setEntityResolver { _, _ -> org.xml.sax.InputSource(java.io.StringReader("")) }
+        val handler = object : org.xml.sax.helpers.DefaultHandler() {
+            var depth = 0
+            var bodyDepth = -1
+            var captureDepth = -1
+            val fragment = StringBuilder()
+            fun escape(value: String): String = value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
+            override fun resolveEntity(publicId: String?, systemId: String?): org.xml.sax.InputSource = org.xml.sax.InputSource(java.io.StringReader(""))
+            override fun startElement(uri: String?, localName: String?, qName: String, attributes: org.xml.sax.Attributes) {
+                depth++
+                val tag = qName.substringAfter(':')
+                if (tag == "body") bodyDepth = depth
+                if (captureDepth < 0 && depth == bodyDepth + 1 && tag in setOf("p", "tbl")) {
+                    captureDepth = depth; fragment.clear()
                 }
-                "tbl" -> {
-                    val tableBlock = parseTableElement(element)
-                    if (tableBlock.rows.isNotEmpty()) {
-                        blocks.add(tableBlock)
-                    }
+                if (captureDepth >= 0) {
+                    fragment.append('<').append(qName)
+                    for (i in 0 until attributes.length) fragment.append(' ').append(attributes.getQName(i)).append("=\"").append(escape(attributes.getValue(i))).append('"')
+                    fragment.append('>')
                 }
             }
+            override fun characters(chars: CharArray, start: Int, length: Int) {
+                if (captureDepth >= 0) {
+                    require(fragment.length.toLong() + length <= 16L * 1024 * 1024) { "A Word block is too large to display." }
+                    fragment.append(escape(String(chars, start, length)))
+                }
+            }
+            override fun endElement(uri: String?, localName: String?, qName: String) {
+                if (captureDepth >= 0) fragment.append("</").append(qName).append('>')
+                if (depth == captureDepth) {
+                    // Only one paragraph/table becomes a DOM tree at a time.
+                    val doc = builder.parse(ByteArrayInputStream(("<root>" + fragment + "</root>").toByteArray(Charsets.UTF_8)))
+                    val element = doc.documentElement.firstChild as org.w3c.dom.Element
+                    when (qName.substringAfter(':')) {
+                        "p" -> { blocks.addAll(parseParagraphElement(element, preserveSourceFormatting, styles)); blocks.addAll(extractInlineImages(element, relsMap, mediaMap)) }
+                        "tbl" -> parseTableElement(element).takeIf { it.rows.isNotEmpty() }?.let(blocks::add)
+                    }
+                    captureDepth = -1; fragment.clear()
+                }
+                if (depth == bodyDepth) bodyDepth = -1
+                depth--
+            }
         }
+        factory.newSAXParser().parse(org.xml.sax.InputSource(java.io.StringReader(xml)), handler)
         return blocks
     }
 
@@ -137,12 +175,10 @@ object DocxDocumentParser {
             }
             if (rId.isNotBlank()) {
                 val targetPath = relsMap[rId]
-                val imgBytes = if (targetPath != null) {
-                    mediaMap[targetPath] ?: mediaMap["word/$targetPath"] ?: mediaMap[targetPath.substringAfterLast("word/")]
-                } else null
-                if (imgBytes != null && imgBytes.isNotEmpty()) {
-                    images.add(DocxBlock.Image(imgBytes))
+                val path = targetPath?.let { target ->
+                    listOf(target, "word/$target", target.substringAfterLast("word/")).firstOrNull { mediaMap.containsKey(it) }
                 }
+                if (path != null) images.add(DocxBlock.Image({ mediaMap[path] ?: ByteArray(0) }))
             }
         }
         return images
@@ -207,7 +243,7 @@ object DocxDocumentParser {
         return sb.toString()
     }
 
-    private fun parseParagraphElement(p: org.w3c.dom.Element): List<DocxBlock> {
+    private fun parseParagraphElement(p: org.w3c.dom.Element, preserveSourceFormatting: Boolean = false, styles: DocxStyleResolver = DocxStyleResolver()): List<DocxBlock> {
         var headingLevel: Int? = null
         var isToc = false
         var bulletLevel: Int? = null
@@ -244,14 +280,15 @@ object DocxDocumentParser {
         }
 
         val runs = extractRuns(p)
-        val fullText = runs.joinToString("") { it.text }.trim()
+        val sourceFormat = if (preserveSourceFormatting) docxSourceFormat(p, styles) else null
+        val fullText = (sourceFormat?.runs?.joinToString("") { it.text } ?: runs.joinToString("") { it.text }).trim()
         if (fullText.isBlank()) return emptyList()
 
         if (headingLevel != null) {
-            return listOf(DocxBlock.Heading(headingLevel, fullText))
+            return listOf(DocxBlock.Heading(headingLevel, fullText, sourceFormat))
         }
         if (bulletLevel != null) {
-            return listOf(DocxBlock.Bullet(bulletLevel, fullText))
+            return listOf(DocxBlock.Bullet(bulletLevel, fullText, sourceFormat))
         }
 
         // Check if paragraph is a TOC entry (either by style or by trailing tab/dot-leaders + page number)
@@ -267,6 +304,8 @@ object DocxDocumentParser {
             return listOf(DocxBlock.Paragraph(formatted))
         }
 
+        // Original view keeps source run emphasis instead of promoting bold phrases to headings.
+        if (sourceFormat != null) return listOf(DocxBlock.Paragraph(fullText, sourceFormat))
         // Check for run-in subheadings (e.g. bold heading at start of paragraph followed by prose)
         if (runs.size >= 2) {
             val firstRun = runs.first()

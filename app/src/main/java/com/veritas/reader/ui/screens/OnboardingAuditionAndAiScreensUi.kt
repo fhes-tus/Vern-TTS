@@ -1,13 +1,20 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -39,9 +47,18 @@ import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,9 +68,11 @@ import com.veritas.reader.aiAssistantIcon
 import com.veritas.reader.ui.AiStudyFocusOptions
 import com.veritas.reader.ui.VoiceAuditionPreset
 import com.veritas.reader.ui.VoiceAuditionPresets
+import com.veritas.reader.ui.rememberVeritasHaptics
 
 /**
  * Screen for auditioning and choosing a narrator voice preset.
+ * Embodies Chris Raroque's Layered Lighting, Physicality & Tactile Audio Waveform principles.
  */
 @Composable
 fun OnboardingVoiceAuditionScreen(
@@ -62,6 +81,8 @@ fun OnboardingVoiceAuditionScreen(
     isPlaying: Boolean,
     onTogglePlay: () -> Unit
 ) {
+    val haptic = rememberVeritasHaptics()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -71,23 +92,33 @@ fun OnboardingVoiceAuditionScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Meet Your Narrator",
-            style = MaterialTheme.typography.headlineSmall,
+            text = "Select Your Narrator",
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
 
+        Spacer(modifier = Modifier.height(6.dp))
+
         Text(
-            text = "Choose a voice delivery preset and audition live audio playback.",
+            text = "Experience neural voices tuned for effortless, long-form immersion.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
-        // Preset Chips
+        // Ambient fluid audio waveform visualizer (Centerpiece Living Canvas)
+        FluidAudioWaveformVisualizer(
+            isPlaying = isPlaying,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Preset List
         Text(
-            text = "Voice Delivery Presets",
+            text = "Voice Personalities",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary
@@ -101,46 +132,129 @@ fun OnboardingVoiceAuditionScreen(
         ) {
             VoiceAuditionPresets.forEach { preset ->
                 val isSelected = preset.id == selectedPreset.id
+                val interactionSource = remember { MutableInteractionSource() }
+                val isPressed by interactionSource.collectIsPressedAsState()
+
+                val cardScale by animateFloatAsState(
+                    targetValue = when {
+                        isPressed -> 0.97f
+                        isSelected -> 1.015f
+                        else -> 1.0f
+                    },
+                    animationSpec = spring(
+                        dampingRatio = if (isPressed) Spring.DampingRatioNoBouncy else Spring.DampingRatioMediumBouncy,
+                        stiffness = if (isPressed) 400f else 320f
+                    ),
+                    label = "voiceCardScale"
+                )
+
+                val rimBrush = if (isSelected) {
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)
+                        )
+                    )
+                } else {
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.18f),
+                            Color.White.copy(alpha = 0.04f),
+                            Color.Transparent
+                        )
+                    )
+                }
+
                 Card(
-                    onClick = { onSelectPreset(preset) },
-                    shape = RoundedCornerShape(16.dp),
+                    onClick = {
+                        haptic.select()
+                        onSelectPreset(preset)
+                    },
+                    interactionSource = interactionSource,
+                    shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f) else MaterialTheme.colorScheme.surfaceContainerLow
+                        containerColor = if (isSelected)
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+                        else
+                            MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.60f)
                     ),
                     border = BorderStroke(
                         width = if (isSelected) 2.dp else 1.dp,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                        brush = rimBrush
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = if (isSelected) 6.dp else 1.dp
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            scaleX = cardScale
+                            scaleY = cardScale
+                        }
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        Text(preset.iconEmoji, fontSize = 24.sp)
+                        // Tactile play preview button
+                        TactileVoicePlayButton(
+                            isPlaying = isSelected && isPlaying,
+                            isSelected = isSelected,
+                            onTogglePlay = {
+                                if (isSelected) {
+                                    onTogglePlay()
+                                } else {
+                                    onSelectPreset(preset)
+                                    onTogglePlay()
+                                }
+                            }
+                        )
+
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = preset.title,
-                                    style = MaterialTheme.typography.titleSmall,
+                                    style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "${preset.speed}x",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(
+                                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                            else MaterialTheme.colorScheme.surfaceVariant
+                                        )
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "${preset.speed}x",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
+                            Spacer(modifier = Modifier.height(3.dp))
                             Text(
                                 text = preset.description,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 16.sp
+                            )
+                        }
+
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Selected",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                     }
@@ -148,20 +262,30 @@ fun OnboardingVoiceAuditionScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
         // Interactive Live Audition Player Card
         Card(
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.75f)
+            ),
+            border = BorderStroke(
+                1.5.dp,
+                Brush.verticalGradient(
+                    listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f)
+                    )
+                )
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row(
@@ -171,23 +295,22 @@ fun OnboardingVoiceAuditionScreen(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                             contentDescription = "Audio Sample",
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "Live Audition: ${selectedPreset.title}",
-                            style = MaterialTheme.typography.labelMedium,
+                            text = "Auditioning: ${selectedPreset.title}",
+                            style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
 
-                    // Equalizer Wave Indicator
                     if (isPlaying) {
                         LiveWaveEqualizer()
                     }
@@ -207,13 +330,30 @@ fun OnboardingVoiceAuditionScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                val buttonInteraction = remember { MutableInteractionSource() }
+                val buttonPressed by buttonInteraction.collectIsPressedAsState()
+                val buttonScale by animateFloatAsState(
+                    targetValue = if (buttonPressed) 0.95f else 1.0f,
+                    animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
+                    label = "btnScale"
+                )
+
                 Button(
-                    onClick = onTogglePlay,
+                    onClick = {
+                        haptic.toggle(!isPlaying)
+                        onTogglePlay()
+                    },
+                    interactionSource = buttonInteraction,
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isPlaying) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = if (isPlaying) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                        containerColor = if (isPlaying) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primary,
+                        contentColor = if (isPlaying) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier
+                        .graphicsLayer {
+                            scaleX = buttonScale
+                            scaleY = buttonScale
+                        }
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
@@ -221,11 +361,259 @@ fun OnboardingVoiceAuditionScreen(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(if (isPlaying) "Stop Preview" else "Play Audio Sample")
+                    Text(
+                        if (isPlaying) "Stop Preview" else "Play Voice Sample",
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         }
         Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+/**
+ * Tactile play preview button with acoustic pulsing ring.
+ */
+@Composable
+fun TactileVoicePlayButton(
+    isPlaying: Boolean,
+    isSelected: Boolean,
+    onTogglePlay: () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "voicePlayPulse")
+    val pulseRingScale by infiniteTransition.animateFloat(
+        initialValue = 1.0f,
+        targetValue = 1.45f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = EaseInOutSine), RepeatMode.Restart),
+        label = "pulseRing"
+    )
+    val pulseRingAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.6f,
+        targetValue = 0.0f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = EaseInOutSine), RepeatMode.Restart),
+        label = "pulseAlpha"
+    )
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size(46.dp)
+    ) {
+        // Glowing acoustic ring when playing
+        if (isPlaying) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp * pulseRingScale)
+                    .clip(CircleShape)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = pulseRingAlpha)
+                    )
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape)
+                .background(
+                    when {
+                        isPlaying -> MaterialTheme.colorScheme.errorContainer
+                        isSelected -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.surfaceContainerHighest
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = if (isPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
+                contentDescription = if (isPlaying) "Stop" else "Preview",
+                tint = when {
+                    isPlaying -> MaterialTheme.colorScheme.onErrorContainer
+                    isSelected -> MaterialTheme.colorScheme.onPrimary
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+/**
+ * Animated multi-harmonic oscillating Sine waveform ribbon.
+ * Features dual-harmonic sine waves with quadratic envelope windowing (1 - x^2),
+ * volumetric background lighting, and golden & violet ambient floating glow particles.
+ */
+@Composable
+fun FluidAudioWaveformVisualizer(
+    isPlaying: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "fluidWave")
+
+    val phase1 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(2600, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "phase1"
+    )
+    val phase2 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(3800, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "phase2"
+    )
+    val ambientGlowPulse by infiniteTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 0.75f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2200, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "ambientGlow"
+    )
+    val waveAmplitude by animateFloatAsState(
+        targetValue = if (isPlaying) 30f else 10f,
+        animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessLow),
+        label = "waveAmp"
+    )
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(96.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                brush = Brush.verticalGradient(
+                    listOf(
+                        Color(0x18, 0x1E, 0x2A).copy(alpha = 0.75f),
+                        Color(0x0E, 0x12, 0x1A).copy(alpha = 0.90f)
+                    )
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val width = size.width
+            val height = size.height
+            val midY = height / 2f
+
+            // 1. Ambient Volumetric Glow Pool (layered background lighting)
+            drawOval(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        primaryColor.copy(alpha = if (isPlaying) 0.35f * ambientGlowPulse else 0.14f * ambientGlowPulse),
+                        tertiaryColor.copy(alpha = if (isPlaying) 0.22f * ambientGlowPulse else 0.08f * ambientGlowPulse),
+                        Color.Transparent
+                    ),
+                    center = Offset(width * 0.5f, midY),
+                    radius = width * 0.42f
+                ),
+                topLeft = Offset(width * 0.1f, midY - 45f),
+                size = Size(width * 0.8f, 90f)
+            )
+
+            val points = 72
+
+            // 2. Primary harmonic sine wave ribbon (Golden / Amber)
+            val path1 = Path()
+            for (i in 0..points) {
+                val ratio = i.toFloat() / points
+                val x = ratio * width
+                val normalizedX = ratio * 2f - 1f // [-1f..1f]
+                val envelope = (1f - normalizedX * normalizedX).coerceAtLeast(0f)
+                val primarySine = Math.sin((ratio * 3.2 * Math.PI + phase1)).toFloat()
+                val subHarmonic = Math.sin((ratio * 6.4 * Math.PI + phase1 * 1.3)).toFloat() * 0.25f
+                val y = midY + (primarySine + subHarmonic) * waveAmplitude * envelope
+
+                if (i == 0) path1.moveTo(x, y) else path1.lineTo(x, y)
+            }
+
+            drawPath(
+                path = path1,
+                brush = Brush.horizontalGradient(
+                    listOf(
+                        Color.Transparent,
+                        primaryColor.copy(alpha = 0.25f),
+                        primaryColor,
+                        tertiaryColor.copy(alpha = 0.8f),
+                        primaryColor.copy(alpha = 0.25f),
+                        Color.Transparent
+                    )
+                ),
+                style = Stroke(
+                    width = if (isPlaying) 3.5.dp.toPx() else 2.2.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+            )
+
+            // 3. Secondary harmonic sine wave ribbon (Violet / Amethyst)
+            val path2 = Path()
+            for (i in 0..points) {
+                val ratio = i.toFloat() / points
+                val x = ratio * width
+                val normalizedX = ratio * 2f - 1f
+                val envelope = (1f - normalizedX * normalizedX).coerceAtLeast(0f)
+                val secondarySine = Math.sin((ratio * 4.2 * Math.PI - phase2)).toFloat()
+                val subHarmonic = Math.cos((ratio * 2.1 * Math.PI + phase2 * 0.8)).toFloat() * 0.3f
+                val y = midY + (secondarySine + subHarmonic) * (waveAmplitude * 0.78f) * envelope
+
+                if (i == 0) path2.moveTo(x, y) else path2.lineTo(x, y)
+            }
+
+            drawPath(
+                path = path2,
+                brush = Brush.horizontalGradient(
+                    listOf(
+                        Color.Transparent,
+                        tertiaryColor.copy(alpha = 0.2f),
+                        tertiaryColor,
+                        primaryColor.copy(alpha = 0.7f),
+                        tertiaryColor.copy(alpha = 0.2f),
+                        Color.Transparent
+                    )
+                ),
+                style = Stroke(
+                    width = if (isPlaying) 2.6.dp.toPx() else 1.6.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+            )
+
+            // 4. Ambient Golden and Violet Glow Particles
+            val particleCount = 14
+            for (p in 0 until particleCount) {
+                val pNormX = (p.toFloat() / (particleCount - 1)) * 1.8f - 0.9f // [-0.9..0.9]
+                val pEnv = (1f - pNormX * pNormX).coerceAtLeast(0f)
+                val pColor = if (p % 2 == 0) primaryColor else tertiaryColor
+
+                val drift = Math.sin((phase1 * (0.8 + p * 0.1) + p * 1.2)).toFloat() * (if (isPlaying) 10f else 5f)
+                val pY = midY + Math.sin((pNormX * 3.2 * Math.PI + phase1)).toFloat() * waveAmplitude * pEnv + drift
+                val pX = ((pNormX + 1f) / 2f) * width
+
+                val radius = (if (isPlaying) 2.6.dp else 1.8.dp).toPx()
+
+                // Glowing halo
+                drawCircle(
+                    color = pColor.copy(alpha = if (isPlaying) 0.35f * ambientGlowPulse else 0.15f * ambientGlowPulse),
+                    radius = radius * 2.4f,
+                    center = Offset(pX, pY)
+                )
+                // Bright core
+                drawCircle(
+                    color = pColor.copy(alpha = if (isPlaying) 0.95f else 0.60f),
+                    radius = radius,
+                    center = Offset(pX, pY)
+                )
+            }
+        }
     }
 }
 

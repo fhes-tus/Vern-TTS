@@ -112,38 +112,12 @@ fun VeritasHomeHeroCard(
         cover = null
         val id = doc?.id ?: return@LaunchedEffect
         cover = withContext(Dispatchers.IO) {
-            runCatching {
-                val file = CoverExtractor.coverFile(context, id)
-                if (file != null && file.exists()) {
-                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                    BitmapFactory.decodeFile(file.absolutePath, bounds)
-                    var sample = 1
-                    while (maxOf(bounds.outWidth, bounds.outHeight) / sample > 512) sample *= 2
-                    BitmapFactory.decodeFile(
-                        file.absolutePath,
-                        BitmapFactory.Options().apply { inSampleSize = sample }
-                    )
-                } else {
-                    val classic = CURATED_CLASSICS.firstOrNull { c ->
-                        (doc.title.isNotBlank() && doc.title.contains(c.title, ignoreCase = true)) ||
-                        (doc.originalFileName.isNotBlank() && doc.originalFileName.contains(c.id, ignoreCase = true))
-                    }
-                    if (classic != null) {
-                        context.assets.open("covers/${classic.id}.jpg").use { stream ->
-                            BitmapFactory.decodeStream(stream)
-                        }
-                    } else if (doc.title.contains("Who Moved My Cheese", ignoreCase = true)) {
-                        context.assets.open("covers/who_moved_my_cheese.jpg").use { stream ->
-                            BitmapFactory.decodeStream(stream)
-                        }
-                    } else null
-                }
-            }.getOrNull()
+            com.veritas.reader.BookCoverLoader.document(context, id, doc.catalogId)
         }
     }
     val coverAlpha by animateFloatAsState(
         targetValue = if (cover != null) 1f else 0f,
-        animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.effects(),
         label = "coverFade"
     )
 
@@ -159,21 +133,17 @@ fun VeritasHomeHeroCard(
     val progressTarget = ((liveIndex + 1).toFloat() / chunkCount.toFloat()).coerceIn(0f, 1f)
     val progress by animateFloatAsState(
         targetValue = if (doc != null) progressTarget else 0f,
-        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatial(),
         label = "heroProgress"
     )
 
     // Subtle breathing pulse on the cover while listening.
-    val pulse = rememberInfiniteTransition(label = "coverPulse")
-    val coverScale by pulse.animateFloat(
-        initialValue = 1f,
-        targetValue = if (isPlayingThis) 1.02f else 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1400, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "coverScale"
-    )
+    val coverScale = if (isPlayingThis && !com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion) {
+        val pulse = rememberInfiniteTransition(label = "coverPulse")
+        val value by pulse.animateFloat(1f, 1.02f,
+            infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "coverScale")
+        value
+    } else 1f
 
     // ── Data-earned insight lines (rotating; live sentence line while listening) ──
     val percent = (progressTarget * 100).toInt()
@@ -231,7 +201,7 @@ fun VeritasHomeHeroCard(
                 .background(gradient)
                 .clickable {
                     if (doc != null) onOpen(doc)
-                    else onDownloadAndOpenClassic?.invoke(bookOfTheDay) ?: onAddContent()
+                    else onPreviewClassic?.invoke(bookOfTheDay) ?: onAddContent()
                 }
                 .padding(16.dp)
         ) {
@@ -302,7 +272,7 @@ fun VeritasHomeHeroCard(
                                 text = "VERN CLASSIC",
                                 color = bookOfTheDay.accentColor.copy(alpha = 0.9f),
                                 fontSize = 8.sp,
-                                fontWeight = FontWeight.Black,
+                                fontWeight = MaterialTheme.typography.titleLarge.fontWeight,
                                 letterSpacing = 1.sp
                             )
                             Column(
@@ -453,15 +423,15 @@ fun VeritasHomeHeroCard(
                                 .background(onCardColor.copy(alpha = 0.18f))
                                 .border(1.dp, onCardColor.copy(alpha = 0.25f), CircleShape)
                                 .clickable {
-                                    if (doc != null) onPlayPause(doc)
-                                    else onDownloadAndOpenClassic?.invoke(bookOfTheDay) ?: onAddContent()
+                                    if (doc != null) onOpen(doc)
+                                    else onPreviewClassic?.invoke(bookOfTheDay) ?: onAddContent()
                                 },
                             contentAlignment = Alignment.Center
                         ) {
                             AnimatedContent(
-                                targetState = if (doc == null) "read" else if (isPlayingThis) "pause" else "play",
+                                targetState = "read",
                                 transitionSpec = {
-                                    (scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)) + fadeIn(tween(150)))
+                                    (scaleIn(if (com.veritas.reader.VeritasThemeState.reduceMotion) androidx.compose.animation.core.snap() else spring(dampingRatio = 0.9f, stiffness = 1400f)) + fadeIn(tween(150)))
                                         .togetherWith(fadeOut(tween(100)))
                                 },
                                 label = "playPauseMorph"
@@ -473,7 +443,7 @@ fun VeritasHomeHeroCard(
                                         else -> Icons.Filled.PlayArrow
                                     },
                                     contentDescription = when (state) {
-                                        "read" -> "Read classic"
+                                        "read" -> if (doc != null) "Open book" else "Preview classic"
                                         "pause" -> "Pause"
                                         else -> "Play"
                                     },
@@ -497,7 +467,7 @@ private fun heroCountUp(value: Int): Int {
     LaunchedEffect(value) { target = value }
     val animated by animateIntAsState(
         targetValue = target,
-        animationSpec = tween(durationMillis = 550, easing = FastOutSlowInEasing),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatial(),
         label = "heroCountUp"
     )
     return animated

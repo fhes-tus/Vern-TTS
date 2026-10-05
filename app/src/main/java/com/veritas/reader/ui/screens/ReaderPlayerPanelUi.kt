@@ -164,19 +164,20 @@ internal fun PlayerPanel(
 
     val scheme = MaterialTheme.colorScheme
     val isDark = scheme.surface.luminance() < 0.5f
+    val playerOpacity = VeritasPackStyle.chromeOpacity(VeritasPackStyle.currentPackId())
 
     val gradientBrush = if (isDark) {
         Brush.verticalGradient(
             colors = listOf(
-                blendColors(scheme.surface, scheme.primary, 0.12f).copy(alpha = 0.94f),
-                blendColors(scheme.surface, androidx.compose.ui.graphics.Color.Black, 0.20f).copy(alpha = 0.96f)
+                blendColors(scheme.surface, scheme.primary, 0.12f).copy(alpha = playerOpacity),
+                blendColors(scheme.surface, androidx.compose.ui.graphics.Color.Black, 0.20f).copy(alpha = playerOpacity)
             )
         )
     } else {
         Brush.verticalGradient(
             colors = listOf(
-                blendColors(scheme.surface, scheme.primaryContainer, 0.35f).copy(alpha = 0.95f),
-                blendColors(scheme.surface, scheme.primary, 0.08f).copy(alpha = 0.97f)
+                blendColors(scheme.surface, scheme.primaryContainer, 0.35f).copy(alpha = playerOpacity),
+                blendColors(scheme.surface, scheme.primary, 0.08f).copy(alpha = playerOpacity)
             )
         )
     }
@@ -349,7 +350,7 @@ internal fun PlayerPanel(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    val context = androidx.compose.ui.platform.LocalContext.current
+                    val context = LocalContext.current
                     val config = androidx.compose.ui.platform.LocalConfiguration.current
                     val isLandscape = config.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
                     IconButton(

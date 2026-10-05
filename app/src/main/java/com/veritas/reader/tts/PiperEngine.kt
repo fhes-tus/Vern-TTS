@@ -57,7 +57,7 @@ class PiperEngine(context: Context, private val voiceId: String) : TtsEngine {
             ShortArray(samples.size) { index ->
                 (samples[index].coerceIn(-1f, 1f) * Short.MAX_VALUE).toInt().toShort()
             }
-        }.onFailure { Log.e(TAG, "Piper synthesis failed", it) }.getOrNull()
+        }.onFailure { Log.e(TAG, "Piper synthesis failed", it) }.getOrNull()?.let { PcmPitchShift.apply(it, sampleRate, pitch) }
     }
 
     override fun shutdown() {

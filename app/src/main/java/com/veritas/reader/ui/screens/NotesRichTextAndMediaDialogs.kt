@@ -1,10 +1,16 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.graphics.SolidColor
+import com.veritas.reader.ui.NotesPaperTemplate
+
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,8 +42,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -266,6 +270,7 @@ internal fun NoteTextBlockItem(
     visualTransformation: VisualTransformation,
     onCardColor: Color,
     isOnlyBlock: Boolean,
+    paperTemplate: NotesPaperTemplate = NotesPaperTemplate.BLANK,
     modifier: Modifier = Modifier
 ) {
     var textValue by remember(block) { mutableStateOf(block.value) }
@@ -276,7 +281,8 @@ internal fun NoteTextBlockItem(
         }
     }
 
-    TextField(
+    var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    BasicTextField(
         value = textValue,
         onValueChange = { raw ->
             val processed = VeritasNoteEditing.continueListOnNewline(textValue, raw)
@@ -284,18 +290,20 @@ internal fun NoteTextBlockItem(
             onValueChange(processed)
         },
         textStyle = MaterialTheme.typography.bodyLarge.copy(color = onCardColor),
-        placeholder = {
-            if (isOnlyBlock && textValue.text.isEmpty()) {
-                Text(
-                    "Note",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = onCardColor.copy(alpha = 0.4f)
-                )
+        onTextLayout = { layout = it },
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        decorationBox = { innerTextField ->
+            Box(Modifier.fillMaxWidth().defaultMinSize(minHeight = if (isOnlyBlock) 200.dp else 24.dp)
+                .notesTextPaper(paperTemplate, onCardColor.copy(alpha = .10f), layout)) {
+                if (isOnlyBlock && textValue.text.isEmpty()) {
+                    Text("Note", style = MaterialTheme.typography.bodyLarge, color = onCardColor.copy(alpha = .4f))
+                }
+                innerTextField()
             }
         },
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = if (isOnlyBlock) 200.dp else 24.dp)
+            .padding(16.dp)
             .onFocusChanged { fState ->
                 if (fState.isFocused) {
                     onFocus()
@@ -310,15 +318,7 @@ internal fun NoteTextBlockItem(
                 }
                 false
             },
-        visualTransformation = visualTransformation,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            disabledContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedTextColor = onCardColor
-        )
+        visualTransformation = visualTransformation
     )
 }
 
@@ -343,16 +343,18 @@ class RichTextVisualTransformation(private val baseColor: Color) : VisualTransfo
 }
 
 object RichTextFormatter {
-    private val HEADING_REGEX = Regex("^(#{1,3}) ")
+    private val HEADING_REGEX = Regex("^(#{1,6}) ")
     private val inlineMarkers: List<Pair<Regex, (String) -> SpanStyle>> = listOf(
+        Regex("\\*\\*\\*(.+?)\\*\\*\\*") to { _: String -> SpanStyle(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic) },
         Regex("\\*\\*(.*?)\\*\\*") to { _: String -> SpanStyle(fontWeight = FontWeight.Bold) },
         Regex("__(.*?)__") to { _: String -> SpanStyle(textDecoration = TextDecoration.Underline) },
         Regex("~~(.*?)~~") to { _: String -> SpanStyle(textDecoration = TextDecoration.LineThrough) },
         Regex("`(.*?)`") to { _: String -> SpanStyle(fontFamily = FontFamily.Monospace) },
-        Regex("\\*(.*?)\\*") to { _: String -> SpanStyle(fontStyle = FontStyle.Italic) }
+        Regex("(?<![\\\\*])\\*(?![\\s*])([^*\\n]+?)(?<!\\s)\\*(?!\\*)") to { _: String -> SpanStyle(fontStyle = FontStyle.Italic) },
+        Regex("(?<![\\w_])_([^_\\n]+)_(?![\\w_])") to { _: String -> SpanStyle(fontStyle = FontStyle.Italic) }
     )
 
-    private val markerLengths = listOf(2, 2, 2, 1, 1)
+    private val markerLengths = listOf(3, 2, 2, 2, 1, 1, 1)
 
     fun transform(raw: String, baseColor: Color = Color.Unspecified): TransformedText {
         val n = raw.length
@@ -361,16 +363,15 @@ object RichTextFormatter {
         }
 
         // Fast-path: if text contains no markdown indicator characters, skip all regex parsing entirely!
-        val hasMarkdown = raw.any { it == '*' || it == '_' || it == '~' || it == '`' || it == '#' || it == '>' }
+        val hasMarkdown = raw.any { it == '*' || it == '_' || it == '~' || it == '`' || it == '#' || it == '>' || it == '-' || it == '+' }
         if (!hasMarkdown) {
             return TransformedText(AnnotatedString(raw), OffsetMapping.Identity)
         }
 
-        val markerStyle = if (baseColor != Color.Unspecified) {
-            SpanStyle(color = baseColor.copy(alpha = 0.35f))
-        } else {
-            SpanStyle(color = Color.Gray.copy(alpha = 0.5f))
-        }
+        val hidden = BooleanArray(n)
+        val closingOffsets = mutableListOf<Int>()
+        val bulletStarts = Regex("(?m)^[ \\t]*[-*+] (?=\\S)").findAll(raw).map { it.range.last - 1 }.toSet()
+        fun hide(start: Int, end: Int) { for (i in start until end) hidden[i] = true }
 
         val annotated = buildAnnotatedString {
             append(raw)
@@ -383,7 +384,7 @@ object RichTextFormatter {
                 val m = HEADING_REGEX.find(line)
                 if (m != null) {
                     val prefixLen = m.value.length
-                    addStyle(markerStyle, lineStart, lineStart + prefixLen)
+                    hide(lineStart, lineStart + prefixLen)
                     val level = m.groupValues[1].length
                     val size = when (level) {
                         1 -> 24f
@@ -394,7 +395,7 @@ object RichTextFormatter {
                         addStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = size.sp), lineStart + prefixLen, nl)
                     }
                 } else if (line.startsWith("> ")) {
-                    addStyle(markerStyle, lineStart, lineStart + 2)
+                    hide(lineStart, lineStart + 2)
                     addStyle(SpanStyle(fontStyle = FontStyle.Italic), lineStart + 2, nl)
                 }
                 if (nl >= n) break
@@ -410,21 +411,45 @@ object RichTextFormatter {
                     val e = match.range.last // inclusive
                     if (s < 0 || e >= n) return@forEach
                     var overlaps = false
-                    for (i in s..e) if (consumed[i]) { overlaps = true; break }
+                    for (i in s..e) if (consumed[i] || i in bulletStarts) { overlaps = true; break }
                     if (overlaps) return@forEach
                     val innerStart = s + mlen
                     val innerEnd = e + 1 - mlen
-                    if (innerEnd <= innerStart) return@forEach
+                    if (innerEnd < innerStart) return@forEach
                     for (i in s..e) consumed[i] = true
 
-                    addStyle(markerStyle, s, innerStart)
-                    addStyle(styleFor(match.groupValues.getOrElse(1) { "" }), innerStart, innerEnd)
-                    addStyle(markerStyle, innerEnd, e + 1)
+                    hide(s, innerStart)
+                    if (innerStart < innerEnd) addStyle(styleFor(match.groupValues.getOrElse(1) { "" }), innerStart, innerEnd)
+                    hide(innerEnd, e + 1)
+                    closingOffsets.add(innerEnd)
                 }
             }
         }
 
-        return TransformedText(annotated, OffsetMapping.Identity)
+        val originalOffsets = IntArray(n + 1)
+        val visible = StringBuilder()
+        for (i in raw.indices) {
+            originalOffsets[i] = visible.length
+            if (!hidden[i]) visible.append(if (i in bulletStarts) '•' else raw[i])
+        }
+        originalOffsets[n] = visible.length
+        val transformedOffsets = IntArray(visible.length + 1)
+        for (i in 0..n) transformedOffsets[originalOffsets[i]] = i
+        // Keep the caret inside a formatted run at its end so typing/backspace
+        // changes the visible words, rather than deleting a hidden closing marker.
+        closingOffsets.forEach { transformedOffsets[originalOffsets[it]] = it }
+        val result = buildAnnotatedString {
+            append(visible.toString())
+            annotated.spanStyles.forEach { span ->
+                val start = originalOffsets[span.start]
+                val end = originalOffsets[span.end]
+                if (start < end) addStyle(span.item, start, end)
+            }
+        }
+        return TransformedText(result, object : OffsetMapping {
+            override fun originalToTransformed(offset: Int) = originalOffsets[offset.coerceIn(0, n)]
+            override fun transformedToOriginal(offset: Int) = transformedOffsets[offset.coerceIn(0, visible.length)]
+        })
     }
 
     /** Removes inline markup and heading prefixes for plain-text sharing. */
@@ -611,6 +636,34 @@ internal fun openVideoFile(context: Context, path: String) {
     } catch (e: Exception) {
         e.printStackTrace()
         Toast.makeText(context, "Cannot open video: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+    }
+}
+
+internal fun openDocumentFile(context: Context, path: String, displayName: String? = null) {
+    try {
+        val source = android.net.Uri.parse(path)
+        val file = if (source.scheme == "file") File(source.path.orEmpty()) else File(path)
+        if (source.scheme != "content" && !file.exists()) {
+            Toast.makeText(context, "File not found", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val uri = if (source.scheme == "content") source else FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file,
+            displayName ?: file.name
+        )
+        val ext = file.extension.lowercase()
+        val mime = if (source.scheme == "content") context.contentResolver.getType(source) ?: "*/*"
+            else MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext) ?: "*/*"
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, mime)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(intent, "Open file"))
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Cannot open file: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
     }
 }
 

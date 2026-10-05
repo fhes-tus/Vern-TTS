@@ -354,12 +354,7 @@ fun AboutDialog(
                     try {
                         val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                         val vName = pInfo.versionName ?: com.veritas.reader.BuildConfig.VERSION_NAME
-                        val vCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                            pInfo.longVersionCode
-                        } else {
-                            @Suppress("DEPRECATION")
-                            pInfo.versionCode.toLong()
-                        }
+                        val vCode = pInfo.longVersionCode
                         "Version $vName (Build $vCode)"
                     } catch (_: Exception) {
                         "Version ${com.veritas.reader.BuildConfig.VERSION_NAME}"
@@ -367,7 +362,7 @@ fun AboutDialog(
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        text = "Vern TTS",
+                        text = "Vern",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onSurface

@@ -1,5 +1,8 @@
 package com.veritas.reader
 
+import com.veritas.reader.ui.currentReaderIndex
+
+import com.veritas.reader.ui.withVisibility
 
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -9,6 +12,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,8 +53,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -180,10 +190,10 @@ internal fun MainDialogsHost(
                 onOptionsChange = { opt -> viewModel.updateState { it.copy(advancedPdfOptions = opt) } },
                 onTextOptionsChange = { opt -> viewModel.updateState { it.copy(textImportOptions = opt) } },
                 onPickPdf = {
-                    viewModel.updateState { it.copy(showPdfImportTools = false) }
+                    viewModel.updateState { it.withVisibility(VeritasScreen.PDF_IMPORT_TOOLS, false) }
                     viewModel.openFileBrowser()
                 },
-                onDismiss = { viewModel.updateState { it.copy(showPdfImportTools = false) } }
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.PDF_IMPORT_TOOLS, false) } }
             )
         }
 
@@ -209,9 +219,9 @@ internal fun MainDialogsHost(
                 scanning = uiState.fileBrowserScanning,
                 message = uiState.fileBrowserMessage,
                 allFilesAccessGranted = uiState.fileBrowserAllFilesGranted,
-                importing = uiState.importInProgress,
+                importing = uiState.importInProgress || uiState.isBatchImporting,
                 importingName = uiState.importSourceName,
-                onDismiss = { viewModel.updateState { it.copy(showFileBrowser = false) } },
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.FILE_BROWSER, false) } },
                 onPickFolder = { folderPickerLauncher.launch(null) },
                 onRequestAllFilesAccess = {
                     openAllFilesAccessSettings(context)
@@ -238,9 +248,9 @@ internal fun MainDialogsHost(
             ReadingHistoryDialog(
                 history = uiState.readingHistory,
                 documents = uiState.documents,
-                onDismiss = { viewModel.updateState { it.copy(showReadingHistory = false) } },
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.READING_HISTORY, false) } },
                 onOpenDocument = { doc ->
-                    viewModel.updateState { it.copy(showReadingHistory = false) }; viewModel.openSavedDocument(
+                    viewModel.updateState { it.withVisibility(VeritasScreen.READING_HISTORY, false) }; viewModel.openSavedDocument(
                     doc
                 )
                 },
@@ -254,7 +264,7 @@ internal fun MainDialogsHost(
                     document = document,
                     annotations = uiState.annotations,
                     documentNote = uiState.documentNoteDraft,
-                    currentIndex = PlaybackStateStore.currentIndex.coerceIn(
+                    currentIndex = viewModel.currentReaderIndex.coerceIn(
                         0,
                         document.chunks.lastIndex.coerceAtLeast(0)
                     ),
@@ -266,10 +276,10 @@ internal fun MainDialogsHost(
                         }
                     },
                     onSaveDocumentNote = { viewModel.saveDocumentNoteDraft() },
-                    onAddCurrentNote = { viewModel.beginSentenceNote(listOf(PlaybackStateStore.currentIndex)) },
+                    onAddCurrentNote = { viewModel.beginSentenceNote(listOf(viewModel.currentReaderIndex)) },
                     onJumpToSection = { index ->
                         viewModel.moveTo(index, false)
-                        viewModel.updateState { it.copy(showDocumentNotes = false) }
+                        viewModel.updateState { it.withVisibility(VeritasScreen.DOCUMENT_NOTES, false) }
                     },
                     onExportNotes = {
                         viewModel.saveDocumentNoteDraft()
@@ -279,7 +289,7 @@ internal fun MainDialogsHost(
                         viewModel.saveDocumentNoteDraft()
                         viewModel.exportStudyGuidePdf()
                     },
-                    onDismiss = { viewModel.updateState { it.copy(showDocumentNotes = false) } }
+                    onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.DOCUMENT_NOTES, false) } }
                 )
             }
         }
@@ -326,7 +336,7 @@ internal fun MainDialogsHost(
             if (document != null && target != null) {
                 TextEditorDialog(
                     document = document,
-                    currentIndex = PlaybackStateStore.currentIndex,
+                    currentIndex = viewModel.currentReaderIndex,
                     text = uiState.editorText,
                     target = target,
                     onTextChange = { text -> viewModel.updateState { it.copy(editorText = text) } },
@@ -345,7 +355,7 @@ internal fun MainDialogsHost(
             AlertDialog(
                 onDismissRequest = { viewModel.updateState { it.copy(deleteTarget = null) } },
                 title = { Text("Delete reading?") },
-                text = { Text("This removes ${target.title} from the local library, queue, reading lists, history, bookmarks, and notes.") },
+                text = { Text("This removes ${target.title} from the local library, queue, and reading lists. Saved notes, bookmarks, and reading history remain available.") },
                 confirmButton = {
                     Button(onClick = { viewModel.deleteDocument(target) }) { Text("Delete") }
                 },
@@ -454,11 +464,14 @@ internal fun MainDialogsHost(
         uiState.detailsTarget?.let { target ->
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             val coverFile = remember(target.id) { CoverExtractor.coverFile(context, target.id) }
-            val coverBitmap = remember(coverFile) {
-                coverFile?.let { file ->
-                    if (file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null
+            val coverState = produceState<android.graphics.Bitmap?>(null, coverFile) {
+                value = withContext(Dispatchers.IO) {
+                    coverFile?.takeIf { it.isFile }?.let { file ->
+                        runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull()
+                    }
                 }
             }
+            val coverBitmap = coverState.value
             val progress = progressFraction(target)
             val percent = (progress * 100).toInt().coerceIn(0, 100)
             val bookmarksCount = remember(target.id, uiState.allAnnotations) {
@@ -475,18 +488,30 @@ internal fun MainDialogsHost(
                 }
             }
 
-            val singleParagraphSummary = remember(target.preview, target.id, matchingClassic) {
-                matchingClassic?.description?.takeIf { it.isNotBlank() }
-                    ?: run {
-                        val clean = extractSynopsisHeuristic(target.preview)
-                        if (clean.isNotBlank() && clean.split(Regex("\\s+")).size >= 10) {
-                            clean
-                        } else {
-                            val fullText = runCatching { viewModel.repository.readText(target) }.getOrNull().orEmpty()
-                            val fromFull = if (fullText.isNotBlank()) extractSynopsisHeuristic(fullText) else ""
-                            if (fromFull.isNotBlank()) fromFull else clean.ifBlank { target.preview }.ifBlank { "No preview synopsis available for this document." }
-                        }
+            var singleParagraphSummary by remember(target.id) { mutableStateOf("Preparing document overview…") }
+            var overviewSource by remember(target.id) { mutableStateOf("") }
+            var overviewSample by remember(target.id) { mutableStateOf("") }
+            var overviewApiKey by remember(target.id) { mutableStateOf("") }
+            var overviewBusy by remember(target.id) { mutableStateOf(false) }
+            var overviewError by remember(target.id) { mutableStateOf<String?>(null) }
+            val overviewScope = rememberCoroutineScope()
+            val overviewKey = "document_overview_${target.id}_${target.charCount}_${target.preview.hashCode()}"
+            LaunchedEffect(target.id, target.charCount, target.preview, matchingClassic) {
+                val result = withContext(Dispatchers.IO) {
+                    val prefs = context.getSharedPreferences("document_overviews", android.content.Context.MODE_PRIVATE)
+                    val stored = prefs.getString(overviewKey, "").orEmpty()
+                    val raw = runCatching { DocumentOverview.sample(java.io.File(viewModel.repository.docsDir, target.fileName)) }.getOrDefault("")
+                    val text = matchingClassic?.description?.takeIf { it.isNotBlank() }
+                        ?: stored.takeIf { it.isNotBlank() } ?: DocumentOverview.summarize(raw)
+                    val source = when {
+                        matchingClassic?.description?.isNotBlank() == true -> "Book description"
+                        stored.isNotBlank() -> "AI overview"
+                        else -> "Overview from the text"
                     }
+                    listOf(text, source, DocumentOverview.sample(raw), GeminiStudyService.getApiKey(context))
+                }
+                singleParagraphSummary = result[0]; overviewSource = result[1]
+                overviewSample = result[2]; overviewApiKey = result[3]
             }
 
             val displayAuthor = remember(target, matchingClassic) {
@@ -538,6 +563,7 @@ internal fun MainDialogsHost(
             }
 
             ModalBottomSheet(
+        shape = com.veritas.reader.VeritasPackStyle.sheetShape(),
                 onDismissRequest = { viewModel.updateState { it.copy(detailsTarget = null) } },
                 sheetState = sheetState,
                 containerColor = MaterialTheme.colorScheme.surface
@@ -545,6 +571,7 @@ internal fun MainDialogsHost(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
                         .padding(horizontal = 24.dp)
                         .padding(bottom = 36.dp)
                         .navigationBarsPadding(),
@@ -564,7 +591,7 @@ internal fun MainDialogsHost(
                             modifier = Modifier
                                 .size(110.dp, 160.dp)
                                 .shadow(8.dp, RoundedCornerShape(12.dp)),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                         ) {
@@ -742,7 +769,7 @@ internal fun MainDialogsHost(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                             ),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
@@ -758,15 +785,32 @@ internal fun MainDialogsHost(
                         }
                     }
 
-                    // Full Synopsis directly underneath without "Overview" or "Summary" header
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(overviewSource, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (overviewApiKey.isNotBlank() && overviewSample.isNotBlank()) TextButton(enabled = !overviewBusy, onClick = {
+                            overviewBusy = true; overviewError = null
+                            overviewScope.launch {
+                                try {
+                                    GeminiStudyService.generateDocumentOverview(overviewApiKey, target.title, overviewSample)
+                                        .onSuccess { result ->
+                                            withContext(Dispatchers.IO) {
+                                                check(context.getSharedPreferences("document_overviews", android.content.Context.MODE_PRIVATE).edit().putString(overviewKey, result).commit()) { "Could not save the overview." }
+                                            }
+                                            singleParagraphSummary = result; overviewSource = "AI overview"
+                                        }.onFailure { overviewError = it.message ?: "Could not generate the overview." }
+                                } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                                catch (error: Exception) { overviewError = error.message ?: "Could not save the overview." }
+                                finally { overviewBusy = false }
+                            }
+                        }) { Text(if (overviewBusy) "Summarizing…" else "Summarize with AI") }
+                    }
+                    overviewError?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
                     Text(
-                        text = singleParagraphSummary,
+                        text = DocumentOverview.limitSentences(singleParagraphSummary),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Start,
                         lineHeight = 20.sp,
-                        maxLines = 6,
-                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -821,7 +865,7 @@ internal fun MainDialogsHost(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(50.dp),
-                            shape = RoundedCornerShape(14.dp)
+                            shape = com.veritas.reader.VeritasPackStyle.compactShape()
                         ) {
                             Icon(
                                 imageVector = if (target.currentIndex > 0) Icons.Filled.PlayArrow else Icons.Outlined.Book,
@@ -863,7 +907,7 @@ internal fun MainDialogsHost(
                                 context.startActivity(Intent.createChooser(sendIntent, "Share Document"))
                             },
                             modifier = Modifier.size(50.dp),
-                            shape = RoundedCornerShape(14.dp)
+                            shape = com.veritas.reader.VeritasPackStyle.compactShape()
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Share,
@@ -877,7 +921,7 @@ internal fun MainDialogsHost(
         }
 
         if (uiState.showBackupTools) {
-            var fullBackupEstimate by remember { mutableStateOf(0L) }
+            var fullBackupEstimate by remember { mutableLongStateOf(0L) }
             LaunchedEffect(Unit) {
                 fullBackupEstimate = viewModel.estimateFullBackupBytes()
             }
@@ -903,12 +947,12 @@ internal fun MainDialogsHost(
                 onImport = {
                     backupImportLauncher.launch(veritasBackupMimeTypes())
                 },
-                onDismiss = { viewModel.updateState { it.copy(showBackupTools = false) } }
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.BACKUP_TOOLS, false) } }
             )
         }
 
         if (uiState.showSyncCenter) {
-            var fullBackupEstimate by remember { mutableStateOf(0L) }
+            var fullBackupEstimate by remember { mutableLongStateOf(0L) }
             LaunchedEffect(Unit) {
                 fullBackupEstimate = viewModel.estimateFullBackupBytes()
             }
@@ -932,11 +976,11 @@ internal fun MainDialogsHost(
                 onExportFull = {
                     fullBackupExportLauncher.launch(veritasBackupZipFileName("vern_full_backup"))
                 },
-                onShareSyncPack = { viewModel.updateState { it.copy(showSyncCenter = false) }; viewModel.shareLibrarySyncPack() },
+                onShareSyncPack = { viewModel.updateState { it.withVisibility(VeritasScreen.SYNC_CENTER, false) }; viewModel.shareLibrarySyncPack() },
                 onImportSyncPack = {
                     backupImportLauncher.launch(veritasBackupMimeTypes())
                 },
-                onDismiss = { viewModel.updateState { it.copy(showSyncCenter = false) } }
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.SYNC_CENTER, false) } }
             )
         }
 
@@ -946,7 +990,7 @@ internal fun MainDialogsHost(
                 queueCount = uiState.queuedDocuments.size,
                 themePackName = VeritasThemePackCatalog.displayName(uiState.readerSettings.themePackId),
                 themeName = VeritasThemeCatalog.displayName(uiState.readerSettings.themeId),
-                onDismiss = { viewModel.updateState { it.copy(showAppHealth = false) } }
+                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.APP_HEALTH, false) } }
             )
         }
 
