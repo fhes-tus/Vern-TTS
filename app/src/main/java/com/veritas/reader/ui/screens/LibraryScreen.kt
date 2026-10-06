@@ -754,51 +754,10 @@ fun LibraryScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .statusBarsPadding()
                         .widthIn(max = 760.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    AnimatedVisibility(
-                        visible = uiState.isBatchImporting,
-                        enter = expandVertically(VeritasMotion.spatial()) + fadeIn(chromeEffects),
-                        exit = shrinkVertically(VeritasMotion.spatial()) + fadeOut(chromeEffects)
-                    ) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 6.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                            shape = com.veritas.reader.VeritasPackStyle.compactShape()
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    strokeWidth = 2.5.dp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Importing files...",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                    Text(
-                                        text = "${uiState.batchImportCurrent} of ${uiState.batchImportTotal} completed" +
-                                            if (uiState.batchImportFailed > 0) " · ${uiState.batchImportFailed} failed" else "",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                            LibraryTopAndFilterBar(
+                    LibraryTopAndFilterBar(
                                 activeNavTab = activeNavTab,
                                 librarySection = librarySection,
                                 librarySelectedSection = libraryPagerPages[pagerState.currentPage].section ?: librarySection,
@@ -1061,6 +1020,12 @@ fun LibraryScreen(
 }
                 }
 
+                BatchImportFloater(
+                    visible = uiState.isBatchImporting,
+                    current = uiState.batchImportCurrent,
+                    total = uiState.batchImportTotal,
+                    failed = uiState.batchImportFailed
+                )
             }
             }
         }

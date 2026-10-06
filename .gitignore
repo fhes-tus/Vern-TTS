@@ -63,6 +63,9 @@ desktop.ini
 # Release APKs - store locally only
 releases/
 apks/
+output_apks/
+tmp/
+/ChatGPT Image*.png
 *.tar.bz2
 *.bz2
 kokoro-en-v0_19/

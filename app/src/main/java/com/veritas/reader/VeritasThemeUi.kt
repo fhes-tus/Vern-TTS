@@ -168,13 +168,15 @@ object VeritasPackStyle {
         return RoundedCornerShape(topStart = radius, topEnd = radius)
     }
 
-    @Composable
-    fun headerColor(scheme: ColorScheme): Color = when (currentPackId()) {
+    fun headerColorForPack(scheme: ColorScheme, packId: String): Color = when (VeritasThemePackCatalog.normalizePackId(packId)) {
         "material_you" -> scheme.primaryContainer
         "one_ui" -> scheme.background
         "liquid_glass" -> scheme.surfaceContainerLow
         else -> scheme.surface
     }
+
+    @Composable
+    fun headerColor(scheme: ColorScheme): Color = headerColorForPack(scheme, currentPackId())
 
     @Composable
     fun panelColor(scheme: ColorScheme): Color = when (currentPackId()) {
@@ -503,15 +505,17 @@ internal fun VeritasTheme(content: @Composable () -> Unit) {
         SideEffect {
             val window = (view.context as? Activity)?.window
             if (window != null) {
-                val barColor = if (isAmoled) Color.Black else if (!isLight) colorScheme.background else colorScheme.surface
+                val statusBarColor = VeritasPackStyle.headerColorForPack(colorScheme, selectedPack)
+                val navBarColor = if (isAmoled) Color.Black else if (!isLight) colorScheme.background else colorScheme.surface
                 @Suppress("DEPRECATION")
-                window.statusBarColor = barColor.toArgb()
+                window.statusBarColor = statusBarColor.toArgb()
                 @Suppress("DEPRECATION")
-                window.navigationBarColor = barColor.toArgb()
-                val isLightContainer = barColor.luminance() > 0.45f
+                window.navigationBarColor = navBarColor.toArgb()
+                val isLightStatusBar = statusBarColor.luminance() > 0.45f
+                val isLightNavBar = navBarColor.luminance() > 0.45f
                 val insetsController = WindowCompat.getInsetsController(window, view)
-                insetsController.isAppearanceLightStatusBars = isLightContainer
-                insetsController.isAppearanceLightNavigationBars = isLightContainer
+                insetsController.isAppearanceLightStatusBars = isLightStatusBar
+                insetsController.isAppearanceLightNavigationBars = isLightNavBar
             }
         }
     }
