@@ -14,6 +14,8 @@ All notable changes to the Veritas Reader application will be documented in this
 *   **Library and Classics:** Shared My Library / Classics sections, portrait cover cards, searchable horizontal genre shelves and sorting, preserving catalog additions and their bundled covers.
 *   **Live playback:** Cover-based player above navigation; tap the book to open its live position and use separate play/pause. Home's repeated row play buttons are removed; reading another book preserves the audio session.
 *   **Catalog downloads:** Durable per-book progress, cancel/retry and stable catalog identity with atomic duplicate prevention. Website-only catalog entries open their source instead of importing HTML as a book.
+*   **Movable Batch Import Floater:** Replaced the static header import banner with a small, circular, draggable floater showing progress ring and counts, docking smoothly along screen edges and vanishing automatically upon completion.
+*   **Status Bar & Top Bar Tinting:** Unified status bar background with top bar header color across all theme packs and dynamically calculated high-contrast icon appearance so system bar info never vanishes.
 
 ### Fixed
 *   **Non-blocking Imports and Batch Reliability:** Remove the dark full-screen import overlays from the reader host and file browser. Persist batches as sequential WorkManager jobs, continue after rejected files, deduplicate selections, keep queued readings in selected order, report actual completion/failures, and restore batch progress when the app reopens. Back dismisses the browser without cancelling extraction.
