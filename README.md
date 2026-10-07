@@ -41,9 +41,13 @@ Designed with an **offline-first, privacy-respecting philosophy**, your document
 | :---: | :---: | :---: |
 | <img src="docs/screenshots/current_reader.png" width="280" alt="Reading Mode & Highlighting" /> | <img src="docs/screenshots/audio_player.png" width="280" alt="Audio Player & Speeds" /> | <img src="docs/screenshots/pdf_viewer.png" width="280" alt="Original PDF Mode" /> |
 
-| ✍️ Notes & Voice Clips | 🧠 Study Hub & Flashcards | 📊 Habit & Reading Insights |
+| 🏛️ Classics Catalog | ✍️ Notes Hub & Links | 🎙️ Voice Memos & Waveforms |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/notes.png" width="280" alt="Multi-Media Notes" /> | <img src="docs/screenshots/study.png" width="280" alt="Study Hub Flashcards" /> | <img src="docs/screenshots/insights.png" width="280" alt="Analytics Heatmap" /> |
+| <img src="docs/screenshots/classics.png" width="280" alt="Public Domain Classics" /> | <img src="docs/screenshots/notes.png" width="280" alt="Notes Hub & Web Previews" /> | <img src="docs/screenshots/note_editor.png" width="280" alt="Voice Memo Waveforms & Reflections" /> |
+
+| 🧠 Study Hub | 📊 Habit & Reading Insights | 🎨 Display & Theme Packs |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/study.png" width="280" alt="Study Hub Flashcards" /> | <img src="docs/screenshots/insights.png" width="280" alt="Analytics Heatmap" /> | <img src="docs/screenshots/theme.png" width="280" alt="Themes & Palettes" /> |
 
 </div>
 

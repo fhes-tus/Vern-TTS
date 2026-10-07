@@ -159,17 +159,17 @@ fun UserManualDialog(
                     ManualChapter(
                         title = "Four Main Workspaces",
                         icon = Icons.Outlined.ViewStream,
-                        subtitle = "Home, Library, Study, and Settings Hub",
-                        content = "Vern is organized into 4 primary tabs: 'Home' for daily reading momentum, 'Library' for your document catalog and imports, 'Study' for flashcards and reading insights, and 'Settings' for complete audio, visual, and backup configuration.",
+                        subtitle = "Home, Library, Study, and Notes Hub",
+                        content = "Vern is organized into 4 primary tabs: 'Home' for daily reading momentum, 'Library' for your document catalog and public classics, 'Study' for flashcards and reading insights, and 'Notes' for voice memos, web link bookmarks, and reflections. Open app Settings anytime from the top bar.",
                         ctaText = "Explore Settings",
                         ctaAction = "settings_hub",
                         flowSteps = listOf(
-                            "Use the bottom bar to switch between Home, Library, Study, and Settings",
+                            "Use the bottom bar to switch between Home, Library, Study, and Notes",
                             "Enjoy fluid animated transitions between all four tabs",
-                            "Access all tools without getting lost in nested submenus"
+                            "Access Settings and tools via the top header bar"
                         ),
                         imageResId = R.drawable.manual_settings_hub,
-                        tags = listOf("tabs", "navigation", "workspaces", "home", "library", "study", "settings hub")
+                        tags = listOf("tabs", "navigation", "workspaces", "home", "library", "study", "notes", "settings hub")
                     )
                 )
             ),
@@ -209,19 +209,19 @@ fun UserManualDialog(
                         tags = listOf("rename", "author", "metadata", "delete", "options", "edit", "tags", "categories")
                     ),
                     ManualChapter(
-                        title = "Batch Organization",
+                        title = "Batch Organization & Import Floater",
                         icon = Icons.Outlined.Checklist,
-                        subtitle = "Manage multiple documents together",
-                        content = "Organize a large reading list efficiently using batch mode. By long-pressing any book card, you activate multi-select mode. Select multiple items to bulk delete, assign categories, or append to folders at once.",
+                        subtitle = "Manage multiple documents and monitor imports",
+                        content = "Organize a large reading list efficiently using batch mode. Long-press any book card to activate multi-select mode. When importing files or downloading books, a movable circular floater shows live progress without blocking your screen.",
                         ctaText = "Bulk Edit Tip",
                         ctaAction = "bulk_edit",
                         flowSteps = listOf(
-                            "Long-press any document card in the Library",
-                            "Tap other cards to select multiple items",
-                            "Select a bulk action icon from the top bar"
+                            "Long-press any document card in the Library to enter multi-select",
+                            "Select multiple items to categorize or delete in bulk",
+                            "Drag the import progress floater to either edge of the screen as files load"
                         ),
                         imageResId = R.drawable.manual_library_batch,
-                        tags = listOf("batch", "bulk", "multi-select", "select all", "delete multiple", "organize")
+                        tags = listOf("batch", "bulk", "multi-select", "select all", "delete multiple", "organize", "import floater")
                     ),
                     ManualChapter(
                         title = "Adding Content & Formats",
@@ -272,13 +272,13 @@ fun UserManualDialog(
                         title = "Classic Books Catalog & Archives",
                         icon = Icons.Outlined.Book,
                         subtitle = "Public domain masterpieces & in-app book repos",
-                        content = "Browse curated classic titles (Meditations, The Art of War, As a Man Thinketh) or explore free public repositories (Project Gutenberg, Standard Ebooks, Open Library, ManyBooks, and Ocean of PDF) directly in-app with automatic sandboxed download interception.",
+                        content = "Browse curated classic titles (Meditations, The Art of War, Self-Reliance, Alice in Wonderland) directly in the 'Classics' tab of My Library. Explore genres like Family & Youth, Mystery, and Adventure, or browse external repos (Project Gutenberg, Standard Ebooks, Open Library) with automatic download interception.",
                         ctaText = "Browse Classics",
                         ctaAction = "classics_catalog",
                         flowSteps = listOf(
-                            "Tap the '+' button in Library and choose 'Classic Books Catalog'",
-                            "Filter by genre or search for authors and titles",
-                            "Tap 'Get' or launch a repository chip to download and import in seconds"
+                            "Tap the 'Classics' tab in My Library",
+                            "Explore 'Today's Pick' and genre shelves",
+                            "Tap 'Add to library' to download and start reading immediately"
                         ),
                         imageResId = R.drawable.manual_classics_catalog,
                         tags = listOf("classics", "public domain", "gutenberg", "standard ebooks", "ocean of pdf", "open library", "manybooks", "download", "free books")
@@ -542,6 +542,21 @@ fun UserManualDialog(
                         ),
                         imageResId = R.drawable.manual_notes_main,
                         tags = listOf("notes", "voice memo", "waveform", "annotations", "pinned", "audio recording")
+                    ),
+                    ManualChapter(
+                        title = "Rich Note Editor & Audio Reflections",
+                        icon = Icons.Outlined.GraphicEq,
+                        subtitle = "Waveforms, hashtags & web card embeds",
+                        content = "Create rich multimedia study notes with voice memos featuring interactive playback waveforms, hashtag categorizations (#iQuietime), and automatic web bookmark cards with preview thumbnails.",
+                        ctaText = "Go to Notes",
+                        ctaAction = "notes_tab",
+                        flowSteps = listOf(
+                            "Tap '+ Note' or open any existing note in your list",
+                            "Record voice memos or type rich markdown reflections",
+                            "Paste web links (e.g. bible.com) to generate rich preview cards"
+                        ),
+                        imageResId = R.drawable.manual_note_editor,
+                        tags = listOf("note editor", "voice memo", "waveform", "tags", "link preview", "bible.com", "audio notes")
                     )
                 )
             ),
