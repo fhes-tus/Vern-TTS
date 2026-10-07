@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="docs/icon.png" width="96" height="96" alt="Veritas Reader Icon" />
+<img src="docs/icon.png" width="96" height="96" alt="Vern Icon" />
 
-# Veritas Reader
+# Vern
 
-### *Your intelligent, private reading companion, neural audiobook studio, and active-recall study suite for Android.*
+### *Your intelligent, private reading workstation, neural audiobook studio, and active-recall study suite for Android.*
 
 [![Latest Release](https://img.shields.io/badge/Release-v2.6.0-orange.svg)](https://github.com/fhes-tus/Vern-TTS/releases)
 [![Target Platform](https://img.shields.io/badge/Platform-Android%2016%20(API%2036)-3DDC84.svg?logo=android&logoColor=white)](https://developer.android.com/)
@@ -27,7 +27,7 @@
 
 ## 🌟 Overview
 
-**Veritas Reader** transforms any document into an immersive, multi-sensory reading experience. Whether you are studying dense academic papers, reading digital books on your commute, or listening to long-form articles hands-free, Veritas Reader combines state-of-the-art on-device neural voice synthesis, active-recall study tools, dyslexia-friendly typography, and reading analytics into a single, cohesive experience.
+**Vern** (root word *Vernehmen* — German: to hear/perceive, formerly *Veritas Reader*) transforms any document into an immersive, multi-sensory reading experience. Whether you are studying dense academic papers, reading digital books on your commute, or listening to long-form articles hands-free, Vern combines state-of-the-art on-device neural voice synthesis, active-recall study tools, dyslexia-friendly typography, and reading analytics into a single, cohesive workstation.
 
 Designed with an **offline-first, privacy-respecting philosophy**, your documents, reading history, highlights, and voice notes never leave your device. No subscriptions, no mandatory accounts, and no data tracking.
 
@@ -118,7 +118,7 @@ Designed with an **offline-first, privacy-respecting philosophy**, your document
 
 Download the latest release APK from the official repository releases:
 
-👉 **[Download Latest Veritas Reader Release](https://github.com/fhes-tus/Vern-TTS/releases/latest)**
+👉 **[Download Latest Vern Release](https://github.com/fhes-tus/Vern-TTS/releases/latest)**
 
 | Recommended For | Architecture |
 | :--- | :--- |
@@ -132,7 +132,7 @@ Download the latest release APK from the official repository releases:
 
 ## 🛠️ Architecture & Tech Stack
 
-Veritas Reader is built adhering strictly to modern Android development standards and Unidirectional Data Flow (UDF) architecture:
+Vern is built adhering strictly to modern Android development standards and Unidirectional Data Flow (UDF) architecture:
 
 * **UI Layer**: 100% declarative UI built with **Jetpack Compose**, **Material 3**, and Compose Spring Animations.
 * **Architecture**: MVVM with `StateFlow` and immutable UI state representations.
