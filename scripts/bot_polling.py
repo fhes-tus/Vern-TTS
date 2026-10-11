@@ -195,7 +195,7 @@ def get_latest_release():
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            tag = data.get("tag_name", "v2.6.0")
+            tag = data.get("tag_name", "v2.6.1")
             name = data.get("name", f"Vern TTS {tag}")
             body = data.get("body", "")
             _cached_release = {
@@ -212,7 +212,7 @@ def get_latest_release():
         print(f"Warning: could not fetch release from GitHub API ({e})")
         if _cached_release:
             return _cached_release
-        tag = "v2.6.0"
+        tag = "v2.6.1"
         return {
             "tag": tag,
             "name": f"Vern TTS {tag}",
@@ -249,6 +249,8 @@ def get_changelog_content():
             os.path.join(os.getcwd(), f"RELEASE_NOTES_{tag}.md"),
             os.path.join(os.path.dirname(os.path.abspath(__file__)), f"RELEASE_NOTES_{tag}.md"),
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", f"RELEASE_NOTES_{tag}.md"),
+            os.path.join(os.getcwd(), "RELEASE_NOTES_v2.6.1.md"),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "RELEASE_NOTES_v2.6.1.md"),
             os.path.join(os.getcwd(), "RELEASE_NOTES_v2.6.0.md"),
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "RELEASE_NOTES_v2.6.0.md"),
         ]
@@ -264,11 +266,11 @@ def get_changelog_content():
     formatted_notes = markdown_to_telegram_html(body, max_bullets=14)
     if not formatted_notes:
         formatted_notes = (
-            "• <b>Classics Catalog & Shelves</b>: Curated 35+ masterpieces with authentic covers and background downloading.\n"
-            "• <b>Floating Playback Capsule</b>: Hovering live playback bar with interactive waveforms & session lifecycle.\n"
-            "• <b>Notes & Notebooks Upgrade</b>: Multi-notebook organization, trash recovery, and 30-step revision history.\n"
-            "• <b>Pronunciation Rules Engine</b>: Literal boundary matching, custom substitutions, and audio auditioning.\n"
-            "• <b>Liquid Glass & UI Alignment</b>: Dynamic status bar luminance tinting and movable batch import floater."
+            "• <b>Bidirectional Notes Sharing</b>: Multi-format export (TXT, PDF, audio recordings, or restorable ZIP) and external stream imports.\n"
+            "• <b>Measured Reading Sessions Ledger</b>: Crash-resilient tracking separating silent reading from confirmed neural audio playback.\n"
+            "• <b>Resilient Vocabulary & Wiktionary</b>: Background WorkManager definition resolution with multi-dictionary fallbacks.\n"
+            "• <b>Save to Phone Storage</b>: Direct external document export surviving app uninstalls.\n"
+            "• <b>Listen & Insights Redesign</b>: Liquid glass controls, streak flame animations, and Midnight (System) default theme."
         )
 
     text = (

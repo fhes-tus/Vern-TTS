@@ -136,18 +136,18 @@ def main():
     if not data:
         data = get_release_data(req_tag)
     
-    tag = req_tag or (data.get("tag_name") if data else "v2.6.0")
+    tag = req_tag or (data.get("tag_name") if data else "v2.6.1")
     name = data.get("name", f"Vern TTS {tag}") if data else f"Vern TTS {tag}"
     body = data.get("body", "") if data else ""
     
     cleaned_highlights = markdown_to_telegram_html(body, max_bullets=10)
     if not cleaned_highlights:
         cleaned_highlights = (
-            "• <b>Authentic Published Covers</b>: 35+ classic masterpieces with original artwork.\n"
-            "• <b>Unified Paper Tone Sync</b>: Real-time consistency across text and PDF readers.\n"
-            "• <b>Enhanced PDF Media Bar</b>: Next skip and instant orientation toggle.\n"
-            "• <b>Intelligent Synopsis</b>: Automatic clean opening prose extraction.\n"
-            "• <b>Streamlined UI</b>: Elevated drag reordering and split-action hero card."
+            "• <b>Bidirectional Notes Sharing</b>: Multi-format export (TXT, PDF, audio, restorable ZIP) and incoming shares.\n"
+            "• <b>Measured Reading Sessions</b>: Durable ledger separating reading from listening with crash checkpoints.\n"
+            "• <b>Resilient Background Vocabulary</b>: Offline-safe dictionary lookup with Wiktionary fallback.\n"
+            "• <b>Save to Phone Storage</b>: Export books directly to external device storage surviving uninstalls.\n"
+            "• <b>Listen & Reading Insights Redesign</b>: Bounded liquid glass, streak flame animation, and Midnight theme."
         )
 
     # Extract asset links
