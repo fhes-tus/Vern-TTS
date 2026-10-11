@@ -1,0 +1,64 @@
+
+com.veritas.reader.ManagedAttachmentsInstrumentedTest:...
+com.veritas.reader.MixedSpeechPlanInstrumentedTest:.....
+com.veritas.reader.NoteSharingInstrumentedTest:......
+com.veritas.reader.WidgetAndQuestAcceptanceTest:..
+Error in widgetsRenderAtCompactAndExpandedSizesInBothSystemThemes(com.veritas.reader.WidgetAndQuestAcceptanceTest):
+java.lang.AssertionError: QuickCaptureWidget must have readable content
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.veritas.reader.WidgetAndQuestAcceptanceTest$widgetsRenderAtCompactAndExpandedSizesInBothSystemThemes$1.invokeSuspend$lambda$1(WidgetAndQuestAcceptanceTest.kt:52)
+	at com.veritas.reader.WidgetAndQuestAcceptanceTest$widgetsRenderAtCompactAndExpandedSizesInBothSystemThemes$1$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at android.app.Instrumentation$SyncRunnable.run(Instrumentation.java:2703)
+	at android.os.Handler.handleCallback(Handler.java:1070)
+	at android.os.Handler.dispatchMessage(Handler.java:125)
+	at android.os.Looper.dispatchMessage(Looper.java:358)
+	at android.os.Looper.loopOnce(Looper.java:288)
+	at android.os.Looper.loop(Looper.java:392)
+	at android.app.ActivityThread.main(ActivityThread.java:10346)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:638)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:972)
+
+com.veritas.reader.HeroAndQuizMediaUiTest:
+Error in heroKeepsItsActionsAtCompactWidthAndLargeTextInLightAndDark(com.veritas.reader.HeroAndQuizMediaUiTest):
+java.lang.AssertionError: Failed to perform checkIsDisplayed check: Expected at most 1 node but found 2 nodes that satisfy (Text + InputText + EditableText contains 'The Complete Sherlock Holmes' (ignoreCase: false))
+	at androidx.compose.ui.test.AndroidAssertions_androidKt.checkIsDisplayed(AndroidAssertions.android.kt:35)
+	at androidx.compose.ui.test.AssertionsKt.isDisplayed(Assertions.kt:351)
+	at androidx.compose.ui.test.AssertionsKt.assertIsDisplayed(Assertions.kt:33)
+	at com.veritas.reader.HeroAndQuizMediaUiTest.heroKeepsItsActionsAtCompactWidthAndLargeTextInLightAndDark(HeroAndQuizMediaUiTest.kt:58)
+.
+
+Time: 29.271
+There were 2 failures:
+1) widgetsRenderAtCompactAndExpandedSizesInBothSystemThemes(com.veritas.reader.WidgetAndQuestAcceptanceTest)
+java.lang.AssertionError: QuickCaptureWidget must have readable content
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.veritas.reader.WidgetAndQuestAcceptanceTest$widgetsRenderAtCompactAndExpandedSizesInBothSystemThemes$1.invokeSuspend$lambda$1(WidgetAndQuestAcceptanceTest.kt:52)
+	at com.veritas.reader.WidgetAndQuestAcceptanceTest$widgetsRenderAtCompactAndExpandedSizesInBothSystemThemes$1$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at android.app.Instrumentation$SyncRunnable.run(Instrumentation.java:2703)
+	at android.os.Handler.handleCallback(Handler.java:1070)
+	at android.os.Handler.dispatchMessage(Handler.java:125)
+	at android.os.Looper.dispatchMessage(Looper.java:358)
+	at android.os.Looper.loopOnce(Looper.java:288)
+	at android.os.Looper.loop(Looper.java:392)
+	at android.app.ActivityThread.main(ActivityThread.java:10346)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:638)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:972)
+2) heroKeepsItsActionsAtCompactWidthAndLargeTextInLightAndDark(com.veritas.reader.HeroAndQuizMediaUiTest)
+java.lang.AssertionError: Failed to perform checkIsDisplayed check: Expected at most 1 node but found 2 nodes that satisfy (Text + InputText + EditableText contains 'The Complete Sherlock Holmes' (ignoreCase: false))
+	at androidx.compose.ui.test.AndroidAssertions_androidKt.checkIsDisplayed(AndroidAssertions.android.kt:35)
+	at androidx.compose.ui.test.AssertionsKt.isDisplayed(Assertions.kt:351)
+	at androidx.compose.ui.test.AssertionsKt.assertIsDisplayed(Assertions.kt:33)
+	at com.veritas.reader.HeroAndQuizMediaUiTest.heroKeepsItsActionsAtCompactWidthAndLargeTextInLightAndDark(HeroAndQuizMediaUiTest.kt:58)
+
+FAILURES!!!
+Tests run: 19,  Failures: 2
+
+

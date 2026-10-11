@@ -223,7 +223,7 @@ internal fun SyncAndBackupCenterDialog(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Text(
-                                text = "Backup & Sync Actions",
+                                text = "Portable backup actions",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Black,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -232,28 +232,30 @@ internal fun SyncAndBackupCenterDialog(
                             Button(
                                 onClick = onExportSyncPack,
                                 modifier = Modifier.fillMaxWidth(),
-                                enabled = documentCount > 0,
+                                enabled = !inProgress,
                                 shape = VeritasPackStyle.chipShape(),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary
                                 )
                             ) {
-                                Text("Export Data Backup (.json)", fontWeight = FontWeight.Bold)
+                                Text("Export text & settings (.json)", fontWeight = FontWeight.Bold)
                             }
+
+                            Text("Use the ZIP backup to carry Notes recordings, images and quiz media to another device. JSON carries text and settings only. Import merges with your existing data.", style = MaterialTheme.typography.bodySmall)
 
                             val fullBackupSizeMb = fullBackupEstimateBytes / (1024.0 * 1024.0)
                             OutlinedButton(
                                 onClick = onExportFull,
                                 modifier = Modifier.fillMaxWidth(),
-                                enabled = documentCount > 0,
+                                enabled = !inProgress,
                                 shape = VeritasPackStyle.chipShape()
                             ) {
                                 Text(
                                     if (fullBackupEstimateBytes > 0)
-                                        String.format(locale, "Export Full Library (.zip ~%.1f MB)", fullBackupSizeMb)
+                                        String.format(locale, "Export portable backup with media (.zip ~%.1f MB)", fullBackupSizeMb)
                                     else
-                                        "Export Full Library (.zip)",
+                                        "Export portable backup with media (.zip)",
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -261,10 +263,10 @@ internal fun SyncAndBackupCenterDialog(
                             OutlinedButton(
                                 onClick = onShareSyncPack,
                                 modifier = Modifier.fillMaxWidth(),
-                                enabled = documentCount > 0,
+                                enabled = !inProgress,
                                 shape = VeritasPackStyle.chipShape()
                             ) {
-                                Text("Share Sync Pack (Drive / WhatsApp / Files)", fontWeight = FontWeight.Bold)
+                                Text("Share text & settings (.json)", fontWeight = FontWeight.Bold)
                             }
 
                             OutlinedButton(

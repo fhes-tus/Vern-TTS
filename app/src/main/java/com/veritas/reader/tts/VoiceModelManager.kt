@@ -8,15 +8,40 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.coroutineContext
 
 sealed class DownloadState {
     object Idle : DownloadState()
-    data class Downloading(val bytesDownloaded: Long, val totalBytes: Long, val percent: Int) : DownloadState()
+    data class Downloading(
+        val bytesDownloaded: Long, val totalBytes: Long, val percent: Int,
+        val installing: Boolean = false, val queued: Boolean = false
+    ) : DownloadState() {
+        val label: String get() = when {
+            queued -> "Queued"
+            installing -> "Installing…"
+            totalBytes <= 0 -> "Downloading…"
+            else -> "Downloading $percent%"
+        }
+    }
     object Completed : DownloadState()
     data class Failed(val reason: String) : DownloadState()
 }
@@ -57,7 +82,7 @@ object VoiceModelManager {
     /**
      * Kokoro **int8 multi-lang v1.0** — the only release that matches this app.
      *
-     * Its 53 speakers are ordered exactly as [KokoroTtsEngine]'s speaker table
+     * Its original 53 and updated 54 speakers use the same English ordering as [KokoroTtsEngine]'s speaker table
      * expects (ids 0-27 are the English voices this catalog offers), and it ships the
      * `lexicon-*.txt` files the engine needs. Its Chinese assets are removed after
      * extraction — see [pruneNonEnglishAssets].
@@ -77,21 +102,20 @@ object VoiceModelManager {
     /** Speakers in kokoro-int8-multi-lang-v1_0; used to catch a mismatched package. */
     const val KOKORO_EXPECTED_SPEAKERS = 53
 
-    /**
-     * `voices.bin` is a bare concatenation of style vectors — one `[510, 256]` block
-     * of float32 per speaker — so its size identifies the release exactly:
-     * 53 x 510 x 256 x 4 = 27,678,720 for v1.0, against 5,755,904 for en-v0_19 (11
-     * speakers) and 53,790,720 for v1.1-zh (103). Checking it is how a package from
-     * the wrong release is caught before it ever reaches the engine, instead of
-     * quietly reading English text in a Chinese voice.
-     */
-    private const val KOKORO_VOICES_BIN_BYTES = 53L * 510L * 256L * 4L
-
     /** eSpeak dictionaries kept after pruning. Everything else is another language. */
     private val KEPT_ESPEAK_DICTS = setOf("en_dict")
 
     private val _downloadState = MutableStateFlow<Map<String, DownloadState>>(emptyMap())
     val downloadState: StateFlow<Map<String, DownloadState>> = _downloadState.asStateFlow()
+    private val packageLocks = ConcurrentHashMap<String, Mutex>()
+    private val downloadSlots = Semaphore(3)
+    private val transientLock = Any()
+    private val activeTransientPaths = mutableSetOf<String>()
+    private val espeakInstallLock = Any()
+    // Downloads outlive lazy-list rows and the voice screen, but use only the application context.
+    private val downloadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val requestLock = Any()
+    private val inFlight = mutableMapOf<String, Deferred<Boolean>>()
 
     val availablePackages = listOf(
         NeuralPackageDescriptor(
@@ -105,8 +129,8 @@ object VoiceModelManager {
         NeuralPackageDescriptor(
             id = "veritas_lite_pack",
             title = "Vern Lite",
-            description = "12 UK and US voices, downloaded one at a time at about 20MB " +
-                "each. Reads continuously with no gaps on any phone.",
+            description = "12 UK and US voices, about 20MB each. Select several " +
+                "to download together; additional downloads wait their turn.",
             engineType = OfflineEngineType.PIPER,
             targetVoiceId = "piper_en_us_amy"
         )
@@ -280,9 +304,9 @@ object VoiceModelManager {
      * would keep a duplicate of the same ~18MB. The first voice populates the shared
      * copy; later ones find it already there and simply drop theirs.
      */
-    private fun hoistSharedEspeak(context: Context, staging: File) {
+    private fun hoistSharedEspeak(context: Context, staging: File) = synchronized(espeakInstallLock) {
         val local = File(staging, "espeak-ng-data")
-        if (!local.isDirectory) return
+        if (!local.isDirectory) return@synchronized
         val shared = sharedEspeakDirectory(context)
         if (File(shared, "phontab").isFile) {
             val reclaimed = local.walkBottomUp().filter { it.isFile }.sumOf { it.length() }
@@ -290,20 +314,22 @@ object VoiceModelManager {
             Log.i(TAG, "Reused shared eSpeak data, saving ${reclaimed / (1024 * 1024)}MB")
         } else {
             shared.parentFile?.mkdirs()
-            if (!local.renameTo(shared)) local.copyRecursively(shared, overwrite = true)
+            // An interrupted old install may have left a partial directory.
+            shared.deleteRecursively()
+            check(local.renameTo(shared)) { "Could not install shared pronunciation data" }
             Log.i(TAG, "Installed shared eSpeak data at $shared")
         }
     }
 
-    /** True when `voices.bin` is the size only kokoro-multi-lang-v1_0 produces. */
+    /** Accept both complete v1.0 exports, excluding older and incompatible voice tables. */
     private fun isExpectedKokoroRelease(dir: File): Boolean {
         val voices = File(dir, "voices.bin")
         if (!voices.isFile) return false
         val size = voices.length()
-        if (size == KOKORO_VOICES_BIN_BYTES) return true
+        if (KokoroPackageShape.speakerCount(size) != null) return true
         if (size != lastWarnedVoicesBinSize) {
             lastWarnedVoicesBinSize = size
-            Log.w(TAG, "voices.bin is $size bytes, expected $KOKORO_VOICES_BIN_BYTES — wrong Kokoro release; re-download the voice")
+            Log.w(TAG, "voices.bin is $size bytes, expected a complete 53- or 54-speaker v1.0 export; re-download the voice")
         }
         return false
     }
@@ -341,10 +367,11 @@ object VoiceModelManager {
      * downloads. An abandoned `*_archive.tmp` is the size of a full model package,
      * so these are worth hundreds of megabytes.
      */
-    fun cleanupOrphans(context: Context): Long {
+    fun cleanupOrphans(context: Context): Long = synchronized(transientLock) {
         val dir = getTtsDirectory(context)
         var freed = 0L
         dir.listFiles()?.forEach { file ->
+            if (file.absolutePath in activeTransientPaths) return@forEach
             val stale = file.isFile && (
                 file.name.endsWith("_archive.tmp") ||
                     file.name.endsWith(".onnx") ||
@@ -360,54 +387,88 @@ object VoiceModelManager {
             }
         }
         if (freed > 0) Log.i(TAG, "Reclaimed $freed bytes of orphaned TTS downloads")
-        return freed
+        freed
     }
 
-    suspend fun downloadVoice(context: Context, voice: OfflineVoiceDescriptor): Boolean = withContext(Dispatchers.IO) {
-        updateState(voice.id, DownloadState.Downloading(0, 100, 0))
-        val baseDir = getTtsDirectory(context)
-        // Reclaim anything an interrupted attempt left behind before asking for
-        // another few hundred megabytes.
-        cleanupOrphans(context)
+    suspend fun downloadVoice(context: Context, voice: OfflineVoiceDescriptor): Boolean {
+        val task = synchronized(requestLock) {
+            inFlight[voice.id]?.takeIf { it.isActive } ?: downloadScope.async(start = CoroutineStart.LAZY) {
+                runDownload(context.applicationContext, voice)
+            }.also { pending ->
+                inFlight[voice.id] = pending
+                pending.invokeOnCompletion {
+                    synchronized(requestLock) { if (inFlight[voice.id] === pending) inFlight.remove(voice.id) }
+                }
+                pending.start()
+            }
+        }
+        return task.await()
+    }
 
+    private suspend fun runDownload(context: Context, voice: OfflineVoiceDescriptor): Boolean {
+        // Kokoro catalog entries all install one shared package; Piper entries are independent.
+        val packageKey = if (voice.engineType == OfflineEngineType.KOKORO) "kokoro" else voice.id
+        updateState(voice.id, DownloadState.Downloading(0, 0, 0, queued = true))
+        try {
+            return packageLocks.computeIfAbsent(packageKey) { Mutex() }.withLock {
+                downloadSlots.withPermit {
+                    withContext(Dispatchers.IO) { installVoice(context, voice) }
+                }
+            }
+        } catch (cancelled: CancellationException) {
+            updateState(voice.id, if (isVoiceInstalled(context, voice.id)) DownloadState.Completed else DownloadState.Idle)
+            throw cancelled
+        }
+    }
+
+    private suspend fun installVoice(context: Context, voice: OfflineVoiceDescriptor): Boolean {
+        val baseDir = getTtsDirectory(context)
+        val attempt = "${voice.id}_${UUID.randomUUID()}"
+        val targetFile = File(baseDir, "${attempt}_archive.tmp")
+        val staging = File(baseDir, "${attempt}_staging")
+        synchronized(transientLock) {
+            activeTransientPaths.add(targetFile.absolutePath)
+            activeTransientPaths.add(staging.absolutePath)
+            cleanupOrphans(context)
+        }
         try {
             if (isVoiceInstalled(context, voice.id)) {
                 updateState(voice.id, DownloadState.Completed)
-                return@withContext true
+                return true
             }
-            val isArchive = voice.modelUrl.endsWith(".tar.bz2") || voice.modelUrl.endsWith(".zip")
-            require(isArchive) { "Offline voice packages must be archives." }
-            val targetFile = File(baseDir, "${voice.engineType.name.lowercase()}_archive.tmp")
-
+            require(voice.modelUrl.endsWith(".tar.bz2")) { "Unsupported offline voice archive." }
+            updateState(voice.id, DownloadState.Downloading(0, 0, 0))
+            val downloadContext = coroutineContext
             val success = downloadFile(voice.modelUrl, targetFile) { bytesRead, totalBytes ->
-                val pct = if (totalBytes > 0) ((bytesRead * 100) / totalBytes).toInt() else 0
+                downloadContext.ensureActive()
+                // Installation still has to succeed. Never report a ready voice at network EOF.
+                val pct = if (totalBytes > 0) ((bytesRead * 100) / totalBytes).toInt().coerceIn(0, 99) else 0
                 updateState(voice.id, DownloadState.Downloading(bytesRead, totalBytes, pct))
             }
 
             if (!success) {
                 targetFile.delete()
                 updateState(voice.id, DownloadState.Failed("Network error or timeout"))
-                return@withContext false
+                return false
             }
 
             // Extract to a staging directory and only swap it in once it is verified
             // complete. Extracting straight over the live directory meant a failed or
             // mismatched download destroyed a working voice.
             val voiceDir = getVoiceDirectory(context, voice.engineType, voice.id)
-            val staging = File(baseDir, "${voice.engineType.name.lowercase()}_staging")
-
+            updateState(voice.id, DownloadState.Downloading(targetFile.length(), targetFile.length(), 99, installing = true))
             val extracted = extractTarBz2(targetFile, staging)
             targetFile.delete()
             if (!extracted) {
                 staging.deleteRecursively()
                 updateState(voice.id, DownloadState.Failed("Archive extraction failed"))
-                return@withContext false
+                return false
             }
 
             if (!isPackageComplete(staging, voice)) {
                 staging.deleteRecursively()
                 updateState(voice.id, DownloadState.Failed("Package is incomplete; required model data was not found"))
-                return@withContext false
+                return false
             }
 
             val saved = pruneNonEnglishAssets(staging)
@@ -421,36 +482,45 @@ object VoiceModelManager {
             if (!staging.renameTo(voiceDir)) {
                 staging.deleteRecursively()
                 updateState(voice.id, DownloadState.Failed("Could not install the downloaded voice"))
-                return@withContext false
+                return false
             }
 
             if (!isVoiceInstalled(context, voice.id)) {
                 updateState(voice.id, DownloadState.Failed("Package is incomplete; required model data was not found"))
-                return@withContext false
+                return false
             }
             updateState(voice.id, DownloadState.Completed)
-            true
+            return true
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Log.e(TAG, "Error downloading voice ${voice.id}", e)
             updateState(voice.id, DownloadState.Failed(e.localizedMessage ?: "Download failed"))
-            false
+            return false
+        } finally {
+            synchronized(transientLock) {
+                targetFile.delete()
+                staging.deleteRecursively()
+                activeTransientPaths.remove(targetFile.absolutePath)
+                activeTransientPaths.remove(staging.absolutePath)
+            }
         }
     }
 
-    private fun extractTarBz2(archiveFile: File, outputDir: File): Boolean {
+    private suspend fun extractTarBz2(archiveFile: File, outputDir: File): Boolean {
         return try {
             outputDir.deleteRecursively()
             outputDir.mkdirs()
             val rootPath = outputDir.canonicalFile.toPath()
-            val fin = java.io.FileInputStream(archiveFile)
-            val bin = java.io.BufferedInputStream(fin)
-            val bzIn = org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream(bin)
-            val tarIn = org.apache.commons.compress.archivers.tar.TarArchiveInputStream(bzIn)
-
+            archiveFile.inputStream().buffered().use { bin ->
+            org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream(bin).use { bzIn ->
+            org.apache.commons.compress.archivers.tar.TarArchiveInputStream(bzIn).use { tarIn ->
             var entry = tarIn.nextEntry
             val buffer = ByteArray(65536)
 
             while (entry != null) {
+                coroutineContext.ensureActive()
+                require(!entry.isSymbolicLink && !entry.isLink) { "Archive contains a linked path" }
                 val relativeName = entry.name.substringAfter('/', "")
                 if (relativeName.isNotBlank()) {
                     val outFile = File(outputDir, relativeName).canonicalFile
@@ -461,14 +531,21 @@ object VoiceModelManager {
                         outFile.parentFile?.mkdirs()
                         FileOutputStream(outFile).use { out ->
                             var count: Int
-                            while (tarIn.read(buffer).also { count = it } != -1) out.write(buffer, 0, count)
+                            while (tarIn.read(buffer).also { count = it } != -1) {
+                                coroutineContext.ensureActive()
+                                out.write(buffer, 0, count)
+                            }
                         }
                     }
                 }
                 entry = tarIn.nextEntry
             }
-            tarIn.close()
+            }
+            }
+            }
             true
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Log.e(TAG, "Error extracting tar.bz2 archive", e)
             outputDir.deleteRecursively()
@@ -478,6 +555,10 @@ object VoiceModelManager {
 
     fun deleteVoice(context: Context, voiceId: String): Boolean {
         val voice = availableVoices.firstOrNull { it.id == voiceId } ?: return false
+        val affected = availableVoices.filter {
+            it.id == voiceId || (voice.engineType == OfflineEngineType.KOKORO && it.engineType == OfflineEngineType.KOKORO)
+        }
+        if (affected.any { _downloadState.value[it.id] is DownloadState.Downloading }) return false
         getVoiceDirectory(context, voice.engineType, voice.id).deleteRecursively()
 
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -490,7 +571,7 @@ object VoiceModelManager {
     }
 
     private fun updateState(voiceId: String, state: DownloadState) {
-        _downloadState.value = _downloadState.value.toMutableMap().apply { put(voiceId, state) }
+        _downloadState.update { it + (voiceId to state) }
     }
 
     private fun downloadFile(
@@ -520,7 +601,7 @@ object VoiceModelManager {
                     code == 307 || code == 308) {
                     val newUrl = connection.getHeaderField("Location")
                     if (newUrl.isNullOrBlank()) return false
-                    currentUrl = newUrl
+                    currentUrl = URL(URL(currentUrl), newUrl).toString()
                     redirectCount++
                     connection.disconnect()
                     continue
@@ -531,12 +612,12 @@ object VoiceModelManager {
                     return false
                 }
 
-                val totalBytes = connection.contentLength.toLong()
+                val totalBytes = connection.contentLengthLong
+                var totalRead = 0L
                 connection.inputStream.use { input ->
                     FileOutputStream(targetFile).use { output ->
                         val buffer = ByteArray(32768)
                         var bytesRead: Int
-                        var totalRead = 0L
                         while (input.read(buffer).also { bytesRead = it } != -1) {
                             output.write(buffer, 0, bytesRead)
                             totalRead += bytesRead
@@ -545,7 +626,10 @@ object VoiceModelManager {
                         output.flush()
                     }
                 }
+                if (totalRead == 0L || (totalBytes > 0L && totalRead != totalBytes)) return false
                 return true
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (e: Exception) {
                 Log.e(TAG, "Download error for $currentUrl", e)
                 return false

@@ -57,7 +57,9 @@ fun ReaderViewModel.exportActiveDocumentToAudio() {
                 chunks = doc.chunks,
                 rate = PlaybackStateStore.rate,
                 pitch = PlaybackStateStore.pitch,
-                transformText = { repository.applyPronunciationRules(it) }
+                documentId = doc.id.orEmpty(),
+                pageNumbers = if (doc.sourceLabel.uppercase().contains("PPT")) com.veritas.reader.ReaderTextModelCache.get(doc.id, doc.rawText, doc.pageCount).sentences.map { it.pageNumber }.toIntArray() else null,
+                curatedLabels = doc.id?.let { repository.findDocument(it)?.catalogId?.substringBefore(':') in listOf("classic_pilgrims_progress") } == true
             )
         }
         withContext(Dispatchers.Main) {
@@ -121,7 +123,9 @@ fun ReaderViewModel.startRecordSoundFile() {
                 chunks = doc.chunks,
                 rate = PlaybackStateStore.rate,
                 pitch = PlaybackStateStore.pitch,
-                transformText = { repository.applyPronunciationRules(it) }
+                documentId = doc.id.orEmpty(),
+                pageNumbers = if (doc.sourceLabel.uppercase().contains("PPT")) com.veritas.reader.ReaderTextModelCache.get(doc.id, doc.rawText, doc.pageCount).sentences.map { it.pageNumber }.toIntArray() else null,
+                curatedLabels = doc.id?.let { repository.findDocument(it)?.catalogId?.substringBefore(':') in listOf("classic_pilgrims_progress") } == true
             )
         }
         val elapsedSeconds = ((System.currentTimeMillis() - startedAt) / 1000L).coerceAtLeast(0L)

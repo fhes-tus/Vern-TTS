@@ -30,6 +30,8 @@ object PlaybackActions {
     const val EXTRA_PITCH = "pitch"
     const val EXTRA_SELECTION_TEXT = "selection_text"
     const val EXTRA_CHAR_OFFSET = "char_offset"
+    const val EXTRA_TRANSIENT_SETTINGS = "transient_settings"
+    const val EXTRA_END_TRANSIENT_SETTINGS = "end_transient_settings"
     const val EXTRA_SLEEP_TIMER_DURATION_MILLIS = "sleep_timer_duration_millis"
     const val EXTRA_SLEEP_TIMER_ACTION = "sleep_timer_action"
     const val EXTRA_SLEEP_TIMER_STOP_AT_END_OF_SECTION = "sleep_timer_stop_at_end_of_section"
@@ -41,8 +43,33 @@ object PlaybackStateStore {
     var sourceLabel by mutableStateOf("")
     var currentIndex by mutableIntStateOf(0)
     var chunkCount by mutableIntStateOf(0)
-    var isPlaying by mutableStateOf(false)
+    private var playingState by mutableStateOf(false)
+    var isPlaying: Boolean
+        get() = playingState
+        set(value) {
+            if (playingState != value) ReadingSessionTracker.playbackRequested(value)
+            playingState = value
+            if (!value) finishPreparing()
+        }
+    var isPreparing by mutableStateOf(false)
+        private set
+    private var preparingDocumentId by mutableStateOf<String?>(null)
+
+    fun beginPreparing(documentId: String?) {
+        playbackFailure = null
+        preparingDocumentId = documentId
+        isPreparing = true
+    }
+
+    fun isPreparingFor(documentId: String?): Boolean =
+        isPreparing && (preparingDocumentId == null || preparingDocumentId == documentId)
+
+    fun finishPreparing() {
+        isPreparing = false
+        preparingDocumentId = null
+    }
     var isForegroundActive by mutableStateOf(false)
+    var playbackFailure by mutableStateOf<String?>(null)
     var statusMessage by mutableStateOf("Ready.")
     var readerMode by mutableStateOf(ReaderMode.TEXT)
     var pendingPronunciationFixWord by mutableStateOf<String?>(null)
@@ -61,6 +88,7 @@ object PlaybackStateStore {
     @Volatile internal var pendingVoiceSettings = false
     var queueCount by mutableIntStateOf(0)
     var autoPlayQueue by mutableStateOf(true)
+    var speechPosition by mutableStateOf<SpeechPosition?>(null)
     var currentSentenceStart by mutableIntStateOf(0)
     var currentSentenceEnd by mutableIntStateOf(0)
     var activeTableColumnIndex by mutableIntStateOf(-1)
@@ -104,8 +132,10 @@ object PlaybackStateStore {
         chunkCount = 0
         isPlaying = false
         isForegroundActive = false
+        playbackFailure = null
         statusMessage = "Ready."
         queueCount = 0
+        speechPosition = null
         currentSentenceStart = 0
         currentSentenceEnd = 0
         activeTableColumnIndex = -1
@@ -116,13 +146,13 @@ object PlaybackStateStore {
         if (activeDocumentId != null) return
         val repo = DocumentRepository(context)
         val resumePoint = runCatching { repo.loadPersistedResumePoint() }.getOrNull()
-        if (resumePoint != null && resumePoint.documentId.isNotBlank()) {
-            activeDocumentId = resumePoint.documentId
-            currentIndex = resumePoint.chunkIndex
-            val title = repo.getDocumentTitle(resumePoint.documentId)
-            if (title != "Deleted Book") {
-                documentTitle = title
-            }
+        val document = resumePoint?.documentId?.let { runCatching { repo.findDocument(it) }.getOrNull() }
+        if (document != null && resumePoint != null) {
+            activeDocumentId = document.id
+            currentIndex = resumePoint.chunkIndex.coerceIn(0, document.chunkCount.coerceAtLeast(1) - 1)
+            chunkCount = document.chunkCount
+            documentTitle = document.title
+            sourceLabel = document.sourceLabel
         }
         if (sleepTimerDurationMillis <= 0L) {
             val timer = runCatching { repo.loadPersistedSleepTimer() }.getOrNull()

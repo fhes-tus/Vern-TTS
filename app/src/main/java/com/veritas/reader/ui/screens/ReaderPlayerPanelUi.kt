@@ -1,5 +1,9 @@
 package com.veritas.reader.ui.screens
 
+import com.veritas.reader.LocalVeritasBackdrop
+import com.veritas.reader.isDeviceGlassCapable
+import com.veritas.reader.veritasGlassBackdrop
+
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -163,6 +167,8 @@ internal fun PlayerPanel(
     }
 
     val scheme = MaterialTheme.colorScheme
+    val isGlass = VeritasPackStyle.glassChromeEnabled() && isDeviceGlassCapable() && LocalVeritasBackdrop.current != null
+    val opaqueGlassFallback = VeritasPackStyle.currentPackId() == "liquid_glass" && !isGlass
     val isDark = scheme.surface.luminance() < 0.5f
     val playerOpacity = VeritasPackStyle.chromeOpacity(VeritasPackStyle.currentPackId())
 
@@ -215,21 +221,23 @@ internal fun PlayerPanel(
                 .widthIn(max = 580.dp)
                 .fillMaxWidth()
                 .height(heightDp)
+                .veritasGlassBackdrop(capsuleShape, isGlass, surfaceOpacity = .36f)
                 .anchoredDraggable(
                     state = draggableState,
                     orientation = Orientation.Vertical
                 )
                 .onGloballyPositioned { OnboardingController.updateBounds("player_panel_header", it) },
             shape = capsuleShape,
-            color = androidx.compose.ui.graphics.Color.Transparent,
-            shadowElevation = if (isDark) 10.dp else 8.dp,
+            color = if (opaqueGlassFallback) scheme.surface else androidx.compose.ui.graphics.Color.Transparent,
+            shadowElevation = if (isGlass) 0.dp else VeritasPackStyle.chromeElevation(VeritasPackStyle.currentPackId()),
             tonalElevation = 0.dp
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(brush = gradientBrush, shape = capsuleShape)
-                    .border(width = 1.dp, brush = borderBrush, shape = capsuleShape)
+                    .then(if (isGlass || opaqueGlassFallback) Modifier else Modifier
+                        .background(brush = gradientBrush, shape = capsuleShape)
+                        .border(width = 1.dp, brush = borderBrush, shape = capsuleShape))
             ) {
                 Column(
                     modifier = Modifier
@@ -323,12 +331,9 @@ internal fun PlayerPanel(
                             .clickable { onPlayPause() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        com.veritas.reader.PlaybackControlIcon(isPlaying,
+                            com.veritas.reader.PlaybackStateStore.isPreparingFor(documentId),
+                            tint = MaterialTheme.colorScheme.onPrimary)
                     }
 
                     IconButton(

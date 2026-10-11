@@ -103,12 +103,12 @@ fun ClassicsCatalogContent(
         }
         if (controls.query.isBlank() && genre == "All" && sort == "Featured") {
             item("featured") {
-                val book = getBookOfTheDay()
+                val book = getBookOfTheWeek()
                 LibraryBookSurface(Modifier.padding(horizontal = 16.dp).fillMaxWidth().testTag("classic_featured").clickable { previewId = book.id }) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         ClassicBookCover(book, width = 72.dp, height = 108.dp)
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text("Today’s pick", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                            Text("This week’s pick", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                             Text(book.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text(book.author, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text("${book.genre} · ~${book.estimatedMinutes} min", style = MaterialTheme.typography.labelSmall)

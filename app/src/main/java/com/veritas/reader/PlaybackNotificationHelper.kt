@@ -268,7 +268,8 @@ internal fun PlaybackService.mediaSessionSnapshot(): VeritasMediaSessionPlayer.P
         positionMs = estimatedPositionMs(),
         rate = PlaybackStateStore.rate,
         pitch = PlaybackStateStore.pitch,
-        artworkData = artworkBytes
+        artworkData = artworkBytes,
+        isPreparing = PlaybackStateStore.isPreparing
     )
 }
 

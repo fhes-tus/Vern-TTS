@@ -680,11 +680,13 @@ val CATALOG_CATEGORIES = listOf(
 )
 
 /**
- * Returns the deterministic Book of the Day shared across the entire app.
+ * A local Monday-to-Sunday pick. Counting whole weeks from a Monday anchor
+ * keeps the recommendation stable across year boundaries and daylight saving.
  */
-fun getBookOfTheDay(): ClassicBookEntry {
-    val dayIndex = (System.currentTimeMillis() / (1000 * 60 * 60 * 24)).toInt()
-    return CURATED_CLASSICS[dayIndex.mod(CURATED_CLASSICS.size)]
+fun getBookOfTheWeek(date: java.time.LocalDate = java.time.LocalDate.now()): ClassicBookEntry {
+    val monday = date.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+    val week = java.time.temporal.ChronoUnit.WEEKS.between(java.time.LocalDate.of(1970, 1, 5), monday)
+    return CURATED_CLASSICS[Math.floorMod(week, CURATED_CLASSICS.size.toLong()).toInt()]
 }
 
 /**

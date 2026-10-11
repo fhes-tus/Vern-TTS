@@ -12,13 +12,8 @@ import com.veritas.reader.tts.VeritasAudioBuffer
 import com.veritas.reader.tts.VoiceModelManager
 
 internal fun PlaybackService.veritasBufferFor(voiceSettings: VoiceSettings): VeritasAudioBuffer {
-    var voiceName = voiceSettings.voiceName
-    if (!VoiceModelManager.isVoiceInstalled(applicationContext, voiceName)) {
-        val installed = VoiceModelManager.getInstalledVoices(applicationContext).firstOrNull()
-        if (installed != null) {
-            voiceName = installed.id
-        }
-    }
+    val voiceName = voiceSettings.voiceName
+    require(VoiceModelManager.isVoiceInstalled(applicationContext, voiceName)) { "Download the selected voice in Voice Studio." }
     // A change from Piper to Kokoro (or to a different local model) must rebuild the
     // native engine. The service otherwise keeps using the model selected before restart.
     if (veritasAudioBuffer != null && veritasAudioVoiceId != voiceName) {
@@ -28,10 +23,9 @@ internal fun PlaybackService.veritasBufferFor(voiceSettings: VoiceSettings): Ver
     return veritasAudioBuffer ?: run {
         val isPiper = voiceName.startsWith("piper_", ignoreCase = true) ||
             VoiceManager.engineForVoice(voiceName) == VoiceManager.VERITAS_LITE
-        val engine = if (isPiper) {
-            PiperEngine(applicationContext, voiceName)
-        } else {
-            KokoroTtsEngine(applicationContext, voiceName)
+        val engine = com.veritas.reader.tts.DeferredTtsEngine {
+            if (isPiper) PiperEngine(applicationContext, voiceName)
+            else KokoroTtsEngine(applicationContext, voiceName)
         }
         VeritasAudioBuffer(applicationContext, engine).also {
             veritasAudioBuffer = it
@@ -150,6 +144,7 @@ internal fun PlaybackService.clearQueuedChunk() {
 }
 
 internal fun PlaybackService.clearResumePoint() {
+    PlaybackStateStore.speechPosition = null
     activeChunkUtteranceId = null
     activeChunkIndex = -1
     activeChunkSpeechText = ""

@@ -251,7 +251,8 @@ internal fun VocabularyEntryRow(
     entry: VocabularyEntry,
     document: SavedDocument,
     onOpenDocumentAt: (SavedDocument, Int) -> Unit,
-    onRemoveVocabularyWord: (String, String) -> Unit
+    onRemoveVocabularyWord: (String, String) -> Unit,
+    onRefreshVocabularyMeaning: (String, VocabularyEntry) -> Unit
 ) {
     val context = LocalContext.current
     var itemMenuExpanded by remember { mutableStateOf(false) }
@@ -296,6 +297,12 @@ internal fun VocabularyEntryRow(
                 }
             }
             Text(entry.explanation, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            entry.meaningSourceUrl?.let { url ->
+                Text("Definition: Wiktionary", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable {
+                        runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) }
+                    })
+            }
             if (!entry.contextSentence.isNullOrBlank()) {
                 Box(
                     modifier = Modifier
@@ -333,6 +340,11 @@ internal fun VocabularyEntryRow(
                 expanded = itemMenuExpanded,
                 onDismissRequest = { itemMenuExpanded = false }
             ) {
+                DropdownMenuItem(
+                    text = { Text(if (com.veritas.reader.VocabularyLookup.needsDefinition(entry.explanation)) "Find meaning" else "Refresh meaning") },
+                    onClick = { itemMenuExpanded = false; onRefreshVocabularyMeaning(document.id, entry) },
+                    leadingIcon = { Icon(Icons.Filled.Language, contentDescription = null) }
+                )
                 DropdownMenuItem(
                     text = { Text("Share as text") },
                     onClick = {

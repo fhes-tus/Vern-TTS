@@ -116,6 +116,8 @@ class VeritasAudioBuffer(
         rate: Float = 1.0f,
         pitch: Float = 1.0f,
         leadingSilenceMs: Long = 0L,
+        onStarted: () -> Unit = {},
+        onProgress: (renderedFrames: Long, totalFrames: Int, sampleRate: Int) -> Unit = { _, _, _ -> },
         onComplete: (success: Boolean) -> Unit
     ) {
         playbackJob?.cancel()
@@ -169,6 +171,7 @@ class VeritasAudioBuffer(
                 return@withLock
             }
 
+            var startMonitor: Job? = null
             val played = try {
                 runCatching {
                     val params = android.media.PlaybackParams().apply {
@@ -182,6 +185,27 @@ class VeritasAudioBuffer(
                 }
                 if (track.playState != AudioTrack.PLAYSTATE_PLAYING) {
                     track.play()
+                }
+                val initialFrame = track.playbackHeadPosition.toLong() and 0xffffffffL
+                // The streaming write can block for most of a sentence. Observe the
+                // output head independently so startup feedback ends at actual output,
+                // not at synthesis completion or after the entire write returns.
+                val totalFrames = pcm.size
+                startMonitor = launch {
+                    var started = false
+                    while (currentCoroutineContext().isActive && isPlaying && generation.isCurrent(token)) {
+                        val frame = runCatching { track.playbackHeadPosition.toLong() and 0xffffffffL }.getOrNull() ?: break
+                        val rendered = ((frame - initialFrame) and 0xffffffffL).coerceAtMost(totalFrames.toLong())
+                        if (rendered > 0L) {
+                            withContext(Dispatchers.Main) {
+                                if (generation.isCurrent(token) && isPlaying) {
+                                    if (!started) { started = true; onStarted() }
+                                    onProgress(rendered, totalFrames, sampleRate)
+                                }
+                            }
+                        }
+                        delay(50)
+                    }
                 }
                 // write() is blocking in MODE_STREAM: it returns once the data is
                 // queued, not once it has been heard. Sleeping for the clip's full
@@ -202,6 +226,7 @@ class VeritasAudioBuffer(
                 Log.w(TAG, "Playback of sentence $index failed", t)
                 false
             } finally {
+                startMonitor?.cancel()
                 releaseWriter()
             }
 
@@ -240,6 +265,9 @@ class VeritasAudioBuffer(
     private val engineLock = Any()
     private var synthesisInFlight = 0
     private var engineShutdownRequested = false
+    private val engineDisposed = kotlinx.coroutines.CompletableDeferred<Unit>()
+
+    suspend fun awaitShutdown() { engineDisposed.await() }
 
     private fun beginSynthesis(): Boolean = synchronized(engineLock) {
         if (engineShutdownRequested) return@synchronized false
@@ -251,6 +279,7 @@ class VeritasAudioBuffer(
         synthesisInFlight--
         if (engineShutdownRequested && synthesisInFlight == 0) {
             runCatching { engine.shutdown() }
+            engineDisposed.complete(Unit)
         }
     }
 
@@ -258,6 +287,7 @@ class VeritasAudioBuffer(
         engineShutdownRequested = true
         if (synthesisInFlight == 0) {
             runCatching { engine.shutdown() }
+            engineDisposed.complete(Unit)
         }
     }
 

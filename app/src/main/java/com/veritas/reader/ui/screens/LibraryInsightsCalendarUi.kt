@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,7 +40,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -64,14 +68,17 @@ internal data class MonthData(
 @Composable
 internal fun CalendarHeatMap(
     activeDateKeys: Set<String>,
-    openedDateKeys: Set<String> = emptySet()
+    openedDateKeys: Set<String> = emptySet(),
+    readingMillisByDate: Map<String, Long> = emptyMap(),
+    summary: (@Composable () -> Unit)? = null
 ) {
     val context = LocalContext.current
     val currentCal = remember { Calendar.getInstance() }
     val currentYear = currentCal.get(Calendar.YEAR)
     val currentMonth = currentCal.get(Calendar.MONTH) // 0..11
 
-    var selectedMonthIndex by remember { mutableIntStateOf(currentMonth) }
+    var selectedYear by androidx.compose.runtime.saveable.rememberSaveable { mutableIntStateOf(currentYear) }
+    var selectedMonthIndex by androidx.compose.runtime.saveable.rememberSaveable { mutableIntStateOf(currentMonth) }
     var isYearView by remember { mutableStateOf(false) }
     var selectedDayData by remember { mutableStateOf<DayData?>(null) }
 
@@ -79,22 +86,22 @@ internal fun CalendarHeatMap(
         listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
     }
 
-    val months = remember {
+    val months = remember(selectedYear) {
         val list = mutableListOf<MonthData>()
         val cal = Calendar.getInstance()
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         
         for (m in 0..11) {
-            cal.set(currentYear, m, 1)
-            val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) // 1 = Sun, 7 = Sat
+            cal.set(selectedYear, m, 1)
+            val firstDayOfWeek = (cal.get(Calendar.DAY_OF_WEEK) + 5) % 7 // Monday first
             val maxDays = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
             
             val days = mutableListOf<DayData?>()
-            repeat(firstDayOfWeek - 1) {
+            repeat(firstDayOfWeek) {
                 days.add(null)
             }
             for (d in 1..maxDays) {
-                cal.set(currentYear, m, d)
+                cal.set(selectedYear, m, d)
                 val dateStr = sdf.format(cal.time)
                 days.add(DayData(dayOfMonth = d, dateKey = dateStr, timeMillis = cal.timeInMillis))
             }
@@ -117,12 +124,13 @@ internal fun CalendarHeatMap(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .18f), MaterialTheme.colorScheme.primaryContainer.copy(alpha = .12f))))
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Header Row with Title & View Mode Selector
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            // Wrap the view switch below the title on narrow or enlarged-text screens.
+            FlowRow(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -181,12 +189,14 @@ internal fun CalendarHeatMap(
                 }
             }
 
+            summary?.invoke()
+
             if (!isYearView) {
                 // ==================== MONTH VIEW (DEFAULT) ====================
                 val currentMonthData = months.getOrNull(selectedMonthIndex) ?: months[0]
                 val validDays = currentMonthData.days.filterNotNull()
-                val activeDaysInMonth = validDays.count { activeDateKeys.contains(it.dateKey) }
-                val totalDaysInMonth = validDays.size
+                val activeDaysInMonth = validDays.count { it.dateKey <= todayKey && activeDateKeys.contains(it.dateKey) }
+                val totalDaysInMonth = validDays.count { it.dateKey <= todayKey }
                 val percentage = if (totalDaysInMonth > 0) (activeDaysInMonth * 100 / totalDaysInMonth) else 0
 
                 // Month Navigator Row
@@ -197,7 +207,7 @@ internal fun CalendarHeatMap(
                 ) {
                     IconButton(
                         onClick = {
-                            selectedMonthIndex = (selectedMonthIndex - 1 + 12) % 12
+                            if (selectedMonthIndex == 0) { selectedYear--; selectedMonthIndex = 11 } else selectedMonthIndex--
                             selectedDayData = null
                         },
                         modifier = Modifier.size(36.dp)
@@ -207,18 +217,19 @@ internal fun CalendarHeatMap(
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "${currentMonthData.name} $currentYear",
+                            text = "${currentMonthData.name} $selectedYear",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        if (selectedMonthIndex != currentMonth) {
+                        if (selectedMonthIndex != currentMonth || selectedYear != currentYear) {
                             Text(
                                 text = "Tap to jump to ${monthNames[currentMonth]}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.clickable {
                                     selectedMonthIndex = currentMonth
+                                    selectedYear = currentYear
                                     selectedDayData = null
                                 }
                             )
@@ -226,8 +237,9 @@ internal fun CalendarHeatMap(
                     }
 
                     IconButton(
+                        enabled = selectedYear < currentYear || (selectedYear == currentYear && selectedMonthIndex < currentMonth),
                         onClick = {
-                            selectedMonthIndex = (selectedMonthIndex + 1) % 12
+                            if (selectedMonthIndex == 11) { selectedYear++; selectedMonthIndex = 0 } else selectedMonthIndex++
                             selectedDayData = null
                         },
                         modifier = Modifier.size(36.dp)
@@ -270,7 +282,7 @@ internal fun CalendarHeatMap(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    val weekdays = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+                    val weekdays = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
                     weekdays.forEach { day ->
                         Text(
                             text = day,
@@ -332,13 +344,20 @@ internal fun CalendarHeatMap(
                                             .weight(1f)
                                             .aspectRatio(1f)
                                             .padding(2.dp)
+                                            .semantics {
+                                                contentDescription = "${day.dateKey}: " + when {
+                                                    isActive -> "reading recorded"
+                                                    isOpened -> "app opened"
+                                                    else -> "no reading recorded"
+                                                }
+                                            }
                                             .clip(RoundedCornerShape(8.dp))
                                             .background(cellBg)
                                             .then(
                                                 if (borderStroke != null) Modifier.border(borderStroke, RoundedCornerShape(8.dp))
                                                 else Modifier
                                             )
-                                            .clickable {
+                                            .clickable(enabled = !isFuture) {
                                                 if (!isFuture) {
                                                     selectedDayData = day
                                                     val formattedDate = SimpleDateFormat("MMMM dd, yyyy", Locale.US).format(Date(day.timeMillis))
@@ -407,7 +426,7 @@ internal fun CalendarHeatMap(
                                 )
                                 Text(
                                     text = when {
-                                        isInspectedActive -> "Active reading session logged"
+                                        isInspectedActive -> readingMillisByDate[inspectedDay.dateKey]?.takeIf { it > 0L }?.let { "${it / 60_000L} min reading" } ?: "Reading recorded; duration not available"
                                         isInspectedOpened -> "Vern opened"
                                         else -> "No reading activity recorded"
                                     },

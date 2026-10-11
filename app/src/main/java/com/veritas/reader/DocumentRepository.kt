@@ -153,25 +153,42 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         )
     }
 
-    fun recordDocReadingTime(documentId: String, durationMillis: Long, nowMillis: Long = System.currentTimeMillis()) {
-        val monthKey = SimpleDateFormat("yyyy-MM", Locale.US).format(Date(nowMillis))
-        val prefKey = "monthly_reading_time_$monthKey"
-        // The reading-time counter is read-modify-written from both the UI (foreground session
-        // timer) and the PlaybackService (background listening). Without a process-wide lock the
-        // two could interleave and lose an update. Serialise the whole RMW.
+    fun recordDocReadingTime(documentId: String, durationMillis: Long, nowMillis: Long = System.currentTimeMillis(), trackSession: Boolean = true) {
+        if (documentId.isBlank() || durationMillis <= 0L) return
+        val duration = if (trackSession) durationMillis.coerceAtMost(MAX_TRACKER_SESSION_MILLIS) else durationMillis
         synchronized(LIBRARY_WRITE_LOCK) {
-            val raw = prefs.getString(prefKey, "{}") ?: "{}"
-            val json = runCatching { JSONObject(raw) }.getOrDefault(JSONObject())
-            val currentVal = json.optLong(documentId, 0L)
-            json.put(documentId, currentVal + durationMillis)
-            // apply() (not commit()) so this never blocks the caller's thread on disk I/O —
-            // this runs on the main thread from the service's onDone. The lock guarantees the
-            // in-memory read-modify-write is consistent across the UI and service.
-            prefs.edit().putString(prefKey, json.toString()).apply()
+            val days = loadTrackerDays().toMutableMap()
+            // Split at local midnight: sessions spanning a month/day retain correct ownership.
+            var cursor = if (trackSession) nowMillis - duration else nowMillis - 1
+            while (cursor < nowMillis) {
+                val nextDay = java.util.Calendar.getInstance().apply {
+                    timeInMillis = cursor
+                    set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
+                    set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
+                    add(java.util.Calendar.DAY_OF_YEAR, 1)
+                }.timeInMillis
+                val end = minOf(nextDay, nowMillis)
+                val segment = if (trackSession) end - cursor else duration
+                val dayKey = trackerDateKey(cursor)
+                val prefKey = "monthly_reading_time_${dayKey.take(7)}"
+                val json = runCatching { JSONObject(prefs.getString(prefKey, "{}") ?: "{}") }.getOrDefault(JSONObject())
+                json.put(documentId, json.optLong(documentId, 0L).coerceAtLeast(0L) + segment)
+                prefs.edit().putString(prefKey, json.toString()).apply()
+                val day = days[dayKey] ?: ReaderTrackerDay(dayKey)
+                if (trackSession) days[dayKey] = day.copy(readingMillis = day.readingMillis + segment, readDocumentIds = day.readDocumentIds + documentId)
+                cursor = end
+            }
+            if (trackSession) saveTrackerDays(days.values)
         }
     }
 
     fun loadDocReadingTimes(nowMillis: Long = System.currentTimeMillis()): Map<String, Long> {
+        val legacy = loadLegacyDocReadingTimes(nowMillis)
+        val measured = measuredReadingTimes(nowMillis)
+        return (legacy.keys + measured.keys).associateWith { (legacy[it] ?: 0) + (measured[it] ?: 0) }
+    }
+
+    internal fun loadLegacyDocReadingTimes(nowMillis: Long = System.currentTimeMillis()): Map<String, Long> {
         val monthKey = SimpleDateFormat("yyyy-MM", Locale.US).format(Date(nowMillis))
         val prefKey = "monthly_reading_time_$monthKey"
         val raw = prefs.getString(prefKey, "{}") ?: "{}"
@@ -688,8 +705,9 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
             }.getOrNull() ?: originalUri(document)
         }
 
-        // If the original file does not exist on disk, synthesize an export file with its original format extension
-        val ext = detectExtensionFromNameOrType("", document.sourceLabel, document.originalMimeType, document.originalFileName)
+        originalUri(document)?.let { return it }
+        // Extracted text is a TXT document, even when the missing original was a PDF or EPUB.
+        val ext = "txt"
         val shareFile = File(shareDir, "$sanitizedTitle.$ext")
         return runCatching {
             val docFile = File(docsDir, document.fileName)
@@ -701,6 +719,7 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
 
     fun getShareMimeType(document: SavedDocument): String {
         val original = originalFile(document)
+        if (original == null && !document.originalFileName.startsWith("content://")) return "text/plain"
         val ext = if (original != null) detectExtension(original, document.sourceLabel, document.originalMimeType)
                   else detectExtensionFromNameOrType(document.originalFileName, document.sourceLabel, document.originalMimeType)
         return when (ext) {
@@ -1212,7 +1231,7 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         PlaybackStateStore.queueCount = entries.size
     }
 
-    internal fun saveReadingHistory(history: List<ReadingHistoryEntry>) {
+    internal fun saveReadingHistory(history: List<ReadingHistoryEntry>): Unit = synchronized(LIBRARY_WRITE_LOCK) {
         val array = JSONArray()
         history.take(MAX_READING_HISTORY).forEach { array.put(it.toJson()) }
         prefs.edit { putString(KEY_READING_HISTORY, array.toString()) }

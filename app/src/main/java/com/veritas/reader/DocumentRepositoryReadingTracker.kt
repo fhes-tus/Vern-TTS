@@ -7,18 +7,18 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-fun DocumentRepository.recordAppOpen(nowMillis: Long = System.currentTimeMillis()): ReaderTrackerSnapshot {
+fun DocumentRepository.recordAppOpen(nowMillis: Long = System.currentTimeMillis()): ReaderTrackerSnapshot = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val key = trackerDateKey(nowMillis)
     val updated = loadTrackerDays().toMutableMap()
     val current = updated[key] ?: ReaderTrackerDay(dateKey = key)
     updated[key] = current.copy(appOpenCount = maxOf(current.appOpenCount, 1))
     saveTrackerDays(updated.values)
-    return loadReaderTrackerSnapshot(nowMillis)
+    return@synchronized loadReaderTrackerSnapshot(nowMillis)
 }
 
-fun DocumentRepository.recordUsageDuration(durationMillis: Long, endMillis: Long = System.currentTimeMillis()): ReaderTrackerSnapshot {
+fun DocumentRepository.recordUsageDuration(durationMillis: Long, endMillis: Long = System.currentTimeMillis()): ReaderTrackerSnapshot = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val cleanDuration = durationMillis.coerceIn(0L, DocumentRepository.MAX_TRACKER_SESSION_MILLIS)
-    if (cleanDuration <= 0L) return loadReaderTrackerSnapshot(endMillis)
+    if (cleanDuration <= 0L) return@synchronized loadReaderTrackerSnapshot(endMillis)
     val key = trackerDateKey(endMillis)
     val updated = loadTrackerDays().toMutableMap()
     val current = updated[key] ?: ReaderTrackerDay(dateKey = key, appOpenCount = 1)
@@ -27,11 +27,11 @@ fun DocumentRepository.recordUsageDuration(durationMillis: Long, endMillis: Long
         usageMillis = current.usageMillis + cleanDuration
     )
     saveTrackerDays(updated.values)
-    return loadReaderTrackerSnapshot(endMillis)
+    return@synchronized loadReaderTrackerSnapshot(endMillis)
 }
 
-fun DocumentRepository.recordDocumentRead(documentId: String, title: String, nowMillis: Long = System.currentTimeMillis()): ReaderTrackerSnapshot {
-    if (documentId.isBlank()) return loadReaderTrackerSnapshot(nowMillis)
+fun DocumentRepository.recordDocumentRead(documentId: String, title: String, nowMillis: Long = System.currentTimeMillis()): ReaderTrackerSnapshot = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    if (documentId.isBlank()) return@synchronized loadReaderTrackerSnapshot(nowMillis)
     val key = trackerDateKey(nowMillis)
     val updated = loadTrackerDays().toMutableMap()
     val current = updated[key] ?: ReaderTrackerDay(dateKey = key, appOpenCount = 1)
@@ -40,30 +40,34 @@ fun DocumentRepository.recordDocumentRead(documentId: String, title: String, now
         readDocumentIds = current.readDocumentIds + documentId
     )
     saveTrackerDays(updated.values)
-    return loadReaderTrackerSnapshot(nowMillis)
+    return@synchronized loadReaderTrackerSnapshot(nowMillis)
 }
 
 fun DocumentRepository.recordDocumentProgress(document: SavedDocument, nowMillis: Long = System.currentTimeMillis()): ReaderTrackerSnapshot {
-    recordDocumentRead(document.id, document.title, nowMillis)
-    if (document.chunkCount > 0) {
-        val progress = ((document.currentIndex + 1).toFloat() / document.chunkCount.toFloat()).coerceIn(0f, 1f)
-        if (progress >= ReaderTrackerMath.COMPLETION_THRESHOLD) {
-            recordDocumentCompletion(document.id, document.title, nowMillis)
-        }
-    }
+    // Progress/seek alone does not prove reading or completion. Completion is explicit or actual playback end.
     return loadReaderTrackerSnapshot(nowMillis)
 }
 
 fun DocumentRepository.loadReaderTrackerSnapshot(nowMillis: Long = System.currentTimeMillis()): ReaderTrackerSnapshot {
     val days = loadTrackerDays().values.sortedBy { it.dateKey }
     val todayKey = trackerDateKey(nowMillis)
-    // Streaks and the heatmap count days the user actually READ something (a document
-    // was opened for reading that day), not days the app was merely launched. Merely
-    // opening the app used to grant a "1-day streak", which cheapened the streak.
-    val readingDateKeys = days
-        .filter { it.readDocumentIds.isNotEmpty() }
-        .map { it.dateKey }
-        .toSet()
+    val sessions = loadReadingSessions()
+    fun totals(mode: ReadingSessionMode): Map<String, Long> {
+        val totals = mutableMapOf<String, Long>()
+        sessions.filter { it.mode == mode }.forEach { session -> session.millisByDate().forEach { (day, millis) ->
+            totals[day] = (totals[day] ?: 0) + millis
+        } }
+        return totals
+    }
+    val reading = totals(ReadingSessionMode.READING)
+    val listening = totals(ReadingSessionMode.LISTENING)
+    val legacy = days.filter { it.readingMillis > 0 }.associate { it.dateKey to it.readingMillis }
+    val combined = (reading.keys + listening.keys + legacy.keys).associateWith { (reading[it] ?: 0) + (listening[it] ?: 0) + (legacy[it] ?: 0) }
+    // Older releases recorded reading-day markers without a duration. Preserve
+    // those earned days for streaks/the calendar; unknown minutes stay unknown.
+    // App opens alone still do not qualify, and measured totals remain unchanged.
+    val readingDateKeys = combined.filterValues { it > 0 }.keys +
+        days.filter { it.readDocumentIds.isNotEmpty() }.map { it.dateKey }
     val openedDateKeys = days
         .filter { it.appOpenCount > 0 || it.usageMillis > 0L }
         .map { it.dateKey }
@@ -76,7 +80,7 @@ fun DocumentRepository.loadReaderTrackerSnapshot(nowMillis: Long = System.curren
     // ordered oldest -> newest so the chart defaults to the current (last) week.
     val weeksToShow = 8
     val weeklyHistory = (weeksToShow - 1 downTo 0).map { offset ->
-        val weekTime = nowMillis - offset * 7L * 24L * 60L * 60L * 1000L
+        val weekTime = Calendar.getInstance().apply { timeInMillis = nowMillis; add(Calendar.WEEK_OF_YEAR, -offset) }.timeInMillis
         val keys = trackerWeekKeys(weekTime)
         val values = keys.map { daysByKey[it]?.usageMillis ?: 0L }
         val label = when (offset) {
@@ -86,10 +90,8 @@ fun DocumentRepository.loadReaderTrackerSnapshot(nowMillis: Long = System.curren
         }
         WeekBars(label = label, values = values, totalMillis = values.sum(), isCurrentWeek = offset == 0)
     }
-    val readThisWeek = weekKeys
-        .flatMap { key -> daysByKey[key]?.readDocumentIds.orEmpty() }
-        .toSet()
-        .size
+    val readThisWeek = (sessions.filter { it.millisByDate().any { (date, duration) -> date in weekKeys && duration > 0 } }
+        .map { it.documentId } + weekKeys.flatMap { key -> daysByKey[key]?.readDocumentIds.orEmpty() }).toSet().size
     val completions = loadTrackerCompletions()
     val completedThisMonth = ReaderTrackerMath.monthCompletionCount(
         completions = completions,
@@ -107,7 +109,14 @@ fun DocumentRepository.loadReaderTrackerSnapshot(nowMillis: Long = System.curren
         weeklyHistory = weeklyHistory,
         recentCompletions = completions.sortedByDescending { it.completedAt }.take(8),
         activeDateKeys = readingDateKeys,
-        openedDateKeys = openedDateKeys
+        openedDateKeys = openedDateKeys,
+        readingMillisByDate = combined,
+        weeklyReadingMillis = weekKeys.sumOf { combined[it] ?: 0 },
+        sessions = sessions,
+        measuredReadingMillisByDate = reading,
+        listeningMillisByDate = listening,
+        legacyReadingMillisByDate = legacy,
+        completionDates = completions.associate { it.documentId to it.completedAt }
     )
 }
 

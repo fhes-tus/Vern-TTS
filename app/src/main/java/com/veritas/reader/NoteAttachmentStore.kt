@@ -52,7 +52,7 @@ internal object NoteAttachmentStore {
         }
     }
 
-    suspend fun copyDocument(context: Context, uri: Uri): Triple<File, String, Long> {
+    suspend fun copyDocument(context: Context, uri: Uri, mimeHint: String? = null): Triple<File, String, Long> {
         val name = UUID.randomUUID().toString()
         val directory = File(context.filesDir, "notes_media")
         val staging = File(directory, ".$name.partial")
@@ -61,19 +61,19 @@ internal object NoteAttachmentStore {
             return withContext(Dispatchers.IO) {
                 check(directory.isDirectory || directory.mkdirs()) { "Could not create attachment folder" }
                 var originalName = ""
-                var originalSize = 0L
                 try {
                     context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                         if (cursor.moveToFirst()) {
                             val nameIdx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
                             if (nameIdx >= 0) originalName = cursor.getString(nameIdx) ?: ""
-                            val sizeIdx = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE)
-                            if (sizeIdx >= 0) originalSize = cursor.getLong(sizeIdx)
                         }
                     }
                 } catch (_: Exception) {}
 
-                val mime = context.contentResolver.getType(uri).orEmpty()
+                if (originalName.isBlank()) originalName = uri.lastPathSegment?.substringAfterLast('/').orEmpty()
+
+                val mime = context.contentResolver.getType(uri)?.takeIf { it != "application/octet-stream" }
+                    ?: mimeHint.orEmpty()
                 val mimeExt = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime)
                 val originalExt = if (originalName.contains('.')) originalName.substringAfterLast('.') else ""
                 val extension = (if (originalExt.isNotBlank()) originalExt else mimeExt)

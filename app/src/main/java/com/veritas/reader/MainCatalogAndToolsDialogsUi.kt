@@ -72,9 +72,9 @@ import com.veritas.reader.ui.startUpdateDownload
 internal fun MainCatalogAndToolsDialogsHost(
     viewModel: ReaderViewModel,
     uiState: ReaderUiState,
-    pendingShareChooser: Pair<String, Uri?>?,
+    pendingShareChooser: IncomingShare?,
     onDismissShareChooser: () -> Unit,
-    onOpenInNotes: (String, Uri?) -> Unit,
+    onOpenInNotes: (IncomingShare) -> Unit,
     onImportToReader: (String, Uri?) -> Unit
 ) {
     val context = LocalContext.current
@@ -272,17 +272,17 @@ internal fun MainCatalogAndToolsDialogsHost(
         )
     }
 
-    pendingShareChooser?.let { (text, uri) ->
+    pendingShareChooser?.let { share ->
         ShareTargetChooserDialog(
-            sharedText = text,
-            sharedUri = uri,
+            sharedText = share.text,
+            sharedUri = share.uris.firstOrNull(),
             onImportToReader = {
                 onDismissShareChooser()
-                onImportToReader(text, uri)
+                onImportToReader(share.text, share.uris.firstOrNull())
             },
             onAddToNotes = {
                 onDismissShareChooser()
-                onOpenInNotes(text, uri)
+                onOpenInNotes(share)
             },
             onDismiss = {
                 onDismissShareChooser()
@@ -399,6 +399,7 @@ internal fun MainCatalogAndToolsDialogsHost(
     }
 
     if (uiState.showGeneralNotesEditor) {
+        androidx.compose.runtime.key(uiState.generalNoteEditorSession) {
         GeneralNotesEditor(
             notebooks = uiState.noteNotebooks,
             onCreateNotebook = { viewModel.createNoteLabel(it) },
@@ -420,6 +421,7 @@ internal fun MainCatalogAndToolsDialogsHost(
                 generalNoteEditorTarget = null
             ) } }
         )
+        }
     }
 
     uiState.activeDocument?.let { document ->

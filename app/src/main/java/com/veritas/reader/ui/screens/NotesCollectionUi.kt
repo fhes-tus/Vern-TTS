@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -112,7 +113,11 @@ internal fun NoteRevisionHistoryDialog(noteId: String, actions: NoteCollectionAc
                                 }
                                 Text(RichTextFormatter.transform(preview, MaterialTheme.colorScheme.onSurfaceVariant).text,
                                     maxLines = 3, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
-                                TextButton({ restore = revision }) { Text("Restore this version") }
+                                TextButton({ restore = revision }) {
+                                    Icon(Icons.Outlined.Restore, null, Modifier.size(18.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Restore this version")
+                                }
                             }
                         }
                     }

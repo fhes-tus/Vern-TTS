@@ -13,7 +13,7 @@ class VeritasDatabaseHelper(context: Context) :
 
     companion object {
         const val DATABASE_NAME = "veritas_reader.db"
-        const val DATABASE_VERSION = 3
+        const val DATABASE_VERSION = 4
 
         private const val TABLE_DOCUMENTS = "documents"
         private const val TABLE_ANNOTATIONS = "annotations"
@@ -68,7 +68,8 @@ class VeritasDatabaseHelper(context: Context) :
                 highlight_color TEXT,
                 selection_group_id TEXT,
                 audio_path TEXT,
-                audio_duration_seconds INTEGER NOT NULL DEFAULT 0
+                audio_duration_seconds INTEGER NOT NULL DEFAULT 0,
+                audio_attachment TEXT
             )
         """.trimIndent())
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_ann_doc ON $TABLE_ANNOTATIONS (document_id, chunk_index)")
@@ -92,6 +93,7 @@ class VeritasDatabaseHelper(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 4) db.execSQL("ALTER TABLE $TABLE_ANNOTATIONS ADD COLUMN audio_attachment TEXT")
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE $TABLE_DOCUMENTS ADD COLUMN catalog_id TEXT NOT NULL DEFAULT ''")
         }
@@ -360,6 +362,7 @@ class VeritasDatabaseHelper(context: Context) :
             put("selection_group_id", ann.selectionGroupId)
             put("audio_path", ann.audioPath)
             put("audio_duration_seconds", ann.audioDurationSeconds)
+            put("audio_attachment", ann.audioAttachment?.toJson()?.toString())
         }
         check(db.insertWithOnConflict(TABLE_ANNOTATIONS, null, values, SQLiteDatabase.CONFLICT_REPLACE) != -1L) { "Could not save annotation." }
     }
@@ -377,7 +380,8 @@ class VeritasDatabaseHelper(context: Context) :
             highlightColor = c.getString(c.getColumnIndexOrThrow("highlight_color")),
             selectionGroupId = c.getString(c.getColumnIndexOrThrow("selection_group_id")),
             audioPath = c.getString(c.getColumnIndexOrThrow("audio_path")),
-            audioDurationSeconds = c.getInt(c.getColumnIndexOrThrow("audio_duration_seconds"))
+            audioDurationSeconds = c.getInt(c.getColumnIndexOrThrow("audio_duration_seconds")),
+            audioAttachment = c.getString(c.getColumnIndexOrThrow("audio_attachment"))?.let { raw -> runCatching { ManagedAttachment.fromJson(org.json.JSONObject(raw)) }.getOrNull() }
         )
     }
 

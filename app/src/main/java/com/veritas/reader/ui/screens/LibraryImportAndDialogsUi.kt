@@ -156,6 +156,8 @@ internal fun LibraryDialogsAndSheetsHost(
         QuizPlayerDialog(
             questions = playingQuiz.questions,
             quizTitle = playingQuiz.title,
+            quizId = playingQuiz.id,
+            onQuestionsChange = { questions -> onSaveQuiz(playingQuiz.copy(questions = questions)) },
             onSaveScore = { score -> onRecordQuizScore(playingQuiz.id, score) },
             onDismiss = { onDismissActivePlayingQuiz() }
         )
@@ -425,6 +427,7 @@ internal fun LibraryDialogsAndSheetsHost(
             snapshot = readerTrackerSnapshot,
             documents = documents,
             documentReadingTimes = documentReadingTimes,
+            onOpenDocument = { onOpenDocumentAt(it, it.currentIndex) },
             readerSettings = readerSettings,
             onGoalMinutesChange = { minutes ->
                 onSaveReaderSettings(readerSettings.copy(dailyGoalMinutes = minutes))

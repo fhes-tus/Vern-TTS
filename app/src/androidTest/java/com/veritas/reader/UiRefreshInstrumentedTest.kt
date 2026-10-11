@@ -226,7 +226,7 @@ class UiRefreshInstrumentedTest {
         launch().use { scenario ->
             scenario.onActivity { activity -> activity.setContent { MaterialTheme {
                 GeneralNotesEditor(GeneralNote("refresh-editor", "Reflection", raw, 123), notesSettings = settings.value,
-                    onSaveNotesSettings = { settings.value = it }, onSave = { _, body, _, _, _, _, _, _, _, _ -> saved = body },
+                    onSaveNotesSettings = { settings.value = it }, onSave = { _, body, _, _, _, _, _, _, _, _, _ -> saved = body },
                     onDelete = {}, onDismiss = {})
             } } }
             val preview = compose.onNodeWithTag("note_link_preview").fetchSemanticsNode().boundsInRoot

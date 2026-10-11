@@ -13,8 +13,12 @@ data class PptxVisualElement(
     val paths: List<PptxVectorPath> = emptyList(),
     val insetLeft: Float = 0f, val insetTop: Float = 0f,
     val insetRight: Float = 0f, val insetBottom: Float = 0f,
-    val verticalAnchor: String = "t"
+    val verticalAnchor: String = "t",
+    val textRuns: List<PptxVisualTextRun> = emptyList(),
+    val fitTextToBox: Boolean = false
 )
+data class PptxVisualTextRun(val text: String, val fontWidthFraction: Float, val bold: Boolean, val italic: Boolean, val color: Long)
+
 data class PptxPathCommand(val kind: String, val points: List<Float>)
 data class PptxVectorPath(val commands: List<PptxPathCommand>, val filled: Boolean = true, val stroked: Boolean = true)
 data class PptxSlideLayout(val aspectRatio: Float, val background: Long, val elements: List<PptxVisualElement>)
@@ -112,7 +116,7 @@ internal object PptxSlideLayoutParser {
                     }
                 }
                 val bullet = paragraph.first("a:buChar")?.getAttribute("char").orEmpty()
-                if (bullet.isNotBlank()) "$bullet $words" else words
+                if (bullet.isNotBlank() && words.isNotBlank()) "$bullet $words" else words
             }.orEmpty()
             val placeholder = shape.first("p:ph")
             fun inheritedShape(source: Element?): Element? = if (placeholder == null) null else source?.all("p:sp")?.firstOrNull {
@@ -146,6 +150,31 @@ internal object PptxSlideLayoutParser {
             fun inset(name: String, fallback: Float) = body?.getAttribute(name)?.toFloatOrNull() ?: fallback
             val foreground = parseColor(textBody, colors) ?: parseColor(inherited?.first("p:txBody"), colors) ?: colors["tx1"] ?: 0xff202020L
             val readableForeground = readableSlideText(foreground, fill ?: background)
+            // Preserve mixed emphasis, colors and sizes instead of painting an entire shape
+            // using its first run (e.g. an emphasized heading followed by normal body text).
+            val visualRuns = mutableListOf<PptxVisualTextRun>()
+            fun addRun(value: String, style: Element?) {
+                if (value.isEmpty()) return
+                val fontPoints = style?.getAttribute("sz")?.toFloatOrNull()?.div(100f) ?: points
+                val ink = parseColor(style, colors) ?: foreground
+                visualRuns.add(PptxVisualTextRun(value, fontPoints * 12700 / width,
+                    style?.getAttribute("b")?.takeIf { it.isNotBlank() }?.let { it == "1" } ?: (runStyle?.getAttribute("b") == "1"),
+                    style?.getAttribute("i")?.takeIf { it.isNotBlank() }?.let { it == "1" } ?: (runStyle?.getAttribute("i") == "1"),
+                    readableSlideText(ink, fill ?: background)))
+            }
+            textBody?.all("a:p")?.forEachIndexed { paragraphIndex, paragraph ->
+                if (paragraphIndex > 0) addRun("\n", runStyle)
+                val defaultStyle = paragraph.child("a:pPr")?.child("a:defRPr") ?: runStyle
+                val bullet = paragraph.first("a:buChar")?.getAttribute("char").orEmpty()
+                if (bullet.isNotBlank() && paragraph.all("a:t").any { it.textContent.isNotBlank() }) addRun("$bullet ", defaultStyle)
+                for (n in 0 until paragraph.childNodes.length) {
+                    val node = paragraph.childNodes.item(n) as? Element ?: continue
+                    when (node.tagName) {
+                        "a:br" -> addRun("\n", defaultStyle)
+                        "a:r", "a:fld" -> addRun(node.all("a:t").joinToString("") { it.textContent.orEmpty() }, node.child("a:rPr") ?: defaultStyle)
+                    }
+                }
+            }
             val line = properties?.child("a:ln")
             val paths = shape.first("a:custGeom")?.all("a:path")?.map { vector ->
                 val pw = vector.getAttribute("w").toFloatOrNull()?.takeIf { it > 0 } ?: w
@@ -169,7 +198,9 @@ internal object PptxSlideLayoutParser {
                 (line?.getAttribute("w")?.toFloatOrNull() ?: 9525f) / width, paths,
                 inset("lIns", 91440f) / width, inset("tIns", 45720f) / height,
                 inset("rIns", 91440f) / width, inset("bIns", 45720f) / height,
-                body?.getAttribute("anchor").orEmpty().ifBlank { "t" }))
+                body?.getAttribute("anchor").orEmpty().ifBlank { "t" },
+                visualRuns.takeIf { runs -> runs.joinToString("") { it.text } == text }.orEmpty(),
+                body?.child("a:spAutoFit") != null || body?.child("a:normAutofit") != null))
             if (elements.size > 200) return null
         }
         if (elements.none { it.text.isNotBlank() || it.mediaPath != null }) null

@@ -27,14 +27,12 @@ internal fun MainIntentAndRoutingEffects(
     context: Context,
     viewModel: ReaderViewModel,
     uiState: ReaderUiState,
-    initialSharedText: String,
-    initialSharedUri: Uri?,
-    isShareToNotes: Boolean,
+    initialShare: IncomingShare?,
     openVoiceStudioOnStart: Boolean,
     widgetAction: String?,
     noteId: String?,
-    onOpenInNotes: (String, Uri?) -> Unit,
-    onPendingShareChooserChange: (Pair<String, Uri?>?) -> Unit
+    onOpenInNotes: (IncomingShare) -> Unit,
+    onPendingShareChooserChange: (IncomingShare?) -> Unit
 ) {
     LaunchedEffect(uiState.showClassicsCatalog) {
         if (uiState.showClassicsCatalog) viewModel.openLibrarySection(com.veritas.reader.ui.screens.LibrarySection.CLASSICS)
@@ -42,12 +40,9 @@ internal fun MainIntentAndRoutingEffects(
     val documentRepository = remember(context) { DocumentRepository(context.applicationContext) }
     LaunchedEffect(Unit) {
         if (!uiState.handledInitialShare) {
-            if (isShareToNotes) {
-                if (initialSharedText.isNotBlank() || initialSharedUri != null) {
-                    onOpenInNotes(initialSharedText, initialSharedUri)
-                }
-            } else if (initialSharedText.isNotBlank() || initialSharedUri != null) {
-                onPendingShareChooserChange(Pair(initialSharedText, initialSharedUri))
+            if (initialShare != null) {
+                if (initialShare.toNotes) onOpenInNotes(initialShare)
+                else onPendingShareChooserChange(initialShare)
             }
             if (openVoiceStudioOnStart) {
                 viewModel.updateState { it.withVisibility(VeritasScreen.VOICE_STUDIO, true) }
@@ -56,9 +51,9 @@ internal fun MainIntentAndRoutingEffects(
         }
     }
 
-    LaunchedEffect(uiState.pendingWidgetAction) {
+    LaunchedEffect(uiState.pendingWidgetAction, uiState.pendingWidgetDocId, uiState.pendingWidgetNoteId) {
         val action = uiState.pendingWidgetAction
-        uiState.pendingWidgetDocId
+        val requestedDocumentId = uiState.pendingWidgetDocId
         val noteId = uiState.pendingWidgetNoteId
 
         if (action != null) {
@@ -102,23 +97,19 @@ internal fun MainIntentAndRoutingEffects(
                 }
                 MainActivity.ACTION_ACTIVE_READING,
                 MainActivity.ACTION_CONTINUE_READING -> {
-                    val activeDocId = uiState.activeDocument?.id
-                    val docToOpen: SavedDocument? = if (activeDocId != null) {
-                        uiState.documents.firstOrNull { it.id == activeDocId }
-                    } else {
-                        val lastHistory = uiState.readingHistory.maxByOrNull { it.openedAt }
-                        val found: SavedDocument? = if (lastHistory != null) {
-                            uiState.documents.firstOrNull { it.id == lastHistory.documentId }
-                        } else {
-                            uiState.documents.maxByOrNull { it.updatedAt }
-                        }
-                        found
+                    val docToOpen = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        if (!requestedDocumentId.isNullOrBlank()) documentRepository.findDocument(requestedDocumentId)
+                        else PlaybackStateStore.activeDocumentId?.let(documentRepository::findDocument)
+                            ?: uiState.activeDocument?.id?.let(documentRepository::findDocument)
+                            ?: documentRepository.widgetReadingState().document
                     }
                     if (docToOpen != null) {
-                        PlaybackStateStore.readerMode = ReaderMode.TEXT
                         viewModel.openSavedDocument(docToOpen)
+                    } else {
+                        viewModel.navigateToHomeTab(VeritasHomeTab.LIBRARY)
                     }
                 }
+
                 MainActivity.ACTION_NEW_READING_NOTE -> {
                     if (uiState.activeDocument != null) {
                         viewModel.updateState { it.withVisibility(VeritasScreen.DOCUMENT_NOTES, true) }
@@ -138,7 +129,7 @@ internal fun MainIntentAndRoutingEffects(
                 }
                 MainActivity.ACTION_EDIT_NOTE -> {
                     noteId?.let { nid ->
-                        val note = documentRepository.loadGeneralNotes().firstOrNull { it.id == nid }
+                        val note = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { documentRepository.loadGeneralNotes().firstOrNull { it.id == nid } }
                         if (note != null) {
                             viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, true).copy(
                                 generalNoteEditorTarget = note

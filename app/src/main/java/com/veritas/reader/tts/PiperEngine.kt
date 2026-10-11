@@ -47,7 +47,7 @@ class PiperEngine(context: Context, private val voiceId: String) : TtsEngine {
 
     override suspend fun synthesize(sentence: String, rate: Float, pitch: Float): ShortArray? = withContext(Dispatchers.Default) {
         val tts = engine ?: return@withContext null
-        val clean = sentence.trim()
+        val clean = NeuralSpeechText.prepare(sentence)
         if (clean.isBlank()) return@withContext null
         val safeSpeed = rate.coerceIn(0.5f, 2.0f)
         runCatching {

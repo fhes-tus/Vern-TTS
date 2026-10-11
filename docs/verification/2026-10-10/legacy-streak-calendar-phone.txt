@@ -1,0 +1,8 @@
+
+com.veritas.reader.StreakCompatibilityUiTest:.
+
+Time: 4.614
+
+OK (1 test)
+
+

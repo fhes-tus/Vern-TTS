@@ -1,18 +1,6 @@
-# Playback and study extensions — stage 11
+# Future playback and study extensions — stage 11
 
-Status: design completed against the current implementation on 4 October 2026. This stage defines the remaining extensions; it does not claim that neural RSVP, mixed-engine casts or portable sentence-note media have shipped. Stage 12 is excluded at the user's request. Export/listening acceptance in stage 13 remains paused.
-
-## Current behavior and compatibility
-
-| Area | Current implementation | Remaining boundary |
-| --- | --- | --- |
-| Narration | Saved role profiles; narrator/default dialogue and named speech tags; preview uses the selected reading engine and base delivery. Android and installed neural character voices work within their respective engine families. | A single sentence can include narration and dialogue; the chosen role applies to the sentence. Profiles do not store a separate Android engine package. |
-| Neural audio | `PlaybackService` and `VeritasAudioBuffer` synthesize bounded sentence PCM. Cache entries include text, rate, pitch and generation. Changing the local voice rebuilds its engine. | Cast playback suppresses look-ahead generated with another role's settings. Repeated model switches can add loading latency. |
-| RSVP | `RsvpSpeedReader` has a visual word timer and optional Android sentence speech. | The visual timer is not an audio-position clock. Neural speech and reliable word-level audio synchronization are not implemented. |
-| Cast export | Existing export paths use Android or local neural voices. | Mixing Android and neural voices must fail explicitly rather than substitute a voice. Do not present this as supported. |
-| Reading notes | `ReaderAnnotation.audioPath` stores a device-local recording reference. | A reference is not a portable recording in another installation. |
-| Quizzes | `QuizSet` and `QuizQuestion` store text and results. | There is no typed owned media attachment model for question audio/images. |
-| Standalone notebooks | A note can have multiple notebook IDs. Assignment, removal and notebook deletion preserve the note. Editor autosave and copies include assignments. | Collaborative sync is separate work; notebooks are label-like organization, not physical folders. |
+Status updated 10 October 2026: source-driven audio RSVP and portable sentence-note/generic Notes media archives are implemented and checked. Shared immutable speech plans, versioned mixed-engine casts, normalized mixed export and typed attachment/quiz ownership are now implemented. Stage 12 is excluded at the user's request. Export/listening acceptance in stage 13 remains paused.
 
 ## 1. One playback plan for a passage
 
@@ -59,3 +47,16 @@ Quiz UI should expose Add image/recording only after this storage path exists. P
 5. Resume stage 13 only on the user's instruction; verify real models, exports and human pitch listening then.
 
 Focused checks should cover cancellation during native synthesis, a missing voice, repeated phrases/ligatures and source offsets, fast seeking, engine switches, rapid AI generation/cancel/retry, notebook removal, missing media and interrupted restore. Existing phone notes, reading progress and study scores are not disposable test data.
+
+
+### Audio RSVP implementation evidence — 10 October 2026
+RSVP now borrows PlaybackService rather than owning a second TTS player. Opening pauses the prior book; closing pauses pending/active RSVP narration and restores book pace. Playback source UTF-16 ranges drive displayed words; neural timing follows rendered PCM frames and is explicitly labelled estimated. Buffering does not advance words. Seeking uses original token offsets; silent WPM and audio multipliers are stored separately. Three JVM token/timing checks, six playback device cases (including pace preservation) and the source-position UI test pass. This does not establish acoustically aligned neural words or human listening acceptance.
+
+
+### Shared plan, cast and owned media implementation — 10 October 2026
+
+`SpeechPlan` classifies the original source before transforms and records full-document revision identity, UTF-16 source ranges/maps, voice package/family, language, delivery and pauses. Live speech, narration preview and export use the builder. Splitting keeps surrogate pairs and source maps intact. Cast JSON v2 adds engine/locale while retaining legacy assignments. Narration Studio lists installed Android engines alongside Lite/Studio; a neural reading voice can assign a system character.
+
+The live service owns one output and waits for retiring native synthesis/disposal before switching. Missing models/voices stop explicitly without replacing saved choices; failed system initialization can be retried. The export coordinator streams Android WAV or neural PCM to a single 24 kHz mono PCM16 partial file, downmixes/resamples and commits atomically. Cancellation deletes only its own files and leaves voice settings intact. Device checks pass source mapping, legacy cast migration, synthetic mixed-engine ownership/cancellation and a real offline Android WAV between synthetic neural segments. Actual model export/listening acceptance remains paused.
+
+Versioned `ManagedAttachment` records retain identity, owner, MIME, size, optional duration and managed relative path. Annotation migration is additive (database v4). Notes, revisions, Trash and quizzes protect referenced files; recorder/backup leases protect in-flight work. Full portable backup now includes saved quizzes and their media, captures references/identities together and rebases by stable identity before filename fallback. Complete-note ZIPs retain IDs even when archive filenames are prefixed. Missing files retain text and show recovery controls. Quiz questions expose owned image/recording import, microphone recording, play/stop and detachment. These structural and synthetic-media checks do not resume stage 13 human/model acceptance.

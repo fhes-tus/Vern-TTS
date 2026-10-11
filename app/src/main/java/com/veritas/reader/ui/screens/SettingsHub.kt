@@ -407,7 +407,7 @@ fun StorageDialog(
         confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
         title = { Text("Storage") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (breakdown == null) {
                     Text("Measuring…", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
@@ -420,6 +420,7 @@ fun StorageDialog(
                     Text("Covers & thumbnails: ${formatVeritasBytes(breakdown.coversBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Database & storage index: ${formatVeritasBytes(breakdown.databaseBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Temporary cache & audio: ${formatVeritasBytes(breakdown.cacheBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    NoteMediaCleanupControl()
 
                     if (onClearCache != null) {
                         val cacheBytes = breakdown.cacheBytes

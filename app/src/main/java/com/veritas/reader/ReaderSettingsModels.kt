@@ -158,13 +158,17 @@ data class BookCharacter(
     val genderLabel: String = "Neutral",
     val voiceName: String? = null,
     val pitchMultiplier: Float = 1.0f,
-    val rateMultiplier: Float = 1.0f
+    val rateMultiplier: Float = 1.0f,
+    val enginePackage: String? = null,
+    val localeTag: String = ""
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("id", id)
         .put("name", name)
         .put("genderLabel", genderLabel)
         .put("voiceName", voiceName ?: "")
+        .put("enginePackage", enginePackage ?: JSONObject.NULL)
+        .put("localeTag", localeTag)
         .put("pitchMultiplier", pitchMultiplier.toDouble())
         .put("rateMultiplier", rateMultiplier.toDouble())
 
@@ -174,6 +178,8 @@ data class BookCharacter(
             name = obj.optString("name", "Character"),
             genderLabel = obj.optString("genderLabel", "Neutral"),
             voiceName = obj.optString("voiceName").takeIf { it.isNotBlank() },
+            enginePackage = if (obj.isNull("enginePackage")) null else obj.optString("enginePackage"),
+            localeTag = obj.optString("localeTag"),
             pitchMultiplier = obj.optDouble("pitchMultiplier", 1.0).toFloat().coerceIn(0.70f, 1.40f),
             rateMultiplier = obj.optDouble("rateMultiplier", 1.0).toFloat().coerceIn(0.50f, 2.00f)
         )
@@ -200,6 +206,7 @@ data class NarrationSettings(
         val array = JSONArray()
         characterProfiles.forEach { array.put(it.toJson()) }
         return JSONObject()
+            .put("castVersion", 2)
             .put("enabled", enabled)
             .put("dialogueDetection", dialogueDetection)
             .put("narratorRateMultiplier", narratorRateMultiplier.toDouble())
@@ -427,12 +434,14 @@ data class ReaderTrackerDay(
     val dateKey: String,
     val appOpenCount: Int = 0,
     val usageMillis: Long = 0L,
-    val readDocumentIds: Set<String> = emptySet()
+    val readDocumentIds: Set<String> = emptySet(),
+    val readingMillis: Long = 0L
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("dateKey", dateKey)
         .put("appOpenCount", appOpenCount)
         .put("usageMillis", usageMillis)
+        .put("readingMillis", readingMillis)
         .put("readDocumentIds", JSONArray().also { array -> readDocumentIds.sorted().forEach(array::put) })
 
     companion object {
@@ -446,7 +455,8 @@ data class ReaderTrackerDay(
                 dateKey = obj.optString("dateKey"),
                 appOpenCount = obj.optInt("appOpenCount", 0).coerceAtLeast(0),
                 usageMillis = obj.optLong("usageMillis", 0L).coerceAtLeast(0L),
-                readDocumentIds = ids
+                readDocumentIds = ids,
+                readingMillis = obj.optLong("readingMillis", 0L).coerceAtLeast(0L)
             )
         }
     }
@@ -494,7 +504,14 @@ data class ReaderTrackerSnapshot(
     val weeklyHistory: List<WeekBars> = emptyList(),
     val recentCompletions: List<ReaderTrackerCompletion> = emptyList(),
     val activeDateKeys: Set<String> = emptySet(),
-    val openedDateKeys: Set<String> = emptySet()
+    val openedDateKeys: Set<String> = emptySet(),
+    val readingMillisByDate: Map<String, Long> = emptyMap(),
+    val weeklyReadingMillis: Long = 0L,
+    val sessions: List<ReadingSession> = emptyList(),
+    val measuredReadingMillisByDate: Map<String, Long> = emptyMap(),
+    val listeningMillisByDate: Map<String, Long> = emptyMap(),
+    val legacyReadingMillisByDate: Map<String, Long> = emptyMap(),
+    val completionDates: Map<String, Long> = emptyMap()
 ) {
     companion object {
         fun empty(): ReaderTrackerSnapshot = ReaderTrackerSnapshot()

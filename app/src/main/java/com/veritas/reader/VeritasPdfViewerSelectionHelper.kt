@@ -116,6 +116,18 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
             true
         }
 
+        val lookupItem = menu.findItem(1008) ?: menu.add(0, 1008, 8, "Web lookup")
+        lookupItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
+        lookupItem.setOnMenuItemClickListener {
+            performActionOnCopiedSelection(menu, mode) { text ->
+                lifecycleScope.launch {
+                    appendVocabularyWord(text, "Looked up definition / web references.")?.join()
+                    openGoogleSearch(activity, "$text meaning")
+                }
+            }
+            true
+        }
+
         mode.invalidate()
     }
 
@@ -184,42 +196,19 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
             ?: PlaybackStateStore.currentIndex
     }
 
-    private fun VeritasPdfViewerActivity.appendVocabularyWord(word: String, explanation: String) {
-        val docId = document?.id ?: return
-        lifecycleScope.launch(Dispatchers.IO) {
-            val existing = repository.loadGeneralNotes().toMutableList()
-            val targetTitle = "__vocab__$docId"
-            val vocabIndex = existing.indexOfFirst { it.title == targetTitle }
-            val now = System.currentTimeMillis()
-            val formattedTime = java.text.SimpleDateFormat("dd MMM yyyy, HH:mm", java.util.Locale.getDefault()).format(java.util.Date(now))
-
-            val currentIndex = findSentenceIndexForText(word)
-            val textModel = readerTextModel
-            val part = textModel?.partForSentence(currentIndex)
-            val sectionNum = (part?.index ?: 0) + 1
-
-            val entryText = buildString {
-                appendLine(word.trim())
-                appendLine("  $explanation")
-                appendLine("  (looked up: Section $sectionNum, sentence ${currentIndex + 1})")
-                append("  [$formattedTime]")
-            }
-
-            if (vocabIndex != -1) {
-                val oldNote = existing[vocabIndex]
-                val newContent = if (oldNote.content.isBlank()) entryText else oldNote.content + "\n\n" + entryText
-                existing[vocabIndex] = oldNote.copy(content = newContent, updatedAt = now)
-            } else {
-                val newNote = GeneralNote(
-                    id = java.util.UUID.randomUUID().toString(),
-                    title = targetTitle,
-                    content = entryText,
-                    updatedAt = now
-                )
-                existing.add(0, newNote)
-            }
-
-            repository.saveGeneralNotes(existing)
+    private fun VeritasPdfViewerActivity.appendVocabularyWord(word: String, explanation: String): kotlinx.coroutines.Job? {
+        val savedDocument = document ?: return null
+        val docId = savedDocument.id
+        val currentIndex = findSentenceIndexForText(word)
+        val textModel = readerTextModel
+        val contextSentence = textModel?.sentences?.getOrNull(currentIndex)?.text
+        val sectionNum = (textModel?.partForSentence(currentIndex)?.index ?: 0) + 1
+        return lifecycleScope.launch(Dispatchers.IO) {
+            repository.saveVocabularyLookup(activity, docId, VocabularyEntry(
+                word.trim(), explanation,
+                "(looked up: Section $sectionNum, sentence ${currentIndex + 1})",
+                currentIndex, contextSentence
+            ))
         }
     }
 

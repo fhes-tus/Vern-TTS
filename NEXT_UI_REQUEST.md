@@ -1,17 +1,17 @@
-# Pending follow-up — 3 October 2026
+# Home and Added — final polish completed
 
-Implemented and verified; see the latest PROGRESS.md entry. The reported disappearing-note cause was not reproduced; thumbnail stability/fallback handling was added and tested.
+Updated 9 October 2026. The user asked to finish Home and My Library → Added after the Study Hub audit/Overview, then stop this update's design work.
 
-Authorized on 3 October: implement this follow-up. Editor margin reduction applies only to open notes; 4 dp was an estimate. The Notes tear stretches horizontally with pointed facing edges only during separation, settling back into rounded pills. The player collapses left in its existing row; expansion smoothly raises action pills and collapse returns them.
+Home now shares library progress calculation, excludes Continue reading from Recent books, and offers goal setup before the first reading session. Added has result counts/reset, clearer empty search results, larger search controls and separated tile metadata.
 
-- Closed notes: place the date and attachment badges immediately above the link footer, removing the excess gap.
-- Notes search: replace the always-visible field with a search icon immediately before the overflow menu. Reuse Library's animated, theme-shaped expanding/collapsing search behavior. Preserve dynamic horizontally scrollable filters.
-- Attachment thumbnails: investigate the reported disappearing note when this preference is enabled. Preserve the note, media and settings; reproduce before fixing.
-- Reduce excessive open-editor text margins; 4 dp was an estimate, not a fixed requirement.
-- Notes navigation detachment uses a horizontal stretching/pinching tear, with pointed facing edges only during motion and rounded resting shapes.
-- Player: reduce its height by another 2 dp; initially use about 80% opacity. Real glossy/glass treatment remains deferred to the theme work.
-- Player controls: match the supplied home-widget reference, with a prominent circular play/pause background and subtler circular previous/next backgrounds, adapted to the active theme.
-- Add a left-pointing collapse affordance beside the cover. Collapse left in the existing player row into a compact circular waveform control, animated while playback is running; tap to expand. Expansion raises action pills, collapse returns them, using synchronized animation. Preserve playback/session state.
-- Add taking a photo with the camera as a Notes attachment option.
+Validation: combined app/test assembly, 35 focused JVM tests and 8 Android tests passed. The actual Home, Added and Study Overview were inspected in the isolated `com.veritas.reader.checks` app. Goal changes survived an app restart and Home's bottom actions scroll clear of navigation. The final cosmetic corrections also compiled and were packaged successfully. Normal and preview apps were preserved.
 
-Reference files were supplied in the user message: Screenshot_20261003_124940_One UI Home.png, Screenshot_20261003_125321_Vern TTS.png, Screenshot_20261003_125453_Vern TTS.png, 20261003_125700.jpg, and 20261003_125644.jpg (under the user's Local/Temp directory).
+Details: [Home/Added review](docs/HOME_ADDED_POLISH_REVIEW.md) and [Study Hub review](docs/STUDY_HUB_LOGIC_REVIEW.md). Broader acceptance of all theme combinations, weekly network/download flows and Monday rollover remains available for later testing.
+
+The final follow-up also updates extracted-text, actual-document and native-PDF playback glass in both glass modes, restores separated Notes navigation, fixes Study/Notes Back hierarchy, supplies the requested menu icons and removes the circled Study introduction. Final app/test assembly and all 12 phone checks pass. See [glass/navigation verification](docs/GLASS_AND_NAVIGATION_FOLLOWUP.md).
+
+The user's last animation checklist was completed as a search-only report: [animation opportunities](docs/ANIMATION_OPPORTUNITIES_REVIEW.md). Two optional status fades were identified; no animation implementation was added.
+
+Following explicit user authorization, both status fades and playback startup feedback are implemented. Local signed release assembly, 30 focused JVM cases and all 17 phone cases are verified as of 10 October 2026. All three release APK signatures and 16 KiB alignments pass; the ARM64 APK is 51.32 MiB. See [final playback/release checkpoint](docs/PLAYBACK_FEEDBACK_RELEASE_CHECK.md).
+
+The full Reading Insights redesign remains in [FUTURE_UI_PLAN.md](FUTURE_UI_PLAN.md). No release publication is authorized or performed.

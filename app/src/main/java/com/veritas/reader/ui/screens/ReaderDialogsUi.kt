@@ -406,6 +406,7 @@ internal fun ReaderDialogsAndSheetsHost(
             state.annotations.any { it.chunkIndex == currentIndex && it.type == AnnotationType.BOOKMARK }
         }
         AudioModeScreen(
+            documentId = document.id,
             title = document.title,
             currentIndex = currentIndex,
             totalChunks = document.chunks.size,

@@ -53,15 +53,14 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
     val corner = (collapsedSize.value / 2f + (packCorner.coerceAtMost(collapsedSize.value / 2f) - collapsedSize.value / 2f) * progress).dp
     val playerShape = androidx.compose.foundation.shape.RoundedCornerShape(corner)
     Surface(Modifier.width(collapsedSize + (fullWidth - collapsedSize) * progress).height(playerHeight)
-        .veritasGlassBackdrop(playerShape, isLiquidGlass, blurRadiusDp = 28f,
-            surfaceOpacity = VeritasPackStyle.playerOpacity(VeritasPackStyle.currentPackId()))
+        .veritasGlassBackdrop(playerShape, isLiquidGlass, surfaceOpacity = .36f)
         .testTag("live_playback_floater"),
         shape = playerShape,
         color = if (isLiquidGlass) androidx.compose.ui.graphics.Color.Transparent
             else if (VeritasPackStyle.currentPackId() == "liquid_glass") MaterialTheme.colorScheme.surface
             else VeritasPackStyle.playerSurfaceColor(MaterialTheme.colorScheme),
-        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme), tonalElevation = 0.dp,
-        shadowElevation = VeritasPackStyle.chromeElevation(VeritasPackStyle.currentPackId())) {
+        border = if (isLiquidGlass) null else VeritasPackStyle.cardBorder(MaterialTheme.colorScheme), tonalElevation = 0.dp,
+        shadowElevation = if (isLiquidGlass) 0.dp else VeritasPackStyle.chromeElevation(VeritasPackStyle.currentPackId())) {
         Box(Modifier.fillMaxSize().clipToBounds()) {
         if (progress > 0f) Column(Modifier.requiredWidth(fullWidth).align(Alignment.CenterStart)
             .graphicsLayer { alpha = ((progress - .25f) / .75f).coerceIn(0f, 1f) }
@@ -90,7 +89,7 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
                 }
                 FilledIconButton(onPlayPause, Modifier.size(if (VeritasPackStyle.currentPackId() == "one_ui") 50.dp else 44.dp).testTag("floater_play_pause"), shape = CircleShape,
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)) {
-                    Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, if (playing) "Pause playback" else "Resume playback")
+                    PlaybackControlIcon(playing, PlaybackStateStore.isPreparingFor(document.id))
                 }
                 IconButton({ if (PlaybackStateStore.activeDocumentId == document.id) sendPlaybackIntent(context, PlaybackActions.ACTION_NEXT) },
                     Modifier.size(40.dp).testTag("floater_next"), enabled = count > 0 && index < count - 1) {

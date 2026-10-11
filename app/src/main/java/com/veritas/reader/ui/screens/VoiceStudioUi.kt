@@ -55,6 +55,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -550,7 +551,7 @@ fun VoiceStudioDialog(
                             is com.veritas.reader.tts.DownloadState.Downloading ->
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                                    Text("${state.percent}%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                    Text(state.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
                             else -> TextButton(onClick = {
                                 voiceRowScope.launch {
@@ -608,6 +609,9 @@ fun VoiceStudioDialog(
                     }
                     val targetVoice = com.veritas.reader.tts.VoiceModelManager.availableVoices.firstOrNull { it.id == pkg.targetVoiceId }
                     val state = downloadStates[pkg.targetVoiceId] ?: com.veritas.reader.tts.DownloadState.Idle
+                    val installedAlpha by androidx.compose.animation.core.animateFloatAsState(
+                        targetValue = if (isInstalled) 1f else 0f,
+                        animationSpec = com.veritas.reader.ui.VeritasMotion.effectsFast(), label = "voiceInstalledStatus")
 
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -627,7 +631,7 @@ fun VoiceStudioDialog(
                                     progress = { state.percent / 100f },
                                     modifier = Modifier.fillMaxWidth()
                                 )
-                                Text("Downloading ${state.percent}%...", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                Text(state.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                             } else if (state is com.veritas.reader.tts.DownloadState.Failed) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(state.reason, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
@@ -636,8 +640,10 @@ fun VoiceStudioDialog(
 
                         Spacer(modifier = Modifier.width(8.dp))
 
+                        Box(Modifier.width(148.dp), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
                         if (isInstalled) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Row(modifier = Modifier.graphicsLayer { alpha = installedAlpha },
+                                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Icon(Icons.Filled.CheckCircle, contentDescription = "Installed", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                                 Text("Installed", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                                 IconButton(onClick = {
@@ -669,6 +675,7 @@ fun VoiceStudioDialog(
                             ) {
                                 Text("Download", style = MaterialTheme.typography.labelMedium)
                             }
+                        }
                         }
                     }
                 }

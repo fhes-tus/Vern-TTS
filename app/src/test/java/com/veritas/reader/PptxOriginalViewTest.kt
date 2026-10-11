@@ -49,6 +49,16 @@ class PptxOriginalViewTest {
         assertEquals("ctr", element.verticalAnchor)
     }
 
+
+    @Test fun sourceAutoFitAndEmptyParagraphsKeepTextWithoutInventedBullets() {
+        val source = shape.replace("<p:txBody>", "<p:txBody><a:bodyPr><a:spAutoFit/></a:bodyPr>")
+            .replace("</a:p>", "</a:p><a:p><a:pPr><a:buChar char=\"•\"/></a:pPr></a:p>")
+        val element = PptxSlideLayoutParser.parse(slide(source), "", presentation)!!.elements.single()
+        assertTrue(element.fitTextToBox)
+        assertEquals("Positioned title\n", element.text)
+        assertFalse(PptxSlideLayoutParser.parse(slide(shape), "", presentation)!!.elements.single().fitTextToBox)
+    }
+
     @Test fun sourceRelationshipsControlSlideOrderNotesAndMediaWithAnyAttributeOrder() {
         val file = File.createTempFile("slides", ".pptx")
         val entries = mapOf(

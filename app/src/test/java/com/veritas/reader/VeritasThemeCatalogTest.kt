@@ -8,6 +8,17 @@ import org.junit.Test
 
 class VeritasThemeCatalogTest {
 
+    @Test fun newInstallDefaultsToSystemFollowingMidnightWithoutChangingExplicitChoice() {
+        assertEquals("midnight_system", VeritasThemeCatalog.DEFAULT_ID)
+        assertEquals("midnight", VeritasThemeCatalog.DEFAULT_FAMILY)
+        assertEquals("system", VeritasThemeCatalog.DEFAULT_MODE)
+        assertEquals("midnight_system", VeritasThemeCatalog.normalizeThemeId(""))
+        assertEquals("midnight_light", VeritasThemeCatalog.resolveConcreteThemeId(VeritasThemeCatalog.DEFAULT_ID, false))
+        assertEquals("midnight_dark", VeritasThemeCatalog.resolveConcreteThemeId(VeritasThemeCatalog.DEFAULT_ID, true))
+        assertEquals("light", VeritasThemeCatalog.resolveConcreteThemeId("system", false))
+        assertEquals("dark", VeritasThemeCatalog.resolveConcreteThemeId("system", true))
+    }
+
     @Test fun accessibilityPresetsSurviveThemeFamilyMigration() {
         for (id in listOf("amoled", "dark_high_contrast", "white_high_contrast")) {
             assertEquals(id, VeritasThemeCatalog.normalizeThemeId(id))
@@ -17,7 +28,7 @@ class VeritasThemeCatalogTest {
         assertTrue(VeritasThemeCatalog.isDark("dark_high_contrast"))
         assertEquals("White High Contrast", VeritasThemeCatalog.displayName("white_high_contrast"))
         assertEquals("github_light", VeritasThemeCatalog.normalizeThemeId("one_light"))
-        assertEquals("system", VeritasThemeCatalog.resolveThemeIdForStorage("unknown", "system"))
+        assertEquals("midnight_system", VeritasThemeCatalog.resolveThemeIdForStorage("unknown", "system"))
     }
 
     @Test

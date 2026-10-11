@@ -720,12 +720,15 @@ internal fun StudyDailyReviewHeroCard(
                     )
                 }
 
-                Text(
-                    text = "$completionPercent%",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = if (completionPercent == 0 && cardsToReview == 0) "—" else "$completionPercent%",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text("Not due", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
 
             Column(
@@ -733,13 +736,13 @@ internal fun StudyDailyReviewHeroCard(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = "Daily Review",
+                    text = "Review queue",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "$cardsToReview Cards to review today",
+                    text = "$cardsToReview ${if (cardsToReview == 1) "flashcard" else "flashcards"} due",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -763,7 +766,7 @@ internal fun StudyDailyReviewHeroCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = "Start Review",
+                            text = if (cardsToReview > 0) "Start Review" else "Browse cards",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold
                         )

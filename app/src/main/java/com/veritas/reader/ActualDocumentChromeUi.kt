@@ -645,6 +645,7 @@ internal fun ActualDocumentOverflowMenu(
 @Composable
 internal fun ActualDocumentBottomBar(
     bottomBarOffset: Float,
+    documentId: String? = null,
     isPlaying: Boolean,
     statusMessage: String,
     rate: Float,
@@ -674,6 +675,7 @@ internal fun ActualDocumentBottomBar(
             .graphicsLayer { translationY = bottomBarOffset }
     ) {
         DocPlayerPanel(
+            documentId = documentId,
             isPlaying = isPlaying,
             statusMessage = statusMessage,
             rate = rate,

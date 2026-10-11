@@ -372,6 +372,12 @@ internal fun AiAppStudyDialog(
         QuizPlayerDialog(
             questions = questions,
             quizTitle = "${document.title} Quiz",
+            quizId = activeQuizId,
+            onQuestionsChange = if (activeQuizId != null && onSaveQuiz != null) { updated ->
+                activeQuizQuestions = updated
+                val saved = DocumentRepository(context).loadAllQuizzes().firstOrNull { it.id == activeQuizId }
+                if (saved != null) onSaveQuiz(saved.copy(questions = updated))
+            } else null,
             onSaveScore = { score ->
                 activeQuizId?.let { id -> onRecordQuizScore?.invoke(id, score) }
             },

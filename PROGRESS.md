@@ -1,3 +1,38 @@
+## 9 October 2026 — hero header and weekly discovery
+
+- Enlarged the Continue reading header and added Pick up where you left off, using the circled space without adding another stats row.
+- Restored the catalogue recommendation when no Continue reading book is selected for an existing/setup-complete reader. The pick is now Book of the Week, stable from local Monday through Sunday and shared with the Classics featured section.
+- Weekly discovery includes cover, author, genre, synopsis and Preview book. It reuses the existing edition-aware details sheet, downloads, cancellation and installed-book opening. Add remains available for an empty library; pre-setup first-use Home retains its import invitation.
+
+Validation: debug build passed (`tmp/home-weekly-build.log`, BUILD SUCCESSFUL). The matching-certificate, same-package arm64 debug APK installed in place on Samsung SM-A175F; result Success. Launch returned Status: ok. `tmp/home-weekly-device.png` confirms the larger Continue reading heading and subtitle in the user's existing theme, with library content retained. User 0 firstInstallTime remains 7 October 2026 10:18:40. The scoped AndroidRuntime log was empty. Weekly fallback and preview are wired in source; dismissal/download/rollover are not claimed as device-tested. No test suite or test-file updates were added for this layout follow-up.
+
+## 9 October 2026 — Home debug update installed
+
+The user lifted the build/install hold after the Home source pass. The same-package debug build passed (`tmp/home-redesign-build.log`, BUILD SUCCESSFUL). Installed `app/build/outputs/apk/debug/app-arm64-v8a-debug.apk` in place on Samsung SM-A175F with `adb install --user 0 -r`; result Success. Package is `com.veritas.reader`, launcher label Vern Preview, and the APK is debuggable. Its signing-certificate SHA-256 matched the previously installed APK.
+
+Launch returned Status: ok. The Home screenshot (`tmp/home-redesign-device.png`) confirms Continue reading, the goal-free daily summary and Recent books in the user's existing theme. Existing library content is visible; user 0 firstInstallTime remains 7 October 2026 10:18:40. No uninstall, data clear, release build or release publication occurred. The scoped launch AndroidRuntime log was empty. This is a build/launch/visual smoke check, not a full device or feature test suite. Goal-enabled/first-use states and the remaining acceptance backlog still need review.
+
+Release publication and stage 13 export/listening acceptance remain on hold. Reading Insights redesign stays a future update.
+
+## 9 October 2026 — Home layout and backlog cleanup
+
+- Home now prioritises a Continue reading card with cover, title, source label, progress and an explicit reading action. The shared floating player keeps audio controls. The empty hero offers Add your first read.
+- Added a compact daily summary using recorded reading duration. Goals show a progress ring and remaining time; goal-free activity shows recorded minutes and measured reading days this week. A new reader without a goal or activity sees no empty summary. Set/edit/disable goal uses the existing saved ReaderSettings path.
+- Recent books are a compact two-item section with the existing grid/list preference and library actions. Classics and Add remain reachable. Distribution/time charts stay in Insights, and the existing floating-control bottom inset is retained.
+- FUTURE_UI_PLAN.md now lists unfinished work only and includes the approved future Reading Insights redesign. Completed requests were removed from NEXT_UI_REQUEST.md and FOLLOWUP_IMPLEMENTATION_NOTES.md; the playback extension plan no longer repeats completed capabilities. Historical implementation/verification logs are preserved here.
+
+Validation: source inspection and diff checks only. No build, tests, device installation or release were performed; the user's hold remains in effect. The revised Home is not yet visible in the installed app.
+
+## 9 October 2026 — widget and tracking source refinements
+
+- Widget playback resolves a valid live or persisted book, routes to that exact book, and avoids changing the playing-book identity when another book is opened. Covers load off the UI thread; compact controls and empty states adapt to widget size.
+- Flashcard widgets keep independent deck/answer state, use the app's due-date scheduler and rating logic, and guard stale answer actions. Capture and Notes widgets open their actual destinations; Notes previews render formatting and pin changes use atomic mutations.
+- Reading duration now has its own daily totals, split at local midnight and preserved on backup merge. Goals and reading widgets use those totals; app activity remains explicitly labelled separately. This does not yet implement idle detection, separate reading/listening sessions or a durable session history.
+- Positioned PPTX text preserves run-level font size, emphasis and colour when its text agrees exactly with the existing source buffer. Supplied-document visual comparison remains pending.
+- The user requested ideas for a broader Reading Insights redesign. Overview, per-book progress and session history are proposals, not completed features. Stage 11 extensions remain planned; stage 12 remains excluded and stage 13 acceptance paused.
+
+Validation: source/diff inspection only. No build, tests, installation or release were performed for this continuation, per user direction. Earlier build/test results below do not validate these newer changes.
+
 ## 5 October 2026 — onboarding, speech, reader and Notes completion pass
 
 - Replaced the decorative onboarding flow with reading interests, actual device speech preview/speed, optional assistant choice and a concise finish screen. Existing pitch/preferences are preserved; setup writes the chosen settings before completion.
@@ -261,3 +296,33 @@ Replaced the reverted navbar implementation with the shared destination order (H
 Material You reserves the third palette swatch for player/filter containers and adds distinct primary, secondary and tertiary tonal surfaces across shared panels, headers and Notes cards; dark backgrounds and accessibility palettes remain preserved. Liquid Glass uses real backdrop blur with a continuous clipped reflection and the existing reflective rim, replacing the lens/default highlight path implicated in the solid white artifacts. The navigation shares that glass material. Unsupported hardware uses the configured translucent player material; accessibility overrides remain opaque.
 
 Initial debug build passed (`tmp/navigation-gloss-build.log`) and installed in place. Phone review confirmed compact ordered navigation, the detached Notes end state, metadata directly against the link footer, and no scoped AndroidRuntime errors. Final Notes panel/fallback refinements require the final build/install recorded below. Stages 8–10 are not marked complete by these screenshot corrections.
+
+## 10 October 2026 — onboarding, vocabulary and Notes checkpoint
+
+Screen 3 now uses the shared app slider. Scene/page/progress/Continue motion respects reduced motion, and onboarding quests remain enabled. Web lookup durably saves context before browser handoff and resolves meanings through dictionary lookup with a verified Wiktionary fallback; older entries have Find/Refresh meaning. Notes share text/PDF and individual recordings separately, and a complete-note ZIP restores through Backup & restore. Legacy AMR extraction preserves source audio; new recordings use AAC/M4A.
+
+Final app/test assembly passed, all 14 focused JVM checks passed, and all 9 phone checks passed, including live definition persistence and actual encoded AMR extraction. Only the isolated `.checks` app was installed. No new release was built or published. Full evidence and remaining recipient/browser/offline acceptance are in `docs/ONBOARDING_LOOKUP_NOTES_FINAL_FIXES.md`.
+
+Remaining-fix work has begun with `docs/READING_INSIGHTS_SESSION_AUDIT.md`: current document-open timing mixes modes, and background chunk timing can include preparation. The durable measured-session implementation remains outstanding. The backlog now retains the icon dependency, voice/Lite-hiss listening and saved-book acceptance alongside the larger features.
+
+## 10 October 2026 - Listen and restored Reading Insights checkpoint
+
+Listen follows the supplied reference with rounded-square artwork, glossy circular skip/bookmark controls, a wide Play/Pause pill, shared sentence-position slider and speed/voice/timer pills. Read sentences scroll and animate through opacity, scale and lift. Shared glass has a restrained glossy rim; Add/Note floating pills no longer stack duplicate borders/elevation.
+
+The measured session ledger separates actual reading/listening, suspends preparation/buffering/pauses, checkpoints recovery and preserves corrections and backup deduplication. After the user's visual correction, Overview contains Streaks, Weekly App Activity and Reading Activity, with day indicators, eight-week app bars, a measured mode ring and Month/Year heatmap. Goals/timer/session tools live in History; per-book details live in Books. Normal and 320 dp / 1.5x text-size screenshots were checked.
+
+Nineteen focused phone cases pass: 18 in `.checks/insights-graphics-final-phone.txt`, and the ambiguous large-text test selector was corrected and passed separately in `.checks/insights-compact-final-phone.txt`, without app changes. Debug app/test assembly passes. Earlier 17 focused JVM cases passed; the PPTX refinement then passed its expanded six-case parser suite.
+
+ISO slides 8/12/14 were compared and source auto-fit clipping fixed. The authorized breast-milk report passes import/cover/logo/table/navigation checks. DOCX pagination remains approximate and exact source render is unavailable without LibreOffice. LAB 2 was inspected locally; automatic approval review rejected its phone transfer without explicit destination permission. Private fixtures are not bundled or committed.
+
+Only `.checks` is installed; normal/preview data are preserved. Final local release packaging is recorded in `docs/LISTEN_REDESIGN_2026-10-10.md` after success. Publication remains held; stage 13 real-model listening/export remains paused and broader Office fidelity remains excluded. Speech/RSVP/cast, sync, icon and remaining acceptance work stays in `FUTURE_UI_PLAN.md`.
+
+## Final UI follow-up: safe areas and creative Insights
+
+The user's screenshot showed Listen controls overlapping the status/navigation bars. Content now uses unconsumed safe-drawing insets and its existing 12 dp edge padding; the backdrop still fills the screen. A phone regression verifies top/bottom clearance and identical positions when a parent already consumes the insets.
+
+Overview keeps Streaks, Weekly App Activity and Reading Activity. The creative pass adds a warm vector flame with drifting embers, a floating gold trophy/sparkle, background contours, gradient activity bars with entrance motion and a layered reading/listening ring with a one-second sweep and gentle arc movement. Labels/card geometry remain stationary. Reduced motion has no repeating transitions and shows the final ring.
+
+Final app/test assembly passes (`.checks/insights-creative-final-build.txt`, 4m42s). All five focused phone cases pass (`.checks/insights-creative-final-phone.txt`): two Listen checks, Insights navigation/editing, compact graphics/week navigation and animation/reduced-motion frame comparisons. Final normal/compact Overview and both Listen glass screenshots were reviewed. Only `.checks` was installed.
+
+The user elected to build the release themselves. The previous release optimizer was deliberately canceled; its daemon-disappeared failure is expected cancellation, not a source failure. Existing release APKs remain older. No final release was built/published or installed into the main/Preview apps for this final source pass.

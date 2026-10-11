@@ -424,7 +424,12 @@ internal fun ActualDocumentView(
         }
     }
 
-    CompositionLocalProvider(androidx.compose.ui.platform.LocalTextToolbar provides customToolbar) {
+    val glassEnabled = VeritasPackStyle.glassChromeEnabled() && isDeviceGlassCapable()
+    val readerBackdrop = if (glassEnabled) rememberVeritasLayerBackdrop() else null
+    CompositionLocalProvider(
+        androidx.compose.ui.platform.LocalTextToolbar provides customToolbar,
+        LocalVeritasBackdrop provides readerBackdrop
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -434,7 +439,9 @@ internal fun ActualDocumentView(
             // 1. Full-screen rendering canvas with universal Zoom & Pan
             BoxWithConstraints(
                 modifier = Modifier
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .recordVeritasBackdrop(readerBackdrop, glassEnabled)
+                    .background(colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
             val density = LocalDensity.current
@@ -800,6 +807,7 @@ internal fun ActualDocumentView(
 
         // 3. Floating Bottom Player Panel
         ActualDocumentBottomBar(
+            documentId = document.id,
             bottomBarOffset = bottomBarOffset,
             isPlaying = isPlaying,
             statusMessage = statusMessage,

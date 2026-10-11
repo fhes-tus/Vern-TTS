@@ -30,7 +30,7 @@ Kokoro/Piper previously ignored pitch at synthesis. Generated PCM now uses resam
 
 Notes fixes cover stable IDs, ordered autosaves, disk-commit confirmation, saved-state drafts, bounded undo/redo, checklist/attachment snapshots, current-draft sharing, media copying and ZIP note-media backup. Removing a sentence-note recording now persists its removal rather than preserving the previous audio path.
 
-Still open: mixed-engine cast export; neural RSVP narration; portable sentence-note/quiz media in backups; full Word/PowerPoint native layout fidelity; and larger dedicated-notes features such as trash, notebooks, revision history and collaborative sync. These are not claimed as completed fixes.
+Remaining work is tracked in [FUTURE_UI_PLAN.md](FUTURE_UI_PLAN.md): Reading Insights, stage 9 source-document comparison, neural RSVP, mixed-engine casts, portable sentence-note/quiz media, and separate Notes sync/media cleanup. Local notebooks, Trash and revision history are implemented. Broader Office fidelity is excluded; export/listening acceptance remains paused.
 
 ## Validation
 

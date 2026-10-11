@@ -139,6 +139,11 @@ internal fun LibraryBooksTab(
     val context = LocalContext.current
     val libraryPrefs = remember { context.getSharedPreferences("veritas_library_settings", Context.MODE_PRIVATE) }
     val selectionMode = selectedDocumentIds.isNotEmpty()
+    val hasActiveFilters = libraryQuery.isNotBlank() || statusFilter != "All" || sourceFilter != "All" ||
+        collectionFilter != "All" || readingListFilter != "All"
+    LaunchedEffect(libraryQuery, statusFilter, sourceFilter, collectionFilter, readingListFilter, sortMode) {
+        libraryListState.requestScrollToItem(0)
+    }
     val selectedHomeTab = VeritasHomeTab.LIBRARY
 
     val libraryFeatures = remember(documents.size, queuedDocuments.size) {
@@ -261,6 +266,23 @@ internal fun LibraryBooksTab(
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
                                         item("library_filters") { filters() }
+        if (!selectionMode && documents.isNotEmpty()) item("library-results-summary") {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    if (hasActiveFilters) "${visibleDocuments.size} of ${documents.size} items" else "${documents.size} saved ${if (documents.size == 1) "item" else "items"}",
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (hasActiveFilters) TextButton(onClick = {
+                    onLibraryQueryChange("")
+                    onStatusFilterChange("All")
+                    onSourceFilterChange("All")
+                    onCollectionFilterChange("All")
+                    onReadingListFilterChange("All")
+                }) { Text("Reset") }
+            }
+        }
         if (selectedHomeTab == VeritasHomeTab.LIBRARY && selectionMode) item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -345,7 +367,7 @@ internal fun LibraryBooksTab(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("No matching readings", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                                        Text(if (libraryQuery.isNotBlank()) "No results for “${libraryQuery.trim()}”" else "No matching readings", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text("Clear the search or change filters to see more saved readings.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         OutlinedButton(
                             onClick = {

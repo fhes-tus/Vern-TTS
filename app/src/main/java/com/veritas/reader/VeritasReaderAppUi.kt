@@ -1,5 +1,7 @@
 package com.veritas.reader
 
+import com.veritas.reader.ui.cancelAiStudyGeneration
+
 
 import android.content.Context
 import android.net.Uri
@@ -90,6 +92,7 @@ import com.veritas.reader.ui.recordQuizScore
 import com.veritas.reader.ui.removeDocumentFromReadingList
 import com.veritas.reader.ui.removeReadingHistoryEntry
 import com.veritas.reader.ui.removeVocabularyWord
+import com.veritas.reader.ui.refreshVocabularyMeaning
 import com.veritas.reader.ui.renameFlashcardSet
 import com.veritas.reader.ui.reorderDocuments
 import com.veritas.reader.ui.saveAskAiSettings
@@ -109,6 +112,7 @@ import com.veritas.reader.ui.toggleBookmark
 import com.veritas.reader.ui.toggleFavorite
 import com.veritas.reader.ui.toggleGeneralNotePin
 import com.veritas.reader.ui.toggleQueue
+import com.veritas.reader.ui.importSharedNote
 import com.veritas.reader.ui.updateSearchQuery
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -121,9 +125,7 @@ internal const val MAIN_ACTIVITY_TAG = "MainActivity"
 
 @Composable
 internal fun VeritasReaderApp(
-    initialSharedText: String,
-    initialSharedUri: Uri?,
-    isShareToNotes: Boolean = false,
+    initialShare: IncomingShare?,
     openVoiceStudioOnStart: Boolean,
     widgetAction: String? = null,
     noteId: String? = null
@@ -135,7 +137,7 @@ internal fun VeritasReaderApp(
     var showStorageTools by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showUnrestrictedBatteryDialog by remember { mutableStateOf(false) }
-    var pendingShareChooser by remember { mutableStateOf<Pair<String, Uri?>?>(null) }
+    var pendingShareChooser by remember { mutableStateOf<IncomingShare?>(null) }
 
     val batteryPrefs = remember { context.getSharedPreferences("veritas_reader_library", Context.MODE_PRIVATE) }
     LaunchedEffect(Unit) {
@@ -144,36 +146,8 @@ internal fun VeritasReaderApp(
         }
     }
 
-    fun openInNotes(text: String, uri: Uri?) {
-        val noteId = java.util.UUID.randomUUID().toString()
-        val noteTitle = if (text.isNotBlank()) {
-            text.lineSequence().firstOrNull { it.isNotBlank() }?.take(50)?.trim() ?: ""
-        } else ""
-        val savedImagePath = if (uri != null) {
-            runCatching {
-                val notesMediaDir = File(context.filesDir, "notes_media").apply { if (!exists()) mkdirs() }
-                val destFile = File(notesMediaDir, "img_${System.currentTimeMillis()}.jpg")
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    destFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-                destFile.absolutePath
-            }.getOrNull() ?: uri.toString()
-        } else null
-
-        viewModel.updateState {
-            it.copy(
-                showGeneralNotesEditor = true,
-                generalNoteEditorTarget = GeneralNote(
-                    id = noteId,
-                    title = noteTitle,
-                    content = text,
-                    updatedAt = System.currentTimeMillis(),
-                    imageUrl = savedImagePath
-                )
-            )
-        }
+    fun openInNotes(share: IncomingShare) {
+        viewModel.importSharedNote(share)
     }
 
     fun importToReader(text: String, uri: Uri?) {
@@ -190,11 +164,11 @@ internal fun VeritasReaderApp(
 
     DisposableEffect(context) {
         val activity = context as? MainActivity
-        activity?.onIncomingShare = { text, uri, toNotes ->
-            if (toNotes) {
-                openInNotes(text, uri)
+        activity?.onIncomingShare = { share ->
+            if (share.toNotes) {
+                openInNotes(share)
             } else {
-                pendingShareChooser = Pair(text, uri)
+                pendingShareChooser = share
             }
         }
         onDispose {
@@ -249,9 +223,7 @@ internal fun VeritasReaderApp(
         context = context,
         viewModel = viewModel,
         uiState = uiState,
-        initialSharedText = initialSharedText,
-        initialSharedUri = initialSharedUri,
-        isShareToNotes = isShareToNotes,
+        initialShare = initialShare,
         openVoiceStudioOnStart = openVoiceStudioOnStart,
         widgetAction = widgetAction,
         noteId = noteId,
@@ -280,6 +252,7 @@ internal fun VeritasReaderApp(
                         Box(modifier = Modifier.fillMaxSize()) {
                             LibraryScreen(
                                 uiState = uiState,
+                                onRefreshInsights = viewModel::refreshReadingInsights,
                                 sharedTransitionScope = this@SharedTransitionLayout,
                                 animatedVisibilityScope = this@AnimatedContent,
                                 onDismissOpeningDocument = { viewModel.dismissOpeningDocument() },
@@ -361,6 +334,7 @@ internal fun VeritasReaderApp(
                     onWriteGeneralNote = { viewModel.updateState { it.copy(showGeneralNotesEditor = true, generalNoteEditorTarget = null) } },
                     onEditGeneralNote = { note -> viewModel.updateState { it.copy(showGeneralNotesEditor = true, generalNoteEditorTarget = note) } },
                     onRemoveVocabularyWord = { docId, word -> viewModel.removeVocabularyWord(docId, word) },
+                    onRefreshVocabularyMeaning = { docId, entry -> viewModel.refreshVocabularyMeaning(docId, entry) },
                     onClearReadingHistory = { viewModel.clearReadingHistory() },
                     onRemoveReadingHistoryEntry = viewModel::removeReadingHistoryEntry,
                     onToggleGeneralNotePin = viewModel::toggleGeneralNotePin,
@@ -393,7 +367,8 @@ internal fun VeritasReaderApp(
                     onRecordQuizScore = viewModel::recordQuizScore,
                     onGenerateInAppFlashcards = { doc, prompt -> viewModel.generateInAppFlashcards(doc, prompt) },
                     onGenerateInAppQuiz = { doc, prompt -> viewModel.generateInAppQuiz(doc, prompt) },
-                    onOpenAiStudyTools = { viewModel.updateState { it.copy(showAiStudyTools = true) } }
+                    onOpenAiStudyTools = { viewModel.updateState { it.copy(showAiStudyTools = true) } },
+                    onCancelAiStudyGeneration = { viewModel.cancelAiStudyGeneration() }
                 )
                 val areQuestsIncomplete = !uiState.questTourDone || !uiState.questImportDone || !uiState.questSpeedDone || !uiState.questBookmarkDone
                 if (areQuestsIncomplete && !uiState.questChecklistDismissed) {
@@ -769,9 +744,11 @@ internal fun VeritasReaderApp(
                         onExportAudio = { viewModel.exportActiveDocumentToAudio() },
                         onCopySelection = { copyTextToClipboard(context, "Vern selection", it) },
                         onShareSelection = { sharePlainText(context, "Vern selection", it) },
-                        onGoogleSelection = {
-                            viewModel.appendVocabularyWord(it.text, "Looked up definition / web references.", selectedSentenceIndex = it.firstSentenceIndex)
-                            openGoogleSearch(context, it.text)
+                        onGoogleSelection = { selection ->
+                            coroutineScope.launch {
+                                viewModel.appendVocabularyWord(selection.text, "Looked up definition / web references.", selectedSentenceIndex = selection.firstSentenceIndex)?.join()
+                                openGoogleSearch(context, "${selection.text} meaning")
+                            }
                         },
                         onTranslateSelection = {
                             viewModel.appendVocabularyWord(it.text, "Looked up translation.", selectedSentenceIndex = it.firstSentenceIndex)

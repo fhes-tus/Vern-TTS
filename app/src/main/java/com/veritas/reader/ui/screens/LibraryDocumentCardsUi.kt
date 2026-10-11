@@ -34,6 +34,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
+import com.veritas.reader.rememberSaveBookToPhone
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -99,6 +100,7 @@ internal fun RecentImportItem(
     onDelete: () -> Unit
 ) {
     var showActions by remember { mutableStateOf(false) }
+    val saveBookToPhone = rememberSaveBookToPhone(document)
     val coverBitmap = rememberDocumentCover(document.id, document.title, document.originalFileName, document.catalogId)
 
     Row(
@@ -209,6 +211,7 @@ internal fun RecentImportItem(
                     DropdownMenuItem(text = { Text("Move to collection") }, onClick = { showActions = false; onSetCollection() })
                     DropdownMenuItem(text = { Text("Save to lists") }, onClick = { showActions = false; onManageLists() })
                     DropdownMenuItem(text = { Text("Rename") }, onClick = { showActions = false; onRename() })
+                    DropdownMenuItem(text = { Text("Save to phone") }, onClick = { showActions = false; saveBookToPhone() })
                     DropdownMenuItem(text = { Text("Details") }, onClick = { showActions = false; onShowDetails() })
                     DropdownMenuItem(text = { Text("Delete") }, onClick = { showActions = false; onDelete() })
                 }
@@ -243,7 +246,7 @@ internal fun HomeRecentBookGridItem(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(166.dp)
+                    .height(150.dp)
                     .clip(VeritasPackStyle.coverStageShape(inset = 10.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
@@ -251,16 +254,16 @@ internal fun HomeRecentBookGridItem(
                 if (coverBitmap != null) {
                     Image(
                         bitmap = coverBitmap.asImageBitmap(),
-                        contentDescription = "Cover",
-                        modifier = Modifier.width(96.dp).height(144.dp).clip(RoundedCornerShape(6.dp)),
-                        contentScale = ContentScale.Crop
+                        contentDescription = "Cover of ${document.title}",
+                        modifier = Modifier.width(96.dp).height(136.dp).clip(RoundedCornerShape(6.dp)),
+                        contentScale = ContentScale.Fit
                     )
                 } else {
                     VeritasCoverPlaceholder(
                         documentId = document.id,
                         title = document.title,
                         sourceLabel = document.sourceLabel,
-                        modifier = Modifier.width(96.dp).height(144.dp).clip(RoundedCornerShape(6.dp)),
+                        modifier = Modifier.width(96.dp).height(136.dp).clip(RoundedCornerShape(6.dp)),
                         compact = false
                     )
                 }
@@ -280,15 +283,10 @@ internal fun HomeRecentBookGridItem(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            val subtitleText = buildString {
-                append(document.sourceLabel.uppercase())
-                append(" • ")
-                append(formatEstimatedReadTime(document))
-                val progress = progressPercent(document)
-                if (progress > 0) {
-                    append(" • $progress% read")
-                }
-            }
+            val index = if (com.veritas.reader.PlaybackStateStore.activeDocumentId == document.id)
+                com.veritas.reader.PlaybackStateStore.currentIndex else document.currentIndex
+            val progress = if (document.chunkCount > 0) (index.toFloat() / document.chunkCount).coerceIn(0f, 1f) else 0f
+            val subtitleText = if (index <= 0) "Ready to begin" else "${(progress * 100).toInt()}% through"
             Text(
                 text = subtitleText,
                 style = MaterialTheme.typography.bodySmall,
@@ -297,6 +295,11 @@ internal fun HomeRecentBookGridItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            if (index > 0) {
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(4.dp),
+                    color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.surfaceContainerHighest)
+            }
         }
     }
 }
@@ -348,6 +351,7 @@ fun DocumentCard(
 ) {
     val progress = progressFraction(document)
     var showActions by remember { mutableStateOf(false) }
+    val saveBookToPhone = rememberSaveBookToPhone(document)
     val selectionScale by animateFloatAsState(
         targetValue = if (selected) 0.965f else 1f,
         animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
@@ -552,7 +556,8 @@ fun DocumentCard(
                             DropdownMenuItem(text = { Text("Move to collection") }, onClick = { showActions = false; onSetCollection() })
                             DropdownMenuItem(text = { Text("Save to lists") }, onClick = { showActions = false; onManageLists() })
                             DropdownMenuItem(text = { Text("Rename") }, onClick = { showActions = false; onRename() })
-                            DropdownMenuItem(text = { Text("Details") }, onClick = { showActions = false; onShowDetails() })
+                            DropdownMenuItem(text = { Text("Save to phone") }, onClick = { showActions = false; saveBookToPhone() })
+                    DropdownMenuItem(text = { Text("Details") }, onClick = { showActions = false; onShowDetails() })
                             DropdownMenuItem(text = { Text("Delete") }, onClick = { showActions = false; onDelete() })
                         }
                     }
@@ -585,6 +590,7 @@ fun DocumentTileCard(
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null
 ) {
     var showActions by remember { mutableStateOf(false) }
+    val saveBookToPhone = rememberSaveBookToPhone(document)
     val locale = LocalConfiguration.current.locales[0]
     val selectionScale by animateFloatAsState(
         targetValue = if (selected) 0.965f else 1f,
@@ -754,7 +760,8 @@ fun DocumentTileCard(
                             DropdownMenuItem(text = { Text("Move to collection") }, onClick = { showActions = false; onSetCollection() })
                             DropdownMenuItem(text = { Text("Save to lists") }, onClick = { showActions = false; onManageLists() })
                             DropdownMenuItem(text = { Text("Rename") }, onClick = { showActions = false; onRename() })
-                            DropdownMenuItem(text = { Text("Details") }, onClick = { showActions = false; onShowDetails() })
+                            DropdownMenuItem(text = { Text("Save to phone") }, onClick = { showActions = false; saveBookToPhone() })
+                    DropdownMenuItem(text = { Text("Details") }, onClick = { showActions = false; onShowDetails() })
                             DropdownMenuItem(text = { Text("Delete") }, onClick = { showActions = false; onDelete() })
                         }
                     }
@@ -776,8 +783,6 @@ fun DocumentTileCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             val subtitleText = buildString {
-                append(document.sourceLabel.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() })
-                append(" • ")
                 append(formatEstimatedReadTime(document))
                 val progress = progressPercent(document)
                 if (progress > 0) {
@@ -788,14 +793,22 @@ fun DocumentTileCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = subtitleText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    if (document.sourceLabel.isNotBlank()) Text(
+                        text = document.sourceLabel.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = subtitleText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(6.dp))
 

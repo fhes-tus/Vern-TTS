@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+
 import androidx.compose.ui.text.TextLayoutResult
 import com.veritas.reader.ui.NotesPaperTemplate
 
@@ -591,6 +593,7 @@ internal fun NotesBottomToolbar(
                                     onDismissRequest = { showOverflow = false }
                                 ) {
                                     DropdownMenuItem(text = { Text("Notebooks") },
+                                        leadingIcon = { Icon(Icons.AutoMirrored.Outlined.MenuBook, null) },
                                         onClick = { showOverflow = false; onNotebooks() })
                                     DropdownMenuItem(
                                         text = { Text("Share") },

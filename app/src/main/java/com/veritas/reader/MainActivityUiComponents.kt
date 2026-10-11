@@ -46,6 +46,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -69,15 +75,10 @@ object VeritasThemeState {
 }
 
 @Composable
-fun BrandMark(modifier: Modifier = Modifier, compact: Boolean = false) {
-    Image(
-        painter = painterResource(id = R.drawable.veritas_reader_icon),
-        contentDescription = "Vern",
-        modifier = modifier
-            .size(if (compact) 24.dp else 58.dp)
-            .clip(if (compact) MaterialTheme.shapes.extraSmall else MaterialTheme.shapes.small),
-        contentScale = ContentScale.Fit
-    )
+fun BrandMark(modifier: Modifier = Modifier, compact: Boolean = false, size: Dp? = null) {
+    Image(painterResource(R.drawable.vern_book_earbuds_mark), contentDescription = "Vern",
+        modifier = modifier.size(size ?: if (compact) 24.dp else 58.dp).testTag("vern-brand-mark"),
+        contentScale = ContentScale.Fit)
 }
 
 @Composable
@@ -164,19 +165,14 @@ fun BouncyFilledButton(
 
 @Composable
 fun VeritasWordmark(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        BrandMark(compact = true)
-        Text(
-            "ern",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Black,
-            maxLines = 1
-        )
-    }
+    Text(
+        "Vern",
+        modifier = modifier.testTag("vern-wordmark"),
+        style = MaterialTheme.typography.headlineLarge.copy(fontSize = 32.sp),
+        color = MaterialTheme.colorScheme.onSurface,
+        fontWeight = FontWeight.Black,
+        maxLines = 1
+    )
 }
 
 @Composable

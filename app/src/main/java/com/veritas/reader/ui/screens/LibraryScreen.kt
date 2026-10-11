@@ -45,6 +45,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -96,6 +97,7 @@ import com.veritas.reader.VeritasFeatureRegistry
 import com.veritas.reader.VeritasFeatureSurface
 import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.parseVocabularyNoteContent
+import com.veritas.reader.VocabularyEntry
 import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.OnboardingStep
 import com.veritas.reader.ui.ReaderUiState
@@ -134,6 +136,7 @@ fun LibraryScreen(
     onDraftTextChange: (String) -> Unit,
     onCreateFromDraft: () -> Unit,
     widgetAction: String? = null,
+    onRefreshInsights: () -> Unit = {},
     onImportWebArticle: (String) -> Unit,
     onImportFile: () -> Unit,
     onImportImage: () -> Unit,
@@ -180,6 +183,7 @@ fun LibraryScreen(
     onAddDocumentToReadingList: (String, String) -> Unit = { _, _ -> },
     onRemoveDocumentFromReadingList: (String, String) -> Unit = { _, _ -> },
     onRemoveVocabularyWord: (String, String) -> Unit = { _, _ -> },
+    onRefreshVocabularyMeaning: (String, VocabularyEntry) -> Unit = { _, _ -> },
     onClearReadingHistory: () -> Unit = {},
     onRemoveReadingHistoryEntry: (String) -> Unit = {},
     onToggleGeneralNotePin: (String) -> Unit = {},
@@ -197,6 +201,7 @@ fun LibraryScreen(
     onGenerateInAppFlashcards: (SavedDocument, String?) -> Unit = { _, _ -> },
     onGenerateInAppQuiz: (SavedDocument, String?) -> Unit = { _, _ -> },
     onOpenAiStudyTools: () -> Unit = {},
+    onCancelAiStudyGeneration: () -> Unit = {},
     onDismissOpeningDocument: () -> Unit = {},
     onOpenNotesSettings: () -> Unit = {},
     showNotesSettings: Boolean = false,
@@ -337,6 +342,9 @@ fun LibraryScreen(
     var showReadingStatsHome by remember(widgetAction) {
         mutableStateOf(widgetAction == "show_reader_tracker")
     }
+    LaunchedEffect(showReadingStatsHome) {
+        if (showReadingStatsHome) onRefreshInsights()
+    }
     // During the insights onboarding step the dashboard opens itself so the tour can
     // describe it in place; it closes again when the tour moves on.
     val activeOnboardingStep = OnboardingController.activeStep
@@ -349,7 +357,7 @@ fun LibraryScreen(
     }
     var selectedAnnotationKeys by remember { mutableStateOf<Set<String>>(emptySet()) }
     var confirmAnnotationDelete by remember { mutableStateOf(false) }
-    var annotationFilter by remember { mutableStateOf("Bookmarks") }
+    var annotationFilter by rememberSaveable { mutableStateOf("Overview") }
     var confirmDeleteVocabDocId by remember { mutableStateOf<String?>(null) }
     var selectedGeneralNoteTag by remember { mutableStateOf("All") }
     val libraryListState = rememberLazyListState()
@@ -426,12 +434,26 @@ fun LibraryScreen(
         navigateToPage(tab, if (tab == VeritasHomeTab.LIBRARY) LibrarySection.MY_LIBRARY else librarySection)
     }
 
-    val isNotHomeTab = (requestedNavTab ?: libraryPagerPages[pagerState.currentPage].tab) != VeritasHomeTab.HOME
-    BackHandler(enabled = selectionMode || showHomeSidebar || showImportSheet || isNotHomeTab) {
+    val backNavTab = requestedNavTab ?: libraryPagerPages[pagerState.currentPage].tab
+    val isNotHomeTab = backNavTab != VeritasHomeTab.HOME
+    BackHandler(enabled = selectionMode || selectedAnnotationKeys.isNotEmpty() || showHomeSidebar || showImportSheet || isNotHomeTab) {
         when {
             selectionMode -> selectedDocumentIds = emptySet()
+            selectedAnnotationKeys.isNotEmpty() -> selectedAnnotationKeys = emptySet()
             showHomeSidebar -> showHomeSidebar = false
             showImportSheet -> showImportSheet = false
+            backNavTab == VeritasHomeTab.STUDY && annotationFilter != "Overview" -> {
+                annotationFilter = "Overview"
+                studyListState.requestScrollToItem(0)
+            }
+            backNavTab == VeritasHomeTab.NOTES && (showNotesTrash || selectedNotesNotebookId != null ||
+                selectedGeneralNoteTag != "All" || noteSearchQuery.isNotBlank()) -> {
+                showNotesTrash = false
+                selectedNotesNotebookId = null
+                selectedGeneralNoteTag = "All"
+                noteSearchQuery = ""
+                notesListState.requestScrollToItem(0)
+            }
             isNotHomeTab -> navigateToTab(VeritasHomeTab.HOME)
         }
     }
@@ -490,6 +512,9 @@ fun LibraryScreen(
         headerFocus.clearFocus()
     }
     LaunchedEffect(activeNavTab) { searchExpanded = false; headerFocus.clearFocus() }
+    LaunchedEffect(activeNavTab) {
+        if (activeNavTab == VeritasHomeTab.HOME) onRefreshInsights()
+    }
 
     // Keep selectedHomeTab in sync with settled page:
     LaunchedEffect(pagerState) {
@@ -688,10 +713,11 @@ fun LibraryScreen(
                                 },
                                 onClick = { onWriteGeneralNote() },
                                 shape = VeritasPackStyle.chipShape(),
+                                elevation = if (glassEnabled) FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp) else FloatingActionButtonDefaults.elevation(),
                                 containerColor = if (glassEnabled) Color.Transparent else MaterialTheme.colorScheme.primary,
                                 contentColor = if (glassEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.veritasGlassBackdrop(VeritasPackStyle.chipShape(), glassEnabled, surfaceOpacity = .72f)
-                                    .border(VeritasPackStyle.cardBorder(MaterialTheme.colorScheme), VeritasPackStyle.chipShape())
+                                modifier = Modifier.veritasGlassBackdrop(VeritasPackStyle.chipShape(), glassEnabled, surfaceOpacity = .36f)
+                                    .then(if (glassEnabled) Modifier else Modifier.border(VeritasPackStyle.cardBorder(MaterialTheme.colorScheme), VeritasPackStyle.chipShape()))
                             )
                         } else {
                             val fabPlusRotation by animateFloatAsState(
@@ -711,12 +737,13 @@ fun LibraryScreen(
                                 },
                                 onClick = { showImportSheet = true },
                                 shape = VeritasPackStyle.chipShape(),
+                                elevation = if (glassEnabled) FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp) else FloatingActionButtonDefaults.elevation(),
                                 containerColor = if (glassEnabled) Color.Transparent else MaterialTheme.colorScheme.primary,
                                 contentColor = if (glassEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier
-                                    .veritasGlassBackdrop(VeritasPackStyle.chipShape(), glassEnabled, surfaceOpacity = .72f)
+                                    .veritasGlassBackdrop(VeritasPackStyle.chipShape(), glassEnabled, surfaceOpacity = .36f)
                                     .onGloballyPositioned { OnboardingController.updateBounds("add_fab", it) }
-                                    .border(VeritasPackStyle.cardBorder(MaterialTheme.colorScheme), VeritasPackStyle.chipShape())
+                                    .then(if (glassEnabled) Modifier else Modifier.border(VeritasPackStyle.cardBorder(MaterialTheme.colorScheme), VeritasPackStyle.chipShape()))
                             )
                         }
                     }
@@ -844,7 +871,6 @@ fun LibraryScreen(
                                 LibraryHomeTab(
                                     documents = documents,
                                     uiState = uiState,
-                                    currentStreak = currentStreak,
                                     continueDocument = continueDocument,
                                     homeListState = homeListState,
                                     isHomeGridView = isHomeGridView,
@@ -854,18 +880,14 @@ fun LibraryScreen(
                                     },
                                     onRefreshMainPage = onRefreshMainPage,
                                     onOpenDocument = onOpenDocument,
-                                    onPlayPauseContinue = onPlayPauseContinue,
                                     onClearContinueDocument = onClearContinueDocument,
                                     onShowImportSheet = { showImportSheet = true },
                                     onOpenClassicsCatalog = onOpenClassicsCatalog,
                                     onDownloadClassicBook = onDownloadClassicBook,
                                     onCancelClassicBook = onCancelClassicBook,
                                     onNavigateToTab = navigateToTab,
-                                    onSetSourceFilter = {
-                                        sourceFilter = it
-                                        navigateToTab(VeritasHomeTab.LIBRARY)
-                                    },
                                     onShowReadingStatsHome = { showReadingStatsHome = true },
+                                    onGoalMinutesChange = { minutes -> onSaveReaderSettings(uiState.readerSettings.copy(dailyGoalMinutes = minutes)) },
                                     isQueued = isQueued,
                                     onToggleFavorite = onToggleFavorite,
                                     onToggleQueue = onToggleQueue,
@@ -998,10 +1020,12 @@ fun LibraryScreen(
                                     onPlayQuiz = { activePlayingQuiz = it },
                                     onDeleteQuiz = { quizToDelete = it },
                                     onGenerateInAppFlashcards = onGenerateInAppFlashcards,
+                                    onCancelAiStudyGeneration = onCancelAiStudyGeneration,
                                     onImportFlashcards = onImportFlashcards,
                                     onSaveQuiz = onSaveQuiz,
                                     onDeleteAnnotations = onDeleteAnnotations,
                                     onRemoveVocabularyWord = onRemoveVocabularyWord,
+                                    onRefreshVocabularyMeaning = onRefreshVocabularyMeaning,
                                     onConfirmDeleteVocabDocId = { confirmDeleteVocabDocId = it },
                                     onClearReadingHistory = onClearReadingHistory,
                                     onRemoveReadingHistoryEntry = onRemoveReadingHistoryEntry,

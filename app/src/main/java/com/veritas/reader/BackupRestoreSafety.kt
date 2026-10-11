@@ -45,7 +45,7 @@ internal object BackupRestoreSafety {
             require(document.has("text") && document.opt("text") is String) { "A backed-up document is missing its text." }
         }
         val arrays = listOf("annotations", "queue", "readingLists", "readingHistory", "pronunciationRules",
-            "documentNotes", "aiPromptTemplates", "aiPromptHistory", "generalNotes", "trackerDays", "flashcards", "noteMedia")
+            "documentNotes", "aiPromptTemplates", "aiPromptHistory", "generalNotes", "trackerDays", "flashcards", "noteMedia", "quizzes")
         arrays.forEach { key ->
             if (root.has(key)) {
                 val array = root.optJSONArray(key) ?: throw IllegalArgumentException("Invalid backup section: $key")

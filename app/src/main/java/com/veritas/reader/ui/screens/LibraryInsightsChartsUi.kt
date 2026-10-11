@@ -364,6 +364,7 @@ internal fun InteractiveDonutChart(
 @Composable
 internal fun ReadingVelocityAndPaceCard(
     weeklyMillis: Long,
+    todayMillis: Long = 0L,
     activeDocsCount: Int,
     streakDays: Int,
     dailyGoalMinutes: Int = 0,
@@ -373,8 +374,8 @@ internal fun ReadingVelocityAndPaceCard(
     val isGoalEnabled = dailyGoalMinutes > 0
     val goalMillis = dailyGoalMinutes * 60 * 1000L
     val dailyAvgMillis = if (weeklyMillis > 0L) weeklyMillis / 7L else 0L
-    val progress = if (goalMillis > 0L) (dailyAvgMillis.toFloat() / goalMillis).coerceIn(0f, 1f) else 0f
-    val goalReached = isGoalEnabled && dailyAvgMillis >= goalMillis
+    val progress = if (goalMillis > 0L) (todayMillis.toFloat() / goalMillis).coerceIn(0f, 1f) else 0f
+    val goalReached = isGoalEnabled && todayMillis >= goalMillis
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -414,7 +415,7 @@ internal fun ReadingVelocityAndPaceCard(
                         text = when {
                             !isGoalEnabled -> "Target Off"
                             goalReached -> "🎉 Goal Met!"
-                            else -> "${(progress * 100).toInt()}% Target"
+                            else -> "${(progress * 100).toInt()}% today"
                         },
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
@@ -548,7 +549,7 @@ internal fun ReadingVelocityAndPaceCard(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Current: ${formatTrackerDuration(dailyAvgMillis)}/day",
+                            text = "Today: ${formatTrackerDuration(todayMillis)}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

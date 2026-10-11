@@ -41,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -78,7 +79,8 @@ internal fun mondayBasedTodayIndex(): Int {
  */
 internal fun dayLabel(dayIndex: Int, weekStartMonday: Long): String {
     val cal = Calendar.getInstance()
-    cal.timeInMillis = weekStartMonday + dayIndex * 86_400_000L
+    cal.timeInMillis = weekStartMonday
+    cal.add(Calendar.DAY_OF_YEAR, dayIndex)
     return SimpleDateFormat("EEE, d MMM", Locale.getDefault())
         .format(Date(cal.timeInMillis))
 }
@@ -131,12 +133,17 @@ internal fun MiniWeekBars(
     todayIndex: Int = -1,
     selectedIndex: Int = -1,
     onSelectDay: (Int) -> Unit = {},
-    weekStartMonday: Long = 0L
+    weekStartMonday: Long = 0L,
+    accented: Boolean = false
 ) {
+    var entered by remember { mutableStateOf(!accented) }
+    LaunchedEffect(Unit) { entered = true }
     val labels = listOf("M", "T", "W", "T", "F", "S", "S")
     val max = (values.maxOrNull()?.coerceAtLeast(1L) ?: 1L) * 1.25f
     val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
     val primary = MaterialTheme.colorScheme.primary
+    val secondary = MaterialTheme.colorScheme.secondary
+    val tertiary = MaterialTheme.colorScheme.tertiary
     val fillBrush = Brush.verticalGradient(
         listOf(lerp(primary, Color.White, 0.45f), primary)
     )
@@ -149,13 +156,13 @@ internal fun MiniWeekBars(
     val areaAlpha = if (MaterialTheme.colorScheme.primary.luminance() > 0.5f) 0.12f else 0.18f
     Column(modifier = Modifier.fillMaxWidth()) {
         val fracs = values.map { v ->
-            if (v > 0L) (v.toFloat() / max).coerceIn(0.14f, 1f) else 0f
+            if (entered && v > 0L) (v.toFloat() / max).coerceIn(0f, 1f) else 0f
         }
         val animatedFracs = fracs.mapIndexed { i, f ->
             animateFloatAsState(f, com.veritas.reader.ui.VeritasMotion.spatialSlow(), label = "areaFrac$i").value
         }
-        Box(modifier = Modifier.fillMaxWidth().height(height)) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxWidth().height(height + 32.dp)) {
+            Canvas(modifier = Modifier.fillMaxWidth().height(height)) {
                 if (animatedFracs.size == 7 && size.width > 0f) {
                     val barWidth = size.width / 7f
                     val path = Path()
@@ -194,14 +201,14 @@ internal fun MiniWeekBars(
                 values.forEachIndexed { i, value ->
                     val isToday = i == todayIndex
                     val isSelected = i == selectedIndex
-                    val targetFrac = if (value > 0L) (value.toFloat() / max).coerceIn(0.14f, 1f) else 0f
+                    val targetFrac = if (entered && value > 0L) (value.toFloat() / max).coerceIn(0f, 1f) else 0f
                     val frac by animateFloatAsState(
                         targetValue = targetFrac,
                         animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow(),
                         label = "barFrac$i"
                     )
                     val dayDesc = if (weekStartMonday > 0L && value > 0L)
-                        "${labels.getOrElse(i) { "" }}: ${formatTrackerDuration(value)}"
+                        "${dayLabel(i, weekStartMonday)}: ${formatTrackerDuration(value)}"
                     else labels.getOrElse(i) { "" }
                     val barInteraction = remember { MutableInteractionSource() }
                     Column(
@@ -237,6 +244,7 @@ internal fun MiniWeekBars(
                                         .clip(RoundedCornerShape(50))
                                         .background(
                                             when {
+                                                accented -> Brush.verticalGradient(listOf(lerp(primary, Color.White, .35f), lerp(primary, if (i % 2 == 0) secondary else tertiary, .45f)))
                                                 isSelected -> selectedBrush
                                                 isToday -> fillBrush
                                                 else -> dimBrush
@@ -280,7 +288,10 @@ internal fun MiniWeekBars(
 internal fun WeeklyReadingBarsPager(
     history: List<WeekBars>,
     modifier: Modifier = Modifier,
-    barHeight: androidx.compose.ui.unit.Dp = 64.dp
+    barHeight: androidx.compose.ui.unit.Dp = 64.dp,
+    chartLabel: String = "Weekly reading chart",
+    accented: Boolean = false,
+    onWeekChanged: (WeekBars) -> Unit = {}
 ) {
     if (history.isEmpty()) {
         MiniWeekBars(List(7) { 0L }, height = barHeight)
@@ -294,7 +305,8 @@ internal fun WeeklyReadingBarsPager(
     LaunchedEffect(pagerState.currentPage) { selectedBarIndex = -1 }
 
     val visibleWeek = history[pagerState.currentPage]
-    val chartDescription = "Weekly reading chart. ${visibleWeek.label}: " +
+    LaunchedEffect(visibleWeek) { onWeekChanged(visibleWeek) }
+    val chartDescription = "$chartLabel. ${visibleWeek.label}: " +
         "${formatTrackerDuration(visibleWeek.totalMillis)} total. Swipe left or right to change week."
 
     val weekStartMonday = remember(pagerState.currentPage) {
@@ -406,7 +418,8 @@ internal fun WeeklyReadingBarsPager(
                         todayIndex = if (week.isCurrentWeek) todayIndex else -1,
                         selectedIndex = if (page == pagerState.currentPage) selectedBarIndex else -1,
                         onSelectDay = { idx -> selectedBarIndex = idx },
-                        weekStartMonday = weekStartMonday
+                        weekStartMonday = weekStartMonday,
+                        accented = accented
                     )
                 }
             }

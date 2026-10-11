@@ -74,3 +74,6 @@ ui_concepts/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Local diagnostics, audio comparisons, and temporary model downloads
+.checks/

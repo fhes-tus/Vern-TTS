@@ -26,3 +26,13 @@ interface TtsEngine {
      */
     fun shutdown()
 }
+
+/** Model construction happens with the buffer's background synthesis, not on UI/service main. */
+internal class DeferredTtsEngine(factory: () -> TtsEngine) : TtsEngine {
+    private val delegate = lazy(LazyThreadSafetyMode.SYNCHRONIZED, factory)
+    override suspend fun synthesize(sentence: String, rate: Float, pitch: Float): ShortArray? =
+        delegate.value.synthesize(sentence, rate, pitch)
+    override fun isReady(): Boolean = delegate.value.isReady()
+    override val sampleRate: Int get() = delegate.value.sampleRate
+    override fun shutdown() { if (delegate.isInitialized()) delegate.value.shutdown() }
+}

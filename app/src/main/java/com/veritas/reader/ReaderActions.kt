@@ -35,9 +35,13 @@ fun sendPlaybackIntent(
     startIndex: Int = PlaybackStateStore.currentIndex,
     rate: Float? = null,
     pitch: Float? = null,
-    charOffset: Int? = null
+    charOffset: Int? = null,
+    transientSettings: Boolean = false,
+    endTransientSettings: Boolean = false
 ) {
     val intent = Intent(context, PlaybackService::class.java).setAction(action)
+    if (transientSettings) intent.putExtra(PlaybackActions.EXTRA_TRANSIENT_SETTINGS, true)
+    if (endTransientSettings) intent.putExtra(PlaybackActions.EXTRA_END_TRANSIENT_SETTINGS, true)
     documentId?.let { intent.putExtra(PlaybackActions.EXTRA_DOCUMENT_ID, it) }
     intent.putExtra(PlaybackActions.EXTRA_START_INDEX, startIndex)
     charOffset?.let { intent.putExtra(PlaybackActions.EXTRA_CHAR_OFFSET, it.coerceAtLeast(0)) }
@@ -47,8 +51,17 @@ fun sendPlaybackIntent(
     (rate ?: PlaybackStateStore.rate.takeIf { pendingGesture })?.let { intent.putExtra(PlaybackActions.EXTRA_RATE, it) }
     (pitch ?: PlaybackStateStore.pitch.takeIf { pendingGesture })?.let { intent.putExtra(PlaybackActions.EXTRA_PITCH, it) }
     if (action == PlaybackActions.ACTION_PLAY) {
-        ContextCompat.startForegroundService(context, intent)
+        PlaybackStateStore.beginPreparing(documentId ?: PlaybackStateStore.activeDocumentId)
+        try {
+            ContextCompat.startForegroundService(context, intent)
+        } catch (error: RuntimeException) {
+            PlaybackStateStore.finishPreparing()
+            throw error
+        }
     } else {
+        if (action == PlaybackActions.ACTION_PAUSE || action == PlaybackActions.ACTION_STOP) {
+            PlaybackStateStore.finishPreparing()
+        }
         context.startService(intent)
     }
 }

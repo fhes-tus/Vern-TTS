@@ -420,34 +420,12 @@ fun GeneralNotesEditor(
     }
 
     fun shareNote() {
-        val body = if (isChecklist) {
-            contentText.lineSequence().joinToString("\n") { line ->
-                when {
-                    line.startsWith("[x]") -> "☑ " + line.removePrefix("[x]").trim()
-                    line.startsWith("[ ]") -> "☐ " + line.removePrefix("[ ]").trim()
-                    else -> line
-                }
-            }
-        } else {
-            RichTextFormatter.stripMarkup(VeritasNoteEditing.serializeNoteBlocks(blocks))
-        }
-        val plain = buildString {
-            if (title.isNotBlank()) {
-                append(title)
-                append("\n\n")
-            }
-            append(body)
-        }.trim()
-        if (plain.isBlank()) {
-            Toast.makeText(context, "Nothing to share yet", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val send = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, title.ifBlank { "Vern note" })
-            putExtra(Intent.EXTRA_TEXT, plain)
-        }
-        runCatching { context.startActivity(Intent.createChooser(send, "Share note")) }
+        NoteSharing.share(context, GeneralNote(
+            id = note?.id.orEmpty(), title = title,
+            content = NoteLinks.write(bodyForSave(), links, dismissedLinks),
+            updatedAt = System.currentTimeMillis(), isChecklist = isChecklist,
+            imageUrl = imageUrl, audioUrls = audioUrls
+        ))
     }
 
     fun pickReminderDateTime() {

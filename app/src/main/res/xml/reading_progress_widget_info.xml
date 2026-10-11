@@ -7,5 +7,5 @@
     android:targetCellHeight="2"
     android:previewImage="@drawable/widget_preview_reading_progress"
     android:resizeMode="horizontal|vertical"
-    android:updatePeriodMillis="0"
+    android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen" />

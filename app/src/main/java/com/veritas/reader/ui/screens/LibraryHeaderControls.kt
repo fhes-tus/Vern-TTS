@@ -1,5 +1,10 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.EditNote
+
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -90,13 +95,14 @@ internal fun NotesHeaderActions(
         DropdownMenu(menu, { menu = false }) {
             DropdownMenuItem(
                 text = { Text(if (showTrash) "Show notes" else "Show trash") },
+                leadingIcon = { Icon(if (showTrash) Icons.Outlined.EditNote else Icons.Outlined.DeleteOutline, null) },
                 onClick = { onShowTrash(!showTrash); onSelectNotebook(null); menu = false }
             )
             if (!showTrash) {
                 DropdownMenuItem(
                     text = { Text("Notebooks") },
                     onClick = { notebookPicker = true; menu = false },
-                    leadingIcon = { Icon(Icons.Default.Label, null) }
+                    leadingIcon = { Icon(Icons.AutoMirrored.Outlined.MenuBook, null) }
                 )
             }
             HorizontalDivider()

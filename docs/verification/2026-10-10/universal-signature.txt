@@ -1,0 +1,17 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=Veritas Reader Test Release, OU=Veritas, O=Veritas, L=Reykjavik, ST=Reykjavik, C=IS
+Signer #1 certificate SHA-256 digest: 3b143a77a70253305a496595432461b018ffcb3792e82a96905bd10243424db8
+Signer #1 certificate SHA-1 digest: 451a1a730de78894d02538fbfa13bddf8f723b0f
+Signer #1 certificate MD5 digest: 21bf7e43f98cda3095125717a59b8629
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 2048
+Signer #1 public key SHA-256 digest: a1c40104d72e6b56d099555c6bf165617aed33ab4bb3215fcb8d563b385e5708
+Signer #1 public key SHA-1 digest: cb0e275383669791e7f1fecb314809b7541a67a3
+Signer #1 public key MD5 digest: a162bea6688dfaf3e649b5efdc49da2f

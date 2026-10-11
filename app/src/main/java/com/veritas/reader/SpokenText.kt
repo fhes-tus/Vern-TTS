@@ -8,6 +8,10 @@ import java.util.Locale
 class SpokenText private constructor(val text: String, private val positions: IntArray, private val sourceLength: Int) {
     fun sourceOffset(spokenOffset: Int): Int = if (spokenOffset >= positions.size) sourceLength else positions[spokenOffset.coerceAtLeast(0)]
 
+    /** Slice spoken text while retaining offsets into the original source. */
+    fun slice(start: Int, end: Int): SpokenText =
+        SpokenText(text.substring(start, end), positions.copyOfRange(start, end), sourceOffset(end))
+
     fun replace(pattern: Regex, replacement: (MatchResult) -> String): SpokenText {
         val output = StringBuilder()
         val offsets = ArrayList<Int>()

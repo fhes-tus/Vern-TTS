@@ -19,7 +19,7 @@ class NotesOutlineInstrumentedTest {
         val note = GeneralNote("editor-regression", "Example", "Original paragraph", 1)
         val restoration = StateRestorationTester(rule)
         restoration.setContent { MaterialTheme {
-            GeneralNotesEditor(note, onSave = { _, content, _, _, _, _, _, _, _, _ -> saved = content }, onDelete = {}, onDismiss = {})
+            GeneralNotesEditor(note, onSave = { _, content, _, _, _, _, _, _, _, _, _ -> saved = content }, onDelete = {}, onDismiss = {})
         } }
         rule.onNodeWithText("Original paragraph").performTextReplacement("Edited paragraph")
         rule.onNodeWithContentDescription("Undo").performClick()
@@ -36,7 +36,7 @@ class NotesOutlineInstrumentedTest {
         var saved = ""
         val note = GeneralNote("checklist-regression", "List", "[x] Completed\n[ ] Pending", 1, isChecklist = true)
         rule.setContent { MaterialTheme {
-            GeneralNotesEditor(note, onSave = { _, content, _, _, _, _, _, _, _, _ -> saved = content }, onDelete = {}, onDismiss = {})
+            GeneralNotesEditor(note, onSave = { _, content, _, _, _, _, _, _, _, _, _ -> saved = content }, onDelete = {}, onDismiss = {})
         } }
         rule.onAllNodes(isToggleable())[0].assertIsOn().performClick()
         rule.onNodeWithContentDescription("Undo").performClick()

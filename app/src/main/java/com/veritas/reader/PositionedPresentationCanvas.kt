@@ -87,15 +87,8 @@ internal fun PositionedPresentationCanvas(
                                 Modifier.fillMaxSize().padding(start = width * element.insetLeft, top = height * element.insetTop,
                                     end = width * element.insetRight, bottom = height * element.insetBottom),
                                 contentAlignment = when (element.verticalAnchor) { "ctr" -> Alignment.Center; "b" -> Alignment.BottomCenter; else -> Alignment.TopCenter }
-                            ) { Text(
-                                element.text,
-                                modifier = Modifier.fillMaxWidth().then(if (onSelectText != null) Modifier.clickable { onSelectText(element.text) } else Modifier),
-                                color = Color(element.color),
-                                fontSize = with(density) { (width.toPx() * element.fontWidthFraction).toSp() },
-                                lineHeight = with(density) { (width.toPx() * element.fontWidthFraction * 1.15f).toSp() },
-                                fontWeight = if (element.bold) FontWeight.Bold else FontWeight.Normal,
-                                textAlign = when (element.alignment) { "ctr" -> TextAlign.Center; "r" -> TextAlign.End; else -> TextAlign.Start }
-                            ) }
+                            ) { SourceSlideText(element, width, onSelectText) }
+
                         }
                     }
                 }
@@ -106,5 +99,47 @@ internal fun PositionedPresentationCanvas(
             }
         }
     }
+    }
+}
+
+/** Source typography must not inherit app letter spacing or clip an auto-fit text box. */
+@Composable
+internal fun SourceSlideText(element: PptxVisualElement, slideWidth: androidx.compose.ui.unit.Dp, onSelectText: ((String) -> Unit)?) {
+    val density = LocalDensity.current
+    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val bounds = androidx.compose.ui.unit.Constraints(
+            maxWidth = with(density) { maxWidth.roundToPx() }.coerceAtLeast(1),
+            maxHeight = with(density) { maxHeight.roundToPx() }.coerceAtLeast(1))
+        val baseSize = with(density) { slideWidth.toPx() * element.fontWidthFraction }
+        fun content(scale: Float) = androidx.compose.ui.text.buildAnnotatedString {
+            if (element.textRuns.isEmpty()) append(element.text)
+            else element.textRuns.forEach { run ->
+                pushStyle(androidx.compose.ui.text.SpanStyle(
+                    color = Color(run.color),
+                    fontSize = with(density) { (slideWidth.toPx() * run.fontWidthFraction * scale).toSp() },
+                    fontWeight = if (run.bold) FontWeight.Bold else FontWeight.Normal,
+                    fontStyle = if (run.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal))
+                append(run.text); pop()
+            }
+        }
+        fun style(scale: Float) = androidx.compose.ui.text.TextStyle(
+            color = Color(element.color),
+            fontSize = with(density) { (baseSize * scale).toSp() },
+            lineHeight = with(density) { (baseSize * scale * 1.05f).toSp() },
+            letterSpacing = with(density) { 0f.toSp() },
+            platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+            fontWeight = if (element.bold) FontWeight.Bold else FontWeight.Normal,
+            textAlign = when (element.alignment) { "ctr" -> TextAlign.Center; "r" -> TextAlign.End; else -> TextAlign.Start })
+        val scale = remember(element, bounds, density) {
+            fun fits(candidate: Float) = !measurer.measure(content(candidate), style(candidate), constraints = bounds).hasVisualOverflow
+            if (!element.fitTextToBox || fits(1f)) 1f else {
+                var low = .25f; var high = 1f
+                repeat(12) { val middle = (low + high) / 2; if (fits(middle)) low = middle else high = middle }
+                low
+            }
+        }
+        Text(content(scale), style = style(scale), modifier = Modifier.fillMaxWidth()
+            .then(if (onSelectText != null) Modifier.clickable { onSelectText(element.text) } else Modifier))
     }
 }

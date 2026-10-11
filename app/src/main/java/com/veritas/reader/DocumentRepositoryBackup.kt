@@ -86,7 +86,7 @@ fun DocumentRepository.buildBackupJson(): String {
     root.put("noteNotebooks", notebooksArray)
     val revisionsArray = JSONArray()
     loadAllNoteRevisions().forEach { revision ->
-        revisionsArray.put(JSONObject().put("noteId", revision.noteId).put("savedAt", revision.savedAt).put("snapshot", revision.snapshot.toJson()))
+        revisionsArray.put(JSONObject().put("noteId", revision.noteId).put("savedAt", revision.savedAt).put("snapshot", revision.snapshot.withManagedAttachments(appContext).toJson()))
     }
     root.put("noteRevisions", revisionsArray)
 
@@ -94,15 +94,19 @@ fun DocumentRepository.buildBackupJson(): String {
     val trackerDaysArray = JSONArray()
     loadTrackerDays().values.forEach { trackerDaysArray.put(it.toJson()) }
     root.put("trackerDays", trackerDaysArray)
+    root.put("readingSessions", JSONArray().apply { loadReadingSessions().forEach { put(it.toJson()) } })
+    root.put("readingTrackingSettings", JSONObject().put("idleSeconds", prefs.getInt("reading_idle_seconds", 120))
+        .put("explicitOnly", prefs.getBoolean("reading_explicit_only", false)))
 
     // Spaced-repetition deck including scheduling state.
     val flashcardsArray = JSONArray()
     loadAllFlashcards().forEach { flashcardsArray.put(it.toJson()) }
     root.put("flashcards", flashcardsArray)
+    root.put("quizzes", JSONArray().apply { loadAllQuizzes().forEach { put(it.toJson()) } })
 
     // Current month's per-document reading time (Time Allocation donut).
     val readingTimes = JSONObject()
-    loadDocReadingTimes().forEach { (docId, millis) -> readingTimes.put(docId, millis) }
+    loadLegacyDocReadingTimes().forEach { (docId, millis) -> readingTimes.put(docId, millis) }
     root.put("docReadingTimesThisMonth", readingTimes)
     return root.toString(2)
 }
@@ -141,12 +145,13 @@ fun DocumentRepository.estimateFullBackupBytes(): Long {
 
 /** Only referenced files owned by the notes store are included, never arbitrary note paths. */
 private fun DocumentRepository.backedUpNoteMedia(): List<Pair<String, File>> {
-    val directory = File(appContext.filesDir, "notes_media").canonicalFile
+    val directories = listOf("notes_media", "voice_notes").map { File(appContext.filesDir, it).canonicalFile }
     val noteVersions = (loadGeneralNotes() + loadTrashedGeneralNotes()).distinctBy { it.id } + loadAllNoteRevisions().map { it.snapshot }
-    return noteVersions.flatMap { it.allImageUrls + it.allAudioUrls + it.allVideoUrls }.distinct()
+    val paths = noteVersions.flatMap { com.veritas.reader.ui.screens.NoteSharing.blocks(it).mapNotNull(com.veritas.reader.ui.screens.NoteSharing::path) } + loadAllAnnotations().mapNotNull { it.audioPath } + loadAllQuizzes().flatMap { it.questions }.flatMap { it.attachments }.mapNotNull { it.resolve(appContext)?.path }
+    return paths.distinct()
         .mapNotNull { path ->
             val file = runCatching { File(path).canonicalFile }.getOrNull() ?: return@mapNotNull null
-            if (file.isFile && file.parentFile == directory) path to file else null
+            if (file.isFile && directories.any { it == file.parentFile }) path to file else null
         }
 }
 
@@ -156,10 +161,18 @@ private fun DocumentRepository.backedUpNoteMedia(): List<Pair<String, File>> {
  * cannot. Can be large; callers should surface [estimateFullBackupBytes] first.
  */
 fun DocumentRepository.writeFullBackupZip(output: OutputStream) {
-    val noteMedia = backedUpNoteMedia()
-    val root = JSONObject(buildBackupJson())
+    val (root, noteMedia, identities) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+        val snapshot = JSONObject(buildBackupJson())
+        val media = backedUpNoteMedia()
+        val ids = managedAttachmentRecords().mapNotNull { record -> record.resolve(appContext)?.canonicalPath?.let { it to record.id } }.toMap()
+        media.forEach { ManagedMediaLeases.acquire(it.second.canonicalPath) }
+        Triple(snapshot, media, ids)
+    }
+    try {
     val manifest = JSONArray()
-    noteMedia.forEachIndexed { index, (path, file) -> manifest.put(JSONObject().put("path", path).put("fileName", "${index}_${file.name}")) }
+    noteMedia.forEachIndexed { index, (path, file) -> manifest.put(JSONObject().put("version", 1)
+        .put("id", identities[file.canonicalPath] ?: managedAttachment(appContext, path, AttachmentKind.FILE, "archive").id).put("path", path)
+        .put("fileName", "${index}_${file.name}").put("size", file.length()).put("sha256", mediaSha256(file))) }
     root.put("noteMedia", manifest)
     ZipOutputStream(BufferedOutputStream(output)).use { zip ->
         zip.putNextEntry(ZipEntry("backup.json"))
@@ -187,6 +200,7 @@ fun DocumentRepository.writeFullBackupZip(output: OutputStream) {
         }
 
     }
+    } finally { noteMedia.forEach { ManagedMediaLeases.release(it.second.canonicalPath) } }
 }
 
 internal fun DocumentRepository.restoreFullBackupZip(input: InputStream, replaceExisting: Boolean): BackupRestoreResult {
@@ -259,15 +273,28 @@ internal fun DocumentRepository.restoreFullBackupZip(input: InputStream, replace
         val root = BackupRestoreSafety.parseAndValidate(json)
         val mediaTargets = mutableMapOf<String, File>()
         val pathMap = mutableMapOf<String, String>()
+        val mediaById = mutableMapOf<String, File>()
         root.optJSONArray("noteMedia")?.let { manifest ->
             for (i in 0 until manifest.length()) {
                 val media = manifest.getJSONObject(i)
                 val fileName = media.getString("fileName")
                 require(fileName in stagedNoteMedia) { "A backed-up note attachment is missing." }
+                val staged = stagedNoteMedia.getValue(fileName)
+                if (media.has("size")) require(media.getLong("size") == staged.length()) { "Attachment size does not match the backup." }
+                if (media.has("sha256")) require(media.getString("sha256").equals(mediaSha256(staged), true)) { "Attachment checksum does not match the backup." }
                 val extension = fileName.substringAfterLast('.', "bin").takeIf { it.matches(Regex("[a-zA-Z0-9]{1,10}")) } ?: "bin"
                 val target = File(appContext.filesDir, "notes_media/${UUID.randomUUID()}.$extension")
                 mediaTargets[fileName] = target
+                media.optString("id").takeIf { it.isNotBlank() }?.let { id ->
+                    require(mediaById.put(id, target) == null) { "Duplicate attachment identity in archive." }
+                }
                 pathMap[media.getString("path")] = target.absolutePath
+            }
+        }
+        root.optJSONArray("annotations")?.let { annotations ->
+            for (i in 0 until annotations.length()) {
+                val annotation = annotations.optJSONObject(i) ?: continue
+                pathMap[annotation.optString("audioPath")]?.let { annotation.put("audioPath", it) }
             }
         }
         root.optJSONArray("generalNotes")?.let { notes ->
@@ -294,6 +321,24 @@ internal fun DocumentRepository.restoreFullBackupZip(input: InputStream, replace
                 }
             }
         }
+        fun rebaseAttachment(record: JSONObject?) {
+            if (record == null) return
+            val relative = record.optString("relativePath")
+            val name = relative.substringAfterLast('/')
+            val target = mediaById[record.optString("id")]?.absolutePath
+                ?: pathMap.entries.firstOrNull { File(it.key).name == name }?.value
+            if (target != null) record.put("relativePath", "notes_media/${File(target).name}")
+            else record.put("relativePath", "") // text-only restores keep a visible unavailable attachment
+        }
+        fun rebaseList(owner: JSONObject) {
+            owner.optJSONArray("attachments")?.let { records -> for (i in 0 until records.length()) rebaseAttachment(records.optJSONObject(i)) }
+        }
+        root.optJSONArray("annotations")?.let { records -> for (i in 0 until records.length()) rebaseAttachment(records.optJSONObject(i)?.optJSONObject("audioAttachment")) }
+        root.optJSONArray("generalNotes")?.let { records -> for (i in 0 until records.length()) records.optJSONObject(i)?.let(::rebaseList) }
+        root.optJSONArray("noteRevisions")?.let { records -> for (i in 0 until records.length()) records.optJSONObject(i)?.optJSONObject("snapshot")?.let(::rebaseList) }
+        root.optJSONArray("quizzes")?.let { quizzes -> for (i in 0 until quizzes.length()) {
+            quizzes.optJSONObject(i)?.optJSONArray("questions")?.let { questions -> for (j in 0 until questions.length()) questions.optJSONObject(j)?.let(::rebaseList) }
+        } }
         val (result, _) = restoreBackupJsonWithMap(root.toString(), replaceExisting) { files, idMap ->
         mediaTargets.forEach { (fileName, target) ->
             val temp = stagedNoteMedia.getValue(fileName)
@@ -595,6 +640,13 @@ private fun DocumentRepository.applyBackupJsonWithMap(
         saveNoteRevisions((existing + imported).distinctBy { "${it.noteId}:${it.savedAt}" })
     }
 
+    root.optJSONArray("quizzes")?.let { array ->
+        val incoming = (0 until array.length()).mapNotNull { array.optJSONObject(it)?.let { obj -> runCatching { QuizSet.fromJson(obj) }.getOrNull() } }
+            .map { quiz -> quiz.copy(documentId = idMap[quiz.documentId] ?: quiz.documentId) }
+        val existing = if (replaceExisting) emptyList() else loadAllQuizzes()
+        saveAllQuizzes((existing + incoming).distinctBy { it.id })
+    }
+
     // Tracker days: merge by date, keeping the richer record per day so a
     // restore never lowers an existing streak. Read-document ids are remapped.
     var importedTrackerDays = 0
@@ -613,12 +665,25 @@ private fun DocumentRepository.applyBackupJsonWithMap(
                     dateKey = day.dateKey,
                     appOpenCount = maxOf(existing.appOpenCount, day.appOpenCount),
                     usageMillis = maxOf(existing.usageMillis, day.usageMillis),
+                    readingMillis = maxOf(existing.readingMillis, day.readingMillis),
                     readDocumentIds = existing.readDocumentIds + day.readDocumentIds
                 )
             }
             saveTrackerDays(merged.values)
             importedTrackerDays = imported.size
         }
+    }
+
+    root.optJSONArray("readingSessions")?.let { array ->
+        val incoming = (0 until array.length()).mapNotNull { array.optJSONObject(it)?.let(ReadingSession::fromJson) }
+            .map { it.copy(documentId = idMap[it.documentId] ?: it.documentId, closedReason = it.closedReason ?: "restored") }
+        val existing = if (replaceExisting) emptyList() else loadReadingSessions()
+        // Stable IDs make repeated restore idempotent; retain the newest explicit correction.
+        saveReadingSessions((existing + incoming).groupBy { it.id }.values.map { group -> group.maxBy { it.modifiedAt } })
+    } ?: if (replaceExisting) saveReadingSessions(emptyList()) else Unit
+    root.optJSONObject("readingTrackingSettings")?.let { settings ->
+        prefs.edit().putInt("reading_idle_seconds", settings.optInt("idleSeconds", 120).coerceIn(30, 900))
+            .putBoolean("reading_explicit_only", settings.optBoolean("explicitOnly")).apply()
     }
 
     // Flashcards: existing cards win on id collision (local scheduling state
@@ -641,12 +706,12 @@ private fun DocumentRepository.applyBackupJsonWithMap(
     // Monthly reading time: per-document max (not sum) so re-restoring the
     // same backup on the same device never double-counts.
     root.optJSONObject("docReadingTimesThisMonth")?.let { obj ->
-        val current = loadDocReadingTimes().toMutableMap()
+        val current = loadLegacyDocReadingTimes().toMutableMap()
         obj.keys().forEach { docId ->
             val mapped = idMap[docId] ?: docId
             val incoming = obj.optLong(docId, 0L)
             if (incoming > (current[mapped] ?: 0L)) {
-                recordDocReadingTime(mapped, incoming - (current[mapped] ?: 0L))
+                recordDocReadingTime(mapped, incoming - (current[mapped] ?: 0L), trackSession = false)
                 current[mapped] = incoming
             }
         }

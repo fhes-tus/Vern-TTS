@@ -76,7 +76,9 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     internal val notesSettingsSaveMutex = kotlinx.coroutines.sync.Mutex()
     internal val noteCollectionMutex = kotlinx.coroutines.sync.Mutex()
+    internal val studyMutationMutex = kotlinx.coroutines.sync.Mutex()
     internal var generalNoteSaveJob: Job? = null
+    internal var generalNoteShareJob: Job? = null
     internal var generalNoteSaveRevision = 0L
     internal var importJob: Job? = null
     internal var batchImportJob: Job? = null
@@ -97,10 +99,44 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     internal var downloadJob: Job? = null
     internal var sleepTimerJob: Job? = null
     internal var appSessionStartedAt: Long = 0L
-    internal var activeDocStartedAt: Long = 0L
 
     init {
+        val sessionTracker = com.veritas.reader.ReadingSessionTracker.get(application)
+        viewModelScope.launch {
+            var previous: Pair<String?, Int>? = null
+            while (true) {
+                val target = (if (PlaybackStateStore.appInForeground && uiState.value.navStack.isEmpty() && PlaybackStateStore.readerMode != ReaderMode.LISTEN) uiState.value.activeDocument?.id else null) to currentReaderIndex
+                if (target != previous) {
+                    sessionTracker.reader("main", target.first, target.second)
+                    previous = target
+                }
+                kotlinx.coroutines.delay(1_000)
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            sessionTracker.changes.collect {
+                kotlinx.coroutines.delay(500)
+                _uiState.update { state -> state.copy(readerTrackerSnapshot = repository.loadReaderTrackerSnapshot(),
+                    documentReadingTimes = repository.loadDocReadingTimes()) }
+            }
+        }
         resumeBatchImports()
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.loadGeneralNotes().filter { it.title.startsWith("__vocab__") }.forEach { note ->
+                com.veritas.reader.parseVocabularyNoteContent(note.content).forEach { entry ->
+                    if (entry.explanation == com.veritas.reader.VocabularyLookup.PENDING && entry.lookupId != null) {
+                        com.veritas.reader.VocabularyLookupWorker.enqueue(application, note.title.removePrefix("__vocab__"), entry.lookupId)
+                    }
+                }
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            androidx.work.WorkManager.getInstance(application)
+                .getWorkInfosByTagFlow(com.veritas.reader.VocabularyLookupWorker.TAG).collect {
+                    val notes = repository.loadGeneralNotes()
+                    _uiState.update { state -> state.copy(generalNotes = notes) }
+                }
+        }
         viewModelScope.launch(Dispatchers.IO) {
             checkForUpdates()
         }
@@ -156,8 +192,6 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             val generalNotes = repository.loadGeneralNotes()
             val trashedGeneralNotes = repository.loadTrashedGeneralNotes()
             val noteNotebooks = repository.loadNoteNotebooks()
-            val flashcards = repository.loadAllFlashcards()
-            val quizzes = repository.loadAllQuizzes()
             val userName = repository.loadUserName()
             val readingInterest = repository.loadReadingInterest()
             val hasCompletedOnboarding = repository.hasSeenOnboardingTutorial()
@@ -210,7 +244,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             _uiState.update {
                 it.withVisibility(VeritasScreen.TUTORIAL, !hasCompletedOnboarding && it.activeDocument == null && !it.isOpeningDocument && it.navStack.isEmpty()).copy(
                     documents = documents,
-                    generalNotes = generalNotes,
+                    generalNotes = if (it.generalNoteEditorSession == 0L) generalNotes else it.generalNotes,
                     trashedGeneralNotes = trashedGeneralNotes,
                     noteNotebooks = noteNotebooks,
                     queuedDocuments = queuedDocuments,
@@ -227,8 +261,6 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                     allAnnotations = allAnnotations,
                     documentNotes = documentNotes,
                     documentTitles = documentTitles,
-                    flashcards = flashcards,
-                    quizzes = quizzes,
                     annotationCount = annotationCount,
                     fileBrowserRoots = fileBrowserRoots,
                     fileBrowserAllFilesGranted = hasAllFilesAccess(),
@@ -249,6 +281,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 )
             }
 
+            refreshStudyState()
             observeClassicDownloads()
             // Repair missing covers for existing files in the background without blocking UI
             documents.forEach { doc ->
@@ -358,6 +391,15 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun refreshReadingInsights() {
+        com.veritas.reader.ReadingSessionTracker.get(getApplication()).flush()
+        viewModelScope.launch(Dispatchers.IO) {
+            val tracker = repository.loadReaderTrackerSnapshot()
+            val times = repository.loadDocReadingTimes()
+            _uiState.update { it.copy(readerTrackerSnapshot = tracker, documentReadingTimes = times) }
+        }
+    }
+
     fun refreshAll() {
         viewModelScope.launch(Dispatchers.IO) {
             val docs = repository.loadDocuments()
@@ -421,27 +463,13 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun recordActiveDocSessionTime() {
-        val docId = uiState.value.activeDocument?.id
-        val startedAt = activeDocStartedAt
-        if (docId != null && startedAt > 0L) {
-            val duration = System.currentTimeMillis() - startedAt
-            activeDocStartedAt = 0L
-            if (duration > 0L) {
-                viewModelScope.launch(Dispatchers.IO) {
-                    repository.recordDocReadingTime(docId, duration)
-                    val updatedTimes = repository.loadDocReadingTimes()
-                    withContext(Dispatchers.Main) {
-                        _uiState.update { it.copy(documentReadingTimes = updatedTimes) }
-                    }
-                }
-            }
-        }
+        com.veritas.reader.ReadingSessionTracker.get(getApplication()).reader("main", null)
     }
 
     private fun startActiveDocSessionTime() {
         val docId = uiState.value.activeDocument?.id
-        if (docId != null) {
-            activeDocStartedAt = System.currentTimeMillis()
+        if (docId != null && PlaybackStateStore.appInForeground && uiState.value.navStack.isEmpty() && PlaybackStateStore.readerMode != ReaderMode.LISTEN) {
+            com.veritas.reader.ReadingSessionTracker.get(getApplication()).reader("main", docId, currentReaderIndex)
         }
     }
 
@@ -748,7 +776,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     fun playOrPause() {
         val doc = uiState.value.activeDocument ?: return
         val docId = doc.id ?: return
-        if (isReaderPlaying) {
+        if (isReaderPlaying || PlaybackStateStore.isPreparingFor(docId)) {
             sendPlaybackIntent(getApplication(), PlaybackActions.ACTION_PAUSE)
         } else {
             requestNotificationPermissionForPlayback()
@@ -771,8 +799,8 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 isHeroContinueDismissed = false
             )
         }
-        if (PlaybackStateStore.activeDocumentId == metadata.id) {
-            if (PlaybackStateStore.isPlaying) {
+        if (PlaybackStateStore.activeDocumentId == metadata.id || PlaybackStateStore.isPreparingFor(metadata.id)) {
+            if (PlaybackStateStore.isPlaying || PlaybackStateStore.isPreparingFor(metadata.id)) {
                 sendPlaybackIntent(getApplication(), PlaybackActions.ACTION_PAUSE)
             } else {
                 requestNotificationPermissionForPlayback()
@@ -1034,4 +1062,5 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 }
+
 

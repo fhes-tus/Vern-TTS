@@ -265,7 +265,8 @@ data class GeneralNote(
     val createdAt: Long = updatedAt,
     val notebookId: String? = null,
     val deletedAt: Long? = null,
-    val labelIds: List<String> = emptyList()
+    val labelIds: List<String> = emptyList(),
+    val attachments: List<ManagedAttachment> = emptyList()
 ) {
     // Legacy notebook assignments become labels without rewriting existing backups.
     val allLabelIds: List<String>
@@ -313,6 +314,7 @@ data class GeneralNote(
             .put("notebookId", allLabelIds.firstOrNull().orEmpty())
             .put("labelIds", JSONArray(allLabelIds))
             .put("deletedAt", deletedAt ?: 0L)
+            .put("attachments", JSONArray().apply { attachments.forEach { put(it.toJson()) } })
     }
 
     companion object {
@@ -346,7 +348,8 @@ data class GeneralNote(
                 labelIds = obj.optJSONArray("labelIds")?.let { labels ->
                     (0 until labels.length()).map { labels.optString(it) }.filter { it.isNotBlank() }.distinct()
                 }.orEmpty(),
-                deletedAt = obj.optLong("deletedAt", 0L).takeIf { it > 0L }
+                deletedAt = obj.optLong("deletedAt", 0L).takeIf { it > 0L },
+                attachments = ManagedAttachment.list(obj.optJSONArray("attachments"))
             )
         }
     }
@@ -442,7 +445,8 @@ data class ReaderAnnotation(
     val highlightColor: String? = null,
     val selectionGroupId: String? = null,
     val audioPath: String? = null,
-    val audioDurationSeconds: Int = 0
+    val audioDurationSeconds: Int = 0,
+    val audioAttachment: ManagedAttachment? = null
 ) {
     val sentenceIndex: Int
         get() = chunkIndex
@@ -461,6 +465,7 @@ data class ReaderAnnotation(
         .put("selectionGroupId", selectionGroupId)
         .put("audioPath", audioPath)
         .put("audioDurationSeconds", audioDurationSeconds)
+        .put("audioAttachment", audioAttachment?.toJson())
 
     companion object {
         fun fromJson(obj: JSONObject): ReaderAnnotation? {
@@ -477,7 +482,8 @@ data class ReaderAnnotation(
                 highlightColor = if (obj.has("highlightColor")) obj.optString("highlightColor") else null,
                 selectionGroupId = if (obj.has("selectionGroupId")) obj.optString("selectionGroupId") else null,
                 audioPath = if (obj.has("audioPath") && !obj.isNull("audioPath")) obj.optString("audioPath").ifBlank { null } else null,
-                audioDurationSeconds = obj.optInt("audioDurationSeconds", 0)
+                audioDurationSeconds = obj.optInt("audioDurationSeconds", 0),
+                audioAttachment = obj.optJSONObject("audioAttachment")?.let(ManagedAttachment::fromJson)
             )
         }
     }
@@ -522,7 +528,7 @@ data class FlashcardProgress(
         fun fromJson(json: JSONObject): FlashcardProgress {
             return FlashcardProgress(
                 id = json.getString("id"),
-                documentId = json.getString("documentId"),
+                documentId = json.optString("documentId", ""),
                 front = json.getString("front"),
                 back = json.getString("back"),
                 setId = json.optString("setId", ""),
@@ -646,8 +652,8 @@ object VeritasThemePackCatalog {
 }
 
 object VeritasThemeCatalog {
-    const val DEFAULT_ID = "system"
-    const val DEFAULT_FAMILY = "sage"
+    const val DEFAULT_ID = "midnight_system"
+    const val DEFAULT_FAMILY = "midnight"
     const val DEFAULT_MODE = "system"
 
     data class ThemeFamilyInfo(
@@ -711,7 +717,7 @@ object VeritasThemeCatalog {
     }
 
     fun resolveThemeIdForStorage(familyId: String, mode: String): String {
-        val family = families.firstOrNull { it.id == familyId } ?: families.first()
+        val family = families.firstOrNull { it.id == familyId } ?: families.first { it.id == DEFAULT_FAMILY }
         if (family.isAccent) return family.darkThemeId
         return when (mode) {
             "light" -> family.lightThemeId

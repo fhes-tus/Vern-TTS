@@ -57,6 +57,7 @@ data class ReaderUiState(
     val noteNotebooks: List<NoteNotebook> = emptyList(),
     val showGeneralNotesEditor: Boolean = false,
     val generalNoteEditorTarget: GeneralNote? = null,
+    val generalNoteEditorSession: Long = 0,
     val generalNoteSaveStatus: String = "",
     val noteEditorChecklistOnStart: Boolean = false,
     val noteEditorReminderOnStart: Boolean = false,

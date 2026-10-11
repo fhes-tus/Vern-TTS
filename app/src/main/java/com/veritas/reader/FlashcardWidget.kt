@@ -14,6 +14,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -43,6 +44,10 @@ data class FlashcardWidgetDeck(
 
 class FlashcardWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = FlashcardWidget()
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        removeFlashcardWidgetState(context, appWidgetIds)
+        super.onDeleted(context, appWidgetIds)
+    }
 }
 
 class FlashcardWidget : GlanceAppWidget() {
@@ -50,27 +55,34 @@ class FlashcardWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repository = DocumentRepository(context)
-        val allCards = repository.loadAllFlashcards()
-        val prefs = context.getSharedPreferences("veritas_flashcard_widget", Context.MODE_PRIVATE)
-        val selectedDeckId = prefs.getString("selected_deck_id", "").orEmpty()
+        val allCards = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { repository.loadAllFlashcards() }
+        val prefs = flashcardWidgetPreferences(context, id)
+        val storedDeckId = prefs.getString("selected_deck_id", "").orEmpty()
+        // Adopt a legacy deck name only when it identifies exactly one set.
+        val selectedDeckId = when {
+            storedDeckId.isBlank() || storedDeckId == "__ALL__" || allCards.any { it.setId == storedDeckId } -> storedDeckId
+            else -> allCards.filter { it.setName == storedDeckId }.map { it.setId }.distinct().singleOrNull().orEmpty()
+        }
+        if (selectedDeckId != storedDeckId) prefs.edit().putString("selected_deck_id", selectedDeckId).putBoolean("show_answer", false).commit()
 
         val decks = mutableListOf<FlashcardWidgetDeck>()
         if (allCards.isNotEmpty()) {
-            val totalDue = allCards.count { it.recall.isBlank() || it.recall == "again" || it.recall == "hard" }
+            val totalDue = allCards.count { it.isDue() }
             decks.add(
                 FlashcardWidgetDeck(
                     id = "__ALL__",
-                    title = "⚡ All Flashcards",
+                    title = "All Flashcards",
                     totalCount = allCards.size,
                     dueCount = totalDue
                 )
             )
-            val grouped = allCards.groupBy { it.setName.ifBlank { "General Deck" } }
-            grouped.forEach { (name, cards) ->
-                val due = cards.count { it.recall.isBlank() || it.recall == "again" || it.recall == "hard" }
+            val grouped = allCards.groupBy { it.setId }
+            grouped.forEach { (setId, cards) ->
+                val name = cards.firstOrNull()?.setName?.ifBlank { "General Deck" } ?: "General Deck"
+                val due = cards.count { it.isDue() }
                 decks.add(
                     FlashcardWidgetDeck(
-                        id = name,
+                        id = setId,
                         title = name,
                         totalCount = cards.size,
                         dueCount = due
@@ -84,28 +96,28 @@ class FlashcardWidget : GlanceAppWidget() {
         } else if (selectedDeckId == "__ALL__") {
             allCards
         } else {
-            allCards.filter { it.setName.ifBlank { "General Deck" } == selectedDeckId }
+            allCards.filter { it.setId == selectedDeckId }
         }
 
         val isReviewMode = selectedDeckId.isNotBlank() && deckCards.isNotEmpty()
 
         val dueCards = if (isReviewMode) {
-            deckCards.filter { it.recall.isBlank() || it.recall == "again" || it.recall == "hard" }
+            deckCards.filter { it.isDue() }
         } else emptyList()
 
-        val activeDeck = if (dueCards.isNotEmpty()) dueCards else deckCards
+        val activeDeck = if (prefs.getBoolean("practice_mode", false)) deckCards else dueCards
 
         val rawIndex = prefs.getInt("card_index", 0)
         val currentIndex = if (activeDeck.isNotEmpty()) {
             ((rawIndex % activeDeck.size) + activeDeck.size) % activeDeck.size
         } else 0
-        val showAnswer = prefs.getBoolean("show_answer", false)
         val currentCard = activeDeck.getOrNull(currentIndex)
+        val showAnswer = prefs.getBoolean("show_answer", false) && prefs.getString("answer_card_id", "") == currentCard?.id
 
         val selectedDeckTitle = if (selectedDeckId == "__ALL__") {
             "All Decks"
         } else {
-            selectedDeckId.ifBlank { "Flashcards" }
+            decks.firstOrNull { it.id == selectedDeckId }?.title ?: "Flashcards"
         }
 
         provideContent {
@@ -169,7 +181,7 @@ class FlashcardWidget : GlanceAppWidget() {
                             .cornerRadius(18.dp)
                             .background(VeritasWidgetColors.cardBackground)
                             .padding(14.dp)
-                            .clickable(actionRunCallback<FlashcardOpenStudyHubCallback>()),
+                            .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_SHOW_FLASHCARDS))),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -306,7 +318,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                     .fillMaxWidth()
                                     .cornerRadius(8.dp)
                                     .background(VeritasWidgetColors.cardElevated)
-                                    .clickable(actionRunCallback<FlashcardOpenStudyHubCallback>())
+                                    .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_SHOW_FLASHCARDS)))
                                     .padding(vertical = 4.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -368,7 +380,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "${currentIndex + 1}/${activeDeck.size}${if (dueCards.isNotEmpty()) " (${dueCards.size} due)" else ""}",
+                                    text = if (activeDeck.isEmpty()) "No reviews due" else "${currentIndex + 1}/${activeDeck.size}${if (dueCards.isNotEmpty()) " due" else " · practice"}",
                                     style = TextStyle(
                                         fontSize = if (isWide) 12.sp else 10.sp,
                                         fontWeight = FontWeight.Bold,
@@ -389,11 +401,11 @@ class FlashcardWidget : GlanceAppWidget() {
                                 .cornerRadius(18.dp)
                                 .background(VeritasWidgetColors.cardBackground)
                                 .padding(14.dp)
-                                .clickable(actionRunCallback<FlashcardClearDeckCallback>()),
+                                .clickable(actionRunCallback<FlashcardPracticeCallback>()),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "All cards reviewed in this deck! Tap to choose another set.",
+                                text = "No cards due. Tap to practise this deck.",
                                 style = TextStyle(
                                     fontSize = 12.sp,
                                     color = VeritasWidgetColors.textPrimary
@@ -409,7 +421,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                 .cornerRadius(18.dp)
                                 .background(VeritasWidgetColors.cardBackground)
                                 .padding(if (isCompact) 10.dp else 12.dp)
-                                .clickable(actionRunCallback<FlashcardFlipCallback>()),
+                                .clickable(actionRunCallback<FlashcardFlipCallback>(actionParametersOf(FlashcardRateCallback.CardIdKey to currentCard.id))),
                             contentAlignment = Alignment.TopStart
                         ) {
                             Column(modifier = GlanceModifier.fillMaxSize()) {
@@ -499,7 +511,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                         .defaultWeight()
                                         .cornerRadius(16.dp)
                                         .background(VeritasWidgetColors.playButtonAccent)
-                                        .clickable(actionRunCallback<FlashcardFlipCallback>())
+                                        .clickable(actionRunCallback<FlashcardFlipCallback>(actionParametersOf(FlashcardRateCallback.CardIdKey to currentCard.id)))
                                         .padding(vertical = buttonPaddingV),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -614,14 +626,15 @@ class FlashcardWidget : GlanceAppWidget() {
 class FlashcardSelectDeckCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val deckId = parameters[DeckIdKey] ?: return
-        val prefs = context.getSharedPreferences("veritas_flashcard_widget", Context.MODE_PRIVATE)
+        val prefs = flashcardWidgetPreferences(context, glanceId)
         prefs.edit()
             .putString("selected_deck_id", deckId)
             .putInt("card_index", 0)
+            .putBoolean("practice_mode", false)
             .putBoolean("show_answer", false)
             .commit()
         FlashcardWidget().update(context, glanceId)
-        runCatching { FlashcardWidget().updateAll(context) }
+
     }
 
     companion object {
@@ -631,49 +644,55 @@ class FlashcardSelectDeckCallback : ActionCallback {
 
 class FlashcardClearDeckCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val prefs = context.getSharedPreferences("veritas_flashcard_widget", Context.MODE_PRIVATE)
+        val prefs = flashcardWidgetPreferences(context, glanceId)
         prefs.edit()
             .putString("selected_deck_id", "")
             .putBoolean("show_answer", false)
             .commit()
         FlashcardWidget().update(context, glanceId)
-        runCatching { FlashcardWidget().updateAll(context) }
+
     }
 }
 
 class FlashcardPrevCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val prefs = context.getSharedPreferences("veritas_flashcard_widget", Context.MODE_PRIVATE)
+        val prefs = flashcardWidgetPreferences(context, glanceId)
+        val count = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { flashcardWidgetDeck(DocumentRepository(context), prefs).size }
         val currentIdx = prefs.getInt("card_index", 0)
         prefs.edit()
-            .putInt("card_index", maxOf(0, currentIdx - 1))
+            .putInt("card_index", if (count > 0) Math.floorMod(currentIdx - 1, count) else 0)
             .putBoolean("show_answer", false)
             .commit()
         FlashcardWidget().update(context, glanceId)
-        runCatching { FlashcardWidget().updateAll(context) }
+
     }
 }
 
 class FlashcardFlipCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val prefs = context.getSharedPreferences("veritas_flashcard_widget", Context.MODE_PRIVATE)
-        val current = prefs.getBoolean("show_answer", false)
-        prefs.edit().putBoolean("show_answer", !current).commit()
+        val prefs = flashcardWidgetPreferences(context, glanceId)
+        val card = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val deck = flashcardWidgetDeck(DocumentRepository(context), prefs)
+            deck.getOrNull(if (deck.isEmpty()) 0 else Math.floorMod(prefs.getInt("card_index", 0), deck.size))
+        } ?: return
+        if (parameters[FlashcardRateCallback.CardIdKey]?.let { it != card.id } == true) return
+        val current = prefs.getBoolean("show_answer", false) && prefs.getString("answer_card_id", "") == card.id
+        prefs.edit().putBoolean("show_answer", !current).putString("answer_card_id", card.id).commit()
         FlashcardWidget().update(context, glanceId)
-        runCatching { FlashcardWidget().updateAll(context) }
+
     }
 }
 
 class FlashcardNextCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val prefs = context.getSharedPreferences("veritas_flashcard_widget", Context.MODE_PRIVATE)
+        val prefs = flashcardWidgetPreferences(context, glanceId)
         val currentIdx = prefs.getInt("card_index", 0)
         prefs.edit()
             .putInt("card_index", currentIdx + 1)
             .putBoolean("show_answer", false)
             .commit()
         FlashcardWidget().update(context, glanceId)
-        runCatching { FlashcardWidget().updateAll(context) }
+
     }
 }
 
@@ -681,21 +700,22 @@ class FlashcardRateCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val rating = parameters[RatingKey] ?: "good"
         val cardId = parameters[CardIdKey] ?: return
-        val repository = DocumentRepository(context)
-        val allCards = repository.loadAllFlashcards()
-        val updated = allCards.map { card ->
-            if (card.id == cardId) card.copy(recall = rating) else card
+        if (rating !in setOf("again", "good")) return
+        val prefs = flashcardWidgetPreferences(context, glanceId)
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+                if (!prefs.getBoolean("show_answer", false) || prefs.getString("answer_card_id", "") != cardId) return@synchronized
+                DocumentRepository(context).mutateStudyFlashcards { cards ->
+                    cards.map { if (it.id == cardId) SpacedRepetitionScheduler.rateCard(it, rating) else it }
+                }
+                // Due review shrinks after a rating. Keep the index so the next card is not skipped.
+                val index = prefs.getInt("card_index", 0)
+                prefs.edit().putInt("card_index", if (prefs.getBoolean("practice_mode", false)) index + 1 else index)
+                    .putBoolean("show_answer", false).putString("answer_card_id", "").commit()
+            }
         }
-        repository.saveAllFlashcards(updated)
-
-        val prefs = context.getSharedPreferences("veritas_flashcard_widget", Context.MODE_PRIVATE)
-        val currentIdx = prefs.getInt("card_index", 0)
-        prefs.edit()
-            .putInt("card_index", currentIdx + 1)
-            .putBoolean("show_answer", false)
-            .commit()
         FlashcardWidget().update(context, glanceId)
-        runCatching { FlashcardWidget().updateAll(context) }
+
         runCatching { StudyDashboardWidget().updateAll(context) }
     }
 
@@ -714,5 +734,12 @@ class FlashcardOpenStudyHubCallback : ActionCallback {
             putExtra(MainActivity.EXTRA_WIDGET_ACTION, MainActivity.ACTION_SHOW_FLASHCARDS)
         }
         context.startActivity(intent)
+    }
+}
+
+class FlashcardPracticeCallback : ActionCallback {
+    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
+        flashcardWidgetPreferences(context, glanceId).edit().putBoolean("practice_mode", true).putInt("card_index", 0).putBoolean("show_answer", false).commit()
+        FlashcardWidget().update(context, glanceId)
     }
 }

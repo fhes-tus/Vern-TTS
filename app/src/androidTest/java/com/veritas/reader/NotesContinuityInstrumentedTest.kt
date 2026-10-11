@@ -24,7 +24,7 @@ class NotesContinuityInstrumentedTest {
         var closed = false
         rule.setContent { MaterialTheme {
             GeneralNotesEditor(GeneralNote("unchanged", "Old note", "Original paragraph", 123),
-                onSave = { _, _, _, _, _, _, _, _, _, _ -> saves++ }, onDelete = {}, onDismiss = { closed = true })
+                onSave = { _, _, _, _, _, _, _, _, _, _, _ -> saves++ }, onDelete = {}, onDismiss = { closed = true })
         } }
         rule.onNodeWithText("Original paragraph").performClick()
         rule.onNodeWithText("Original paragraph").performTextInputSelection(androidx.compose.ui.text.TextRange(2))
@@ -39,7 +39,7 @@ class NotesContinuityInstrumentedTest {
         val visible = mutableStateOf(true)
         rule.setContent { MaterialTheme {
             if (visible.value) GeneralNotesEditor(noteState.value,
-                onSave = { title, content, _, _, _, _, _, _, close, _ ->
+                onSave = { title, content, _, _, _, _, _, _, close, _, _ ->
                     noteState.value = noteState.value.copy(title = title, content = content)
                     if (close) visible.value = false
                 }, onDelete = {}, onDismiss = { visible.value = false })
@@ -62,7 +62,7 @@ class NotesContinuityInstrumentedTest {
         var saved = ""
         rule.setContent { MaterialTheme {
             GeneralNotesEditor(GeneralNote("checklist-file", "Tasks", body, 123, isChecklist = true),
-                onSave = { _, content, _, _, _, _, _, _, _, _ -> saved = content }, onDelete = {}, onDismiss = {})
+                onSave = { _, content, _, _, _, _, _, _, _, _, _ -> saved = content }, onDelete = {}, onDismiss = {})
         } }
         rule.onNodeWithText("Original task").performTextReplacement("Edited task")
         rule.onNodeWithContentDescription("Save Note").performClick()
@@ -75,7 +75,7 @@ class NotesContinuityInstrumentedTest {
     @Test fun fileWithLegacyBracketsRendersAsAnIconWithoutPathText() {
         val file = "[file:Report [final] (2).pdf:1125506](/data/user/0/com.veritas.reader/files/notes_media/owned.pdf)"
         rule.setContent { MaterialTheme {
-            GeneralNotesEditor(GeneralNote("file", "File note", file, 123), onSave = { _, _, _, _, _, _, _, _, _, _ -> }, onDelete = {}, onDismiss = {})
+            GeneralNotesEditor(GeneralNote("file", "File note", file, 123), onSave = { _, _, _, _, _, _, _, _, _, _, _ -> }, onDelete = {}, onDismiss = {})
         } }
         rule.onNodeWithText("Report [final] (2).pdf").assertExists()
         rule.onAllNodes(hasText("/data/user/0", substring = true)).assertCountEquals(0)
@@ -88,7 +88,7 @@ class NotesContinuityInstrumentedTest {
         val visible = mutableStateOf(true)
         rule.setContent { MaterialTheme {
             if (visible.value) GeneralNotesEditor(note.value,
-                onSave = { title, content, _, _, _, _, _, _, close, _ ->
+                onSave = { title, content, _, _, _, _, _, _, close, _, _ ->
                     note.value = note.value.copy(title = title, content = content)
                     if (close) visible.value = false
                 }, onDelete = {}, onDismiss = { visible.value = false })

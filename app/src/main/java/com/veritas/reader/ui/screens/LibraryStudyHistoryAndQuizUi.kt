@@ -155,12 +155,8 @@ internal fun LazyListScope.studyQuizSection(
                                         Text(quiz.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                             Text("${quiz.totalQuestions} Questions", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                            if (quiz.bestScore >= 0) {
-                                                val calibratedBest = if (quiz.bestScore > quiz.totalQuestions && quiz.totalQuestions > 0) {
-                                                    ((quiz.bestScore.toFloat() / 100f) * quiz.totalQuestions.toFloat()).roundToInt().coerceIn(0, quiz.totalQuestions)
-                                                } else {
-                                                    quiz.bestScore.coerceIn(0, quiz.totalQuestions)
-                                                }
+                                            if (quiz.bestScore >= 0 && quiz.totalQuestions > 0) {
+                                                val calibratedBest = quiz.calibratedBestScore
                                                 val isMastered = calibratedBest == quiz.totalQuestions
                                                 Surface(
                                                     shape = MaterialTheme.shapes.extraSmall,
@@ -183,7 +179,7 @@ internal fun LazyListScope.studyQuizSection(
                                         shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                                     ) {
-                                        Text("Play", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                        Text(if (quiz.isPlayable) "Play" else "Check quiz", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                     }
                                     IconButton(onClick = { onDeleteQuiz(quiz) }) {
                                         Icon(Icons.Filled.Delete, contentDescription = "Delete quiz", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))

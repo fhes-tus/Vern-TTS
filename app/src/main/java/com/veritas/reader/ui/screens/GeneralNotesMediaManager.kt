@@ -86,6 +86,7 @@ internal fun rememberGeneralNotesMediaManager(
             e.printStackTrace()
             Toast.makeText(context, "Failed to stop recording: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         } finally {
+            recordFilePath?.let(com.veritas.reader.ManagedMediaLeases::release)
             recordFilePath = null
             recordingDurationSec = 0
             recordingAmplitudes = emptyList()
@@ -111,6 +112,7 @@ internal fun rememberGeneralNotesMediaManager(
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
+            recordFilePath?.let(com.veritas.reader.ManagedMediaLeases::release)
             recordFilePath = null
             recordingDurationSec = 0
             recordingAmplitudes = emptyList()
@@ -122,10 +124,11 @@ internal fun rememberGeneralNotesMediaManager(
         try {
             val mediaDir = File(context.filesDir, "notes_media")
             if (!mediaDir.exists()) mediaDir.mkdirs()
-            val fileName = "rec_${System.currentTimeMillis()}.3gp"
+            val fileName = "rec_${System.currentTimeMillis()}.m4a"
             val file = File(mediaDir, fileName)
             val path = file.absolutePath
             recordFilePath = path
+            com.veritas.reader.ManagedMediaLeases.acquire(path)
             recordingInsertTargetIndex = if (insertAtIndex >= 0) insertAtIndex else focusedBlockIndex
 
             val recorder = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
@@ -137,8 +140,11 @@ internal fun rememberGeneralNotesMediaManager(
 
             recorder.apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioChannels(1)
+                setAudioSamplingRate(44100)
+                setAudioEncodingBitRate(96000)
                 setOutputFile(path)
                 prepare()
                 start()
@@ -344,8 +350,10 @@ internal fun rememberGeneralNotesMediaManager(
 
     DisposableEffect(Unit) {
         onDispose {
+            recordingTickerJob?.cancel()
             mediaRecorder?.release()
             mediaRecorder = null
+            recordFilePath?.let { path -> File(path).delete(); com.veritas.reader.ManagedMediaLeases.release(path) }
             mediaPlayer?.release()
             mediaPlayer = null
         }

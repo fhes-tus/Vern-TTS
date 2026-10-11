@@ -2,6 +2,8 @@ package com.veritas.reader.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,6 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -31,6 +37,7 @@ import com.veritas.reader.TutorialSpeaker
 import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.ui.ReadingInterestOptions
 import com.veritas.reader.ui.VeritasMotion
+import com.veritas.reader.ui.pressScale
 import kotlinx.coroutines.delay
 
 private val setupAssistants = listOf("chooser" to "Choose when I share", "gemini" to "Google Gemini",
@@ -56,9 +63,12 @@ fun RevampedOnboardingFlow(
     var rate by rememberSaveable { mutableFloatStateOf(initialRate.coerceIn(.5f, 2f)) }
     var finishing by remember { mutableStateOf(false) }
     var previewTimedOut by remember { mutableStateOf(false) }
-    val slide = VeritasMotion.spatial<androidx.compose.ui.unit.IntOffset>()
-    val fade = VeritasMotion.effectsFast<Float>()
+    val slide = VeritasMotion.spatialSlow<androidx.compose.ui.unit.IntOffset>()
+    val fade = VeritasMotion.effectsSlow<Float>()
+    val scale = VeritasMotion.spatialSlow<Float>()
+    val continueInteraction = remember { MutableInteractionSource() }
     val pages = listOf("Welcome", "Reading", "Listening", "Study tools", "Ready")
+    val progress by animateFloatAsState((step + 1f) / pages.size, VeritasMotion.spatialSlow(), label = "setupProgress")
     DisposableEffect(context) {
         TutorialSpeaker.init(context)
         onDispose { TutorialSpeaker.shutdown() }
@@ -84,36 +94,38 @@ fun RevampedOnboardingFlow(
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(pages[step], style = MaterialTheme.typography.labelLarge)
+                    AnimatedContent(pages[step], transitionSpec = { fadeIn(fade).togetherWith(fadeOut(fade)) }, label = "setupPageLabel") {
+                        Text(it, style = MaterialTheme.typography.labelLarge)
+                    }
                     Text("${step + 1} of ${pages.size}", style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                LinearProgressIndicator(progress = { (step + 1f) / pages.size },
+                LinearProgressIndicator(progress = { progress },
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(3.dp))
                 AnimatedContent(step, modifier = Modifier.weight(1f).fillMaxWidth(), transitionSpec = {
                     val direction = if (targetState > initialState) 1 else -1
-                    (slideInHorizontally(slide) { it / 6 * direction } + fadeIn(fade))
-                        .togetherWith(slideOutHorizontally(slide) { -it / 6 * direction } + fadeOut(fade)).using(null)
+                    (slideInHorizontally(slide) { it / 3 * direction } + fadeIn(fade) + scaleIn(scale, initialScale = .97f))
+                        .togetherWith(slideOutHorizontally(slide) { -it / 3 * direction } + fadeOut(fade) + scaleOut(scale, targetScale = .97f)).using(null)
                 }, label = "readingSetup") { page ->
                     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 28.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         OnboardingArtwork(page, TutorialSpeaker.previewActive && page == 2)
                         when (page) {
                             0 -> {
-                                SetupHeading("Make room for a good read.", "Your books, documents, listening and notes, together in Vern.")
+                                SetupHeading("Your next chapter starts here.", "Read, listen and keep your ideas together in Vern.")
                                 SetupReadingPreview()
-                                SetupFeature("Read", "Import a PDF, EPUB or document. Keep your place across sessions.")
+                                SetupFeature("Read", "Bring in your books and documents. Pick up where you left off.")
                                 SetupFeature("Listen", "Follow the text as it’s read aloud, at your own pace.")
                                 SetupFeature("Keep what matters", "Save notes, highlights and flashcards alongside your reading.")
                             }
                             1 -> {
-                                SetupHeading("What do you read most?", "This sets your library interest. You can change it later.")
+                                SetupHeading("What fills your bookshelf?", "Choose the reading interest that fits you best. Change it anytime in Settings.")
                                 ReadingInterestOptions.forEach { option ->
                                     SetupChoice(option.label, option.detail, interest == option.label, glyph = option.id) { interest = option.label }
                                 }
                             }
                             2 -> {
-                                SetupHeading("Find a comfortable pace.", "Hear a short sample with your phone’s speech engine. Voice models can be changed in Settings.")
+                                SetupHeading("Settle into your listening pace.", "Try a sample with your phone’s voice. Explore downloadable Vern voices later in Settings.")
                                 Surface(shape = VeritasPackStyle.cardShape(), color = MaterialTheme.colorScheme.surfaceContainerLow) {
                                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                         Text("“The city was still quiet. Kofi opened his book and returned to the sentence he had marked yesterday.”",
@@ -133,22 +145,28 @@ fun RevampedOnboardingFlow(
                                     }
                                 }
                                 Text("Listening speed · ${String.format(java.util.Locale.ROOT, "%.2f", rate)}×", style = MaterialTheme.typography.titleMedium)
-                                Slider(rate, onValueChange = { TutorialSpeaker.stop(); rate = it }, valueRange = .5f..2f)
+                                VeritasRoundSlider(rate, onValueChange = { TutorialSpeaker.stop(); rate = it },
+                                    valueRange = .5f..2f, modifier = Modifier.heightIn(min = 48.dp)
+                                        .semantics {
+                                            contentDescription = "Listening speed"
+                                            progressBarRangeInfo = ProgressBarRangeInfo(rate, .5f..2f)
+                                            setProgress { TutorialSpeaker.stop(); rate = it.coerceIn(.5f, 2f); true }
+                                        })
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     listOf("Relaxed" to .9f, "Natural" to 1f, "Faster" to 1.25f).forEach { (label, value) ->
                                         FilterChip(selected = kotlin.math.abs(rate - value) < .01f,
                                             onClick = { TutorialSpeaker.stop(); rate = value }, label = { Text(label) })
                                     }
                                 }
-                                Text("This changes the playback speed, not the voice identity.", style = MaterialTheme.typography.bodySmall,
+                                Text("Choose a pace you can follow comfortably.", style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             3 -> {
-                                SetupHeading("Study with your own tools.", "Reading and listening work without AI. If you share text with an assistant, choose which one Vern opens.")
+                                SetupHeading("Turn reading into understanding.", "Keep notes and flashcards as you read. Choose an assistant to open when you use Ask AI.")
                                 setupAssistants.forEach { (id, label) ->
                                     SetupChoice(label, if (id == "chooser") "No default assistant" else "Open when you choose Ask AI", assistant == id) { assistant = id }
                                 }
-                                Text("This doesn’t connect an account. In-app AI generation is configured separately in Settings.",
+                                Text("You can use the study tools without an assistant. Set up in-app AI separately in Settings.",
                                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             4 -> {
@@ -181,8 +199,10 @@ fun RevampedOnboardingFlow(
                                 onComplete(name.trim().ifBlank { "Reader" }, interest, assistant, rate, initialPitch)
                             } else step++
                         }
-                    }, enabled = !finishing, modifier = Modifier.weight(1f).heightIn(min = 52.dp), shape = VeritasPackStyle.chipShape()) {
-                        Text(if (finishing) "Opening library…" else if (step == 4) "Open my library" else if (step == 0) "Get started" else "Continue")
+                    }, enabled = !finishing, interactionSource = continueInteraction,
+                        modifier = Modifier.weight(1f).heightIn(min = 52.dp).pressScale(continueInteraction), shape = VeritasPackStyle.chipShape()) {
+                        AnimatedContent(if (finishing) "Opening library…" else if (step == 4) "Open my library" else if (step == 0) "Get started" else "Continue",
+                            transitionSpec = { fadeIn(fade).togetherWith(fadeOut(fade)) }, label = "setupContinueLabel") { Text(it) }
                     }
                 }
             }

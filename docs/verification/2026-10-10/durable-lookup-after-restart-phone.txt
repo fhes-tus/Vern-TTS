@@ -1,0 +1,8 @@
+
+com.veritas.reader.DurableLookupAcceptanceTest:.
+
+Time: 16.033
+
+OK (1 test)
+
+

@@ -52,8 +52,8 @@ android {
         minSdk = 28
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 40
-        versionName = "2.6.0"
+        versionCode = 41
+        versionName = "2.6.1"
 
         ndk {
             abiFilters.addAll(setOf("armeabi-v7a", "arm64-v8a"))
@@ -82,6 +82,11 @@ android {
     }
 
     packaging {
+        jniLibs {
+            // Android uses the self-contained JNI entry point, which links only ONNX Runtime
+            // and system libraries. The separate C/C++ entry points are not used by the app.
+            excludes += setOf("**/libsherpa-onnx-c-api.so", "**/libsherpa-onnx-cxx-api.so")
+        }
         resources {
             // PDFBox pulls Bouncy Castle in for PDF certificate and encryption handling.
             // That drags along the post-quantum Picnic parameter tables — lowmcL5 alone is

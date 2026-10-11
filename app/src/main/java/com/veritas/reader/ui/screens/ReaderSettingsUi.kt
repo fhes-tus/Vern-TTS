@@ -921,7 +921,7 @@ fun ReaderSettingsDialog(
             Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f).padding(end = 12.dp)) {
                     Text("Glass in other theme packs", style = MaterialTheme.typography.titleMedium)
-                    Text("Blurred, glossy navigation, player and floating Add, Note and Import controls. Liquid glass includes this look.",
+                    Text("Translucent glass with curved edges for navigation, player and floating Add, Note and Import controls. Liquid glass includes this look.",
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (settings.reduceTransparency) Text("Reduce transparency currently keeps controls opaque.",
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

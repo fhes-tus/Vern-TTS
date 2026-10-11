@@ -90,21 +90,7 @@ object VeritasPackStyle {
 
     @Composable
     fun navigationBorderBrush(scheme: ColorScheme): Brush {
-        if (glassChromeEnabled()) {
-            val dark = scheme.background.luminance() < 0.3f
-            return Brush.verticalGradient(
-                if (dark) listOf(
-                    Color.White.copy(alpha = 0.48f),
-                    Color.White.copy(alpha = 0.12f),
-                    scheme.primary.copy(alpha = 0.20f),
-                    Color.White.copy(alpha = 0.22f)
-                ) else listOf(
-                    Color.White.copy(alpha = 0.82f),
-                    scheme.primary.copy(alpha = 0.16f),
-                    Color.White.copy(alpha = 0.34f)
-                )
-            )
-        }
+        if (glassChromeEnabled()) return SolidColor(scheme.outlineVariant.copy(alpha = .55f))
         return when (currentPackId()) {
             "material_you" -> SolidColor(scheme.outlineVariant.copy(alpha = 0.55f))
             "one_ui" -> SolidColor(scheme.primary.copy(alpha = 0.28f))
@@ -122,13 +108,13 @@ object VeritasPackStyle {
 
     fun chromeOpacity(packId: String): Float = when (VeritasThemePackCatalog.normalizePackId(packId)) {
         "one_ui" -> 0.90f
-        "liquid_glass" -> 0.76f
+        "liquid_glass" -> 0.36f
         "material_you" -> 0.85f
         else -> 0.90f
     }
 
     fun playerOpacity(packId: String): Float =
-        if (VeritasThemePackCatalog.normalizePackId(packId) == "liquid_glass") .68f else chromeOpacity(packId)
+        if (VeritasThemePackCatalog.normalizePackId(packId) == "liquid_glass") .32f else chromeOpacity(packId)
 
     /** AMOLED keeps the page black; only accessibility choices disable chrome blur. */
     @Composable

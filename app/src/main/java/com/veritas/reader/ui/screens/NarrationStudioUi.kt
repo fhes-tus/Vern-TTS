@@ -78,7 +78,7 @@ fun NarrationStudioDialog(
     val context = LocalContext.current
     var draft by remember(settings) { mutableStateOf(settings) }
     var sample by remember { mutableStateOf(sampleText.take(600).ifBlank { "Alice said, \"Are you ready to begin?\"" }) }
-    var voices by remember(availableVoices, voiceSettings.enginePackage) { mutableStateOf(availableVoices.filter { VoiceManager.isVeritasVoice(it.name) == VoiceManager.isVeritasEngine(voiceSettings.enginePackage) }) }
+    var voices by remember(availableVoices, voiceSettings.enginePackage) { mutableStateOf(availableVoices) }
     var voiceError by remember { mutableStateOf<String?>(null) }
     var selectedRole by remember { mutableStateOf("narrator") }
     var chooseVoice by remember { mutableStateOf(false) }
@@ -109,11 +109,13 @@ fun NarrationStudioDialog(
     androidx.activity.compose.BackHandler { close() }
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { previewJob?.cancel(); VoiceManager.releasePreviewEngine() } }
     LaunchedEffect(voiceSettings.enginePackage, availableVoices) {
-        if (voices.isEmpty()) {
-            runCatching { VoiceManager.loadVoices(context, voiceSettings.enginePackage) }
-                .onSuccess { voices = it.filter { voice -> VoiceManager.isVeritasVoice(voice.name) == neural }; voiceError = if (voices.isEmpty()) "No voices available. Choose or download a voice in Voice Studio." else null }
-                .onFailure { voiceError = "Could not load voices. Check Voice Studio and try again." }
+        val all = mutableListOf<TtsVoiceOption>()
+        all.addAll(VoiceManager.loadVeritasVoices(context))
+        VoiceManager.loadInstalledEngines(context).filterNot { VoiceManager.isVeritasEngine(it.packageName) }.forEach { engine ->
+            runCatching { VoiceManager.loadVoices(context, engine.packageName) }
+                .onSuccess { all.addAll(it) }.onFailure { voiceError = "Some engine voices could not be loaded: ${it.message}" }
         }
+        voices = all.distinctBy { it.enginePackage to it.name }
     }
     if (discard) AlertDialog(
         onDismissRequest = { discard = false }, title = { Text("Discard narration changes?") },
@@ -140,12 +142,12 @@ fun NarrationStudioDialog(
                 OutlinedTextField(voiceSearch, { voiceSearch = it }, label = { Text("Search voices") }, singleLine = true,
                     modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.compactShape())
                 androidx.compose.foundation.lazy.LazyColumn(Modifier.height(300.dp)) {
-                    item { TextButton(onClick = { editRole { it.copy(voiceName = null) }; chooseVoice = false }) { Text("Use reading voice: ${voiceSettings.displayName}") } }
+                    item { TextButton(onClick = { editRole { it.copy(voiceName = null, enginePackage = null, localeTag = "") }; chooseVoice = false }) { Text("Use reading voice: ${voiceSettings.displayName}") } }
                     items(voices.filter { it.label.contains(voiceSearch, true) || it.localeTag.contains(voiceSearch, true) }.size) { index ->
                         val voice = voices.filter { it.label.contains(voiceSearch, true) || it.localeTag.contains(voiceSearch, true) }[index]
-                        val installed = !neural || com.veritas.reader.tts.VoiceModelManager.isVoiceInstalled(context, voice.name)
-                        TextButton(onClick = { editRole { it.copy(voiceName = voice.name) }; chooseVoice = false }, enabled = installed, modifier = Modifier.fillMaxWidth()) {
-                            Text(voice.label + if (!installed) " · Download in Voice Studio" else if (voice.requiresNetwork) " · Online" else " · On device", modifier = Modifier.fillMaxWidth())
+                        val installed = !VoiceManager.isVeritasVoice(voice.name) || com.veritas.reader.tts.VoiceModelManager.isVoiceInstalled(context, voice.name)
+                        TextButton(onClick = { editRole { it.copy(voiceName = voice.name, enginePackage = voice.enginePackage, localeTag = voice.localeTag) }; chooseVoice = false }, enabled = installed, modifier = Modifier.fillMaxWidth()) {
+                            Text(voice.label + " · " + when (voice.enginePackage) { VoiceManager.VERITAS_LITE -> "Lite"; VoiceManager.VERITAS_STUDIO -> "Studio"; else -> "System" } + if (!installed) " · Download in Voice Studio" else if (voice.requiresNetwork) " · Online" else " · On device", modifier = Modifier.fillMaxWidth())
                         }
                     }
                 }
@@ -158,7 +160,7 @@ fun NarrationStudioDialog(
         NarrationPanel {
             NarrationToggle("Narration mode", "Use role-specific pacing and pitch", draft.enabled) { draft = draft.copy(enabled = it) }
             NarrationToggle("Detect dialogue", "Recognize quoted speech and speech tags", draft.dialogueDetection, draft.enabled) { draft = draft.copy(dialogueDetection = it) }
-            NarrationToggle("Character voices", "Choose voices from ${voiceSettings.engineLabel}", draft.fullCastEnabled, draft.enabled) { draft = draft.copy(fullCastEnabled = it) }
+            NarrationToggle("Character voices", "Mix installed system, Lite and Studio voices in one cast", draft.fullCastEnabled, draft.enabled) { draft = draft.copy(fullCastEnabled = it) }
             NarrationToggle("Dialogue badges", "Identify the current role in the reader", draft.showDialogueBadges, draft.enabled) { draft = draft.copy(showDialogueBadges = it) }
             Text("Open quotes carry across sentences. Speaker tags and labels identify named characters; uncertain speech uses the default Dialogue profile.", style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -222,18 +224,16 @@ fun NarrationStudioDialog(
                                 previewSentenceIndex = index
                                 val cue = cues[index]
                                 if (index > 0 && cue.labelEnd > 0 && roles.enabled && roles.dialogueDetection) kotlinx.coroutines.delay(120)
-                                val character = NarrationAnalyzer.getActiveCharacter(sentence.text, roles, cue)
-                                val name = if (roles.enabled && roles.fullCastEnabled) character.voiceName ?: voiceSettings.voiceName else voiceSettings.voiceName
-                                val text = sentence.text.drop(if (roles.enabled && roles.dialogueDetection) cue.labelEnd else 0)
-                                val spoken = com.veritas.reader.ReadingSymbols.expand(com.veritas.reader.SpokenText.identity(text)
-                                    .applyRules(com.veritas.reader.PronunciationRulesEngine.compile(pronunciationRules)),
-                                    voiceSettings.localeTag.ifBlank { java.util.Locale.getDefault().toLanguageTag() }.startsWith("en")).sanitize().text
+                                val segment = com.veritas.reader.SpeechPlan.segment("preview", com.veritas.reader.SpeechPlan.revision(listOf(sample)),
+                                    index, sentence.text, voiceSettings, roles, voiceSettings.preferredRate, voiceSettings.preferredPitch,
+                                    com.veritas.reader.PronunciationRulesEngine.compile(pronunciationRules), cue,
+                                    stripSpeakerLabel = roles.enabled && roles.dialogueDetection)
+                                val spoken = segment.spoken.text
                                 if (spoken.isNotBlank()) {
                                     val error = kotlinx.coroutines.withTimeout(30000) {
                                         kotlinx.coroutines.suspendCancellableCoroutine<String?> { continuation ->
-                                            VoiceManager.previewVoice(context, voiceSettings.enginePackage, name, spoken,
-                                                NarrationAnalyzer.effectiveRate(voiceSettings.preferredRate, roles, text, !neural, cue),
-                                                NarrationAnalyzer.effectivePitch(voiceSettings.preferredPitch, roles, text, !neural, cue),
+                                            VoiceManager.previewVoice(context, segment.voice.enginePackage, segment.voice.voiceName, spoken,
+                                                segment.rate, segment.pitch,
                                                 onFinished = { error -> if (continuation.isActive) continuation.resume(error) })
                                             continuation.invokeOnCancellation { VoiceManager.releasePreviewEngine() }
                                         }

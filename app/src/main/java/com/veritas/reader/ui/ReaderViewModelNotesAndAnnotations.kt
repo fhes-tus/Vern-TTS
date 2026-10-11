@@ -4,10 +4,12 @@ import com.veritas.reader.VeritasScreen
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.AnnotationType
-import com.veritas.reader.GeminiStudyService
+import com.veritas.reader.VocabularyLookup
 import com.veritas.reader.formatVocabularyEntry
 import com.veritas.reader.resolveVocabularySource
 import com.veritas.reader.VocabularyEntry
+import com.veritas.reader.VocabularyLookupWorker
+import com.veritas.reader.saveVocabularyLookup
 import com.veritas.reader.mutateAnnotations
 import com.veritas.reader.mutateGeneralNotes
 import com.veritas.reader.GeneralNote
@@ -52,9 +54,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import java.net.HttpURLConnection
-import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -200,10 +199,7 @@ fun ReaderViewModel.deleteSentenceNote() {
     val indexes = uiState.value.noteTargetIndexes.ifEmpty {
         uiState.value.noteTargetIndex?.let(::listOf).orEmpty()
     }
-    val audioToDelete = uiState.value.noteAudioPath
-    if (audioToDelete != null) {
-        VoiceNoteRecorder.deleteAudioFile(audioToDelete)
-    }
+    // Remove associations first. Shared recordings are reclaimed only by reference-aware maintenance.
     viewModelScope.launch(Dispatchers.IO) {
         indexes.forEach { idx ->
             repository.removeAnnotation(docId, idx, AnnotationType.NOTE)
@@ -560,115 +556,48 @@ fun ReaderViewModel.restoreGeneralNoteRevision(revision: NoteRevision) {
     }
 }
 
-private data class DictionaryDefinition(
-    val definition: String,
-    val pronunciation: String? = null
-)
-
-private fun fetchDictionaryDefinition(word: String): DictionaryDefinition? {
-    val cleanWord = word.trim().lowercase(Locale.getDefault()).replace(Regex("[^a-z\\-]"), "")
-    if (cleanWord.isBlank() || cleanWord.length > 30) return null
-    var conn: HttpURLConnection? = null
-    return try {
-        val url = URL("https://api.dictionaryapi.dev/api/v2/entries/en/$cleanWord")
-        conn = url.openConnection() as HttpURLConnection
-        conn.requestMethod = "GET"
-        conn.connectTimeout = 4000
-        conn.readTimeout = 4000
-        if (conn.responseCode == 200) {
-            val jsonText = conn.inputStream.bufferedReader().use { it.readText() }
-            val array = JSONArray(jsonText)
-            if (array.length() > 0) {
-                val entry = array.getJSONObject(0)
-                val phonetic = entry.optString("phonetic").takeIf { it.isNotBlank() }
-                val meanings = entry.optJSONArray("meanings")
-                if (meanings != null && meanings.length() > 0) {
-                    val firstMeaning = meanings.getJSONObject(0)
-                    val pos = firstMeaning.optString("partOfSpeech", "")
-                    val definitions = firstMeaning.optJSONArray("definitions")
-                    if (definitions != null && definitions.length() > 0) {
-                        val defObj = definitions.getJSONObject(0)
-                        val defText = defObj.optString("definition", "")
-                        if (defText.isNotBlank()) {
-                            val fullDef = if (pos.isNotBlank()) "($pos) $defText" else defText
-                            return DictionaryDefinition(fullDef, phonetic)
-                        }
-                    }
-                }
-            }
-        }
-        null
-    } catch (e: Exception) {
-        android.util.Log.w("ReaderViewModel", "Failed to fetch meaning for $cleanWord", e)
-        null
-    } finally {
-        conn?.disconnect()
-    }
-}
-
-fun ReaderViewModel.appendVocabularyWord(word: String, explanation: String, selectedContext: String? = null, selectedSentenceIndex: Int? = null) {
-    val activeDoc = uiState.value.activeDocument ?: return
-    val docId = activeDoc.id ?: return
+fun ReaderViewModel.appendVocabularyWord(word: String, explanation: String, selectedContext: String? = null, selectedSentenceIndex: Int? = null): kotlinx.coroutines.Job? {
+    val activeDoc = uiState.value.activeDocument ?: return null
+    val docId = activeDoc.id ?: return null
     val source = resolveVocabularySource(activeDoc.sentences, word, selectedSentenceIndex, selectedContext)
-    viewModelScope.launch(Dispatchers.IO) {
+    return viewModelScope.launch(Dispatchers.IO) {
         val currentIndex = source.sentenceIndex
         val textModel = ReaderTextIndex.build(activeDoc.rawText, activeDoc.pageCount)
         val part = currentIndex?.let { textModel.partForSentence(it) }
         val sectionNum = (part?.index ?: 0) + 1
         val contextSentence = source.contextSentence
 
-        val isPlaceholder = explanation.contains("Looked up") || explanation.contains("Asked AI")
-        var finalExplanation: String = explanation
-        var pronunciation: String? = null
-
-        if (isPlaceholder) {
-            val apiKey = GeminiStudyService.getApiKey(getApplication())
-            val contextDef = if (apiKey.isNotBlank() && !contextSentence.isNullOrBlank()) {
-                GeminiStudyService.defineInContext(
-                    apiKey = apiKey,
-                    word = word,
-                    contextSentence = contextSentence,
-                    bookTitle = activeDoc.title
-                ).getOrNull()
-            } else null
-
-            if (!contextDef.isNullOrBlank()) {
-                finalExplanation = contextDef
-            } else {
-                val fetched = fetchDictionaryDefinition(word)
-                finalExplanation = fetched?.definition ?: "Definition unavailable. Look up this word again when connected."
-                pronunciation = fetched?.pronunciation
-            }
-        }
-
-        val now = System.currentTimeMillis()
-        val formattedTime = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(now))
-
         val sourceLabel = if (currentIndex != null) "(looked up: Section $sectionNum, sentence ${currentIndex + 1})" else "(looked up: source location unavailable)"
-        val entryText = formatVocabularyEntry(VocabularyEntry(word.trim(), finalExplanation, sourceLabel, currentIndex ?: -1, contextSentence, pronunciation), formattedTime)
-
-        val updated = repository.mutateGeneralNotes { notes ->
-            val existing = notes.toMutableList()
-            val targetTitle = "__vocab__$docId"
-            val vocabIndex = existing.indexOfFirst { it.title == targetTitle }
-            if (vocabIndex != -1) {
-                val oldNote = existing[vocabIndex]
-                val newContent = if (oldNote.content.isBlank()) entryText else oldNote.content + "\n\n" + entryText
-                existing[vocabIndex] = oldNote.copy(content = newContent, updatedAt = now)
-            } else {
-                val newNote = GeneralNote(
-                    id = UUID.randomUUID().toString(),
-                    title = targetTitle,
-                    content = entryText,
-                    updatedAt = now
-                )
-                existing.add(0, newNote)
-            }
-            existing
-        }
+        val updated = repository.saveVocabularyLookup(getApplication(), docId,
+            VocabularyEntry(word.trim(), explanation, sourceLabel, currentIndex ?: -1, contextSentence))
         withContext(Dispatchers.Main) {
             _uiState.update { it.copy(generalNotes = updated) }
         }
+    }
+}
+
+fun ReaderViewModel.refreshVocabularyMeaning(documentId: String, entry: VocabularyEntry) {
+    viewModelScope.launch(Dispatchers.IO) {
+        val lookupId = UUID.randomUUID().toString()
+        var found = false
+        val updated = repository.mutateGeneralNotes { notes -> notes.map { note ->
+            if (note.title != "__vocab__$documentId") note else {
+                val content = note.content.split("\n\n").joinToString("\n\n") { chunk ->
+                    val saved = parseVocabularyNoteContent(chunk).singleOrNull()
+                    if (saved != entry || found) chunk else {
+                        found = true
+                        val lines = chunk.lines().filterNot { it.trim().startsWith("lookup:", ignoreCase = true) }.toMutableList()
+                        while (lines.size < 3) lines.add("")
+                        if (VocabularyLookup.needsDefinition(entry.explanation)) lines[1] = "  ${VocabularyLookup.PENDING}"
+                        lines.add("  lookup: $lookupId")
+                        lines.joinToString("\n")
+                    }
+                }
+                note.copy(content = content, updatedAt = System.currentTimeMillis())
+            }
+        } }
+        if (found) VocabularyLookupWorker.enqueue(getApplication(), documentId, lookupId)
+        _uiState.update { it.copy(generalNotes = updated) }
     }
 }
 

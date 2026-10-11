@@ -26,7 +26,8 @@ data class TtsVoiceOption(
     val localeTag: String,
     val requiresNetwork: Boolean,
     val quality: Int,
-    val latency: Int
+    val latency: Int,
+    val enginePackage: String = ""
 )
 
 private fun inferVoiceGender(name: String): String {
@@ -226,7 +227,8 @@ object VoiceManager {
                     localeTag = voice.localeTag,
                     requiresNetwork = false,
                     quality = if (isStudio) 500 else 400,
-                    latency = if (isStudio) 300 else 50
+                    latency = if (isStudio) 300 else 50,
+                    enginePackage = if (isStudio) VERITAS_STUDIO else VERITAS_LITE
                 )
             }
     }
@@ -246,7 +248,8 @@ object VoiceManager {
             suspendCancellableCoroutine { continuation ->
                 val engineDeferred = CompletableDeferred<TextToSpeech>()
                 val listener = TextToSpeech.OnInitListener { status ->
-                    val current = engineDeferred.getCompleted()
+                    previewScope.launch {
+                    val current = engineDeferred.await()
                     if (status == TextToSpeech.SUCCESS) {
                         val voices = current.voices.orEmpty()
                             .map { voice ->
@@ -257,7 +260,8 @@ object VoiceManager {
                                     localeTag = localeTag,
                                     requiresNetwork = voice.isNetworkConnectionRequired,
                                     quality = voice.quality,
-                                    latency = voice.latency
+                                    latency = voice.latency,
+                                    enginePackage = enginePackage
                                 )
                             }
                             .distinctBy { it.name }
@@ -296,6 +300,7 @@ object VoiceManager {
                         runCatching { current.shutdown() }
                         if (continuation.isActive) continuation.resumeWithException(IllegalStateException("Could not initialize this voice engine."))
                     }
+                }
                 }
                 val engine = if (enginePackage.isBlank()) {
                     TextToSpeech(context.applicationContext, listener)
@@ -474,7 +479,12 @@ object VoiceManager {
 
         var engine: TextToSpeech? = null
         val listener = TextToSpeech.OnInitListener { status ->
-            if (status == TextToSpeech.SUCCESS && previewSystemTts === engine) {
+            previewHandler.post {
+            if (generation != previewGeneration || previewSystemTts !== engine) return@post
+            if (status == TextToSpeech.SUCCESS) {
+                if (voiceName.isNotBlank() && engine?.voices.orEmpty().none { it.name == voiceName }) {
+                    releaseSystemTts(); finish("This voice is unavailable. Choose another voice in Voice Studio."); return@post
+                }
                 engine?.voices?.firstOrNull { it.name == voiceName }?.let { voice ->
                     engine?.voice = voice
                 }
@@ -506,6 +516,7 @@ object VoiceManager {
                 runCatching { engine?.shutdown() }
                 finish("The speech engine could not be started.")
             }
+        }
         }
         engine = if (enginePackage.isBlank()) {
             TextToSpeech(context.applicationContext, listener)

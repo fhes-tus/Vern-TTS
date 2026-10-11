@@ -1,5 +1,7 @@
 package com.veritas.reader
 
+import androidx.compose.material3.OutlinedButton
+
 import com.veritas.reader.ui.currentReaderIndex
 
 import com.veritas.reader.ui.withVisibility
@@ -462,6 +464,7 @@ internal fun MainDialogsHost(
 
         @OptIn(ExperimentalMaterial3Api::class)
         uiState.detailsTarget?.let { target ->
+            val saveBookToPhone = rememberSaveBookToPhone(target)
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             val coverFile = remember(target.id) { CoverExtractor.coverFile(context, target.id) }
             val coverState = produceState<android.graphics.Bitmap?>(null, coverFile) {
@@ -850,6 +853,15 @@ internal fun MainDialogsHost(
                     }
 
                     Spacer(modifier = Modifier.height(4.dp))
+
+                    OutlinedButton(onClick = saveBookToPhone, modifier = Modifier.fillMaxWidth()) {
+                        Text("Save to phone")
+                    }
+                    Text(
+                        "Keep a copy outside Vern so it stays available after uninstalling. Books downloaded from the catalog are saved as TXT.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
                     // Bottom Action Bar: Full-Width Stretched Read/Resume Button + Native Share Button
                     Row(

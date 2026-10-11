@@ -1,5 +1,9 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.material.icons.outlined.Restore
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.key
@@ -827,7 +831,7 @@ internal fun LibraryNotesTab(
                                                             }
                                                         }
                                                         if (showTrash) {
-                                                            DropdownMenuItem(text = { Text("Restore") }, onClick = { showNoteMenu = false; collectionActions?.restoreNote?.invoke(generalNote.id) })
+                                                            DropdownMenuItem(text = { Text("Restore") }, leadingIcon = { Icon(Icons.Outlined.Restore, null) }, onClick = { showNoteMenu = false; collectionActions?.restoreNote?.invoke(generalNote.id) })
                                                         } else {
                                                             DropdownMenuItem(
                                                                 text = { Text(if (generalNote.pinned) "Unpin" else "Pin") },
@@ -835,8 +839,8 @@ internal fun LibraryNotesTab(
                                                                 onClick = { showNoteMenu = false; onToggleGeneralNotePin(generalNote.id) }
                                                             )
                                                             if (collectionActions != null) {
-                                                                DropdownMenuItem(text = { Text("Notebooks") }, onClick = { showNoteMenu = false; showNotebookPicker = true })
-                                                                DropdownMenuItem(text = { Text("Revision history") }, onClick = { showNoteMenu = false; showRevisionHistory = true })
+                                                                DropdownMenuItem(text = { Text("Notebooks") }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.MenuBook, null) }, onClick = { showNoteMenu = false; showNotebookPicker = true })
+                                                                DropdownMenuItem(text = { Text("Revision history") }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { showNoteMenu = false; showRevisionHistory = true })
                                                             }
                                                             DropdownMenuItem(
                                                                 text = { Text("Share") },

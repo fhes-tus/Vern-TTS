@@ -92,7 +92,8 @@ internal fun DocPlayerPanel(
     voices: List<TtsVoiceOption>,
     voiceSettings: VoiceSettings,
     onVoiceSelected: (TtsVoiceOption) -> Unit,
-    onToggleTextMode: () -> Unit = {}
+    onToggleTextMode: () -> Unit = {},
+    documentId: String? = null
 ) {
     val density = LocalDensity.current
     val maxOffsetPx = with(density) { 265.dp.toPx() }
@@ -127,6 +128,8 @@ internal fun DocPlayerPanel(
     }
 
     val scheme = MaterialTheme.colorScheme
+    val isGlass = VeritasPackStyle.glassChromeEnabled() && isDeviceGlassCapable() && LocalVeritasBackdrop.current != null
+    val opaqueGlassFallback = VeritasPackStyle.currentPackId() == "liquid_glass" && !isGlass
     val isDark = scheme.surface.luminance() < 0.5f
     val playerColor = VeritasPackStyle.playerSurfaceColor(scheme)
     val gradientBrush = androidx.compose.ui.graphics.SolidColor(playerColor)
@@ -147,20 +150,22 @@ internal fun DocPlayerPanel(
                 .widthIn(max = 580.dp)
                 .fillMaxWidth()
                 .height(heightDp)
+                .veritasGlassBackdrop(capsuleShape, isGlass, surfaceOpacity = .36f)
                 .anchoredDraggable(
                     state = draggableState,
                     orientation = Orientation.Vertical
                 ),
             shape = capsuleShape,
-            color = androidx.compose.ui.graphics.Color.Transparent,
-            shadowElevation = VeritasPackStyle.chromeElevation(VeritasPackStyle.currentPackId()),
+            color = if (opaqueGlassFallback) scheme.surface else androidx.compose.ui.graphics.Color.Transparent,
+            shadowElevation = if (isGlass) 0.dp else VeritasPackStyle.chromeElevation(VeritasPackStyle.currentPackId()),
             tonalElevation = 0.dp
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(brush = gradientBrush, shape = capsuleShape)
-                    .border(width = 1.dp, brush = borderBrush, shape = capsuleShape)
+                    .then(if (isGlass || opaqueGlassFallback) Modifier else Modifier
+                        .background(brush = gradientBrush, shape = capsuleShape)
+                        .border(width = 1.dp, brush = borderBrush, shape = capsuleShape))
             ) {
                 Column(
                     modifier = Modifier
@@ -223,20 +228,7 @@ internal fun DocPlayerPanel(
                         )
                     }
                     FilledTonalIconButton(onClick = onPlayPause) {
-                        androidx.compose.animation.AnimatedContent(
-                            targetState = isPlaying,
-                            transitionSpec = {
-                                (androidx.compose.animation.scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) +
-                                    androidx.compose.animation.fadeIn(tween(150)))
-                                    .togetherWith(androidx.compose.animation.fadeOut(tween(100)))
-                            },
-                            label = "originalPlayMorph"
-                        ) { playing ->
-                            Icon(
-                                if (playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                contentDescription = if (playing) "Pause" else "Play"
-                            )
-                        }
+                        PlaybackControlIcon(isPlaying, PlaybackStateStore.isPreparingFor(documentId))
                     }
                     IconButton(
                         onClick = onNext,

@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import com.veritas.reader.recordVeritasBackdrop
+
 import android.widget.TextView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
@@ -525,6 +527,9 @@ fun ReaderScreen(
         label = "animatedBottomPadding"
     )
 
+    val glassEnabled = VeritasPackStyle.glassChromeEnabled() && com.veritas.reader.isDeviceGlassCapable()
+    val readerBackdrop = if (glassEnabled) com.veritas.reader.rememberVeritasLayerBackdrop() else null
+    com.veritas.reader.VeritasBackdropProvider(readerBackdrop) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -535,6 +540,8 @@ fun ReaderScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .recordVeritasBackdrop(readerBackdrop, glassEnabled)
+                .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))
                 .padding(top = animatedTopPadding, bottom = animatedBottomPadding)
         ) {
             if (document.chunks.isEmpty()) {
@@ -808,6 +815,8 @@ fun ReaderScreen(
             )
         }
     }
+
+    } // Reader backdrop provider
 
     ReaderDialogsAndSheetsHost(
         showAudioMode = showAudioMode,

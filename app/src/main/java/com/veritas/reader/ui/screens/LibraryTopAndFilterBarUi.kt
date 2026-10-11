@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.LocalFireDepartment
+import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -106,7 +108,7 @@ internal fun LibraryTopAndFilterBar(
                             when (activeNavTab) {
                                 VeritasHomeTab.HOME -> {
                                     Row(
-                                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
@@ -297,14 +299,18 @@ internal fun LibraryTopAndFilterBar(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                                             ) {
-                                                Text("🔥", fontSize = 14.sp)
                                                 val streak = uiState.readerTrackerSnapshot.currentStreak
+                                                Icon(
+                                                    if (streak > 0) Icons.Outlined.LocalFireDepartment else Icons.Outlined.Spa,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
                                                 Text(
                                                     text = if (streak > 0) "$streak-Day Streak" else "0-Day Streak",
                                                     style = MaterialTheme.typography.labelMedium,
                                                     fontWeight = FontWeight.Bold
                                                 )
-                                                Text("🔥", fontSize = 14.sp)
                                             }
                                         }
                                     }

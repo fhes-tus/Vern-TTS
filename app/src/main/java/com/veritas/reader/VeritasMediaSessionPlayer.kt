@@ -41,7 +41,8 @@ internal class VeritasMediaSessionPlayer(
         val positionMs: Long,
         val rate: Float,
         val pitch: Float,
-        val artworkData: ByteArray? = null
+        val artworkData: ByteArray? = null,
+        val isPreparing: Boolean = false
     )
 
     private val availableCommands = Player.Commands.Builder()
@@ -106,7 +107,7 @@ internal class VeritasMediaSessionPlayer(
             // session on every pause, which drops its priority for Bluetooth/
             // headset hardware buttons: Android stops routing play/pause/next/
             // previous to a session it considers idle.
-            .setPlaybackState(STATE_READY)
+            .setPlaybackState(if (current.isPreparing) STATE_BUFFERING else STATE_READY)
             .setPlayWhenReady(current.isPlaying, PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
             .setPlaybackSuppressionReason(PLAYBACK_SUPPRESSION_REASON_NONE)
             .setContentPositionMs(current.positionMs.coerceAtLeast(0L))

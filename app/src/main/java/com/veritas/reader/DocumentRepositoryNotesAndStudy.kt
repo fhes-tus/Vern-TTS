@@ -266,7 +266,7 @@ private fun DocumentRepository.loadStoredGeneralNotes(): List<GeneralNote> {
     for (i in 0 until array.length()) {
         val item = array.optJSONObject(i) ?: continue
         val note = runCatching { GeneralNote.fromJson(item) }.getOrNull() ?: continue
-        notes.add(note)
+        notes.add(note.withManagedAttachments(appContext))
     }
     return notes
 }
@@ -278,7 +278,7 @@ fun DocumentRepository.saveGeneralNotes(notes: List<GeneralNote>) = synchronized
     val array = JSONArray()
     val preservedTrash = loadStoredGeneralNotes().filter { it.deletedAt != null }
     (notes.filter { it.deletedAt == null } + notes.filter { it.deletedAt != null } + preservedTrash)
-        .distinctBy { it.id }.forEach { array.put(it.toJson()) }
+        .distinctBy { it.id }.forEach { array.put(it.withManagedAttachments(appContext).toJson()) }
     val previous = prefs.getString("general_notes", null)
     val editor = prefs.edit().putString("general_notes", array.toString())
     if (previous != null) editor.putString("general_notes__bak", previous)
@@ -297,7 +297,7 @@ fun DocumentRepository.mutateGeneralNotes(transform: (List<GeneralNote>) -> List
 private fun DocumentRepository.mutateStoredGeneralNotes(transform: (List<GeneralNote>) -> List<GeneralNote>) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val all = loadStoredGeneralNotes()
     val next = transform(all)
-    val array = JSONArray().also { out -> next.distinctBy { it.id }.forEach { out.put(it.toJson()) } }
+    val array = JSONArray().also { out -> next.distinctBy { it.id }.forEach { out.put(it.withManagedAttachments(appContext).toJson()) } }
     val previous = prefs.getString("general_notes", null)
     val editor = prefs.edit().putString("general_notes", array.toString())
     if (previous != null) editor.putString("general_notes__bak", previous)
@@ -462,7 +462,7 @@ fun DocumentRepository.loadAllAnnotations(): List<ReaderAnnotation> = synchroniz
             source
         }
         if (annotation.documentId in existingIds && annotation.chunkIndex >= 0 && seen.add(annotation.stableKey)) {
-            annotations.add(annotation)
+            annotations.add(annotation.withManagedAudio(appContext))
         }
     }
     if (changed || annotations.size != sourceList.size) saveAllAnnotations(annotations)
@@ -483,21 +483,22 @@ internal fun DocumentRepository.loadAllAnnotationsFromPrefsRaw(): List<ReaderAnn
             source
         }
         if (annotation.chunkIndex >= 0 && seen.add(annotation.stableKey)) {
-            annotations.add(annotation)
+            annotations.add(annotation.withManagedAudio(appContext))
         }
     }
     return annotations
 }
 
 fun DocumentRepository.saveAllAnnotations(annotations: List<ReaderAnnotation>): Unit = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
-    dbHelper.replaceAllAnnotations(annotations)
+    val owned = annotations.map { it.withManagedAudio(appContext) }
+    dbHelper.replaceAllAnnotations(owned)
     val array = JSONArray()
-    annotations.sortedWith(compareBy<ReaderAnnotation> { it.documentId }.thenBy { it.chunkIndex }.thenBy { it.type.name })
+    owned.sortedWith(compareBy<ReaderAnnotation> { it.documentId }.thenBy { it.chunkIndex }.thenBy { it.type.name })
         .forEach { array.put(it.toJson()) }
     prefs.edit { putString(DocumentRepository.KEY_ANNOTATIONS, array.toString()) }
 }
 
-fun DocumentRepository.loadAllFlashcards(): List<FlashcardProgress> {
+fun DocumentRepository.loadAllFlashcards(): List<FlashcardProgress> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val dbList = runCatching { dbHelper.getAllFlashcards() }.getOrDefault(emptyList())
     val list = if (dbList.isEmpty()) {
         val fallback = loadAllFlashcardsFromPrefsRaw()
@@ -521,9 +522,9 @@ fun DocumentRepository.loadAllFlashcards(): List<FlashcardProgress> {
             )
         }
         saveAllFlashcards(migrated)
-        return migrated
+        return@synchronized migrated
     }
-    return list
+    list
 }
 
 internal fun DocumentRepository.loadAllFlashcardsFromPrefsRaw(): List<FlashcardProgress> {
@@ -532,16 +533,17 @@ internal fun DocumentRepository.loadAllFlashcardsFromPrefsRaw(): List<FlashcardP
     val list = mutableListOf<FlashcardProgress>()
     for (i in 0 until array.length()) {
         val obj = array.optJSONObject(i) ?: continue
-        list.add(FlashcardProgress.fromJson(obj))
+        runCatching { FlashcardProgress.fromJson(obj) }.getOrNull()?.let(list::add)
     }
     return list
 }
 
-fun DocumentRepository.saveAllFlashcards(list: List<FlashcardProgress>) {
+fun DocumentRepository.saveAllFlashcards(list: List<FlashcardProgress>): Unit = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     dbHelper.replaceAllFlashcards(list)
     val array = JSONArray()
     list.forEach { array.put(it.toJson()) }
     prefs.edit { putString("study_flashcards", array.toString()) }
+    updateVeritasWidgets(appContext)
 }
 
 /** Cards grouped into their named sets, newest set first. */
@@ -572,20 +574,20 @@ fun DocumentRepository.deleteFlashcardSet(setId: String): List<FlashcardProgress
     remaining
 }
 
-fun DocumentRepository.loadAllQuizzes(): List<QuizSet> {
+fun DocumentRepository.loadAllQuizzes(): List<QuizSet> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val raw = prefs.getString("study_quizzes", "[]") ?: "[]"
-    return runCatching {
+    runCatching {
         val array = JSONArray(raw)
         val list = mutableListOf<QuizSet>()
         for (i in 0 until array.length()) {
             val obj = array.optJSONObject(i) ?: continue
-            list.add(QuizSet.fromJson(obj))
+            runCatching { QuizSet.fromJson(obj) }.getOrNull()?.let(list::add)
         }
         list
     }.getOrDefault(emptyList())
 }
 
-fun DocumentRepository.saveAllQuizzes(list: List<QuizSet>) {
+fun DocumentRepository.saveAllQuizzes(list: List<QuizSet>): Unit = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val array = JSONArray()
     list.forEach { array.put(it.toJson()) }
     prefs.edit { putString("study_quizzes", array.toString()) }
@@ -595,7 +597,8 @@ fun DocumentRepository.saveQuiz(quiz: QuizSet): List<QuizSet> = synchronized(Doc
     val all = loadAllQuizzes()
     val previous = all.firstOrNull { it.id == quiz.id }
     val current = all.filterNot { it.id == quiz.id }.toMutableList()
-    val saved = if (previous?.questions == quiz.questions) quiz.copy(bestScore = maxOf(previous.bestScore, quiz.bestScore)) else quiz
+    val saved = if (previous?.questions == quiz.questions) quiz.copy(bestScore = maxOf(previous.calibratedBestScore, quiz.calibratedBestScore))
+        else quiz.copy(bestScore = quiz.calibratedBestScore)
     current.add(0, saved)
     saveAllQuizzes(current)
     current

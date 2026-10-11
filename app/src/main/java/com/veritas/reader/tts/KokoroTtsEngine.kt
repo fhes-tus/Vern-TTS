@@ -83,11 +83,11 @@ class KokoroTtsEngine(context: Context, private val voiceId: String) : TtsEngine
             // which only three are English, so every voice here would come out
             // Chinese. Say so loudly rather than synthesising the wrong voice.
             val speakers = engine?.takeIf { it.isReady }?.let { runCatching { it.numSpeakers() }.getOrDefault(0) } ?: 0
-            if (speakers > 0 && speakers != VoiceModelManager.KOKORO_EXPECTED_SPEAKERS) {
+            if (speakers > 0 && !KokoroPackageShape.supports(speakers)) {
                 Log.e(
                     TAG,
                     "Kokoro package has $speakers speakers, expected " +
-                        "${VoiceModelManager.KOKORO_EXPECTED_SPEAKERS}. This is not " +
+                        "53 or 54. This is not " +
                         "kokoro-multi-lang-v1_0 — voice selection will be wrong. " +
                         "Delete and re-download the voice."
                 )
@@ -99,17 +99,18 @@ class KokoroTtsEngine(context: Context, private val voiceId: String) : TtsEngine
 
     override suspend fun synthesize(sentence: String, rate: Float, pitch: Float): ShortArray? = withContext(Dispatchers.Default) {
         val tts = engine?.takeIf { it.isReady } ?: return@withContext null
-        if (sentence.isBlank()) return@withContext null
+        val clean = NeuralSpeechText.prepare(sentence)
+        if (clean.isBlank()) return@withContext null
         val numSpk = runCatching { tts.numSpeakers() }.getOrDefault(0)
         val requestedSid = speakerId(voiceId)
         val safeSid = if (numSpk > 0) requestedSid.coerceIn(0, numSpk - 1) else 0
         val safeSpeed = rate.coerceIn(0.5f, 2.0f)
 
         runCatching {
-            tts.generate(sentence, sid = safeSid, speed = safeSpeed).samples.toPcm16()
+            tts.generate(clean, sid = safeSid, speed = safeSpeed).samples.toPcm16()
         }.getOrElse {
             Log.w(TAG, "Synthesis failed for sid $safeSid, trying fallback sid 0", it)
-            runCatching { tts.generate(sentence, sid = 0, speed = safeSpeed).samples.toPcm16() }.getOrNull()
+            runCatching { tts.generate(clean, sid = 0, speed = safeSpeed).samples.toPcm16() }.getOrNull()
         }?.let { PcmPitchShift.apply(it, sampleRate, pitch) }
     }
 

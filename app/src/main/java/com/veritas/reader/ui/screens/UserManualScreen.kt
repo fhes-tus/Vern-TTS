@@ -197,13 +197,13 @@ fun UserManualDialog(
                         title = "Document Actions & Metadata",
                         icon = Icons.Outlined.MoreVert,
                         subtitle = "Edit document titles, authors, and options",
-                        content = "Access control options for individual documents using the three-dot overflow button on any book card. Edit titles, modify author names, assign tags, add documents to reading lists, reset reading progress, or delete files from storage.",
+                        content = "Use the three-dot menu on a book card to rename it, organize it, view details or save it to your phone. Choose 'Save to phone' and select a destination in Android's file picker. The copy remains available after uninstalling Vern. Available originals keep their format; catalog books and extracted text are saved as TXT.",
                         ctaText = "Document Options Tip",
                         ctaAction = "library_options",
                         flowSteps = listOf(
                             "Find the document in your Library list",
                             "Tap the three-dot options menu icon",
-                            "Choose an action (Rename, Categorize, or Delete)"
+                            "Choose an action, or Save to phone to keep an external copy"
                         ),
                         imageResId = R.drawable.manual_library_item_menu,
                         tags = listOf("rename", "author", "metadata", "delete", "options", "edit", "tags", "categories")
@@ -547,13 +547,13 @@ fun UserManualDialog(
                         title = "Rich Note Editor & Audio Reflections",
                         icon = Icons.Outlined.GraphicEq,
                         subtitle = "Waveforms, hashtags & web card embeds",
-                        content = "Create rich multimedia study notes with voice memos featuring interactive playback waveforms, hashtag categorizations (#iQuietime), and automatic web bookmark cards with preview thumbnails.",
+                        content = "Create multimedia notes with text, photos, files, voice memos and web links. From another app, use Share and choose Share to Notes to import text and attachments. The imported note is saved before it opens, even if you make no edits. Sharing a note outward includes accessible attachments and keeps device file paths out of the text.",
                         ctaText = "Go to Notes",
                         ctaAction = "notes_tab",
                         flowSteps = listOf(
                             "Tap '+ Note' or open any existing note in your list",
                             "Record voice memos or type rich markdown reflections",
-                            "Paste web links (e.g. bible.com) to generate rich preview cards"
+                            "Share text or attachments from another app to Share to Notes"
                         ),
                         imageResId = R.drawable.manual_note_editor,
                         tags = listOf("note editor", "voice memo", "waveform", "tags", "link preview", "bible.com", "audio notes")
@@ -595,19 +595,19 @@ fun UserManualDialog(
                         tags = listOf("copy", "select text", "highlight", "read from here", "clipboard", "selection bar")
                     ),
                     ManualChapter(
-                        title = "Sync Center Integration",
+                        title = "Portable Backup & Restore",
                         icon = Icons.Outlined.Sync,
-                        subtitle = "Sync settings and libraries across devices",
-                        content = "Keep your digital library in sync across devices. Configure cloud sync (WebDAV, Google Drive, or personal endpoints) to automatically upload progress, bookmarks, and custom voices on start or exit.",
+                        subtitle = "Move your data between devices without an account",
+                        content = "Export a portable backup from the Sync Center, copy or share it to your other device, then import it there. The portable archive includes managed Notes attachments. Import merges with local data and keeps existing notes on an ID conflict. Save a backup of the receiving device first. Transfers are manual; no cloud account is needed.",
                         ctaText = "Manage Sync Center",
                         ctaAction = "sync_center",
                         flowSteps = listOf(
                             "Open Settings -> Sync Center",
-                            "Configure WebDAV or cloud accounts",
-                            "Tap 'Sync Now' to manually synchronize files"
+                            "Export a portable backup and transfer the archive",
+                            "On the receiving device, back up first, then import the archive"
                         ),
                         imageResId = R.drawable.manual_sync_center,
-                        tags = listOf("sync", "cloud", "google drive", "webdav", "cross device", "backup", "library sync")
+                        tags = listOf("sync", "portable", "transfer", "cross device", "backup", "restore")
                     ),
                     ManualChapter(
                         title = "Backup & Recovery",

@@ -27,13 +27,13 @@ import kotlinx.coroutines.withContext
 @Composable
 internal fun LibrarySearchField(value: String, onChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier, onDone: (() -> Unit)? = null) {
     val scheme = MaterialTheme.colorScheme
-    BasicTextField(value, onChange, modifier.height(38.dp)
+    BasicTextField(value, onChange, modifier.heightIn(min = 48.dp)
         .background(scheme.surfaceVariant, VeritasPackStyle.chipShape()), singleLine = true,
         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Search),
         keyboardActions = androidx.compose.foundation.text.KeyboardActions(onSearch = { onDone?.invoke() }),
         cursorBrush = SolidColor(scheme.primary), textStyle = MaterialTheme.typography.bodyMedium.copy(color = scheme.onSurface),
         decorationBox = { innerField ->
-            Row(Modifier.fillMaxWidth().height(38.dp).padding(start = 14.dp, end = 4.dp),
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = 14.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(Icons.Default.Search, null, Modifier.size(18.dp), tint = scheme.onSurfaceVariant)
                 Box(Modifier.weight(1f)) {
@@ -41,7 +41,7 @@ internal fun LibrarySearchField(value: String, onChange: (String) -> Unit, place
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
                     innerField()
                 }
-                if (value.isNotEmpty()) IconButton({ onChange("") }, Modifier.size(28.dp)) { Icon(Icons.Default.Close, "Clear search", tint = scheme.onSurfaceVariant) }
+                if (value.isNotEmpty()) IconButton({ onChange("") }, Modifier.size(40.dp)) { Icon(Icons.Default.Close, "Clear search", tint = scheme.onSurfaceVariant) }
             }
         })
 }

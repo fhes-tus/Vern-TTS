@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.6.1] - 2026-10-10
+
+### Added
+- **Bidirectional Notes Sharing & Multi-Format Export**: Incoming and outgoing sharing of formatted notes, web links, audio, and multi-media attachments with clean FileProvider permission grants; plain text, PDF, AMR/M4A, and full-note ZIP archive export options.
+- **Reading Sessions & Insights Ledger**: Durable, local session tracking ledger separating silent reading from listening with monotonic active duration, pause/crash checkpoints, and local midnight rollover.
+- **Resilient Vocabulary & Wiktionary Lookup**: Background WorkManager definition resolution with source context preservation and dual-source dictionary fallback to Wiktionary.
+- **Save to Phone**: External storage export via Android document picker for catalog TXT, EPUB, and PDF copies that survive app uninstalls.
+- **Glossy Glass and Listen**: Shared translucent gloss and reflected rims, rounded-square Listen artwork, circular skip/bookmark controls, a wide Play/Pause pill and smooth current-sentence emphasis.
+- **54-Speaker Voice Compatibility**: Support for updated upstream Kokoro v1.0 54-speaker voice packages and concurrent download locking.
+- **Onboarding Polish & Motion**: Sleek speed sliders, persistent speech audition settings, and gentle vector scene motion respecting Reduce Motion preferences.
+
+### Changed
+- Restored Streaks, Weekly App Activity and Reading Activity in the Reading Insights Overview, with a warm animated flame, floating gold trophy, day indicators, gradient weekly bars, a layered measured-mode ring and Month/Year heatmap. Goals, timer settings and session editing are in History; book details are in Books.
+- Listen controls now respect unconsumed status/navigation/cutout insets and retain breathing room at both edges.
+- Added safe managed Notes-media cleanup with preview, protected live/Trash/revision/recovery references, a grace period and deletion revalidation.
+- Fixed source-requested PPTX text auto-fit and empty-paragraph bullet handling; representative ISO slides retain their compact layout.
+- Excluded unused standalone C/C++ binaries from APK packaging, optimizing package sizes across all CPU architectures.
+
+
 All notable changes to the Veritas Reader application will be documented in this file.
 
 ---

@@ -1,96 +1,49 @@
 package com.veritas.reader.ui.screens
 
 import android.graphics.BitmapFactory
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.Spring
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.outlined.BookmarkAdd
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.RecordVoiceOver
-import androidx.compose.material.icons.outlined.TheaterComedy
-import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.veritas.reader.*
 import com.veritas.reader.R
-import com.veritas.reader.ReaderMode
-import com.veritas.reader.ReaderModeToggle
-import com.veritas.reader.VeritasPackStyle
+import com.veritas.reader.ui.VeritasMotion
+import com.veritas.reader.ui.VeritasSleekSlider
 import com.veritas.reader.ui.pressScale
 import com.veritas.reader.ui.rememberVeritasHaptics
 import kotlinx.coroutines.delay
 import java.io.File
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
 fun AudioModeScreen(
@@ -116,639 +69,240 @@ fun AudioModeScreen(
     onOpenSleepTimer: () -> Unit = {},
     onOpenVoiceStudio: () -> Unit = {},
     onOpenNarrationStudio: () -> Unit = {},
-    onExportAudio: () -> Unit = {}
+    onExportAudio: () -> Unit = {},
+    documentId: String? = null,
+    contentWindowInsets: WindowInsets = WindowInsets.safeDrawing
 ) {
-    val backgroundColor = MaterialTheme.colorScheme.background
-    val contentColor = MaterialTheme.colorScheme.onBackground
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val haptic = rememberVeritasHaptics()
+    val scheme = MaterialTheme.colorScheme
+    val glass = VeritasPackStyle.glassChromeEnabled() && isDeviceGlassCapable()
+    // The Listen page may be in a separate window: capture its own backdrop.
+    val backdrop = if (glass) rememberVeritasLayerBackdrop() else null
+    val haptics = rememberVeritasHaptics()
+    var showRead by remember { mutableStateOf(false) }
+    var toolsExpanded by remember { mutableStateOf(false) }
+    var ratesExpanded by remember { mutableStateOf(false) }
+    var scrub by remember(documentId) { mutableStateOf<Float?>(null) }
+    val lastIndex = (totalChunks - 1).coerceAtLeast(0)
+    val index = currentIndex.coerceIn(0, lastIndex)
+    val position = scrub ?: index.toFloat()
+    val preparing = PlaybackStateStore.isPreparingFor(documentId)
+    val context = LocalContext.current
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    val sessionTracker = remember(context, documentId) { documentId?.let { ReadingSessionTracker.get(context) } }
+    val latestIndex by rememberUpdatedState(index)
+    DisposableEffect(sessionTracker, documentId, showRead, lifecycle) {
+        fun updateReader() {
+            sessionTracker?.reader("listen", documentId.takeIf { showRead && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED) }, latestIndex)
+        }
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, _ -> updateReader() }
+        lifecycle.addObserver(observer); updateReader()
+        onDispose { lifecycle.removeObserver(observer); sessionTracker?.reader("listen", null) }
+    }
+    LaunchedEffect(index) {
+        if (showRead && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) sessionTracker?.reader("listen", documentId, index)
+    }
+    val effects = VeritasMotion.effectsSlow<Float>()
+    val spatial = VeritasMotion.spatialSlow<androidx.compose.ui.unit.IntOffset>()
 
-    // ── Real-time elapsed tracker (Pre-Phase Item 1) ──
-    var elapsedSeconds by remember { mutableLongStateOf(0L) }
-    var baseElapsedAtLastChange by remember { mutableLongStateOf(0L) }
-    var lastIndexChangeMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    var showRead by remember { mutableStateOf(true) }
-
-    LaunchedEffect(isPlaying) {
-        if (isPlaying) {
-            lastIndexChangeMillis =
-                System.currentTimeMillis() - (elapsedSeconds - baseElapsedAtLastChange) * 1_000L
-            while (true) {
-                delay(1_000L)
-                elapsedSeconds = baseElapsedAtLastChange +
-                    (System.currentTimeMillis() - lastIndexChangeMillis) / 1_000L
+    VeritasBackdropProvider(backdrop) {
+        Box(Modifier.fillMaxSize().testTag("listen-page")) {
+            Canvas(Modifier.fillMaxSize().recordVeritasBackdrop(backdrop, glass)) {
+                drawRect(scheme.background)
+                if (glass) {
+                    drawRect(Brush.radialGradient(listOf(scheme.primary.copy(alpha = .14f), Color.Transparent),
+                        center = androidx.compose.ui.geometry.Offset(size.width * .78f, size.height * .2f), radius = size.height * .65f))
+                    drawRect(Brush.linearGradient(listOf(Color.Transparent, scheme.tertiary.copy(alpha = .10f), Color.Transparent)))
+                }
+            }
+            Column(Modifier.fillMaxSize().windowInsetsPadding(contentWindowInsets).padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ListenControl(Icons.AutoMirrored.Filled.ArrowBack, "Back", glass, Modifier.size(48.dp), onClick = onDismiss)
+                    ReaderModeToggle(readerMode, onReaderModeChange, hasCanvas, Modifier.weight(1f))
+                    Box {
+                        ListenControl(Icons.Default.MoreVert, "More options", glass, Modifier.size(48.dp), onClick = { toolsExpanded = true })
+                        DropdownMenu(toolsExpanded, { toolsExpanded = false }) {
+                            listOf(
+                                Triple("Sleep timer", Icons.Outlined.Timer, onOpenSleepTimer),
+                                Triple("Voice & language", Icons.Outlined.RecordVoiceOver, onOpenVoiceStudio),
+                                Triple("Narration mode", Icons.Outlined.TheaterComedy, onOpenNarrationStudio),
+                                Triple("Export audio", Icons.Outlined.FileDownload, onExportAudio)
+                            ).forEach { (label, icon, action) ->
+                                DropdownMenuItem(text = { Text(label) }, leadingIcon = { Icon(icon, null) },
+                                    onClick = { toolsExpanded = false; action() })
+                            }
+                        }
+                    }
+                }
+                Row(Modifier.align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = !showRead, onClick = { showRead = false }, label = { Text("Player") })
+                    FilterChip(selected = showRead, onClick = { showRead = true }, label = { Text("Read") })
+                }
+                AnimatedContent(showRead, modifier = Modifier.weight(1f).fillMaxWidth(),
+                    transitionSpec = {
+                        (fadeIn(effects) + slideInVertically(spatial) { it / 12 }) togetherWith
+                            (fadeOut(effects) + slideOutVertically(spatial) { -it / 12 })
+                    }, label = "listenViewTransition") { read ->
+                    if (read) ListenSentenceList(documentChunks.ifEmpty { listOf(currentSentence) }, index, onSentenceClick)
+                    else ListenArtwork(coverFile, if (totalChunks > 0) (index + 1f) / totalChunks else 0f,
+                        { haptics.select(); onNext() }, { haptics.select(); onPrevious() })
+                }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
+                            color = scheme.onBackground, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(if (totalChunks > 0) "Sentence ${index + 1} of $totalChunks" else "Ready to listen",
+                            style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                    }
+                    ListenControl(if (isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkAdd,
+                        if (isBookmarked) "Remove bookmark" else "Add bookmark", glass, Modifier.size(50.dp), onClick = onToggleBookmark)
+                }
+                Column {
+                    VeritasSleekSlider(position, { scrub = it },
+                        modifier = Modifier.semantics {
+                            contentDescription = "Reading position"
+                            progressBarRangeInfo = ProgressBarRangeInfo(position, 0f..lastIndex.coerceAtLeast(1).toFloat(), lastIndex.coerceAtLeast(1) - 1)
+                            setProgress { requested ->
+                                onSentenceClick(requested.roundToInt().coerceIn(0, lastIndex)); true
+                            }
+                        }, valueRange = 0f..lastIndex.coerceAtLeast(1).toFloat(), stepIncrement = 1f,
+                        enabled = totalChunks > 1, sliderHeight = 40.dp, trackHeight = 3.dp, thumbSize = 14.dp,
+                        onValueChangeFinished = { scrub?.let { onSentenceClick(it.roundToInt().coerceIn(0, lastIndex)) }; scrub = null })
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(if (totalChunks > 0) "${position.roundToInt() + 1} / $totalChunks" else "0 / 0",
+                            style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                        Text("${(totalChunks - position.roundToInt() - 1).coerceAtLeast(0)} remaining",
+                            style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                    }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    ListenControl(Icons.Default.SkipPrevious, "Previous sentence", glass, Modifier.size(60.dp), onClick = { haptics.select(); onPrevious() })
+                    ListenControl(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        if (preparing) "Cancel starting playback" else if (isPlaying) "Pause" else "Play", glass,
+                        Modifier.weight(1f).height(64.dp), label = if (preparing) "Starting" else if (isPlaying) "Pause" else "Play",
+                        playback = true, preparing = preparing, emphasized = true, onClick = { haptics.toggle(!isPlaying); onPlayPause() })
+                    ListenControl(Icons.Default.SkipNext, "Next sentence", glass, Modifier.size(60.dp), onClick = { haptics.select(); onNext() })
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Box(Modifier.weight(1f)) {
+                        ListenControl(Icons.Outlined.Speed, "Playback speed", glass, Modifier.fillMaxWidth().height(48.dp),
+                            label = String.format(Locale.US, "%.2f", rate).trimEnd('0').trimEnd('.') + "×", onClick = { ratesExpanded = true })
+                        DropdownMenu(ratesExpanded, { ratesExpanded = false }) {
+                            listOf(.8f, 1f, 1.25f, 1.5f, 2f).forEach { speed ->
+                                DropdownMenuItem(text = { Text("${speed}×") }, onClick = { onRateChange(speed); ratesExpanded = false })
+                            }
+                            HorizontalDivider()
+                            DropdownMenuItem(text = { Text("Slower −0.05×") }, onClick = { onRateChange((rate - .05f).coerceAtLeast(.5f)) })
+                            DropdownMenuItem(text = { Text("Faster +0.05×") }, onClick = { onRateChange((rate + .05f).coerceAtMost(3f)) })
+                        }
+                    }
+                    ListenControl(Icons.Outlined.RecordVoiceOver, "Voice & language", glass, Modifier.weight(1f).height(48.dp), label = "Voice", onClick = onOpenVoiceStudio)
+                    ListenControl(Icons.Outlined.Timer, "Sleep timer", glass, Modifier.weight(1f).height(48.dp), label = "Timer", onClick = onOpenSleepTimer)
+                }
             }
         }
-    }
-
-    LaunchedEffect(currentIndex) {
-        baseElapsedAtLastChange = elapsedSeconds
-        lastIndexChangeMillis = System.currentTimeMillis()
-    }
-
-    val avgSecondsPerSentence = if (currentIndex > 0) elapsedSeconds.toFloat() / currentIndex else 3.0f
-    val remainingSentences = (totalChunks - currentIndex).coerceAtLeast(0)
-    val estimatedRemainingSeconds = (remainingSentences * avgSecondsPerSentence).toLong()
-    val totalEstimatedSeconds = elapsedSeconds + estimatedRemainingSeconds
-
-    val progress = if (totalChunks > 0) currentIndex.toFloat() / totalChunks else 0f
-    val animatedProgress by animateFloatAsState(targetValue = progress, animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow())
-
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = backgroundColor,
-        contentColor = contentColor
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp)
-                .pointerInput(Unit) {
-                    var dragAccumulator = 0f
-                    detectDragGestures(
-                        onDragEnd = { dragAccumulator = 0f },
-                        onDragCancel = { dragAccumulator = 0f }
-                    ) { change, dragAmount ->
-                        change.consume()
-                        dragAccumulator += dragAmount.x
-                        if (dragAccumulator > 150) {
-                            onPrevious()
-                            dragAccumulator = 0f
-                        } else if (dragAccumulator < -150) {
-                            onNext()
-                            dragAccumulator = 0f
-                        }
-                    }
-                },
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            // 1. Header with mode toggle
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = contentColor
-                    )
-                }
-                ReaderModeToggle(
-                    currentMode = readerMode,
-                    onModeSelected = onReaderModeChange,
-                    hasCanvas = hasCanvas,
-                    modifier = Modifier.weight(1f).padding(horizontal = 6.dp)
-                )
-                
-                var toolsExpanded by remember { mutableStateOf(false) }
-                Box {
-                    IconButton(onClick = { toolsExpanded = true }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More options",
-                            tint = contentColor
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = toolsExpanded,
-                        onDismissRequest = { toolsExpanded = false },
-                        modifier = Modifier.width(220.dp)
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Sleep timer") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Timer,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            onClick = {
-                                toolsExpanded = false
-                                onOpenSleepTimer()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Voice & language") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.RecordVoiceOver,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            onClick = {
-                                toolsExpanded = false
-                                onOpenVoiceStudio()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Narration mode") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.TheaterComedy,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            onClick = {
-                                toolsExpanded = false
-                                onOpenNarrationStudio()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Export audio") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.FileDownload,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            onClick = {
-                                toolsExpanded = false
-                                onExportAudio()
-                            }
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Player / Read Sub-toggle
-            Row(
-                modifier = Modifier
-                    .background(contentColor.copy(alpha = 0.06f), VeritasPackStyle.chipShape())
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val playerBg = if (!showRead) contentColor.copy(alpha = 0.15f) else Color.Transparent
-                val playerTextColor = if (!showRead) contentColor else contentColor.copy(alpha = 0.5f)
-                Box(
-                    modifier = Modifier
-                        .clip(VeritasPackStyle.chipShape())
-                        .background(playerBg)
-                        .clickable { showRead = false }
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
-                ) {
-                    Text("Player", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = playerTextColor)
-                }
-
-                val readBg = if (showRead) contentColor.copy(alpha = 0.15f) else Color.Transparent
-                val readTextColor = if (showRead) contentColor else contentColor.copy(alpha = 0.5f)
-                Box(
-                    modifier = Modifier
-                        .clip(VeritasPackStyle.chipShape())
-                        .background(readBg)
-                        .clickable { showRead = true }
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
-                ) {
-                    Text("Read", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = readTextColor)
-                }
-            }
-
-            // 2. Center Content: Read List or Cover Art
-            if (showRead) {
-                val readListState = rememberLazyListState()
-
-                LaunchedEffect(currentIndex) {
-                    if (currentIndex in documentChunks.indices) {
-                        // Wait for a valid measured viewport height
-                        var viewportHeight = 0
-                        var attempts = 0
-                        while (viewportHeight <= 0 && attempts < 15) {
-                            val layoutInfo = readListState.layoutInfo
-                            viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
-                            if (viewportHeight <= 0) {
-                                delay(30)
-                            }
-                            attempts++
-                        }
-                        if (viewportHeight > 0) {
-                            // Anchor the active sentence's TOP in the upper fifth of the
-                            // viewport (fixed top anchor, not centering) so the line being
-                            // read sits high with one faded line of context above it and the
-                            // rest of the upcoming text below — consistent for short and tall
-                            // multi-line sentences.
-                            val offset = -(viewportHeight * 0.10f).toInt()
-                            readListState.animateScrollToItem(currentIndex, offset)
-                        } else {
-                            // Fallback to average offset if measurement still pending
-                            readListState.animateScrollToItem(currentIndex, -90)
-                        }
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                    LazyColumn(
-                        state = readListState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(vertical = 8.dp),
-                        contentPadding = PaddingValues(vertical = 140.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        itemsIndexed(documentChunks) { index, sentence ->
-                            val isActive = index == currentIndex
-                            // YouTube-Music-style lyric emphasis: the active line fades IN slowly
-                            // with a decelerating ease and a subtle upward rise, while lines
-                            // fading OUT dim faster so attention lands on the new sentence.
-                            val alpha by animateFloatAsState(
-                                targetValue = if (isActive) 1.0f else 0.35f,
-                                animationSpec = if (isActive) com.veritas.reader.ui.VeritasMotion.effectsSlow()
-                                    else com.veritas.reader.ui.VeritasMotion.effectsFast(),
-                                label = "sentenceAlpha"
-                            )
-                            val fontSizeValue by animateFloatAsState(
-                                targetValue = if (isActive) 19f else 15f,
-                                animationSpec = com.veritas.reader.ui.VeritasMotion.spatial(),
-                                label = "sentenceSize"
-                            )
-                            val lift by animateFloatAsState(
-                                targetValue = if (isActive) 0f else 1f,
-                                animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow(),
-                                label = "sentenceLift"
-                            )
-                            val fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal
-                            val fontSize = fontSizeValue.sp
-                            val textColor = contentColor.copy(alpha = alpha)
-
-                            val sentenceInteraction = remember { MutableInteractionSource() }
-                            Text(
-                                text = sentence,
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontSize = fontSize,
-                                    fontWeight = fontWeight,
-                                    lineHeight = fontSize * 1.4f
-                                ),
-                                color = textColor,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 24.dp)
-                                    .graphicsLayer { translationY = lift * 6.dp.toPx() }
-                                    .pressScale(sentenceInteraction, pressedScale = 0.98f)
-                                    .clickable(
-                                        interactionSource = sentenceInteraction,
-                                        indication = null
-                                    ) {
-                                        onSentenceClick(index)
-                                    }
-                            )
-                        }
-                    }
-
-                    // Top fading gradient overlay
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp)
-                            .align(Alignment.TopCenter)
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        backgroundColor,
-                                        Color.Transparent
-                                    )
-                                )
-                            )
-                    )
-
-                    // Bottom fading gradient overlay
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp)
-                            .align(Alignment.BottomCenter)
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        backgroundColor
-                                    )
-                                )
-                            )
-                    )
-                }
-            } else {
-                // Cover image + Circular progress
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(280.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            progress = { animatedProgress },
-                            modifier = Modifier.fillMaxSize(),
-                            color = primaryColor,
-                            strokeWidth = 6.dp,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                        val coverBitmap = remember(coverFile?.absolutePath) {
-                            coverFile?.takeIf { it.exists() }?.let { file ->
-                                runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull()
-                            }
-                        }
-                        if (coverBitmap != null) {
-                            Image(
-                                bitmap = coverBitmap.asImageBitmap(),
-                                contentDescription = "Document cover",
-                                modifier = Modifier
-                                    .size(242.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(id = R.drawable.veritas_reader_icon),
-                                contentDescription = "Cover",
-                                modifier = Modifier
-                                    .size(242.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 3. Sentence details + Ticker (Smooth per-second elapsed / dynamic total estimation)
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (readerMode != ReaderMode.TEXT && !showRead) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = currentSentence,
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                        color = contentColor.copy(alpha = 0.8f),
-                        modifier = Modifier.heightIn(min = 72.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                } else {
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                
-                // Time progress row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = formatTime(elapsedSeconds),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = contentColor.copy(alpha = 0.6f)
-                    )
-                    LinearProgressIndicator(
-                        progress = { animatedProgress },
-                        modifier = Modifier.weight(1f),
-                        color = primaryColor,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                    Text(
-                        text = formatTime(totalEstimatedSeconds),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = contentColor.copy(alpha = 0.6f)
-                    )
-                }
-            }
-
-            // 4. Fine-tuning row (Speed and Bookmarks)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Left Speed cycle pill
-                var speedDropdownExpanded by remember { mutableStateOf(false) }
-                Box {
-                    Surface(
-                        shape = VeritasPackStyle.chipShape(),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        modifier = Modifier
-                            .clickable {
-                                speedDropdownExpanded = true
-                            }
-                    ) {
-                        Text(
-                            text = String.format(Locale.US, "%.2fx", rate),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                        )
-                    }
-
-                    DropdownMenu(
-                        expanded = speedDropdownExpanded,
-                        onDismissRequest = { speedDropdownExpanded = false },
-                        modifier = Modifier.width(200.dp)
-                    ) {
-                        Text(
-                            text = "Playback Speed",
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        HorizontalDivider()
-                        
-                        // Fine adjustments row
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(onClick = { onRateChange((rate - 0.05f).coerceIn(0.5f, 3.0f)) }) {
-                                Text("-", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            }
-                            Text(
-                                text = String.format(Locale.US, "%.2fx", rate),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            IconButton(onClick = { onRateChange((rate + 0.05f).coerceIn(0.5f, 3.0f)) }) {
-                                Text("+", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        HorizontalDivider()
-                        
-                        // Preset options
-                        listOf(0.8f, 1.0f, 1.25f, 1.5f, 2.0f).forEach { speed ->
-                            DropdownMenuItem(
-                                text = { Text("${speed}x") },
-                                onClick = {
-                                    onRateChange(speed)
-                                    speedDropdownExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                // Right Bookmark button
-                IconButton(
-                    onClick = {
-                        haptic.select()
-                        onToggleBookmark()
-                    }
-                ) {
-                    Icon(
-                        imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkAdd,
-                        contentDescription = if (isBookmarked) "Remove Bookmark" else "Bookmark Sentence",
-                        tint = if (isBookmarked) MaterialTheme.colorScheme.primary else contentColor.copy(alpha = 0.8f),
-                        modifier = Modifier.size(26.dp)
-                    )
-                }
-            }
-
-            // 5. Main Playback Controls (Vector Icons)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AudioModeButton(
-                    icon = Icons.Default.SkipPrevious,
-                    contentDescription = "Previous sentence",
-                    size = 72.dp,
-                    iconSize = 32.dp,
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = contentColor,
-                    onClick = {
-                        haptic.select()
-                        onPrevious()
-                    }
-                )
-
-                AudioModeButton(
-                    icon = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
-                    size = 88.dp,
-                    iconSize = 44.dp,
-                    color = primaryColor,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    onClick = {
-                        haptic.toggle(!isPlaying)
-                        onPlayPause()
-                    }
-                )
-
-                AudioModeButton(
-                    icon = Icons.Default.SkipNext,
-                    contentDescription = "Next sentence",
-                    size = 72.dp,
-                    iconSize = 32.dp,
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = contentColor,
-                    onClick = {
-                        haptic.select()
-                        onNext()
-                    }
-                )
-            }
-        }
-    }
-}
-
-private fun formatTime(seconds: Long): String {
-    val h = seconds / 3600
-    val m = (seconds % 3600) / 60
-    val s = seconds % 60
-    return if (h > 0) {
-        String.format(Locale.US, "%d:%02d:%02d", h, m, s)
-    } else {
-        String.format(Locale.US, "%02d:%02d", m, s)
     }
 }
 
 @Composable
-fun AudioModeButton(
-    icon: ImageVector,
-    contentDescription: String,
-    size: androidx.compose.ui.unit.Dp,
-    iconSize: androidx.compose.ui.unit.Dp,
-    color: Color,
-    contentColor: Color,
-    onClick: () -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val iconMotion = com.veritas.reader.ui.VeritasMotion.spatialFast<Float>()
-    val iconFade = com.veritas.reader.ui.VeritasMotion.effectsFast<Float>()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed && !com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion) 0.97f else 1f,
-        animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
-        label = "audioModeButtonScale"
-    )
-
-    Surface(
-        shape = CircleShape,
-        color = color,
-        contentColor = contentColor,
-        modifier = Modifier
-            .size(size)
-            .graphicsLayer(scaleX = scale, scaleY = scale)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            )
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            // Same springy scale-morph the home hero uses, so play↔pause feels
-            // consistent across every player surface.
-            AnimatedContent(
-                targetState = icon,
-                transitionSpec = {
-                    (scaleIn(iconMotion, initialScale = .9f) + fadeIn(iconFade))
-                        .togetherWith(fadeOut(iconFade)).using(null)
-                },
-                label = "audioModeIconMorph"
-            ) { targetIcon ->
-                Icon(
-                    imageVector = targetIcon,
-                    contentDescription = contentDescription,
-                    modifier = Modifier.size(iconSize),
-                    tint = contentColor
-                )
+private fun ListenArtwork(coverFile: File?, progress: Float, onNext: () -> Unit, onPrevious: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val next by rememberUpdatedState(onNext)
+    val previous by rememberUpdatedState(onPrevious)
+    val bitmap = remember(coverFile?.absolutePath, coverFile?.lastModified()) {
+        coverFile?.takeIf { it.isFile }?.let { file -> runCatching {
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(file.absolutePath, bounds)
+            var sample = 1
+            while (maxOf(bounds.outWidth, bounds.outHeight) / sample > 900) sample *= 2
+            BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
+        }.getOrNull() }
+    }
+    BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val side = minOf(maxWidth * .88f, maxHeight * .94f, 340.dp).coerceAtLeast(1.dp)
+        val shape = RoundedCornerShape(32.dp)
+        Surface(Modifier.size(side).veritasGlassOutline(shape, true).testTag("listen-artwork")
+            .pointerInput(Unit) {
+                var drag = 0f
+                detectHorizontalDragGestures(onDragStart = { drag = 0f }, onDragCancel = { drag = 0f },
+                    onDragEnd = { if (drag < -72.dp.toPx()) next() else if (drag > 72.dp.toPx()) previous() },
+                    onHorizontalDrag = { change, amount -> change.consume(); drag += amount })
+            }, shape = shape,
+            color = scheme.surfaceContainer, shadowElevation = 12.dp) {
+            Box(Modifier.background(Brush.linearGradient(listOf(scheme.primaryContainer, scheme.surfaceContainer)))) {
+                if (bitmap != null) Image(bitmap, "Book cover", Modifier.fillMaxSize().padding(12.dp).clip(RoundedCornerShape(23.dp)), contentScale = ContentScale.Fit)
+                else Image(painterResource(R.drawable.veritas_reader_icon), "Book cover", Modifier.fillMaxSize().padding(side * .2f), contentScale = ContentScale.Fit)
+                Surface(Modifier.align(Alignment.BottomEnd).padding(14.dp), shape = RoundedCornerShape(50),
+                    color = scheme.surface.copy(alpha = .85f), contentColor = scheme.onSurface) {
+                    Text("${(progress.coerceIn(0f, 1f) * 100).roundToInt()}%", Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                        style = MaterialTheme.typography.labelMedium)
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun ListenSentenceList(chunks: List<String>, currentIndex: Int, onSentenceClick: (Int) -> Unit) {
+    val state = rememberLazyListState()
+    val scheme = MaterialTheme.colorScheme
+    val reducedMotion = VeritasMotion.scheme.reduceMotion
+    val density = LocalDensity.current
+    LaunchedEffect(currentIndex, chunks.size, reducedMotion) {
+        if (currentIndex !in chunks.indices) return@LaunchedEffect
+        repeat(15) {
+            if (state.layoutInfo.viewportEndOffset <= 0) delay(30)
+        }
+        val viewport = state.layoutInfo.viewportEndOffset - state.layoutInfo.viewportStartOffset
+        val offset = -(viewport * .14f).toInt()
+        if (reducedMotion) state.scrollToItem(currentIndex, offset) else state.animateScrollToItem(currentIndex, offset)
+    }
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(Modifier.fillMaxSize().testTag("listen-sentences")
+            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+            .drawWithContent {
+                drawContent()
+                // Fade only the sentences so the page's glass backdrop remains continuous.
+                drawRect(Brush.verticalGradient(0f to Color.Transparent, .08f to Color.Black,
+                    .92f to Color.Black, 1f to Color.Transparent), blendMode = BlendMode.DstIn)
+            }, state = state,
+            contentPadding = PaddingValues(vertical = 72.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+            itemsIndexed(chunks) { index, sentence ->
+                val active = index == currentIndex
+                val alpha by animateFloatAsState(if (active) 1f else .46f, VeritasMotion.effectsSlow(), label = "sentenceOpacity")
+                val scale by animateFloatAsState(if (active || reducedMotion) 1f else .95f, VeritasMotion.spatialSlow(), label = "sentenceScale")
+                val lift by animateFloatAsState(if (active || reducedMotion) 0f else 5f, VeritasMotion.spatialSlow(), label = "sentenceLift")
+                // Stable typography prevents intermediate font sizes from rewrapping the paragraph.
+                Text(sentence, Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                    .graphicsLayer { this.alpha = alpha; scaleX = scale; scaleY = scale; translationY = with(density) { lift.dp.toPx() } }
+                    .semantics { selected = active }.clickable { onSentenceClick(index) },
+                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 20.sp, lineHeight = 30.sp, fontWeight = FontWeight.SemiBold),
+                    color = scheme.onBackground)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ListenControl(icon: ImageVector, description: String, glass: Boolean, modifier: Modifier = Modifier,
+    label: String? = null, playback: Boolean = false, preparing: Boolean = false, emphasized: Boolean = false, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(50)
+    val interaction = remember { MutableInteractionSource() }
+    Surface(onClick = onClick, modifier = modifier.pressScale(interaction, .97f)
+        .veritasGlassBackdrop(shape, glass, surfaceOpacity = .28f)
+        .semantics { if (!playback) contentDescription = description }, shape = shape, interactionSource = interaction,
+        color = if (glass) Color.Transparent else if (emphasized) scheme.primaryContainer else scheme.surfaceContainerHigh,
+        contentColor = scheme.onSurface,
+        border = if (glass) null else BorderStroke(1.dp, scheme.outlineVariant.copy(alpha = .6f))) {
+        Row(Modifier.padding(horizontal = if (label == null) 0.dp else 10.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)) {
+            if (playback) PlaybackControlIcon(icon == Icons.Default.Pause, preparing, tint = scheme.onSurface, size = 30.dp)
+            else Icon(icon, null, Modifier.size(if (label == null) 25.dp else 20.dp))
+            if (label != null) Text(label, style = if (emphasized) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelMedium,
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }

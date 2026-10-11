@@ -827,7 +827,7 @@ internal fun FileBrowserDialog(
                         .align(Alignment.BottomEnd)
                         .navigationBarsPadding()
                         .padding(22.dp)
-                        .veritasGlassBackdrop(VeritasPackStyle.chipShape(), floatingGlass, surfaceOpacity = .72f),
+                        .veritasGlassBackdrop(VeritasPackStyle.chipShape(), floatingGlass, surfaceOpacity = .36f),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = if (floatingGlass) androidx.compose.ui.graphics.Color.Transparent else MaterialTheme.colorScheme.primary,
                         contentColor = if (floatingGlass) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary),

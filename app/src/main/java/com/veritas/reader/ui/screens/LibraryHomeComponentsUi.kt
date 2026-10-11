@@ -229,12 +229,9 @@ internal fun HomeQuickActions(
                                 .clickable { onPlayPauseContinue(continueDocument) },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = if (isActiveAndPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                contentDescription = if (isActiveAndPlaying) "Pause" else "Play",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(26.dp)
-                            )
+                            com.veritas.reader.PlaybackControlIcon(isActiveAndPlaying,
+                                PlaybackStateStore.isPreparingFor(continueDocument.id),
+                                tint = MaterialTheme.colorScheme.onPrimary, size = 26.dp)
                         }
                         IconButton(
                             onClick = { onClearContinue(continueDocument) },

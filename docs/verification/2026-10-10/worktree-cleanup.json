@@ -1,0 +1,49 @@
+{
+  "importantFilesVerified": 774,
+  "removed": [
+    {
+      "path": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android\\.checks",
+      "bytes": 759817587
+    },
+    {
+      "path": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android\\.gradle",
+      "bytes": 33701390
+    },
+    {
+      "path": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android\\.kotlin",
+      "bytes": 0
+    },
+    {
+      "path": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android\\build",
+      "bytes": 128338
+    },
+    {
+      "path": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android\\app\\build",
+      "bytes": 1777785299
+    },
+    {
+      "path": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android\\tmp",
+      "bytes": 140871963
+    },
+    {
+      "path": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android\\output_apks\\Veritas-Reader-v2.6.0-arm64-v8a-release.apk",
+      "bytes": 57878928
+    },
+    {
+      "path": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android\\output_apks\\Veritas-Reader-v2.6.0-armeabi-v7a-release.apk",
+      "bytes": 48500270
+    },
+    {
+      "path": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android\\output_apks\\Veritas-Reader-v2.6.0-release.aab",
+      "bytes": 61257598
+    },
+    {
+      "path": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android\\output_apks\\Veritas-Reader-v2.6.0-universal-release.apk",
+      "bytes": 79777740
+    }
+  ],
+  "workspace": "C:\\Users\\wwwfe\\.codex\\worktrees\\4787\\Veritas Reader Android",
+  "preserved": "All files outside the explicit generated/cache/old-release allowlist; source, resources, tests, docs, tooling, configuration, signing keys, Git, IDE settings, final APKs, mapping and profiles retained",
+  "gibRemoved": 2.76,
+  "bytesRemoved": 2959719113
+}
