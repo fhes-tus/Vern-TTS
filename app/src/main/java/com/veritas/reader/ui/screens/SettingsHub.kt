@@ -196,7 +196,7 @@ fun SettingsHubDialog(
                         Icons.Outlined.Palette, onOpenReaderSettings
                     ),
                     SettingsRowSpec(
-                        "Customization", "Icon colours, startup motion & scattered cards",
+                        "Customization", "Icon colours, startup motion & Funky cards",
                         Icons.Outlined.AutoAwesome, { showCustomization = true }
                     ),
                     SettingsRowSpec(

@@ -321,7 +321,7 @@ internal fun HomeSidebarDialog(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    "100% On-Device Privacy • Vern",
+                                    "Your library, stored locally • Vern",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

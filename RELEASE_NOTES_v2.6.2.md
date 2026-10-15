@@ -27,6 +27,7 @@ All interface, icon, animation and reliability refinements from the 13–15 Octo
 
 ## Reliability and verification
 
+- Corrected older privacy slogans in onboarding, the manual, site and bot. Core reading remains local; optional online features and Google's ML Kit SDK diagnostics are disclosed in the privacy policy.
 - Corrected a startup I/O regression: the reading-session tracker initializes its repository on its I/O worker rather than during main-thread ViewModel construction.
 - Updated the technical-debt recheck to distinguish repaired issues, subsequently implemented features and remaining acceptance limits. Approximate Word pagination, broader Office fidelity, tablet/foldable coverage and real-model listening/export remain limitations.
 - Validation results and device checks are recorded in [the earlier debug report](docs/verification/2026-10-14/DEBUG_262_RECHECK.md) and [the tab/tap follow-up with the current preview](docs/verification/2026-10-14/TAB_TAP_FOLLOWUP.md). Debug success does not establish release/R8 or all-device behaviour.

@@ -10,7 +10,7 @@ Veritas Reader ("we", "us", or "our") develops the Veritas Reader Android applic
 Veritas Reader is built on a **privacy-by-design** approach:
 *   **Offline-First:** Your documents, notes, highlights, and habits are stored locally on your device.
 *   **No Tracking:** We do not collect, monetize, or track your reading habits.
-*   **No Analytics or Ads:** The app contains no advertising SDKs, tracking pixels, or telemetry frameworks.
+*   **No Ads or Reading Analytics Service:** Vern does not operate an advertising or remote reading-analytics service. Bundled Google ML Kit SDKs can collect operational diagnostics as described below.
 
 ---
 
@@ -37,6 +37,9 @@ The application stores the following data locally on your Android device. Option
 ### Optical Character Recognition (OCR)
 The application uses local machine learning models (Google Play Services ML Kit) to extract text from images and scanned PDF files. This processing runs entirely on-device; page images are never uploaded to remote servers.
 
+### ML Kit diagnostics
+Google ML Kit is also used for language identification. Google documents collection of device/app information, identifiers, performance metrics, API configuration, input/output sizes, feature events and errors for diagnostics and usage analytics. Language identification can additionally report identified languages. This SDK traffic is separate from on-device document processing. See [Google’s ML Kit Android data disclosure](https://developers.google.com/ml-kit/android-data-disclosure) for the collected fields and their purposes.
+
 ### Text-to-Speech (TTS) engine
 Playback is synthesized via your Android device's active Text-to-Speech (TTS) engine (such as Google Speech Services).
 *   **Synthesis Context:** The active sentence text is passed to the system TTS engine API to read the content aloud.
@@ -51,7 +54,7 @@ Veritas Reader requests the standard `INTERNET` permission for these features:
 3. **Optional AI, translation and vocabulary:** When you enable or invoke these features, selected text, prompts, document excerpts, lookup terms or requests may be sent to the provider you choose. Direct API integrations use the credentials you supply; external-app shares use that app's own privacy policy. Avoid sending sensitive content to a provider unless you intend to share it.
 4. **Background completion:** Selected operations, including vocabulary lookups and enabled update or content checks, can complete in the background. They do not constitute an account-based library synchronization service.
 
-The app has no advertising or telemetry service. Online providers apply their own privacy policies to the requests and content they receive.
+Vern has no advertising service or developer-operated remote reading analytics. ML Kit diagnostics described above can use the network. Online providers apply their own privacy policies to the requests and content they receive.
 
 ---
 

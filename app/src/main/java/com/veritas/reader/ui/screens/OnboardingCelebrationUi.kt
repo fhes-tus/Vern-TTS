@@ -445,7 +445,7 @@ fun OnboardingReadyCelebrationScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "🔒 ENCRYPTED ON-DEVICE · ZERO TELEMETRY · LOSSLESS SOUND",
+                        text = "🔒 LOCAL LIBRARY · NO ADS · OFFLINE VOICES",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                         fontSize = 9.sp,

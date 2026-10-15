@@ -296,7 +296,7 @@ def get_welcome_content():
     tag = rel["tag"]
     text = (
         "👋 <b>Welcome to the Vern TTS Knowledge Center!</b>\n\n"
-        "<b>Vern TTS is an offline-first Android reading workstation. Built with on-device speech synthesis, a spaced-repetition study hub, embedded voice memos, and zero telemetry tracking.</b>\n\n"
+        "<b>Vern TTS is an offline-first Android reading workstation. Built with on-device speech synthesis, a spaced-repetition study hub, embedded voice memos, and local reading history.</b>\n\n"
         "⚡️ <b>Workstation Capabilities:</b>\n"
         "• 🎙 <b>Embedded Voice Memos</b>: Spoken margin notes & audio reflections attached to any passage.\n"
         "• 🧠 <b>Spaced-Repetition Study Hub</b>: Active recall flashcards, Leitner review scheduling, & retention scoring.\n"
@@ -305,7 +305,7 @@ def get_welcome_content():
         "• 👁 <b>4 Unified Paper Tones</b>: Clean White, Warm Sepia, Soft Dark, & True AMOLED Black.\n"
         "• 📚 <b>35+ Curated Classics</b>: Built-in library pre-loaded with authentic published first-edition covers.\n"
         "• 📊 <b>Local Reading Tracker</b>: WPM speed, daily reading minutes, streaks, and local SQLite data.\n"
-        "• 🛡 <b>Zero Surveillance</b>: 0 ads, 0 trackers, 0 telemetry, and no account required.\n\n"
+        "• 🛡 <b>Offline-first</b>: No ads or mandatory account. Library and reading history are stored locally.\n\n"
         f"<i>Current Verified Build: <b>{tag}</b> • Tap any section below to explore:</i>"
     )
     markup = {
@@ -332,7 +332,7 @@ def get_download_content():
         f"• <a href=\"{rel['arm32_url']}\"><b>32-bit Legacy APK (armeabi-v7a)</b></a>\n"
         "  For older devices and budget hardware architectures running 32-bit chipsets.\n\n"
         "🛡 <b>Safe Sideloading Note:</b>\n"
-        "If Android prompts <i>\"Install from Unknown Sources\"</i>, tap <b>Allow</b>. This is standard for apps installed outside Google Play. Vern contains zero ads, zero telemetry, and is 100% open source under the Apache 2.0 license.\n\n"
+        "If Android prompts <i>\"Install from Unknown Sources\"</i>, tap <b>Allow</b>. This is standard for apps installed outside Google Play. Vern has no ads and is open source under the Apache 2.0 license. See the privacy policy for online features and ML Kit SDK diagnostics.\n\n"
         "⏳ <b>Google Play Store:</b> Application review is currently in progress. The official Play Store listing will be available shortly!"
     )
     markup = {
@@ -424,7 +424,7 @@ def get_feature_detail(topic):
     else:
         title = "🛡 <b>Offline-first Privacy</b>"
         body = (
-            "• <b>Zero Analytics & Telemetry</b>: No Google Analytics, no Firebase tracking, no Crashlytics data collection.\n"
+            "• <b>Local Reading Statistics</b>: No developer-operated remote reading analytics. Google ML Kit can collect SDK diagnostics; see the privacy policy.\n"
             "• <b>Zero Accounts Required</b>: No logins, passwords, or emails. Download and start reading in 2 seconds.\n"
             "• <b>Zero Ads Forever</b>: Clean, distraction-free reading with zero banners, popups, or subscriptions.\n"
             "• <b>Local SQLite Storage</b>: All reading history, bookmarks, and notes are stored strictly on your phone's internal sandbox.\n"
@@ -589,7 +589,7 @@ def get_contact_content():
         f"• 𝕏 <b>X (Twitter):</b> <a href=\"{TWITTER_URL}\">@_1st2us</a>\n"
         f"• ✉️ <b>Support & Inquiries:</b> <code>{EMAIL_ADDRESS}</code>\n"
         f"• 🌐 <b>Official Website:</b> <a href=\"{WEBSITE_URL}\">{WEBSITE_URL}</a>\n\n"
-        "<i>Open source under Apache 2.0 license. Zero telemetry, zero corporate surveillance.</i>"
+        "<i>Open source under Apache 2.0 license. Local reading history; no ads or mandatory account.</i>"
     )
     markup = {
         "inline_keyboard": [
@@ -667,7 +667,7 @@ def get_faq_detail(topic):
             "<b>Q: Does Vern require any internet permissions?</b>\n"
             "A: Local reading, notes and downloaded neural voices work offline. Catalogs, voice downloads, updates, link previews and optional AI or translation features use the internet. Android voices depend on the installed speech engine.\n\n"
             "<b>Q: Does Vern collect or sell my data?</b>\n"
-            "A: Never. Vern has no telemetry, no tracking IDs, no ads, and no user accounts. Your library and progress remain strictly on your device."
+            "A: Vern does not sell your reading data. Your library and progress are stored locally. Optional online actions contact chosen providers, and Google ML Kit can collect SDK diagnostics. Details: https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md"
         )
     else:
         title = "🔄 <b>Updating & Reading Progress FAQs</b>"

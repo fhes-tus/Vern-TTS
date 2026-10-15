@@ -130,12 +130,12 @@ fun UserManualDialog(
                         title = "About Vern",
                         icon = Icons.Outlined.Info,
                         subtitle = "Origin, philosophy, and privacy-first reading",
-                        content = "Vern (root word Vernehmen — German: to hear/perceive) is a privacy-focused reading engine designed to help you absorb knowledge effortlessly. Combining synchronized audio narration, custom voice controls, smart study cards, and comprehensive reading insights, Vern runs 100% on-device with zero tracking.",
+                        content = "Vern (root word Vernehmen — German: to hear/perceive) combines synchronized audio narration, custom voices, study cards and local reading insights. Core reading and downloaded neural voices work offline. Optional online features contact your chosen provider; Google ML Kit can collect SDK diagnostics. See the privacy policy for details.",
                         ctaText = "Go to Settings",
                         ctaAction = "settings_hub",
                         flowSteps = listOf(
                             "Learn with synchronized text and audio",
-                            "Enjoy 100% on-device privacy with zero data collection",
+                            "Keep your library and reading statistics locally; optional online features and SDK diagnostics are explained in the privacy policy",
                             "Personalize voices, appearance, and study workflows"
                         ),
                         imageResId = R.drawable.manual_home_dashboard,

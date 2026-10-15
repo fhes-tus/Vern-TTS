@@ -15,7 +15,7 @@
 
 ## Release handoff
 Source configuration is versionName 2.6.2, versionCode 42. This script prepares listing assets only. When release builds are authorized and complete, place the signed bundle/APKs under builds/ and retain verification, SHA-256 hashes and separate exact-build APK/bundle mappings. Before uploading, compare versionCode 42 with the latest uploaded Play build; Play requires a higher code for a new upload. No publication is performed by this script. Local APKs use the upload key, which differs from the Play app signing key; use Play-signed APKs for cross-source compatibility and run tools/check_apk_distribution.ps1. See docs/UPDATE_COMPATIBILITY.md.
-Keep the existing Play Console support contact, privacy-policy URL, content rating and data-safety answers unless the final release changes them. The repository privacy policy currently contains a placeholder support address; confirm a real contact before publishing that document. No account declarations or rollout settings have been submitted.
+Review the Play Console support contact, privacy-policy URL, content rating and Data safety answers against this release. The policy uses myreader.veritas@gmail.com and discloses optional online features and ML Kit SDK diagnostics. No account declarations or rollout settings have been submitted.
 
 ## Official specifications checked
 - Release notes: https://support.google.com/googleplay/android-developer/answer/9859348

@@ -77,3 +77,7 @@ __pycache__/
 
 # Local diagnostics, audio comparisons, and temporary model downloads
 .checks/
+
+# Signed release binaries and exact-build symbol mappings stay local.
+/release/**/builds/
+/release/**/symbols/

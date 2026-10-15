@@ -36,11 +36,15 @@ Superseded root plans, one-off source mutation scripts, an old listing ZIP and s
 
 Site and bot source describe 2.6.2 as in development and retain published stable downloads. The live Cloudflare Worker was recovered through the approved account connection, its message/media/changelog functions were preserved, and the hardened version was deployed with encrypted token/webhook-secret bindings. Public admin routes are removed and preview URLs are disabled. GitHub Actions now uses the encrypted existing token. Live probes pass: health 200, unsigned POST 403, authenticated empty POST 200 and removed admin route 404. Telegram pending updates were preserved. No Telegram announcement was sent.
 
-Full lint, full penetration testing, native binary provenance beyond the earlier scoped review, all-device acceptance and release/R8 checks are incomplete. These results apply to the tested debug snapshot, not a universal security guarantee.
+Full lint, full penetration testing, native binary provenance beyond the earlier scoped review and all-device acceptance remain incomplete. Release/R8 results are recorded separately in the final release verification. These focused checks are not a universal security guarantee.
 
 ## Integration and deployment
 
 - Original checkout fast-forwarded to milestone integration commit `39dfeb6`; the previous local state is preserved in recovery stash `5439cff5e753d5b7dd81ab8bf59f441507c6042a`.
-- Final Worker deployment: `e8d4bc4a-2284-4736-96a4-3450e60bd207`, `https://vern-telegram-bot.fagyan.workers.dev`. Live no-message probe is recorded in `bot-live-probe.json`.
+- Worker deployment after privacy-copy corrections: `3b8fe41f-bb6f-416c-a34c-6dbd2e537bdc`, `https://vern-telegram-bot.fagyan.workers.dev`. The earlier authenticated no-message probe is recorded in `bot-live-probe.json`; its authentication logic was unchanged by the copy update.
 - GitHub Actions token was encrypted with the repository public key using PyNaCl sealed-box encryption. No token was printed or added to current source, no bot token was rotated and no announcement workflow was dispatched.
-- Local release assembly is running separately; release build checks do not change the Play signing key or publish an app release.
+- Release build checks do not change the Play signing key or publish an app release.
+
+## SDK disclosure follow-up
+
+The app uses Google ML Kit text recognition and language identification. Google's [Android SDK data disclosure](https://developers.google.com/ml-kit/android-data-disclosure) describes operational diagnostics and usage analytics, including identifiers, and identified languages for language ID. The previous blanket “zero telemetry” claim was therefore too broad. Privacy, app help, site and bot copy have been corrected. Review the actual SDKs and optional online features in Play Data safety before publication; no Console declaration was changed here.

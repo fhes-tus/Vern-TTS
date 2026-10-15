@@ -29,7 +29,7 @@
 
 **Vern** (root word *Vernehmen* — German: to hear/perceive, formerly *Veritas Reader*) transforms any document into an immersive, multi-sensory reading experience. Whether you are studying dense academic papers, reading digital books on your commute, or listening to long-form articles hands-free, Vern combines state-of-the-art on-device neural voice synthesis, active-recall study tools, dyslexia-friendly typography, and reading analytics into a single, cohesive workstation.
 
-Designed with an **offline-first, privacy-respecting philosophy**, your documents, reading history, highlights, and voice notes never leave your device. No subscriptions, no mandatory accounts, and no data tracking.
+Designed with an **offline-first, privacy-respecting philosophy**, your library, reading history, highlights and voice notes are stored locally. Optional sharing, AI and translation send selected content to your chosen provider. No mandatory accounts or ads; see the [privacy policy](PRIVACY_POLICY.md) for online features and ML Kit diagnostics.
 
 ---
 
@@ -108,8 +108,8 @@ Designed with an **offline-first, privacy-respecting philosophy**, your document
 
 ## 🔒 Privacy & Offline-First
 
-* **Zero Cloud Tracking**: All text extraction, OCR, AI study aids, and neural speech synthesis run 100% on-device.
-* **No Mandatory Account**: Open the app and start reading immediately. No login, tracking analytics, or telemetry.
+* **Local Reading**: Text extraction, OCR and downloaded neural voices run on-device. Optional AI and translation can use external providers.
+* **No Mandatory Account**: Open the app and start reading immediately. No ads or developer-operated remote reading analytics. Google ML Kit can collect SDK diagnostics; see the privacy policy.
 * **Sandboxed Security**: In-app web browsing enforces strict sandbox restrictions, ensuring untrusted web content cannot access local storage or device permissions.
 
 ---
