@@ -4,6 +4,8 @@
  * Offline-First Android Reading Workstation Knowledge Center & Assistant.
  */
 
+let releaseCache;
+let releaseCacheAt = 0;
 const REPO = "fhes-tus/Vern-TTS";
 const WEBSITE_URL = "https://fhes-tus.github.io/Vern-TTS/";
 const CHANNEL_URL = "https://t.me/myreader_veritas";
@@ -332,6 +334,8 @@ const CLASSICS = [
 export default {
   async fetch(request, env, ctx) {
     if (request.method !== "POST") {
+      if (!["GET", "HEAD"].includes(request.method)) return new Response("Method not allowed", { status: 405 });
+      if (new URL(request.url).pathname !== "/") return new Response("Not found", { status: 404 });
       return new Response("Vern TTS Telegram Bot Webhook Active (Workstation Edition)", { status: 200 });
     }
 
@@ -380,41 +384,97 @@ export default {
 
 /* --- Telegram API Helpers --- */
 
+function stripHtmlTags(text) {
+  return text ? text.replace(/<[^>]+>/g, '') : "";
+}
+
+function safeTruncateHtml(text, limit = 3900) {
+  if (!text || text.length <= limit) return text;
+  let cutPos = text.lastIndexOf("\n\n", limit - 100);
+  if (cutPos === -1 || cutPos < 1000) cutPos = text.lastIndexOf("\n", limit - 100);
+  if (cutPos === -1 || cutPos < 500) cutPos = limit - 100;
+  let truncated = text.slice(0, cutPos) + "\n\n<i>...[truncated]</i>";
+
+  for (const tag of ['b', 'i', 'code', 'a']) {
+    const openMatches = truncated.match(new RegExp(`<${tag}(\\s+[^>]*)?>`, 'gi')) || [];
+    const closeMatches = truncated.match(new RegExp(`</${tag}>`, 'gi')) || [];
+    if (openMatches.length > closeMatches.length) {
+      truncated += `</${tag}>`.repeat(openMatches.length - closeMatches.length);
+    }
+  }
+  return truncated;
+}
+
 async function sendMessage(token, chatId, text, replyMarkup = null) {
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  const safeText = safeTruncateHtml(text, 3900);
   const payload = {
     chat_id: chatId,
-    text: text,
+    text: safeText,
     parse_mode: "HTML",
     disable_web_page_preview: true
   };
   if (replyMarkup) {
     payload.reply_markup = replyMarkup;
   }
-  return fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data && data.ok) return data;
+    if (data?.error_code !== 400 || !/parse|entities/i.test(data.description || "")) throw new Error("Telegram request failed");
+    // Retry an explicitly rejected HTML parse only.
+    payload.parse_mode = null;
+    payload.text = stripHtmlTags(text).slice(0, 3900);
+    return fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    throw new Error("Telegram request failed");
+  }
 }
 
 async function editMessageText(token, chatId, messageId, text, replyMarkup = null) {
   const url = `https://api.telegram.org/bot${token}/editMessageText`;
+  const safeText = safeTruncateHtml(text, 3900);
   const payload = {
     chat_id: chatId,
     message_id: messageId,
-    text: text,
+    text: safeText,
     parse_mode: "HTML",
     disable_web_page_preview: true
   };
   if (replyMarkup) {
     payload.reply_markup = replyMarkup;
   }
-  return fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data && data.ok) return data;
+    if (data && data.description && data.description.includes("message is not modified")) {
+      return data;
+    }
+    if (data?.error_code !== 400 || !/parse|entities/i.test(data.description || "")) throw new Error("Telegram request failed");
+    // Retry an explicitly rejected HTML parse only.
+    payload.parse_mode = null;
+    payload.text = stripHtmlTags(text).slice(0, 3900);
+    return fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    throw new Error("Telegram request failed");
+  }
 }
 
 async function answerCallbackQuery(token, callbackQueryId, text = "") {
@@ -435,10 +495,33 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-/* --- Dynamic Release Resolution --- */
+async function setupBotCommands(token) {
+  const commands = [
+    { command: "start", description: "Welcome & Workstation Overview" },
+    { command: "download", description: "Get latest verified APK releases" },
+    { command: "changelog", description: "What's new in latest release" },
+    { command: "features", description: "Workstation capabilities & tools" },
+    { command: "study", description: "Spaced repetition & study hub" },
+    { command: "memos", description: "Embedded voice memos & notes" },
+    { command: "voice", description: "Natural voice customization guide" },
+    { command: "classics", description: "Browse 35+ curated classics" },
+    { command: "random", description: "Get an instant classic book spotlight" },
+    { command: "search", description: "Search books by title or author" },
+    { command: "insights", description: "Reading speed & tracker analytics" },
+    { command: "faq", description: "Knowledge base & troubleshooting" },
+    { command: "contact", description: "Official support, X, & GitHub" }
+  ];
+  const url = `https://api.telegram.org/bot${token}/setMyCommands`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ commands })
+  });
+  return res.json();
+}
 
-let releaseCache;
-let releaseCacheAt = 0;
+/* --- Dynamic Release Resolution & Changelog --- */
+
 async function getLatestRelease() {
   if (releaseCache && Date.now() - releaseCacheAt < 900000) return releaseCache;
   try {
@@ -478,11 +561,117 @@ async function sendMilestone(token, chatId) {
     { inline_keyboard: [[{ text: "Milestone notes", url: `${GITHUB_URL}/blob/main/RELEASE_NOTES_v2.6.2.md` }]] });
 }
 
-async function sendChangelog(token, chatId) {
-  const release = await getLatestRelease();
-  await sendMessage(token, chatId, `<b>${release.tag} — latest published release</b>\n\n` +
-    escapeHtml(release.body || "Open the published release for its complete notes."),
-    { inline_keyboard: [[{ text: "Published release", url: `${GITHUB_URL}/releases/latest` }]] });
+
+function markdownToTelegramHtml(mdText, maxBullets = 8) {
+  if (!mdText) return "";
+  const lines = mdText.split(/\r?\n/);
+  const cleanLines = [];
+  let bulletCount = 0;
+  let inDownloads = false;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      if (cleanLines.length && cleanLines[cleanLines.length - 1] !== "") {
+        cleanLines.push("");
+      }
+      continue;
+    }
+
+    if (/^(-{3,}|_{3,}|\*{3,})$/.test(line)) continue;
+
+    const headerMatch = line.match(/^#{1,6}\s*(.*)/);
+    if (headerMatch) {
+      const title = headerMatch[1].trim();
+      const lowerTitle = title.toLowerCase();
+      if (['download', 'artifact', 'verification'].some(w => lowerTitle.includes(w))) {
+        inDownloads = true;
+        continue;
+      }
+      if (inDownloads) continue;
+      if (lowerTitle.includes("build") || lowerTitle.startsWith("vern")) continue;
+
+      let titleEscaped = escapeHtml(title);
+      titleEscaped = titleEscaped.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+      cleanLines.push(`\n<b>${titleEscaped}</b>`);
+      continue;
+    }
+
+    if (inDownloads) continue;
+
+    const lower = line.toLowerCase();
+    if (['sha-256', 'sha256', 'checksum', 'verification summary', 'compiledebug', 'compilerelease'].some(w => lower.includes(w))) continue;
+    if (/[a-f0-9]{64}/i.test(line)) continue;
+
+    const bulletMatch = line.match(/^[\*\-]\s+(.*)/);
+    if (bulletMatch) {
+      bulletCount++;
+      if (maxBullets && bulletCount > maxBullets) continue;
+      let content = bulletMatch[1].trim();
+      content = escapeHtml(content);
+      content = content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+      content = content.replace(/(?<!\w)\*([^\*]+)\*(?!\w)/g, '<i>$1</i>');
+      content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+      content = content.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2">$1</a>');
+      cleanLines.push(`• ${content}`);
+      continue;
+    }
+
+    let escaped = escapeHtml(line);
+    escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    escaped = escaped.replace(/(?<!\w)\*([^\*]+)\*(?!\w)/g, '<i>$1</i>');
+    escaped = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
+    escaped = escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2">$1</a>');
+    cleanLines.push(escaped);
+  }
+
+  if (maxBullets && bulletCount > maxBullets) {
+    cleanLines.push(`\n• <i>...and ${bulletCount - maxBullets} more enhancements!</i>`);
+  }
+
+  let result = cleanLines.join("\n").trim();
+  result = result.replace(/\n{3,}/g, '\n\n');
+  return result;
+}
+
+async function sendChangelogContent(token, chatId, messageId = null) {
+  const rel = await getLatestRelease();
+  const tag = rel.tag;
+  let formattedNotes = "";
+
+  if (rel.body) {
+    formattedNotes = markdownToTelegramHtml(rel.body, 8);
+  }
+
+  if (!formattedNotes) {
+    formattedNotes =
+      "• <b>Bidirectional Notes Sharing</b>: Multi-format export (TXT, PDF, audio recordings, or restorable ZIP) and external stream imports.\n" +
+      "• <b>Measured Reading Sessions Ledger</b>: Crash-resilient tracking separating silent reading from confirmed neural audio playback.\n" +
+      "• <b>Resilient Vocabulary & Wiktionary</b>: Background WorkManager definition resolution with multi-dictionary fallbacks.\n" +
+      "• <b>Save to Phone Storage</b>: Direct external document export surviving app uninstalls.\n" +
+      "• <b>Listen & Insights Redesign</b>: Liquid glass controls, streak flame animations, and Midnight (System) default theme.\n" +
+      "• <b>Kokoro 54-Speaker Voice Compatibility</b>: Concurrency-locked voice downloads and neural speech text cleanup.\n" +
+      "• <b>Leaner APK Packaging</b>: Significant file size reductions across arm64, armeabi-v7a, and Universal builds.";
+  }
+
+  const text =
+    `📋 <b>What's New in Vern TTS ${tag}</b>\n\n` +
+    `${formattedNotes}\n\n` +
+    `<i>Build: ${tag} • 100% Private, On-Device Reading</i>`;
+
+  const markup = {
+    inline_keyboard: [
+      [{ text: `⬇️ Download ${tag} APKs`, callback_data: "cmd_download" }],
+      [{ text: "🐙 GitHub Release", url: `${GITHUB_URL}/releases/tag/${tag}` }, { text: "🌐 Official Website", url: WEBSITE_URL }],
+      [{ text: "⬅️ Back to Main Menu", callback_data: "cmd_menu" }]
+    ]
+  };
+
+  if (messageId) {
+    await editMessageText(token, chatId, messageId, text, markup);
+  } else {
+    await sendMessage(token, chatId, text, markup);
+  }
 }
 
 /* --- Navigation & Menu Handlers --- */
@@ -507,7 +696,11 @@ async function sendWelcome(token, chatId, messageId = null) {
     inline_keyboard: [
       [
         { text: "⬇️ Download APKs", callback_data: "cmd_download" },
-        { text: "🌟 Workstation Features", callback_data: "cmd_features" }
+        { text: `📋 What's New (${rel.tag})`, callback_data: "cmd_changelog" }
+      ],
+      [
+        { text: "2.6.2 milestone", callback_data: "cmd_milestone" },
+        { text: "📚 Curated Classics", callback_data: "cmd_classics" }
       ],
       [
         { text: "🧠 Study Hub & Cards", callback_data: "feat_study" },
@@ -515,11 +708,7 @@ async function sendWelcome(token, chatId, messageId = null) {
       ],
       [
         { text: "🎧 Voice Setup Guide", callback_data: "cmd_guide_voice" },
-        { text: "📚 Curated Classics", callback_data: "cmd_classics" }
-      ],
-      [
-        { text: "❓ In-Depth FAQs", callback_data: "cmd_faq" },
-        { text: "📬 Official Channels", callback_data: "cmd_contact" }
+        { text: "❓ In-Depth FAQs", callback_data: "cmd_faq" }
       ],
       [
         { text: "📢 Telegram Community", url: CHANNEL_URL },
@@ -556,8 +745,11 @@ async function sendDownloadInfo(token, chatId, messageId = null) {
         { text: `⬇️ Download arm64 APK (${rel.tag})`, url: rel.arm64_url }
       ],
       [
-        { text: "📦 All Builds on GitHub", url: `${GITHUB_URL}/releases/latest` },
+        { text: `📋 What's New in ${rel.tag}`, callback_data: "cmd_changelog" },
         { text: "🌐 Official Website", url: WEBSITE_URL }
+      ],
+      [
+        { text: "📦 All Builds on GitHub", url: `${GITHUB_URL}/releases/latest` }
       ],
       [
         { text: "⬅️ Back to Main Menu", callback_data: "cmd_menu" }
@@ -1011,7 +1203,7 @@ async function sendFaqDetail(token, chatId, messageId, topic) {
     title = "🔄 <b>Updating & Reading Progress FAQs</b>";
     body =
       `<b>Q: Will I lose my books and bookmarks when I update?</b>\n` +
-      `A: Compatible updates preserve app data. APK and Play installs must share the package and a compatible signing identity; the Play version also needs an eligible version code. Do not uninstall to resolve a signing error without exporting a backup.\n\n` +
+      `A: Compatible updates preserve app data. APK and Play installs need the same package and compatible signing identity. Keep your installed app while checking a conflict; export a backup before any uninstall.\n\n` +
       `<b>Q: How do I get notified of updates?</b>\n` +
       `A: Join our official Telegram channel <b>@myreader_veritas</b>! New releases and changelogs are published there automatically as soon as they are ready.`;
   }
@@ -1035,17 +1227,39 @@ async function handleMessage(message, env) {
   const token = env.TELEGRAM_BOT_TOKEN;
   if (!Number.isSafeInteger(message.chat?.id)) return;
   const chatId = message.chat.id;
-  const rawText = String(message.text || "").slice(0, 4096).trim();
+  const rawText = String(message.text || message.caption || "").slice(0, 4096).trim();
   const text = rawText.toLowerCase();
 
-  if (/^\/changelog(@\w+)?(?:\s|$)/.test(text)) {
-    await sendChangelog(token, chatId);
-  } else if (/^\/(milestone|customize|security)(@\w+)?(?:\s|$)/.test(text)) {
+  // If message contains media without text
+  if (!rawText && (message.photo || message.video || message.document || message.audio || message.voice)) {
+    const mediaReply =
+      "📸 <b>Media Received!</b>\n\n" +
+      "Vern TTS is an offline Android reading workstation supporting <b>PDF, EPUB, TXT, DOCX, and Markdown (.md)</b> documents.\n\n" +
+      "• <b>To read books:</b> Transfer files to your Android device storage and open them in Vern TTS.\n" +
+      "• <b>To explore classics:</b> Tap <b>Classics</b> to browse 35+ curated public domain books pre-loaded with authentic covers.\n\n" +
+      "<i>Select an option below to get started:</i>";
+    const markup = {
+      inline_keyboard: [
+        [{ text: "⬇️ Download App", callback_data: "cmd_download" }, { text: "📋 What's New", callback_data: "cmd_changelog" }],
+        [{ text: "📚 Curated Classics", callback_data: "cmd_classics" }, { text: "🏠 Main Menu", callback_data: "cmd_menu" }]
+      ]
+    };
+    await sendMessage(token, chatId, mediaReply, markup);
+    return;
+  }
+
+  if (/^\/(milestone|customize|security)(@\w+)?(?:\s|$)/.test(text)) {
     await sendMilestone(token, chatId);
   } else if (text.startsWith("/start") || text.startsWith("/help") || text === "menu") {
     await sendWelcome(token, chatId);
   } else if (text.startsWith("/download") || text === "download" || text.includes("apk")) {
     await sendDownloadInfo(token, chatId);
+  } else if (
+    text.startsWith("/changelog") || text.startsWith("/release") || text.startsWith("/whatsnew") ||
+    text.startsWith("/update") || text.startsWith("/notes") || text.includes("what's new") ||
+    text.includes("release note") || text.includes("changelog")
+  ) {
+    await sendChangelogContent(token, chatId);
   } else if (text.startsWith("/features") || text === "features" || text === "feature") {
     await sendFeaturesMenu(token, chatId);
   } else if (text.startsWith("/study") || text.includes("flashcard") || text.includes("study hub") || text.includes("recall")) {
@@ -1059,7 +1273,7 @@ async function handleMessage(message, env) {
   } else if (text.startsWith("/random") || text.includes("random book") || text.includes("quote")) {
     await sendRandomBook(token, chatId);
   } else if (text.startsWith("/search")) {
-    const query = rawText.slice(7).trim();
+    const query = rawText.slice(7).trim().slice(0, 160);
     if (!query) {
       await sendMessage(token, chatId, "🔍 <i>Please specify a search term. Example:</i> <code>/search austen</code>");
     } else {
@@ -1071,6 +1285,20 @@ async function handleMessage(message, env) {
     await sendFaqMenu(token, chatId);
   } else if (text.startsWith("/contact") || text.startsWith("/community") || text.includes("channel") || text.includes("developer") || text.includes("support")) {
     await sendContactChannels(token, chatId);
+  } else if (["library", "import", "add book", "add to library", "open file"].some(w => text.includes(w))) {
+    const t =
+      "📚 <b>How to Add Books & Documents to Vern TTS</b>\n\n" +
+      "1. <b>Storage Files:</b> Place any PDF, EPUB, TXT, DOCX, or MD file on your device (Internal Storage or Downloads).\n" +
+      "2. <b>Instant Import:</b> In Vern TTS, tap <b>+ Add Document</b> or use the batch file browser to import files directly into your personal library.\n" +
+      "3. <b>Classics Shelf:</b> Tap the <b>Classics</b> tab inside the app to download any of the 35+ curated public domain books with authentic covers.\n\n" +
+      "<i>All imported documents remain 100% private and offline on your device sandbox.</i>";
+    const m = {
+      inline_keyboard: [
+        [{ text: "⬇️ Download App", callback_data: "cmd_download" }, { text: "📚 Browse Classics", callback_data: "cmd_classics" }],
+        [{ text: "🏠 Main Menu", callback_data: "cmd_menu" }]
+      ]
+    };
+    await sendMessage(token, chatId, t, m);
   } else {
     const fallback =
       `🤖 <b>Vern TTS Assistant</b>\n\n` +
@@ -1080,7 +1308,11 @@ async function handleMessage(message, env) {
       inline_keyboard: [
         [
           { text: "⬇️ Download App", callback_data: "cmd_download" },
-          { text: "🌟 Workstation Features", callback_data: "cmd_features" }
+          { text: "📋 What's New", callback_data: "cmd_changelog" }
+        ],
+        [
+          { text: "🌟 Workstation Features", callback_data: "cmd_features" },
+          { text: "📚 Curated Classics", callback_data: "cmd_classics" }
         ],
         [
           { text: "🧠 Study Hub", callback_data: "feat_study" },
@@ -1104,10 +1336,14 @@ async function handleCallbackQuery(cbQuery, env) {
 
   await answerCallbackQuery(token, cbQuery.id);
 
-  if (data === "cmd_menu") {
+  if (data === "cmd_milestone") {
+    await sendMilestone(token, chatId);
+  } else if (data === "cmd_menu") {
     await sendWelcome(token, chatId, messageId);
   } else if (data === "cmd_download") {
     await sendDownloadInfo(token, chatId, messageId);
+  } else if (data === "cmd_changelog" || data === "cmd_release") {
+    await sendChangelogContent(token, chatId, messageId);
   } else if (data === "cmd_features") {
     await sendFeaturesMenu(token, chatId, messageId);
   } else if (data === "cmd_guide" || data === "cmd_guide_voice") {
@@ -1116,7 +1352,7 @@ async function handleCallbackQuery(cbQuery, env) {
     await sendClassicsMenu(token, chatId, messageId);
   } else if (data === "cmd_random_book") {
     await sendRandomBook(token, chatId, messageId);
-  } else if (data.startsWith("cls_cat_")) {
+  } else if (data.startswith ? data.startswith("cls_cat_") : data.startsWith("cls_cat_")) {
     const category = data.replace("cls_cat_", "");
     await sendClassicsCategory(token, chatId, messageId, category);
   } else if (data === "cmd_contact") {

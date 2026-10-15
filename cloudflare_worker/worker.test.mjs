@@ -17,6 +17,8 @@ test('unconfigured or unauthenticated updates cannot trigger Telegram calls', as
     assert.equal((await worker.fetch(request('{}', 'forged'), env)).status, 403);
     assert.equal((await worker.fetch(request('{'), env)).status, 400);
     assert.equal((await worker.fetch(request('x'.repeat(65537)), env)).status, 413);
+    assert.equal((await worker.fetch(new Request('https://example.test/setup-commands'), env)).status, 404);
+    assert.equal((await worker.fetch(new Request('https://example.test/', { method: 'PUT' }), env)).status, 405);
   } finally { globalThis.fetch = original; }
 });
 test('authenticated milestone command is marked unreleased and secrets stay out of replies', async () => {

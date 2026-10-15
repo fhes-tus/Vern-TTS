@@ -1,6 +1,6 @@
 # Vern 2.6.2 security milestone verification
 
-Source: 2.6.2 / versionCode 42. Verified 15 October 2026. Release APK/AAB assembly and publication remain on hold.
+Source: 2.6.2 / versionCode 42. Verified 15 October 2026. Local release APK/AAB assembly was subsequently authorized on 15 October. Publication remains pending.
 
 ## Repairs and focused checks
 
@@ -34,6 +34,13 @@ Direct Play Console inspection confirms app signing SHA-256 `C54A80058D6D9142C11
 
 Superseded root plans, one-off source mutation scripts, an old listing ZIP and six outdated debug previews were moved to a recoverable local folder outside the project. Their remaining acceptance items are consolidated in `docs/ACCEPTANCE_BACKLOG.md`.
 
-Site and bot source describe 2.6.2 as in development and retain published stable downloads. The live Cloudflare Worker has no encrypted runtime token/webhook-secret bindings and its deployed source contains additional functions absent from the repository baseline. Live deployment requires preserving those functions and configuring the authenticated webhook together. Do not deploy the fail-closed source without that configuration. No Telegram announcement was sent.
+Site and bot source describe 2.6.2 as in development and retain published stable downloads. The live Cloudflare Worker was recovered through the approved account connection, its message/media/changelog functions were preserved, and the hardened version was deployed with encrypted token/webhook-secret bindings. Public admin routes are removed and preview URLs are disabled. GitHub Actions now uses the encrypted existing token. Live probes pass: health 200, unsigned POST 403, authenticated empty POST 200 and removed admin route 404. Telegram pending updates were preserved. No Telegram announcement was sent.
 
 Full lint, full penetration testing, native binary provenance beyond the earlier scoped review, all-device acceptance and release/R8 checks are incomplete. These results apply to the tested debug snapshot, not a universal security guarantee.
+
+## Integration and deployment
+
+- Original checkout fast-forwarded to milestone integration commit `39dfeb6`; the previous local state is preserved in recovery stash `5439cff5e753d5b7dd81ab8bf59f441507c6042a`.
+- Final Worker deployment: `e8d4bc4a-2284-4736-96a4-3450e60bd207`, `https://vern-telegram-bot.fagyan.workers.dev`. Live no-message probe is recorded in `bot-live-probe.json`.
+- GitHub Actions token was encrypted with the repository public key using PyNaCl sealed-box encryption. No token was printed or added to current source, no bot token was rotated and no announcement workflow was dispatched.
+- Local release assembly is running separately; release build checks do not change the Play signing key or publish an app release.

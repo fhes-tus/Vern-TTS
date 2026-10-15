@@ -1,6 +1,6 @@
 # Remaining acceptance — 2.6.2
 
-Updated 15 October 2026. Current behavior and limitations are in `KNOWN_LIMITATIONS.md`; implementation repairs are summarized in `TECHNICAL_DEBT_RECHECK.md`. Release APK/AAB assembly and publication remain on hold.
+Updated 15 October 2026. Current behavior and limitations are in `KNOWN_LIMITATIONS.md`; implementation repairs are summarized in `TECHNICAL_DEBT_RECHECK.md`. Local APK/AAB assembly was authorized on 15 October. Publication remains pending.
 
 - Broaden tablet, foldable, landscape, font-scale and Android-version coverage. Samsung checks do not establish all-device support.
 - Complete human listening with real neural models: mixed casts, export, rate, pitch, cadence and Lite hiss. Synthetic output and system TTS checks do not replace that acceptance. The previously paused real-model acceptance remains paused until requested.

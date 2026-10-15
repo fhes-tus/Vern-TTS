@@ -17,3 +17,7 @@ For local polling, provide `TELEGRAM_BOT_TOKEN` through the environment and run 
 Run `node --test cloudflare_worker/worker.test.mjs` for authenticated webhook, body limits, command routing and actual release-asset checks. These use synthetic tokens and mocked network responses; they send no Telegram messages.
 
 The previously embedded token was removed from current source. It remains in earlier Git history; the owner chose to keep it active rather than rotate it.
+
+## Current deployment
+
+Updated 15 October 2026 with encrypted Worker secrets and an authenticated Telegram webhook. Public HTTP admin actions were moved to the authenticated local manager (`scripts/manage_bot.py`). The live message/media/changelog behavior is retained; `/milestone`, `/customize` and `/security` describe the upcoming update. GitHub Actions uses its encrypted token secret. No release announcement was sent.

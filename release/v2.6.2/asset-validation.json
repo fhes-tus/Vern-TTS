@@ -1,0 +1,16 @@
+[
+  {
+    "File": "app-icon-512.png",
+    "Width": 512,
+    "Height": 512,
+    "Bytes": 8634,
+    "PixelFormat": "Format32bppArgb"
+  },
+  {
+    "File": "feature-graphic-1024x500.png",
+    "Width": 1024,
+    "Height": 500,
+    "Bytes": 26420,
+    "PixelFormat": "Format24bppRgb"
+  }
+]

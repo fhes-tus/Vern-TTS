@@ -158,4 +158,4 @@ Suggestions, bug reports, and pull requests are welcome! Feel free to open an is
 
 ## Current development milestone
 
-Source is **2.6.2 / build 42**; published downloads remain **2.6.1** until release packaging and publication are authorized. See [2.6.2 notes](RELEASE_NOTES_v2.6.2.md), [remaining acceptance](docs/ACCEPTANCE_BACKLOG.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and the verification snapshots under `docs/verification/`.
+Source is **2.6.2 / build 42**; published downloads remain **2.6.1** until the authorized local release builds are verified and publication is approved. See [2.6.2 notes](RELEASE_NOTES_v2.6.2.md), [remaining acceptance](docs/ACCEPTANCE_BACKLOG.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and the verification snapshots under `docs/verification/`.

@@ -1,6 +1,6 @@
 # Technical debt recheck — 14 October 2026
 
-Rechecked against the current **2.6.2 / build 42** source. The October 1 review below is a historical record, including its test counts. Release APK/AAB packaging and hands-on export/listening acceptance remain on hold.
+Rechecked against the current **2.6.2 / build 42** source. The October 1 review below is a historical record, including its test counts. Local APK/AAB builds were authorized on 15 October; publication and the separately paused hands-on export/listening acceptance remain pending.
 
 | Original issue | Current result and source evidence |
 | --- | --- |

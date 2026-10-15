@@ -1,6 +1,6 @@
 # Vern 2.6.2 — build 42
 
-All interface, icon, animation and reliability refinements from the 13–15 October work are included in **2.6.2**. This is the current release draft. APK/AAB release packaging and publication remain on hold; existing 2.6.1 release files are historical snapshots.
+All interface, icon, animation and reliability refinements from the 13–15 October work are included in **2.6.2**. This is the current release draft. Local APK/AAB release builds were authorized on 15 October and are being verified. Publication remains pending; existing published 2.6.1 release files are historical snapshots.
 
 ## Interface and appearance
 

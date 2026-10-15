@@ -15,6 +15,12 @@ Existing installations signed with the upload key need their own migration decis
 
 The in-app updater checks package name, newer version code and compatible verified signing history before launching Android's installer. A mismatch is reported without uninstalling the current app. Android still performs its own final verification and requires installation consent.
 
-Current source is 2.6.2 / code 42. Release assembly, upload and rollout remain on hold. Compare the eventual code with the latest uploaded Play build and verify track eligibility before release. Internal App Sharing uses its own signing mechanism and should not be used to establish normal track compatibility.
+Current source is 2.6.2 / code 42. Local release assembly is authorized. Play upload and rollout remain pending. Compare the eventual code with the latest uploaded Play build and verify track eligibility before release. Internal App Sharing uses its own signing mechanism and should not be used to establish normal track compatibility.
 
 References: [Google Play app signing and cross-store APK distribution](https://support.google.com/googleplay/android-developer/answer/9842756), [Android app signing](https://developer.android.com/studio/publish/app-signing).
+
+## Selected release route
+
+The owner selected: **build the AAB → upload to Play Console → download its Play-signed universal APK → publish that APK on GitHub**. Do not publish locally signed ABI APKs alongside it as interchangeable update assets; automatic asset selection could otherwise select the incompatible key again. Local APKs are retained for testing the legacy installation channel.
+
+Play Console currently shows closed and internal testing active, with open testing and production inactive. Google's documentation permits changing the app signing key before an open-testing or production rollout, but the accessed account displays an administrator-permission requirement. Any such change would need the owner/admin and separate validation of affected closed-test users. No Play signing key was changed in this task.

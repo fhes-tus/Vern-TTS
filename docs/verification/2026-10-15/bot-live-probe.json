@@ -1,0 +1,6 @@
+{
+  "health": 200,
+  "unsigned update": 403,
+  "authenticated empty update": 200,
+  "removed public admin route": 404
+}
