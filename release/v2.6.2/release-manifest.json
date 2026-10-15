@@ -1,0 +1,33 @@
+{
+  "versionName": "2.6.2",
+  "versionCode": 42,
+  "package": "com.veritas.reader",
+  "sourceCommit": "4bdcb1d",
+  "minimumSdk": 28,
+  "targetSdk": 36,
+  "architectures": [
+    "arm64-v8a",
+    "armeabi-v7a"
+  ],
+  "apkPackaging": "Universal APK generated from this exact AAB using bundletool 1.18.3; same optimized code and R8 mapping.",
+  "localSignerSha256": "3b143a77a70253305a496595432461b018ffcb3792e82a96905bd10243424db8",
+  "playAppSignerSha256": "c54a80058d6d9142c1179818de7cb206bf0119e246403beac5ffa23686297e45",
+  "publication": "Not published. Obtain Play-signed APK from Console for future GitHub release.",
+  "files": [
+    {
+      "file": "builds/upload/Vern-v2.6.2-upload.aab",
+      "bytes": 58963017,
+      "sha256": "9bd66592ce9accd00f35ad9fc4e6c399d773e4ace28e305a51510bd730c17635"
+    },
+    {
+      "file": "builds/local-apks/Vern-v2.6.2-universal-release.apk",
+      "bytes": 61845543,
+      "sha256": "e76dcfde71cb6bc49cd34686d5812ff4a726df1b58a7f5831696ba6988b8087d"
+    },
+    {
+      "file": "symbols/bundle/mapping.txt",
+      "bytes": 151421417,
+      "sha256": "47fc76f7fd22749d75f900657c7ebfbfd84a158d2ee35bc08a55c56748e917d4"
+    }
+  ]
+}

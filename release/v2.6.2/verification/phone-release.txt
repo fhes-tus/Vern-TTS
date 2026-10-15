@@ -1,0 +1,12 @@
+In-place update without uninstall: Performing Streamed Install
+Success
+com.veritas.reader/.LauncherOnyxStatic
+Starting: Intent { cmp=com.veritas.reader/.LauncherOnyxStatic }
+Status: ok
+LaunchState: WARM
+Activity: com.veritas.reader/.StartupOnyxStaticActivity
+TotalTime: 4129
+WaitTime: 4173
+Complete
+About assertion passed: Version 2.6.2 / Build 42; contact and update controls visible.
+Current process alive; no fatal AndroidRuntime exception in its log.

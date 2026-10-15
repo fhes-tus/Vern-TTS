@@ -1,0 +1,26 @@
+[
+  {
+    "file": "Vern-v2.6.2-universal-release.apk",
+    "bytes": 61845543,
+    "sha256": "e76dcfde71cb6bc49cd34686d5812ff4a726df1b58a7f5831696ba6988b8087d",
+    "package": "package: name='com.veritas.reader' versionCode='42' versionName='2.6.2' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'",
+    "signerSha256": "3b143a77a70253305a496595432461b018ffcb3792e82a96905bd10243424db8",
+    "zip16KiBAlignment": true,
+    "arm64Elf": [
+      {
+        "library": "lib/arm64-v8a/libandroidx.graphics.path.so",
+        "minimumLoadAlignment": 16384
+      },
+      {
+        "library": "lib/arm64-v8a/libonnxruntime.so",
+        "minimumLoadAlignment": 16384
+      },
+      {
+        "library": "lib/arm64-v8a/libsherpa-onnx-jni.so",
+        "minimumLoadAlignment": 16384
+      }
+    ],
+    "baselineProfile": true,
+    "channel": "local/legacy APK signing; obtain Play-signed APK for GitHub distribution"
+  }
+]

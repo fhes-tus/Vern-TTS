@@ -1,6 +1,6 @@
 # Vern 2.6.2 — build 42
 
-All interface, icon, animation and reliability refinements from the 13–15 October work are included in **2.6.2**. This is the current release draft. Local APK/AAB release builds were authorized on 15 October and are being verified. Publication remains pending; existing published 2.6.1 release files are historical snapshots.
+All interface, icon, animation and reliability refinements from the 13–15 October work are included in **2.6.2**. The signed release candidate, APK/AAB verification and main-app Samsung startup check are complete. Publication remains pending; existing published 2.6.1 release files are historical snapshots.
 
 ## Interface and appearance
 
@@ -42,4 +42,4 @@ All interface, icon, animation and reliability refinements from the 13–15 Octo
 - Verified the APK/Play conflict: local release APKs use the Play upload certificate, while distributed Play apps use a different signing certificate. Future Play-compatible APKs must come from the Play-signed distribution route; existing installations need a separately verified migration. See [update compatibility](docs/UPDATE_COMPATIBILITY.md).
 - Consolidated remaining acceptance into [the backlog](docs/ACCEPTANCE_BACKLOG.md), removed superseded root plans and one-off mutation scripts, and retained recovery copies outside the project.
 
-The 15 October security build passed all 480 JVM tests, four focused Samsung security checks and one actual speech/selection regression. Webhook checks use mocked network calls. These results do not establish all-device, full penetration-test or release/R8 acceptance. Deployment status is recorded separately in the milestone verification report.
+The 15 October security build passed all 480 JVM tests, four focused Samsung security checks and one actual speech/selection regression. Both bot suites passed three tests each, with live deployment boundary checks recorded separately. The final R8 bundle and APK passed signature, package and alignment checks; the main Vern app was updated in place and its startup/About verified on the Samsung. These results do not establish all-device or full penetration-test acceptance. Exact artifacts, hashes, test scope and publication handoff are recorded in [release verification](release/v2.6.2/RELEASE_VERIFICATION.md).

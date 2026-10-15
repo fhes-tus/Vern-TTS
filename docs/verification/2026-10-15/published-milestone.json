@@ -1,0 +1,17 @@
+{
+  "deployment": "3b8fe41f-bb6f-416c-a34c-6dbd2e537bdc",
+  "bot": {
+    "health": 200,
+    "unsigned update": 403,
+    "removed public admin route": 404
+  },
+  "site": {
+    "http200": true,
+    "milestone": true,
+    "compatibility": true,
+    "stableDownload": true,
+    "noUnpublishedDownload": true,
+    "sdkDisclosure": true
+  },
+  "authenticatedLiveProbe": "Earlier bot-live-probe.json; authentication code unchanged by final copy-only deployment."
+}

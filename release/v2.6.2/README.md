@@ -1,23 +1,31 @@
-# Vern Play release pack - v2.6.2
+# Vern 2.6.2 release pack
 
-## Upload-ready assets
-- text/play-console-paste.txt: tagged en-US release notes; 454 / 500 Unicode characters (tags excluded).
-- text/release-notes-en-US.txt: plain release notes.
-- graphics/app-icon-512.png: new big-head cream V on indigo, 512 x 512 PNG, square with no baked-in corner mask.
-- graphics/feature-graphic-1024x500.png: 1024 x 500 RGB PNG, no alpha.
-- text/: title (4/30), short description (58/80), full description (1160/4000).
+Version **2.6.2**, build **42**, package `com.veritas.reader`. Android 9+; target SDK 36. App source is commit `4bdcb1d`.
 
-## Supporting material
-- existing-screenshots/: four carried-forward screenshots from the project's existing store set. These are not new captures of this build; review them against the final app before uploading. New home/navigation fixture captures are under verification, not store screenshots.
-- verification/: Samsung debug UI captures, focused phone test results and release verification. These are verification fixtures, not store screenshots.
-- builds/: signed app bundle and universal/ARM64/32-bit release APKs.
-- symbols/: exact-build APK and bundle R8 mappings and available native symbols.
+## Verified local builds
 
-## Release handoff
-Source configuration is versionName 2.6.2, versionCode 42. This script prepares listing assets only. When release builds are authorized and complete, place the signed bundle/APKs under builds/ and retain verification, SHA-256 hashes and separate exact-build APK/bundle mappings. Before uploading, compare versionCode 42 with the latest uploaded Play build; Play requires a higher code for a new upload. No publication is performed by this script. Local APKs use the upload key, which differs from the Play app signing key; use Play-signed APKs for cross-source compatibility and run tools/check_apk_distribution.ps1. See docs/UPDATE_COMPATIBILITY.md.
-Review the Play Console support contact, privacy-policy URL, content rating and Data safety answers against this release. The policy uses myreader.veritas@gmail.com and discloses optional online features and ML Kit SDK diagnostics. No account declarations or rollout settings have been submitted.
+- `builds/upload/Vern-v2.6.2-upload.aab`: signed upload bundle.
+- `builds/local-apks/Vern-v2.6.2-universal-release.apk`: locally signed universal APK generated from that exact AAB with bundletool 1.18.3. Supports ARM64 and 32-bit ARM.
+- `symbols/bundle/mapping.txt`: exact R8 mapping for both artifacts. The APK comes from this bundle, so there is one shared mapping. Native symbols are embedded in the AAB.
+- `release-manifest.json` and `SHA256SUMS.txt`: artifact sizes, hashes, build identity and signing identities.
+- `verification/`: final build, signature, alignment and Samsung startup evidence. See `RELEASE_VERIFICATION.md` for scope and remaining checks.
 
-## Official specifications checked
-- Release notes: https://support.google.com/googleplay/android-developer/answer/9859348
-- Store assets: https://support.google.com/googleplay/android-developer/answer/9866151
-- Icon: https://developer.android.com/distribute/google-play/resources/icon-design-specifications
+Earlier direct APK builds and their mappings were moved to the recoverable milestone archive after final copy corrections. They are not the current release candidates.
+
+## Publication handoff
+
+No Play upload, rollout or public GitHub app release was performed. The local APK uses the existing upload/legacy APK key; it updates compatible existing APK installs, including the main Vern app tested on the Samsung.
+
+For the agreed future distribution route, upload the AAB to Play Console, download the **Play-signed universal APK**, then use that APK for GitHub downloads. Validate it with `tools/check_apk_distribution.ps1`. This aligns future Play/GitHub installs; existing installations signed with the older APK key still need a migration decision. See `docs/UPDATE_COMPATIBILITY.md`.
+
+Before submission, check build 42 against the highest uploaded Play version code, review Data safety against the bundled ML Kit SDKs and optional online features, and confirm permission declarations and store metadata. The privacy support address is `myreader.veritas@gmail.com`. No Console declarations were changed.
+
+## Listing material
+
+- `text/play-console-paste.txt`: tagged en-US release notes, 454/500 characters excluding tags.
+- `text/release-notes-en-US.txt`: plain notes; full project changes are in `RELEASE_NOTES_v2.6.2.md` at the repository root.
+- `graphics/app-icon-512.png`: square Play icon without a baked-in mask.
+- `graphics/feature-graphic-1024x500.png`: feature graphic.
+- `existing-screenshots/`: historical store screenshots, not fresh captures of this build; review before submission.
+
+The website and bot retain the currently published 2.6.1 download links until a new public app release exists.

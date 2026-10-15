@@ -36,7 +36,7 @@ Superseded root plans, one-off source mutation scripts, an old listing ZIP and s
 
 Site and bot source describe 2.6.2 as in development and retain published stable downloads. The live Cloudflare Worker was recovered through the approved account connection, its message/media/changelog functions were preserved, and the hardened version was deployed with encrypted token/webhook-secret bindings. Public admin routes are removed and preview URLs are disabled. GitHub Actions now uses the encrypted existing token. Live probes pass: health 200, unsigned POST 403, authenticated empty POST 200 and removed admin route 404. Telegram pending updates were preserved. No Telegram announcement was sent.
 
-Full lint, full penetration testing, native binary provenance beyond the earlier scoped review and all-device acceptance remain incomplete. Release/R8 results are recorded separately in the final release verification. These focused checks are not a universal security guarantee.
+Full lint, full penetration testing, native binary provenance beyond the earlier scoped review and all-device acceptance remain incomplete. Release/R8 results and the final main-app Samsung check are recorded in [release verification](../../../release/v2.6.2/RELEASE_VERIFICATION.md). These focused checks are not a universal security guarantee.
 
 ## Integration and deployment
 

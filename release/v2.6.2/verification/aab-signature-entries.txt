@@ -1,0 +1,2 @@
+All 2361 non-META-INF file entries have verified signatures and the expected upload certificate. No duplicate ZIP entry names.
+SHA-256: 3b143a77a70253305a496595432461b018ffcb3792e82a96905bd10243424db8

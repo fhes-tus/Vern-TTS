@@ -1,0 +1,10 @@
+{
+  "package": "com.veritas.reader",
+  "versionName": "2.6.2",
+  "versionCode": "42",
+  "minSdk": "28",
+  "targetSdk": "36",
+  "bundletoolValidate": "exit 0",
+  "signedContentEntries": 2361,
+  "duplicateZipEntryNames": false
+}
