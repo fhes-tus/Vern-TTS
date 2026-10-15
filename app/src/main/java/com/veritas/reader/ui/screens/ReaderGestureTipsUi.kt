@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.veritas.reader.ui.VeritasMotion
 
 @Composable
 internal fun ReaderGestureTipsBanner(
@@ -46,8 +47,8 @@ internal fun ReaderGestureTipsBanner(
 ) {
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn() + expandVertically(),
-        exit = fadeOut() + shrinkVertically(),
+        enter = fadeIn(VeritasMotion.effectsFast()) + expandVertically(VeritasMotion.spatial()),
+        exit = fadeOut(VeritasMotion.effectsFast()) + shrinkVertically(VeritasMotion.spatial()),
         modifier = modifier
     ) {
         Card(

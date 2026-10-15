@@ -28,7 +28,9 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".preview"
+            // Instrumentation can use a separate package without uninstalling the
+            // preview library that the user is currently testing.
+            applicationIdSuffix = providers.gradleProperty("debugApplicationIdSuffix").getOrElse(".preview")
             signingConfig = signingConfigs.getByName("release")
         }
         release {
@@ -43,18 +45,15 @@ android {
     }
 
     namespace = "com.veritas.reader"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.veritas.reader"
         minSdk = 28
         targetSdk = 36
-        versionCode = 39
-        versionName = "2.5.1"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = 42
+        versionName = "2.6.2"
 
         ndk {
             abiFilters.addAll(setOf("armeabi-v7a", "arm64-v8a"))
@@ -83,6 +82,11 @@ android {
     }
 
     packaging {
+        jniLibs {
+            // Android uses the self-contained JNI entry point, which links only ONNX Runtime
+            // and system libraries. The separate C/C++ entry points are not used by the app.
+            excludes += setOf("**/libsherpa-onnx-c-api.so", "**/libsherpa-onnx-cxx-api.so")
+        }
         resources {
             // PDFBox pulls Bouncy Castle in for PDF certificate and encryption handling.
             // That drags along the post-quantum Picnic parameter tables — lowmcL5 alone is
@@ -105,6 +109,14 @@ kotlin {
 }
 
 dependencies {
+    implementation("io.github.kyant0:backdrop-android:2.0.1") {
+        exclude(group = "org.jetbrains.compose.ui")
+        exclude(group = "org.jetbrains.compose.foundation")
+    }
+    implementation("io.github.kyant0:shapes-android:1.2.1") {
+        exclude(group = "org.jetbrains.compose.ui")
+        exclude(group = "org.jetbrains.compose.foundation")
+    }
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation(platform("androidx.compose:compose-bom:2026.05.00"))
     implementation("androidx.activity:activity-compose:1.13.0")
@@ -126,6 +138,9 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("org.apache.commons:commons-compress:1.26.1")
     constraints {
+        implementation("org.apache.commons:commons-lang3:3.18.0") {
+            because("Fix CVE-2025-48924 in the Commons Compress dependency graph.")
+        }
         implementation("org.bouncycastle:bcpkix-jdk15to18:1.84") {
             because("Keep PDFBox Android's certificate/parser dependency line current for lint and security review.")
         }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.ReadingSessionClockTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:45.030Z" hostname="FIRWEWALL" time="0.018">
+  <properties/>
+  <testcase name="pausesBufferingAndSeekingNeverAccrueOrMarkSkippedLocations" classname="com.veritas.reader.ReadingSessionClockTest" time="0.003"/>
+  <testcase name="modeHandoffUsesOneOwnerAndDuplicateCheckpointsAreIdempotent" classname="com.veritas.reader.ReadingSessionClockTest" time="0.001"/>
+  <testcase name="inactivityCapAndWallClockChangesUseMonotonicTime" classname="com.veritas.reader.ReadingSessionClockTest" time="0.002"/>
+  <testcase name="dstDayUsesActualMidnightBoundary" classname="com.veritas.reader.ReadingSessionClockTest" time="0.009"/>
+  <testcase name="midnightAndTimezoneSlicesRetainOwnershipAndCorrectionPreservesMeasurement" classname="com.veritas.reader.ReadingSessionClockTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.OriginalArchiveEntriesTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:42.886Z" hostname="FIRWEWALL" time="0.502">
+  <properties/>
+  <testcase name="epubAndWordFileParsingLoadImagesOnlyWhenRequested" classname="com.veritas.reader.OriginalArchiveEntriesTest" time="0.501"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

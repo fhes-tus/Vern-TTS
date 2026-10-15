@@ -6,7 +6,6 @@ import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.text.PDFTextStripper
 import com.tom_roush.pdfbox.text.PDFTextStripperByArea
 import com.tom_roush.pdfbox.text.TextPosition
-import java.util.Locale
 
 internal data class PositionedPdfLine(
     val text: String,
@@ -60,81 +59,54 @@ internal class PdfLayoutProbeStripper : PDFTextStripper() {
         setShouldSeparateByBeads(false)
     }
 
+    private val glyphs = mutableListOf<TextPosition>()
+
     override fun writeString(text: String, textPositions: MutableList<TextPosition>) {
-        if (textPositions.isEmpty()) {
-            super.writeString(text, textPositions)
-            return
+        glyphs.addAll(textPositions)
+        super.writeString(text, textPositions)
+    }
+
+    private fun buildGeometry() {
+        // PDFTextStripper may call writeString once per WORD. A word-sized probe
+        // cannot detect columns; rebuild complete visual rows from all glyphs.
+        val rows = mutableListOf<MutableList<TextPosition>>()
+        glyphs.sortedWith(compareBy<TextPosition> { it.y }.thenBy { it.x }).forEach { glyph ->
+            val last = rows.lastOrNull()
+            val tolerance = maxOf(2f, minOf(glyph.heightDir, last?.firstOrNull()?.heightDir ?: glyph.heightDir) * 0.45f)
+            if (last != null && kotlin.math.abs(last.first().y - glyph.y) <= tolerance) last.add(glyph)
+            else rows.add(mutableListOf(glyph))
         }
-
-        val cleanText = text.replace(Regex("\\s+"), " ").trim()
-        if (cleanText.isNotBlank()) {
-            var minX = Float.MAX_VALUE
-            var maxX = -Float.MAX_VALUE
-            var sumY = 0f
-            var sumHeight = 0f
-            val count = textPositions.size
-
-            for (i in 0 until count) {
-                val tp = textPositions[i]
-                val x = tp.xDirAdj
-                val right = x + tp.widthDirAdj
-                if (x < minX) minX = x
-                if (right > maxX) maxX = right
-                sumY += tp.yDirAdj
-                sumHeight += tp.heightDir
+        rows.forEach { row ->
+            val ordered = row.sortedBy { it.x }
+            val widths = ordered.map { it.width }.filter { it > 0 }.sorted()
+            val gapThreshold = maxOf(8f, (widths.getOrNull(widths.size / 2) ?: 4f) * 2.5f)
+            val y = ordered.map { it.y.toDouble() }.average().toFloat()
+            val height = ordered.map { it.heightDir }.sorted().let { it[it.size / 2] }.coerceAtLeast(4f)
+            val rowText = buildString {
+                ordered.forEachIndexed { index, glyph ->
+                    val previous = ordered.getOrNull(index - 1)
+                    if (previous != null && glyph.x - (previous.x + previous.width) > maxOf(1f, glyph.widthOfSpace * 0.5f)) append(' ')
+                    append(glyph.unicode)
+                }
+            }.trim()
+            positionedLines.add(PositionedPdfLine(rowText, ordered.minOf { it.x }, ordered.maxOf { it.x + it.width }, y, height))
+            var start = 0
+            fun addSegment(end: Int) {
+                val group = ordered.subList(start, end)
+                if (group.isNotEmpty()) positionedSegments.add(PositionedPdfSegment(
+                    group.minOf { it.x }, group.maxOf { it.x + it.width }, y, height,
+                    group.sumOf { it.unicode.length }
+                ))
             }
-
-            val avgY = sumY / count
-            val avgHeight = (sumHeight / count).takeIf { !it.isNaN() && it > 0f } ?: 8f
-            positionedLines.add(PositionedPdfLine(cleanText, minX, maxX, avgY, avgHeight))
-
-            // Segment extraction within this line:
-            // With sortByPosition = true, textPositions are in left-to-right reading order.
-            // When multiple columns are present on the same line, there is a distinct gutter gap.
-            val avgGlyphWidth = if (count > 0 && maxX > minX) (maxX - minX) / count else 4f
-            val segmentGapThreshold = maxOf(14f, avgGlyphWidth * 4.0f)
-
-            var segStart = 0
-            for (i in 0 until count - 1) {
-                val curr = textPositions[i]
-                val next = textPositions[i + 1]
-                val gap = next.xDirAdj - (curr.xDirAdj + curr.widthDirAdj)
-                if (gap > segmentGapThreshold) {
-                    val segMinX = textPositions[segStart].xDirAdj
-                    val segMaxX = curr.xDirAdj + curr.widthDirAdj
-                    val segGlyphs = i - segStart + 1
-                    if (segGlyphs >= 2 && (segMaxX - segMinX) >= 8f) {
-                        positionedSegments.add(
-                            PositionedPdfSegment(
-                                minX = segMinX,
-                                maxX = segMaxX,
-                                y = avgY,
-                                height = avgHeight,
-                                glyphCount = segGlyphs
-                            )
-                        )
-                    }
-                    segStart = i + 1
+            for (index in 1 until ordered.size) {
+                val previous = ordered[index - 1]
+                if (ordered[index].x - (previous.x + previous.width) > gapThreshold) {
+                    addSegment(index)
+                    start = index
                 }
             }
-
-            val lastTp = textPositions[count - 1]
-            val lastSegMinX = textPositions[segStart].xDirAdj
-            val lastSegMaxX = lastTp.xDirAdj + lastTp.widthDirAdj
-            val lastSegGlyphs = count - segStart
-            if (lastSegGlyphs >= 2 && (lastSegMaxX - lastSegMinX) >= 8f) {
-                positionedSegments.add(
-                    PositionedPdfSegment(
-                        minX = lastSegMinX,
-                        maxX = lastSegMaxX,
-                        y = avgY,
-                        height = avgHeight,
-                        glyphCount = lastSegGlyphs
-                    )
-                )
-            }
+            addSegment(ordered.size)
         }
-        super.writeString(text, textPositions)
     }
 
     companion object {
@@ -144,6 +116,7 @@ internal class PdfLayoutProbeStripper : PDFTextStripper() {
                 endPage = pageNumber
             }
             val plainText = stripper.getText(document)
+            stripper.buildGeometry()
             return PdfPageProbe(
                 plainText = plainText,
                 lines = stripper.positionedLines.toList(),
@@ -165,69 +138,24 @@ internal object PdfPageTextExtractor {
         }
     }
 
-    private fun detectColumns(probe: PdfPageProbe, page: PDPage): PdfColumnLayout? {
+    internal fun detectColumns(probe: PdfPageProbe, page: PDPage): PdfColumnLayout? {
         val box = page.cropBox ?: page.mediaBox ?: return null
-        val pageWidth = box.width.coerceAtLeast(1f)
-        val pageHeight = box.height.coerceAtLeast(1f)
-        val fromSegments = detectColumnsFromSegments(probe.segments, pageWidth, pageHeight)
-
-        val usefulLines = probe.lines
-            .filter { it.text.length >= 2 && it.width > 8f && it.y in (pageHeight * 0.08f)..(pageHeight * 0.92f) }
-            .sortedWith(compareBy<PositionedPdfLine> { it.y }.thenBy { it.minX })
-        if (usefulLines.size < 12 && fromSegments == null) return null
-
-        val contentMinX = usefulLines.minOfOrNull { it.minX } ?: (pageWidth * 0.08f)
-        val contentMaxX = usefulLines.maxOfOrNull { it.maxX } ?: (pageWidth * 0.92f)
-        val contentWidth = (contentMaxX - contentMinX).coerceAtLeast(1f)
-        val midX = contentMinX + contentWidth / 2f
-        val fullWidthThreshold = contentWidth * 0.64f
-        val columnLines = usefulLines.filterNot { line ->
-            line.width >= fullWidthThreshold || (line.minX < midX && line.maxX > midX)
-        }
-
-        val baseLayout = if (columnLines.size >= 10) {
-            val left = columnLines.filter { it.centerX < midX }
-            val right = columnLines.filter { it.centerX >= midX }
-            if (left.size >= 5 && right.size >= 5) {
-                val leftMaxX = left.maxOf { it.maxX }
-                val rightMinX = right.minOf { it.minX }
-                val gutter = rightMinX - leftMaxX
-                if (gutter >= maxOf(12f, contentWidth * 0.02f)) {
-                    val leftTop = left.minOf { it.y }
-                    val rightTop = right.minOf { it.y }
-                    val leftBottom = left.maxOf { it.y }
-                    val rightBottom = right.maxOf { it.y }
-                    val overlapTop = maxOf(leftTop, rightTop)
-                    val overlapBottom = minOf(leftBottom, rightBottom)
-                    val overlapHeight = overlapBottom - overlapTop
-                    val columnHeight = (maxOf(leftBottom, rightBottom) - minOf(leftTop, rightTop)).coerceAtLeast(1f)
-                    if (overlapHeight >= columnHeight * 0.42f) {
-                        val averageLineHeight = columnLines.map { it.height.toDouble() }.average()
-                            .takeIf { !it.isNaN() }
-                            ?.toFloat()
-                            ?: 10f
-                        val columnTopY = (minOf(leftTop, rightTop) - averageLineHeight).coerceIn(0f, pageHeight)
-                        val columnBottomY = (maxOf(leftBottom, rightBottom) + averageLineHeight * 2f).coerceIn(columnTopY, pageHeight)
-                        PdfColumnLayout(
-                            splitX = ((leftMaxX + rightMinX) / 2f).coerceIn(1f, pageWidth - 1f),
-                            columnTopY = columnTopY,
-                            columnBottomY = columnBottomY,
-                            pageWidth = pageWidth,
-                            pageHeight = pageHeight
-                        )
-                    } else null
-                } else null
-            } else null
-        } else null
-
-        val finalBase = baseLayout ?: fromSegments ?: return null
-
+        // Area extraction uses rotation-adjusted x/y; probe and regions must share it.
+        val sideways = ((page.rotation % 360) + 360) % 360 in listOf(90, 270)
+        val pageWidth = (if (sideways) box.height else box.width).coerceAtLeast(1f)
+        val pageHeight = (if (sideways) box.width else box.height).coerceAtLeast(1f)
+        val usefulLines = probe.lines.filter { it.text.length >= 2 && it.width > 8f }
+        val contentWidth = (usefulLines.maxOfOrNull { it.maxX } ?: pageWidth) -
+            (usefulLines.minOfOrNull { it.minX } ?: 0f)
+        val finalBase = PdfColumnDetector.detect(probe.segments, pageWidth, pageHeight) ?: return null
         // Detect horizontal breaks / chapter dividers spanning across the page within the column area
         val breakLines = usefulLines.filter { line ->
             val isHeader = Regex("""^(CHAPTER|Chapter|PROLOGUE|Prologue|EPILOGUE|Epilogue|INTRODUCTION|Introduction|PART|Part|BOOK|Book|SECTION|Section)\b.*""", RegexOption.IGNORE_CASE).containsMatchIn(line.text)
-            val crossesGutter = (line.minX < finalBase.splitX - 10f && line.maxX > finalBase.splitX + 10f)
-            val isCenteredBreak = kotlin.math.abs(line.centerX - finalBase.splitX) < contentWidth * 0.15f && line.width >= contentWidth * 0.35f
-            val isPageSpanningHeader = (crossesGutter || isCenteredBreak) && (isHeader || line.width >= contentWidth * 0.45f)
+            val crossesGutter = probe.segments.any { segment ->
+                kotlin.math.abs(segment.y - line.y) <= maxOf(segment.height, line.height) &&
+                    segment.minX < finalBase.splitX - 4f && segment.maxX > finalBase.splitX + 4f
+            }
+            val isPageSpanningHeader = crossesGutter && (isHeader || line.width >= contentWidth * 0.45f)
             isPageSpanningHeader && line.y in (finalBase.columnTopY + 35f)..(finalBase.columnBottomY - 35f)
         }
 
@@ -250,56 +178,6 @@ internal object PdfPageTextExtractor {
         } else emptyList()
 
         return finalBase.copy(rowBreaks = rowBreaks)
-    }
-
-    private fun detectColumnsFromSegments(
-        segments: List<PositionedPdfSegment>,
-        pageWidth: Float,
-        pageHeight: Float
-    ): PdfColumnLayout? {
-        val usefulSegments = segments
-            .filter { it.glyphCount >= 2 && it.width > 8f && it.y in (pageHeight * 0.08f)..(pageHeight * 0.92f) }
-            .sortedWith(compareBy<PositionedPdfSegment> { it.y }.thenBy { it.minX })
-        if (usefulSegments.size < 12) return null
-
-        val contentMinX = usefulSegments.minOf { it.minX }
-        val contentMaxX = usefulSegments.maxOf { it.maxX }
-        val contentWidth = (contentMaxX - contentMinX).coerceAtLeast(1f)
-        val midX = contentMinX + contentWidth / 2f
-        val fullWidthThreshold = contentWidth * 0.64f
-        val columnCandidates = usefulSegments.filterNot { segment ->
-            segment.width >= fullWidthThreshold || (segment.minX < midX && segment.maxX > midX)
-        }
-        val left = columnCandidates.filter { it.centerX < midX }
-        val right = columnCandidates.filter { it.centerX >= midX }
-        if (left.size < 5 || right.size < 5) return null
-
-        val leftMaxX = left.maxOf { it.maxX }
-        val rightMinX = right.minOf { it.minX }
-        val gutter = rightMinX - leftMaxX
-        if (gutter < maxOf(10f, contentWidth * 0.015f)) return null
-
-        val leftTop = left.minOf { it.y }
-        val rightTop = right.minOf { it.y }
-        val leftBottom = left.maxOf { it.y }
-        val rightBottom = right.maxOf { it.y }
-        val overlapTop = maxOf(leftTop, rightTop)
-        val overlapBottom = minOf(leftBottom, rightBottom)
-        val overlapHeight = overlapBottom - overlapTop
-        val columnHeight = (maxOf(leftBottom, rightBottom) - minOf(leftTop, rightTop)).coerceAtLeast(1f)
-        if (overlapHeight < columnHeight * 0.36f) return null
-
-        val averageLineHeight = columnCandidates.map { it.height.toDouble() }.average()
-            .takeIf { !it.isNaN() }
-            ?.toFloat()
-            ?: 10f
-        return PdfColumnLayout(
-            splitX = ((leftMaxX + rightMinX) / 2f).coerceIn(1f, pageWidth - 1f),
-            columnTopY = (minOf(leftTop, rightTop) - averageLineHeight).coerceIn(0f, pageHeight),
-            columnBottomY = (maxOf(leftBottom, rightBottom) + averageLineHeight * 2f).coerceIn(0f, pageHeight),
-            pageWidth = pageWidth,
-            pageHeight = pageHeight
-        )
     }
 
     private fun extractColumnPage(page: PDPage, layout: PdfColumnLayout): String {
@@ -329,9 +207,7 @@ internal object PdfPageTextExtractor {
             val leftText = regionText("left")
             val rightText = regionText("right")
             val bottomText = regionText("bottom")
-            val middleText = if (looksLikeDuplicateColumnText(leftText, rightText)) leftText else {
-                listOf(leftText, rightText).filter { it.isNotBlank() }.joinToString("\n\n")
-            }
+            val middleText = listOf(leftText, rightText).filter { it.isNotBlank() }.joinToString("\n\n")
             return listOf(topText, middleText, bottomText).filter { it.isNotBlank() }.joinToString("\n\n").trim()
         } else {
             var currentY = layout.columnTopY
@@ -368,7 +244,7 @@ internal object PdfPageTextExtractor {
                     val l = regionText("left_$index")
                     val r = regionText("right_$index")
                     if (l.isNotBlank()) resultParts.add(l)
-                    if (r.isNotBlank() && !looksLikeDuplicateColumnText(l, r)) resultParts.add(r)
+                    if (r.isNotBlank()) resultParts.add(r)
                 }
                 val h = regionText("header_$index")
                 if (h.isNotBlank()) resultParts.add(h)
@@ -379,7 +255,7 @@ internal object PdfPageTextExtractor {
                 val l = regionText("left_$lastIdx")
                 val r = regionText("right_$lastIdx")
                 if (l.isNotBlank()) resultParts.add(l)
-                if (r.isNotBlank() && !looksLikeDuplicateColumnText(l, r)) resultParts.add(r)
+                if (r.isNotBlank()) resultParts.add(r)
             }
 
             val bottomText = regionText("bottom")
@@ -398,23 +274,4 @@ internal object PdfPageTextExtractor {
             .trim()
     }
 
-    private fun looksLikeDuplicateColumnText(left: String, right: String): Boolean {
-        val normalizedLeft = normalizeForColumnDuplicate(left)
-        val normalizedRight = normalizeForColumnDuplicate(right)
-        if (normalizedLeft.length < 120 || normalizedRight.length < 120) return false
-        val minLength = minOf(normalizedLeft.length, normalizedRight.length)
-        val maxLength = maxOf(normalizedLeft.length, normalizedRight.length)
-        if (minLength.toFloat() / maxLength.toFloat() < 0.86f) return false
-        val prefixLength = minOf(900, minLength)
-        var same = 0
-        for (index in 0 until prefixLength) {
-            if (normalizedLeft[index] == normalizedRight[index]) same++
-        }
-        return same.toFloat() / prefixLength.toFloat() >= 0.90f
-    }
-
-    private fun normalizeForColumnDuplicate(text: String): String {
-        return text.lowercase(Locale.getDefault())
-            .replace(Regex("[^a-z0-9]+"), "")
-    }
 }

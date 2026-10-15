@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.NeuralOutputReliabilityTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:42.521Z" hostname="FIRWEWALL" time="0.193">
+  <properties/>
+  <testcase name="cancellationAfterSubmissionDoesNotComplete" classname="com.veritas.reader.NeuralOutputReliabilityTest" time="0.15"/>
+  <testcase name="failedWriteNeverCompletes" classname="com.veritas.reader.NeuralOutputReliabilityTest" time="0.012"/>
+  <testcase name="partialWritesAreCompletedBeforeReportingSuccess" classname="com.veritas.reader.NeuralOutputReliabilityTest" time="0.007"/>
+  <testcase name="stalledHeadTimesOutWithoutAdvancing" classname="com.veritas.reader.NeuralOutputReliabilityTest" time="0.01"/>
+  <testcase name="lateSynthesisCannotPublishAfterSeekOrPause" classname="com.veritas.reader.NeuralOutputReliabilityTest" time="0.005"/>
+  <testcase name="unsignedPlaybackHeadWrapStillWaitsForAllFrames" classname="com.veritas.reader.NeuralOutputReliabilityTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

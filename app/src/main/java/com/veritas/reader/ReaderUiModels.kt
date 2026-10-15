@@ -276,7 +276,9 @@ data class VocabularyEntry(
     val source: String,
     val sentenceIndex: Int,
     val contextSentence: String? = null,
-    val pronunciation: String? = null
+    val pronunciation: String? = null,
+    val lookupId: String? = null,
+    val meaningSourceUrl: String? = null
 )
 
 fun parseVocabularyNoteContent(content: String): List<VocabularyEntry> {
@@ -290,20 +292,27 @@ fun parseVocabularyNoteContent(content: String): List<VocabularyEntry> {
         val source = lines.getOrNull(2).orEmpty()
         val sentenceIndex = runCatching {
             val match = Regex("""sentence\s+(\d+)""", RegexOption.IGNORE_CASE).find(source)
-            match?.groupValues?.getOrNull(1)?.toInt()?.minus(1) ?: 0
-        }.getOrDefault(0)
+            match?.groupValues?.getOrNull(1)?.toIntOrNull()?.minus(1) ?: -1
+        }.getOrDefault(-1)
 
         var context: String? = null
         var pron: String? = null
+        var lookupId: String? = null
+        var meaningSourceUrl: String? = null
         for (i in 3 until lines.size) {
             val line = lines[i]
             if (line.startsWith("context:", ignoreCase = true)) {
                 context = line.substringAfter("context:").trim().removeSurrounding("\"")
             } else if (line.startsWith("pronunciation:", ignoreCase = true)) {
                 pron = line.substringAfter("pronunciation:").trim()
+            } else if (line.startsWith("lookup:", ignoreCase = true)) {
+                lookupId = line.substringAfter("lookup:").trim().takeIf { it.isNotBlank() }
+            } else if (line.startsWith("meaning-source:", ignoreCase = true)) {
+                meaningSourceUrl = line.substringAfter("meaning-source:").trim()
+                    .takeIf { it.startsWith("https://en.wiktionary.org/") }
             }
         }
-        VocabularyEntry(word, explanation, source, sentenceIndex, context, pron)
+        VocabularyEntry(word, explanation, source, sentenceIndex, context, pron, lookupId, meaningSourceUrl)
     }
 }
 
@@ -330,4 +339,3 @@ fun getBookAndAuthor(title: String): Pair<String, String> {
     }
     return Pair(title, "")
 }
-

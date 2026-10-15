@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.ReaderTextModelTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:44.616Z" hostname="FIRWEWALL" time="0.141">
+  <properties/>
+  <testcase name="academic et al citations do not trigger false sentence breaks" classname="com.veritas.reader.ReaderTextModelTest" time="0.001"/>
+  <testcase name="displaySeparator collapses regular soft newlines in prose to single space" classname="com.veritas.reader.ReaderTextModelTest" time="0.0"/>
+  <testcase name="reader text model page count matches max sentence page number" classname="com.veritas.reader.ReaderTextModelTest" time="0.002"/>
+  <testcase name="table of contents lines with leader dots and page numbers do not split on leader dots and preserve line breaks" classname="com.veritas.reader.ReaderTextModelTest" time="0.001"/>
+  <testcase name="distinct paragraphs with blank lines split correctly" classname="com.veritas.reader.ReaderTextModelTest" time="0.001"/>
+  <testcase name="soft-wrapped newline within sentence does not split mid-sentence" classname="com.veritas.reader.ReaderTextModelTest" time="0.0"/>
+  <testcase name="numbered list items in text preserve distinct visual lines and do not split after item number" classname="com.veritas.reader.ReaderTextModelTest" time="0.001"/>
+  <testcase name="rapid processing of large novel-sized text document" classname="com.veritas.reader.ReaderTextModelTest" time="0.134"/>
+  <testcase name="displaySeparator preserves newline between table of contents rows with dot leaders" classname="com.veritas.reader.ReaderTextModelTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

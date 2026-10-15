@@ -377,7 +377,7 @@ object DocumentExtractor {
                     coroutineContext.ensureActive()
                     val pageIndex = startPage - 1 + offset
                     val cacheFile = java.io.File(cacheDir, "page_${pageIndex}.txt")
-                    
+
                     if (cacheFile.exists()) {
                         kotlinx.coroutines.CompletableDeferred(pageIndex to cacheFile.readText(Charsets.UTF_8))
                     } else {
@@ -387,7 +387,7 @@ object DocumentExtractor {
                         } finally {
                             page.close()
                         }
-                        
+
                         val croppedBitmap = if (options.cropRect != null) {
                             val r = options.cropRect
                             val left = (r.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
@@ -425,7 +425,7 @@ object DocumentExtractor {
                 results.forEach { (pageIndex, pageText) ->
                     if (pageText.isNotBlank()) {
                         if (output.isNotBlank()) output.append("\n\n")
-                        output.append("Page ${pageIndex + 1}\n")
+                        output.append(ReaderTextIndex.pageMarker(pageIndex + 1)).append('\n')
                         output.append(pageText)
                     } else {
                         val cacheFile = java.io.File(cacheDir, "page_${pageIndex}.txt")
@@ -741,7 +741,7 @@ object DocumentExtractor {
                 .toSet()
             val mediaBytes = mutableMapOf<String, ByteArray>()
             if (wantedPaths.isNotEmpty()) {
-                ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
+                BoundedZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
                     while (true) {
                         val entry = zip.nextEntry ?: break
                         val name = entry.name.trimStart('/')
@@ -889,7 +889,7 @@ object DocumentExtractor {
 
     private fun readAllBytes(context: Context, uri: Uri): ByteArray {
         context.contentResolver.openInputStream(uri).use { stream ->
-            return stream?.readBytes() ?: ByteArray(0)
+            return stream?.let { ResourceLimits.read(it) } ?: ByteArray(0)
         }
     }
 
@@ -948,7 +948,7 @@ fun String.normalizeExtractedText(): String {
 fun String.smartFormatPdfContent(): String {
     val lines = this.split('\n')
     val formatted = mutableListOf<String>()
-    
+
     lines.forEachIndexed { index, line ->
         val trimmed = line.trim()
         if (trimmed.isEmpty()) {
@@ -957,12 +957,12 @@ fun String.smartFormatPdfContent(): String {
             }
             return@forEachIndexed
         }
-        
+
         if (trimmed.startsWith("[[VERITAS_") || trimmed.contains("VERITAS_PAGE", ignoreCase = true) || trimmed.contains("veritas page", ignoreCase = true)) {
             formatted.add(trimmed)
             return@forEachIndexed
         }
-        
+
         val isExplicitHeader = trimmed.startsWith("#")
         val prevLine = lines.getOrNull(index - 1)?.trim().orEmpty()
         val nextLine = lines.getOrNull(index + 1)?.trim().orEmpty()
@@ -985,7 +985,7 @@ fun String.smartFormatPdfContent(): String {
             !trimmed.endsWith(".") && !trimmed.endsWith(",") && !trimmed.endsWith(";")
 
         val isChapterOrTopic = !isMiddleOfSentence && (isExplicitChapterOrSection || isIsolatedHeader)
-            
+
         if (isChapterOrTopic && !isExplicitHeader) {
             if (formatted.isNotEmpty() && formatted.last().isNotBlank()) {
                 formatted.add("")
@@ -996,7 +996,7 @@ fun String.smartFormatPdfContent(): String {
             formatted.add(line.trimEnd())
         }
     }
-    
+
     return formatted.joinToString("\n")
         .replace(MULTI_NEWLINE_3_REGEX, "\n\n")
         .trim()

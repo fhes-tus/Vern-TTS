@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.Vern" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowSplashScreenBackground">#4540D8</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+    </style>
+</resources>

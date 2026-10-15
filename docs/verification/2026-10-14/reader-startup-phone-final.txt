@@ -1,0 +1,67 @@
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ExtractedCurlGestureInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=3
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.ExtractedCurlGestureInstrumentedTest:
+INSTRUMENTATION_STATUS: test=extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ExtractedCurlGestureInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=3
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Native long-press selects extracted text
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.await(ExtractedCurlGestureInstrumentedTest.kt:26)
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal(ExtractedCurlGestureInstrumentedTest.kt:109)
+
+INSTRUMENTATION_STATUS: stream=
+Error in extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal(com.veritas.reader.ExtractedCurlGestureInstrumentedTest):
+java.lang.IllegalStateException: Native long-press selects extracted text
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.await(ExtractedCurlGestureInstrumentedTest.kt:26)
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal(ExtractedCurlGestureInstrumentedTest.kt:109)
+
+INSTRUMENTATION_STATUS: test=extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=3
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.ThemeAndStartupChoicesUiTest:
+INSTRUMENTATION_STATUS: test=themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=3
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=3
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=everyFollowedThemeMatchesItsPrimaryAndEveryPaletteHasTheCorrectStartingTheme
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=3
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=everyFollowedThemeMatchesItsPrimaryAndEveryPaletteHasTheCorrectStartingTheme
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 35.128
+There was 1 failure:
+1) extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal(com.veritas.reader.ExtractedCurlGestureInstrumentedTest)
+java.lang.IllegalStateException: Native long-press selects extracted text
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.await(ExtractedCurlGestureInstrumentedTest.kt:26)
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal(ExtractedCurlGestureInstrumentedTest.kt:109)
+
+FAILURES!!!
+Tests run: 3,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

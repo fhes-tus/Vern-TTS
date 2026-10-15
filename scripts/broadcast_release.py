@@ -15,7 +15,7 @@ import urllib.error
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8285832720:AAHM20ABnUrB1VzLM81eUgkO6NdXnb7Je-o")
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 CHANNEL_ID = os.environ.get("TELEGRAM_CHANNEL_ID", "@myreader_veritas")
 REPO = os.environ.get("GITHUB_REPOSITORY", "fhes-tus/Vern-TTS")
 
@@ -46,60 +46,119 @@ def get_release_data(tag=None):
         print(f"Warning: could not fetch release from API ({e})")
         return None
 
-def clean_body_text(body):
-    """Clean markdown release notes for Telegram HTML, stripping hashes and technical noise."""
-    if not body:
+def markdown_to_telegram_html(md_text, max_bullets=10):
+    """Clean markdown release notes and convert markdown annotations to Telegram HTML."""
+    if not md_text:
         return ""
-    # Strip any SHA256 lines or hashes
-    body = re.sub(r"[a-fA-F0-9]{64}", "", body)
-    body = re.sub(r"(?i)sha-?256.*", "", body)
-    
-    # Filter lines
+
+    lines = md_text.splitlines()
     clean_lines = []
-    for line in body.splitlines():
-        line = line.strip()
+    bullet_count = 0
+    in_downloads = False
+
+    for raw_line in lines:
+        line = raw_line.strip()
         if not line:
+            if clean_lines and clean_lines[-1] != "":
+                clean_lines.append("")
             continue
-        if any(w in line.lower() for w in ["checksum", "sha256", "hash", "md5", "retrace"]):
+
+        # Ignore horizontal rules
+        if re.match(r'^(-{3,}|_{3,}|\*{3,})$', line):
             continue
-        # Convert markdown bullets to bold/clean
-        if line.startswith("- ") or line.startswith("* "):
-            clean_lines.append(f"• {line[2:].strip()}")
-        elif line.startswith("## "):
-            clean_lines.append(f"\n<b>{line[3:].strip()}</b>")
-        else:
-            clean_lines.append(line)
-            
-    # Keep it punchy (at most 10 lines)
-    if len(clean_lines) > 10:
-        clean_lines = clean_lines[:10] + ["• ...and more improvements!"]
-    return "\n".join(clean_lines)
+
+        # Headers: #, ##, ###
+        header_match = re.match(r'^#{1,6}\s*(.*)', line)
+        if header_match:
+            title = header_match.group(1).strip()
+            lower_title = title.lower()
+            if any(w in lower_title for w in ['download', 'artifact', 'verification']):
+                in_downloads = True
+                continue
+            if in_downloads:
+                continue
+
+            # Skip top title header if it duplicates version/announcement title
+            if "build" in lower_title or lower_title.startswith("vern"):
+                continue
+
+            title_escaped = html.escape(title)
+            title_clean = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', title_escaped)
+            clean_lines.append(f"\n<b>{title_clean}</b>")
+            continue
+
+        if in_downloads:
+            continue
+
+        lower = line.lower()
+        if any(w in lower for w in ['sha-256', 'sha256', 'checksum', 'verification summary', 'compiledebug', 'compilerelease']):
+            continue
+        if re.search(r'[a-f0-9]{64}', line, re.I):
+            continue
+
+        # Bullets: * or -
+        bullet_match = re.match(r'^[\*\-]\s+(.*)', line)
+        if bullet_match:
+            bullet_count += 1
+            if max_bullets and bullet_count > max_bullets:
+                continue
+            content = bullet_match.group(1).strip()
+            content = html.escape(content)
+            # Markdown bold **text** -> HTML <b>text</b>
+            content = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', content)
+            # Markdown italic *text* or _text_ -> HTML <i>text</i>
+            content = re.sub(r'(?<!\w)\*([^\*]+)\*(?!\w)', r'<i>\1</i>', content)
+            # Markdown inline code `code` -> HTML <code>code</code>
+            content = re.sub(r'`([^`]+)`', r'<code>\1</code>', content)
+            # Markdown link [text](url) -> HTML <a href="url">text</a>
+            content = re.sub(r'\[([^\]]+)\]\((https?://[^\s\)]+)\)', r'<a href="\2">\1</a>', content)
+            clean_lines.append(f"• {content}")
+            continue
+
+        # Standard paragraph line
+        escaped = html.escape(line)
+        escaped = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', escaped)
+        escaped = re.sub(r'(?<!\w)\*([^\*]+)\*(?!\w)', r'<i>\1</i>', escaped)
+        escaped = re.sub(r'`([^`]+)`', r'<code>\1</code>', escaped)
+        escaped = re.sub(r'\[([^\]]+)\]\((https?://[^\s\)]+)\)', r'<a href="\2">\1</a>', escaped)
+        clean_lines.append(escaped)
+
+    if max_bullets and bullet_count > max_bullets:
+        clean_lines.append(f"\n• <i>...and {bullet_count - max_bullets} more enhancements!</i>")
+
+    result = "\n".join(clean_lines).strip()
+    result = re.sub(r'\n{3,}', '\n\n', result)
+    return result
 
 def main():
+    if not TOKEN:
+        sys.exit("Set TELEGRAM_BOT_TOKEN in the environment.")
     data = get_event_data()
     req_tag = os.environ.get("RELEASE_TAG")
     if not data:
         data = get_release_data(req_tag)
-    
-    tag = req_tag or (data.get("tag_name") if data else "v2.5.1")
+    if not data or data.get("draft") or data.get("prerelease"):
+        sys.exit("A published stable release is required; no announcement sent.")
+
+    tag = req_tag or (data.get("tag_name") if data else "v2.6.1")
     name = data.get("name", f"Vern TTS {tag}") if data else f"Vern TTS {tag}"
     body = data.get("body", "") if data else ""
-    
-    cleaned_highlights = clean_body_text(body)
+
+    cleaned_highlights = markdown_to_telegram_html(body, max_bullets=10)
     if not cleaned_highlights:
         cleaned_highlights = (
-            "• <b>Authentic Published Covers</b>: 35+ classic masterpieces with original artwork.\n"
-            "• <b>Unified Paper Tone Sync</b>: Real-time consistency across text and PDF readers.\n"
-            "• <b>Enhanced PDF Media Bar</b>: Next skip and instant orientation toggle.\n"
-            "• <b>Intelligent Synopsis</b>: Automatic clean opening prose extraction.\n"
-            "• <b>Streamlined UI</b>: Elevated drag reordering and split-action hero card."
+            "• <b>Bidirectional Notes Sharing</b>: Multi-format export (TXT, PDF, audio, restorable ZIP) and incoming shares.\n"
+            "• <b>Measured Reading Sessions</b>: Durable ledger separating reading from listening with crash checkpoints.\n"
+            "• <b>Resilient Background Vocabulary</b>: Offline-safe dictionary lookup with Wiktionary fallback.\n"
+            "• <b>Save to Phone Storage</b>: Export books directly to external device storage surviving uninstalls.\n"
+            "• <b>Listen & Reading Insights Redesign</b>: Bounded liquid glass, streak flame animation, and Midnight theme."
         )
 
     # Extract asset links
     arm64_url = f"https://github.com/{REPO}/releases/download/{tag}/Veritas-Reader-{tag}-arm64-v8a-release.apk"
     universal_url = f"https://github.com/{REPO}/releases/download/{tag}/Veritas-Reader-{tag}-universal-release.apk"
     armeabi_url = f"https://github.com/{REPO}/releases/download/{tag}/Veritas-Reader-{tag}-armeabi-v7a-release.apk"
-    
+
     if data and "assets" in data:
         for a in data["assets"]:
             aname = a.get("name", "")
@@ -151,7 +210,7 @@ def main():
             if res_json.get("ok"):
                 msg_id = res_json["result"]["message_id"]
                 print(f"Successfully broadcasted to {CHANNEL_ID} (Message ID: {msg_id})")
-                
+
                 # Pin message
                 pin_url = f"https://api.telegram.org/bot{TOKEN}/pinChatMessage"
                 pin_payload = json.dumps({"chat_id": CHANNEL_ID, "message_id": msg_id}).encode("utf-8")
@@ -163,7 +222,7 @@ def main():
     except urllib.error.HTTPError as e:
         print(f"HTTP Error {e.code}:", e.read().decode("utf-8"))
     except Exception as e:
-        print("Error sending broadcast:", e)
+        print("Error sending broadcast:", type(e).__name__)
 
 if __name__ == "__main__":
     main()

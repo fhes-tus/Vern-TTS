@@ -60,7 +60,7 @@ fun ReaderViewModel.setSleepTimer(request: VeritasSleepTimerRequest) {
         .putExtra(PlaybackActions.EXTRA_SLEEP_TIMER_DURATION_MILLIS, durationMillis)
         .putExtra(PlaybackActions.EXTRA_SLEEP_TIMER_ACTION, action.name)
         .putExtra(PlaybackActions.EXTRA_SLEEP_TIMER_STOP_AT_END_OF_SECTION, stopAtEndOfSection)
-    getApplication<Application>().startService(intent)
+    getApplication<Application>().startService(com.veritas.reader.PlaybackCommandSecurity.authorize(getApplication(), intent))
 }
 
 fun ReaderViewModel.cancelSleepTimer() {
@@ -70,7 +70,7 @@ fun ReaderViewModel.cancelSleepTimer() {
     repository.clearSleepTimerState()
     val intent = Intent(getApplication(), PlaybackService::class.java)
         .setAction(PlaybackActions.ACTION_CANCEL_SLEEP_TIMER)
-    getApplication<Application>().startService(intent)
+    getApplication<Application>().startService(com.veritas.reader.PlaybackCommandSecurity.authorize(getApplication(), intent))
 }
 
 fun ReaderViewModel.createReadingList(title: String, documentId: String? = null) {
@@ -143,4 +143,3 @@ fun ReaderViewModel.deleteReadingList(listId: String) {
         }
     }
 }
-

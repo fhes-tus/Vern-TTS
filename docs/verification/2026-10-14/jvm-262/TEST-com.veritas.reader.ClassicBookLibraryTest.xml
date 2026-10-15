@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.ClassicBookLibraryTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:41.622Z" hostname="FIRWEWALL" time="0.031">
+  <properties/>
+  <testcase name="gutenbergHeadersAreRemovedAndProseIsUnwrapped" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.01"/>
+  <testcase name="provenanceSurvivesRenameAndOverridesSimilarTitles" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.005"/>
+  <testcase name="poetryAndListsKeepTheirLineBreaks" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.002"/>
+  <testcase name="plainTextWithoutMarkersRemainsReadable" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.002"/>
+  <testcase name="exactLegacyTitleAndSourceCanBeAdopted" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.001"/>
+  <testcase name="catalogEntriesHaveUniqueNonBlankIdentities" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.001"/>
+  <testcase name="ambiguousLegacyDuplicatesAreNotAdopted" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.0"/>
+  <testcase name="deletionMakesTheBookAvailableToDownloadAgain" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.0"/>
+  <testcase name="partialTitleOrFilenameNeverIdentifiesACatalogBook" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.001"/>
+  <testcase name="editionsResolveToSeparateAllowlistedTextsAndKeepLegacyOriginal" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.004"/>
+  <testcase name="differentProvenanceCannotBeAdoptedByTitle" classname="com.veritas.reader.ClassicBookLibraryTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -5,6 +5,11 @@ import org.junit.Test
 
 class MathTextTest {
 
+    @Test fun longerCommandsAndUnknownCommandsRemainIntact() {
+        assertEquals("⊆ ← ≤", MathText.beautify("\\subseteq \\leftarrow \\le"))
+        assertEquals("\\today \\introduction", MathText.beautify("\\today \\introduction"))
+    }
+
     @Test
     fun `plain prose is untouched`() {
         val prose = "The cat sat on the mat and read 3 books."

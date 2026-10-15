@@ -48,7 +48,8 @@ fun ReaderViewModel.exportActiveDocumentToAudio() {
     }
     stopServicePlayback()
     exportJob?.cancel()
-    _uiState.update { it.copy(exportInProgress = true, exportedAudioFile = null, exportMessage = null) }
+    _uiState.update { it.copy(exportInProgress = true, exportedAudioFile = null,
+        exportMessage = "Playback stopped while creating the audio file.") }
     exportJob = viewModelScope.launch(Dispatchers.IO) {
         val result = runCatching {
             AudioExportManager(getApplication()).exportToWav(
@@ -56,21 +57,23 @@ fun ReaderViewModel.exportActiveDocumentToAudio() {
                 chunks = doc.chunks,
                 rate = PlaybackStateStore.rate,
                 pitch = PlaybackStateStore.pitch,
-                transformText = { repository.applyPronunciationRules(it) }
+                documentId = doc.id.orEmpty(),
+                pageNumbers = if (doc.sourceLabel.uppercase().contains("PPT")) com.veritas.reader.ReaderTextModelCache.get(doc.id, doc.rawText, doc.pageCount).sentences.map { it.pageNumber }.toIntArray() else null,
+                curatedLabels = doc.id?.let { repository.findDocument(it)?.catalogId?.substringBefore(':') in listOf("classic_pilgrims_progress") } == true
             )
         }
         withContext(Dispatchers.Main) {
             _uiState.update { it.copy(exportInProgress = false) }
             exportJob = null
             result.onSuccess { exported ->
-                _uiState.update { 
+                _uiState.update {
                     it.copy(
                         exportedAudioFile = exported.file,
                         exportMessage = "Audio export complete: ${exported.displayName} (${exported.synthesizedParts} part${if (exported.synthesizedParts == 1) "" else "s"})."
                     )
                 }
             }.onFailure { error ->
-                _uiState.update { 
+                _uiState.update {
                     it.copy(
                         exportMessage = if (error is CancellationException) "Audio export cancelled." else "Audio export failed: ${error.message ?: "unknown error"}"
                     )
@@ -120,7 +123,9 @@ fun ReaderViewModel.startRecordSoundFile() {
                 chunks = doc.chunks,
                 rate = PlaybackStateStore.rate,
                 pitch = PlaybackStateStore.pitch,
-                transformText = { repository.applyPronunciationRules(it) }
+                documentId = doc.id.orEmpty(),
+                pageNumbers = if (doc.sourceLabel.uppercase().contains("PPT")) com.veritas.reader.ReaderTextModelCache.get(doc.id, doc.rawText, doc.pageCount).sentences.map { it.pageNumber }.toIntArray() else null,
+                curatedLabels = doc.id?.let { repository.findDocument(it)?.catalogId?.substringBefore(':') in listOf("classic_pilgrims_progress") } == true
             )
         }
         val elapsedSeconds = ((System.currentTimeMillis() - startedAt) / 1000L).coerceAtLeast(0L)
@@ -237,7 +242,7 @@ fun ReaderViewModel.discardRecordedSoundFile() {
 }
 
 fun ReaderViewModel.shareExportedAudio(file: File) {
-    val uri = FileProvider.getUriForFile(getApplication(), "${getApplication<Application>().packageName}.fileprovider", file)
+    val uri = com.veritas.reader.SafeFileSharing.uri(getApplication(), "${getApplication<Application>().packageName}.fileprovider", file)
     val shareIntent = Intent(Intent.ACTION_SEND).apply {
         type = "audio/wav"
         putExtra(Intent.EXTRA_STREAM, uri)
@@ -274,7 +279,7 @@ fun ReaderViewModel.exportStudyGuidePdf() {
             sentences = sentences
         )
         if (file != null && file.exists()) {
-            val uri = FileProvider.getUriForFile(
+            val uri = com.veritas.reader.SafeFileSharing.uri(
                 context,
                 "${context.packageName}.fileprovider",
                 file
@@ -364,7 +369,7 @@ fun ReaderViewModel.shareLibrarySyncPack() {
             _uiState.update { it.copy(backupInProgress = false) }
             backupJob = null
             result.onSuccess { file ->
-                val uri = FileProvider.getUriForFile(getApplication(), "${getApplication<Application>().packageName}.fileprovider", file)
+                val uri = com.veritas.reader.SafeFileSharing.uri(getApplication(), "${getApplication<Application>().packageName}.fileprovider", file)
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "application/json"
                     putExtra(Intent.EXTRA_SUBJECT, "Vern sync pack")
@@ -401,6 +406,7 @@ fun ReaderViewModel.importLibraryBackup(uri: Uri) {
                     val documents = repository.loadDocuments()
                     val queuedDocuments = repository.loadQueueDocuments()
                     val pronunciationRules = repository.loadPronunciationRules()
+                    val notesSettings = NotesSettingsStore.load(getApplication())
                     val readerSettings = repository.loadReaderSettings()
                     val voiceSettings = repository.loadVoiceSettings()
                     val narrationSettings = repository.loadNarrationSettings()
@@ -420,6 +426,7 @@ fun ReaderViewModel.importLibraryBackup(uri: Uri) {
                                 documents = documents,
                                 queuedDocuments = queuedDocuments,
                                 pronunciationRules = pronunciationRules,
+                                notesSettings = notesSettings,
                                 readerSettings = readerSettings,
                                 voiceSettings = voiceSettings,
                                 narrationSettings = narrationSettings,
@@ -444,4 +451,3 @@ fun ReaderViewModel.importLibraryBackup(uri: Uri) {
         }
     }
 }
-

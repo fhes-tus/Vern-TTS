@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.PdfColumnExtractorTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:43.974Z" hostname="FIRWEWALL" time="0.007">
+  <properties/>
+  <testcase name="positionedPdfLine_calculatesCenterAndWidthCorrectly" classname="com.veritas.reader.PdfColumnExtractorTest" time="0.001"/>
+  <testcase name="pdfPageProbe_holdsLinesAndSegments" classname="com.veritas.reader.PdfColumnExtractorTest" time="0.003"/>
+  <testcase name="positionedPdfSegment_calculatesCenterAndWidthCorrectly" classname="com.veritas.reader.PdfColumnExtractorTest" time="0.0"/>
+  <testcase name="pdfColumnLayout_defaultRowBreaksEmpty" classname="com.veritas.reader.PdfColumnExtractorTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

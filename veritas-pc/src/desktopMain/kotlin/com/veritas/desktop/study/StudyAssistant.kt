@@ -110,7 +110,7 @@ object StudyAssistant {
     private fun generateQuiz(title: String, chunks: List<String>): List<QuizQuestion> {
         val questions = mutableListOf<QuizQuestion>()
 
-        for ((idx, chunk) in chunks.take(6).withIndex()) {
+        for ((_, chunk) in chunks.take(6).withIndex()) {
             if (chunk.length in 30..220) {
                 val words = chunk.split(" ")
                 if (words.size >= 6) {

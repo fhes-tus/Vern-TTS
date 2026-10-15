@@ -64,7 +64,7 @@ object TranslationLauncher {
                     val cacheDir = File(context.cacheDir, "translations").apply { mkdirs() }
                     val file = File(cacheDir, "Translation_${System.currentTimeMillis()}.txt")
                     file.writeText(prompt, Charsets.UTF_8)
-                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                    val uri = com.veritas.reader.SafeFileSharing.uri(context, "${context.packageName}.fileprovider", file)
                     putExtra(Intent.EXTRA_STREAM, uri)
                     clipData = ClipData.newRawUri("Vern Translation", uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

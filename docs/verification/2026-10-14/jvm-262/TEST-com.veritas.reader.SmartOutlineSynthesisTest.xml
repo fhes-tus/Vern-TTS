@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.SmartOutlineSynthesisTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:45.182Z" hostname="FIRWEWALL" time="0.028">
+  <properties/>
+  <testcase name="buildSmartOutline extracts printed table of contents with page numbers" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.009"/>
+  <testcase name="buildSmartOutline strips markdown hashes and computes hierarchy levels" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.001"/>
+  <testcase name="extractPageMilestones generates clean page milestones for uninterrupted documents" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.002"/>
+  <testcase name="buildSmartOutline extracts unnumbered TOC page and maps to body pages" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.006"/>
+  <testcase name="buildSmartOutline accepts purely numbered chapters in sequence and formats as Chapter N" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.001"/>
+  <testcase name="filterAndFormatNumberedOutlineEntries rejects solitary orphan numeral" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.0"/>
+  <testcase name="buildSmartOutline resolves numbered TOC chapters to body pages without duplicating TOC page entries" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.005"/>
+  <testcase name="buildSmartOutline extracts explicit headings with 1-to-1 page numbers" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.001"/>
+  <testcase name="isSelfReferentialTocHeading correctly filters out contents and table of contents titles" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.0"/>
+  <testcase name="resolveHumanDocumentTitle falls back to clean name when title is UUID or cache" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.0"/>
+  <testcase name="extractSceneBreaks detects asterisks and dashes as scene breaks" classname="com.veritas.reader.SmartOutlineSynthesisTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

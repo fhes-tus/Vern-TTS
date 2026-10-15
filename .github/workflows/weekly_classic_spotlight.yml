@@ -11,6 +11,9 @@ on:
         required: false
         default: ''
 
+permissions:
+  contents: read
+
 jobs:
   spotlight:
     name: Post Classic Spotlight to @myreader_veritas
@@ -26,12 +29,13 @@ jobs:
 
       - name: Post Spotlight
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || '8285832720:AAHM20ABnUrB1VzLM81eUgkO6NdXnb7Je-o' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID || '@myreader_veritas' }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          BOOK_ID: ${{ github.event.inputs.book_id }}
         run: |
-          if [ -n "${{ github.event.inputs.book_id }}" ]; then
-            python scripts/spotlight_book.py --id "${{ github.event.inputs.book_id }}"
+          if [ -n "$BOOK_ID" ]; then
+            python scripts/spotlight_book.py --id "$BOOK_ID"
           else
             python scripts/spotlight_book.py
           fi

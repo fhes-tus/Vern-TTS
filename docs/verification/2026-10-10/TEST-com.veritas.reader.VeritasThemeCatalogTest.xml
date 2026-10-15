@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.VeritasThemeCatalogTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-10T14:29:08.233Z" hostname="FIRWEWALL" time="0.198">
+  <properties/>
+  <testcase name="newLightThemesResolveAsLight" classname="com.veritas.reader.VeritasThemeCatalogTest" time="0.089"/>
+  <testcase name="newInstallDefaultsToSystemFollowingMidnightWithoutChangingExplicitChoice" classname="com.veritas.reader.VeritasThemeCatalogTest" time="0.0"/>
+  <testcase name="themeFamiliesAndModeResolution" classname="com.veritas.reader.VeritasThemeCatalogTest" time="0.001"/>
+  <testcase name="newLightThemesAreRegistered" classname="com.veritas.reader.VeritasThemeCatalogTest" time="0.002"/>
+  <testcase name="themePreviewColorsReturnTriosForAllOptions" classname="com.veritas.reader.VeritasThemeCatalogTest" time="0.084"/>
+  <testcase name="accessibilityPresetsSurviveThemeFamilyMigration" classname="com.veritas.reader.VeritasThemeCatalogTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

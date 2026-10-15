@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.VeritasFontsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:50.736Z" hostname="FIRWEWALL" time="0.603">
+  <properties/>
+  <testcase name="testFontIdMapping" classname="com.veritas.reader.VeritasFontsTest" time="0.002"/>
+  <testcase name="testVeritasTypographyRamp" classname="com.veritas.reader.VeritasFontsTest" time="0.6"/>
+  <testcase name="testFontFamilies" classname="com.veritas.reader.VeritasFontsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

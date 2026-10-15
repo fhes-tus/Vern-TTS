@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.PdfTextCleanerTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:43.985Z" hostname="FIRWEWALL" time="0.026">
+  <properties/>
+  <testcase name="cleanPages preserves genuine chapter headings and subheadings" classname="com.veritas.reader.PdfTextCleanerTest" time="0.009"/>
+  <testcase name="cleanPages reassembles chapter prefix and title across lines into unified heading" classname="com.veritas.reader.PdfTextCleanerTest" time="0.001"/>
+  <testcase name="legacy page labels are silent without shifting offsets" classname="com.veritas.reader.PdfTextCleanerTest" time="0.0"/>
+  <testcase name="cleanPages preserves subheading followed by dialogue quote as separate blocks" classname="com.veritas.reader.PdfTextCleanerTest" time="0.001"/>
+  <testcase name="cleanPages preserves table of contents items on distinct lines" classname="com.veritas.reader.PdfTextCleanerTest" time="0.001"/>
+  <testcase name="cleanPages does not turn book text with wide spacing or tabs into pipe tables" classname="com.veritas.reader.PdfTextCleanerTest" time="0.001"/>
+  <testcase name="page metadata never becomes spoken prose" classname="com.veritas.reader.PdfTextCleanerTest" time="0.001"/>
+  <testcase name="cleanPages recognizes isolated topic headings like Plot Synopsis and Conflict" classname="com.veritas.reader.PdfTextCleanerTest" time="0.001"/>
+  <testcase name="cleanPages does not break regular sentences with spacing after period" classname="com.veritas.reader.PdfTextCleanerTest" time="0.001"/>
+  <testcase name="cleanPages recognizes isolated uppercase headings but excludes shouting dialogue" classname="com.veritas.reader.PdfTextCleanerTest" time="0.001"/>
+  <testcase name="cleanPages preserves bullet list items on separate lines" classname="com.veritas.reader.PdfTextCleanerTest" time="0.002"/>
+  <testcase name="cleanPages does not chop sentences starting with Part into headings" classname="com.veritas.reader.PdfTextCleanerTest" time="0.001"/>
+  <testcase name="cleanPages preserves existing markdown pipe tables" classname="com.veritas.reader.PdfTextCleanerTest" time="0.002"/>
+  <testcase name="cleanPages does not treat continuous words in paragraph as headings" classname="com.veritas.reader.PdfTextCleanerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

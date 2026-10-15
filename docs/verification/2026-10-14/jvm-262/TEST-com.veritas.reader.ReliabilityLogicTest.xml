@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.ReliabilityLogicTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:45.108Z" hostname="FIRWEWALL" time="0.007">
+  <properties/>
+  <testcase name="emptyDocumentResolvesToZero" classname="com.veritas.reader.ReliabilityLogicTest" time="0.001"/>
+  <testcase name="lastSentenceFinishesDocument" classname="com.veritas.reader.ReliabilityLogicTest" time="0.0"/>
+  <testcase name="validPrimaryIsPreferred" classname="com.veritas.reader.ReliabilityLogicTest" time="0.001"/>
+  <testcase name="bothCorruptYieldsEmptyNotCrash" classname="com.veritas.reader.ReliabilityLogicTest" time="0.001"/>
+  <testcase name="corruptPrimaryRecoversFromBackup" classname="com.veritas.reader.ReliabilityLogicTest" time="0.001"/>
+  <testcase name="advanceFallsBackToClampedSharedIndexWhenNothingWasSpoken" classname="com.veritas.reader.ReliabilityLogicTest" time="0.0"/>
+  <testcase name="missingPrimaryRecoversFromBackup" classname="com.veritas.reader.ReliabilityLogicTest" time="0.001"/>
+  <testcase name="advanceUsesSpokenIndexEvenWhenSharedIndexWasMutated" classname="com.veritas.reader.ReliabilityLogicTest" time="0.0"/>
+  <testcase name="spokenIndexOutOfRangeIsTreatedAsUnset" classname="com.veritas.reader.ReliabilityLogicTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

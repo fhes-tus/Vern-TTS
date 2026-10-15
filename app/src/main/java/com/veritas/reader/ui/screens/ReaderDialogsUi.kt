@@ -399,7 +399,6 @@ internal fun ReaderDialogsAndSheetsHost(
     onDismissShareToAi: () -> Unit
 ) {
     val context = LocalContext.current
-    var activeColorPaletteTargets by remember(colorPaletteTargetIndexes) { mutableStateOf(colorPaletteTargetIndexes) }
 
     if (showAudioMode) {
         val coverFile = remember(document.id) { CoverExtractor.coverFile(context, document.id.orEmpty()) }
@@ -407,6 +406,7 @@ internal fun ReaderDialogsAndSheetsHost(
             state.annotations.any { it.chunkIndex == currentIndex && it.type == AnnotationType.BOOKMARK }
         }
         AudioModeScreen(
+            documentId = document.id,
             title = document.title,
             currentIndex = currentIndex,
             totalChunks = document.chunks.size,
@@ -468,7 +468,7 @@ internal fun ReaderDialogsAndSheetsHost(
     }
 
     if (colorPaletteTargetIndexes != null) {
-        val targetIndexes = colorPaletteTargetIndexes ?: emptyList()
+        val targetIndexes = colorPaletteTargetIndexes
         val existingBookmarks = remember(targetIndexes, state.annotations) {
             state.annotations.filter { it.type == AnnotationType.BOOKMARK && targetIndexes.contains(it.chunkIndex) }
         }
@@ -476,6 +476,7 @@ internal fun ReaderDialogsAndSheetsHost(
         val currentHex = existingBookmarks.firstOrNull()?.highlightColor
         val colorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
+        shape = com.veritas.reader.VeritasPackStyle.sheetShape(),
             onDismissRequest = {
                 onDismissColorPalette()
                 clearNativeTextSelection(selectedTextView)
@@ -512,7 +513,7 @@ internal fun ReaderDialogsAndSheetsHost(
                                 onDismissColorPalette()
                                 clearNativeTextSelection(selectedTextView)
                             },
-                            shape = RoundedCornerShape(50),
+                            shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -547,7 +548,7 @@ internal fun ReaderDialogsAndSheetsHost(
                         "#B39DDB" to "Purple",
                         "#FFCC80" to "Orange"
                     )
-                    colors.forEach { (hex, name) ->
+                    colors.forEach { (hex, _) ->
                         val isSelectedColor = isAlreadyBookmarked && (currentHex.equals(hex, ignoreCase = true) || (currentHex.isNullOrBlank() && hex == "#FFE082"))
                         Box(
                             modifier = Modifier
@@ -559,9 +560,7 @@ internal fun ReaderDialogsAndSheetsHost(
                                     shape = CircleShape
                                 )
                                 .clickable {
-                                    colorPaletteTargetIndexes?.let { indexes ->
-                                        onAddBookmarkGroup(indexes, hex)
-                                    }
+                                     onAddBookmarkGroup(targetIndexes, hex)
                                     onDismissColorPalette()
                                     clearNativeTextSelection(selectedTextView)
                                 },
@@ -571,7 +570,7 @@ internal fun ReaderDialogsAndSheetsHost(
                                 Icon(
                                     Icons.Filled.Check,
                                     contentDescription = "Selected color",
-                                    tint = Color.Black.copy(alpha = 0.75f),
+                                    tint = com.veritas.reader.readableInk(Color(android.graphics.Color.parseColor(hex))),
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
@@ -592,9 +591,9 @@ internal fun ReaderDialogsAndSheetsHost(
         var selectedScope by remember { mutableStateOf<ShareScope>(if (selectionVal != null) ShareScope.SELECTED_TEXT else ShareScope.CURRENT_SECTION) }
         var startPageStr by remember { mutableStateOf(currentPage.toString()) }
         var endPageStr by remember { mutableStateOf(currentPage.toString()) }
-        
+
         AlertDialog(
-            onDismissRequest = { 
+            onDismissRequest = {
                 onDismissShareToAiSheet()
                 onDismissShareToAi()
             },
@@ -614,7 +613,7 @@ internal fun ReaderDialogsAndSheetsHost(
                         text = "Select how much of the document content you'd like to share as a Markdown file (.md):",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    
+
                     if (selectionVal != null) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -631,7 +630,7 @@ internal fun ReaderDialogsAndSheetsHost(
                             Text("Selected Text (${selectionVal.sentenceIndexes.size} sentences)", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
-                    
+
                     val partLabel = currentPart?.let { "Section ${it.index + 1} (${if (document.sourceLabel == "PPTX") "Slides" else "Pages"} ${it.pageRange.startPage}-${it.pageRange.endPage})" } ?: "Current Section"
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -647,7 +646,7 @@ internal fun ReaderDialogsAndSheetsHost(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(partLabel, style = MaterialTheme.typography.bodyMedium)
                     }
-                    
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -662,7 +661,7 @@ internal fun ReaderDialogsAndSheetsHost(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Custom Page Range", style = MaterialTheme.typography.bodyMedium)
                     }
-                    
+
                     if (selectedScope == ShareScope.CUSTOM_PAGE_RANGE) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -685,7 +684,7 @@ internal fun ReaderDialogsAndSheetsHost(
                             )
                         }
                     }
-                    
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -714,7 +713,7 @@ internal fun ReaderDialogsAndSheetsHost(
                         } else {
                             null
                         }
-                        
+
                         onShareToAi(selectedScope, shareToAiSelection, range, shareToAiNoPrompt)
                         onDismissShareToAiSheet()
                         onDismissShareToAi()
@@ -724,7 +723,7 @@ internal fun ReaderDialogsAndSheetsHost(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { 
+                TextButton(onClick = {
                     onDismissShareToAiSheet()
                     onDismissShareToAi()
                 }) {
@@ -806,7 +805,7 @@ fun JumpToPageDialog(
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     ),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                         keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
                     ),
@@ -819,7 +818,7 @@ fun JumpToPageDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    if (isValid && parsed != null) {
+                    if (isValid) {
                         onConfirm(parsed - 1)
                         onDismiss()
                     }
@@ -839,4 +838,3 @@ fun JumpToPageDialog(
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
     )
 }
-

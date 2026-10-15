@@ -1,0 +1,1 @@
+Starting service: Intent { act=com.veritas.reader.action.STOP cmp=com.veritas.reader.iconcheck/com.veritas.reader.PlaybackService }

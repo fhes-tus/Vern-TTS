@@ -1,0 +1,8 @@
+
+com.veritas.reader.SecurityBoundaryTest:....
+
+Time: 0.456
+
+OK (4 tests)
+
+

@@ -68,7 +68,7 @@ fun ReaderToolsSheet(
     onOpenNarrationStudio: () -> Unit,
     onOpenSleepTimer: () -> Unit,
     onOpenAskAi: () -> Unit,
-    
+
     // Other settings
     showSearch: Boolean,
     showBookmarks: Boolean,
@@ -78,7 +78,7 @@ fun ReaderToolsSheet(
     queueCount: Int,
     askAiSettings: AskAiSettings,
     aiAssistantOptions: List<AiAssistantOption>,
-    
+
     onToggleSearch: () -> Unit,
     onToggleBookmarks: () -> Unit,
     onOpenDocumentNotes: () -> Unit,
@@ -102,7 +102,7 @@ fun ReaderToolsSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showAllSettings by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    LocalContext.current
 
     val readerFeatures = remember(queueCount) {
         VeritasFeatureRegistry.resolve(
@@ -124,6 +124,8 @@ fun ReaderToolsSheet(
     }
 
     ModalBottomSheet(
+        shape = com.veritas.reader.VeritasPackStyle.sheetShape(),
+        containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme).copy(alpha = 1f),
         onDismissRequest = onDismiss,
         sheetState = sheetState
     ) {
@@ -445,7 +447,7 @@ private fun SettingsItem(
 @Composable
 private fun SettingsSubItem(
     title: String,
-    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    leadingIcon: ImageVector? = null,
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {

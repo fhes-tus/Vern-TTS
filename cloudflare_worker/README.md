@@ -1,43 +1,19 @@
-# Vern TTS Autonomous Telegram Bot (Serverless Webhook)
+# Vern Telegram bot
 
-This folder contains the serverless edge worker for `@VernTTS_bot`. It answers users 24/7 with zero hosting costs, 0ms latency, and no servers to manage.
+Cloudflare Worker for `@VernTTS_bot`. It serves book searches, guides, published downloads and the upcoming 2.6.2 milestone. Downloads resolve actual APK assets in the latest published GitHub release; development notes do not publish new packages.
 
----
+## Configuration
 
-## 🚀 3-Minute Deployment via Cloudflare Workers (Free)
+Keep credentials out of source, `wrangler.toml`, shell history and screenshots. Configure `TELEGRAM_BOT_TOKEN` and `TELEGRAM_WEBHOOK_SECRET` as encrypted Worker secrets. Register the HTTPS Worker URL with Telegram's `setWebhook` API, including the same random `secret_token` and `allowed_updates` containing `message` and `callback_query`. Use a trusted local script or secret manager rather than a browser URL containing the bot token.
 
-1. Go to [dash.cloudflare.com](https://dash.cloudflare.com/) and create a free account if you don't have one.
-2. In the sidebar, click **Compute (Workers & Pages)** -> **Create application** -> **Create Worker**.
-3. Name your worker (e.g. `vern-telegram-bot`) and click **Deploy**.
-4. Click **Edit code**, delete the default code, and paste the entire contents of `worker.js`.
-5. Click **Deploy** (top right).
-6. Copy your worker URL (e.g. `https://vern-telegram-bot.<your-subdomain>.workers.dev`).
+The Worker rejects unauthenticated requests, limits update bodies to 64 KiB and returns sanitized failures. Deploy code and configure the authenticated webhook together so the existing bot is not interrupted by a missing secret. `wrangler deploy --dry-run` validates the bundle without publishing it. Hosting is subject to Cloudflare's plan and limits.
 
----
+GitHub Actions uses the repository's `TELEGRAM_BOT_TOKEN` secret and optional `TELEGRAM_CHANNEL_ID`. No workflow contains a token fallback. Do not dispatch release or spotlight announcements merely to test code.
 
-## 🔗 Connect Webhook to Telegram
+For local polling, provide `TELEGRAM_BOT_TOKEN` through the environment and run `python scripts/bot_polling.py`. Polling removes the webhook, so use it only when intentionally switching away from the deployed Worker.
 
-Once your worker is deployed, link it to your Telegram Bot by opening this URL in any browser (replace `<YOUR_WORKER_URL>` with your Cloudflare URL):
+## Verification
 
-```
-https://api.telegram.org/bot8285832720:AAHM20ABnUrB1VzLM81eUgkO6NdXnb7Je-o/setWebhook?url=https://<YOUR_WORKER_URL>
-```
+Run `node --test cloudflare_worker/worker.test.mjs` for authenticated webhook, body limits, command routing and actual release-asset checks. These use synthetic tokens and mocked network responses; they send no Telegram messages.
 
-Telegram will respond:
-```json
-{"ok":true,"result":true,"description":"Webhook was set"}
-```
-
-🎉 That's it! Your bot is now operating autonomously 24/7 worldwide with 0ms cold starts.
-
----
-
-## 💻 Alternative: Running Locally or on a VPS
-
-If you prefer not to use Cloudflare Workers, you can simply run:
-
-```bash
-python scripts/bot_polling.py
-```
-
-The script will clear any webhook and run long-polling continuously to reply to incoming messages.
+The previously embedded token was removed from current source. It remains in earlier Git history; the owner chose to keep it active rather than rotate it.

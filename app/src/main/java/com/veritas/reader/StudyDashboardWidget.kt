@@ -13,6 +13,7 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -43,22 +44,22 @@ class StudyDashboardWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repository = DocumentRepository(context)
-        val tracker = repository.loadReaderTrackerSnapshot()
-        val settings = repository.loadReaderSettings()
-        val allCards = repository.loadAllFlashcards()
-        val sets = repository.loadFlashcardSets()
-        val notes = repository.loadGeneralNotes()
+        val tracker = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { repository.loadReaderTrackerSnapshot() }
+        val settings = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { repository.loadReaderSettings() }
+        val allCards = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { repository.loadAllFlashcards() }
+        val sets = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { repository.loadFlashcardSets() }
+        val notes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { repository.loadGeneralNotes() }
 
-        val dueCards = allCards.filter { it.recall.isBlank() || it.recall == "again" || it.recall == "hard" }
+        val dueCards = allCards.filter { it.isDue() }
         val masteredCards = allCards.filter { it.recall == "good" || it.recall == "easy" }
-        val masteryPercent = if (allCards.isNotEmpty()) {
+        val successfulRecallPercent = if (allCards.isNotEmpty()) {
             ((masteredCards.size * 100f) / allCards.size.toFloat()).toInt()
         } else 0
 
         val cal = Calendar.getInstance()
         val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time)
-        val daysByKey = repository.loadTrackerDays()
-        val todayMillis = daysByKey[todayKey]?.usageMillis ?: 0L
+        val daysByKey = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { repository.loadTrackerDays() }
+        val todayMillis = daysByKey[todayKey]?.readingMillis ?: 0L
         val todayMinutes = (todayMillis / 60000L).coerceAtLeast(0L)
 
         val hasGoal = settings.dailyGoalMinutes > 0
@@ -79,7 +80,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                     .cornerRadius(32.dp)
                     .background(VeritasWidgetColors.widgetBackground)
                     .padding(if (isCompact) 10.dp else 12.dp)
-                    .clickable(actionRunCallback<StudyDashboardClickCallback>())
+                    .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_SHOW_STUDY_DASHBOARD)))
             ) {
                 // Header: Title + Streak badge
                 Row(
@@ -133,7 +134,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                         ) {
                             Column(modifier = GlanceModifier.defaultWeight()) {
                                 Text(
-                                    text = if (dueCards.isNotEmpty()) "${dueCards.size} Cards Due" else "All Caught Up! 🎉",
+                                    text = if (dueCards.isNotEmpty()) "${dueCards.size} Cards Due" else "No reviews due",
                                     style = TextStyle(
                                         fontSize = if (isWide) 15.sp else 13.sp,
                                         fontWeight = FontWeight.Bold,
@@ -143,7 +144,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                 )
                                 Spacer(modifier = GlanceModifier.height(2.dp))
                                 Text(
-                                    text = if (allCards.isNotEmpty()) "$masteryPercent% mastery • ${sets.size} active deck${if (sets.size == 1) "" else "s"}" else "${notes.size} study notes saved",
+                                    text = if (allCards.isNotEmpty()) "$successfulRecallPercent% last recalled well • ${sets.size} active deck${if (sets.size == 1) "" else "s"}" else "${notes.size} study notes saved",
                                     style = TextStyle(
                                         fontSize = if (isWide) 12.sp else 10.sp,
                                         color = VeritasWidgetColors.textMuted
@@ -158,7 +159,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                 modifier = GlanceModifier
                                     .cornerRadius(16.dp)
                                     .background(VeritasWidgetColors.playButtonAccent)
-                                    .clickable(actionRunCallback<StudyDashboardClickCallback>())
+                                    .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_SHOW_STUDY_DASHBOARD)))
                                     .padding(horizontal = 14.dp, vertical = 7.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -219,7 +220,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                         ) {
                             Column {
                                 Text(
-                                    text = "Mastery",
+                                    text = "Recall",
                                     style = TextStyle(
                                         fontSize = if (isWide) 12.sp else 10.sp,
                                         color = VeritasWidgetColors.textMuted
@@ -227,7 +228,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                 )
                                 Spacer(modifier = GlanceModifier.height(2.dp))
                                 Text(
-                                    text = "$masteryPercent%",
+                                    text = "$successfulRecallPercent%",
                                     style = TextStyle(
                                         fontSize = if (isWide) 18.sp else 15.sp,
                                         fontWeight = FontWeight.Bold,
@@ -278,7 +279,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                             .cornerRadius(18.dp)
                             .background(VeritasWidgetColors.cardBackground)
                             .padding(12.dp)
-                            .clickable(actionRunCallback<StudyDashboardClickCallback>()),
+                            .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_SHOW_STUDY_DASHBOARD))),
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Row(
@@ -367,7 +368,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                 modifier = GlanceModifier
                                     .cornerRadius(16.dp)
                                     .background(VeritasWidgetColors.playButtonAccent)
-                                    .clickable(actionRunCallback<StudyDashboardClickCallback>())
+                                    .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_SHOW_STUDY_DASHBOARD)))
                                     .padding(horizontal = 14.dp, vertical = 8.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -401,7 +402,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                         ) {
                             sets.take(2).forEachIndexed { index, set ->
                                 if (index > 0) Spacer(modifier = GlanceModifier.width(8.dp))
-                                val setDue = set.cards.count { it.recall.isBlank() || it.recall == "again" || it.recall == "hard" }
+                                val setDue = set.cards.count { it.isDue() }
                                 Box(
                                     modifier = GlanceModifier
                                         .defaultWeight()

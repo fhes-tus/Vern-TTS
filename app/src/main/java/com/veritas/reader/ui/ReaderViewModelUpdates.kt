@@ -11,6 +11,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
@@ -40,7 +41,7 @@ fun ReaderViewModel.checkForUpdates(isManual: Boolean = false) {
                 }
             }
 
-            val url = URL("https://api.github.com/repos/fhes-tus/Veritas-Reader/releases/latest")
+            val url = URL("https://api.github.com/repos/fhes-tus/Vern-TTS/releases/latest")
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = "GET"
             connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
@@ -57,7 +58,7 @@ fun ReaderViewModel.checkForUpdates(isManual: Boolean = false) {
                     context.packageManager.getPackageInfo(context.packageName, 0).versionName
                 }.getOrNull() ?: BuildConfig.VERSION_NAME
                 if (ReaderViewModel.isVersionNewer(localVersion, cleanTagName)) {
-                    val htmlUrl = json.optString("html_url", "https://github.com/fhes-tus/Veritas-Reader/releases")
+                    val htmlUrl = json.optString("html_url", "https://github.com/fhes-tus/Vern-TTS/releases")
                     val body = json.optString("body", "")
                     val apkUrl = ReaderViewModel.selectOptimalApkUrl(json.optJSONArray("assets"))
 
@@ -120,55 +121,20 @@ fun ReaderViewModel.startUpdateDownload(apkUrl: String) {
         val apkFile = File(context.cacheDir, "vern_update.apk")
         var success = false
         try {
-            var currentUrl = apkUrl
-            var connection: HttpURLConnection? = null
-            var redirects = 0
-            while (redirects < 5) {
-                val url = URL(currentUrl)
-                connection = url.openConnection() as HttpURLConnection
-                connection.instanceFollowRedirects = true
-                connection.connectTimeout = 15000
-                connection.readTimeout = 15000
-                connection.setRequestProperty("User-Agent", "Vern-Android-App")
-
-                val status = connection.responseCode
-                if (status == HttpURLConnection.HTTP_MOVED_TEMP ||
-                    status == HttpURLConnection.HTTP_MOVED_PERM ||
-                    status == 307 || status == 308) {
-                    val newUrl = connection.getHeaderField("Location")
-                    connection.disconnect()
-                    currentUrl = newUrl
-                    redirects++
-                } else {
-                    break
-                }
-            }
-
-            val conn = connection ?: throw IllegalStateException("Could not open download connection")
-            if (conn.responseCode != 200) {
-                throw IllegalStateException("Server returned HTTP ${conn.responseCode}")
-            }
-
-            val totalBytes = conn.contentLength.toLong()
-            var downloadedBytes = 0L
-
-            conn.inputStream.use { input ->
-                FileOutputStream(apkFile).use { output ->
-                    val buffer = ByteArray(8192)
-                    var read: Int
-                    var lastUpdate = System.currentTimeMillis()
-                    while (input.read(buffer).also { read = it } != -1) {
-                        output.write(buffer, 0, read)
-                        downloadedBytes += read
-                        val now = System.currentTimeMillis()
-                        if (now - lastUpdate > 100 || downloadedBytes == totalBytes) {
-                            lastUpdate = now
-                            val progress = if (totalBytes > 0) downloadedBytes.toFloat() / totalBytes else 0.5f
-                            _uiState.update { it.copy(updateDownloadProgress = progress) }
-                        }
+            val jobContext = coroutineContext
+            var lastProgress = 0L
+            com.veritas.reader.SecureDownloads.download(apkUrl, apkFile,
+                com.veritas.reader.ResourceLimits.BOOK_DOWNLOAD_BYTES,
+                headers = { mapOf("User-Agent" to "Vern-Android-App") },
+                checkActive = { jobContext.ensureActive() },
+                onProgress = { downloaded, total ->
+                    val now = System.currentTimeMillis()
+                    if (now - lastProgress > 100 || downloaded == total) {
+                        lastProgress = now
+                        _uiState.update { it.copy(updateDownloadProgress = if (total > 0) downloaded.toFloat() / total else .5f) }
                     }
-                }
-            }
+                })
+            com.veritas.reader.ApkUpdateSafety.validate(context, apkFile)
             _uiState.update { it.copy(updateDownloadProgress = 1f) }
             success = true
         } catch (e: Exception) {
@@ -184,6 +150,7 @@ fun ReaderViewModel.startUpdateDownload(apkUrl: String) {
                 }
             }
         } finally {
+            if (!success) apkFile.delete()
             if (success) {
                 _uiState.update {
                     it.copy(
@@ -214,17 +181,16 @@ fun ReaderViewModel.cancelUpdateDownload() {
 internal fun ReaderViewModel.triggerApkInstallation(apkFile: File, fallbackUrl: String = "") {
     val context = getApplication<Application>()
     try {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            if (!context.packageManager.canRequestPackageInstalls()) {
-                val settingsIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                    data = Uri.parse("package:${context.packageName}")
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                context.startActivity(settingsIntent)
+        com.veritas.reader.ApkUpdateSafety.validate(context, apkFile)
+        if (!context.packageManager.canRequestPackageInstalls()) {
+            val settingsIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                data = Uri.parse("package:${context.packageName}")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
+            context.startActivity(settingsIntent)
         }
         val authority = "${context.packageName}.fileprovider"
-        val apkUri = FileProvider.getUriForFile(context, authority, apkFile)
+        val apkUri = com.veritas.reader.SafeFileSharing.uri(context, authority, apkFile)
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(apkUri, "application/vnd.android.package-archive")
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -232,7 +198,7 @@ internal fun ReaderViewModel.triggerApkInstallation(apkFile: File, fallbackUrl: 
         context.startActivity(intent)
     } catch (e: Exception) {
         android.util.Log.e("ReaderViewModel", "Error launching APK installation", e)
-        val targetUrl = fallbackUrl.ifBlank { uiState.value.updateUrl.ifBlank { "https://github.com/fhes-tus/Veritas-Reader/releases/latest" } }
+        val targetUrl = fallbackUrl.ifBlank { uiState.value.updateUrl.ifBlank { "https://github.com/fhes-tus/Vern-TTS/releases/latest" } }
         runCatching {
             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl)).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -268,16 +234,14 @@ fun isInstalledFromGooglePlay(context: android.content.Context): Boolean {
 fun openGooglePlayStore(context: android.content.Context) {
     val pkg = context.packageName
     try {
-        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=$pkg")).apply {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg")).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(intent)
     } catch (_: Exception) {
-        val webIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://play.google.com/store/apps/details?id=$pkg")).apply {
+        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$pkg")).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(webIntent)
     }
 }
-
-

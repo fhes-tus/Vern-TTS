@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.LibrarySearchStreamingTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:42.406Z" hostname="FIRWEWALL" time="0.023">
+  <properties/>
+  <testcase name="returnsFalseForEmptyOrMissingFile" classname="com.veritas.reader.LibrarySearchStreamingTest" time="0.005"/>
+  <testcase name="detectsNeedleAtBeginning" classname="com.veritas.reader.LibrarySearchStreamingTest" time="0.009"/>
+  <testcase name="detectsNeedleAcrossBufferBoundary" classname="com.veritas.reader.LibrarySearchStreamingTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

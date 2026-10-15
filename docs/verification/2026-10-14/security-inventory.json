@@ -1,0 +1,447 @@
+{
+  "source_files_scanned": 295,
+  "literal_secret_pattern_hits_redacted": [],
+  "risky_call_pattern_hits": [],
+  "exported_source_components": [
+    {
+      "type": "activity",
+      "name": ".WidgetMenuActivity",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "activity",
+      "name": ".MainActivity",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherIndigo",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherIndigoStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherForest",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherForestStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherOcean",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherOceanStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherRose",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherRoseStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherAmber",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherAmberStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherMidnight",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherMidnightStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherCopper",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherCopperStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherGold",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherGoldStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherStellar",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherStellarStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherLilac",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherLilacStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherViolet",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherVioletStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherLavender",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherLavenderStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherCobalt",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherCobaltStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherAzure",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherAzureStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherNeon",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherNeonStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherSky",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherSkyStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherInk",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherInkStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherPearl",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherPearlStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherPaper",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherPaperStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherOnyx",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".LauncherOnyxStatic",
+      "permission": null,
+      "enabled": "false"
+    },
+    {
+      "type": "activity-alias",
+      "name": ".ShareToNotesActivity",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "receiver",
+      "name": ".NoteReminderBootReceiver",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "receiver",
+      "name": ".VeritasPlayerWidgetProvider",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "receiver",
+      "name": ".QuickNoteWidgetReceiver",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "receiver",
+      "name": ".FlashcardWidgetReceiver",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "receiver",
+      "name": ".QuickCaptureWidgetReceiver",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "receiver",
+      "name": ".ReadingProgressWidgetReceiver",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "receiver",
+      "name": ".StudyDashboardWidgetReceiver",
+      "permission": null,
+      "enabled": "true"
+    },
+    {
+      "type": "service",
+      "name": ".PlaybackService",
+      "permission": null,
+      "enabled": "true"
+    }
+  ],
+  "hardcoded_url_hosts": {
+    "apache.org": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\DocxDocumentParser.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\DocxSourceFormatting.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\PptxSlideLayoutParser.kt"
+    ],
+    "api.anthropic.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\GeminiStudyService.kt"
+    ],
+    "api.dictionaryapi.dev": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\VocabularyLookup.kt"
+    ],
+    "api.github.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\ReaderViewModelUpdates.kt"
+    ],
+    "api.groq.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\GeminiStudyService.kt"
+    ],
+    "api.openai.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\GeminiStudyService.kt"
+    ],
+    "archive.org": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\ClassicsCatalogDialog.kt"
+    ],
+    "chatgpt.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\MainStudyToolsUi.kt"
+    ],
+    "claude.ai": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\MainStudyToolsUi.kt"
+    ],
+    "copilot.microsoft.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\MainStudyToolsUi.kt"
+    ],
+    "en.wiktionary.org": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ReaderUiModels.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\VocabularyLookup.kt"
+    ],
+    "example.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\LibraryNavAndSheetsUi.kt"
+    ],
+    "fhes-tus.github.io": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\AboutAndHelpUi.kt"
+    ],
+    "gemini.google.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\MainStudyToolsUi.kt"
+    ],
+    "generativelanguage.googleapis.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\GeminiStudyService.kt"
+    ],
+    "github.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\tts\\VoiceModelManager.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\ReaderViewModelUpdates.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\AboutAndHelpUi.kt"
+    ],
+    "manybooks.net": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\BookCatalogBrowserDialog.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\ClassicsCatalogDialog.kt"
+    ],
+    "oceanofpdf.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\MainCatalogAndToolsDialogsUi.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\BookCatalogBrowserDialog.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\ClassicsCatalogDialog.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\OceanOfPdfBrowserDialog.kt"
+    ],
+    "openlibrary.org": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\BookCatalogBrowserDialog.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\ClassicsCatalogDialog.kt"
+    ],
+    "openrouter.ai": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\GeminiStudyService.kt"
+    ],
+    "play.google.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\MainActivity.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ReaderActions.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\ReaderViewModelUpdates.kt"
+    ],
+    "standardebooks.org": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\BookCatalogBrowserDialog.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\ClassicsCatalogDialog.kt"
+    ],
+    "t.me": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\AboutAndHelpUi.kt"
+    ],
+    "translate.google.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ReaderActions.kt"
+    ],
+    "www.awmi.net": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\ClassicsCatalogDialog.kt"
+    ],
+    "www.google.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ReaderActions.kt"
+    ],
+    "www.gutenberg.org": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\BookCatalogBrowserDialog.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\ClassicsCatalogDialog.kt"
+    ],
+    "www.perplexity.ai": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\MainStudyToolsUi.kt"
+    ],
+    "x.ai": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\MainStudyToolsUi.kt"
+    ],
+    "x.com": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\AboutAndHelpUi.kt"
+    ],
+    "xml.org": [
+      "app\\src\\main\\java\\com\\veritas\\reader\\DocxDocumentParser.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\DocxSourceFormatting.kt",
+      "app\\src\\main\\java\\com\\veritas\\reader\\PptxSlideLayoutParser.kt"
+    ]
+  },
+  "packaged_native_libraries": [
+    {
+      "entry": "lib/arm64-v8a/libandroidx.graphics.path.so",
+      "sha256": "41e9a793c43a0f4fddb19e33f346bace464f30f888ba7b9eaf96294ea115bfb6",
+      "stripped_build_sha256": "41e9a793c43a0f4fddb19e33f346bace464f30f888ba7b9eaf96294ea115bfb6",
+      "matches_stripped_build": true
+    },
+    {
+      "entry": "lib/arm64-v8a/libonnxruntime.so",
+      "sha256": "7a2fb92eb67037837c3f0e428bd732fd0d05ced0546d9e740090c07573d8249a",
+      "source_sha256": "33847ad43bffe204699fd4a27f7f3603452a8cdaf2f9a44983a0bc31ffcf2da1",
+      "stripped_build_sha256": "7a2fb92eb67037837c3f0e428bd732fd0d05ced0546d9e740090c07573d8249a",
+      "matches_stripped_build": true
+    },
+    {
+      "entry": "lib/arm64-v8a/libsherpa-onnx-jni.so",
+      "sha256": "3c6492ea91ea68fd3b72b9495efdde6dd913f6b58c387e3b07389cf335f4d26f",
+      "source_sha256": "3c6492ea91ea68fd3b72b9495efdde6dd913f6b58c387e3b07389cf335f4d26f",
+      "stripped_build_sha256": "3c6492ea91ea68fd3b72b9495efdde6dd913f6b58c387e3b07389cf335f4d26f",
+      "matches_stripped_build": true
+    }
+  ],
+  "limits": "Pattern inventory is not proof of absence of malware, nor a complete dependency or native-binary audit."
+}

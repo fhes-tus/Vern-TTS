@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.StudyHubLogicTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:48.467Z" hostname="FIRWEWALL" time="0.012">
+  <properties/>
+  <testcase name="pastedLegacyFlashcardDoesNotRequireABookId" classname="com.veritas.reader.StudyHubLogicTest" time="0.001"/>
+  <testcase name="legacyPercentageIsConvertedOnceAndSurvivesRoundTrip" classname="com.veritas.reader.StudyHubLogicTest" time="0.003"/>
+  <testcase name="dueQueueUsesScheduleEvenWhenPreviousRecallWasGood" classname="com.veritas.reader.StudyHubLogicTest" time="0.002"/>
+  <testcase name="badJsonQuestionDoesNotHideOtherValidQuestions" classname="com.veritas.reader.StudyHubLogicTest" time="0.0"/>
+  <testcase name="fullAnswerIsNotConfusedWithItsFirstLetter" classname="com.veritas.reader.StudyHubLogicTest" time="0.001"/>
+  <testcase name="explicitLabelAndAnswerTextMustAgree" classname="com.veritas.reader.StudyHubLogicTest" time="0.0"/>
+  <testcase name="duplicateOrBlankOptionsAreRejected" classname="com.veritas.reader.StudyHubLogicTest" time="0.001"/>
+  <testcase name="numericChoicesRetainTheirLabelsAndAreDetectedAsQuiz" classname="com.veritas.reader.StudyHubLogicTest" time="0.001"/>
+  <testcase name="numberedQuestionsStartANewQuestionAfterThePreviousAnswer" classname="com.veritas.reader.StudyHubLogicTest" time="0.0"/>
+  <testcase name="unresolvedAnswersCannotProduceAnUnwinnableQuiz" classname="com.veritas.reader.StudyHubLogicTest" time="0.001"/>
+  <testcase name="questionCountAlwaysFollowsActualQuestionsIncludingCopies" classname="com.veritas.reader.StudyHubLogicTest" time="0.0"/>
+  <testcase name="jsonObjectChoicesResolveTheirActualLabels" classname="com.veritas.reader.StudyHubLogicTest" time="0.001"/>
+  <testcase name="fullAnswerUsesCanonicalOptionText" classname="com.veritas.reader.StudyHubLogicTest" time="0.0"/>
+  <testcase name="jsonChoicesAreTrimmedBeforeScoring" classname="com.veritas.reader.StudyHubLogicTest" time="0.001"/>
+  <testcase name="invalidStoredQuizIsKeptButCannotBeScored" classname="com.veritas.reader.StudyHubLogicTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

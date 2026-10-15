@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.VeritasFileBrowserLogicTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:50.523Z" hostname="FIRWEWALL" time="0.196">
+  <properties/>
+  <testcase name="deduplicateFiles preserves files with identical names when located in different folders" classname="com.veritas.reader.VeritasFileBrowserLogicTest" time="0.013"/>
+  <testcase name="image deprioritization sorts all document types before ocr images" classname="com.veritas.reader.VeritasFileBrowserLogicTest" time="0.164"/>
+  <testcase name="detects extended compatible office, book, presentation, and text formats" classname="com.veritas.reader.VeritasFileBrowserLogicTest" time="0.001"/>
+  <testcase name="deduplicateFiles collapses MediaStore content URI with null path and promotes richer disk entry" classname="com.veritas.reader.VeritasFileBrowserLogicTest" time="0.004"/>
+  <testcase name="filter-scoped select all toggles only files matching the active filter" classname="com.veritas.reader.VeritasFileBrowserLogicTest" time="0.001"/>
+  <testcase name="deduplicateFiles collapses duplicate when MediaStore size is unindexed or 0 but name and folder match" classname="com.veritas.reader.VeritasFileBrowserLogicTest" time="0.004"/>
+  <testcase name="shouldSkipRecursiveDirectory skips voice notes and thumbnails but preserves document directories" classname="com.veritas.reader.VeritasFileBrowserLogicTest" time="0.002"/>
+  <testcase name="mimeTypeForFileName maps all supported extensions accurately" classname="com.veritas.reader.VeritasFileBrowserLogicTest" time="0.0"/>
+  <testcase name="deduplicateFiles collapses identical files indexed by MediaStore and filesystem crawl" classname="com.veritas.reader.VeritasFileBrowserLogicTest" time="0.004"/>
+  <testcase name="deduplicateFiles collapses duplicate folder entries" classname="com.veritas.reader.VeritasFileBrowserLogicTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

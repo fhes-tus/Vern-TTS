@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.PptxExtractorTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:44.215Z" hostname="FIRWEWALL" time="0.125">
+  <properties/>
+  <testcase name="renderDeckText leaves text untouched when autoPunctuate off" classname="com.veritas.reader.PptxExtractorTest" time="0.03"/>
+  <testcase name="plain text boxes get no bullet prefix" classname="com.veritas.reader.PptxExtractorTest" time="0.009"/>
+  <testcase name="each slide gets its own page marker and slide numbers survive empty slides" classname="com.veritas.reader.PptxExtractorTest" time="0.033"/>
+  <testcase name="ocr lines land on their slide after content" classname="com.veritas.reader.PptxExtractorTest" time="0.008"/>
+  <testcase name="autoPunctuate appends periods only to unpunctuated lines" classname="com.veritas.reader.PptxExtractorTest" time="0.001"/>
+  <testcase name="speaker notes included with prefix and excluded when off" classname="com.veritas.reader.PptxExtractorTest" time="0.011"/>
+  <testcase name="slide images resolve through rels to media paths" classname="com.veritas.reader.PptxExtractorTest" time="0.009"/>
+  <testcase name="tables read row by row with pipe-joined cells" classname="com.veritas.reader.PptxExtractorTest" time="0.004"/>
+  <testcase name="xml entities are decoded" classname="com.veritas.reader.PptxExtractorTest" time="0.006"/>
+  <testcase name="title first then bullets with level prefixes" classname="com.veritas.reader.PptxExtractorTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -78,7 +79,7 @@ internal fun openOriginalDocument(
         return
     }
     val uri = runCatching {
-        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", original)
+        com.veritas.reader.SafeFileSharing.uri(context, "${context.packageName}.fileprovider", original)
     }.getOrNull()
     if (uri == null) {
         Toast.makeText(context, "Could not prepare the original file.", Toast.LENGTH_SHORT).show()
@@ -134,8 +135,8 @@ internal fun FloatingRecordOverlay(
     onSave: () -> Unit,
     onDiscard: () -> Unit
 ) {
-    var offsetX by remember { mutableStateOf(0f) }
-    var offsetY by remember { mutableStateOf(0f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
     val elapsed = formatRecordElapsed(elapsedSeconds)
     Box(
         modifier = Modifier

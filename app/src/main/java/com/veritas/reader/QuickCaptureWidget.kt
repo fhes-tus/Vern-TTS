@@ -17,6 +17,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -47,7 +48,7 @@ class QuickCaptureWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             val size = androidx.glance.LocalSize.current
-            val isCompact = size.width < 180.dp
+            val isCompact = size.height < 140.dp || size.width < 180.dp
 
             Box(
                 modifier = GlanceModifier
@@ -58,95 +59,15 @@ class QuickCaptureWidget : GlanceAppWidget() {
                 contentAlignment = Alignment.Center
             ) {
                 if (isCompact) {
-                    // 2x1 Layout: Modern Google Keep style capsule bar
-                    val newNoteParams = actionParametersOf(QuickCaptureActionCallback.ActionKey to MainActivity.ACTION_NEW_NOTE)
-                    val checklistParams = actionParametersOf(QuickCaptureActionCallback.ActionKey to MainActivity.ACTION_NEW_CHECKLIST_NOTE)
-                    val readingParams = actionParametersOf(QuickCaptureActionCallback.ActionKey to MainActivity.ACTION_ACTIVE_READING)
-
-                    Row(
-                        modifier = GlanceModifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = GlanceModifier
-                                .size(36.dp)
-                                .cornerRadius(12.dp)
-                                .background(VeritasWidgetColors.cardElevated),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                provider = ImageProvider(R.drawable.veritas_reader_icon),
-                                contentDescription = "Vern",
-                                modifier = GlanceModifier.size(26.dp)
-                            )
-                        }
-                        Spacer(modifier = GlanceModifier.width(10.dp))
-                        Text(
-                            text = "Take a note...",
-                            style = TextStyle(
-                                fontSize = if (size.width >= 140.dp) 14.sp else 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = VeritasWidgetColors.textMuted
-                            ),
-                            maxLines = 1,
-                            modifier = GlanceModifier.defaultWeight().clickable(actionRunCallback<QuickCaptureActionCallback>(newNoteParams))
-                        )
-
-                        Spacer(modifier = GlanceModifier.width(8.dp))
-
-                        // + Note (Amber Action Button)
-                        Box(
-                            modifier = GlanceModifier
-                                .size(34.dp)
-                                .cornerRadius(17.dp)
-                                .background(VeritasWidgetColors.playButtonAccent)
-                                .clickable(actionRunCallback<QuickCaptureActionCallback>(newNoteParams)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                provider = ImageProvider(R.drawable.ic_widget_notes),
-                                contentDescription = "New Note",
-                                modifier = GlanceModifier.size(18.dp),
-                                colorFilter = ColorFilter.tint(VeritasWidgetColors.playIconColor)
-                            )
-                        }
-
-                        Spacer(modifier = GlanceModifier.width(6.dp))
-
-                        // Checklist button
-                        Box(
-                            modifier = GlanceModifier
-                                .size(34.dp)
-                                .cornerRadius(17.dp)
-                                .background(VeritasWidgetColors.cardBackground)
-                                .clickable(actionRunCallback<QuickCaptureActionCallback>(checklistParams)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                provider = ImageProvider(R.drawable.ic_widget_checklist),
-                                contentDescription = "New Checklist",
-                                modifier = GlanceModifier.size(18.dp),
-                                colorFilter = ColorFilter.tint(VeritasWidgetColors.textPrimary)
-                            )
-                        }
-
-                        Spacer(modifier = GlanceModifier.width(6.dp))
-
-                        // Reading / Book button
-                        Box(
-                            modifier = GlanceModifier
-                                .size(34.dp)
-                                .cornerRadius(17.dp)
-                                .background(VeritasWidgetColors.cardBackground)
-                                .clickable(actionRunCallback<QuickCaptureActionCallback>(readingParams)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                provider = ImageProvider(R.drawable.ic_widget_reading),
-                                contentDescription = "Resume Reading",
-                                modifier = GlanceModifier.size(18.dp),
-                                colorFilter = ColorFilter.tint(VeritasWidgetColors.textPrimary)
-                            )
+                    Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        if (size.width >= 300.dp) Text("Capture a thought", style = TextStyle(fontSize = 14.sp, color = VeritasWidgetColors.textPrimary),
+                            modifier = GlanceModifier.defaultWeight().clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_NEW_NOTE))), maxLines = 1)
+                        CaptureIcon(context, MainActivity.ACTION_NEW_NOTE, R.drawable.ic_widget_notes, "New note")
+                        Spacer(GlanceModifier.width(8.dp))
+                        CaptureIcon(context, MainActivity.ACTION_NEW_CHECKLIST_NOTE, R.drawable.ic_widget_checklist, "New checklist")
+                        if (size.width >= 200.dp) {
+                            Spacer(GlanceModifier.width(8.dp))
+                            CaptureIcon(context, MainActivity.ACTION_ACTIVE_READING, R.drawable.ic_widget_reading, "Resume reading")
                         }
                     }
                 } else {
@@ -217,6 +138,14 @@ class QuickCaptureWidget : GlanceAppWidget() {
     }
 
     @Composable
+    private fun CaptureIcon(context: Context, action: String, icon: Int, label: String) {
+        Box(GlanceModifier.size(48.dp).cornerRadius(16.dp).background(VeritasWidgetColors.cardBackground)
+            .clickable(actionStartActivity(widgetActivityIntent(context, action))), contentAlignment = Alignment.Center) {
+            Image(ImageProvider(icon), label, modifier = GlanceModifier.size(24.dp), colorFilter = ColorFilter.tint(VeritasWidgetColors.primaryAccent))
+        }
+    }
+
+    @Composable
     private fun ActionCard(
         iconRes: Int,
         label: String,
@@ -229,7 +158,7 @@ class QuickCaptureWidget : GlanceAppWidget() {
                 .fillMaxHeight()
                 .cornerRadius(14.dp)
                 .background(VeritasWidgetColors.cardBackground)
-                .clickable(actionRunCallback<QuickCaptureActionCallback>(params)),
+                .clickable(actionStartActivity(widgetActivityIntent(androidx.glance.LocalContext.current, action))),
             contentAlignment = Alignment.Center
         ) {
             Row(

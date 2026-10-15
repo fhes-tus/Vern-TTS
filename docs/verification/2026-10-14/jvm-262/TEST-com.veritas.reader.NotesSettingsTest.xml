@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.NotesSettingsTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:42.843Z" hostname="FIRWEWALL" time="0.017">
+  <properties/>
+  <testcase name="testAddNewChecklistItemAppendsToEndWhenNoChecked" classname="com.veritas.reader.NotesSettingsTest" time="0.001"/>
+  <testcase name="testFormatQuoteCitationClean" classname="com.veritas.reader.NotesSettingsTest" time="0.004"/>
+  <testcase name="testToggleChecklistItemUncheckMovesAboveChecked" classname="com.veritas.reader.NotesSettingsTest" time="0.0"/>
+  <testcase name="testAddNewChecklistItemToBottomBeforeChecked" classname="com.veritas.reader.NotesSettingsTest" time="0.0"/>
+  <testcase name="testFormatQuoteCitationTrimsExistingQuotes" classname="com.veritas.reader.NotesSettingsTest" time="0.001"/>
+  <testcase name="preferencesRoundTripAndInvalidValuesAreBounded" classname="com.veritas.reader.NotesSettingsTest" time="0.0"/>
+  <testcase name="testFormatQuoteCitationMarkdown" classname="com.veritas.reader.NotesSettingsTest" time="0.0"/>
+  <testcase name="testToggleChecklistItemMoveCheckedToBottom" classname="com.veritas.reader.NotesSettingsTest" time="0.0"/>
+  <testcase name="testNotesSettingsDefaults" classname="com.veritas.reader.NotesSettingsTest" time="0.001"/>
+  <testcase name="testNotesSettingsCopy" classname="com.veritas.reader.NotesSettingsTest" time="0.0"/>
+  <testcase name="testToggleChecklistItemOutOfBoundsSafe" classname="com.veritas.reader.NotesSettingsTest" time="0.0"/>
+  <testcase name="testNotesSettingsEnums" classname="com.veritas.reader.NotesSettingsTest" time="0.0"/>
+  <testcase name="noteCreationTimeSurvivesEditsAndLegacyJsonUsesLastKnownTime" classname="com.veritas.reader.NotesSettingsTest" time="0.004"/>
+  <testcase name="testToggleChecklistItemStayInPlaceWhenMoveCheckedDisabled" classname="com.veritas.reader.NotesSettingsTest" time="0.0"/>
+  <testcase name="testFormatQuoteCitationAcademic" classname="com.veritas.reader.NotesSettingsTest" time="0.001"/>
+  <testcase name="testFormatQuoteCitationWithoutMetadata" classname="com.veritas.reader.NotesSettingsTest" time="0.001"/>
+  <testcase name="testAddNewChecklistItemToTop" classname="com.veritas.reader.NotesSettingsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

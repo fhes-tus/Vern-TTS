@@ -42,6 +42,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,9 +73,10 @@ import com.veritas.reader.GeminiStudyService
 import com.veritas.reader.QuizQuestion
 import com.veritas.reader.QuizSet
 import com.veritas.reader.SavedDocument
-import com.veritas.reader.SpacedRepetitionScheduler
 import com.veritas.reader.StudyGuidePdfExporter
+import com.veritas.reader.StudyReviewSummary
 import com.veritas.reader.TextChunker
+import com.veritas.reader.VocabularyEntry
 import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.copyTextToClipboard
 import com.veritas.reader.documentNoteStableKey
@@ -102,10 +104,12 @@ internal fun LibraryStudyTab(
     onPlayQuiz: (QuizSet) -> Unit,
     onDeleteQuiz: (QuizSet) -> Unit,
     onGenerateInAppFlashcards: (SavedDocument, String?) -> Unit,
+    onCancelAiStudyGeneration: () -> Unit,
     onImportFlashcards: (String, List<Flashcard>) -> Unit,
     onSaveQuiz: (QuizSet) -> Unit,
     onDeleteAnnotations: (Set<String>) -> Unit,
     onRemoveVocabularyWord: (String, String) -> Unit,
+    onRefreshVocabularyMeaning: (String, VocabularyEntry) -> Unit,
     onConfirmDeleteVocabDocId: (String) -> Unit,
     onClearReadingHistory: () -> Unit,
     onRemoveReadingHistoryEntry: (String) -> Unit,
@@ -116,6 +120,15 @@ internal fun LibraryStudyTab(
     onImportFile: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val floatingBottomPadding = LocalHomeBottomPadding.current
+    var reviewNowMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            reviewNowMillis = System.currentTimeMillis()
+            kotlinx.coroutines.delay(60_000)
+        }
+    }
+
     var lastMainPageRefreshAt by remember { mutableLongStateOf(0L) }
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
@@ -125,26 +138,34 @@ internal fun LibraryStudyTab(
     var expandedVocabDocIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     val annotationSelectionMode = selectedAnnotationKeys.isNotEmpty()
 
+    var showAiBookPicker by remember { mutableStateOf(false) }
+    LaunchedEffect(annotationFilter) { studyListState.requestScrollToItem(0) }
+    if (showAiBookPicker) {
+        StudyBookPickerDialog(
+            documents = documents,
+            onSelect = { document -> showAiBookPicker = false; onGenerateInAppFlashcards(document, null) },
+            onGoToLibrary = { showAiBookPicker = false; onNavigateToTab(VeritasHomeTab.LIBRARY) },
+            onDismiss = { showAiBookPicker = false }
+        )
+    }
+
     val repository = remember(context) { DocumentRepository(context) }
-    var loadedDocSentences by remember { mutableStateOf(emptyMap<String, List<String>>()) }
+    var loadedDocSentences by remember { mutableStateOf(emptyMap<String, Pair<String, List<String>>>()) }
     val docIdsWithAnnotations = remember(uiState.allAnnotations) {
         uiState.allAnnotations.map { it.documentId }.toSet()
     }
     LaunchedEffect(docIdsWithAnnotations, uiState.documents) {
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            val neededIds = docIdsWithAnnotations.filter { it !in loadedDocSentences }
-            if (neededIds.isNotEmpty()) {
-                val newMap = neededIds.associateWith { docId ->
-                    val docMetadata = uiState.documents.firstOrNull { it.id == docId }
-                    if (docMetadata != null) {
-                        val text = repository.readText(docMetadata)
-                        TextChunker.chunk(text)
-                    } else {
-                        emptyList()
-                    }
-                }
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    loadedDocSentences = loadedDocSentences + newMap
+        val previous = loadedDocSentences
+        val metadata = uiState.documents.associateBy { it.id }
+        loadedDocSentences = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            docIdsWithAnnotations.associateWith { docId ->
+                val doc = metadata[docId]
+                if (doc == null) "missing" to emptyList()
+                else {
+                    val file = java.io.File(context.filesDir, "reader_documents/${doc.fileName}")
+                    val revision = "${doc.fileName}:${file.lastModified()}:${file.length()}:${doc.sentenceIndexVersion}"
+                    previous[docId]?.takeIf { it.first == revision }
+                        ?: (revision to TextChunker.chunk(repository.readText(doc)))
                 }
             }
         }
@@ -261,14 +282,14 @@ internal fun LibraryStudyTab(
                                         }
                                         .padding(horizontal = 18.dp),
                                     state = studyListState,
-                                    contentPadding = PaddingValues(top = 10.dp, bottom = 22.dp),
+                                    contentPadding = PaddingValues(top = 10.dp, bottom = floatingBottomPadding + 22.dp),
                                     verticalArrangement = Arrangement.spacedBy(14.dp)
                                 ) {
                                     if (uiState.isGeneratingAiStudy) {
                                         item(key = "study-generating-banner") {
                                             Card(
                                                 modifier = Modifier.fillMaxWidth(),
-                                                shape = RoundedCornerShape(16.dp),
+                                                shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                                                 colors = CardDefaults.cardColors(
                                                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
                                                 ),
@@ -286,6 +307,7 @@ internal fun LibraryStudyTab(
                                                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                                                         modifier = Modifier.weight(1f)
                                                     )
+                                                    androidx.compose.material3.TextButton(onClick = onCancelAiStudyGeneration) { Text("Cancel") }
                                                 }
                                             }
                                         }
@@ -295,7 +317,7 @@ internal fun LibraryStudyTab(
                                         item(key = "study-clipboard-banner") {
                                             Card(
                                                 modifier = Modifier.fillMaxWidth(),
-                                                shape = RoundedCornerShape(16.dp),
+                                                shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                                                 colors = CardDefaults.cardColors(
                                                     containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.85f)
                                                 ),
@@ -338,7 +360,7 @@ internal fun LibraryStudyTab(
                                                             detectedClipboardFlashcards = emptyList()
                                                             detectedClipboardQuiz = emptyList()
                                                         },
-                                                        shape = RoundedCornerShape(50),
+                                                        shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                     ) {
                                                         Text("1-Tap Import", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
@@ -358,174 +380,48 @@ internal fun LibraryStudyTab(
                                         }
                                     }
 
-                                    item(key = "study-hero-daily-review") {
-                                        val dueFlashcards = remember(uiState.flashcards) {
-                                            uiState.flashcards.filter { SpacedRepetitionScheduler.isDue(it) }
-                                        }
-                                        val totalFlashcards = remember(uiState.flashcards) { uiState.flashcards.size }
-                                        val vocabCount = remember(vocabDocs) { vocabDocs.sumOf { it.third.size } }
-                                        val bookmarksCount = remember(uiState.allAnnotations) { uiState.allAnnotations.count { it.type == AnnotationType.BOOKMARK } }
-                                        val totalReviewCards = dueFlashcards.size + vocabCount + bookmarksCount
-                                        val reviewedCardsCount = remember(uiState.flashcards) {
-                                            uiState.flashcards.count { it.recall == "good" || it.recall == "easy" }
-                                        }
-                                        val reviewCompletionPercent = remember(totalFlashcards, reviewedCardsCount, totalReviewCards) {
-                                            if (totalFlashcards > 0) {
-                                                ((reviewedCardsCount.toFloat() / totalFlashcards) * 100).toInt().coerceIn(0, 100)
-                                            } else if (totalReviewCards == 0) {
-                                                100
-                                            } else {
-                                                0
-                                            }
-                                        }
-                                        StudyDailyReviewHeroCard(
-                                            completionPercent = reviewCompletionPercent,
-                                            cardsToReview = totalReviewCards,
-                                            onStartReview = {
-                                                onAnnotationFilterChange(if (uiState.flashcards.isNotEmpty()) "Flashcards" else if (vocabDocs.isNotEmpty()) "Vocab" else "Bookmarks")
-                                            }
-                                        )
-                                    }
-
-                                    item(key = "study-active-decks-header") {
-                                        Text(
-                                            text = "Active Decks",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-
-                                    if (flashcardSets.isNotEmpty()) {
-                                        item(key = "study-active-decks-list") {
-                                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                                flashcardSets.take(4).forEachIndexed { index, set ->
-                                                    StudyActiveDeckItem(
-                                                        indexNumber = index + 1,
-                                                        title = set.name,
-                                                        cardCount = set.cards.size,
-                                                        icon = if (index % 2 == 0) Icons.AutoMirrored.Filled.LibraryBooks else Icons.Filled.Menu,
-                                                        onClick = {
-                                                            onOpenFlashcardViewer(set.name, set.cards)
-                                                        }
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    } else if (documents.isNotEmpty()) {
-                                        item(key = "study-active-decks-list") {
-                                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                                documents.take(3).forEachIndexed { index, doc ->
-                                                    val marks = uiState.allAnnotations.count { it.documentId == doc.id }
-                                                    val v = vocabDocs.firstOrNull { it.first.id == doc.id }?.third?.size ?: 0
-                                                    val cardCount = marks + v
-                                                    StudyActiveDeckItem(
-                                                        indexNumber = index + 1,
-                                                        title = doc.title,
-                                                        cardCount = cardCount,
-                                                        icon = if (index % 2 == 0) Icons.AutoMirrored.Filled.LibraryBooks else Icons.Filled.Menu,
-                                                        onClick = { onOpenDocument(doc) }
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    item(key = "study-ai-tools-header") {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Text(
-                                                text = "AI Study Tools",
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                            FilledTonalButton(
-                                                onClick = { onShowGeminiApiKeyDialog() },
-                                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-                                                shape = RoundedCornerShape(50)
-                                            ) {
-                                                Icon(
-                                                    Icons.Filled.AutoAwesome,
-                                                    contentDescription = "Gemini Setup",
-                                                    modifier = Modifier.size(16.dp),
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                                Spacer(modifier = Modifier.width(4.dp))
-                                                Text(
-                                                    if (GeminiStudyService.hasApiKey(context)) "Gemini Active" else "Setup AI",
-                                                    style = MaterialTheme.typography.labelSmall
-                                                )
-                                            }
-                                        }
-                                    }
-
-                                    item(key = "study-ai-tools-grid") {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                            StudyAiToolCard(
-                                                title = "AI Flashcards",
-                                                icon = Icons.Filled.Layers,
-                                                onClick = {
-                                                    val targetDoc = documents.firstOrNull()
-                                                    if (targetDoc != null && GeminiStudyService.hasApiKey(context)) {
-                                                        onGenerateInAppFlashcards(targetDoc, null)
-                                                    } else {
-                                                        onShowPasteFlashcards()
-                                                    }
-                                                },
-                                                modifier = Modifier.weight(1f)
-                                            )
-                                            StudyAiToolCard(
-                                                title = "AI Quiz Lab",
-                                                icon = Icons.Outlined.EditNote,
-                                                onClick = {
-                                                    onShowQuizLabMetrics()
-                                                },
-                                                modifier = Modifier.weight(1f)
-                                            )
-                                        }
-                                    }
-
                                     item(key = "study-category-filter-chips") {
                                         Row(
                                             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            val filterOptions = listOf("Bookmarks", "Booknotes", "Vocab", "Flashcards", "Quizzes", "History")
+                                            val filterOptions = listOf("Overview", "Bookmarks", "Booknotes", "Vocab", "Flashcards", "Quizzes", "History")
                                             filterOptions.forEach { option ->
-                                                val active = annotationFilter == option
-                                                if (active) {
-                                                    Button(
-                                                        onClick = { onAnnotationFilterChange(option) },
-                                                        shape = VeritasPackStyle.chipShape(),
-                                                        colors = ButtonDefaults.buttonColors(
-                                                            containerColor = MaterialTheme.colorScheme.primary,
-                                                            contentColor = MaterialTheme.colorScheme.onPrimary
-                                                        ),
-                                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
-                                                    ) {
-                                                        Text(option, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                                                    }
-                                                } else {
-                                                    OutlinedButton(
-                                                        onClick = { onAnnotationFilterChange(option) },
-                                                        shape = VeritasPackStyle.chipShape(),
-                                                        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
-                                                        colors = ButtonDefaults.outlinedButtonColors(
-                                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                                        ),
-                                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
-                                                    ) {
-                                                        Text(option, style = MaterialTheme.typography.labelMedium)
-                                                    }
-                                                }
+                                                FilterChip(
+                                                    selected = annotationFilter == option,
+                                                    onClick = { onAnnotationFilterChange(option) },
+                                                    label = { Text(option) },
+                                                    shape = VeritasPackStyle.chipShape()
+                                                )
                                             }
+                                        }
+                                    }
+
+                                    if (annotationFilter == "Overview") {
+                                        item(key = "study-overview") {
+                                            val review = remember(uiState.flashcards, reviewNowMillis) {
+                                                StudyReviewSummary.from(uiState.flashcards, reviewNowMillis)
+                                            }
+                                            StudyHubOverview(
+                                                state = uiState,
+                                                sets = flashcardSets,
+                                                vocabularyCount = vocabDocs.sumOf { it.third.size },
+                                                review = review,
+                                                onSelectSection = onAnnotationFilterChange,
+                                                onStartReview = {
+                                                    val due = StudyReviewSummary.from(uiState.flashcards, System.currentTimeMillis()).dueCards
+                                                    if (due.isNotEmpty()) onOpenFlashcardViewer("Due flashcards", due)
+                                                    else onAnnotationFilterChange("Flashcards")
+                                                },
+                                                onOpenDeck = { onOpenFlashcardViewer(it.name, it.cards) },
+                                                onImportFlashcards = onShowPasteFlashcards,
+                                                onImportQuiz = onShowPasteQuiz,
+                                                onCreateWithAi = {
+                                                    if (GeminiStudyService.hasApiKey(context)) showAiBookPicker = true
+                                                    else onShowGeminiApiKeyDialog()
+                                                },
+                                                onSetupAi = onShowGeminiApiKeyDialog
+                                            )
                                         }
                                     }
 
@@ -552,7 +448,7 @@ internal fun LibraryStudyTab(
                                         document = doc,
                                         groups = groups,
                                         sentenceTextLookup = { chunkIndex ->
-                                            loadedDocSentences[doc.id]?.getOrNull(chunkIndex)
+                                            loadedDocSentences[doc.id]?.second?.getOrNull(chunkIndex)
                                         },
                                         onOpenAt = { index -> onOpenDocumentAt(doc, index) },
                                         onDeleteAnnotations = onDeleteAnnotations
@@ -597,7 +493,7 @@ internal fun LibraryStudyTab(
                                     onOpenDocumentNote = { onOpenDocumentAt(doc, doc.currentIndex.coerceAtLeast(0)) },
                                     onOpenAt = { index -> onOpenDocumentAt(doc, index) },
                                     sentenceTextLookup = { chunkIndex ->
-                                        loadedDocSentences[doc.id]?.getOrNull(chunkIndex)
+                                        loadedDocSentences[doc.id]?.second?.getOrNull(chunkIndex)
                                     },
                                     onDeleteAnnotations = onDeleteAnnotations
                                 )
@@ -623,7 +519,7 @@ internal fun LibraryStudyTab(
                                     Card(
                                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                         shape = VeritasPackStyle.compactShape(),
-                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())),
+                                        colors = CardDefaults.cardColors(containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)),
                                         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
                                     ) {
                                         Column(modifier = Modifier.fillMaxWidth()) {
@@ -733,7 +629,8 @@ internal fun LibraryStudyTab(
                                                             entry = entry,
                                                             document = doc,
                                                             onOpenDocumentAt = onOpenDocumentAt,
-                                                            onRemoveVocabularyWord = onRemoveVocabularyWord
+                                                            onRemoveVocabularyWord = onRemoveVocabularyWord,
+                                                            onRefreshVocabularyMeaning = onRefreshVocabularyMeaning
                                                         )
                                                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
                                                     }
@@ -783,7 +680,7 @@ internal fun LibraryStudyTab(
                             OutlinedButton(
                                 onClick = { onShowPasteFlashcards() },
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(50)
+                                shape = com.veritas.reader.VeritasPackStyle.chipShape()
                             ) {
                                 Text("Paste AI reply → add cards")
                             }

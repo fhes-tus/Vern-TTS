@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.VeritasReadingListCatalogTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:51.433Z" hostname="FIRWEWALL" time="0.073">
+  <properties/>
+  <testcase name="moveDocumentReindexesWithoutLosingItems" classname="com.veritas.reader.VeritasReadingListCatalogTest" time="0.062"/>
+  <testcase name="addDocumentsDeduplicatesAndKeepsManualOrder" classname="com.veritas.reader.VeritasReadingListCatalogTest" time="0.0"/>
+  <testcase name="archiveKeepsListButRemovesItFromActiveLists" classname="com.veritas.reader.VeritasReadingListCatalogTest" time="0.005"/>
+  <testcase name="itemNormalizationTrimsDuplicatesAndReindexes" classname="com.veritas.reader.VeritasReadingListCatalogTest" time="0.001"/>
+  <testcase name="resolveDocumentsUsesListSortModeAndSkipsMissingDocuments" classname="com.veritas.reader.VeritasReadingListCatalogTest" time="0.003"/>
+  <testcase name="missingListMutationsAreNoOpsForStaleUiState" classname="com.veritas.reader.VeritasReadingListCatalogTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

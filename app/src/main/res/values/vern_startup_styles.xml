@@ -1,0 +1,122 @@
+<resources>
+    <style name="Theme.Vern.StartupIndigo" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_indigo</item>
+    </style>
+    <style name="Theme.Vern.StartupIndigoStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_indigo</item>
+    </style>
+    <style name="Theme.Vern.StartupForest" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_forest</item>
+    </style>
+    <style name="Theme.Vern.StartupForestStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_forest</item>
+    </style>
+    <style name="Theme.Vern.StartupOcean" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_ocean</item>
+    </style>
+    <style name="Theme.Vern.StartupOceanStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_ocean</item>
+    </style>
+    <style name="Theme.Vern.StartupRose" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_rose</item>
+    </style>
+    <style name="Theme.Vern.StartupRoseStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_rose</item>
+    </style>
+    <style name="Theme.Vern.StartupAmber" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_amber</item>
+    </style>
+    <style name="Theme.Vern.StartupAmberStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_amber</item>
+    </style>
+    <style name="Theme.Vern.StartupMidnight" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_midnight</item>
+    </style>
+    <style name="Theme.Vern.StartupMidnightStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_midnight</item>
+    </style>
+    <style name="Theme.Vern.StartupCopper" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_copper</item>
+    </style>
+    <style name="Theme.Vern.StartupCopperStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_copper</item>
+    </style>
+    <style name="Theme.Vern.StartupGold" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_gold</item>
+    </style>
+    <style name="Theme.Vern.StartupGoldStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_gold</item>
+    </style>
+    <style name="Theme.Vern.StartupStellar" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_stellar</item>
+    </style>
+    <style name="Theme.Vern.StartupStellarStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_stellar</item>
+    </style>
+    <style name="Theme.Vern.StartupLilac" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_lilac</item>
+    </style>
+    <style name="Theme.Vern.StartupLilacStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_lilac</item>
+    </style>
+    <style name="Theme.Vern.StartupViolet" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_violet</item>
+    </style>
+    <style name="Theme.Vern.StartupVioletStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_violet</item>
+    </style>
+    <style name="Theme.Vern.StartupLavender" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_lavender</item>
+    </style>
+    <style name="Theme.Vern.StartupLavenderStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_lavender</item>
+    </style>
+    <style name="Theme.Vern.StartupCobalt" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_cobalt</item>
+    </style>
+    <style name="Theme.Vern.StartupCobaltStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_cobalt</item>
+    </style>
+    <style name="Theme.Vern.StartupAzure" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_azure</item>
+    </style>
+    <style name="Theme.Vern.StartupAzureStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_azure</item>
+    </style>
+    <style name="Theme.Vern.StartupNeon" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_neon</item>
+    </style>
+    <style name="Theme.Vern.StartupNeonStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_neon</item>
+    </style>
+    <style name="Theme.Vern.StartupSky" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_sky</item>
+    </style>
+    <style name="Theme.Vern.StartupSkyStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_sky</item>
+    </style>
+    <style name="Theme.Vern.StartupInk" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_ink</item>
+    </style>
+    <style name="Theme.Vern.StartupInkStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_ink</item>
+    </style>
+    <style name="Theme.Vern.StartupPearl" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_pearl</item>
+    </style>
+    <style name="Theme.Vern.StartupPearlStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_pearl</item>
+    </style>
+    <style name="Theme.Vern.StartupPaper" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_paper</item>
+    </style>
+    <style name="Theme.Vern.StartupPaperStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_paper</item>
+    </style>
+    <style name="Theme.Vern.StartupOnyx" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_onyx</item>
+    </style>
+    <style name="Theme.Vern.StartupOnyxStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_onyx</item>
+    </style>
+</resources>

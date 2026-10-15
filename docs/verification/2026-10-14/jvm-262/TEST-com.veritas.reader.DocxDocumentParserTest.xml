@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.DocxDocumentParserTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:41.967Z" hostname="FIRWEWALL" time="0.205">
+  <properties/>
+  <testcase name="parse_skipsMediaWhenIncludeImagesIsFalse" classname="com.veritas.reader.DocxDocumentParserTest" time="0.154"/>
+  <testcase name="parse_handlesSpacedHeadingStylesAndTabsInTOC" classname="com.veritas.reader.DocxDocumentParserTest" time="0.018"/>
+  <testcase name="parse_handlesEmptyBytes" classname="com.veritas.reader.DocxDocumentParserTest" time="0.001"/>
+  <testcase name="parse_extractsHeadingsParagraphsAndTables_fromDocumentXml" classname="com.veritas.reader.DocxDocumentParserTest" time="0.02"/>
+  <testcase name="parse_splitsRunInSubheadingsFromParagraphBody" classname="com.veritas.reader.DocxDocumentParserTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

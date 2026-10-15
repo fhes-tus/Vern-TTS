@@ -28,7 +28,7 @@ The application handles the following data strictly locally on your Android devi
 *   **Local Storage:** All reading files, extracted text database files, and system preferences are stored inside the application's private storage sandbox (`Context.filesDir` and `SharedPreferences`).
 *   **Backup Integrity:** Stored database configurations use a resilient double-write backup system to prevent file corruption on sudden device restarts.
 *   **Cloud Synchronization:** The application does not feature a cloud account registration system or synchronization servers in this build.
-*   **System Backups:** Android's automatic system cloud backups are disabled (`android:allowBackup="false"` in the Manifest) to ensure your imported documents remain strictly confined to your physical device.
+*   **System Backups:** Android may back up preferences, the reading database, and eligible app files according to your device backup settings. Original imported documents, restore staging files, and API credentials are excluded from cloud backup. API credentials are also excluded from device transfer, encrypted with a device-bound Android Keystore key, and must be entered again on a new device. Full backups created explicitly in Vern can include original documents and note attachments.
 
 ---
 
@@ -38,7 +38,7 @@ The application handles the following data strictly locally on your Android devi
 The application uses local machine learning models (Google Play Services ML Kit) to extract text from images and scanned PDF files. This processing runs entirely on-device; page images are never uploaded to remote servers.
 
 ### Text-to-Speech (TTS) engine
-Playback is synthesized via your Android device's active Text-to-Speech (TTS) engine (such as Google Speech Services). 
+Playback is synthesized via your Android device's active Text-to-Speech (TTS) engine (such as Google Speech Services).
 *   **Synthesis Context:** The active sentence text is passed to the system TTS engine API to read the content aloud.
 *   **Third-Party Engine Privacy:** Depending on the TTS engine you select, the provider may download voice models or route requests according to their own privacy policies. You can configure or restrict these settings directly in your Android system preferences.
 

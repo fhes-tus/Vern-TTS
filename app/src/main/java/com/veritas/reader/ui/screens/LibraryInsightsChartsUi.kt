@@ -80,7 +80,7 @@ internal fun InteractiveDonutChart(
     var animationPlayed by remember { mutableStateOf(false) }
     val entryAnimFraction by animateFloatAsState(
         targetValue = if (animationPlayed) 1f else 0f,
-        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow(),
         label = "donutChartEntryAnim"
     )
     LaunchedEffect(Unit) {
@@ -90,7 +90,7 @@ internal fun InteractiveDonutChart(
     val scaleFactors = slices.indices.map { idx ->
         animateFloatAsState(
             targetValue = if (selectedIndex == idx) 1.15f else 1.0f,
-            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+            animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
             label = "sliceScale_$idx"
         )
     }
@@ -135,7 +135,7 @@ internal fun InteractiveDonutChart(
                 ) {
                     val density = LocalDensity.current
                     val strokeWidthPx = with(density) { 14.dp.toPx() }
-                    
+
                     Canvas(
                         modifier = Modifier
                             .fillMaxSize()
@@ -148,11 +148,11 @@ internal fun InteractiveDonutChart(
                                         val y = offset.y - centerY
                                         val dist = hypot(x.toDouble(), y.toDouble()).toFloat()
                                         val radius = minOf(size.width, size.height) / 2f
-                                        
+
                                         if (dist in (radius - strokeWidthPx * 2.5f)..radius) {
                                             var angle = Math.toDegrees(atan2(y.toDouble(), x.toDouble())).toFloat()
                                             angle = (angle + 90f + 360f) % 360f
-                                            
+
                                             var currentAngle = 0f
                                             var found: Int? = null
                                             for (i in slices.indices) {
@@ -174,7 +174,7 @@ internal fun InteractiveDonutChart(
                         val centerX = size.width / 2f
                         val centerY = size.height / 2f
                         val radius = minOf(size.width, size.height) / 2f - strokeWidthPx / 2f
-                        
+
                         if (totalVal == 0f) {
                             drawCircle(
                                 color = Color.LightGray.copy(alpha = 0.3f),
@@ -189,7 +189,7 @@ internal fun InteractiveDonutChart(
                                 val scale = scaleFactors[idx].value
                                 val strokeWidth = strokeWidthPx * (if (selectedIndex == idx) 1.25f else 1.0f)
                                 val r = radius * scale
-                                
+
                                 drawArc(
                                     color = slice.color,
                                     startAngle = startAngle,
@@ -228,7 +228,7 @@ internal fun InteractiveDonutChart(
                     slices.forEachIndexed { idx, slice ->
                         val isSelected = selectedIndex == idx
                         val percentage = if (totalVal > 0f) (slice.value * 100f / totalVal).toInt() else 0
-                        
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -364,6 +364,7 @@ internal fun InteractiveDonutChart(
 @Composable
 internal fun ReadingVelocityAndPaceCard(
     weeklyMillis: Long,
+    todayMillis: Long = 0L,
     activeDocsCount: Int,
     streakDays: Int,
     dailyGoalMinutes: Int = 0,
@@ -373,8 +374,8 @@ internal fun ReadingVelocityAndPaceCard(
     val isGoalEnabled = dailyGoalMinutes > 0
     val goalMillis = dailyGoalMinutes * 60 * 1000L
     val dailyAvgMillis = if (weeklyMillis > 0L) weeklyMillis / 7L else 0L
-    val progress = if (goalMillis > 0L) (dailyAvgMillis.toFloat() / goalMillis).coerceIn(0f, 1f) else 0f
-    val goalReached = isGoalEnabled && dailyAvgMillis >= goalMillis
+    val progress = if (goalMillis > 0L) (todayMillis.toFloat() / goalMillis).coerceIn(0f, 1f) else 0f
+    val goalReached = isGoalEnabled && todayMillis >= goalMillis
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -414,7 +415,7 @@ internal fun ReadingVelocityAndPaceCard(
                         text = when {
                             !isGoalEnabled -> "Target Off"
                             goalReached -> "🎉 Goal Met!"
-                            else -> "${(progress * 100).toInt()}% Target"
+                            else -> "${(progress * 100).toInt()}% today"
                         },
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
@@ -548,7 +549,7 @@ internal fun ReadingVelocityAndPaceCard(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Current: ${formatTrackerDuration(dailyAvgMillis)}/day",
+                            text = "Today: ${formatTrackerDuration(todayMillis)}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

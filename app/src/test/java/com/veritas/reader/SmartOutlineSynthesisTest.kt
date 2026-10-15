@@ -11,18 +11,17 @@ class SmartOutlineSynthesisTest {
 
     @Test
     fun `buildSmartOutline extracts printed table of contents with page numbers`() {
-        val chunks = listOf(
-            "TABLE OF CONTENTS\nChapter 1 . . . . . 1\nChapter 2 . . . . . 5\nChapter 3 . . . . . 10",
-            "This is the start of Chapter 1 on page 1.",
-            "Chapter 2 begins here on page 5.",
-            "Chapter 3 is here on page 10."
-        )
-        val textModel = ReaderTextIndex.build(chunks.joinToString("\n\n"), storedPageCount = 10)
+        val textModel = ReaderTextIndex.build(
+            "[[VERITAS_PAGE:2]]\nTABLE OF CONTENTS\nChapter 1 . . . . . 1\nChapter 2 . . . . . 5\nChapter 3 . . . . . 10\n\n" +
+                "[[VERITAS_PAGE:7]]\nChapter 1\nThis is the start of the story.\n\n" +
+                "[[VERITAS_PAGE:11]]\nChapter 2\nAnother chapter begins.\n\n" +
+                "[[VERITAS_PAGE:16]]\nChapter 3\nThe story ends.", storedPageCount = 16)
+        val chunks = textModel.sentences.map { it.text }
         val outline = buildSmartOutline(chunks, textModel)
 
         assertTrue("Should extract TOC entries", outline.isNotEmpty())
         assertEquals("Chapter 1", outline[0].title)
-        assertEquals(1, outline[0].pageNumber)
+        assertEquals(7, outline[0].pageNumber)
     }
 
     @Test
@@ -283,4 +282,3 @@ class SmartOutlineSynthesisTest {
         assertEquals("No duplicate titles in outline", titles.distinct().size, titles.size)
     }
 }
-

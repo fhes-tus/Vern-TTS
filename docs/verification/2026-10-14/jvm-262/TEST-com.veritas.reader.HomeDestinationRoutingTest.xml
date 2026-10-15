@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.HomeDestinationRoutingTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:42.356Z" hostname="FIRWEWALL" time="0.013">
+  <properties/>
+  <testcase name="noteAndStudyWidgetsKeepTheirSemanticDestinations" classname="com.veritas.reader.HomeDestinationRoutingTest" time="0.003"/>
+  <testcase name="librarySectionsSwipeBeforeStudyWithoutChangingMainTabIdentities" classname="com.veritas.reader.HomeDestinationRoutingTest" time="0.007"/>
+  <testcase name="explicitSourceLinkWinsOverWidgetAndClearingItDoesNotReplayWidget" classname="com.veritas.reader.HomeDestinationRoutingTest" time="0.0"/>
+  <testcase name="swipeOrderMatchesApprovedNavigationWithoutChangingIdentities" classname="com.veritas.reader.HomeDestinationRoutingTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

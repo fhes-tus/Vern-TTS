@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.ReaderFollowupRegressionTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:44.542Z" hostname="FIRWEWALL" time="0.036">
+  <properties/>
+  <testcase name="unknownWordsDoNotAcquireAnUnrelatedSentence" classname="com.veritas.reader.ReaderFollowupRegressionTest" time="0.004"/>
+  <testcase name="singleColumnAndIndentedParagraphsStaySingle" classname="com.veritas.reader.ReaderFollowupRegressionTest" time="0.003"/>
+  <testcase name="repeatedWordUsesSelectedSentenceEvenWhenPlaybackIsElsewhere" classname="com.veritas.reader.ReaderFollowupRegressionTest" time="0.001"/>
+  <testcase name="vocabularyRoundTripRetainsContextAndPronunciation" classname="com.veritas.reader.ReaderFollowupRegressionTest" time="0.003"/>
+  <testcase name="geometryAnchorsRequireAnUnambiguousMatch" classname="com.veritas.reader.ReaderFollowupRegressionTest" time="0.006"/>
+  <testcase name="headingAcrossGutterDoesNotRejectColumns" classname="com.veritas.reader.ReaderFollowupRegressionTest" time="0.001"/>
+  <testcase name="inlineSlotsExistBeforeBitmapsAndPreserveSentenceIndexes" classname="com.veritas.reader.ReaderFollowupRegressionTest" time="0.017"/>
+  <testcase name="sparseUnequalColumnsAreDetected" classname="com.veritas.reader.ReaderFollowupRegressionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

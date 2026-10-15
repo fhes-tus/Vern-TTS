@@ -149,13 +149,16 @@ internal fun LibraryDialogsAndSheetsHost(
     onDismissOpeningDocument: () -> Unit = {},
     uiState: ReaderUiState
 ) {
-    val context = LocalContext.current
+    LocalContext.current
 
-    if (activePlayingQuiz != null) {
+    val playingQuiz = activePlayingQuiz
+    if (playingQuiz != null) {
         QuizPlayerDialog(
-            questions = activePlayingQuiz!!.questions,
-            quizTitle = activePlayingQuiz!!.title,
-            onSaveScore = { score -> onRecordQuizScore(activePlayingQuiz!!.id, score) },
+            questions = playingQuiz.questions,
+            quizTitle = playingQuiz.title,
+            quizId = playingQuiz.id,
+            onQuestionsChange = { questions -> onSaveQuiz(playingQuiz.copy(questions = questions)) },
+            onSaveScore = { score -> onRecordQuizScore(playingQuiz.id, score) },
             onDismiss = { onDismissActivePlayingQuiz() }
         )
     }
@@ -171,15 +174,16 @@ internal fun LibraryDialogsAndSheetsHost(
             onDismiss = { onDismissQuizLabMetrics() }
         )
     }
-    if (quizToDelete != null) {
+    val deletingQuiz = quizToDelete
+    if (deletingQuiz != null) {
         AlertDialog(
             onDismissRequest = { onDismissQuizToDelete() },
             title = { Text("Delete Quiz?") },
-            text = { Text("Are you sure you want to delete \"${quizToDelete?.title}\"? This action cannot be undone.") },
+            text = { Text("Are you sure you want to delete \"${deletingQuiz.title}\"? This action cannot be undone.") },
             confirmButton = {
                 Button(
                     onClick = {
-                        quizToDelete?.let { onDeleteQuiz(it.id) }
+                        onDeleteQuiz(deletingQuiz.id)
                         onDismissQuizToDelete()
                     }
                 ) {
@@ -250,6 +254,7 @@ internal fun LibraryDialogsAndSheetsHost(
     if (showImportSheet) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
+        shape = com.veritas.reader.VeritasPackStyle.sheetShape(),
             onDismissRequest = {
                 onDismissImportSheet()
                 onImportSheetModeChange(ImportSheetMode.MENU)
@@ -422,6 +427,7 @@ internal fun LibraryDialogsAndSheetsHost(
             snapshot = readerTrackerSnapshot,
             documents = documents,
             documentReadingTimes = documentReadingTimes,
+            onOpenDocument = { onOpenDocumentAt(it, it.currentIndex) },
             readerSettings = readerSettings,
             onGoalMinutesChange = { minutes ->
                 onSaveReaderSettings(readerSettings.copy(dailyGoalMinutes = minutes))
@@ -533,7 +539,6 @@ internal fun LibraryDialogsAndSheetsHost(
                 ) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     val bookTitle = uiState.importSourceName.takeIf { it.isNotBlank() }
-                        ?: uiState.importMessage?.removePrefix("Importing ")?.substringBefore(" in background")?.takeIf { it.isNotBlank() }
                     Text(
                         text = if (!bookTitle.isNullOrBlank()) "Opening \"$bookTitle\"..." else "Opening document...",
                         style = MaterialTheme.typography.titleMedium,

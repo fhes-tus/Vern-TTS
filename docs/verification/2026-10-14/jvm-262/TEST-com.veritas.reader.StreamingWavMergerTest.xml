@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.StreamingWavMergerTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:45.259Z" hostname="FIRWEWALL" time="3.148">
+  <properties/>
+  <testcase name="streamsCompatiblePartsIntoOneWav" classname="com.veritas.reader.StreamingWavMergerTest" time="2.141"/>
+  <testcase name="rejectsMismatchedVoicesBeforeWriting" classname="com.veritas.reader.StreamingWavMergerTest" time="0.009"/>
+  <testcase name="truncatedSynthesisIsRejected" classname="com.veritas.reader.StreamingWavMergerTest" time="0.008"/>
+  <testcase name="cancelledMergeRemovesIncompleteOutput" classname="com.veritas.reader.StreamingWavMergerTest" time="0.99"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

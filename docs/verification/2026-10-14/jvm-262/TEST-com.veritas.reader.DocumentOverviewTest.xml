@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.DocumentOverviewTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:41.680Z" hostname="FIRWEWALL" time="0.259">
+  <properties/>
+  <testcase name="prefersAbstractOverOpeningAndCopyright" classname="com.veritas.reader.DocumentOverviewTest" time="0.02"/>
+  <testcase name="samplesAcrossLongDocumentsAndKeepsCompleteSentences" classname="com.veritas.reader.DocumentOverviewTest" time="0.078"/>
+  <testcase name="fileSamplingIsBoundedAndHandlesUnicodeAcrossByteBoundaries" classname="com.veritas.reader.DocumentOverviewTest" time="0.131"/>
+  <testcase name="insufficientTextDoesNotInventABookDescription" classname="com.veritas.reader.DocumentOverviewTest" time="0.014"/>
+  <testcase name="overviewsAndCachedDescriptionsStopAtTwoSentences" classname="com.veritas.reader.DocumentOverviewTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

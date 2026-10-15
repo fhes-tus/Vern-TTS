@@ -249,14 +249,14 @@ private fun AboutOptionRow(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
         }
@@ -308,241 +308,104 @@ fun OpenSourceLicensesDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
-fun AboutDialog(
-    uiState: ReaderUiState? = null,
-    onCheckForUpdates: () -> Unit = {},
-    onDismiss: () -> Unit
-) {
+fun AboutDialog(uiState: ReaderUiState? = null, onCheckForUpdates: () -> Unit = {}, onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val scheme = MaterialTheme.colorScheme
+    val palette = com.veritas.reader.VernCustomization.palette(com.veritas.reader.VeritasThemeState.launcherPalette, com.veritas.reader.VeritasThemeState.themeId, androidx.compose.foundation.isSystemInDarkTheme())
     var showLicensesDialog by remember { mutableStateOf(false) }
-
-    FullScreenSettingsScaffold(title = "About", onBack = onDismiss, scrollable = false) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            // Header: App Logo (max 2dp border) + Title + Version
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(74.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                        .border(
-                            BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.veritas_reader_icon),
-                        contentDescription = "Vern Logo",
-                        modifier = Modifier
-                            .size(68.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-
-                val appVersionText = remember(context) {
-                    try {
-                        val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                        val vName = pInfo.versionName ?: com.veritas.reader.BuildConfig.VERSION_NAME
-                        val vCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                            pInfo.longVersionCode
-                        } else {
-                            @Suppress("DEPRECATION")
-                            pInfo.versionCode.toLong()
+    val version = remember(context) {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).let { "Version ${it.versionName} · Build ${it.longVersionCode}" } }
+            .getOrDefault("Version ${com.veritas.reader.BuildConfig.VERSION_NAME}")
+    }
+    FullScreenSettingsScaffold(title = "About", onBack = onDismiss) {
+        Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(22.dp)) {
+            Card(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(32.dp),
+                colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer)) {
+                Box(Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Brush.linearGradient(
+                    listOf(scheme.primaryContainer, scheme.surfaceContainer, scheme.tertiaryContainer)))) {
+                    // A quiet book-spine motif gives the hero depth without competing with the words.
+                    androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
+                        val accent = scheme.onPrimaryContainer.copy(alpha = .055f)
+                        repeat(3) { i ->
+                            drawRoundRect(accent, topLeft = androidx.compose.ui.geometry.Offset(size.width * .72f + i * 22.dp.toPx(), -25.dp.toPx()),
+                                size = androidx.compose.ui.geometry.Size(42.dp.toPx(), size.height + 60.dp.toPx()),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.dp.toPx()))
                         }
-                        "Version $vName (Build $vCode)"
-                    } catch (_: Exception) {
-                        "Version ${com.veritas.reader.BuildConfig.VERSION_NAME}"
                     }
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = "Vern TTS",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = appVersionText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
-                    OutlinedButton(
-                        onClick = onCheckForUpdates,
-                        enabled = uiState?.isCheckingForUpdates != true,
-                        shape = VeritasPackStyle.chipShape(),
-                        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
-                        modifier = Modifier.height(36.dp)
-                    ) {
-                        if (uiState?.isCheckingForUpdates == true) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(14.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Checking...", style = MaterialTheme.typography.labelMedium)
-                        } else {
-                            Icon(
-                                imageVector = Icons.Filled.Sync,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = uiState?.updateStatusMessage ?: "Check for updates",
-                                style = MaterialTheme.typography.labelMedium
-                            )
+                    Column(Modifier.fillMaxWidth().padding(26.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                            Box(Modifier.size(80.dp).background(androidx.compose.ui.graphics.Color(palette.background), androidx.compose.foundation.shape.RoundedCornerShape(26.dp)), contentAlignment = Alignment.Center) {
+                                Image(painterResource(R.drawable.vern_v_cream), "Vern logo", Modifier.size(52.dp),
+                                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(androidx.compose.ui.graphics.Color(palette.foreground)), contentScale = ContentScale.Fit)
+                            }
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text("Vern", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black, color = scheme.onSurface)
+                                Text("A little space for big ideas.", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                            }
+                        }
+                        Text("Read. Listen.\nMake it yours.", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+                        Text("Your books, your notes, your pace. A quieter place to read, listen and follow your curiosity.",
+                            style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                        androidx.compose.material3.Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
+                            color = scheme.surface.copy(alpha = .8f), contentColor = scheme.onSurfaceVariant) {
+                            Text(version, Modifier.padding(horizontal = 14.dp, vertical = 8.dp), style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
             }
-
-            // Action Buttons (Donate & Contact)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Button(
-                    onClick = { openEmail(context, "myreader.veritas@gmail.com", "Donate to Vern") },
-                    shape = VeritasPackStyle.chipShape(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp)
-                        .border(
-                            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
-                            VeritasPackStyle.chipShape()
-                        )
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.FavoriteBorder,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Donate", fontWeight = FontWeight.Bold)
-                }
-
-                Button(
-                    onClick = { openEmail(context, "myreader.veritas@gmail.com", "Vern Feedback & Support") },
-                    shape = VeritasPackStyle.chipShape(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp)
-                        .border(
-                            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
-                            VeritasPackStyle.chipShape()
-                        )
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Mail,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Contact", fontWeight = FontWeight.Bold)
+            Card(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow)) {
+                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Always growing", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = scheme.onSurface)
+                    Text("Keep your reading space up to date.", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                    androidx.compose.material3.FilledTonalButton(onCheckForUpdates, enabled = uiState?.isCheckingForUpdates != true, modifier = Modifier.fillMaxWidth()) {
+                        if (uiState?.isCheckingForUpdates == true) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        else Icon(Icons.Filled.Sync, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(if (uiState?.isCheckingForUpdates == true) "Checking for updates…" else "Check for updates")
+                    }
+                    uiState?.updateStatusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant) }
                 }
             }
-
-            // Monochrome Social & Web App Icons Row (GitHub, X, Telegram, Website)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SocialIconButton(
-                    icon = IconGithub,
-                    label = "GitHub",
-                    onClick = { openUrl(context, "https://github.com/fhes-tus/Vern-TTS") }
-                )
-                SocialIconButton(
-                    icon = IconX,
-                    label = "X",
-                    onClick = { openUrl(context, "https://x.com/_1st2us") }
-                )
-                SocialIconButton(
-                    icon = IconTelegram,
-                    label = "Telegram",
-                    onClick = { openUrl(context, "https://t.me/myreader_veritas") }
-                )
-                SocialIconButton(
-                    icon = Icons.Outlined.Language,
-                    label = "Website",
-                    onClick = { openUrl(context, "https://fhes-tus.github.io/Vern-TTS/") }
-                )
-            }
-
-            // About Veritas Reader Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = VeritasPackStyle.cardShape(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
-                ),
-                border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = "About Vern",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Vern (root word Vernehmen — German: to hear/perceive) is a privacy-focused reading engine and document studio for Android. Combining intelligent text-to-speech narration, custom voice controls, smart study cards, and reading insights, Vern brings you an effortless learning experience with zero tracking.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp
-                    )
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Made better together", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = scheme.onSurface)
+                Card(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow)) {
+                    Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                        AboutOptionRow("Contact the developer", "A question, an idea, or just hello", Icons.Outlined.Mail,
+                            { openEmail(context, "myreader.veritas@gmail.com", "Vern Feedback & Support") })
+                        HorizontalDivider(color = scheme.outlineVariant.copy(alpha = .5f))
+                        AboutOptionRow("Support Vern", "Help this little reading space grow", Icons.Outlined.FavoriteBorder,
+                            { openEmail(context, "myreader.veritas@gmail.com", "Donate to Vern") })
+                        HorizontalDivider(color = scheme.outlineVariant.copy(alpha = .5f))
+                        AboutOptionRow("Report an issue", "Tell us what could work better", Icons.Outlined.BugReport,
+                            { openUrl(context, "https://github.com/fhes-tus/Veritas-Reader/issues") })
+                    }
                 }
             }
-
-            // Tight Option Cards List (Submit Issue & Open Source Licenses)
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AboutOptionRow(
-                    title = "Submit issue or feedback",
-                    subtitle = "Help us improve this application on GitHub",
-                    icon = Icons.Outlined.BugReport,
-                    onClick = { openUrl(context, "https://github.com/fhes-tus/Veritas-Reader/issues") }
-                )
-                AboutOptionRow(
-                    title = "Open source licenses",
-                    subtitle = "View all the libraries used to build Vern",
-                    icon = Icons.Outlined.Info,
-                    onClick = { showLicensesDialog = true }
-                )
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Find Vern online", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = scheme.onSurface)
+                Card(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow)) {
+                    Row(Modifier.fillMaxWidth().padding(vertical = 14.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        listOf(Triple(IconGithub, "GitHub", "https://github.com/fhes-tus/Vern-TTS"),
+                            Triple(IconX, "X", "https://x.com/_1st2us"),
+                            Triple(IconTelegram, "Telegram", "https://t.me/myreader_veritas"),
+                            Triple(Icons.Outlined.Language, "Website", "https://fhes-tus.github.io/Vern-TTS/")).forEach { (icon, label, url) ->
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                SocialIconButton(icon, label, { openUrl(context, url) })
+                                Text(label, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
             }
+            AboutOptionRow("Open source licenses", "Built with care, and a little help", Icons.Outlined.Info, { showLicensesDialog = true })
+            Text("Your library stays on your device. Online features are optional.",
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+            Spacer(Modifier.height(12.dp))
         }
     }
-
-    if (showLicensesDialog) {
-        OpenSourceLicensesDialog(onDismiss = { showLicensesDialog = false })
-    }
+    if (showLicensesDialog) OpenSourceLicensesDialog({ showLicensesDialog = false })
 }

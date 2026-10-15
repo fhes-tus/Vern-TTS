@@ -1,0 +1,15 @@
+# Theme-following and startup preview — 14 October 2026
+
+Follow-up: the current preview is now **2.6.2 / 42**. Both ThemeAndStartupChoicesUiTest phone checks pass on the reconnected Samsung, covering theme/resource matching, visible Bloom/Fade/Rise previews and reduced motion. Current build and split-run evidence are in [the 2.6.2 debug report](DEBUG_262_RECHECK.md). The paragraphs below describe the earlier 2.6.1 debug snapshot.
+
+Debug preview: `output_apks/Vern-v2.6.1-customization-debug-arm64.apk`, package `com.veritas.reader.iconcheck`, displayed as Vern Preview. Debug app and instrumentation builds succeeded. Both LauncherThemeFollowingTest JVM regressions passed; their result is saved in this folder. Phone installation and physical motion checks are deferred at the user's request. Release APK/AAB packaging stays on hold.
+
+Follow my colour theme now resolves the supported theme family and its explicit/system light or dark mode through VeritasThemeCatalog. The matching icon background and foreground use that theme's primary/onPrimary colours. The selected `theme` preference remains persisted when modes change; explicit manual palettes stay pinned. The UI shows the resolved theme/palette, and system-mode changes participate in queuing the next launcher update. Launcher aliases still change only after Vern leaves the foreground.
+
+There are now 20 manual palettes: the existing Indigo, Forest, Ocean, Rose, Amber and Midnight, plus Copper, Gold, Stellar, Lilac, Violet, Lavender, Cobalt, Azure, Neon cyan, Sky, Ink, Pearl, Paper and Onyx. Every foreground retains the verified 52 dp geometry. Static resource checks confirmed 40 unique launcher aliases, matching activity targets, and one enabled launcher by default. The final debug manifest build is free of duplicate entries. APK resource inspection confirms the application package and dotted startup-style names used by resource lookup.
+
+The picker uses compact wrapping colour chips. Follow my colour theme sits above them. Startup motion has its own visible preview beside the controls, rather than animating the hero outside the viewport. Selecting a motion starts the preview and the preview button replays it. Reduced motion, None, or disabled device animations keep it still.
+
+Bloom reveals the mark from 72% scale over 950 ms. Fade uses a 680 ms exit. Rise uses an 800 ms upward exit with a smaller mark and a longer background fade. The settings preview and the real Fade/Rise use shared timing/poses; the native Bloom drawable and timing are aligned. Startup colours have matching resources for all 20 palettes. Android 12+ retains one system splash; returning from Recents does not replay it. Older supported Android versions retain a matching static starting window.
+
+ThemeAndStartupChoicesUiTest is compiled and ready for phone validation of all supported theme primary/onPrimary pairs, all palette starting-window resources, and visible motion previews. No new phone-test pass is claimed for this revision; the earlier 13-test phone run covers the preceding UI snapshot.

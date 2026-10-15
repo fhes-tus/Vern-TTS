@@ -29,6 +29,8 @@ data class ReaderSettings(
     val streakReminderEnabled: Boolean = false,
     // Accessibility: collapse decorative motion (entrances, pulses) to instants.
     val reduceMotion: Boolean = false,
+    val reduceTransparency: Boolean = false,
+    val glassFloatingControls: Boolean = false,
     // Typeface for the whole app, chrome and reading text alike. "system" keeps the
     // platform default; see VeritasUiFont.
     val uiFontId: String = "system",
@@ -45,7 +47,11 @@ data class ReaderSettings(
     // AMOLED pure black background mode for dark themes
     val amoledMode: Boolean = false,
     // Contextual gestures: show helpful tips from time to time (pinch, double tap, long press)
-    val showGestureTips: Boolean = true
+    val showGestureTips: Boolean = true,
+    val launcherPalette: String = "indigo",
+    val splashAnimation: String = "bloom",
+    val scatteredCards: Boolean = false,
+    val pageTurnStyle: String = "slide"
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("fontSizeSp", fontSizeSp)
@@ -61,6 +67,8 @@ data class ReaderSettings(
         .put("dailyGoalMinutes", dailyGoalMinutes)
         .put("streakReminderEnabled", streakReminderEnabled)
         .put("reduceMotion", reduceMotion)
+        .put("reduceTransparency", reduceTransparency)
+        .put("glassFloatingControls", glassFloatingControls)
         .put("uiFontId", uiFontId)
         .put("bionicReading", bionicReading)
         .put("shakeToExtendSleepTimer", shakeToExtendSleepTimer)
@@ -69,6 +77,10 @@ data class ReaderSettings(
         .put("paperToneMode", paperToneMode)
         .put("amoledMode", amoledMode)
         .put("showGestureTips", showGestureTips)
+        .put("launcherPalette", launcherPalette)
+        .put("splashAnimation", splashAnimation)
+        .put("scatteredCards", scatteredCards)
+        .put("pageTurnStyle", pageTurnStyle)
 
     companion object {
         fun fromJson(obj: JSONObject): ReaderSettings {
@@ -89,6 +101,8 @@ data class ReaderSettings(
                 dailyGoalMinutes = obj.optInt("dailyGoalMinutes", 0).coerceIn(0, 180),
                 streakReminderEnabled = obj.optBoolean("streakReminderEnabled", false),
                 reduceMotion = obj.optBoolean("reduceMotion", false),
+                reduceTransparency = obj.optBoolean("reduceTransparency", false),
+                glassFloatingControls = obj.optBoolean("glassFloatingControls", false),
                 uiFontId = obj.optString("uiFontId", "system"),
                 bionicReading = obj.optBoolean("bionicReading", false),
                 shakeToExtendSleepTimer = obj.optBoolean("shakeToExtendSleepTimer", true),
@@ -96,7 +110,11 @@ data class ReaderSettings(
                 showNavLabels = obj.optBoolean("showNavLabels", true),
                 paperToneMode = obj.optString("paperToneMode", "active_theme"),
                 amoledMode = obj.optBoolean("amoledMode", false),
-                showGestureTips = obj.optBoolean("showGestureTips", true)
+                showGestureTips = obj.optBoolean("showGestureTips", true),
+                launcherPalette = obj.optString("launcherPalette", "indigo").takeIf { it in VernCustomization.paletteIds } ?: "indigo",
+                splashAnimation = obj.optString("splashAnimation", "bloom").takeIf { it in listOf("bloom", "fade", "rise", "none") } ?: "bloom",
+                scatteredCards = obj.optBoolean("scatteredCards", false),
+                pageTurnStyle = obj.optString("pageTurnStyle", "slide").takeIf { it in listOf("slide", "flip", "hinge", "none") } ?: "slide"
             )
         }
     }
@@ -152,13 +170,17 @@ data class BookCharacter(
     val genderLabel: String = "Neutral",
     val voiceName: String? = null,
     val pitchMultiplier: Float = 1.0f,
-    val rateMultiplier: Float = 1.0f
+    val rateMultiplier: Float = 1.0f,
+    val enginePackage: String? = null,
+    val localeTag: String = ""
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("id", id)
         .put("name", name)
         .put("genderLabel", genderLabel)
         .put("voiceName", voiceName ?: "")
+        .put("enginePackage", enginePackage ?: JSONObject.NULL)
+        .put("localeTag", localeTag)
         .put("pitchMultiplier", pitchMultiplier.toDouble())
         .put("rateMultiplier", rateMultiplier.toDouble())
 
@@ -168,6 +190,8 @@ data class BookCharacter(
             name = obj.optString("name", "Character"),
             genderLabel = obj.optString("genderLabel", "Neutral"),
             voiceName = obj.optString("voiceName").takeIf { it.isNotBlank() },
+            enginePackage = if (obj.isNull("enginePackage")) null else obj.optString("enginePackage"),
+            localeTag = obj.optString("localeTag"),
             pitchMultiplier = obj.optDouble("pitchMultiplier", 1.0).toFloat().coerceIn(0.70f, 1.40f),
             rateMultiplier = obj.optDouble("rateMultiplier", 1.0).toFloat().coerceIn(0.50f, 2.00f)
         )
@@ -186,12 +210,15 @@ data class NarrationSettings(
     val characterProfiles: List<BookCharacter> = listOf(
         BookCharacter(id = "narrator", name = "Narrator", genderLabel = "Neutral", pitchMultiplier = 1.0f, rateMultiplier = 1.0f),
         BookCharacter(id = "dialogue", name = "Dialogue (Default)", genderLabel = "Female", pitchMultiplier = 1.03f, rateMultiplier = 1.02f)
-    )
+    ),
+    val punctuationExpressionEnabled: Boolean = true,
+    val punctuationExpressionStrength: Float = 0.5f
 ) {
     fun toJson(): JSONObject {
         val array = JSONArray()
         characterProfiles.forEach { array.put(it.toJson()) }
         return JSONObject()
+            .put("castVersion", 2)
             .put("enabled", enabled)
             .put("dialogueDetection", dialogueDetection)
             .put("narratorRateMultiplier", narratorRateMultiplier.toDouble())
@@ -200,6 +227,8 @@ data class NarrationSettings(
             .put("dialoguePitchMultiplier", dialoguePitchMultiplier.toDouble())
             .put("showDialogueBadges", showDialogueBadges)
             .put("fullCastEnabled", fullCastEnabled)
+            .put("punctuationExpressionEnabled", punctuationExpressionEnabled)
+            .put("punctuationExpressionStrength", punctuationExpressionStrength.toDouble())
             .put("characterProfiles", array)
     }
 
@@ -225,7 +254,9 @@ data class NarrationSettings(
                 dialoguePitchMultiplier = obj.optDouble("dialoguePitchMultiplier", 1.03).toFloat().coerceIn(0.92f, 1.08f),
                 showDialogueBadges = obj.optBoolean("showDialogueBadges", true),
                 fullCastEnabled = obj.optBoolean("fullCastEnabled", true),
-                characterProfiles = list
+                characterProfiles = list,
+                punctuationExpressionEnabled = obj.optBoolean("punctuationExpressionEnabled", true),
+                punctuationExpressionStrength = obj.optDouble("punctuationExpressionStrength", 0.5).toFloat().coerceIn(0f, 1f)
             )
         }
     }
@@ -257,67 +288,21 @@ data class AskAiSettings(
 }
 
 object NarrationAnalyzer {
-    // Spoken speech attribution verbs
-    private val speakerVerbPattern = Regex(
-        "\\b(said|asked|replied|answered|whispered|shouted|cried|murmured|continued|responded|exclaimed|yelled|muttered|insisted|warned|demanded|explained|added|remarked|grunted|sighed|urged|begged|groaned|thought|screamed|barked|snapped)\\b",
-        RegexOption.IGNORE_CASE
-    )
+    fun isDialogue(text: String): Boolean = LiteraryDialogue.cues(listOf(ReaderSentence(0, text, 1))).firstOrNull()?.dialogue == true
+    fun extractSpeakerName(text: String): String? = LiteraryDialogue.speakerName(text)
 
-    // Dash dialogue: e.g. "— Where are you going?"
-    private val dashDialoguePattern = Regex("^\\s*[—–-]\\s*[\"“'‘]?\\S+")
-
-    // Spoken dialogue inside quotes: must contain spoken punctuation (?, !, comma-quote) or conversational pronouns/contractions
-    private val spokenDialogueQuotePattern = Regex("[\"“]([^\"”]*[?!,]|[^\"”]{3,}\\b(I|you|we|me|my|your|us|our|can't|don't|won't|I'm|you're|it's|what|where|why|how|who)\\b[^\"”]*?)[\"”]")
-
-    // Non-dialogue quotes: single word quotes, scare quotes, title references, e.g. "Chapter 1", "Section A", "so-called"
-    private val nonDialogueTitlePattern = Regex("^[A-Z0-9][A-Za-z0-9\\s]{1,25}$")
-
-    fun isDialogue(text: String): Boolean {
-        val trimmed = text.trim()
-        if (trimmed.isBlank()) return false
-
-        // 1. Dash-prefixed speech lines (very common in novel dialogue)
-        if (dashDialoguePattern.containsMatchIn(trimmed) && trimmed.length > 3) return true
-
-        // 2. Explicit speaker attribution verbs accompanied by quotes (e.g. "Yes," he said)
-        val hasQuoteChar = trimmed.any { it == '\"' || it == '“' || it == '”' || it == '‘' || it == '’' }
-        val hasSpeakerVerb = speakerVerbPattern.containsMatchIn(trimmed)
-        if (hasSpeakerVerb && hasQuoteChar) return true
-
-        // 3. Spoken dialogue in quotes with spoken punctuation or conversational pronouns/contractions
-        val match = spokenDialogueQuotePattern.find(trimmed)
-        if (match != null) {
-            val contentInsideQuote = match.groupValues.getOrNull(1)?.trim() ?: ""
-            // Filter out titles or single scare-quoted terms like "Chapter 1" or "so-called"
-            if (contentInsideQuote.isNotBlank() && !nonDialogueTitlePattern.matches(contentInsideQuote)) {
-                return true
-            }
-        }
-
-        return false
-    }
-
-    fun extractSpeakerName(text: String): String? {
-        val pattern = Regex("[\"”']\\s*(?:said|asked|replied|whispered|shouted|cried|muttered|insisted|exclaimed|yelled|grunted|sighed|demanded|warned)\\s+([A-Z][a-z]+)", RegexOption.IGNORE_CASE)
-        val match = pattern.find(text)
-        if (match != null) return match.groupValues.getOrNull(1)
-
-        val reversePattern = Regex("([A-Z][a-z]+)\\s+(?:said|asked|replied|whispered|shouted|cried|muttered|insisted|exclaimed|yelled|grunted|sighed|demanded|warned)\\s*[\"“']", RegexOption.IGNORE_CASE)
-        val matchRev = reversePattern.find(text)
-        if (matchRev != null) return matchRev.groupValues.getOrNull(1)
-
-        return null
-    }
-
-    fun getActiveCharacter(text: String, settings: NarrationSettings): BookCharacter {
-        if (!settings.enabled || !settings.dialogueDetection || !isDialogue(text)) {
+    fun getActiveCharacter(text: String, settings: NarrationSettings, cue: NarrationCue? = null): BookCharacter {
+        val resolved = cue ?: LiteraryDialogue.cues(listOf(ReaderSentence(0, text, 1))).first()
+        if (!settings.enabled || !settings.dialogueDetection || !resolved.dialogue) {
             return settings.characterProfiles.firstOrNull { it.id == "narrator" }
                 ?: BookCharacter("narrator", "Narrator", pitchMultiplier = settings.narratorPitchMultiplier, rateMultiplier = settings.narratorRateMultiplier)
         }
-        val speakerName = extractSpeakerName(text)
-        if (speakerName != null) {
-            val found = settings.characterProfiles.firstOrNull { it.name.equals(speakerName, ignoreCase = true) }
-            if (found != null) return found
+        if (settings.fullCastEnabled && resolved.speaker != null) {
+            val profiles = settings.characterProfiles.filter { it.id != "narrator" && it.id != "dialogue" }
+            profiles.firstOrNull { it.name.equals(resolved.speaker, ignoreCase = true) }?.let { return it }
+            // "Holmes" can identify "Sherlock Holmes" only when that surname is unambiguous in the cast.
+            profiles.filter { it.name.substringAfterLast(' ').equals(resolved.speaker, ignoreCase = true) }
+                .singleOrNull()?.let { return it }
         }
         return settings.characterProfiles.firstOrNull { it.id == "dialogue" }
             ?: BookCharacter("dialogue", "Dialogue (Default)", pitchMultiplier = settings.dialoguePitchMultiplier, rateMultiplier = settings.dialogueRateMultiplier)
@@ -329,16 +314,20 @@ object NarrationAnalyzer {
         return char.name
     }
 
-    fun effectiveRate(baseRate: Float, settings: NarrationSettings, text: String): Float {
-        if (!settings.enabled) return baseRate
-        val char = getActiveCharacter(text, settings)
-        return (baseRate * char.rateMultiplier).coerceIn(0.5f, 2.0f)
+    fun effectiveRate(baseRate: Float, settings: NarrationSettings, text: String, allowPunctuationExpression: Boolean = true, cue: NarrationCue? = null): Float {
+        val characterRate = if (settings.enabled) getActiveCharacter(text, settings, cue).rateMultiplier else 1f
+        val punctuationRate = if (allowPunctuationExpression && settings.punctuationExpressionEnabled)
+            SpeechPunctuation.rateMultiplier(text, settings.punctuationExpressionStrength) else 1f
+        if (characterRate == 1f && punctuationRate == 1f) return baseRate
+        return (baseRate * characterRate * punctuationRate).coerceIn(0.5f, 2.0f)
     }
 
-    fun effectivePitch(basePitch: Float, settings: NarrationSettings, text: String): Float {
-        if (!settings.enabled) return basePitch
-        val char = getActiveCharacter(text, settings)
-        return (basePitch * char.pitchMultiplier).coerceIn(0.60f, 1.50f)
+    fun effectivePitch(basePitch: Float, settings: NarrationSettings, text: String, allowPunctuationExpression: Boolean = true, cue: NarrationCue? = null): Float {
+        val characterPitch = if (settings.enabled) getActiveCharacter(text, settings, cue).pitchMultiplier else 1f
+        val punctuationPitch = if (allowPunctuationExpression && settings.punctuationExpressionEnabled)
+            SpeechPunctuation.pitchMultiplier(text, settings.punctuationExpressionStrength) else 1f
+        if (characterPitch == 1f && punctuationPitch == 1f) return basePitch
+        return (basePitch * characterPitch * punctuationPitch).coerceIn(0.60f, 1.50f)
     }
 }
 
@@ -457,12 +446,14 @@ data class ReaderTrackerDay(
     val dateKey: String,
     val appOpenCount: Int = 0,
     val usageMillis: Long = 0L,
-    val readDocumentIds: Set<String> = emptySet()
+    val readDocumentIds: Set<String> = emptySet(),
+    val readingMillis: Long = 0L
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("dateKey", dateKey)
         .put("appOpenCount", appOpenCount)
         .put("usageMillis", usageMillis)
+        .put("readingMillis", readingMillis)
         .put("readDocumentIds", JSONArray().also { array -> readDocumentIds.sorted().forEach(array::put) })
 
     companion object {
@@ -476,7 +467,8 @@ data class ReaderTrackerDay(
                 dateKey = obj.optString("dateKey"),
                 appOpenCount = obj.optInt("appOpenCount", 0).coerceAtLeast(0),
                 usageMillis = obj.optLong("usageMillis", 0L).coerceAtLeast(0L),
-                readDocumentIds = ids
+                readDocumentIds = ids,
+                readingMillis = obj.optLong("readingMillis", 0L).coerceAtLeast(0L)
             )
         }
     }
@@ -524,7 +516,14 @@ data class ReaderTrackerSnapshot(
     val weeklyHistory: List<WeekBars> = emptyList(),
     val recentCompletions: List<ReaderTrackerCompletion> = emptyList(),
     val activeDateKeys: Set<String> = emptySet(),
-    val openedDateKeys: Set<String> = emptySet()
+    val openedDateKeys: Set<String> = emptySet(),
+    val readingMillisByDate: Map<String, Long> = emptyMap(),
+    val weeklyReadingMillis: Long = 0L,
+    val sessions: List<ReadingSession> = emptyList(),
+    val measuredReadingMillisByDate: Map<String, Long> = emptyMap(),
+    val listeningMillisByDate: Map<String, Long> = emptyMap(),
+    val legacyReadingMillisByDate: Map<String, Long> = emptyMap(),
+    val completionDates: Map<String, Long> = emptyMap()
 ) {
     companion object {
         fun empty(): ReaderTrackerSnapshot = ReaderTrackerSnapshot()

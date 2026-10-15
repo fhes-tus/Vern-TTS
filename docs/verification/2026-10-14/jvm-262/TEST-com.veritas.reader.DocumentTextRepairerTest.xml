@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.DocumentTextRepairerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:41.948Z" hostname="FIRWEWALL" time="0.01">
+  <properties/>
+  <testcase name="repairPseudoTables restores corrupted Atomic Habits text to clean paragraphs" classname="com.veritas.reader.DocumentTextRepairerTest" time="0.007"/>
+  <testcase name="repairPseudoTables leaves real markdown tables untouched" classname="com.veritas.reader.DocumentTextRepairerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,37 @@
+INSTRUMENTATION_STATUS: class=com.veritas.reader.SuppliedDocumentDisplayTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.SuppliedDocumentDisplayTest:
+INSTRUMENTATION_STATUS: test=suppliedBreastMilkReportKeepsCoverTableAndIllustrationAccessible
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.SuppliedDocumentDisplayTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=suppliedBreastMilkReportKeepsCoverTableAndIllustrationAccessible
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.SuppliedDocumentDisplayTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=suppliedIsoDeckKeepsSimpleSourceSlidesCompactAndSelectable
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.SuppliedDocumentDisplayTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=2
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=suppliedIsoDeckKeepsSimpleSourceSlidesCompactAndSelectable
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 22.574
+
+OK (2 tests)
+
+
+INSTRUMENTATION_CODE: -1

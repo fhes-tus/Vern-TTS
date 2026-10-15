@@ -1,6 +1,5 @@
 package com.veritas.reader.ui.screens
 
-import android.speech.tts.TextToSpeech
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -61,8 +60,14 @@ import androidx.compose.ui.unit.sp
 import com.veritas.reader.DocumentRepository
 import com.veritas.reader.PlaybackActions
 import com.veritas.reader.ReaderDocument
-import com.veritas.reader.VoiceConfigurator
 import com.veritas.reader.sendPlaybackIntent
+import com.veritas.reader.PlaybackStateStore
+import com.veritas.reader.RsvpPlaybackSession
+import com.veritas.reader.RsvpTransport
+import com.veritas.reader.SpeechPositionTiming
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.veritas.reader.ui.VeritasSleekSlider
 import kotlinx.coroutines.delay
 
@@ -73,7 +78,9 @@ data class RsvpWordToken(
     val word: String,
     val sentenceIndex: Int,
     val orpIndex: Int,
-    val delayMultiplier: Float = 1.0f
+    val delayMultiplier: Float = 1.0f,
+    val sourceStart: Int = 0,
+    val sourceEnd: Int = word.length
 )
 
 /**
@@ -85,27 +92,15 @@ fun RsvpSpeedReader(
     initialSentenceIndex: Int,
     onClose: (targetSentenceIndex: Int) -> Unit
 ) {
-    // 1. Flatten all document chunks into RSVP word tokens
-    val tokens = remember(document.id, document.chunks) {
-        val list = mutableListOf<RsvpWordToken>()
-        document.chunks.forEachIndexed { sentenceIdx, chunk ->
-            val words = chunk.split(Regex("\\s+")).filter { it.isNotBlank() }
-            words.forEach { rawWord ->
-                val cleanWord = rawWord.trim()
-                if (cleanWord.isNotBlank()) {
-                    val orp = calculateOrpIndex(cleanWord)
-                    val multiplier = when {
-                        cleanWord.endsWith(".") || cleanWord.endsWith("!") || cleanWord.endsWith("?") -> 2.0f
-                        cleanWord.endsWith(",") || cleanWord.endsWith(";") || cleanWord.endsWith(":") -> 1.4f
-                        cleanWord.length >= 10 -> 1.25f
-                        else -> 1.0f
-                    }
-                    list.add(RsvpWordToken(cleanWord, sentenceIdx, orp, multiplier))
-                }
-            }
-        }
-        list
-    }
+    val context = LocalContext.current
+    val audioSession = remember(context, document.id) { RsvpPlaybackSession(context, document.id) }
+    RsvpSpeedReaderContent(document, initialSentenceIndex, onClose, audioSession)
+}
+
+@Composable
+internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceIndex: Int,
+    onClose: (Int) -> Unit, audioSession: RsvpTransport) {
+    val tokens = remember(document.id, document.chunks) { buildRsvpWordTokens(document.chunks) }
 
     // Find starting word index matching initialSentenceIndex
     val startingWordIndex = remember(tokens, initialSentenceIndex) {
@@ -113,80 +108,66 @@ fun RsvpSpeedReader(
         if (found >= 0) found else 0
     }
 
-    var currentWordIndex by remember { mutableIntStateOf(startingWordIndex) }
-    var isPlaying by remember { mutableStateOf(false) }
-    var wordsPerMinute by remember { mutableFloatStateOf(350f) }
-    var audioNarration by remember { mutableStateOf(false) }
-    var showControls by remember { mutableStateOf(true) }
-
     val context = LocalContext.current
-    val voiceSettings = remember(context) {
-        DocumentRepository(context).loadVoiceSettings()
+    val preferences = remember(context) { DocumentRepository(context).prefs }
+    var currentWordIndex by remember(document.id) { mutableIntStateOf(startingWordIndex) }
+    var isPlaying by remember(document.id) { mutableStateOf(false) }
+    var wordsPerMinute by remember { mutableFloatStateOf(preferences.getFloat("rsvp_wpm", 350f).coerceIn(150f, 850f)) }
+    var audioRate by remember { mutableFloatStateOf(preferences.getFloat("rsvp_audio_rate", 1f).coerceIn(.5f, 2f)) }
+    var audioNarration by remember { mutableStateOf(document.id != null && preferences.getBoolean("rsvp_audio_mode", false)) }
+    var showControls by remember { mutableStateOf(true) }
+    var seekRevision by remember { mutableIntStateOf(0) }
+    var audioHasStarted by remember { mutableStateOf(false) }
+    DisposableEffect(audioSession) {
+        audioSession.enter()
+        onDispose { audioSession.close() }
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_PAUSE) isPlaying = false }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    LaunchedEffect(wordsPerMinute, audioRate, audioNarration) {
+        delay(300)
+        preferences.edit().putFloat("rsvp_wpm", wordsPerMinute).putFloat("rsvp_audio_rate", audioRate)
+            .putBoolean("rsvp_audio_mode", audioNarration).apply()
     }
 
-    LaunchedEffect(Unit) {
-        sendPlaybackIntent(context, PlaybackActions.ACTION_PAUSE)
-    }
-
-    var ttsEngine by remember { mutableStateOf<TextToSpeech?>(null) }
-    var isTtsReady by remember { mutableStateOf(false) }
-
-    DisposableEffect(context) {
-        var tts: TextToSpeech? = null
-        tts = TextToSpeech(context.applicationContext) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                tts?.let { engine ->
-                    VoiceConfigurator.apply(engine, voiceSettings)
-                    engine.setPitch(voiceSettings.preferredPitch)
-                }
-                isTtsReady = true
-            }
-        }
-        ttsEngine = tts
-        onDispose {
-            tts.stop()
-            tts.shutdown()
-        }
-    }
-
-    // Speed timer loop
-    LaunchedEffect(isPlaying, currentWordIndex, wordsPerMinute, tokens.size) {
-        if (isPlaying && currentWordIndex < tokens.size) {
+    // Silent mode alone uses WPM. Audio mode advances from the existing player's source ranges.
+    LaunchedEffect(isPlaying, audioNarration, currentWordIndex, wordsPerMinute, tokens.size) {
+        if (isPlaying && !audioNarration && currentWordIndex < tokens.size) {
             val token = tokens.getOrNull(currentWordIndex)
-            val baseDelayMs = (60_000f / wordsPerMinute).toLong()
-            val finalDelayMs = (baseDelayMs * (token?.delayMultiplier ?: 1.0f)).toLong().coerceAtLeast(40L)
-            delay(finalDelayMs)
-            if (currentWordIndex < tokens.lastIndex) {
-                currentWordIndex++
-            } else {
-                isPlaying = false
-            }
+            delay(((60_000f / wordsPerMinute) * (token?.delayMultiplier ?: 1f)).toLong().coerceAtLeast(40))
+            if (currentWordIndex < tokens.lastIndex) currentWordIndex++ else isPlaying = false
         }
     }
-
+    LaunchedEffect(isPlaying, audioNarration, seekRevision, audioRate) {
+        audioHasStarted = false
+        if (audioNarration && isPlaying) {
+            tokens.getOrNull(currentWordIndex)?.let { audioSession.play(it.sentenceIndex, it.sourceStart, audioRate) }
+        } else audioSession.pause()
+    }
+    val speechPosition = PlaybackStateStore.speechPosition
+    val playerPlaying = PlaybackStateStore.isPlaying
+    val preparing = PlaybackStateStore.isPreparingFor(document.id)
+    val failure = PlaybackStateStore.playbackFailure
+    LaunchedEffect(audioNarration, speechPosition, playerPlaying, preparing, failure) {
+        if (audioNarration && isPlaying) {
+            if (speechPosition != null && audioSession.accepts(speechPosition)) {
+                audioHasStarted = true
+                val next = rsvpTokenAtSource(tokens, speechPosition.sentenceIndex, speechPosition.sourceStart)
+                if (next >= 0) currentWordIndex = next
+            }
+            if ((audioHasStarted || failure != null) && !playerPlaying && !preparing) isPlaying = false
+        }
+    }
     val currentToken = tokens.getOrNull(currentWordIndex)
     val activeSentenceIndex = currentToken?.sentenceIndex ?: initialSentenceIndex
-
-    // TTS speech synchronization effect
-    var lastSpokenSentenceIndex by remember { mutableIntStateOf(-1) }
-    LaunchedEffect(isPlaying, audioNarration, activeSentenceIndex, isTtsReady) {
-        if (audioNarration && isPlaying && isTtsReady && ttsEngine != null) {
-            if (activeSentenceIndex != lastSpokenSentenceIndex) {
-                lastSpokenSentenceIndex = activeSentenceIndex
-                val sentenceText = document.chunks.getOrNull(activeSentenceIndex)
-                if (!sentenceText.isNullOrBlank()) {
-                    val ttsRate = (wordsPerMinute / 200f).coerceIn(0.5f, 3.0f)
-                    ttsEngine?.setSpeechRate(ttsRate)
-                    ttsEngine?.setPitch(voiceSettings.preferredPitch)
-                    ttsEngine?.speak(sentenceText, TextToSpeech.QUEUE_FLUSH, null, "rsvp_$activeSentenceIndex")
-                }
-            }
-        } else {
-            ttsEngine?.stop()
-            if (!isPlaying) {
-                lastSpokenSentenceIndex = -1
-            }
-        }
+    val timingLabel = when (speechPosition?.takeIf { it.documentId == document.id }?.timing) {
+        SpeechPositionTiming.WORD_RANGE -> "Audio · word timing"
+        SpeechPositionTiming.ESTIMATED_PCM -> "Audio · estimated word timing"
+        else -> "Audio · sentence timing"
     }
 
     Surface(
@@ -246,7 +227,7 @@ fun RsvpSpeedReader(
                     }
 
                     IconButton(
-                        onClick = { currentWordIndex = 0; isPlaying = true },
+                        onClick = { currentWordIndex = 0; seekRevision++; isPlaying = true },
                         modifier = Modifier
                             .size(44.dp)
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f), CircleShape)
@@ -288,8 +269,9 @@ fun RsvpSpeedReader(
                     val orp = currentToken.orpIndex.coerceIn(0, (word.length - 1).coerceAtLeast(0))
 
                     val prefix = word.substring(0, orp)
-                    val focalChar = word.getOrNull(orp)?.toString().orEmpty()
-                    val suffix = if (orp + 1 < word.length) word.substring(orp + 1) else ""
+                    val focalEnd = (orp + Character.charCount(word.codePointAt(orp))).coerceAtMost(word.length)
+                    val focalChar = word.substring(orp, focalEnd)
+                    val suffix = word.substring(focalEnd)
 
                     val styledWord = buildAnnotatedString {
                         withStyle(SpanStyle(color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Normal)) {
@@ -369,7 +351,7 @@ fun RsvpSpeedReader(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(
-                                onClick = { currentWordIndex = (currentWordIndex - 20).coerceAtLeast(0) }
+                                onClick = { currentWordIndex = (currentWordIndex - 20).coerceAtLeast(0); seekRevision++ }
                             ) {
                                 Icon(
                                     Icons.Filled.FastRewind,
@@ -382,7 +364,7 @@ fun RsvpSpeedReader(
                                 modifier = Modifier
                                     .size(56.dp)
                                     .clip(CircleShape)
-                                    .clickable { isPlaying = !isPlaying },
+                                    .clickable { if (tokens.isNotEmpty()) isPlaying = !isPlaying },
                                 color = MaterialTheme.colorScheme.primary
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
@@ -397,7 +379,7 @@ fun RsvpSpeedReader(
 
                             IconButton(
                                 onClick = {
-                                    currentWordIndex = (currentWordIndex + 20).coerceAtMost(tokens.lastIndex.coerceAtLeast(0))
+                                    currentWordIndex = (currentWordIndex + 20).coerceAtMost(tokens.lastIndex.coerceAtLeast(0)); seekRevision++
                                 }
                             ) {
                                 Icon(
@@ -421,14 +403,14 @@ fun RsvpSpeedReader(
                                 modifier = Modifier.size(20.dp)
                             )
                             VeritasSleekSlider(
-                                value = wordsPerMinute,
-                                onValueChange = { wordsPerMinute = it },
-                                valueRange = 150f..850f,
-                                steps = 13,
+                                value = if (audioNarration) audioRate else wordsPerMinute,
+                                onValueChange = { if (audioNarration) audioRate = it else wordsPerMinute = it },
+                                valueRange = if (audioNarration) .5f..2f else 150f..850f,
+                                steps = if (audioNarration) 0 else 13,
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
-                                text = "${wordsPerMinute.toInt()} WPM",
+                                text = if (audioNarration) "${String.format(java.util.Locale.ROOT, "%.2f", audioRate)}×" else "${wordsPerMinute.toInt()} WPM",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
@@ -444,6 +426,7 @@ fun RsvpSpeedReader(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Row(
+                                modifier = Modifier.weight(1f),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
@@ -454,7 +437,7 @@ fun RsvpSpeedReader(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = if (audioNarration) "Audio Pacing (Sync Voice)" else "Silent Visual RSVP",
+                                    text = if (audioNarration) timingLabel else if (document.id == null) "Silent RSVP · save for audio" else "Silent visual RSVP",
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -462,12 +445,31 @@ fun RsvpSpeedReader(
                             }
                             Switch(
                                 checked = audioNarration,
-                                onCheckedChange = { audioNarration = it }
+                                onCheckedChange = { audioNarration = it },
+                                enabled = tokens.isNotEmpty() && document.id != null
                             )
                         }
+                        if (audioNarration && PlaybackStateStore.activeDocumentId == document.id) Text(
+                            if (preparing) "Preparing audio…" else PlaybackStateStore.statusMessage,
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
+        }
+    }
+}
+
+internal fun buildRsvpWordTokens(chunks: List<String>): List<RsvpWordToken> = buildList {
+    chunks.forEachIndexed { sentence, chunk ->
+        Regex("\\S+").findAll(chunk).forEach { match ->
+            val word = match.value
+            val multiplier = when {
+                word.endsWith(".") || word.endsWith("!") || word.endsWith("?") -> 2f
+                word.endsWith(",") || word.endsWith(";") || word.endsWith(":") -> 1.4f
+                word.length >= 10 -> 1.25f
+                else -> 1f
+            }
+            add(RsvpWordToken(word, sentence, calculateOrpIndex(word), multiplier, match.range.first, match.range.last + 1))
         }
     }
 }
@@ -481,12 +483,26 @@ fun RsvpSpeedReader(
  * 14+ chars -> 4 (5th letter)
  */
 private fun calculateOrpIndex(word: String): Int {
-    val len = word.length
-    return when {
+    val len = word.codePointCount(0, word.length)
+    val point = when {
         len <= 3 -> 0
         len <= 5 -> 1
         len <= 9 -> 2
         len <= 13 -> 3
         else -> 4
     }
+    return word.offsetByCodePoints(0, point.coerceAtMost((len - 1).coerceAtLeast(0)))
+}
+
+/** Lower bound over source-ordered tokens: long books do not scan every word per callback. */
+internal fun rsvpTokenAtSource(tokens: List<RsvpWordToken>, sentence: Int, offset: Int): Int {
+    var low = 0
+    var high = tokens.size
+    while (low < high) {
+        val mid = (low + high) ushr 1
+        val token = tokens[mid]
+        if (token.sentenceIndex < sentence || (token.sentenceIndex == sentence && token.sourceEnd <= offset)) low = mid + 1
+        else high = mid
+    }
+    return low.takeIf { it < tokens.size && tokens[it].sentenceIndex == sentence } ?: -1
 }

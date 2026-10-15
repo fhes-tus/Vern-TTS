@@ -82,7 +82,7 @@ internal fun PlaybackService.seekToEstimatedPosition(positionMs: Long) {
     val targetIndex = indexForEstimatedPosition(positionMs).coerceIn(0, chunks.lastIndex)
     clearResumePoint()
     PlaybackStateStore.currentIndex = targetIndex
-    activeDocument?.let { repository.updateProgress(it.id, targetIndex, chunks.size) }
+    activeDocument?.let { repository.saveProgress(it.id, targetIndex) }
     if (PlaybackStateStore.isPlaying) {
         speakCurrent()
     } else {
@@ -189,23 +189,23 @@ internal fun PlaybackService.setupMediaSession() {
         snapshot = { mediaSessionSnapshot() },
         controller = object : VeritasMediaSessionPlayer.Controller {
             override fun play() {
-                startService(Intent(this@setupMediaSession, PlaybackService::class.java).setAction(PlaybackActions.ACTION_PLAY))
+                startService(PlaybackCommandSecurity.authorize(this@setupMediaSession, Intent(this@setupMediaSession, PlaybackService::class.java).setAction(PlaybackActions.ACTION_PLAY)))
             }
 
             override fun pause() {
-                startService(Intent(this@setupMediaSession, PlaybackService::class.java).setAction(PlaybackActions.ACTION_PAUSE))
+                startService(PlaybackCommandSecurity.authorize(this@setupMediaSession, Intent(this@setupMediaSession, PlaybackService::class.java).setAction(PlaybackActions.ACTION_PAUSE)))
             }
 
             override fun stop() {
-                startService(Intent(this@setupMediaSession, PlaybackService::class.java).setAction(PlaybackActions.ACTION_STOP))
+                startService(PlaybackCommandSecurity.authorize(this@setupMediaSession, Intent(this@setupMediaSession, PlaybackService::class.java).setAction(PlaybackActions.ACTION_STOP)))
             }
 
             override fun next() {
-                startService(Intent(this@setupMediaSession, PlaybackService::class.java).setAction(PlaybackActions.ACTION_NEXT))
+                startService(PlaybackCommandSecurity.authorize(this@setupMediaSession, Intent(this@setupMediaSession, PlaybackService::class.java).setAction(PlaybackActions.ACTION_NEXT)))
             }
 
             override fun previous() {
-                startService(Intent(this@setupMediaSession, PlaybackService::class.java).setAction(PlaybackActions.ACTION_PREVIOUS))
+                startService(PlaybackCommandSecurity.authorize(this@setupMediaSession, Intent(this@setupMediaSession, PlaybackService::class.java).setAction(PlaybackActions.ACTION_PREVIOUS)))
             }
 
             override fun seekTo(positionMs: Long) {
@@ -268,12 +268,13 @@ internal fun PlaybackService.mediaSessionSnapshot(): VeritasMediaSessionPlayer.P
         positionMs = estimatedPositionMs(),
         rate = PlaybackStateStore.rate,
         pitch = PlaybackStateStore.pitch,
-        artworkData = artworkBytes
+        artworkData = artworkBytes,
+        isPreparing = PlaybackStateStore.isPreparing
     )
 }
 
 internal fun PlaybackService.servicePendingIntent(action: String, requestCode: Int): PendingIntent {
-    val intent = Intent(this, PlaybackService::class.java).setAction(action)
+    val intent = PlaybackCommandSecurity.authorize(this, Intent(this, PlaybackService::class.java).setAction(action))
     return PendingIntent.getService(this, requestCode, intent, pendingIntentFlags())
 }
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.MathTextTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:42.492Z" hostname="FIRWEWALL" time="0.025">
+  <properties/>
+  <testcase name="plain prose is untouched" classname="com.veritas.reader.MathTextTest" time="0.004"/>
+  <testcase name="latex commands become unicode" classname="com.veritas.reader.MathTextTest" time="0.012"/>
+  <testcase name="braced scripts" classname="com.veritas.reader.MathTextTest" time="0.002"/>
+  <testcase name="dollar delimiters are stripped" classname="com.veritas.reader.MathTextTest" time="0.0"/>
+  <testcase name="single-char superscripts and subscripts" classname="com.veritas.reader.MathTextTest" time="0.0"/>
+  <testcase name="empty and no-signal strings pass through" classname="com.veritas.reader.MathTextTest" time="0.0"/>
+  <testcase name="longerCommandsAndUnknownCommandsRemainIntact" classname="com.veritas.reader.MathTextTest" time="0.0"/>
+  <testcase name="unmappable superscript keeps legible fallback" classname="com.veritas.reader.MathTextTest" time="0.001"/>
+  <testcase name="markdown double-underscore underline is preserved" classname="com.veritas.reader.MathTextTest" time="0.001"/>
+  <testcase name="fractions and roots" classname="com.veritas.reader.MathTextTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

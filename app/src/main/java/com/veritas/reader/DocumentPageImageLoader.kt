@@ -15,16 +15,32 @@ import kotlinx.coroutines.withContext
  * from the original document storage (EPUB chapters, DOCX pages, PPTX slides)
  * and caches decoded bitmaps in memory.
  */
+data class DocumentPageMedia(val bitmaps: List<Bitmap?>, val followingTexts: List<String?> = emptyList())
+
 object DocumentPageImageLoader {
 
     private val loaderMutex = Mutex()
-    private val maxCacheSize = (Runtime.getRuntime().maxMemory() / 32).toInt().coerceIn(2 * 1024 * 1024, 8 * 1024 * 1024)
-
-    private val bitmapCache = object : LruCache<String, List<Bitmap>>(maxCacheSize) {
-        override fun sizeOf(key: String, value: List<Bitmap>): Int {
-            return value.sumOf { it.byteCount }
+    private val clearParsedPdf = java.util.concurrent.atomic.AtomicBoolean(false)
+    // One parsed source avoids reopening a large PDF for each new reader page.
+    // All access and eviction run under loaderMutex, including closing PDFBox.
+    private val parsedPdfCache = object : LruCache<String, com.tom_roush.pdfbox.pdmodel.PDDocument>(1) {
+        override fun entryRemoved(evicted: Boolean, key: String, oldValue: com.tom_roush.pdfbox.pdmodel.PDDocument, newValue: com.tom_roush.pdfbox.pdmodel.PDDocument?) {
+            if (oldValue !== newValue) runCatching { oldValue.close() }
         }
     }
+    private val maxCacheSize = (Runtime.getRuntime().maxMemory() / 32).toInt().coerceIn(2 * 1024 * 1024, 8 * 1024 * 1024)
+
+    private val bitmapCache = object : LruCache<String, DocumentPageMedia>(maxCacheSize) {
+        override fun sizeOf(key: String, value: DocumentPageMedia): Int {
+            // Empty pages also consume cache space. Keep geometry and pixels under
+            // one eviction policy so cached images never lose their anchors.
+            return 256 + value.bitmaps.filterNotNull().sumOf { it.byteCount } +
+                value.followingTexts.sumOf { (it?.length ?: 0) * 2 }
+        }
+    }
+
+    fun getPageImageAnchors(documentId: String, pageNumber: Int): List<String?> =
+        bitmapCache.get(cacheKey(documentId, pageNumber))?.followingTexts.orEmpty()
 
     private val epubBookCache = object : LruCache<String, EpubBook>(4) {}
     private val docxDocCache = object : LruCache<String, DocxDocument>(4) {}
@@ -42,16 +58,23 @@ object DocumentPageImageLoader {
     )
     private val docInfoCache = object : LruCache<String, CachedDocInfo>(8) {}
 
-    fun getCachedPageImages(documentId: String, pageNumber: Int): List<Bitmap>? {
-        return bitmapCache.get(cacheKey(documentId, pageNumber))
+    fun getCachedPageImages(documentId: String, pageNumber: Int): List<Bitmap?>? {
+        return getCachedPageMedia(documentId, pageNumber)?.bitmaps
     }
 
+    fun getCachedPageMedia(documentId: String, pageNumber: Int): DocumentPageMedia? =
+        bitmapCache.get(cacheKey(documentId, pageNumber))
+
     suspend fun loadPageImages(
+        context: Context, repository: DocumentRepository, documentId: String, pageNumber: Int
+    ): List<Bitmap?> = loadPageMedia(context, repository, documentId, pageNumber).bitmaps
+
+    suspend fun loadPageMedia(
         context: Context,
         repository: DocumentRepository,
         documentId: String,
         pageNumber: Int
-    ): List<Bitmap> = withContext(Dispatchers.IO) {
+    ): DocumentPageMedia = withContext(Dispatchers.IO) {
         runCatching {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND)
         }
@@ -59,12 +82,13 @@ object DocumentPageImageLoader {
         bitmapCache.get(key)?.let { return@withContext it }
 
         loaderMutex.withLock {
+            if (clearParsedPdf.getAndSet(false)) parsedPdfCache.evictAll()
             bitmapCache.get(key)?.let { return@withLock it }
 
             val docInfo = docInfoCache.get(documentId) ?: run {
-                val savedDoc = repository.findDocument(documentId) ?: return@withLock emptyList()
+                val savedDoc = repository.findDocument(documentId) ?: return@withLock DocumentPageMedia(emptyList())
                 val originalFile = repository.originalFile(savedDoc)
-                val originalUri = repository.originalUri(savedDoc) ?: originalFile?.let { android.net.Uri.fromFile(it) } ?: return@withLock emptyList()
+                val originalUri = repository.originalUri(savedDoc) ?: originalFile?.let { android.net.Uri.fromFile(it) } ?: return@withLock DocumentPageMedia(emptyList())
 
                 val isPdf = detectIsPdf(savedDoc, repository, context)
                 val isImage = detectIsImage(savedDoc, repository, context, isPdf)
@@ -81,12 +105,13 @@ object DocumentPageImageLoader {
             val originalFile = docInfo.originalFile
             val originalUri = docInfo.originalUri
             val isPdf = docInfo.isPdf
-            val isImage = docInfo.isImage
+            docInfo.isImage
             val isPresentation = docInfo.isPresentation
             val isEpub = docInfo.isEpub
             val isDocx = docInfo.isDocx
 
-            val bitmaps = mutableListOf<Bitmap>()
+            val bitmaps = mutableListOf<Bitmap?>()
+            var followingTexts: List<String?> = emptyList()
 
         try {
             when {
@@ -99,7 +124,7 @@ object DocumentPageImageLoader {
 
                     val chapter = book?.chapters?.getOrNull(pageNumber - 1)
                     chapter?.images?.forEach { bytes ->
-                        decodeScaledBitmap(bytes, 720, 720)?.let { bitmaps.add(it) }
+                        bitmaps.add(decodeScaledBitmap(bytes, 720, 720))
                     }
                 }
                 isDocx -> {
@@ -111,7 +136,7 @@ object DocumentPageImageLoader {
 
                     val page = doc?.pages?.getOrNull(pageNumber - 1)
                     page?.blocks?.filterIsInstance<DocxBlock.Image>()?.forEach { block ->
-                        decodeScaledBitmap(block.imageBytes, 720, 720)?.let { bitmaps.add(it) }
+                        bitmaps.add(decodeScaledBitmap(block.imageBytes, 720, 720))
                     }
                 }
                 isPdf -> {
@@ -121,20 +146,22 @@ object DocumentPageImageLoader {
                     val memorySetting = com.tom_roush.pdfbox.io.MemoryUsageSetting.setupMixed(10L * 1024 * 1024).apply {
                         setTempDir(java.io.File(context.cacheDir, "pdfbox_temp").apply { mkdirs() })
                     }
-                    val doc = if (originalFile != null && originalFile.exists()) {
-                        com.tom_roush.pdfbox.pdmodel.PDDocument.load(originalFile, memorySetting)
-                    } else {
-                        context.contentResolver.openInputStream(originalUri)?.let { stream ->
-                            com.tom_roush.pdfbox.pdmodel.PDDocument.load(stream, memorySetting)
+                    val sourceKey = "$documentId:${originalFile?.length()}:${originalFile?.lastModified()}:$originalUri"
+                    val doc = parsedPdfCache.get(sourceKey) ?: run {
+                        val loaded = if (originalFile != null && originalFile.exists()) {
+                            com.tom_roush.pdfbox.pdmodel.PDDocument.load(originalFile, memorySetting)
+                        } else {
+                            context.contentResolver.openInputStream(originalUri)?.use { stream ->
+                                com.tom_roush.pdfbox.pdmodel.PDDocument.load(stream, memorySetting)
+                            }
                         }
+                        loaded?.also { parsedPdfCache.put(sourceKey, it) }
                     }
-                    doc?.use { pdDoc ->
+                    doc?.let { pdDoc ->
                         val pageIdx = (pageNumber - 1).coerceIn(0, pdDoc.numberOfPages - 1)
-                        val pdPage = pdDoc.getPage(pageIdx)
-                        val resources = pdPage.resources
-                        if (resources != null) {
-                            extractPdfImages(resources, bitmaps, maxImages = 3)
-                        }
+                        val illustrations = PdfIllustrationExtractor.extract(pdDoc, pageIdx + 1)
+                        bitmaps.addAll(illustrations.map { it.bitmap })
+                        followingTexts = illustrations.map { it.followingText }
                     }
                 }
                 isPresentation -> {
@@ -153,21 +180,20 @@ object DocumentPageImageLoader {
                                 val entry = zip.nextEntry ?: break
                                 if (entry.name in wanted || entry.name.trimStart('/') in wanted) {
                                     val bytes = zip.readBytes()
-                                    decodeScaledBitmap(bytes, 720, 720)?.let { bitmaps.add(it) }
+                                    bitmaps.add(decodeScaledBitmap(bytes, 720, 720))
                                 }
                             }
                         }
                     }
                 }
             }
-        } catch (_: Throwable) {
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
             // Gracefully ignore corrupt or missing media entries
         }
 
-        if (bitmaps.isNotEmpty()) {
-            bitmapCache.put(key, bitmaps)
-        }
-        bitmaps
+        DocumentPageMedia(bitmaps.toList(), followingTexts).also { bitmapCache.put(key, it) }
         }
     }
 
@@ -193,61 +219,12 @@ object DocumentPageImageLoader {
         }.getOrNull()
     }
 
-    private fun extractPdfImages(
-        resources: com.tom_roush.pdfbox.pdmodel.PDResources,
-        dest: MutableList<Bitmap>,
-        maxImages: Int
-    ) {
-        if (dest.size >= maxImages) return
-        for (name in resources.xObjectNames) {
-            if (dest.size >= maxImages) break
-            val xObject = runCatching { resources.getXObject(name) }.getOrNull() ?: continue
-            if (xObject is com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject) {
-                val w = runCatching { xObject.width }.getOrDefault(0)
-                val h = runCatching { xObject.height }.getOrDefault(0)
-                if (w < 80 || h < 80 || w > 8000 || h > 8000) continue
-
-                var scaledBm: Bitmap? = null
-
-                // Try fast, low-memory decode directly from raw stream first
-                val rawBytes = runCatching { xObject.createInputStream()?.use { it.readBytes() } }.getOrNull()
-                if (rawBytes != null && rawBytes.isNotEmpty()) {
-                    scaledBm = decodeScaledBitmap(rawBytes, 720, 720)
-                }
-
-                // Fallback to PDFBox image parser if custom color space/filter
-                if (scaledBm == null) {
-                    val rawBm = runCatching { xObject.image }.getOrNull()
-                    if (rawBm != null) {
-                        if (rawBm.width > 720 || rawBm.height > 720) {
-                            val ratio = minOf(720f / rawBm.width, 720f / rawBm.height)
-                            val targetW = (rawBm.width * ratio).toInt().coerceAtLeast(1)
-                            val targetH = (rawBm.height * ratio).toInt().coerceAtLeast(1)
-                            scaledBm = Bitmap.createScaledBitmap(rawBm, targetW, targetH, true)
-                            if (scaledBm !== rawBm) {
-                                rawBm.recycle()
-                            }
-                        } else {
-                            scaledBm = rawBm
-                        }
-                    }
-                }
-
-                if (scaledBm != null && scaledBm.width >= 80 && scaledBm.height >= 80) {
-                    dest.add(scaledBm)
-                }
-            } else if (xObject is com.tom_roush.pdfbox.pdmodel.graphics.form.PDFormXObject) {
-                val nestedRes = xObject.resources
-                if (nestedRes != null) {
-                    extractPdfImages(nestedRes, dest, maxImages)
-                }
-            }
-        }
-    }
-
     private fun cacheKey(documentId: String, pageNumber: Int) = "${documentId}_p_$pageNumber"
 
     fun clear() {
+        if (loaderMutex.tryLock()) {
+            try { parsedPdfCache.evictAll() } finally { loaderMutex.unlock() }
+        } else clearParsedPdf.set(true)
         bitmapCache.evictAll()
         epubBookCache.evictAll()
         docxDocCache.evictAll()

@@ -118,7 +118,7 @@ fun UserManualDialog(
     onNavigateToSetting: (String) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    
+
     val allSections = remember {
         listOf(
             ManualSection(
@@ -159,17 +159,17 @@ fun UserManualDialog(
                     ManualChapter(
                         title = "Four Main Workspaces",
                         icon = Icons.Outlined.ViewStream,
-                        subtitle = "Home, Library, Study, and Settings Hub",
-                        content = "Vern is organized into 4 primary tabs: 'Home' for daily reading momentum, 'Library' for your document catalog and imports, 'Study' for flashcards and reading insights, and 'Settings' for complete audio, visual, and backup configuration.",
+                        subtitle = "Home, Library, Study, and Notes Hub",
+                        content = "Vern is organized into 4 primary tabs: 'Home' for daily reading momentum, 'Library' for your document catalog and public classics, 'Study' for flashcards and reading insights, and 'Notes' for voice memos, web link bookmarks, and reflections. Open app Settings anytime from the top bar.",
                         ctaText = "Explore Settings",
                         ctaAction = "settings_hub",
                         flowSteps = listOf(
-                            "Use the bottom bar to switch between Home, Library, Study, and Settings",
+                            "Use the bottom bar to switch between Home, Library, Study, and Notes",
                             "Enjoy fluid animated transitions between all four tabs",
-                            "Access all tools without getting lost in nested submenus"
+                            "Access Settings and tools via the top header bar"
                         ),
                         imageResId = R.drawable.manual_settings_hub,
-                        tags = listOf("tabs", "navigation", "workspaces", "home", "library", "study", "settings hub")
+                        tags = listOf("tabs", "navigation", "workspaces", "home", "library", "study", "notes", "settings hub")
                     )
                 )
             ),
@@ -197,31 +197,31 @@ fun UserManualDialog(
                         title = "Document Actions & Metadata",
                         icon = Icons.Outlined.MoreVert,
                         subtitle = "Edit document titles, authors, and options",
-                        content = "Access control options for individual documents using the three-dot overflow button on any book card. Edit titles, modify author names, assign tags, add documents to reading lists, reset reading progress, or delete files from storage.",
+                        content = "Use the three-dot menu on a book card to rename it, organize it, view details or save it to your phone. Choose 'Save to phone' and select a destination in Android's file picker. The copy remains available after uninstalling Vern. Available originals keep their format; catalog books and extracted text are saved as TXT.",
                         ctaText = "Document Options Tip",
                         ctaAction = "library_options",
                         flowSteps = listOf(
                             "Find the document in your Library list",
                             "Tap the three-dot options menu icon",
-                            "Choose an action (Rename, Categorize, or Delete)"
+                            "Choose an action, or Save to phone to keep an external copy"
                         ),
                         imageResId = R.drawable.manual_library_item_menu,
                         tags = listOf("rename", "author", "metadata", "delete", "options", "edit", "tags", "categories")
                     ),
                     ManualChapter(
-                        title = "Batch Organization",
+                        title = "Batch Organization & Import Floater",
                         icon = Icons.Outlined.Checklist,
-                        subtitle = "Manage multiple documents together",
-                        content = "Organize a large reading list efficiently using batch mode. By long-pressing any book card, you activate multi-select mode. Select multiple items to bulk delete, assign categories, or append to folders at once.",
+                        subtitle = "Manage multiple documents and monitor imports",
+                        content = "Organize a large reading list efficiently using batch mode. Long-press any book card to activate multi-select mode. When importing files or downloading books, a movable circular floater shows live progress without blocking your screen.",
                         ctaText = "Bulk Edit Tip",
                         ctaAction = "bulk_edit",
                         flowSteps = listOf(
-                            "Long-press any document card in the Library",
-                            "Tap other cards to select multiple items",
-                            "Select a bulk action icon from the top bar"
+                            "Long-press any document card in the Library to enter multi-select",
+                            "Select multiple items to categorize or delete in bulk",
+                            "Drag the import progress floater to either edge of the screen as files load"
                         ),
                         imageResId = R.drawable.manual_library_batch,
-                        tags = listOf("batch", "bulk", "multi-select", "select all", "delete multiple", "organize")
+                        tags = listOf("batch", "bulk", "multi-select", "select all", "delete multiple", "organize", "import floater")
                     ),
                     ManualChapter(
                         title = "Adding Content & Formats",
@@ -272,13 +272,13 @@ fun UserManualDialog(
                         title = "Classic Books Catalog & Archives",
                         icon = Icons.Outlined.Book,
                         subtitle = "Public domain masterpieces & in-app book repos",
-                        content = "Browse curated classic titles (Meditations, The Art of War, As a Man Thinketh) or explore free public repositories (Project Gutenberg, Standard Ebooks, Open Library, ManyBooks, and Ocean of PDF) directly in-app with automatic sandboxed download interception.",
+                        content = "Browse curated classic titles (Meditations, The Art of War, Self-Reliance, Alice in Wonderland) directly in the 'Classics' tab of My Library. Explore genres like Family & Youth, Mystery, and Adventure, or browse external repos (Project Gutenberg, Standard Ebooks, Open Library) with automatic download interception.",
                         ctaText = "Browse Classics",
                         ctaAction = "classics_catalog",
                         flowSteps = listOf(
-                            "Tap the '+' button in Library and choose 'Classic Books Catalog'",
-                            "Filter by genre or search for authors and titles",
-                            "Tap 'Get' or launch a repository chip to download and import in seconds"
+                            "Tap the 'Classics' tab in My Library",
+                            "Explore 'Today's Pick' and genre shelves",
+                            "Tap 'Add to library' to download and start reading immediately"
                         ),
                         imageResId = R.drawable.manual_classics_catalog,
                         tags = listOf("classics", "public domain", "gutenberg", "standard ebooks", "ocean of pdf", "open library", "manybooks", "download", "free books")
@@ -338,7 +338,7 @@ fun UserManualDialog(
                         title = "Theme Packs & Paired Colours",
                         icon = Icons.Outlined.Palette,
                         subtitle = "Liquid Glass, One UI, Material You, and Dark palettes",
-                        content = "Personalize the entire app interface. Choose between 4 distinct Theme Packs (Vern Media, Liquid Glass, One UI, Material You) and comprehensive color schemes (Light, Dark, Midnight Dark, GitHub Dark/Light, Dracula, One Dark Pro, Neon, and Blue High Contrast).",
+                        content = "Personalize the entire app interface. Choose between 4 distinct Theme Packs (Vern Media, Liquid Glass, One UI, Material You) and comprehensive paired color schemes (Light, Dark, Dracula Light/Dark, Midnight Light/Dark, One Light/Dark Pro, GitHub Light/Dark, Neon, and Blue High Contrast).",
                         ctaText = "Configure Appearance",
                         ctaAction = "reader_settings",
                         flowSteps = listOf(
@@ -347,7 +347,7 @@ fun UserManualDialog(
                             "Enjoy a cohesive visual style with dedicated card surfaces and container tones"
                         ),
                         imageResId = R.drawable.manual_reader_settings,
-                        tags = listOf("theme", "theme packs", "liquid glass", "one ui", "material you", "dark", "midnight dark", "dracula", "github", "neon")
+                        tags = listOf("theme", "theme packs", "liquid glass", "one ui", "material you", "dark", "dracula", "dracula light", "midnight light", "midnight dark", "one light", "github", "neon")
                     ),
                     ManualChapter(
                         title = "Reader Tools Overflow",
@@ -542,6 +542,21 @@ fun UserManualDialog(
                         ),
                         imageResId = R.drawable.manual_notes_main,
                         tags = listOf("notes", "voice memo", "waveform", "annotations", "pinned", "audio recording")
+                    ),
+                    ManualChapter(
+                        title = "Rich Note Editor & Audio Reflections",
+                        icon = Icons.Outlined.GraphicEq,
+                        subtitle = "Waveforms, hashtags & web card embeds",
+                        content = "Create multimedia notes with text, photos, files, voice memos and web links. From another app, use Share and choose Share to Notes to import text and attachments. The imported note is saved before it opens, even if you make no edits. Sharing a note outward includes accessible attachments and keeps device file paths out of the text.",
+                        ctaText = "Go to Notes",
+                        ctaAction = "notes_tab",
+                        flowSteps = listOf(
+                            "Tap '+ Note' or open any existing note in your list",
+                            "Record voice memos or type rich markdown reflections",
+                            "Share text or attachments from another app to Share to Notes"
+                        ),
+                        imageResId = R.drawable.manual_note_editor,
+                        tags = listOf("note editor", "voice memo", "waveform", "tags", "link preview", "bible.com", "audio notes")
                     )
                 )
             ),
@@ -580,19 +595,19 @@ fun UserManualDialog(
                         tags = listOf("copy", "select text", "highlight", "read from here", "clipboard", "selection bar")
                     ),
                     ManualChapter(
-                        title = "Sync Center Integration",
+                        title = "Portable Backup & Restore",
                         icon = Icons.Outlined.Sync,
-                        subtitle = "Sync settings and libraries across devices",
-                        content = "Keep your digital library in sync across devices. Configure cloud sync (WebDAV, Google Drive, or personal endpoints) to automatically upload progress, bookmarks, and custom voices on start or exit.",
+                        subtitle = "Move your data between devices without an account",
+                        content = "Export a portable backup from the Sync Center, copy or share it to your other device, then import it there. The portable archive includes managed Notes attachments. Import merges with local data and keeps existing notes on an ID conflict. Save a backup of the receiving device first. Transfers are manual; no cloud account is needed.",
                         ctaText = "Manage Sync Center",
                         ctaAction = "sync_center",
                         flowSteps = listOf(
                             "Open Settings -> Sync Center",
-                            "Configure WebDAV or cloud accounts",
-                            "Tap 'Sync Now' to manually synchronize files"
+                            "Export a portable backup and transfer the archive",
+                            "On the receiving device, back up first, then import the archive"
                         ),
                         imageResId = R.drawable.manual_sync_center,
-                        tags = listOf("sync", "cloud", "google drive", "webdav", "cross device", "backup", "library sync")
+                        tags = listOf("sync", "portable", "transfer", "cross device", "backup", "restore")
                     ),
                     ManualChapter(
                         title = "Backup & Recovery",

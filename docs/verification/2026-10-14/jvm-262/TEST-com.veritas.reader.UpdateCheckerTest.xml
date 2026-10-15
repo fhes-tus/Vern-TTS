@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.UpdateCheckerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:49.410Z" hostname="FIRWEWALL" time="0.024">
+  <properties/>
+  <testcase name="testSelectOptimalApkUrlPrefers64BitWhenSupported" classname="com.veritas.reader.UpdateCheckerTest" time="0.022"/>
+  <testcase name="testVersionComparisonCorrectlyIdentifiesNewerVersions" classname="com.veritas.reader.UpdateCheckerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

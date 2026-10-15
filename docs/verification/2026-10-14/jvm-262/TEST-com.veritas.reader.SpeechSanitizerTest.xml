@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.SpeechSanitizerTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:45.247Z" hostname="FIRWEWALL" time="0.008">
+  <properties/>
+  <testcase name="ellipsis character becomes a single period" classname="com.veritas.reader.SpeechSanitizerTest" time="0.001"/>
+  <testcase name="normal punctuation and sentences pass through untouched" classname="com.veritas.reader.SpeechSanitizerTest" time="0.001"/>
+  <testcase name="tableColumnIndexAt accurately maps character offsets to columns" classname="com.veritas.reader.SpeechSanitizerTest" time="0.001"/>
+  <testcase name="two dots are left alone - only runs of three or more collapse" classname="com.veritas.reader.SpeechSanitizerTest" time="0.001"/>
+  <testcase name="graph numeric and percentage axis ticks are muted" classname="com.veritas.reader.SpeechSanitizerTest" time="0.0"/>
+  <testcase name="arrows checkmarks and box drawing are silenced" classname="com.veritas.reader.SpeechSanitizerTest" time="0.001"/>
+  <testcase name="dot leaders collapse to one pause with length preserved" classname="com.veritas.reader.SpeechSanitizerTest" time="0.0"/>
+  <testcase name="empty and dash table cells speak None and avoid double periods" classname="com.veritas.reader.SpeechSanitizerTest" time="0.001"/>
+  <testcase name="table rows are formatted with column periods and empty cell handling" classname="com.veritas.reader.SpeechSanitizerTest" time="0.001"/>
+  <testcase name="pure decoration chunks are not speakable" classname="com.veritas.reader.SpeechSanitizerTest" time="0.0"/>
+  <testcase name="table separator lines are completely muted and not speakable" classname="com.veritas.reader.SpeechSanitizerTest" time="0.0"/>
+  <testcase name="bullet glyphs become spaces and length is preserved" classname="com.veritas.reader.SpeechSanitizerTest" time="0.001"/>
+  <testcase name="figure titles and captions are preserved and speakable" classname="com.veritas.reader.SpeechSanitizerTest" time="0.0"/>
+  <testcase name="graph month and quarter axis ticks are muted" classname="com.veritas.reader.SpeechSanitizerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

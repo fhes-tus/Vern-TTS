@@ -1,246 +1,82 @@
 package com.veritas.reader
 
 import android.speech.tts.TextToSpeech
-import android.util.Log
-import com.veritas.reader.PlaybackService.Companion.TAG
-import com.veritas.reader.tts.OfflineEngineType
 import com.veritas.reader.tts.VoiceModelManager
+import kotlinx.coroutines.launch
 
-internal fun PlaybackService.ensureTtsReadyAndSpeak() {
-    val voiceSettings = repository.loadVoiceSettings()
-    var requestedEngine = voiceSettings.enginePackage.ifBlank { null }
-    val detectedVoiceEngine = VoiceManager.engineForVoice(voiceSettings.voiceName)
-    if (requestedEngine == null || !VoiceManager.isVeritasEngine(requestedEngine)) {
-        if (VoiceManager.isVeritasEngine(detectedVoiceEngine)) {
-            requestedEngine = detectedVoiceEngine
-        }
+internal fun PlaybackService.ensureTtsReadyAndSpeak() = speakCurrent()
+internal fun PlaybackService.ensureTtsReadyAndSpeakSelection(text: String) = speakSelectionText(text)
+
+/** One live output owner; cast changes happen only before the next source segment. */
+internal fun PlaybackService.prepareSpeechEngine(settings: VoiceSettings, selection: String? = null): Boolean {
+    val requested = settings.enginePackage.ifBlank { null }
+    val neural = VoiceManager.isVeritasEngine(requested)
+    if (neural && !VoiceModelManager.isVoiceInstalled(applicationContext, settings.voiceName)) {
+        handleTtsFailure("${settings.displayName} is not downloaded. Open Voice Studio to download it or choose another voice.")
+        return false
     }
-
-    if (VoiceManager.isVeritasEngine(requestedEngine)) {
-        var voiceToUse = voiceSettings.voiceName
-        var installed = VoiceModelManager.isVoiceInstalled(
-            applicationContext,
-            voiceToUse
-        )
-        if (!installed) {
-            val engineType = if (requestedEngine == VoiceManager.VERITAS_LITE) {
-                OfflineEngineType.PIPER
-            } else {
-                OfflineEngineType.KOKORO
-            }
-            var fallbackVoice = VoiceModelManager.availableVoices
-                .firstOrNull { it.engineType == engineType && VoiceModelManager.isVoiceInstalled(applicationContext, it.id) }
-            if (fallbackVoice == null) {
-                fallbackVoice = VoiceModelManager.availableVoices
-                    .firstOrNull { VoiceModelManager.isVoiceInstalled(applicationContext, it.id) }
-            }
-
-            if (fallbackVoice != null) {
-                val resolvedEngine = if (fallbackVoice.engineType == OfflineEngineType.PIPER) {
-                    VoiceManager.VERITAS_LITE
-                } else {
-                    VoiceManager.VERITAS_STUDIO
-                }
-                val updatedSettings = voiceSettings.copy(
-                    voiceName = fallbackVoice.id,
-                    voiceLabel = fallbackVoice.name,
-                    localeTag = fallbackVoice.localeTag,
-                    enginePackage = resolvedEngine,
-                    engineLabel = if (resolvedEngine == VoiceManager.VERITAS_LITE) "Vern Lite" else "Vern Studio"
-                )
-                repository.saveVoiceSettings(updatedSettings)
-                PlaybackStateStore.statusMessage = "Switched to installed voice: ${fallbackVoice.name}"
-                requestedEngine = resolvedEngine
-                voiceToUse = fallbackVoice.id
-                installed = true
-            } else {
-                Log.w(TAG, "No Vern offline voices are downloaded. Temporarily falling back to system TTS.")
-                PlaybackStateStore.statusMessage = "Voice not downloaded. Falling back to system voice."
-                runCatching { veritasAudioBuffer?.flush() }
-                runCatching { veritasAudioBuffer?.shutdown() }
-                veritasAudioBuffer = null
-                activeEnginePackage = null
-                ttsReady = false
-                pendingSpeak = true
-                tts = TextToSpeech(applicationContext) { status -> handleTtsInit(status) }
-                return
-            }
-        }
-        if (activeEnginePackage != requestedEngine) {
-            runCatching { veritasAudioBuffer?.flush() }
-            runCatching { veritasAudioBuffer?.shutdown() }
-            veritasAudioBuffer = null
-            runCatching { tts?.stop() }
-            runCatching { tts?.shutdown() }
-            tts = null
-            ttsReady = false
-        }
-        activeEnginePackage = requestedEngine
-        ttsReady = true
-        speakCurrent()
-        return
+    pendingSpeak = selection == null
+    pendingSelectionText = selection
+    if (activeEnginePackage != requested || (neural && veritasAudioBuffer != null && veritasAudioVoiceId != settings.voiceName)) {
+        ++engineSetupGeneration
+        clearQueuedChunk()
+        retireUtterance(activeChunkUtteranceId)
+        activeChunkUtteranceId = null
+        tts?.stop(); tts?.shutdown(); tts = null; ttsReady = false
+        veritasAudioBuffer?.let { it.shutdown(); retiringAudioBuffer = it }
+        veritasAudioBuffer = null; veritasAudioVoiceId = null
+        activeTtsRate = Float.NaN; activeTtsPitch = Float.NaN
+        activeEnginePackage = requested
     }
-    runCatching { veritasAudioBuffer?.flush() }
-    runCatching { veritasAudioBuffer?.shutdown() }
-    veritasAudioBuffer = null
-
-    if (tts != null && activeEnginePackage != requestedEngine) {
-        runCatching { tts?.stop() }
-        runCatching { tts?.shutdown() }
-        tts = null
-        ttsReady = false
-        activeTtsRate = Float.NaN
-        activeTtsPitch = Float.NaN
+    retiringAudioBuffer?.let { old ->
+        val generation = ++engineSetupGeneration
+        serviceScope.launch {
+            old.awaitShutdown()
+            if (generation != engineSetupGeneration) return@launch
+            retiringAudioBuffer = null
+            if (pendingSpeak && PlaybackStateStore.isPlaying) speakCurrent()
+            else pendingSelectionText?.let(::speakSelectionText)
+        }
+        return false
     }
-
+    if (neural) {
+        ttsReady = true; pendingSpeak = false; pendingSelectionText = null
+        return true
+    }
     if (ttsReady && tts != null) {
-        tts?.let { VoiceConfigurator.apply(it, voiceSettings) }
-        speakCurrent()
-        return
+        val engine = requireNotNull(tts)
+        if (settings.voiceName.isNotBlank() && engine.voices.orEmpty().none { it.name == settings.voiceName }) {
+            handleTtsFailure("${settings.displayName} is unavailable in this engine. Choose a voice in Voice Studio.")
+            return false
+        }
+        val message = VoiceConfigurator.apply(engine, settings)
+        if (message.startsWith("Voice data is missing") || message.contains("not supported")) {
+            handleTtsFailure(message); return false
+        }
+        pendingSpeak = false; pendingSelectionText = null
+        return true
     }
-
-    pendingSpeak = true
     if (tts == null) {
-        activeEnginePackage = requestedEngine
-        activeTtsRate = Float.NaN
-        activeTtsPitch = Float.NaN
-        tts = if (requestedEngine == null) {
-            TextToSpeech(applicationContext) { status -> handleTtsInit(status) }
-        } else {
-            TextToSpeech(applicationContext, { status -> handleTtsInit(status) }, requestedEngine)
+        val generation = ++engineSetupGeneration
+        val callback = TextToSpeech.OnInitListener { status ->
+            // Post also covers engines that invoke OnInit before the constructor returns.
+            mainHandler.post { if (generation == engineSetupGeneration) handleTtsInit(status) }
         }
+        tts = if (requested == null) TextToSpeech(applicationContext, callback)
+            else TextToSpeech(applicationContext, callback, requested)
     }
-}
-
-internal fun PlaybackService.ensureTtsReadyAndSpeakSelection(text: String) {
-    val voiceSettings = repository.loadVoiceSettings()
-    var requestedEngine = voiceSettings.enginePackage.ifBlank { null }
-    val detectedVoiceEngine = VoiceManager.engineForVoice(voiceSettings.voiceName)
-    if (requestedEngine == null || !VoiceManager.isVeritasEngine(requestedEngine)) {
-        if (VoiceManager.isVeritasEngine(detectedVoiceEngine)) {
-            requestedEngine = detectedVoiceEngine
-        }
-    }
-
-    if (VoiceManager.isVeritasEngine(requestedEngine)) {
-        var voiceToUse = voiceSettings.voiceName
-        var installed = VoiceModelManager.isVoiceInstalled(
-            applicationContext,
-            voiceToUse
-        )
-        if (!installed) {
-            val engineType = if (requestedEngine == VoiceManager.VERITAS_LITE) {
-                OfflineEngineType.PIPER
-            } else {
-                OfflineEngineType.KOKORO
-            }
-            var fallbackVoice = VoiceModelManager.availableVoices
-                .firstOrNull { it.engineType == engineType && VoiceModelManager.isVoiceInstalled(applicationContext, it.id) }
-            if (fallbackVoice == null) {
-                fallbackVoice = VoiceModelManager.availableVoices
-                    .firstOrNull { VoiceModelManager.isVoiceInstalled(applicationContext, it.id) }
-            }
-
-            if (fallbackVoice != null) {
-                val resolvedEngine = if (fallbackVoice.engineType == OfflineEngineType.PIPER) {
-                    VoiceManager.VERITAS_LITE
-                } else {
-                    VoiceManager.VERITAS_STUDIO
-                }
-                val updatedSettings = voiceSettings.copy(
-                    voiceName = fallbackVoice.id,
-                    voiceLabel = fallbackVoice.name,
-                    localeTag = fallbackVoice.localeTag,
-                    enginePackage = resolvedEngine,
-                    engineLabel = if (resolvedEngine == VoiceManager.VERITAS_LITE) "Vern Lite" else "Vern Studio"
-                )
-                repository.saveVoiceSettings(updatedSettings)
-                PlaybackStateStore.statusMessage = "Switched to installed voice: ${fallbackVoice.name}"
-                requestedEngine = resolvedEngine
-                voiceToUse = fallbackVoice.id
-                installed = true
-            } else {
-                Log.w(TAG, "No Vern offline voices are downloaded. Temporarily falling back to system TTS.")
-                PlaybackStateStore.statusMessage = "Voice not downloaded. Falling back to system voice."
-                runCatching { veritasAudioBuffer?.flush() }
-                runCatching { veritasAudioBuffer?.shutdown() }
-                veritasAudioBuffer = null
-                activeEnginePackage = null
-                ttsReady = false
-                pendingSpeak = false
-                pendingSelectionText = text
-                tts = TextToSpeech(applicationContext) { status -> handleTtsInit(status) }
-                return
-            }
-        }
-        if (activeEnginePackage != requestedEngine) {
-            runCatching { veritasAudioBuffer?.flush() }
-            runCatching { veritasAudioBuffer?.shutdown() }
-            veritasAudioBuffer = null
-            runCatching { tts?.stop() }
-            runCatching { tts?.shutdown() }
-            tts = null
-            ttsReady = false
-        }
-        activeEnginePackage = requestedEngine
-        ttsReady = true
-        speakSelectionText(text)
-        return
-    }
-    runCatching { veritasAudioBuffer?.flush() }
-    runCatching { veritasAudioBuffer?.shutdown() }
-    veritasAudioBuffer = null
-
-    if (tts != null && activeEnginePackage != requestedEngine) {
-        runCatching { tts?.stop() }
-        runCatching { tts?.shutdown() }
-        tts = null
-        ttsReady = false
-        activeTtsRate = Float.NaN
-        activeTtsPitch = Float.NaN
-    }
-
-    if (ttsReady && tts != null) {
-        tts?.let { VoiceConfigurator.apply(it, voiceSettings) }
-        speakSelectionText(text)
-        return
-    }
-
-    pendingSpeak = false
-    pendingSelectionText = text
-    if (tts == null) {
-        activeEnginePackage = requestedEngine
-        activeTtsRate = Float.NaN
-        activeTtsPitch = Float.NaN
-        tts = if (requestedEngine == null) {
-            TextToSpeech(applicationContext) { status -> handleTtsInit(status) }
-        } else {
-            TextToSpeech(applicationContext, { status -> handleTtsInit(status) }, requestedEngine)
-        }
-    }
+    return false
 }
 
 internal fun PlaybackService.handleTtsInit(status: Int) {
-    if (status == TextToSpeech.SUCCESS) {
-        ttsReady = true
-        attachListener()
-        val voiceSettings = repository.loadVoiceSettings()
-        tts?.let { VoiceConfigurator.apply(it, voiceSettings) }
-        if (pendingSpeak) {
-            pendingSpeak = false
-            speakCurrent()
-        } else {
-            val selection = pendingSelectionText
-            if (!selection.isNullOrBlank()) {
-                pendingSelectionText = null
-                speakSelectionText(selection)
-            }
-        }
-    } else {
-        ttsReady = false
-        PlaybackStateStore.isPlaying = false
-        PlaybackStateStore.statusMessage = "TTS engine failed to initialize."
-        updateMediaSessionState()
-        refreshForegroundNotification()
+    if (status != TextToSpeech.SUCCESS) {
+        ++engineSetupGeneration
+        tts?.shutdown(); tts = null; ttsReady = false
+        handleTtsFailure("The selected voice engine could not initialize. Open Voice Studio to choose another engine.")
+        return
     }
+    ttsReady = true
+    attachListener()
+    if (pendingSpeak && PlaybackStateStore.isPlaying) speakCurrent()
+    else pendingSelectionText?.let(::speakSelectionText)
 }

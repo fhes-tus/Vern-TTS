@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.VeritasFeatureRegistryTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:49.596Z" hostname="FIRWEWALL" time="0.297">
+  <properties/>
+  <testcase name="registryDefinesEveryFeatureId" classname="com.veritas.reader.VeritasFeatureRegistryTest" time="0.249"/>
+  <testcase name="currentBuildMenusDoNotExposePaidOrApiFeatures" classname="com.veritas.reader.VeritasFeatureRegistryTest" time="0.045"/>
+  <testcase name="selectionFeaturesRequireSelectedTextWhenNeeded" classname="com.veritas.reader.VeritasFeatureRegistryTest" time="0.001"/>
+  <testcase name="readerOverflowKeepsActionsOrderedByPriority" classname="com.veritas.reader.VeritasFeatureRegistryTest" time="0.0"/>
+  <testcase name="settingsOnlyImportFeaturesDoNotRequireAChosenFile" classname="com.veritas.reader.VeritasFeatureRegistryTest" time="0.001"/>
+  <testcase name="futurePaidOrApiFeatureCanBeModeledWithoutEnablingItInCurrentMenus" classname="com.veritas.reader.VeritasFeatureRegistryTest" time="0.0"/>
+  <testcase name="featureLookupReturnsDefinitionById" classname="com.veritas.reader.VeritasFeatureRegistryTest" time="0.0"/>
+  <testcase name="queueAudioExportRequiresQueuedItems" classname="com.veritas.reader.VeritasFeatureRegistryTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

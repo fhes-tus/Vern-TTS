@@ -1,0 +1,467 @@
+[
+  {
+    "Path": "app\\src\\androidTest\\java\\com\\veritas\\reader\\BrandAndMotionUiTest.kt",
+    "Before": null,
+    "After": "C055CD3EA4DB461B4B4E906E76DA782ED46329005A0EA1DEC974F81F65753B53"
+  },
+  {
+    "Path": "app\\src\\androidTest\\java\\com\\veritas\\reader\\HomeAndAddedUiTest.kt",
+    "Before": "8030E068227474765820E24FBD7DE9758A4C6F1199BAAEC7FC246558FBC15639",
+    "After": "3617F321DCAAC8CE36B0FEEA979275230750E9454C2E2FC2F42E84E8EA935DBB"
+  },
+  {
+    "Path": "app\\src\\androidTest\\java\\com\\veritas\\reader\\HomeBrandThemeUiTest.kt",
+    "Before": "A1DB598965CB18B7E6EBEA3A3E45B273DE29E425D4B525F9209F366DA2EFEF33",
+    "After": "A2C73EE67CB6CB40BD1EC2C6CC26FAE38AF923122125B63E43B05F25F92BC87D"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\Core.kt",
+    "Before": "0C8F07E3AC14D7F89BB83CEA8428FF723B419672F5D78A0C81CF6595391D7A8A",
+    "After": "B52371C1A3D46A44260AE7495BD6AC841D41E4469481D84409C8ED3F1E62A43A"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\MainActivity.kt",
+    "Before": "7F0B956FC2D6DA95C0E3194CD0942E2102498F54B73B97817470D4574EC76213",
+    "After": "3C72E303260C2FE76B022FDEA913B1FDBA2781F07425DC292175F2B9CB60CEE4"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\MainActivityUiComponents.kt",
+    "Before": "D2875D048C64D858D351595D6B7DB60F556E570D0EF7B013ECC96C8C7D821003",
+    "After": "0CE6AEF8F8699E69256262AABA1D7A209425AC40A30676A7572AB2D31822FE99"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\PlaybackService.kt",
+    "Before": "307A976B2163F449DCAC3909D3324420C143311E2A7C5A3771D804D4EFAAD3B3",
+    "After": "533DA46A8A975D5557432DAF84CFFE02F24C922C20D4EA7C8F609C090F105197"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\SpeechAmplitude.kt",
+    "Before": null,
+    "After": "FB681ECB11DD594F95FDBA70107BDFB359928AE1752D0EB7181BB1194D172B10"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\SystemSpeechMeter.kt",
+    "Before": null,
+    "After": "82A56586D2CB5AD27ED8430C9D44387C44FF5012631D41EEF7972DD689BC6062"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\VernStartupAnimation.kt",
+    "Before": null,
+    "After": "3B3EEA3317387A77A1AF5D7EFFAF0DA66DE42E2731EECD1F2B9A3D4A9C814596"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\VernSystemSplash.kt",
+    "Before": null,
+    "After": "A7A06ADADA527062FD267AFBF5D87B9A0E75058AAA90D7829FD200289112C6BE"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\tts\\VeritasAudioBuffer.kt",
+    "Before": "C27E1B0596C17FA69C723CE172FB54D7C67C538AF0139CC12A19D572377F2BC3",
+    "After": "D98C4808106E64405D7E194A70C8CA79F1A5584A20D2550C49414180DC7029F6"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\BookCoverMotion.kt",
+    "Before": null,
+    "After": "13ED1144A889B3C25932594DEBC90AD789961575C2824CCF13AACC7D591A92C9"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\ClassicsCatalogDialog.kt",
+    "Before": "E0A89747B8D5F8D0314A5356333FC3BB66E2B0E12744908943B40B7E6203F6B8",
+    "After": "D77BDD2E5908AE15D2E7F2BD69473C93D6B1ADFB838C1CB2F44539021CEDCC2D"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\HomeHeroCard.kt",
+    "Before": "FFF2EC5A697D6E58A2D4CC9A8890ED002A8F62DD819093F72FF79774770806B0",
+    "After": "9A2C47D9DAEC13F779FD68B934548C38097B131AB237D58F8A576A615EA21FEE"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\HomeTodayReadingCard.kt",
+    "Before": "BE0B293A8D2D647CE60EF859127160B9F432FB5515E7AA96AC03568FB35EC202",
+    "After": "E0557F3C358A64F401562EF394F4B45A7028A0645AA0753F1A4E17D46BACB702"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\LibraryBottomNavBarUi.kt",
+    "Before": "4C950B34955D9ECA3365285D27C330BAE03881CB7097ECD33FABF4B659C9E755",
+    "After": "C898AE2B684623417832960818F959026E830761A4E287EE66734F5E76B781E3"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\LibraryHomeTab.kt",
+    "Before": "AF3AA8ABBA732EFC277FAF65136AE42B98B2DEA881D8AD24784885DEFF75A48E",
+    "After": "815FFE518F3195921514C9F27D085D2064666FEA76D1F120F38DBE9E9D6712DA"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\LibraryNavAndSheetsUi.kt",
+    "Before": "86561B657A65CDCF4520E23B1F4E5465D712672630976E2E23313DFDB81C7F13",
+    "After": "331FC65ABFD4A707C3D9CAC9D8BB6F275DBB96E34D4A3E45C6F9FAE738D84125"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\LibraryTopAndFilterBarUi.kt",
+    "Before": "D6E8E78768CD65D2530E558B606EA1ADC6E71362FCDE43C59A3A23674642B11B",
+    "After": "279F963D3C1BA3D3E15042CAA89C85874A7EAB6EE3F3F4EA10D7CEF50E127349"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\LivePlaybackFloater.kt",
+    "Before": "88B2D444D22C2BBAAA07ECA120A755697E142480EB6D9062BA5967F55339C830",
+    "After": "77562D1E0AD949AD20BA7254807186373735AD9C9B438B3AB91DFD2B96232653"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\ReadingInsightsDetailsUi.kt",
+    "Before": "288CF9E7B517C23290B9654FCAA430418F7583081FB7C55364AAFA22BD96226B",
+    "After": "7CCECBFF2F3A6AC2A86090F76A326B5D2174D2F468D5E58F7D855B92519CE436"
+  },
+  {
+    "Path": "app\\src\\main\\java\\com\\veritas\\reader\\ui\\screens\\ReadingPageCanvas.kt",
+    "Before": null,
+    "After": "7BFD8690804474D4BC7589C31E3A9B39DEECF972925B946EE990CBCFB889168E"
+  },
+  {
+    "Path": "app\\src\\main\\res\\animator\\vern_splash_ink.xml",
+    "Before": null,
+    "After": "9613DB20BB63F05BECF9B7B1994DFBFBE4AA8630E3298C1A6B258C3AB242804F"
+  },
+  {
+    "Path": "app\\src\\main\\res\\animator\\vern_splash_scale.xml",
+    "Before": null,
+    "After": "4EC26488F8B94ECFE89B579E53E8BA1999F1C7581C7677C544680086A49DC9FD"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\ic_stat_veritas.xml",
+    "Before": "1C00805D220D3224FB30C7B071C9731D025A245B795F58933B6AD81ECD8870FB",
+    "After": "E98D398D102AABD7D6BF8EB1739EB74AD1B5BE89328DED19C5918E56130E2EB5"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\veritas_round_icon_background.xml",
+    "Before": "61BF11F067231533BAB841ADAE802A5CF2950E23C78A3A4B550720BE32DEDB32",
+    "After": "578FBF7308A41A44BF5A626A2A430A3368D50C82248ADCE38D8E83EE9DD208A2"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_icon_background.xml",
+    "Before": "06084606C92B4FA310321CB971190EC51005C7929C8AB46934B43EB0347F5F21",
+    "After": "578FBF7308A41A44BF5A626A2A430A3368D50C82248ADCE38D8E83EE9DD208A2"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_icon_foreground.xml",
+    "Before": "779E4E89DB011BD3A8AE64048FEBA8E1E14B0B7AE85BC0DA79E3A8EE3F405AED",
+    "After": "C46215E3E6DB9068E2CC882A2E17AE0AFB157D73000420FAD73D0B898462658C"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_icon_monochrome.xml",
+    "Before": "5D941C61DF4326E24DEC9197C5AB1B6B1A6A670D4A4B69B2770356DE10C53A4A",
+    "After": "ADA141B149ABF47DD60CEBF5B29675D733BC07DBED524CE672806DD49123A69B"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_nav_home_filled.xml",
+    "Before": null,
+    "After": "7A0A3191FD1FDEC84C13C3FF43D93FD5C6EDA7BB2979F391523A5DCAFFF6DA46"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_nav_home.xml",
+    "Before": null,
+    "After": "EAAA032E6D8D5CAD9D7E375D092AA5D0DCC1CF4BDA5595CF72E1557F05E6C81F"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_nav_newsstand_filled.xml",
+    "Before": null,
+    "After": "EA46AD7D09971EA611A59707BCC9CC5F3AC13309160EC4B6D9FFB81DCD12E0BD"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_nav_newsstand.xml",
+    "Before": null,
+    "After": "EA46AD7D09971EA611A59707BCC9CC5F3AC13309160EC4B6D9FFB81DCD12E0BD"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_nav_note_stack_filled.xml",
+    "Before": null,
+    "After": "27466CC6D45034157827CA620F1234F43C9DCD15F33BB93547A9E02F469CBEEC"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_nav_note_stack.xml",
+    "Before": null,
+    "After": "F0BF5DBB894064DA61F359821B1F74D855FC16FEFD072321ADB8C1F0BCDB7415"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_splash_animated.xml",
+    "Before": null,
+    "After": "6D5463F9841CC8B9FE6EAC6A460276F66DCE7E4A7F99957262E9FD076E4639DC"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_splash_mark.xml",
+    "Before": null,
+    "After": "3BDDDA1CFA8BB564FECE9769B18493268CAC101E689E604EBA98E621667C1C52"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_v_cream.xml",
+    "Before": null,
+    "After": "C94205FD51662676B0B7989929B45F0A0BB7B267485EDD00D9B3FC3840DC2BFA"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable\\vern_v_mark.xml",
+    "Before": null,
+    "After": "0411420151CA759A1163536F500D0F4669ED4C5177FF3E52526415A914604B12"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable-night\\vern_v_mark.xml",
+    "Before": null,
+    "After": "C94205FD51662676B0B7989929B45F0A0BB7B267485EDD00D9B3FC3840DC2BFA"
+  },
+  {
+    "Path": "app\\src\\main\\res\\drawable-nodpi\\veritas_reader_icon.png",
+    "Before": "57236D2C44AD4EE69BC1CC647E0697D28B30B59C5700BBFA1517233809C25EF7",
+    "After": "20A47906A323FE8A67760659FF62C95B3FD18A10BBB709A08458C733C78F1560"
+  },
+  {
+    "Path": "app\\src\\main\\res\\mipmap\\veritas_reader_round_icon.xml",
+    "Before": "0A9FB64154CBC3353200C3A8DF03EAB70B4C1879E1B2FB3ED08E97D652EB0F5F",
+    "After": "4BACF378FC4CEB1BC6C462AF2958E84EC0646C11AC92B309C65D25E355FCDDD4"
+  },
+  {
+    "Path": "app\\src\\main\\res\\mipmap-anydpi-v26\\veritas_reader_round_icon.xml",
+    "Before": "EDB8F723B9E2A9C500B7A4AE35DD2289F4D3BA1A425D487FE5FC839282CB0889",
+    "After": "5EB84331E886D56C2DDA748B0BBF7171C3A708C49920495E3705D24F41150520"
+  },
+  {
+    "Path": "app\\src\\main\\res\\values-v31\\styles.xml",
+    "Before": null,
+    "After": "A7404FB77A230B0594203B29E5B2922F9A91008FCD492F155A0D857D518361E1"
+  },
+  {
+    "Path": "app\\src\\test\\java\\com\\veritas\\reader\\SpeechAmplitudeTest.kt",
+    "Before": null,
+    "After": "7B9E5C0DFFCA781CA1FC1AAD4E8FC9C8665C0EF9AE79AEA778E84DAF58749121"
+  },
+  {
+    "Path": "docs\\brand\\brand-motion-update.md",
+    "Before": null,
+    "After": "167FAE2E8FDD763279355570353D050B3110BC9BDCE7E48FD827642DAA6E74DF"
+  },
+  {
+    "Path": "docs\\brand\\vern-launcher-preview.png",
+    "Before": "57236D2C44AD4EE69BC1CC647E0697D28B30B59C5700BBFA1517233809C25EF7",
+    "After": "CF8BF5F522FA2A0569D5066BCFA99D702D5149BC9DE4ED5E634A0655EF9D77C3"
+  },
+  {
+    "Path": "docs\\brand\\device-previews\\brand-motion\\dark-library.png",
+    "Before": null,
+    "After": "953A7C7B6168D052ECC39C3537147870B5B79CCDEDA5E69999ED8B5441348744"
+  },
+  {
+    "Path": "docs\\brand\\device-previews\\brand-motion\\dark-notes.png",
+    "Before": null,
+    "After": "05E03EE0229A088BFBF0E7A2A2383AB7356AFBFE72994C7DA9ED95F5BBB4A34C"
+  },
+  {
+    "Path": "docs\\brand\\device-previews\\brand-motion\\light.png",
+    "Before": null,
+    "After": "CA629BC9C1F496B76564EC49272D4631E85DBBD60C554833B1501F88DFB16DB8"
+  },
+  {
+    "Path": "docs\\brand\\device-previews\\headers\\home-brand-dark-green.png",
+    "Before": null,
+    "After": "172776983ED25846B5CFA27EA1EFE8612FE809C7E3555F4DAAEE008D2F6DE716"
+  },
+  {
+    "Path": "docs\\brand\\device-previews\\headers\\home-brand-dark-purple.png",
+    "Before": null,
+    "After": "172776983ED25846B5CFA27EA1EFE8612FE809C7E3555F4DAAEE008D2F6DE716"
+  },
+  {
+    "Path": "docs\\brand\\device-previews\\headers\\home-brand-light-green.png",
+    "Before": null,
+    "After": "3449570C8E054932475F54BEBD83342BE47914A63C23B15337261C9837C35E99"
+  },
+  {
+    "Path": "docs\\brand\\device-previews\\headers\\home-brand-light-purple.png",
+    "Before": null,
+    "After": "EE709A469BC25C36CA2C0395EBA19840A534EABB92D0F7513948AECECC4F49B5"
+  },
+  {
+    "Path": "docs\\brand\\icon-mode-previews\\image-1-black-transparent.png",
+    "Before": null,
+    "After": "026830B4EDE311752104A82EF50A9B0A6F056EFE4FD5E3521704B0CB661AB8D6"
+  },
+  {
+    "Path": "docs\\brand\\icon-mode-previews\\image-1-charcoal-transparent.png",
+    "Before": null,
+    "After": "7D7213921B90500522BFBD9D3DC3997F974F9408D9DE27F680CAA66A3F88F0A1"
+  },
+  {
+    "Path": "docs\\brand\\icon-mode-previews\\image-1-cream-transparent.png",
+    "Before": null,
+    "After": "15B793352E39416FC3E1D801DC84361F9A77213499F75BA6D42B19BEE410F4F3"
+  },
+  {
+    "Path": "docs\\brand\\icon-mode-previews\\image-1-dark.png",
+    "Before": null,
+    "After": "9711177657FD31175E662287025E07F8B7797FF2FC32EAE0B5CD4A359C65A01D"
+  },
+  {
+    "Path": "docs\\brand\\icon-mode-previews\\image-1-light.png",
+    "Before": null,
+    "After": "DD4A8F5DA288A9B05D204120FABED3C1C2044A8E62171620943D99CB7AEDAD0A"
+  },
+  {
+    "Path": "docs\\brand\\icon-mode-previews\\image-3-black-transparent.png",
+    "Before": null,
+    "After": "900D13781B7BFC968384BE788ADCCE63574099E06AA5B6F698E1EF4940C78638"
+  },
+  {
+    "Path": "docs\\brand\\icon-mode-previews\\image-3-dark.png",
+    "Before": null,
+    "After": "C1EEAEBAFBF3807C6A241833D029E502C26AFE3393445B3FF84D74A469CF176D"
+  },
+  {
+    "Path": "docs\\brand\\icon-mode-previews\\image-3-light.png",
+    "Before": null,
+    "After": "AA46769E401C69FE9B14EF34505E237A80B628613AAC2000C96D0B3D61F24B29"
+  },
+  {
+    "Path": "docs\\brand\\icon-mode-previews\\image-3-white-transparent.png",
+    "Before": null,
+    "After": "04E2AE1098D31A113706AD6A086B418AD0B383CD089CE94729C23788D0F7888E"
+  },
+  {
+    "Path": "docs\\brand\\navigation\\home-filled.svg",
+    "Before": null,
+    "After": "D6B0CB6D80710CAABA1CE1BE0DA5A34B757D802F0E9442968C5CA2C39A868F6F"
+  },
+  {
+    "Path": "docs\\brand\\navigation\\home.svg",
+    "Before": null,
+    "After": "B29E5DEB4467A06EC02AC358516FD8E5955C0D704FBA8776F055B638CFBAB607"
+  },
+  {
+    "Path": "docs\\brand\\navigation\\newsstand-filled.svg",
+    "Before": null,
+    "After": "AA6BC11B2337F20C0A03FDF039D3B049CECB3B8FA9BDDCF9A3486659A0EEB54D"
+  },
+  {
+    "Path": "docs\\brand\\navigation\\newsstand.svg",
+    "Before": null,
+    "After": "AA6BC11B2337F20C0A03FDF039D3B049CECB3B8FA9BDDCF9A3486659A0EEB54D"
+  },
+  {
+    "Path": "docs\\brand\\navigation\\note_stack-filled.svg",
+    "Before": null,
+    "After": "CF6067BEA99C67B63377C7E092412F646F173604D3A9C5D2C2C2220B395D6703"
+  },
+  {
+    "Path": "docs\\brand\\navigation\\note_stack.svg",
+    "Before": null,
+    "After": "AFEB2629CAD3E08D1BC4FE399278F640B6754191F1D14BBE0721117A80DA54B7"
+  },
+  {
+    "Path": "docs\\brand\\navigation\\README.md",
+    "Before": null,
+    "After": "1F32AD30AA984B54DD092AF4919E4B99EBFA5C0B2049D5C9BDAC2F7F598D34AF"
+  },
+  {
+    "Path": "release\\2026-10-13\\asset-validation.json",
+    "Before": null,
+    "After": "5405B9D14BBF017A280BED16356D7C027CA9CF8797D3C8D64439B78B956C635E"
+  },
+  {
+    "Path": "release\\2026-10-13\\README.md",
+    "Before": null,
+    "After": "13609FE37DF9946D37740DC43677D791A58292847D689D93EADC2AA764C33B75"
+  },
+  {
+    "Path": "release\\2026-10-13\\existing-screenshots\\audio_player.png",
+    "Before": null,
+    "After": "75E7D842EB36B6F53817F6236CE524C120AF13BA667F05A15916390D6A315837"
+  },
+  {
+    "Path": "release\\2026-10-13\\existing-screenshots\\current_reader.png",
+    "Before": null,
+    "After": "4E4BC37F23E1302D75519457BA81DEFED41549568A1DAD142E383A4613CDC18A"
+  },
+  {
+    "Path": "release\\2026-10-13\\existing-screenshots\\insights.png",
+    "Before": null,
+    "After": "85D0E80C3817881D4D11063F0A743D43D9EA9AD0B973174E727415CA737EF7EC"
+  },
+  {
+    "Path": "release\\2026-10-13\\existing-screenshots\\pdf_viewer.png",
+    "Before": null,
+    "After": "A74A6BABFFFB79AF01F9DEF9B17E89D2EDE454CD2143CACBEEDFD6ABDC14E13A"
+  },
+  {
+    "Path": "release\\2026-10-13\\graphics\\app-icon-512.png",
+    "Before": null,
+    "After": "20A47906A323FE8A67760659FF62C95B3FD18A10BBB709A08458C733C78F1560"
+  },
+  {
+    "Path": "release\\2026-10-13\\graphics\\feature-graphic-1024x500.png",
+    "Before": null,
+    "After": "5FB19E81DEACFBF9250E7A2EBE40026D2FFBA66055221118755E88E8A46C2599"
+  },
+  {
+    "Path": "release\\2026-10-13\\text\\app-title.txt",
+    "Before": null,
+    "After": "ACCBA909E02D921C4B80F0BB76C4B5ECBA6AC7884D97AB01EA0148A81FF46E15"
+  },
+  {
+    "Path": "release\\2026-10-13\\text\\full-description.txt",
+    "Before": null,
+    "After": "9C2F8898132C9C1E145B4451F8F4F765BC6CE2D775B4E3E8E7B8190DA4BF958F"
+  },
+  {
+    "Path": "release\\2026-10-13\\text\\play-console-paste.txt",
+    "Before": null,
+    "After": "3BC66800C64636EBD29497D54B8C5FDE3A081D42469E9337229A715F411A6AC3"
+  },
+  {
+    "Path": "release\\2026-10-13\\text\\release-notes-en-US.txt",
+    "Before": null,
+    "After": "E30C495E91A2221F2A20B37C221748F37F6E0DBBFB08FC9D60615A23D4305A61"
+  },
+  {
+    "Path": "release\\2026-10-13\\text\\short-description.txt",
+    "Before": null,
+    "After": "F3BE9164EDA94AD7513B5504037FA2CE3EC35A8AFA4D1CF7B41E4BBF38E3459B"
+  },
+  {
+    "Path": "release\\2026-10-13\\verification\\checks.md",
+    "Before": null,
+    "After": "7778306214EFD16F7DFA941F45DCC6FBF409E7671E99A14ABAB56AC89292023C"
+  },
+  {
+    "Path": "release\\2026-10-13\\verification\\implementation.md",
+    "Before": null,
+    "After": "167FAE2E8FDD763279355570353D050B3110BC9BDCE7E48FD827642DAA6E74DF"
+  },
+  {
+    "Path": "docs\\icon.png",
+    "Before": "7204C597DC8FB85E6688F37C9001D92D88951BD2D135BF54E27FD35B5D879385",
+    "After": "20A47906A323FE8A67760659FF62C95B3FD18A10BBB709A08458C733C78F1560"
+  },
+  {
+    "Path": "docs\\playstore_icon_512.png",
+    "Before": "7204C597DC8FB85E6688F37C9001D92D88951BD2D135BF54E27FD35B5D879385",
+    "After": "20A47906A323FE8A67760659FF62C95B3FD18A10BBB709A08458C733C78F1560"
+  },
+  {
+    "Path": "docs\\playstore_feature_graphic_1024x500.png",
+    "Before": "4EEC0758ABE310A46473F7F6B183995A41E5DADF6F42705739F67CF86A3EFEAE",
+    "After": "5FB19E81DEACFBF9250E7A2EBE40026D2FFBA66055221118755E88E8A46C2599"
+  },
+  {
+    "Path": "tools\\build_vern_v_brand.ps1",
+    "Before": null,
+    "After": "731160171CFE2DBE1041F24BCDA8A006F960C1062B488100853DE68452F4D77B"
+  },
+  {
+    "Path": "tools\\prepare_play_release.ps1",
+    "Before": null,
+    "After": "445396AFDD19DC6AF442CFEEFB9CD29D26B5B3198EE260A0655B5A4009767806"
+  },
+  {
+    "Path": "tools\\merge_release_to_original.ps1",
+    "Before": null,
+    "After": "BA4B8108CC9BB0745B1385D16A1C55229C2D730B0CAC7E0E8E085B01786EBA66"
+  },
+  {
+    "Path": "Vern-Play-Release-2026-10-13.zip",
+    "Before": null,
+    "After": "DF9FEC2B18165B95A09CEE9CDE6CF0DBB0BEBDC5989812CCA96F8B9C7290199F"
+  }
+]

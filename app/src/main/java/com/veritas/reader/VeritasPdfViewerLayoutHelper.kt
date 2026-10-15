@@ -1,5 +1,6 @@
 package com.veritas.reader
 
+import android.annotation.SuppressLint
 import android.animation.ValueAnimator
 import android.content.res.Configuration
 import android.graphics.Color
@@ -125,8 +126,8 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             if (!isLightTheme) {
                 val settings = repository.loadReaderSettings()
                 val resolvedTheme = if (settings.themeId == "system") {
-                    val mode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-                    if (mode == android.content.res.Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
+                    val mode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                    if (mode == Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
                 } else settings.themeId
                 val scheme = veritasPackColorScheme(veritasColorScheme(resolvedTheme, activity), settings.themePackId)
                 val bgR = scheme.surface.red
@@ -135,11 +136,11 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
                 val fgR = scheme.onSurface.red
                 val fgG = scheme.onSurface.green
                 val fgB = scheme.onSurface.blue
-                
+
                 val scaleR = (bgR * 255f - fgR * 255f) / 255f
                 val scaleG = (bgG * 255f - fgG * 255f) / 255f
                 val scaleB = (bgB * 255f - fgB * 255f) / 255f
-                
+
                 val paint = android.graphics.Paint().apply {
                     colorFilter = android.graphics.ColorMatrixColorFilter(floatArrayOf(
                         scaleR, 0f,     0f,     0f, fgR * 255f,
@@ -242,8 +243,10 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         // Playback controls
         controlRow.addView(iconButton(R.drawable.ic_m3_chevron_left) { sendPlaybackIntent(this, PlaybackActions.ACTION_PREVIOUS) })
         playPauseControl = prominentButton("") {
-            sendPlaybackIntent(this, if (PlaybackStateStore.isPlaying) PlaybackActions.ACTION_PAUSE else PlaybackActions.ACTION_PLAY)
-            playPauseControl?.postDelayed({ updatePlaybackControls() }, 180)
+            val preparing = PlaybackStateStore.isPreparingFor(document?.id)
+            sendPlaybackIntent(this, if (PlaybackStateStore.isPlaying || preparing) PlaybackActions.ACTION_PAUSE else PlaybackActions.ACTION_PLAY,
+                documentId = document?.id)
+            updatePlaybackControls()
         }
         applyPlayPauseIcon(PlaybackStateStore.isPlaying)
         controlRow.addView(requireNotNull(playPauseControl))
@@ -340,7 +343,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         controls.addView(progressStrip)
         controls.addView(controlRow)
         controls.addView(expandedSection)
-        controlsOuter.addView(controls)
+        controlsOuter.addView(installPdfPlayerMaterial(controls, barWidthPx))
 
         root.addView(fragmentContainer)
         root.addView(toolbar)
@@ -415,6 +418,19 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
     internal fun VeritasPdfViewerActivity.applyPlayPauseIcon(playing: Boolean) {
         val control = playPauseControl ?: return
         control.text = ""
+        val preparing = PlaybackStateStore.isPreparingFor(document?.id)
+        if (preparing) {
+            val loading = (control.foreground as? PlaybackLoadingDrawable) ?: PlaybackLoadingDrawable(
+                if (isLightTheme) Color.WHITE else Color.rgb(8, 34, 40), resources.displayMetrics.density,
+                pdfChromeSettings.reduceMotion).also { control.foreground = it }
+            control.foregroundGravity = Gravity.CENTER
+            control.contentDescription = "Preparing playback. Tap to cancel"
+            if (control.isShown && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) loading.start()
+            else loading.stop()
+            return
+        }
+        (control.foreground as? PlaybackLoadingDrawable)?.stop()
+        control.contentDescription = if (playing) "Pause" else "Play"
         val icon = androidx.core.content.ContextCompat.getDrawable(
             this,
             if (playing) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
@@ -427,7 +443,8 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
     internal fun VeritasPdfViewerActivity.updatePlaybackControls() {
         val playing = PlaybackStateStore.isPlaying
         applyPlayPauseIcon(playing)
-        panelStatusLabel?.text = if (playing) "Now reading" else "Ready to read"
+        panelStatusLabel?.text = if (PlaybackStateStore.isPreparingFor(document?.id)) "Preparing reading…"
+            else if (playing) "Now reading" else "Ready to read"
         panelSpeedLabel?.text = "Speed ${"%.2f".format(PlaybackStateStore.rate)}x"
         panelPitchLabel?.text = "Pitch ${"%.2f".format(PlaybackStateStore.pitch)}"
         panelSpeedSlider?.let { if (!it.isTrackingTouch) it.currentVal = PlaybackStateStore.rate }
@@ -582,17 +599,21 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         }
     }
 
-    internal fun VeritasPdfViewerActivity.statusBarHeight(): Int = systemBarHeight("status_bar")
+    internal fun VeritasPdfViewerActivity.statusBarHeight(): Int =
+        systemBarHeight(WindowInsetsCompat.Type.statusBars(), "status_bar_height", top = true)
 
-    internal fun VeritasPdfViewerActivity.navigationBarHeight(): Int = systemBarHeight("navigation_bar")
+    internal fun VeritasPdfViewerActivity.navigationBarHeight(): Int =
+        systemBarHeight(WindowInsetsCompat.Type.navigationBars(), "navigation_bar_height", top = false)
 
-    internal fun VeritasPdfViewerActivity.systemBarHeight(name: String): Int {
-        val id = resources.getIdentifier(name, "dimen", "android")
+    @SuppressLint("DiscouragedApi")
+    internal fun VeritasPdfViewerActivity.systemBarHeight(type: Int, fallbackName: String, top: Boolean): Int {
+        ViewCompat.getRootWindowInsets(window.decorView)?.getInsets(type)?.let { insets ->
+            return if (top) insets.top else insets.bottom
+        }
+        // Layout may run before window insets arrive; use the framework dimension until then.
+        val id = resources.getIdentifier(fallbackName, "dimen", "android")
         return if (id > 0) resources.getDimensionPixelSize(id) else 0
     }
 
     internal val Int.dp: Int
     get() = (this * android.content.res.Resources.getSystem().displayMetrics.density).toInt()
-
-
-

@@ -30,6 +30,28 @@ enum class AiPromptType(val label: String) {
 }
 
 object AiPromptLauncher {
+    internal fun customPromptBody(instructions: String, passage: String = ""): String =
+        instructions.trim() + passage.trim().takeIf { it.isNotEmpty() }?.let { "\n\nPassage:\n$it" }.orEmpty()
+
+    fun launchCustomPrompt(context: Context, instructions: String, passage: String = "", settings: AskAiSettings? = null): Boolean {
+        if (instructions.isBlank()) return false
+        val body = customPromptBody(instructions, passage)
+        copyPromptToClipboard(context, body)
+        val preferred = if (settings?.assistantId == "chooser") null else preferredAiPackage(context, settings)
+        val share = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, body)
+            if (!preferred.isNullOrBlank()) setPackage(preferred)
+        }
+        return try {
+            context.startActivity(if (preferred.isNullOrBlank()) Intent.createChooser(share, "Send prompt to assistant") else share)
+            true
+        } catch (_: Exception) {
+            try { context.startActivity(Intent.createChooser(share.setPackage(null), "Send prompt to assistant")); true }
+            catch (_: Exception) { Toast.makeText(context, "Prompt copied. Open your assistant and paste it.", Toast.LENGTH_LONG).show(); false }
+        }
+    }
+
     fun getSelectedSentences(
         document: ReaderDocument,
         currentIndex: Int,
@@ -135,7 +157,7 @@ object AiPromptLauncher {
 
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 this.type = "text/plain"
-                val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", shareFileMd)
+                val uri = com.veritas.reader.SafeFileSharing.uri(context, "${context.packageName}.fileprovider", shareFileMd)
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 clipData = ClipData.newRawUri("Vern Share", uri)
@@ -162,7 +184,7 @@ object AiPromptLauncher {
                         if (!shareFileTxt.exists()) {
                             shareFileTxt.writeText(markdownText, Charsets.UTF_8)
                         }
-                        val uriTxt = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", shareFileTxt)
+                        val uriTxt = com.veritas.reader.SafeFileSharing.uri(context, "${context.packageName}.fileprovider", shareFileTxt)
                         val txtIntent = Intent(shareIntent).apply {
                             putExtra(Intent.EXTRA_STREAM, uriTxt)
                             clipData = ClipData.newRawUri("Vern Share", uriTxt)
@@ -251,13 +273,13 @@ object AiPromptLauncher {
                 AiPromptType.QUIZ -> """
                     Create a standard academic multiple-choice practice quiz (at least 10 questions) based on this text.
                     For every question, test genuine conceptual understanding and retention rather than superficial recall.
-                    
+
                     CRITICAL ANTI-AI GIVEAWAY RULES:
                     1. UNIFORM OPTION LENGTH & DETAIL: All 4 multiple-choice options (A, B, C, D) MUST be of approximately equal length, grammatical complexity, and tone. Under NO circumstances make the correct answer noticeably longer or more detailed than distractors.
                     2. NO BRACKETED OR PARENTHETICAL HINTS: Do NOT include parenthetical explanations or bracketed qualifiers inside options.
                     3. PLAUSIBLE DISTRACTORS: All 3 incorrect choices must be plausible, realistic, and contextually grounded in the text so that answers cannot be guessed without reading.
                     4. Evenly distribute the correct answers across choices A, B, C, and D.
-                    
+
                     Format each question clearly:
                     Q: <Question text>
                     A) <Option A>

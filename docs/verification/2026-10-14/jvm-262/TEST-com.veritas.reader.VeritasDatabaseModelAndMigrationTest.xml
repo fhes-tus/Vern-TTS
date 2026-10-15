@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.VeritasDatabaseModelAndMigrationTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:49.530Z" hostname="FIRWEWALL" time="0.007">
+  <properties/>
+  <testcase name="readerAnnotationParsesAndPreservesAttributes" classname="com.veritas.reader.VeritasDatabaseModelAndMigrationTest" time="0.003"/>
+  <testcase name="savedDocumentHandlesMissingLegacyFieldsGracefully" classname="com.veritas.reader.VeritasDatabaseModelAndMigrationTest" time="0.001"/>
+  <testcase name="savedDocumentJsonRoundTripPreservesAllFields" classname="com.veritas.reader.VeritasDatabaseModelAndMigrationTest" time="0.001"/>
+  <testcase name="flashcardLegacyMigrationAssignsSetIdAndName" classname="com.veritas.reader.VeritasDatabaseModelAndMigrationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

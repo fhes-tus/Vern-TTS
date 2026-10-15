@@ -16,7 +16,7 @@ import argparse
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8285832720:AAHM20ABnUrB1VzLM81eUgkO6NdXnb7Je-o")
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 CHANNEL_ID = os.environ.get("TELEGRAM_CHANNEL_ID", "@myreader_veritas")
 REPO = os.environ.get("GITHUB_REPOSITORY", "fhes-tus/Vern-TTS")
 
@@ -31,12 +31,12 @@ def load_books():
 def send_photo_multipart(chat_id, photo_path, caption, reply_markup):
     url = f"https://api.telegram.org/bot{TOKEN}/sendPhoto"
     boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
-    
+
     with open(photo_path, "rb") as f:
         photo_bytes = f.read()
 
     body = bytearray()
-    
+
     def add_field(name, value):
         body.extend(f"--{boundary}\r\n".encode("utf-8"))
         body.extend(f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode("utf-8"))
@@ -62,7 +62,7 @@ def send_photo_multipart(chat_id, photo_path, caption, reply_markup):
         data=bytes(body),
         headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}
     )
-    
+
     with urllib.request.urlopen(req) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
@@ -72,6 +72,9 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Print message without sending")
     args = parser.parse_args()
 
+    if not args.dry_run and not TOKEN:
+        sys.exit("Set TELEGRAM_BOT_TOKEN in the environment.")
+
     books = load_books()
     if not books:
         print("Error: No classic books found in classics_data.json")
@@ -80,7 +83,7 @@ def main():
     selected = None
     if args.id:
         selected = next((b for b in books if b["id"] == args.id), None)
-    
+
     if not selected:
         # Rotate by calendar week
         week_num = datetime.date.today().isocalendar()[1]

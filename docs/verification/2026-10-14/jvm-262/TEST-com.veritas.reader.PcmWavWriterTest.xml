@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.PcmWavWriterTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:43.925Z" hostname="FIRWEWALL" time="0.046">
+  <properties/>
+  <testcase name="streamsSamplesAndProducesAMergeableHeader" classname="com.veritas.reader.PcmWavWriterTest" time="0.046"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -190,8 +190,11 @@ internal fun QuizPlayerDialog(
     questions: List<QuizQuestion>,
     quizTitle: String = "Revision Quiz",
     onSaveScore: ((Int) -> Unit)? = null,
+    quizId: String? = null,
+    onQuestionsChange: ((List<QuizQuestion>) -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
+    var editableQuestions by remember(questions) { mutableStateOf(questions) }
     var index by remember { mutableIntStateOf(0) }
     val userAnswers = remember { mutableStateMapOf<Int, String>() }
     val flagged = remember { mutableStateSetOf<Int>() }
@@ -200,18 +203,23 @@ internal fun QuizPlayerDialog(
     var hasSavedScore by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
 
-    if (questions.isEmpty()) {
-        LaunchedEffect(Unit) { onDismiss() }
+    if (editableQuestions.isEmpty() || editableQuestions.any { !it.isPlayable }) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Quiz needs repair") },
+            text = { Text("This quiz has missing questions or answers that do not match its choices. Re-import it with a correct answer for each question.") },
+            confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } }
+        )
         return
     }
 
-    val safeIndex = index.coerceIn(0, questions.lastIndex)
-    val question = questions[safeIndex]
+    val safeIndex = index.coerceIn(0, editableQuestions.lastIndex)
+    val question = editableQuestions[safeIndex]
     val selected = userAnswers[safeIndex]
     val isFlagged = flagged.contains(safeIndex)
 
-    val score = remember(userAnswers.toMap(), questions) {
-        questions.mapIndexed { idx, q ->
+    val score = remember(userAnswers.toMap(), editableQuestions) {
+        editableQuestions.mapIndexed { idx, q ->
             if (userAnswers[idx] == q.answer) 1 else 0
         }.sum()
     }
@@ -276,7 +284,7 @@ internal fun QuizPlayerDialog(
                             color = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Text(
-                                text = if (finished) "Results" else "${safeIndex + 1} / ${questions.size}",
+                                text = if (finished) "Results" else "${safeIndex + 1} / ${editableQuestions.size}",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -289,7 +297,7 @@ internal fun QuizPlayerDialog(
                 // Progress Bar
                 val answeredCount = userAnswers.size
                 LinearProgressIndicator(
-                    progress = { if (finished) 1f else answeredCount.toFloat() / questions.size },
+                    progress = { if (finished) 1f else answeredCount.toFloat() / editableQuestions.size },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(6.dp)
@@ -307,7 +315,7 @@ internal fun QuizPlayerDialog(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        questions.indices.forEach { qIdx ->
+                        editableQuestions.indices.forEach { qIdx ->
                             val isCurrent = qIdx == safeIndex
                             val hasAns = userAnswers.containsKey(qIdx)
                             val isQFlagged = flagged.contains(qIdx)
@@ -355,7 +363,7 @@ internal fun QuizPlayerDialog(
 
                 if (finished) {
                     // Completion Summary
-                    val percentage = ((score.toFloat() / questions.size) * 100).roundToInt()
+                    val percentage = ((score.toFloat() / editableQuestions.size) * 100).roundToInt()
                     LaunchedEffect(score) {
                         if (!hasSavedScore) {
                             hasSavedScore = true
@@ -405,7 +413,7 @@ internal fun QuizPlayerDialog(
                         Spacer(Modifier.height(6.dp))
 
                         Text(
-                            text = "You scored $score out of ${questions.size} ($percentage%)",
+                            text = "You scored $score out of ${editableQuestions.size} ($percentage%)",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
@@ -423,7 +431,7 @@ internal fun QuizPlayerDialog(
                                 Text("Correct", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("${questions.size - score}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.titleMedium)
+                                Text("${editableQuestions.size - score}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.titleMedium)
                                 Text("Missed", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -492,6 +500,14 @@ internal fun QuizPlayerDialog(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
+                        }
+
+                        androidx.compose.runtime.key(quizId, safeIndex) {
+                            QuizQuestionMedia(question, "quiz:${quizId.orEmpty()}:$safeIndex",
+                                if (onQuestionsChange != null) { records ->
+                                    editableQuestions = editableQuestions.mapIndexed { i, item -> if (i == safeIndex) item.copy(attachments = records) else item }
+                                    onQuestionsChange(editableQuestions)
+                                } else null)
                         }
 
                         // Options list
@@ -628,7 +644,7 @@ internal fun QuizPlayerDialog(
                             OutlinedButton(
                                 onClick = {
                                     skipped.add(safeIndex)
-                                    if (safeIndex + 1 < questions.size) {
+                                    if (safeIndex + 1 < editableQuestions.size) {
                                         index = safeIndex + 1
                                     } else {
                                         finished = true
@@ -644,7 +660,7 @@ internal fun QuizPlayerDialog(
 
                         Button(
                             onClick = {
-                                if (safeIndex + 1 >= questions.size) {
+                                if (safeIndex + 1 >= editableQuestions.size) {
                                     finished = true
                                 } else {
                                     index = safeIndex + 1
@@ -655,7 +671,7 @@ internal fun QuizPlayerDialog(
                             contentPadding = PaddingValues(horizontal = 8.dp)
                         ) {
                             Text(
-                                text = if (safeIndex + 1 >= questions.size) "Finish (${userAnswers.size}/${questions.size})" else "Next →",
+                                text = if (safeIndex + 1 >= editableQuestions.size) "Finish (${userAnswers.size}/${editableQuestions.size})" else "Next →",
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1
                             )

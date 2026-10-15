@@ -12,13 +12,8 @@ import com.veritas.reader.tts.VeritasAudioBuffer
 import com.veritas.reader.tts.VoiceModelManager
 
 internal fun PlaybackService.veritasBufferFor(voiceSettings: VoiceSettings): VeritasAudioBuffer {
-    var voiceName = voiceSettings.voiceName
-    if (!VoiceModelManager.isVoiceInstalled(applicationContext, voiceName)) {
-        val installed = VoiceModelManager.getInstalledVoices(applicationContext).firstOrNull()
-        if (installed != null) {
-            voiceName = installed.id
-        }
-    }
+    val voiceName = voiceSettings.voiceName
+    require(VoiceModelManager.isVoiceInstalled(applicationContext, voiceName)) { "Download the selected voice in Voice Studio." }
     // A change from Piper to Kokoro (or to a different local model) must rebuild the
     // native engine. The service otherwise keeps using the model selected before restart.
     if (veritasAudioBuffer != null && veritasAudioVoiceId != voiceName) {
@@ -28,10 +23,9 @@ internal fun PlaybackService.veritasBufferFor(voiceSettings: VoiceSettings): Ver
     return veritasAudioBuffer ?: run {
         val isPiper = voiceName.startsWith("piper_", ignoreCase = true) ||
             VoiceManager.engineForVoice(voiceName) == VoiceManager.VERITAS_LITE
-        val engine = if (isPiper) {
-            PiperEngine(applicationContext, voiceName)
-        } else {
-            KokoroTtsEngine(applicationContext, voiceName)
+        val engine = com.veritas.reader.tts.DeferredTtsEngine {
+            if (isPiper) PiperEngine(applicationContext, voiceName)
+            else KokoroTtsEngine(applicationContext, voiceName)
         }
         VeritasAudioBuffer(applicationContext, engine).also {
             veritasAudioBuffer = it
@@ -135,25 +129,10 @@ internal fun PlaybackService.updateCurrentSentenceBounds(charOffset: Int) {
         PlaybackStateStore.currentSentenceEnd = 0
         return
     }
-    val safeOffset = charOffset.coerceIn(0, text.length)
-    val sentenceStart = text
-        .lastIndexOfAny(charArrayOf('.', '!', '?', '\n'), (safeOffset - 1).coerceAtLeast(0))
-        .let { if (it < 0) 0 else (it + 1).coerceAtMost(text.length) }
-        .let { start ->
-            var adjusted = start
-            while (adjusted < text.length && text[adjusted].isWhitespace()) adjusted++
-            adjusted
-        }
-    val sentenceEnd = text
-        .indexOfAny(charArrayOf('.', '!', '?', '\n'), safeOffset)
-        .let { if (it < 0) text.length else (it + 1).coerceAtMost(text.length) }
-    if (sentenceEnd > sentenceStart) {
-        PlaybackStateStore.currentSentenceStart = sentenceStart
-        PlaybackStateStore.currentSentenceEnd = sentenceEnd
-    } else {
-        PlaybackStateStore.currentSentenceStart = safeOffset
-        PlaybackStateStore.currentSentenceEnd = safeOffset
-    }
+    // Playback chunks and the reader use the same sentence index. A second punctuation
+    // scan here used to stop at Dr./initials and disagree with the on-page highlight.
+    PlaybackStateStore.currentSentenceStart = 0
+    PlaybackStateStore.currentSentenceEnd = text.length
 }
 
 internal fun PlaybackService.clearQueuedChunk() {
@@ -161,13 +140,16 @@ internal fun PlaybackService.clearQueuedChunk() {
     queuedChunkIndex = -1
     queuedChunkSpeechText = ""
     queuedChunkBaseOffset = 0
+    queuedSpokenText = null
 }
 
 internal fun PlaybackService.clearResumePoint() {
+    PlaybackStateStore.speechPosition = null
     activeChunkUtteranceId = null
     activeChunkIndex = -1
     activeChunkSpeechText = ""
     activeChunkBaseOffset = 0
+    activeSpokenText = null
     spokenCharOffset = 0
     spokenWordCount = 0
     resumeDocumentId = null
@@ -182,4 +164,4 @@ internal fun PlaybackService.clearResumePoint() {
 }
 
 internal fun PlaybackService.leadingSilenceMsFor(index: Int): Long =
-    PlaybackService.leadingSilenceMs(chunkPageNumbers, index, chunks.getOrNull(index))
+    maxOf(PlaybackService.leadingSilenceMs(chunkPageNumbers, index, chunks.getOrNull(index)), literaryTurnPauseMs(index))

@@ -40,8 +40,7 @@ object WebArticleExtractor {
         }
 
         val (rawBytes, headerCharset) = try {
-            val responseCode = connection.responseCode
-            when (responseCode) {
+            when (val responseCode = connection.responseCode) {
                 HttpURLConnection.HTTP_OK -> {
                     val contentType = connection.contentType.orEmpty()
                     val charset = extractCharsetFromHeader(contentType)

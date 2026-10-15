@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import com.veritas.reader.vernScatteredCard
+
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -77,10 +79,10 @@ fun groupBookmarks(
 ): List<BookmarkGroup> {
     val sorted = annotations.sortedBy { it.chunkIndex }
     val groups = mutableListOf<BookmarkGroup>()
-    
+
     val withGroup = sorted.filter { !it.selectionGroupId.isNullOrBlank() }
     val withoutGroup = sorted.filter { it.selectionGroupId.isNullOrBlank() }
-    
+
     val groupedById = withGroup.groupBy { it.selectionGroupId }
     groupedById.forEach { (groupId, groupAnnots) ->
         val sortedAnnots = groupAnnots.sortedBy { it.chunkIndex }
@@ -98,7 +100,7 @@ fun groupBookmarks(
             )
         )
     }
-    
+
     if (withoutGroup.isNotEmpty()) {
         var currentRun = mutableListOf<ReaderAnnotation>()
         for (ann in withoutGroup) {
@@ -142,7 +144,7 @@ fun groupBookmarks(
             )
         }
     }
-    
+
     return groups.sortedBy { it.startSentence }
 }
 
@@ -183,12 +185,12 @@ internal fun BookmarkDocumentCard(
             }
         )
     }
-    
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().vernScatteredCard("bookmarks-${document.id}", amount = .5f),
         shape = VeritasPackStyle.cardShape(),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())),
+        colors = CardDefaults.cardColors(containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -322,10 +324,10 @@ internal fun BookmarkGroupCard(
     val context = LocalContext.current
     var expanded by rememberSaveable(group.id) { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
-    
+
     val bookTitle = group.document.title
     val (cleanTitle, authorName) = remember(bookTitle) { getBookAndAuthor(bookTitle) }
-    
+
     val collapsedText = remember(group, sentenceTextLookup) {
         val firstAnn = group.annotations.firstOrNull()
         val firstText = firstAnn?.let { sentenceTextLookup(it.chunkIndex) }
@@ -336,17 +338,17 @@ internal fun BookmarkGroupCard(
             if (firstText.length > 60) firstText.take(57) + "..." else firstText
         }
     }
-    
+
     val highlightColor = remember(group.highlightColor) {
         runCatching { Color(android.graphics.Color.parseColor(group.highlightColor)) }
             .getOrDefault(Color(0xFFFFE082))
     }
-    
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
-            .animateContentSize(),
+            .animateContentSize(animationSpec = com.veritas.reader.ui.VeritasMotion.spatial()),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
@@ -367,9 +369,9 @@ internal fun BookmarkGroupCard(
                         .size(10.dp)
                         .background(color = highlightColor, shape = CircleShape)
                 )
-                
+
                 Spacer(modifier = Modifier.width(10.dp))
-                
+
                 Text(
                     text = collapsedText,
                     style = MaterialTheme.typography.bodyMedium,
@@ -379,32 +381,32 @@ internal fun BookmarkGroupCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                
+
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                     contentDescription = if (expanded) "Collapse" else "Expand",
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
-            
+
             if (expanded) {
                 Spacer(modifier = Modifier.height(10.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                 Spacer(modifier = Modifier.height(10.dp))
-                
+
                 val sentencesText = remember(group.annotations, sentenceTextLookup) {
                     group.annotations.map { ann ->
                         sentenceTextLookup(ann.chunkIndex) ?: ""
                     }
                 }
-                
+
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     group.annotations.forEachIndexed { idx, ann ->
                         val text = sentencesText.getOrNull(idx)?.ifBlank { null } ?: "Loading sentence text..."
-                        
+
                         Row(
                             verticalAlignment = Alignment.Top,
                             modifier = Modifier.fillMaxWidth()
@@ -423,9 +425,9 @@ internal fun BookmarkGroupCard(
                             )
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(6.dp))
-                    
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -444,7 +446,7 @@ internal fun BookmarkGroupCard(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        
+
                         Box {
                             IconButton(onClick = { showMenu = true }) {
                                 Icon(
@@ -453,7 +455,7 @@ internal fun BookmarkGroupCard(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            
+
                             DropdownMenu(
                                 expanded = showMenu,
                                 onDismissRequest = { showMenu = false }
@@ -511,6 +513,3 @@ internal fun BookmarkGroupCard(
         }
     }
 }
-
-
-

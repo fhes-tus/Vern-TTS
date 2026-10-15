@@ -52,6 +52,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -63,6 +64,8 @@ import java.net.URL
  * Open Library, ManyBooks, Ocean of PDF, etc.) with automatic download interception
  * and enterprise-grade privacy and security shielding.
  */
+private data class BookDownloadRequest(val url: String, val userAgent: String?, val disposition: String?, val mimeType: String?)
+
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun BookCatalogBrowserDialog(
@@ -105,6 +108,7 @@ fun BookCatalogBrowserDialog(
     var isLoading by remember { mutableStateOf(true) }
     var isDownloading by remember { mutableStateOf(false) }
     var downloadStatus by remember { mutableStateOf("") }
+    var pendingDownload by remember { mutableStateOf<BookDownloadRequest?>(null) }
     var webViewInstance by remember { mutableStateOf<WebView?>(null) }
 
     fun sanitizeBookTitle(raw: String): String {
@@ -126,80 +130,67 @@ fun BookCatalogBrowserDialog(
     fun downloadAndImport(url: String, userAgent: String?, contentDisposition: String?, mimeType: String?) {
         if (isDownloading) return
         isDownloading = true
-        downloadStatus = "Downloading book safely into Veritas..."
-
+        downloadStatus = "Downloading book…"
+        val titleAtRequest = lastKnownBookTitle.ifBlank { sanitizeBookTitle(pageTitle).ifBlank { "Imported Book" } }
         scope.launch(Dispatchers.IO) {
-            var extractedTitle: String? = null
-            val file = runCatching {
-                val connection = URL(url).openConnection() as HttpURLConnection
-                connection.setRequestProperty("User-Agent", userAgent ?: "Mozilla/5.0 (Linux; Android 14)")
-                val refererUrl = runCatching {
-                    val u = URL(url)
-                    "${u.protocol}://${u.host}/"
-                }.getOrDefault("https://www.gutenberg.org/")
-                connection.setRequestProperty("Referer", refererUrl)
-                val cookies = CookieManager.getInstance().getCookie(url)
-                if (!cookies.isNullOrBlank()) {
-                    connection.setRequestProperty("Cookie", cookies)
-                }
-                connection.connectTimeout = 25000
-                connection.readTimeout = 40000
-                connection.connect()
-
-                val cdHeader = connection.getHeaderField("Content-Disposition") ?: contentDisposition
-                if (!cdHeader.isNullOrBlank()) {
-                    val match = Regex("filename[*]?=[\"']?([^\"';]+)[\"']?", RegexOption.IGNORE_CASE).find(cdHeader)
-                    val rawName = match?.groupValues?.getOrNull(1)?.let {
-                        runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrNull() ?: it
-                    }
-                    if (!rawName.isNullOrBlank()) {
-                        val base = rawName.substringBeforeLast('.')
-                        val clean = sanitizeBookTitle(base)
-                        if (clean.isNotBlank()) {
-                            extractedTitle = clean
-                        }
-                    }
-                }
-
+            var downloaded: File? = null
+            try {
+                val directory = File(context.cacheDir, "book_downloads").apply { mkdirs() }
+                val target = File.createTempFile("book_", ".download", directory)
+                downloaded = target
+                val result = com.veritas.reader.SecureDownloads.download(url, target,
+                    com.veritas.reader.ResourceLimits.BOOK_DOWNLOAD_BYTES,
+                    headers = { destination -> buildMap {
+                        put("User-Agent", userAgent ?: "VernReader")
+                        put("Referer", "${destination.protocol}://${destination.host}/")
+                        CookieManager.getInstance().getCookie(destination.toString())?.takeIf { it.isNotBlank() }?.let { put("Cookie", it) }
+                    } }, checkActive = { coroutineContext.ensureActive() })
+                val responseName = result.disposition ?: contentDisposition
+                val filename = responseName?.let { Regex("""filename(?:\*)?=["']?([^";]+)""", RegexOption.IGNORE_CASE).find(it)?.groupValues?.get(1) }
+                    ?.trim('\'')?.substringAfter("''")?.let { runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrDefault(it) }
+                val returnedType = result.contentType ?: mimeType.orEmpty()
                 val extension = when {
-                    url.contains(".epub", ignoreCase = true) || mimeType?.contains("epub", ignoreCase = true) == true -> ".epub"
-                    url.contains(".txt", ignoreCase = true) || mimeType?.contains("text/plain", ignoreCase = true) == true -> ".txt"
+                    result.finalUrl.path.endsWith(".epub", true) || filename?.endsWith(".epub", true) == true || returnedType.contains("epub", true) -> ".epub"
+                    result.finalUrl.path.endsWith(".txt", true) || filename?.endsWith(".txt", true) == true || returnedType.contains("text/plain", true) -> ".txt"
                     else -> ".pdf"
                 }
-
-                val fallbackName = runCatching {
-                    URL(url).path.substringAfterLast('/').substringBeforeLast('.')
-                }.getOrNull()?.let { sanitizeBookTitle(it) }?.takeIf { it.isNotBlank() }
-
-                val finalTitle = extractedTitle?.takeIf { it.isNotBlank() }
-                    ?: lastKnownBookTitle.takeIf { it.isNotBlank() }
-                    ?: sanitizeBookTitle(pageTitle).takeIf { it.isNotBlank() && !it.contains(siteName, ignoreCase = true) }
-                    ?: fallbackName
-                    ?: "${siteName.replace(" ", "_")}_Book"
-
-                extractedTitle = finalTitle
-                val safeFileName = finalTitle.replace(Regex("[^a-zA-Z0-9._ -]"), "_").trim().ifBlank { "Book_Import" }
-                val targetFile = File(context.cacheDir, "${safeFileName}$extension")
-
-                connection.inputStream.use { input ->
-                    FileOutputStream(targetFile).use { output ->
-                        input.copyTo(output)
+                if (extension != ".pdf") require(target.length() <= com.veritas.reader.ResourceLimits.DOCUMENT_INPUT_BYTES) { "Book text exceeds the 64 MB safety limit." }
+                if (extension == ".pdf") {
+                    val header = target.inputStream().use { input -> ByteArray(1024).let { bytes ->
+                        val count = input.read(bytes); String(bytes, 0, count.coerceAtLeast(0), Charsets.ISO_8859_1)
+                    } }
+                    require(header.contains("%PDF-")) { "The website did not return a PDF book." }
+                } else if (extension == ".epub") {
+                    java.util.zip.ZipFile(target).use { archive ->
+                        require(archive.getEntry("META-INF/container.xml") != null) { "The website did not return an EPUB book." }
                     }
                 }
-                targetFile
-            }.getOrNull()
-
-            withContext(Dispatchers.Main) {
-                isDownloading = false
-                downloadStatus = ""
-                if (file != null && file.exists() && file.length() > 0) {
-                    val titleToUse = extractedTitle ?: lastKnownBookTitle.ifBlank { "Imported Book" }
-                    onImportDownloadedFile(file, titleToUse)
+                val title = filename?.substringBeforeLast('.')?.let(::sanitizeBookTitle)?.takeIf { it.isNotBlank() } ?: titleAtRequest
+                val importFile = File(directory, target.nameWithoutExtension + extension)
+                check(target.renameTo(importFile)) { "Could not prepare the downloaded book." }
+                downloaded = importFile
+                withContext(Dispatchers.Main) {
+                    onImportDownloadedFile(importFile, title)
+                    // Transfer ownership before dismissal cancels this scope.
+                    downloaded = null
                     onDismiss()
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(context, error.message ?: "Could not download this book.", android.widget.Toast.LENGTH_LONG).show()
+                }
+            } finally {
+                downloaded?.delete()
+                withContext(kotlinx.coroutines.NonCancellable + Dispatchers.Main) {
+                    isDownloading = false
+                    downloadStatus = ""
                 }
             }
         }
     }
+
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -356,10 +347,11 @@ fun BookCatalogBrowserDialog(
 
                                 val cookieManager = CookieManager.getInstance()
                                 cookieManager.setAcceptCookie(true)
-                                cookieManager.setAcceptThirdPartyCookies(this, true)
+                                cookieManager.setAcceptThirdPartyCookies(this, false)
 
                                 setDownloadListener(DownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
-                                    downloadAndImport(url, userAgent, contentDisposition, mimetype)
+                                    if (!isDownloading && pendingDownload == null && runCatching { com.veritas.reader.SecureDownloads.httpsUrl(url) }.isSuccess)
+                                        pendingDownload = BookDownloadRequest(url, userAgent, contentDisposition, mimetype)
                                 })
 
                                 webChromeClient = object : WebChromeClient() {
@@ -398,9 +390,10 @@ fun BookCatalogBrowserDialog(
                                         val reqUri = request?.url ?: return false
                                         val scheme = reqUri.scheme?.lowercase(java.util.Locale.ROOT)
                                         // Block non-web schemes for complete device security
-                                        if (scheme != "http" && scheme != "https") {
+                                        if (scheme != "https") {
                                             return true
                                         }
+                                        if (!request.isForMainFrame) return false
                                         val url = reqUri.toString()
                                         if (url.endsWith(".pdf", ignoreCase = true) ||
                                             url.endsWith(".epub", ignoreCase = true) ||
@@ -409,15 +402,24 @@ fun BookCatalogBrowserDialog(
                                             url.contains("download_file", ignoreCase = true) ||
                                             url.contains("/files/", ignoreCase = true) && (url.contains(".epub") || url.contains(".pdf"))
                                         ) {
-                                            downloadAndImport(url, settings.userAgentString, null, null)
+                                            if (!isDownloading && pendingDownload == null) pendingDownload = BookDownloadRequest(url, settings.userAgentString, null, null)
                                             return true
                                         }
                                         return false
                                     }
                                 }
 
-                                loadUrl(resolvedInitialUrl)
+                                if (runCatching { com.veritas.reader.SecureDownloads.httpsUrl(resolvedInitialUrl) }.isSuccess) loadUrl(resolvedInitialUrl)
                             }
+                        },
+                        onRelease = { view ->
+                            view.stopLoading()
+                            view.setDownloadListener(null)
+                            view.webViewClient = WebViewClient()
+                            view.webChromeClient = null
+                            view.removeAllViews()
+                            view.destroy()
+                            if (webViewInstance === view) webViewInstance = null
                         },
                         modifier = Modifier.fillMaxSize()
                     )
@@ -425,4 +427,17 @@ fun BookCatalogBrowserDialog(
             }
         }
     }
+    pendingDownload?.let { download ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { pendingDownload = null },
+            title = { Text("Download and add this book?") },
+            text = { Text("From ${Uri.parse(download.url).host}. Only supported book files will be imported.") },
+            confirmButton = { androidx.compose.material3.TextButton(onClick = {
+                pendingDownload = null
+                downloadAndImport(download.url, download.userAgent, download.disposition, download.mimeType)
+            }) { Text("Download") } },
+            dismissButton = { androidx.compose.material3.TextButton(onClick = { pendingDownload = null }) { Text("Cancel") } }
+        )
+    }
+
 }

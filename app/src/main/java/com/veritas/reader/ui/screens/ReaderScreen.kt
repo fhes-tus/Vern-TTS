@@ -1,11 +1,12 @@
 package com.veritas.reader.ui.screens
 
+import com.veritas.reader.recordVeritasBackdrop
+
 import android.widget.TextView
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import com.veritas.reader.ui.VeritasMotion
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -32,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,9 +42,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.AiAssistantOption
@@ -169,8 +174,8 @@ fun ReaderScreen(
     onExportAudio: () -> Unit,
     onCopySelection: (String) -> Unit,
     onShareSelection: (String) -> Unit,
-    onGoogleSelection: (String) -> Unit,
-    onTranslateSelection: (String) -> Unit,
+    onGoogleSelection: (ReaderTextSelection) -> Unit,
+    onTranslateSelection: (ReaderTextSelection) -> Unit,
     onAskAiSelection: (String) -> Unit,
     onEditSpeechSelection: (String) -> Unit,
     onReadSelection: (String) -> Unit,
@@ -213,8 +218,8 @@ fun ReaderScreen(
     val searchCursor = state.searchCursor
     val hasCanvas = state.hasCanvas
     val context = LocalContext.current
-    val density = LocalDensity.current
-    val haptics = LocalHapticFeedback.current
+    LocalDensity.current
+    LocalHapticFeedback.current
     var showTools by remember { mutableStateOf(false) }
     var showDocumentDetails by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
@@ -225,6 +230,7 @@ fun ReaderScreen(
     val showAudioMode = state.readerMode == ReaderMode.LISTEN
     var selectedTextSelection by remember(document.id) { mutableStateOf<ReaderTextSelection?>(null) }
     var selectedTextView by remember(document.id) { mutableStateOf<TextView?>(null) }
+    var pinchInProgress by remember(document.id) { mutableStateOf(false) }
     var feedbackSentenceIndex by remember(document.id) { mutableStateOf<Int?>(null) }
     var colorPaletteTargetIndexes by remember { mutableStateOf<List<Int>?>(null) }
     var showShareToAiSheet by remember { mutableStateOf(false) }
@@ -235,8 +241,7 @@ fun ReaderScreen(
     // Bumped to force the auto-scroll effect to re-anchor the active sentence after events
     // that otherwise leave its keys unchanged (bookmarking, switching reader modes), which
     // previously left the page locked at the top of the section.
-    var scrollTick by remember(document.id) { mutableStateOf(0) }
-    var interactionTrigger by remember { mutableStateOf(0L) }
+    var interactionTrigger by remember { mutableLongStateOf(0L) }
     LaunchedEffect(showShareToAi) {
         if (showShareToAi) {
             shareToAiSelection = null
@@ -259,7 +264,11 @@ fun ReaderScreen(
             }
             showRsvpSpeedReader -> showRsvpSpeedReader = false
             showShareToAiSheet -> showShareToAiSheet = false
-            selectedTextSelection != null -> selectedTextSelection = null
+            selectedTextSelection != null -> {
+                clearNativeTextSelection(selectedTextView)
+                selectedTextView?.clearFocus()
+                selectedTextSelection = null
+            }
             else -> onBackToLibrary()
         }
     }
@@ -374,8 +383,14 @@ fun ReaderScreen(
         }
     }
 
+    val pageSyncMotion = if (readerSettings.pageTurnStyle == "flip")
+        androidx.compose.animation.core.tween<Float>(1050, easing = androidx.compose.animation.core.CubicBezierEasing(.33f, 0f, .25f, 1f))
+        else VeritasMotion.spatialSlow<Float>()
     // Page sync: whether playing TTS or user jumps to a section/sentence via outline/bookmarks/slider
-    LaunchedEffect(currentPageNumber, pageItems.size) {
+    LaunchedEffect(currentPageNumber, pageItems.size, selectedTextSelection != null) {
+        // Reading may continue while the user selects a word on this page.
+        // Keep that page in place until the native selection is dismissed.
+        if (selectedTextSelection != null || selectedTextView?.hasSelection() == true) return@LaunchedEffect
         val targetPage = (pageItems.indexOfFirst { it.pageNumber == currentPageNumber }.takeIf { it >= 0 } ?: (currentPageNumber - 1))
             .coerceIn(0, (pageItems.size - 1).coerceAtLeast(0))
         // A sync landing mid-scroll used to be dropped outright, and because this effect only
@@ -388,10 +403,10 @@ fun ReaderScreen(
                 .first { !it }
         }
         if (pagerState.currentPage != targetPage) {
-            if (latestIsPlaying.value) {
+            if (!readerSettings.reduceMotion && readerSettings.pageTurnStyle != "none" && (latestIsPlaying.value || readerSettings.pageTurnStyle == "flip")) {
                 pagerState.animateScrollToPage(
                     page = targetPage,
-                    animationSpec = tween(durationMillis = 380, easing = FastOutSlowInEasing)
+                    animationSpec = pageSyncMotion
                 )
             } else {
                 pagerState.scrollToPage(targetPage)
@@ -420,9 +435,11 @@ fun ReaderScreen(
 
     // Manual page swipe -> update playback sentence so it stays on the flipped page smoothly
     LaunchedEffect(pagerState) {
-        androidx.compose.runtime.snapshotFlow { pagerState.settledPage }
-            .collect { pageIdx ->
-                if (!pagerState.isScrollInProgress) {
+        // settledPage can publish before isScrollInProgress becomes false.
+        // Observe both so that final position update is never dropped.
+        androidx.compose.runtime.snapshotFlow { pagerState.settledPage to pagerState.isScrollInProgress }
+            .collect { (pageIdx, scrolling) ->
+                if (!scrolling) {
                     val targetPageItem = latestPageItems.value.getOrNull(pageIdx)
                     // Pages with no sentences of their own (image-only or genuinely blank) still
                     // get a pager entry so they stay swipeable, but their sentence range is
@@ -479,13 +496,11 @@ fun ReaderScreen(
     }
     annotations.count { it.type == AnnotationType.BOOKMARK }
     annotations.count { it.type == AnnotationType.NOTE }
-    val canGoPreviousPart = currentPartIndex > 0
-    val canGoNextPart = currentPartIndex < readerModel.parts.lastIndex
-    val previousPartStart =
-        readerModel.parts.getOrNull(currentPartIndex - 1)?.sentenceStartIndex ?: 0
-    val nextPartStart = readerModel.parts.getOrNull(currentPartIndex + 1)?.sentenceStartIndex
+    currentPartIndex > 0
+    currentPartIndex < readerModel.parts.lastIndex
+    readerModel.parts.getOrNull(currentPartIndex - 1)?.sentenceStartIndex ?: 0
+    readerModel.parts.getOrNull(currentPartIndex + 1)?.sentenceStartIndex
         ?: document.chunks.lastIndex
-    val partListItemIndex = 1
 
     LaunchedEffect(feedbackSentenceIndex) {
         if (feedbackSentenceIndex != null) {
@@ -503,27 +518,30 @@ fun ReaderScreen(
 
     val topBarOffset by animateFloatAsState(
         targetValue = if (effectiveTopBarVisible) 0f else -650f,
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        animationSpec = VeritasMotion.spatial(),
         label = "readerTopBarOffset"
     )
     val bottomBarOffset by animateFloatAsState(
         targetValue = if (effectiveBottomBarVisible) 0f else 450f,
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        animationSpec = VeritasMotion.spatial(),
         label = "readerBottomBarOffset"
     )
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val animatedTopPadding by animateDpAsState(
         targetValue = if (effectiveTopBarVisible) topInset + 114.dp else topInset + 8.dp,
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        animationSpec = VeritasMotion.spatial(),
         label = "animatedTopPadding"
     )
     val animatedBottomPadding by animateDpAsState(
         targetValue = if (effectiveBottomBarVisible) bottomInset + 64.dp else bottomInset + 12.dp,
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        animationSpec = VeritasMotion.spatial(),
         label = "animatedBottomPadding"
     )
 
+    val glassEnabled = VeritasPackStyle.glassChromeEnabled() && com.veritas.reader.isDeviceGlassCapable()
+    val readerBackdrop = if (glassEnabled) com.veritas.reader.rememberVeritasLayerBackdrop() else null
+    com.veritas.reader.VeritasBackdropProvider(readerBackdrop) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -534,6 +552,8 @@ fun ReaderScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .recordVeritasBackdrop(readerBackdrop, glassEnabled)
+                .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))
                 .padding(top = animatedTopPadding, bottom = animatedBottomPadding)
         ) {
             if (document.chunks.isEmpty()) {
@@ -551,11 +571,43 @@ fun ReaderScreen(
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier.fillMaxSize(),
-                        userScrollEnabled = true,
-                        pageSpacing = 16.dp,
+                        userScrollEnabled = selectedTextSelection == null && !pinchInProgress,
+                        flingBehavior = androidx.compose.foundation.pager.PagerDefaults.flingBehavior(
+                            state = pagerState,
+                            snapAnimationSpec = if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion)
+                                androidx.compose.animation.core.tween(900, easing = androidx.compose.animation.core.CubicBezierEasing(.33f, 0f, .25f, 1f))
+                            else VeritasMotion.spatial<Float>()),
+                        pageSpacing = if (readerSettings.pageTurnStyle in listOf("flip", "hinge") && !readerSettings.reduceMotion) 0.dp else 16.dp,
                         beyondViewportPageCount = 1,
                         key = { pageItems.getOrNull(it)?.pageNumber ?: it }
                     ) { pageIndex ->
+                        val flip = readerSettings.pageTurnStyle == "hinge" && !readerSettings.reduceMotion && pagerState.isScrollInProgress
+                        Box(Modifier.fillMaxSize().zIndex(if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion && pagerState.isScrollInProgress) {
+                            val position = (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
+                            if (position > .001f && position < .999f) 2f else if (kotlin.math.abs(position) < .001f) 1f else 0f
+                        } else if (pagerState.currentPage == pageIndex) 1f else 0f)
+                            .graphicsLayer {
+                                if (flip) {
+                                    val offset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
+                                    translationX = offset * size.width
+                                    rotationY = -offset * 90f
+                                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(if (offset > 0f) 0f else 1f, .5f)
+                                    cameraDistance = 18f * density
+                                    shadowElevation = kotlin.math.abs(offset) * 10.dp.toPx()
+                                }
+                            }.drawWithContent {
+                                drawContent()
+                                if (flip) {
+                                    val fold = kotlin.math.abs((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(0f, 1f)
+                                    drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(
+                                        androidx.compose.ui.graphics.Color.Black.copy(alpha = fold * .18f),
+                                        androidx.compose.ui.graphics.Color.Transparent,
+                                        androidx.compose.ui.graphics.Color.Black.copy(alpha = fold * .08f))))
+                                }
+                            }) {
+                        BookPageCurl(readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion,
+                            pagerState.isScrollInProgress,
+                            { (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction }, MaterialTheme.colorScheme.background) {
                         ReaderPageItemView(
                             pageIndex = pageIndex,
                             pageItems = pageItems,
@@ -610,8 +662,11 @@ fun ReaderScreen(
                                 shareToAiNoPrompt = noPrompt
                                 showShareToAiSheet = true
                             },
-                            onFontSizeChange = onFontSizeChange
+                            onFontSizeChange = onFontSizeChange,
+                            onPinchChanged = { pinchInProgress = it }
                         )
+                        }
+                        }
             }
         }
     }
@@ -704,6 +759,7 @@ fun ReaderScreen(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .graphicsLayer { translationY = bottomBarOffset }
+                .testTag("reader-bottom-controls")
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -807,6 +863,8 @@ fun ReaderScreen(
             )
         }
     }
+
+    } // Reader backdrop provider
 
     ReaderDialogsAndSheetsHost(
         showAudioMode = showAudioMode,

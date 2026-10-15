@@ -24,6 +24,38 @@ class PlaybackStateStoreResilienceTest {
     }
 
     @Test
+    fun preparationIsScopedToTheRequestedBookUntilOutputStarts() {
+        PlaybackStateStore.activeDocumentId = "old-book"
+        PlaybackStateStore.beginPreparing("new-book")
+        assertTrue(PlaybackStateStore.isPreparingFor("new-book"))
+        assertFalse(PlaybackStateStore.isPreparingFor("old-book"))
+        PlaybackStateStore.isPlaying = true // intent accepted, not audio output
+        assertTrue(PlaybackStateStore.isPreparing)
+        PlaybackStateStore.finishPreparing()
+        assertFalse(PlaybackStateStore.isPreparing)
+        assertTrue(PlaybackStateStore.isPlaying)
+    }
+
+    @Test
+    fun pauseOrFailureClearsPreparationEvenBeforePlayingWasSet() {
+        PlaybackStateStore.beginPreparing("book")
+        PlaybackStateStore.isPlaying = false
+        assertFalse(PlaybackStateStore.isPreparing)
+        PlaybackStateStore.beginPreparing("book")
+        PlaybackStateStore.isPlaying = true
+        PlaybackStateStore.isPlaying = false
+        assertFalse(PlaybackStateStore.isPreparing)
+    }
+
+    @Test
+    fun preparationIsTransientAndDoesNotSurviveReset() {
+        PlaybackStateStore.beginPreparing("book")
+        PlaybackStateStore.reset()
+        assertFalse(PlaybackStateStore.isPreparingFor("book"))
+        assertFalse(PlaybackStateStore.isPreparing)
+    }
+
+    @Test
     fun testSleepTimerManagement() {
         val now = 1_000_000L
         val request = VeritasSleepTimerRequest(

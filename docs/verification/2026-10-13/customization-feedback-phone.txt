@@ -1,0 +1,187 @@
+INSTRUMENTATION_STATUS: class=com.veritas.reader.IconPaletteLifecycleTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.IconPaletteLifecycleTest:
+INSTRUMENTATION_STATUS: test=iconChangeKeepsSettingsOpenAndAppliesWhenAppLeavesForeground
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.IconPaletteLifecycleTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Activity never becomes requested state "[CREATED, STARTED, RESUMED, DESTROYED]" (last lifecycle transition = "PRE_ON_CREATE")
+	at androidx.test.core.app.ActivityScenario.waitForActivityToBecomeAnyOf(ActivityScenario.java:449)
+	at androidx.test.core.app.ActivityScenario.launchInternal(ActivityScenario.java:375)
+	at androidx.test.core.app.ActivityScenario.launch(ActivityScenario.java:235)
+	at com.veritas.reader.IconPaletteLifecycleTest.iconChangeKeepsSettingsOpenAndAppliesWhenAppLeavesForeground(IconPaletteLifecycleTest.kt:30)
+
+INSTRUMENTATION_STATUS: stream=
+Error in iconChangeKeepsSettingsOpenAndAppliesWhenAppLeavesForeground(com.veritas.reader.IconPaletteLifecycleTest):
+java.lang.AssertionError: Activity never becomes requested state "[CREATED, STARTED, RESUMED, DESTROYED]" (last lifecycle transition = "PRE_ON_CREATE")
+	at androidx.test.core.app.ActivityScenario.waitForActivityToBecomeAnyOf(ActivityScenario.java:449)
+	at androidx.test.core.app.ActivityScenario.launchInternal(ActivityScenario.java:375)
+	at androidx.test.core.app.ActivityScenario.launch(ActivityScenario.java:235)
+	at com.veritas.reader.IconPaletteLifecycleTest.iconChangeKeepsSettingsOpenAndAppliesWhenAppLeavesForeground(IconPaletteLifecycleTest.kt:30)
+
+INSTRUMENTATION_STATUS: test=iconChangeKeepsSettingsOpenAndAppliesWhenAppLeavesForeground
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.CustomizationAndListenUiTest:
+INSTRUMENTATION_STATUS: test=staticStartupChoicesSelectStaticSystemSplashAndKeepOneIcon
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=staticStartupChoicesSelectStaticSystemSplashAndKeepOneIcon
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=listenReadControlsCollapseAndFullScreenCanExitWithoutSeeking
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=listenReadControlsCollapseAndFullScreenCanExitWithoutSeeking
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=customizationChoicesPersistAndInvalidValuesFallBack
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=customizationChoicesPersistAndInvalidValuesFallBack
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=paletteChangesKeepExactlyOneLaunchableEntry
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=paletteChangesKeepExactlyOneLaunchableEntry
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=settingsUseReadableColoursInLightDarkAndContrastThemes
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=settingsUseReadableColoursInLightDarkAndContrastThemes
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=aboutRemainsScrollableWithLargeText
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=aboutRemainsScrollableWithLargeText
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ListenRedesignUiTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.ListenRedesignUiTest:
+INSTRUMENTATION_STATUS: test=safeAreaKeepsControlsClearAndDoesNotDoubleConsumedInsets
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ListenRedesignUiTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=safeAreaKeepsControlsClearAndDoesNotDoubleConsumedInsets
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ListenRedesignUiTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=glassModesRetainToolsScrubbingAndSmoothSentenceSelection
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ListenRedesignUiTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=glassModesRetainToolsScrubbingAndSmoothSentenceSelection
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.BookPageCurlUiTest:
+INSTRUMENTATION_STATUS: test=curvedPagesRenderForwardAndBackAndReturnToLiveText
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=curvedPagesRenderForwardAndBackAndReturnToLiveText
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=meshAcceptsTurnEndpointsAndProducesPaperReverse
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=11
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=meshAcceptsTurnEndpointsAndProducesPaperReverse
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 85.38
+There was 1 failure:
+1) iconChangeKeepsSettingsOpenAndAppliesWhenAppLeavesForeground(com.veritas.reader.IconPaletteLifecycleTest)
+java.lang.AssertionError: Activity never becomes requested state "[CREATED, STARTED, RESUMED, DESTROYED]" (last lifecycle transition = "PRE_ON_CREATE")
+	at androidx.test.core.app.ActivityScenario.waitForActivityToBecomeAnyOf(ActivityScenario.java:449)
+	at androidx.test.core.app.ActivityScenario.launchInternal(ActivityScenario.java:375)
+	at androidx.test.core.app.ActivityScenario.launch(ActivityScenario.java:235)
+	at com.veritas.reader.IconPaletteLifecycleTest.iconChangeKeepsSettingsOpenAndAppliesWhenAppLeavesForeground(IconPaletteLifecycleTest.kt:30)
+
+FAILURES!!!
+Tests run: 11,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

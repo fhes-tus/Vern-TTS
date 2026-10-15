@@ -1,0 +1,3 @@
+<en-US>
+A fresh look for Vern: new V branding, animated startup and smoother navigation. Today's Reading now shows four sliding stats with clearer graphics and better text fitting. Book covers move subtly, and the mini-player waveform follows supported voices. Notes and annotation headings now match Library and Study Hub. Includes reading insights, note sharing, playback and import improvements.
+</en-US>

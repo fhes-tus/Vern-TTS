@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.PlaybackPipelineLogicTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:44.014Z" hostname="FIRWEWALL" time="0.041">
+  <properties/>
+  <testcase name="tableRowGetsBreathingSilence" classname="com.veritas.reader.PlaybackPipelineLogicTest" time="0.028"/>
+  <testcase name="windowStartsAfterTheCurrentSentence" classname="com.veritas.reader.PlaybackPipelineLogicTest" time="0.006"/>
+  <testcase name="zeroWindowDisablesLookAhead" classname="com.veritas.reader.PlaybackPipelineLogicTest" time="0.0"/>
+  <testcase name="outOfRangeIndicesAreSilent" classname="com.veritas.reader.PlaybackPipelineLogicTest" time="0.001"/>
+  <testcase name="selectionReadingDoesNotProduceNegativeIndices" classname="com.veritas.reader.PlaybackPipelineLogicTest" time="0.0"/>
+  <testcase name="windowIsEmptyForAnEmptyDocument" classname="com.veritas.reader.PlaybackPipelineLogicTest" time="0.003"/>
+  <testcase name="singleSentenceSlidesStillOpenWithATransitionBeat" classname="com.veritas.reader.PlaybackPipelineLogicTest" time="0.0"/>
+  <testcase name="windowClampsToTheEndOfTheDocument" classname="com.veritas.reader.PlaybackPipelineLogicTest" time="0.0"/>
+  <testcase name="eachSlideOpensWithATransitionBeatThenATitleBeat" classname="com.veritas.reader.PlaybackPipelineLogicTest" time="0.0"/>
+  <testcase name="nonDeckDocumentsGetNoLeadingSilence" classname="com.veritas.reader.PlaybackPipelineLogicTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

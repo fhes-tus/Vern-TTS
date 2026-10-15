@@ -161,7 +161,7 @@ fun DesktopInsightsView(
                     Text("Reading Habit Heatmap (Last 4 Weeks)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    val cal = Calendar.getInstance()
+                    Calendar.getInstance()
                     val daysList = mutableListOf<Pair<String, Int>>()
                     for (i in 27 downTo 0) {
                         val c = Calendar.getInstance()
@@ -175,7 +175,7 @@ fun DesktopInsightsView(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        for ((date, mins) in daysList) {
+                        for ((_, mins) in daysList) {
                             val intensityColor = when {
                                 mins >= 30 -> MaterialTheme.colorScheme.primary
                                 mins >= 15 -> MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)

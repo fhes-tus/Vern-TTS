@@ -81,7 +81,7 @@ object PptLegacyExtractor {
         var pos = 512 // Skip OLE2 header
         while (pos + 8 <= bytes.size) {
             buffer.position(pos)
-            val verInst = buffer.short.toInt() and 0xFFFF
+            buffer.short.toInt() and 0xFFFF
             val recType = buffer.short.toInt() and 0xFFFF
             val recLen = buffer.int
 

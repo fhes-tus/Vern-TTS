@@ -47,7 +47,7 @@ class PiperEngine(context: Context, private val voiceId: String) : TtsEngine {
 
     override suspend fun synthesize(sentence: String, rate: Float, pitch: Float): ShortArray? = withContext(Dispatchers.Default) {
         val tts = engine ?: return@withContext null
-        val clean = sentence.trim()
+        val clean = NeuralSpeechText.prepare(sentence)
         if (clean.isBlank()) return@withContext null
         val safeSpeed = rate.coerceIn(0.5f, 2.0f)
         runCatching {
@@ -57,7 +57,7 @@ class PiperEngine(context: Context, private val voiceId: String) : TtsEngine {
             ShortArray(samples.size) { index ->
                 (samples[index].coerceIn(-1f, 1f) * Short.MAX_VALUE).toInt().toShort()
             }
-        }.onFailure { Log.e(TAG, "Piper synthesis failed", it) }.getOrNull()
+        }.onFailure { Log.e(TAG, "Piper synthesis failed", it) }.getOrNull()?.let { PcmPitchShift.apply(it, sampleRate, pitch) }
     }
 
     override fun shutdown() {

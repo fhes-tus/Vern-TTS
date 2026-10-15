@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -114,7 +115,8 @@ internal fun ReaderTopAppBar(
         Surface(
             modifier = modifier
                 .fillMaxWidth()
-                .graphicsLayer { translationY = topBarOffset },
+                .graphicsLayer { translationY = topBarOffset }
+                .testTag("reader-top-controls"),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 3.dp,
             shadowElevation = if (topBarVisible) 3.dp else 0.dp

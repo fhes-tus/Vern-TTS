@@ -74,9 +74,8 @@ object PdfTextCleaner {
                 if (documentOutput.isNotBlank()) documentOutput.append("\n\n")
                 val pageNumber = pageNumbers.getOrNull(pageIndex) ?: (pageIndex + 1)
                 documentOutput.append(ReaderTextIndex.pageMarker(pageNumber)).append("\n")
-                if (options.includePageMarkers) {
-                    documentOutput.append("Page $pageNumber\n")
-                }
+                // Page identity lives in the internal marker and reader chrome;
+                // an audible "Page N" line would duplicate it in the prose.
                 documentOutput.append(merged)
             }
             if (pageIndex < pageLines.lastIndex && merged.isNotBlank()) {

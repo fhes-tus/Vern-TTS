@@ -4,9 +4,7 @@ package com.veritas.reader.ui.screens
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -68,6 +66,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import com.veritas.reader.VeritasPackStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -253,10 +252,11 @@ internal fun Modifier.staggeredEntrance(position: Int): Modifier {
     if (VeritasThemeState.reduceMotion) return this
     var played by rememberSaveable { mutableStateOf(false) }
     val progress = remember { Animatable(if (played) 1f else 0f) }
+    val entranceMotion = com.veritas.reader.ui.VeritasMotion.spatial<Float>()
     if (!played) {
         LaunchedEffect(Unit) {
             delay(position * 40L)
-            progress.animateTo(1f, tween(durationMillis = 280, easing = LinearOutSlowInEasing))
+            progress.animateTo(1f, entranceMotion)
             played = true
         }
     }
@@ -273,6 +273,7 @@ internal fun RowScope.BottomNavItem(
     icon: @Composable (Color, androidx.compose.ui.unit.Dp) -> Unit,
     label: String,
     showLabel: Boolean = true,
+    showSelectionPill: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -284,27 +285,22 @@ internal fun RowScope.BottomNavItem(
         } else {
             scheme.onSurfaceVariant.copy(alpha = 0.72f)
         },
-        animationSpec = tween(durationMillis = 200),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.effectsFast(),
         label = "navColor"
     )
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
-    // 0.92x press-scale with a springy release so taps feel physical.
+    val reduceMotion = com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion
     val pressScale by animateFloatAsState(
-        targetValue = if (pressed) 0.92f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
+        targetValue = if (pressed && !reduceMotion) 0.97f else 1f,
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
         label = "navPress"
     )
-    // Pronounced pill indicator softly scales/fades in behind the active icon and text.
+    // The selected state is shared across tabs; the pack only adapts its shape/material.
     val pillProgress by animateFloatAsState(
         targetValue = if (selected) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
+        animationSpec = if (reduceMotion) androidx.compose.animation.core.snap()
+            else androidx.compose.animation.core.spring(dampingRatio = .72f, stiffness = 500f),
         label = "navPill"
     )
     val activePillColor = if (isDark) {
@@ -318,9 +314,10 @@ internal fun RowScope.BottomNavItem(
         scheme.primary.copy(alpha = 0.35f)
     }
 
-    val pillWidth = if (showLabel) 70.dp else 56.dp
-    val pillHeight = if (showLabel) 48.dp else 42.dp
-    val pillRadius = if (showLabel) 24.dp else 21.dp
+    val selectionSize = pillProgress.coerceIn(0f, 1.12f)
+    val pillWidth = if (showLabel) (60f + 4f * selectionSize).dp else (50f + 4f * selectionSize).dp
+    val pillHeight = if (showLabel) (46f + 2f * selectionSize).dp else (40f + 2f * selectionSize).dp
+    val pillShape = VeritasPackStyle.chipShape()
 
     Box(
         modifier = modifier
@@ -342,7 +339,7 @@ internal fun RowScope.BottomNavItem(
             },
         contentAlignment = Alignment.Center
     ) {
-        if (pillProgress > 0.01f) {
+        if (showSelectionPill && pillProgress > 0.01f) {
             Box(
                 modifier = Modifier
                     .width(pillWidth)
@@ -354,12 +351,12 @@ internal fun RowScope.BottomNavItem(
                     }
                     .background(
                         color = activePillColor,
-                        shape = RoundedCornerShape(pillRadius)
+                        shape = pillShape
                     )
                     .border(
                         width = 1.dp,
                         color = activePillBorder,
-                        shape = RoundedCornerShape(pillRadius)
+                        shape = pillShape
                     )
             )
         }
@@ -369,7 +366,9 @@ internal fun RowScope.BottomNavItem(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                icon(contentColor, if (selected) 23.dp else 22.dp)
+                Box(Modifier.graphicsLayer { translationY = -1.5.dp.toPx() * pillProgress.coerceIn(0f, 1f) }) {
+                    icon(contentColor, 24.dp)
+                }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = label,
@@ -385,7 +384,7 @@ internal fun RowScope.BottomNavItem(
             Box(
                 contentAlignment = Alignment.Center
             ) {
-                icon(contentColor, if (selected) 27.dp else 25.dp)
+                icon(contentColor, 26.dp)
             }
         }
     }
@@ -413,7 +412,7 @@ internal fun ImportSheetMenu(
                 Icon(imageVector = Icons.Filled.Close, contentDescription = "Close")
             }
         }
-        
+
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             ImportSheetOptionCard(
                 icon = Icons.AutoMirrored.Filled.LibraryBooks,
@@ -468,11 +467,18 @@ internal fun ImportSheetOptionCard(
     subtitle: String,
     onClick: () -> Unit
 ) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val pressedColor by animateColorAsState(
+        if (pressed) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        label = "addActionPress"
+    )
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        interactionSource = interaction,
+        modifier = Modifier.fillMaxWidth().graphicsLayer { scaleX = if (pressed) 0.98f else 1f; scaleY = scaleX },
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        colors = CardDefaults.cardColors(containerColor = pressedColor)
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -516,9 +522,9 @@ internal fun ImportSheetWeb(
             }
             Text("Import link", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         }
-        
+
         Text("Paste a link to any web article, report, or blog post below:", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        
+
         OutlinedTextField(
             value = urlText,
             onValueChange = onUrlChange,
@@ -527,7 +533,7 @@ internal fun ImportSheetWeb(
             placeholder = { Text("https://example.com/article...") },
             singleLine = true
         )
-        
+
         Button(
             onClick = { onImport(urlText) },
             modifier = Modifier.fillMaxWidth(),
@@ -561,9 +567,9 @@ internal fun ImportSheetPaste(
             }
             Text("Paste text", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         }
-        
+
         Text("Paste loose text, a document snippet, or email contents below:", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        
+
         OutlinedTextField(
             value = pastedText,
             onValueChange = onTextChange,
@@ -571,7 +577,7 @@ internal fun ImportSheetPaste(
             label = { Text("Content") },
             placeholder = { Text("Paste text here...") }
         )
-        
+
         Button(
             onClick = onSave,
             modifier = Modifier.fillMaxWidth(),
@@ -581,6 +587,3 @@ internal fun ImportSheetPaste(
         }
     }
 }
-
-
-

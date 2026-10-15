@@ -1,0 +1,161 @@
+{
+  "kind": "isolated unshrunk debug experiment",
+  "baselineBytes": 148251547,
+  "compressedBytes": 66916506,
+  "dex": [
+    {
+      "name": "classes.dex",
+      "raw": 41750648,
+      "stored": 41750648
+    },
+    {
+      "name": "classes10.dex",
+      "raw": 10202436,
+      "stored": 10202436
+    },
+    {
+      "name": "classes11.dex",
+      "raw": 10842128,
+      "stored": 10842128
+    },
+    {
+      "name": "classes12.dex",
+      "raw": 8558188,
+      "stored": 8558188
+    },
+    {
+      "name": "classes2.dex",
+      "raw": 624836,
+      "stored": 624836
+    },
+    {
+      "name": "classes5.dex",
+      "raw": 48524,
+      "stored": 48524
+    },
+    {
+      "name": "classes8.dex",
+      "raw": 104904,
+      "stored": 104904
+    },
+    {
+      "name": "classes9.dex",
+      "raw": 15994600,
+      "stored": 15994600
+    },
+    {
+      "name": "classes3.dex",
+      "raw": 1346516,
+      "stored": 1346516
+    },
+    {
+      "name": "classes6.dex",
+      "raw": 177652,
+      "stored": 177652
+    },
+    {
+      "name": "classes4.dex",
+      "raw": 8372964,
+      "stored": 8372964
+    },
+    {
+      "name": "classes7.dex",
+      "raw": 6238420,
+      "stored": 6238420
+    }
+  ],
+  "runs": [
+    {
+      "variant": "stored",
+      "installSeconds": 16.261903800004802,
+      "starts": [
+        {
+          "TotalTime": 2839,
+          "WaitTime": 2851
+        },
+        {
+          "TotalTime": 1654,
+          "WaitTime": 1659
+        },
+        {
+          "TotalTime": 1408,
+          "WaitTime": 1412
+        }
+      ],
+      "storage": {
+        "appBytes": 150119936,
+        "dataBytes": 1294336,
+        "cacheBytes": 458752
+      }
+    },
+    {
+      "variant": "compressed",
+      "installSeconds": 10.487002499998198,
+      "starts": [
+        {
+          "TotalTime": 2799,
+          "WaitTime": 2810
+        },
+        {
+          "TotalTime": 1421,
+          "WaitTime": 1424
+        },
+        {
+          "TotalTime": 1444,
+          "WaitTime": 1449
+        }
+      ],
+      "storage": {
+        "appBytes": 173078016,
+        "dataBytes": 1294336,
+        "cacheBytes": 458752
+      }
+    },
+    {
+      "variant": "compressed",
+      "installSeconds": 10.750412599998526,
+      "starts": [
+        {
+          "TotalTime": 1684,
+          "WaitTime": 1691
+        },
+        {
+          "TotalTime": 1501,
+          "WaitTime": 1507
+        },
+        {
+          "TotalTime": 1403,
+          "WaitTime": 1406
+        }
+      ],
+      "storage": {
+        "appBytes": 173078016,
+        "dataBytes": 1294336,
+        "cacheBytes": 458752
+      }
+    },
+    {
+      "variant": "stored",
+      "installSeconds": 9.156829799998377,
+      "starts": [
+        {
+          "TotalTime": 1739,
+          "WaitTime": 1743
+        },
+        {
+          "TotalTime": 1454,
+          "WaitTime": 1459
+        },
+        {
+          "TotalTime": 1379,
+          "WaitTime": 1383
+        }
+      ],
+      "storage": {
+        "appBytes": 150119936,
+        "dataBytes": 1294336,
+        "cacheBytes": 458752
+      }
+    }
+  ]
+}

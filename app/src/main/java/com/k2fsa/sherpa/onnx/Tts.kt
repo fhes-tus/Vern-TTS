@@ -1,4 +1,4 @@
-// Kotlin bindings matching Sherpa-ONNX v1.13.4's Android JNI API.
+// Kotlin bindings matching Sherpa-ONNX v1.13.8's Android JNI API.
 package com.k2fsa.sherpa.onnx
 
 import android.content.res.AssetManager
@@ -28,6 +28,10 @@ data class GenerationConfig(var silenceScale: Float = 0.2f, var speed: Float = 1
 
 class OfflineTts(assetManager: AssetManager? = null, var config: OfflineTtsConfig) {
     private var ptr: Long = if (assetManager == null) newFromFile(config) else newFromAsset(assetManager, config)
+
+    init {
+        require(ptr != 0L) { "Invalid OfflineTtsConfig: failed to create native OfflineTts" }
+    }
 
     val isReady: Boolean get() = ptr != 0L
     fun sampleRate(): Int = if (ptr != 0L) getSampleRate(ptr) else 24_000

@@ -115,9 +115,10 @@ internal fun detectIsDocx(document: SavedDocument, isPdf: Boolean, isImage: Bool
  * Loads and parses a PowerPoint presentation deck from original storage.
  */
 internal fun loadPresentationDeck(context: Context, original: Uri, document: SavedDocument): PptxDeck {
-    val bytes = context.contentResolver.openInputStream(original)?.use { it.readBytes() }
-        ?: throw IllegalStateException("Could not read presentation file")
-    return if (PptLegacyExtractor.isPptFile(bytes)) {
+    val source = DocumentRepository(context).originalFile(document) ?: stageOriginalArchive(context, original)
+    val header = ByteArray(8).also { bytes -> source.inputStream().use { java.io.DataInputStream(it).readFully(bytes) } }
+    return if (PptLegacyExtractor.isPptFile(header)) {
+        val bytes = source.inputStream().use { OriginalArchiveEntries.readBounded(it, 64 * 1024 * 1024) }
         val body = PptLegacyExtractor.extract(bytes)
         val lines = body.text.lines()
         val slides = mutableListOf<PptxSlideContent>()
@@ -144,26 +145,40 @@ internal fun loadPresentationDeck(context: Context, original: Uri, document: Sav
         val finalSlides = if (slides.isNotEmpty()) slides else listOf(PptxSlideContent(1, listOf(document.title), lines.filter { it.isNotBlank() }, emptyList(), emptyList()))
         PptxDeck(slides = finalSlides, slideCount = finalSlides.size)
     } else {
-        PptxExtractor.parseDeck(bytes, includeSpeakerNotes = true)
+        PptxExtractor.parseDeck(source, includeSpeakerNotes = true)
     }
 }
 
 /**
  * Parses an EPUB book from original storage.
  */
-internal fun loadEpubBook(context: Context, original: Uri, title: String): EpubBook {
-    val bytes = context.contentResolver.openInputStream(original)?.use { it.readBytes() }
-        ?: throw IllegalStateException("Could not read EPUB file")
-    return EpubDocumentParser.parse(bytes, title)
+internal fun loadEpubBook(context: Context, original: Uri, title: String, storedOriginal: java.io.File? = null): EpubBook {
+    return EpubDocumentParser.parse(storedOriginal ?: stageOriginalArchive(context, original), title)
 }
 
-/**
- * Parses a DOCX Word document from original storage.
- */
-internal fun loadDocxDocument(context: Context, original: Uri, title: String): DocxDocument {
-    val bytes = context.contentResolver.openInputStream(original)?.use { it.readBytes() }
-        ?: throw IllegalStateException("Could not read DOCX file")
-    return DocxDocumentParser.parse(bytes, title)
+/** Parses Word text once, loading embedded media on demand. */
+internal fun loadDocxDocument(context: Context, original: Uri, title: String, storedOriginal: java.io.File? = null): DocxDocument {
+    return DocxDocumentParser.parse(storedOriginal ?: stageOriginalArchive(context, original), title, preserveSourceFormatting = true)
+}
+
+private fun stageOriginalArchive(context: Context, original: Uri): java.io.File {
+    val directory = java.io.File(context.cacheDir, "original_view_archives").apply { mkdirs() }
+    val staged = java.io.File(directory, "${java.util.UUID.randomUUID()}.zip")
+    try {
+        context.contentResolver.openInputStream(original)?.use { input ->
+            staged.outputStream().use { output ->
+                val buffer = ByteArray(64 * 1024); var total = 0L
+                while (true) {
+                    val count = input.read(buffer); if (count < 0) break
+                    total += count; require(total <= 512L * 1024 * 1024) { "The original document is too large to preview." }
+                    output.write(buffer, 0, count)
+                }
+            }
+        } ?: error("Could not read the original document.")
+        // Stored originals normally bypass this fallback. Clean expired cache files.
+        directory.listFiles()?.filter { it != staged && System.currentTimeMillis() - it.lastModified() > 24L * 60 * 60 * 1000 }?.forEach { it.delete() }
+        return staged
+    } catch (error: Throwable) { staged.delete(); throw error }
 }
 
 /**
@@ -200,12 +215,28 @@ internal fun decodeImageBitmap(context: Context, original: Uri): Bitmap {
 /**
  * Extracts and decodes images belonging to a specific presentation slide.
  */
-internal fun loadSlideImages(context: Context, original: Uri, slide: PptxSlideContent): List<Bitmap> {
-    return runCatching {
-        val bytes = context.contentResolver.openInputStream(original)?.use { it.readBytes() }
-            ?: return emptyList()
-        PptxExtractor.extractSlideImages(bytes, slide).mapNotNull { imgBytes ->
-            BitmapFactory.decodeByteArray(imgBytes, 0, imgBytes.size)
-        }
-    }.getOrDefault(emptyList())
+internal fun loadSlideImageMap(context: Context, original: Uri, slide: PptxSlideContent, storedOriginal: java.io.File? = null): Map<String, Bitmap> {
+    if (slide.mediaPaths.isEmpty()) return emptyMap()
+    val source = storedOriginal ?: stageOriginalArchive(context, original)
+    val archive = OriginalArchiveEntries(source)
+    val media = archive.imageMap { it in slide.mediaPaths }
+    var remainingPixels = 4_000_000L
+    return slide.mediaPaths.distinct().take(100).mapNotNull { path ->
+        runCatching {
+            media[path]?.let { bytes ->
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                var sample = 1
+                if (bounds.outWidth <= 0 || bounds.outHeight <= 0 || remainingPixels < 1024) return@let null
+                while (bounds.outWidth / sample > 1600 || bounds.outHeight / sample > 1600 ||
+                    (bounds.outWidth / sample).toLong() * (bounds.outHeight / sample) > remainingPixels) sample *= 2
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })?.let {
+                    remainingPixels -= it.width.toLong() * it.height
+                    path to it
+                }
+            }
+        }.getOrNull()
+    }.toMap()
 }
+
+internal fun loadSlideImages(context: Context, original: Uri, slide: PptxSlideContent): List<Bitmap> = loadSlideImageMap(context, original, slide).values.toList()

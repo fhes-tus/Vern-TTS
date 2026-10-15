@@ -1,0 +1,212 @@
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ExtractedCurlGestureInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.ExtractedCurlGestureInstrumentedTest:
+INSTRUMENTATION_STATUS: test=extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ExtractedCurlGestureInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Horizontal turn reaches next extracted page
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.await(ExtractedCurlGestureInstrumentedTest.kt:35)
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal(ExtractedCurlGestureInstrumentedTest.kt:145)
+
+INSTRUMENTATION_STATUS: stream=
+Error in extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal(com.veritas.reader.ExtractedCurlGestureInstrumentedTest):
+java.lang.IllegalStateException: Horizontal turn reaches next extracted page
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.await(ExtractedCurlGestureInstrumentedTest.kt:35)
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal(ExtractedCurlGestureInstrumentedTest.kt:145)
+
+INSTRUMENTATION_STATUS: test=extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=com.veritas.reader.LibraryNavigationUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.LibraryNavigationUiTest:
+INSTRUMENTATION_STATUS: test=libraryBottomNavBarDisplaysAllTabs
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.LibraryNavigationUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=libraryBottomNavBarDisplaysAllTabs
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.LibraryNavigationUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=clickingTabTriggersCallback
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.LibraryNavigationUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=clickingTabTriggersCallback
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.ThemeAndStartupChoicesUiTest:
+INSTRUMENTATION_STATUS: test=themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=everyFollowedThemeMatchesItsPrimaryAndEveryPaletteHasTheCorrectStartingTheme
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=everyFollowedThemeMatchesItsPrimaryAndEveryPaletteHasTheCorrectStartingTheme
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.TabSwipeStabilityUiTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.TabSwipeStabilityUiTest:
+INSTRUMENTATION_STATUS: test=allPagesKeepTheirViewportDuringDragsAndInterruptedNavigationRecovers
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.TabSwipeStabilityUiTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=allPagesKeepTheirViewportDuringDragsAndInterruptedNavigationRecovers
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ClassicArchiveLinksUiTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.ClassicArchiveLinksUiTest:
+INSTRUMENTATION_STATUS: test=allArchiveSearchButtonsOpenTheirSelectedDestination
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ClassicArchiveLinksUiTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=allArchiveSearchButtonsOpenTheirSelectedDestination
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.BookPageCurlUiTest:
+INSTRUMENTATION_STATUS: test=curvedPagesRenderForwardAndBackAndReturnToLiveText
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=curvedPagesRenderForwardAndBackAndReturnToLiveText
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=meshAcceptsTurnEndpointsAndProducesPaperReverse
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=meshAcceptsTurnEndpointsAndProducesPaperReverse
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=pinchKeepsItsOwnershipAcrossFontUpdatesAndCancelledCurlReturnsToLivePage
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=pinchKeepsItsOwnershipAcrossFontUpdatesAndCancelledCurlReturnsToLivePage
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=middlePageReceivesTapScrollDoubleTapAndNativeSelectionWithCurlEnabled
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=middlePageReceivesTapScrollDoubleTapAndNativeSelectionWithCurlEnabled
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.HomeBrandThemeUiTest
+INSTRUMENTATION_STATUS: current=12
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.HomeBrandThemeUiTest:
+INSTRUMENTATION_STATUS: test=sidebarCloseReleasesHomeWithoutSpringSettlingPause
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.HomeBrandThemeUiTest
+INSTRUMENTATION_STATUS: current=12
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=sidebarCloseReleasesHomeWithoutSpringSettlingPause
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.HomeBrandThemeUiTest
+INSTRUMENTATION_STATUS: current=13
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=vWordmarkFitsLargeTextHeaderAcrossThemes
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.HomeBrandThemeUiTest
+INSTRUMENTATION_STATUS: current=13
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=13
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=vWordmarkFitsLargeTextHeaderAcrossThemes
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 83.26
+There was 1 failure:
+1) extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal(com.veritas.reader.ExtractedCurlGestureInstrumentedTest)
+java.lang.IllegalStateException: Horizontal turn reaches next extracted page
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.await(ExtractedCurlGestureInstrumentedTest.kt:35)
+	at com.veritas.reader.ExtractedCurlGestureInstrumentedTest.extractedCurlScrollsSelectsKeepsSelectionOnPageAndSwipesAfterDismissal(ExtractedCurlGestureInstrumentedTest.kt:145)
+
+FAILURES!!!
+Tests run: 13,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

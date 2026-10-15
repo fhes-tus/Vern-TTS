@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.GeneralNotesEditorLogicTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:42.238Z" hostname="FIRWEWALL" time="0.114">
+  <properties/>
+  <testcase name="stripMarkupRemovesBoldItalicAndCode" classname="com.veritas.reader.GeneralNotesEditorLogicTest" time="0.01"/>
+  <testcase name="audioUrlDeduplicationPreservesOrderWithoutDuplicates" classname="com.veritas.reader.GeneralNotesEditorLogicTest" time="0.0"/>
+  <testcase name="blockReorderingMaintainsIntegrity" classname="com.veritas.reader.GeneralNotesEditorLogicTest" time="0.091"/>
+  <testcase name="serializeChecklistProducesCanonicalFormat" classname="com.veritas.reader.GeneralNotesEditorLogicTest" time="0.001"/>
+  <testcase name="parseChecklistLinesMaintainsCheckedState" classname="com.veritas.reader.GeneralNotesEditorLogicTest" time="0.001"/>
+  <testcase name="blockExtractionHandlesMixedAudioAndText" classname="com.veritas.reader.GeneralNotesEditorLogicTest" time="0.005"/>
+  <testcase name="togglingChecklistItemPreservesOtherItems" classname="com.veritas.reader.GeneralNotesEditorLogicTest" time="0.002"/>
+  <testcase name="stripMarkupPreservesPlainListsAndPunctuation" classname="com.veritas.reader.GeneralNotesEditorLogicTest" time="0.004"/>
+  <testcase name="stripMarkupRemovesHeadingsAndBlockquotes" classname="com.veritas.reader.GeneralNotesEditorLogicTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

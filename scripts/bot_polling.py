@@ -1,14 +1,9 @@
-#!/usr/bin/env python3
-"""
-Vern TTS Autonomous Telegram Bot (Comprehensive Long-Polling Edition)
-Offline-First Android Reading Workstation Knowledge Center & Assistant.
-"""
-
 import os
 import sys
 import time
 import json
 import random
+import re
 import html
 import urllib.request
 import urllib.parse
@@ -17,7 +12,7 @@ import urllib.error
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8285832720:AAHM20ABnUrB1VzLM81eUgkO6NdXnb7Je-o")
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 REPO = os.environ.get("GITHUB_REPOSITORY", "fhes-tus/Vern-TTS")
 WEBSITE_URL = "https://fhes-tus.github.io/Vern-TTS/"
 CHANNEL_URL = "https://t.me/myreader_veritas"
@@ -28,20 +23,125 @@ GITHUB_URL = f"https://github.com/{REPO}"
 # In-memory release cache to prevent hitting GitHub API rate limits
 _cached_release = None
 _cached_release_time = 0
+_seen_media_groups = set()
+
+def strip_html_tags(text):
+    """Strip HTML tags for fallback plain text sending."""
+    return re.sub(r'<[^>]+>', '', text)
+
+def markdown_to_telegram_html(md_text, max_bullets=14):
+    """Clean markdown release notes and convert markdown annotations to Telegram HTML."""
+    if not md_text:
+        return ""
+
+    lines = md_text.splitlines()
+    clean_lines = []
+    bullet_count = 0
+    in_downloads = False
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line:
+            if clean_lines and clean_lines[-1] != "":
+                clean_lines.append("")
+            continue
+
+        # Ignore horizontal rules
+        if re.match(r'^(-{3,}|_{3,}|\*{3,})$', line):
+            continue
+
+        # Headers: #, ##, ###
+        header_match = re.match(r'^#{1,6}\s*(.*)', line)
+        if header_match:
+            title = header_match.group(1).strip()
+            lower_title = title.lower()
+            if any(w in lower_title for w in ['download', 'artifact', 'verification']):
+                in_downloads = True
+                continue
+            if in_downloads:
+                continue
+
+            # Skip top title header if it duplicates version/announcement title
+            if "build" in lower_title or lower_title.startswith("vern"):
+                continue
+
+            title_escaped = html.escape(title)
+            title_clean = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', title_escaped)
+            clean_lines.append(f"\n<b>{title_clean}</b>")
+            continue
+
+        if in_downloads:
+            continue
+
+        lower = line.lower()
+        if any(w in lower for w in ['sha-256', 'sha256', 'checksum', 'verification summary', 'compiledebug', 'compilerelease']):
+            continue
+        if re.search(r'[a-f0-9]{64}', line, re.I):
+            continue
+
+        # Bullets: * or -
+        bullet_match = re.match(r'^[\*\-]\s+(.*)', line)
+        if bullet_match:
+            bullet_count += 1
+            if max_bullets and bullet_count > max_bullets:
+                continue
+            content = bullet_match.group(1).strip()
+            content = html.escape(content)
+            # Markdown bold **text** -> HTML <b>text</b>
+            content = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', content)
+            # Markdown italic *text* or _text_ -> HTML <i>text</i>
+            content = re.sub(r'(?<!\w)\*([^\*]+)\*(?!\w)', r'<i>\1</i>', content)
+            # Markdown inline code `code` -> HTML <code>code</code>
+            content = re.sub(r'`([^`]+)`', r'<code>\1</code>', content)
+            # Markdown link [text](url) -> HTML <a href="\2">\1</a>
+            content = re.sub(r'\[([^\]]+)\]\((https?://[^\s\)]+)\)', r'<a href="\2">\1</a>', content)
+            clean_lines.append(f"• {content}")
+            continue
+
+        # Standard paragraph line
+        escaped = html.escape(line)
+        escaped = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', escaped)
+        escaped = re.sub(r'(?<!\w)\*([^\*]+)\*(?!\w)', r'<i>\1</i>', escaped)
+        escaped = re.sub(r'`([^`]+)`', r'<code>\1</code>', escaped)
+        escaped = re.sub(r'\[([^\]]+)\]\((https?://[^\s\)]+)\)', r'<a href="\2">\1</a>', escaped)
+        clean_lines.append(escaped)
+
+    if max_bullets and bullet_count > max_bullets:
+        clean_lines.append(f"\n• <i>...and {bullet_count - max_bullets} more enhancements!</i>")
+
+    result = "\n".join(clean_lines).strip()
+    result = re.sub(r'\n{3,}', '\n\n', result)
+    return result
 
 def api_call(method, payload=None):
+    if not TOKEN:
+        raise RuntimeError("Set TELEGRAM_BOT_TOKEN in the environment.")
     url = f"https://api.telegram.org/bot{TOKEN}/{method}"
-    headers = {"Content-Type": "application/json"}
     data = json.dumps(payload).encode("utf-8") if payload else None
-    req = urllib.request.Request(url, data=data, headers=headers)
-    try:
-        with urllib.request.urlopen(req, timeout=40) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except Exception as e:
-        print(f"API Call Error ({method}): {e}")
-        return None
+    for attempt in range(3):
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=40) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as error:
+            if error.code == 429 and attempt < 2:
+                try:
+                    delay = int(json.loads(error.read()).get("parameters", {}).get("retry_after", 3))
+                except (ValueError, TypeError):
+                    delay = 3
+                time.sleep(max(1, min(delay, 60)))
+                continue
+            print(f"Telegram API {method}: HTTP {error.code}")
+            return None
+        except Exception as error:
+            print(f"Telegram API {method}: {type(error).__name__}")
+            return None
+    return None
+
 
 def send_message(chat_id, text, reply_markup=None):
+    if len(text) > 4000:
+        text = text[:3980] + "\n\n<i>...[truncated]</i>"
     payload = {
         "chat_id": chat_id,
         "text": text,
@@ -50,9 +150,18 @@ def send_message(chat_id, text, reply_markup=None):
     }
     if reply_markup:
         payload["reply_markup"] = reply_markup
+    res = api_call("sendMessage", payload)
+    if res and res.get("ok"):
+        return res
+    # Automatic fallback: if HTML parse fails, send clean plain text
+    print("Retrying sendMessage without parse_mode (plain text fallback)...")
+    payload["parse_mode"] = None
+    payload["text"] = strip_html_tags(text)
     return api_call("sendMessage", payload)
 
 def edit_message(chat_id, message_id, text, reply_markup=None):
+    if len(text) > 4000:
+        text = text[:3980] + "\n\n<i>...[truncated]</i>"
     payload = {
         "chat_id": chat_id,
         "message_id": message_id,
@@ -62,6 +171,13 @@ def edit_message(chat_id, message_id, text, reply_markup=None):
     }
     if reply_markup:
         payload["reply_markup"] = reply_markup
+    res = api_call("editMessageText", payload)
+    if res and res.get("ok"):
+        return res
+    # Automatic fallback
+    print("Retrying editMessageText without parse_mode...")
+    payload["parse_mode"] = None
+    payload["text"] = strip_html_tags(text)
     return api_call("editMessageText", payload)
 
 def answer_callback(cb_id, text=""):
@@ -79,14 +195,20 @@ def get_latest_release():
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            tag = data.get("tag_name", "v2.5.0")
+            tag = data.get("tag_name", "v2.6.1")
             name = data.get("name", f"Vern TTS {tag}")
+            body = data.get("body", "")
+            assets = [a for a in data.get("assets", []) if a.get("name", "").endswith(".apk")
+                      and a.get("browser_download_url", "").startswith(f"{GITHUB_URL}/releases/download/")]
+            def asset(marker):
+                return next((a["browser_download_url"] for a in assets if marker in a["name"]), f"{GITHUB_URL}/releases/latest")
             _cached_release = {
                 "tag": tag,
                 "name": name,
-                "arm64_url": f"{GITHUB_URL}/releases/download/{tag}/Veritas-Reader-{tag}-arm64-v8a-release.apk",
-                "universal_url": f"{GITHUB_URL}/releases/download/{tag}/Veritas-Reader-{tag}-universal-release.apk",
-                "arm32_url": f"{GITHUB_URL}/releases/download/{tag}/Veritas-Reader-{tag}-armeabi-v7a-release.apk"
+                "body": body,
+                "arm64_url": asset("arm64"),
+                "universal_url": asset("universal"),
+                "arm32_url": asset("armeabi")
             }
             _cached_release_time = now
             return _cached_release
@@ -94,10 +216,11 @@ def get_latest_release():
         print(f"Warning: could not fetch release from GitHub API ({e})")
         if _cached_release:
             return _cached_release
-        tag = "v2.5.0"
+        tag = "v2.6.1"
         return {
             "tag": tag,
             "name": f"Vern TTS {tag}",
+            "body": "",
             "arm64_url": f"{GITHUB_URL}/releases/download/{tag}/Veritas-Reader-{tag}-arm64-v8a-release.apk",
             "universal_url": f"{GITHUB_URL}/releases/download/{tag}/Veritas-Reader-{tag}-universal-release.apk",
             "arm32_url": f"{GITHUB_URL}/releases/download/{tag}/Veritas-Reader-{tag}-armeabi-v7a-release.apk"
@@ -121,6 +244,53 @@ def load_classics():
                 print(f"Error loading {p}: {e}")
     return []
 
+def get_changelog_content():
+    rel = get_latest_release()
+    tag = rel["tag"]
+    body = rel.get("body", "")
+    if not body:
+        candidates = [
+            os.path.join(os.getcwd(), f"RELEASE_NOTES_{tag}.md"),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), f"RELEASE_NOTES_{tag}.md"),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", f"RELEASE_NOTES_{tag}.md"),
+            os.path.join(os.getcwd(), "RELEASE_NOTES_v2.6.1.md"),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "RELEASE_NOTES_v2.6.1.md"),
+            os.path.join(os.getcwd(), "RELEASE_NOTES_v2.6.0.md"),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "RELEASE_NOTES_v2.6.0.md"),
+        ]
+        for c in candidates:
+            if os.path.exists(c):
+                try:
+                    with open(c, "r", encoding="utf-8") as f:
+                        body = f.read()
+                    break
+                except Exception:
+                    pass
+
+    formatted_notes = markdown_to_telegram_html(body, max_bullets=14)
+    if not formatted_notes:
+        formatted_notes = (
+            "• <b>Bidirectional Notes Sharing</b>: Multi-format export (TXT, PDF, audio recordings, or restorable ZIP) and external stream imports.\n"
+            "• <b>Measured Reading Sessions Ledger</b>: Crash-resilient tracking separating silent reading from confirmed neural audio playback.\n"
+            "• <b>Resilient Vocabulary & Wiktionary</b>: Background WorkManager definition resolution with multi-dictionary fallbacks.\n"
+            "• <b>Save to Phone Storage</b>: Direct external document export surviving app uninstalls.\n"
+            "• <b>Listen & Insights Redesign</b>: Liquid glass controls, streak flame animations, and Midnight (System) default theme."
+        )
+
+    text = (
+        f"📋 <b>What's New in Vern TTS {tag}</b>\n\n"
+        f"{formatted_notes}\n\n"
+        f"<i>Build: {tag} • 100% Private, On-Device Reading</i>"
+    )
+    markup = {
+        "inline_keyboard": [
+            [{"text": f"⬇️ Download {tag} APKs", "callback_data": "cmd_download"}],
+            [{"text": "🐙 GitHub Release", "url": f"{GITHUB_URL}/releases/tag/{tag}"}, {"text": "🌐 Official Website", "url": WEBSITE_URL}],
+            [{"text": "⬅️ Back to Main Menu", "callback_data": "cmd_menu"}]
+        ]
+    }
+    return text, markup
+
 def get_welcome_content():
     rel = get_latest_release()
     tag = rel["tag"]
@@ -140,10 +310,10 @@ def get_welcome_content():
     )
     markup = {
         "inline_keyboard": [
-            [{"text": "⬇️ Download APKs", "callback_data": "cmd_download"}, {"text": "🌟 Workstation Features", "callback_data": "cmd_features"}],
+            [{"text": "⬇️ Download APKs", "callback_data": "cmd_download"}, {"text": f"📋 What's New ({tag})", "callback_data": "cmd_changelog"}],
+            [{"text": "🌟 Workstation Features", "callback_data": "cmd_features"}, {"text": "📚 Curated Classics", "callback_data": "cmd_classics"}],
             [{"text": "🧠 Study Hub & Cards", "callback_data": "feat_study"}, {"text": "🎙 Voice Memos", "callback_data": "feat_memos"}],
-            [{"text": "🎧 Voice Setup Guide", "callback_data": "cmd_guide_voice"}, {"text": "📚 Curated Classics", "callback_data": "cmd_classics"}],
-            [{"text": "❓ In-Depth FAQs", "callback_data": "cmd_faq"}, {"text": "📬 Official Channels", "callback_data": "cmd_contact"}],
+            [{"text": "🎧 Voice Setup Guide", "callback_data": "cmd_guide_voice"}, {"text": "❓ In-Depth FAQs", "callback_data": "cmd_faq"}],
             [{"text": "📢 Telegram Community", "url": CHANNEL_URL}, {"text": "🌐 Official Website", "url": WEBSITE_URL}]
         ]
     }
@@ -156,7 +326,7 @@ def get_download_content():
         f"📦 <b>Download Vern TTS ({tag} Latest Stable)</b>\n\n"
         "Select the optimal build for your device architecture:\n\n"
         f"• <a href=\"{rel['arm64_url']}\"><b>64-bit ARM APK (arm64-v8a)</b></a> ⭐️ <i>Recommended</i>\n"
-        "  Tailored for modern Android devices (Android 8.0 through Android 15). Smallest footprint and highest execution performance.\n\n"
+        "  Tailored for modern Android devices (Android 9 or later). Smallest footprint and highest execution performance.\n\n"
         f"• <a href=\"{rel['universal_url']}\"><b>Universal Release APK</b></a>\n"
         "  Contains runtime binaries for all chipsets. Compatible with any supported phone, tablet, or Chromebook.\n\n"
         f"• <a href=\"{rel['arm32_url']}\"><b>32-bit Legacy APK (armeabi-v7a)</b></a>\n"
@@ -168,7 +338,8 @@ def get_download_content():
     markup = {
         "inline_keyboard": [
             [{"text": f"⬇️ Download arm64 APK ({tag})", "url": rel["arm64_url"]}],
-            [{"text": "📦 All Builds on GitHub", "url": f"{GITHUB_URL}/releases/latest"}, {"text": "🌐 Official Website", "url": WEBSITE_URL}],
+            [{"text": f"📋 What's New in {tag}", "callback_data": "cmd_changelog"}, {"text": "🌐 Website", "url": WEBSITE_URL}],
+            [{"text": "📦 All Builds on GitHub", "url": f"{GITHUB_URL}/releases/latest"}],
             [{"text": "⬅️ Back to Main Menu", "callback_data": "cmd_menu"}]
         ]
     }
@@ -251,7 +422,7 @@ def get_feature_detail(topic):
             "• <b>Fluid Library Gestures</b>: Drag-and-drop to reorder your bookshelf, hold-to-select for batch actions, and swipe to bookmark."
         )
     else:
-        title = "🛡 <b>100% Offline Privacy Guarantee</b>"
+        title = "🛡 <b>Offline-first Privacy</b>"
         body = (
             "• <b>Zero Analytics & Telemetry</b>: No Google Analytics, no Firebase tracking, no Crashlytics data collection.\n"
             "• <b>Zero Accounts Required</b>: No logins, passwords, or emails. Download and start reading in 2 seconds.\n"
@@ -492,9 +663,9 @@ def get_faq_detail(topic):
         title = "🛡 <b>Privacy & Safe Sideloading FAQs</b>"
         body = (
             "<b>Q: Why does Android show \"Unknown App / Source\" when installing?</b>\n"
-            "A: Android displays this warning for *any* application installed from an APK file outside the Google Play Store. It is standard Android behavior. Vern TTS contains zero malware, zero trackers, and is 100% open source on GitHub.\n\n"
+            "A: Android displays this warning for *any* application installed from an APK file outside the Google Play Store. It is standard Android behavior. Use the official downloads and review the open source code on GitHub.\n\n"
             "<b>Q: Does Vern require any internet permissions?</b>\n"
-            "A: Reading, text extraction, speech generation, voice memos, and study cards all run 100% offline. Internet is only used if you choose to download a new classic from the catalog.\n\n"
+            "A: Local reading, notes and downloaded neural voices work offline. Catalogs, voice downloads, updates, link previews and optional AI or translation features use the internet. Android voices depend on the installed speech engine.\n\n"
             "<b>Q: Does Vern collect or sell my data?</b>\n"
             "A: Never. Vern has no telemetry, no tracking IDs, no ads, and no user accounts. Your library and progress remain strictly on your device."
         )
@@ -520,6 +691,7 @@ def setup_bot_commands():
     commands = [
         {"command": "start", "description": "Welcome & Workstation Overview"},
         {"command": "download", "description": "Get latest verified APK releases"},
+        {"command": "changelog", "description": "Latest published release notes"},
         {"command": "features", "description": "Workstation capabilities & tools"},
         {"command": "study", "description": "Spaced repetition & study hub"},
         {"command": "memos", "description": "Embedded voice memos & notes"},
@@ -541,14 +713,51 @@ def handle_update(update):
     if "message" in update:
         msg = update["message"]
         chat_id = msg["chat"]["id"]
-        raw_text = msg.get("text", "").strip()
+
+        # Deduplicate media group albums so multi-image messages don't spam replies
+        media_group_id = msg.get("media_group_id")
+        if media_group_id:
+            if media_group_id in _seen_media_groups:
+                return
+            _seen_media_groups.add(media_group_id)
+            if len(_seen_media_groups) > 500:
+                _seen_media_groups.clear()
+
+        # Extract text or media caption
+        raw_text = (msg.get("text") or msg.get("caption") or "").strip()
         text = raw_text.lower()
+
+        if re.match(r"^/(milestone|customize|security)(@\w+)?(?:\s|$)", text):
+            send_message(chat_id, "<b>Vern 2.6.2 — in development</b>\n\n20 icon palettes, matching startup colours, Funky cards, refreshed About and Accessibility, Notes settings, improved Listen controls, page curl, gestures and coordinated tab swipes. Security changes bound downloads and archives and verify APK signers. Published downloads remain the latest stable release.\n\nAPK and Play updates need the same package and compatible certificates. Export a backup before any uninstall.")
+            return
+
+        # If message contains only media (photo, video, document, voice, audio) without text
+        if not raw_text and ("photo" in msg or "video" in msg or "document" in msg or "audio" in msg or "voice" in msg):
+            media_reply = (
+                "📸 <b>Media Received!</b>\n\n"
+                "Vern TTS is an offline Android reading workstation supporting <b>PDF, EPUB, TXT, DOCX, and Markdown (.md)</b> documents.\n\n"
+                "• <b>To read books:</b> Transfer files to your Android device storage and open them in Vern TTS.\n"
+                "• <b>To explore classics:</b> Tap <b>Classics</b> to browse 35+ curated public domain books pre-loaded with authentic covers.\n\n"
+                "<i>Select an option below to get started:</i>"
+            )
+            markup = {
+                "inline_keyboard": [
+                    [{"text": "⬇️ Download App", "callback_data": "cmd_download"}, {"text": "📋 Latest release notes", "callback_data": "cmd_changelog"}],
+                    [{"text": "📚 Curated Classics", "callback_data": "cmd_classics"}, {"text": "🏠 Main Menu", "callback_data": "cmd_menu"}]
+                ]
+            }
+            send_message(chat_id, media_reply, markup)
+            return
 
         if text.startswith("/start") or text.startswith("/help") or text == "menu":
             t, m = get_welcome_content()
             send_message(chat_id, t, m)
         elif text.startswith("/download") or text == "download" or "apk" in text:
             t, m = get_download_content()
+            send_message(chat_id, t, m)
+        elif (text.startswith("/changelog") or text.startswith("/release") or text.startswith("/whatsnew") or
+              text.startswith("/update") or text.startswith("/notes") or "what's new" in text or "release note" in text or "changelog" in text):
+            t, m = get_changelog_content()
             send_message(chat_id, t, m)
         elif text.startswith("/features") or text == "features" or text == "feature":
             t, m = get_features_menu()
@@ -584,6 +793,21 @@ def handle_update(update):
         elif text.startswith("/contact") or text.startswith("/community") or "channel" in text or "developer" in text or "support" in text:
             t, m = get_contact_content()
             send_message(chat_id, t, m)
+        elif any(w in text for w in ["library", "import", "add book", "add to library", "open file"]):
+            t = (
+                "📚 <b>How to Add Books & Documents to Vern TTS</b>\n\n"
+                "1. <b>Storage Files:</b> Place any PDF, EPUB, TXT, DOCX, or MD file on your device (Internal Storage or Downloads).\n"
+                "2. <b>Instant Import:</b> In Vern TTS, tap <b>+ Add Document</b> or use the batch file browser to import files directly into your personal library.\n"
+                "3. <b>Classics Shelf:</b> Tap the <b>Classics</b> tab inside the app to download any of the 35+ curated public domain books with authentic covers.\n\n"
+                "<i>All imported documents remain 100% private and offline on your device sandbox.</i>"
+            )
+            m = {
+                "inline_keyboard": [
+                    [{"text": "⬇️ Download App", "callback_data": "cmd_download"}, {"text": "📚 Browse Classics", "callback_data": "cmd_classics"}],
+                    [{"text": "🏠 Main Menu", "callback_data": "cmd_menu"}]
+                ]
+            }
+            send_message(chat_id, t, m)
         else:
             fallback = (
                 "🤖 <b>Vern TTS Assistant</b>\n\n"
@@ -592,7 +816,8 @@ def handle_update(update):
             )
             markup = {
                 "inline_keyboard": [
-                    [{"text": "⬇️ Download App", "callback_data": "cmd_download"}, {"text": "🌟 Workstation Features", "callback_data": "cmd_features"}],
+                    [{"text": "⬇️ Download App", "callback_data": "cmd_download"}, {"text": "📋 Latest release notes", "callback_data": "cmd_changelog"}],
+                    [{"text": "🌟 Workstation Features", "callback_data": "cmd_features"}, {"text": "📚 Curated Classics", "callback_data": "cmd_classics"}],
                     [{"text": "🧠 Study Hub", "callback_data": "feat_study"}, {"text": "🎙 Voice Memos", "callback_data": "feat_memos"}],
                     [{"text": "🎲 Random Classic", "callback_data": "cmd_random_book"}, {"text": "❓ Knowledge Base", "callback_data": "cmd_faq"}]
                 ]
@@ -611,6 +836,9 @@ def handle_update(update):
             edit_message(chat_id, msg_id, t, m)
         elif data == "cmd_download":
             t, m = get_download_content()
+            edit_message(chat_id, msg_id, t, m)
+        elif data in ("cmd_changelog", "cmd_release"):
+            t, m = get_changelog_content()
             edit_message(chat_id, msg_id, t, m)
         elif data == "cmd_features":
             t, m = get_features_menu()
@@ -642,32 +870,39 @@ def handle_update(update):
             topic = data.replace("faq_", "")
             t, m = get_faq_detail(topic)
             edit_message(chat_id, msg_id, t, m)
+        else:
+            t, m = get_welcome_content()
+            edit_message(chat_id, msg_id, t, m)
 
 def main():
-    print("Starting Vern TTS Upgraded Bot (Polling mode)...")
+    if not TOKEN:
+        sys.exit("Set TELEGRAM_BOT_TOKEN in the environment.")
+    print("Starting Vern TTS Autonomous Bot (Resilient Long-Polling mode)...")
     setup_bot_commands()
     offset = 0
     api_call("deleteWebhook", {"drop_pending_updates": False})
 
-    retry_delay = 1
     while True:
         try:
-            updates = api_call("getUpdates", {"offset": offset, "timeout": 25})
+            updates = api_call("getUpdates", {"offset": offset, "timeout": 20})
             if updates and updates.get("ok"):
-                retry_delay = 1
-                for item in updates["result"]:
-                    offset = item["update_id"] + 1
-                    handle_update(item)
+                for item in updates.get("result", []):
+                    offset = max(offset, item["update_id"] + 1)
+                    try:
+                        handle_update(item)
+                    except Exception as err:
+                        print(f"Error handling update {item.get('update_id')}: {err}")
+                # Immediate quick poll for the next batch
+                time.sleep(0.1)
             else:
-                time.sleep(retry_delay)
-                retry_delay = min(retry_delay * 2, 30)
-            time.sleep(1)
+                # Brief rest on network hiccup
+                time.sleep(1)
         except KeyboardInterrupt:
             print("\nBot polling stopped cleanly.")
             break
         except Exception as e:
-            print(f"Polling loop error: {e}")
-            time.sleep(5)
+            print(f"Polling loop unexpected exception: {e}")
+            time.sleep(2)
 
 if __name__ == "__main__":
     main()

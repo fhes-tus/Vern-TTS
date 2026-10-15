@@ -55,23 +55,21 @@ object NoteReminderScheduler {
     }
 
     fun ensureChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = context.getSystemService(NotificationManager::class.java) ?: return
-            if (manager.getNotificationChannel(CHANNEL_ID) == null) {
-                val channel = NotificationChannel(
-                    CHANNEL_ID,
-                    "Note reminders",
-                    NotificationManager.IMPORTANCE_HIGH
-                ).apply {
-                    description = "Reminders you set on your notes"
-                    enableVibration(true)
-                    vibrationPattern = longArrayOf(0, 400, 200, 400)
-                    enableLights(true)
-                    setShowBadge(true)
-                    lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
-                }
-                manager.createNotificationChannel(channel)
+        val manager = context.getSystemService(NotificationManager::class.java) ?: return
+        if (manager.getNotificationChannel(CHANNEL_ID) == null) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Note reminders",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Reminders you set on your notes"
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0, 400, 200, 400)
+                enableLights(true)
+                setShowBadge(true)
+                lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
             }
+            manager.createNotificationChannel(channel)
         }
     }
 

@@ -72,256 +72,81 @@ class VeritasPlayerWidget : GlanceAppWidget() {
     override val sizeMode: SizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val activeDocId = PlaybackStateStore.activeDocumentId
-        val coverBitmap = if (!activeDocId.isNullOrBlank()) {
-            val coverFile = CoverExtractor.coverFile(context, activeDocId)
-            if (coverFile != null && coverFile.exists()) {
-                runCatching { BitmapFactory.decodeFile(coverFile.absolutePath) }.getOrNull()
-            } else null
-        } else null
-
+        val state = kotlinx.coroutines.withContext(Dispatchers.IO) { DocumentRepository(context).widgetReadingState() }
+        val cover = kotlinx.coroutines.withContext(Dispatchers.IO) { widgetCover(context, state.document) }
         provideContent {
             val size = androidx.glance.LocalSize.current
-            val title = PlaybackStateStore.documentTitle.ifBlank { "Vern" }
-            val isPlaying = PlaybackStateStore.isPlaying
-            val progressPercent = if (PlaybackStateStore.chunkCount > 0) {
-                ((PlaybackStateStore.currentIndex + 1) * 100) / PlaybackStateStore.chunkCount
-            } else 0
-
-            val progressText = if (PlaybackStateStore.chunkCount > 0) {
-                "Sentence ${PlaybackStateStore.currentIndex + 1} of ${PlaybackStateStore.chunkCount} • $progressPercent%"
-            } else {
-                PlaybackStateStore.statusMessage.ifBlank { "Ready to read" }
+            val document = state.document
+            val compact = size.width < 320.dp
+            val short = size.height < 84.dp
+            val title = document?.title ?: "Your next read"
+            val subtitle = when {
+                document == null -> "Open your library to get started"
+                state.isPreparing -> "Preparing reading…"
+                state.isPlaying -> "Playing · ${state.index + 1}/${document.chunkCount}"
+                state.index > 0 -> "Paused · ${state.index + 1}/${document.chunkCount}"
+                else -> "Ready to read"
             }
-
-            val docFormat = when {
-                title.endsWith(".pdf", ignoreCase = true) -> "PDF"
-                title.endsWith(".docx", ignoreCase = true) || title.endsWith(".doc", ignoreCase = true) -> "DOCX"
-                title.endsWith(".epub", ignoreCase = true) -> "EPUB"
-                title.endsWith(".pptx", ignoreCase = true) || title.endsWith(".ppt", ignoreCase = true) -> "PPTX"
-                title.endsWith(".txt", ignoreCase = true) -> "TXT"
-                else -> "DOC"
-            }
-
-            val playParams = actionParametersOf(PlayerActionCallback.ActionKey to (if (isPlaying) PlaybackActions.ACTION_PAUSE else PlaybackActions.ACTION_PLAY))
-            val prevParams = actionParametersOf(PlayerActionCallback.ActionKey to PlaybackActions.ACTION_PREVIOUS)
-            val nextParams = actionParametersOf(PlayerActionCallback.ActionKey to PlaybackActions.ACTION_NEXT)
-
-            val isCompact = size.width < 185.dp
-
-            // Centered layout with constrained slim vertical height (54dp) matching Samsung One UI system widgets
-            Box(
-                modifier = GlanceModifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = GlanceModifier
-                        .fillMaxWidth()
-                        .height(76.dp)
-                        .cornerRadius(38.dp)
-                        .background(VeritasWidgetColors.playerBackground)
-                        .padding(horizontal = 14.dp, vertical = 6.dp)
-                        .clickable(actionRunCallback<PlayerWidgetClickCallback>()),
-                    contentAlignment = Alignment.Center
+            val open = androidx.glance.appwidget.action.actionStartActivity(
+                widgetActivityIntent(context, if (document == null) MainActivity.ACTION_OPEN_LIBRARY else MainActivity.ACTION_CONTINUE_READING, document?.id))
+            Box(GlanceModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Row(
+                    modifier = GlanceModifier.fillMaxWidth().height(if (short) 64.dp else 80.dp)
+                        .cornerRadius(28.dp).background(VeritasWidgetColors.playerBackground)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = GlanceModifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Document Artwork / Thumbnail (prominent 46dp)
-                        if (coverBitmap != null) {
-                            Image(
-                                provider = ImageProvider(coverBitmap),
-                                contentDescription = "Cover",
-                                modifier = GlanceModifier.size(46.dp).cornerRadius(14.dp)
-                            )
-                        } else {
-                            Box(
-                                modifier = GlanceModifier
-                                    .size(46.dp)
-                                    .cornerRadius(14.dp)
-                                    .background(ImageProvider(R.drawable.ic_widget_book_cover_gradient)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    provider = ImageProvider(R.drawable.ic_widget_library),
-                                    contentDescription = "Book icon",
-                                    modifier = GlanceModifier.size(24.dp),
-                                    colorFilter = ColorFilter.tint(ColorProvider(Color.White))
-                                )
-                            }
+                    if (!compact || size.width >= 210.dp) {
+                        Image(provider = ImageProvider(cover ?: widgetCoverPlaceholder()), contentDescription = "Open $title",
+                            modifier = GlanceModifier.size(if (short) 40.dp else 48.dp).cornerRadius(12.dp).clickable(open))
+                        Spacer(GlanceModifier.width(10.dp))
+                    }
+                    Column(GlanceModifier.defaultWeight().clickable(open)) {
+                        Text(title, style = TextStyle(color = VeritasWidgetColors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold), maxLines = 1)
+                        Spacer(GlanceModifier.height(3.dp))
+                        Text(subtitle, style = TextStyle(color = VeritasWidgetColors.textMuted, fontSize = 11.sp), maxLines = 1)
+                        if (!short && document != null && !compact) {
+                            Spacer(GlanceModifier.height(3.dp))
+                            Text(widgetFormat(document), style = TextStyle(color = VeritasWidgetColors.primaryAccent, fontSize = 10.sp), maxLines = 1)
                         }
-
-                        Spacer(modifier = GlanceModifier.width(10.dp))
-
-                        if (isCompact) {
-                            // 2x1 Compact Capsule View
-                            Column(
-                                modifier = GlanceModifier.defaultWeight(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = title,
-                                    style = TextStyle(
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = VeritasWidgetColors.textPrimary
-                                    ),
-                                    maxLines = 1
-                                )
-                                Spacer(modifier = GlanceModifier.height(2.dp))
-                                Text(
-                                    text = if (isPlaying) "🔊 Playing" else "⏸ Ready",
-                                    style = TextStyle(
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = if (isPlaying) VeritasWidgetColors.successAccent else VeritasWidgetColors.textMuted
-                                    )
-                                )
-                            }
-
-                            Spacer(modifier = GlanceModifier.width(8.dp))
-
-                            Box(
-                                modifier = GlanceModifier
-                                    .size(42.dp)
-                                    .cornerRadius(21.dp)
-                                    .background(VeritasWidgetColors.playButtonAccent)
-                                    .clickable(actionRunCallback<PlayerActionCallback>(playParams)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    provider = ImageProvider(
-                                        if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
-                                    ),
-                                    contentDescription = "Play/Pause",
-                                    modifier = GlanceModifier.size(22.dp),
-                                    colorFilter = ColorFilter.tint(VeritasWidgetColors.playIconColor)
-                                )
-                            }
-                        } else {
-                            // Full 4x1 Horizontal Capsule View (large typography & prominent controls)
-                            Column(
-                                modifier = GlanceModifier.defaultWeight(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        modifier = GlanceModifier
-                                            .cornerRadius(6.dp)
-                                            .background(VeritasWidgetColors.cyanAccent)
-                                            .padding(horizontal = 5.dp, vertical = 2.dp)
-                                    ) {
-                                        Text(
-                                            text = docFormat,
-                                            style = TextStyle(
-                                                fontSize = 10.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = ColorProvider(Color.White)
-                                            )
-                                        )
-                                    }
-                                    Spacer(modifier = GlanceModifier.width(6.dp))
-                                    Text(
-                                        text = title,
-                                        style = TextStyle(
-                                            fontSize = if (size.width >= 240.dp) 15.sp else 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = VeritasWidgetColors.textPrimary
-                                        ),
-                                        maxLines = 1
-                                    )
-                                }
-                                Spacer(modifier = GlanceModifier.height(2.dp))
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = if (isPlaying) "● Playing" else "○ Paused",
-                                        style = TextStyle(
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isPlaying) VeritasWidgetColors.successAccent else VeritasWidgetColors.textMuted
-                                        )
-                                    )
-                                    Spacer(modifier = GlanceModifier.width(6.dp))
-                                    Text(
-                                        text = "• $progressText",
-                                        style = TextStyle(
-                                            fontSize = 11.sp,
-                                            color = VeritasWidgetColors.textMuted
-                                        ),
-                                        maxLines = 1
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = GlanceModifier.width(8.dp))
-
-                            // Controls
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = GlanceModifier
-                                        .size(34.dp)
-                                        .cornerRadius(17.dp)
-                                        .background(VeritasWidgetColors.cardBackground)
-                                        .clickable(actionRunCallback<PlayerActionCallback>(prevParams)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Image(
-                                        provider = ImageProvider(R.drawable.ic_widget_previous),
-                                        contentDescription = "Previous",
-                                        modifier = GlanceModifier.size(18.dp),
-                                        colorFilter = ColorFilter.tint(VeritasWidgetColors.textPrimary)
-                                    )
-                                }
-
-                                Spacer(modifier = GlanceModifier.width(8.dp))
-
-                                Box(
-                                    modifier = GlanceModifier
-                                        .size(44.dp)
-                                        .cornerRadius(22.dp)
-                                        .background(VeritasWidgetColors.playButtonAccent)
-                                        .clickable(actionRunCallback<PlayerActionCallback>(playParams)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Image(
-                                        provider = ImageProvider(
-                                            if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
-                                        ),
-                                        contentDescription = "Play/Pause",
-                                        modifier = GlanceModifier.size(24.dp),
-                                        colorFilter = ColorFilter.tint(VeritasWidgetColors.playIconColor)
-                                    )
-                                }
-
-                                Spacer(modifier = GlanceModifier.width(8.dp))
-
-                                Box(
-                                    modifier = GlanceModifier
-                                        .size(34.dp)
-                                        .cornerRadius(17.dp)
-                                        .background(VeritasWidgetColors.cardBackground)
-                                        .clickable(actionRunCallback<PlayerActionCallback>(nextParams)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Image(
-                                        provider = ImageProvider(R.drawable.ic_widget_next),
-                                        contentDescription = "Next",
-                                        modifier = GlanceModifier.size(18.dp),
-                                        colorFilter = ColorFilter.tint(VeritasWidgetColors.textPrimary)
-                                    )
-                                }
-                            }
-                        }
+                    }
+                    if (document != null && document.chunkCount > 0) {
+                        Spacer(GlanceModifier.width(8.dp))
+                        if (!compact) PlayerControl(context, state, PlaybackActions.ACTION_PREVIOUS, R.drawable.ic_widget_previous, "Previous sentence", false)
+                        PlayerControl(context, state, if (state.isPlaying || state.isPreparing) PlaybackActions.ACTION_PAUSE else PlaybackActions.ACTION_PLAY,
+                            if (state.isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play,
+                            if (state.isPlaying) "Pause reading" else "Resume reading", true)
+                        if (!compact) PlayerControl(context, state, PlaybackActions.ACTION_NEXT, R.drawable.ic_widget_next, "Next sentence", false)
                     }
                 }
             }
+        }
+    }
+}
+
+private fun widgetCoverPlaceholder(): android.graphics.Bitmap {
+    val bitmap = android.graphics.Bitmap.createBitmap(48, 48, android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    canvas.drawColor(android.graphics.Color.rgb(45, 73, 108))
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.WHITE; style = android.graphics.Paint.Style.STROKE; strokeWidth = 2f }
+    canvas.drawRoundRect(12f, 9f, 36f, 39f, 3f, 3f, paint)
+    canvas.drawLine(18f, 10f, 18f, 38f, paint)
+    return bitmap
+}
+
+@androidx.compose.runtime.Composable
+private fun PlayerControl(context: Context, state: WidgetReadingState, action: String, icon: Int, description: String, prominent: Boolean) {
+    val params = actionParametersOf(PlayerActionCallback.ActionKey to action, PlayerActionCallback.DocumentKey to state.document!!.id)
+    Box(GlanceModifier.size(48.dp).cornerRadius(24.dp)
+        .background(if (prominent) VeritasWidgetColors.playButtonAccent else VeritasWidgetColors.cardBackground)
+        .clickable(actionRunCallback<PlayerActionCallback>(params)), contentAlignment = Alignment.Center) {
+        if (prominent && state.isPreparing && !state.reduceMotion) {
+            androidx.glance.appwidget.CircularProgressIndicator(
+                modifier = GlanceModifier.size(24.dp), color = VeritasWidgetColors.playIconColor)
+        } else {
+            Image(ImageProvider(if (prominent && state.isPreparing) R.drawable.ic_widget_loading else icon),
+                if (prominent && state.isPreparing) "Preparing reading. Tap to cancel" else description, modifier = GlanceModifier.size(24.dp),
+                colorFilter = ColorFilter.tint(if (prominent) VeritasWidgetColors.playIconColor else VeritasWidgetColors.textPrimary))
         }
     }
 }
@@ -345,14 +170,21 @@ class PlayerWidgetClickCallback : ActionCallback {
 class PlayerActionCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val action = parameters[ActionKey] ?: return
-        val intent = Intent(context, PlaybackService::class.java).setAction(action)
-        context.startService(intent)
-        // Force widgets to refresh immediately
+        if (action !in setOf(PlaybackActions.ACTION_PLAY, PlaybackActions.ACTION_PAUSE, PlaybackActions.ACTION_NEXT, PlaybackActions.ACTION_PREVIOUS)) return
+        val state = kotlinx.coroutines.withContext(Dispatchers.IO) { DocumentRepository(context).widgetReadingState() }
+        val document = state.document ?: return
+        if (parameters[DocumentKey] != document.id) { updateVeritasWidgets(context); return }
+        // Only Play starts a cold foreground service. Skip cannot retarget an unrelated session.
+        if (action != PlaybackActions.ACTION_PLAY && PlaybackStateStore.activeDocumentId != document.id &&
+            !PlaybackStateStore.isPreparingFor(document.id)) return
+        runCatching { sendPlaybackIntent(context, action, document.id, state.index) }
+            .onFailure { android.widget.Toast.makeText(context, "Open Vern to resume reading", android.widget.Toast.LENGTH_SHORT).show() }
         updateVeritasWidgets(context)
     }
 
     companion object {
         val ActionKey = ActionParameters.Key<String>("playback_action")
+        val DocumentKey = ActionParameters.Key<String>("playback_document")
     }
 }
 
@@ -361,16 +193,37 @@ class PlayerActionCallback : ActionCallback {
  * a service callback, a screen leaving composition. They belong to the process, so they
  * get a named process-lifetime scope rather than GlobalScope.
  */
-private val widgetRefreshScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+private val widgetRefreshScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+private val widgetRefreshRequests = kotlinx.coroutines.channels.Channel<Context>(kotlinx.coroutines.channels.Channel.CONFLATED)
+private val widgetRefreshWorker = widgetRefreshScope.launch {
+    for (appContext in widgetRefreshRequests) {
+        // Merge bursts of saves/progress without overlapping six expensive widget renders.
+        kotlinx.coroutines.delay(200)
+        val latest = widgetRefreshRequests.tryReceive().getOrNull() ?: appContext
+        runCatching { VeritasPlayerWidget().updateAll(latest) }
+        runCatching { QuickNoteWidget().updateAll(latest) }
+        runCatching { FlashcardWidget().updateAll(latest) }
+        runCatching { QuickCaptureWidget().updateAll(latest) }
+        runCatching { ReadingProgressWidget().updateAll(latest) }
+        runCatching { StudyDashboardWidget().updateAll(latest) }
+    }
+}
 
 fun updateVeritasWidgets(context: Context) {
+    widgetRefreshRequests.trySend(context.applicationContext)
+}
+
+// Coalesce sentence progress into one refresh per five-second window. Library
+// edits still call updateVeritasWidgets immediately.
+private val readingWidgetRefreshPending = java.util.concurrent.atomic.AtomicBoolean(false)
+fun scheduleReadingWidgetRefresh(context: Context) {
+    if (!readingWidgetRefreshPending.compareAndSet(false, true)) return
     val appContext = context.applicationContext
     widgetRefreshScope.launch {
-        runCatching { VeritasPlayerWidget().updateAll(appContext) }
-        runCatching { QuickNoteWidget().updateAll(appContext) }
-        runCatching { FlashcardWidget().updateAll(appContext) }
-        runCatching { QuickCaptureWidget().updateAll(appContext) }
-        runCatching { ReadingProgressWidget().updateAll(appContext) }
-        runCatching { StudyDashboardWidget().updateAll(appContext) }
+        try {
+            kotlinx.coroutines.delay(5_000)
+            updateVeritasWidgets(appContext)
+        } finally { readingWidgetRefreshPending.set(false) }
     }
 }

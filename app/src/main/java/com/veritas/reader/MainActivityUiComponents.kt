@@ -46,6 +46,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,22 +69,24 @@ object VeritasThemeState {
     var adaptiveCover by mutableStateOf(false)
     // Accessibility: composables consult this to skip decorative animation.
     var reduceMotion by mutableStateOf(false)
+    var reduceTransparency by mutableStateOf(false)
+    var glassFloatingControls by mutableStateOf(false)
     // Typeface for the whole app; VeritasTheme builds its Typography from this.
     var uiFontId by mutableStateOf("system")
     // AMOLED mode: pure black background for dark themes
     var amoledMode by mutableStateOf(false)
+    var launcherPalette by mutableStateOf("indigo")
+    var splashAnimation by mutableStateOf("bloom")
+    var scatteredCards by mutableStateOf(false)
 }
 
 @Composable
-fun BrandMark(modifier: Modifier = Modifier, compact: Boolean = false) {
-    Image(
-        painter = painterResource(id = R.drawable.veritas_reader_icon),
-        contentDescription = "Vern",
-        modifier = modifier
-            .size(if (compact) 24.dp else 58.dp)
-            .clip(if (compact) MaterialTheme.shapes.extraSmall else MaterialTheme.shapes.small),
-        contentScale = ContentScale.Fit
-    )
+fun BrandMark(modifier: Modifier = Modifier, compact: Boolean = false, size: Dp? = null) {
+    val ink = if (MaterialTheme.colorScheme.surface.luminance() > .5f) Color(0xFF3C3C40) else Color(0xFFFFF6E6)
+    Image(painterResource(R.drawable.vern_v_mark), contentDescription = "Vern",
+        modifier = modifier.size(size ?: if (compact) 24.dp else 58.dp).testTag("vern-brand-mark"),
+        colorFilter = ColorFilter.tint(ink),
+        contentScale = ContentScale.Fit)
 }
 
 @Composable
@@ -162,18 +173,12 @@ fun BouncyFilledButton(
 
 @Composable
 fun VeritasWordmark(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
+    Row(modifier.testTag("vern-wordmark").semantics { contentDescription = "Vern" },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        BrandMark(compact = true)
-        Text(
-            "ern",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Black,
-            maxLines = 1
-        )
+        horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        BrandMark(size = 28.dp)
+        Text("ern", style = MaterialTheme.typography.titleLarge.copy(fontSize = 26.sp, lineHeight = 30.sp),
+            color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Black, maxLines = 1)
     }
 }
 

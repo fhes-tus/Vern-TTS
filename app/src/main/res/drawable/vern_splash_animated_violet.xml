@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" android:drawable="@drawable/vern_splash_mark_violet">
+    <target android:name="vernReveal" android:animation="@animator/vern_splash_scale" />
+    <target android:name="vernInk" android:animation="@animator/vern_splash_ink" />
+</animated-vector>

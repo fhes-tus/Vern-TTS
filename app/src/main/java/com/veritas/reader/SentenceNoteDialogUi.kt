@@ -251,9 +251,7 @@ internal fun SentenceNoteDialog(
                                 )
                                 OutlinedButton(
                                     onClick = {
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                                            androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED
-                                        ) {
+                                        if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                                             permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
                                         } else {
                                             val docId = document.id ?: "doc"

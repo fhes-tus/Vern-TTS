@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.CleanDocumentTitleTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:41.657Z" hostname="FIRWEWALL" time="0.019">
+  <properties/>
+  <testcase name="underscore separated names become prose" classname="com.veritas.reader.CleanDocumentTitleTest" time="0.003"/>
+  <testcase name="a dot inside the title is not mistaken for an extension" classname="com.veritas.reader.CleanDocumentTitleTest" time="0.001"/>
+  <testcase name="already readable names are left alone" classname="com.veritas.reader.CleanDocumentTitleTest" time="0.001"/>
+  <testcase name="dot separated names split only when there are no spaces" classname="com.veritas.reader.CleanDocumentTitleTest" time="0.001"/>
+  <testcase name="no extension is fine" classname="com.veritas.reader.CleanDocumentTitleTest" time="0.0"/>
+  <testcase name="download duplication markers are removed" classname="com.veritas.reader.CleanDocumentTitleTest" time="0.001"/>
+  <testcase name="an all digit name survives rather than vanishing" classname="com.veritas.reader.CleanDocumentTitleTest" time="0.001"/>
+  <testcase name="never returns blank" classname="com.veritas.reader.CleanDocumentTitleTest" time="0.001"/>
+  <testcase name="cleanTocTitle strips trailing leader dots and page numbers" classname="com.veritas.reader.CleanDocumentTitleTest" time="0.009"/>
+  <testcase name="strips epoch prefix, copy counter and underscores" classname="com.veritas.reader.CleanDocumentTitleTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

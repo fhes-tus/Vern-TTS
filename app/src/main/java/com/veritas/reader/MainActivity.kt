@@ -9,17 +9,29 @@ import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import com.veritas.reader.ui.ReaderViewModel
 import com.veritas.reader.ui.reloadReaderSettings
 
-class MainActivity : ComponentActivity() {
+open class MainActivity : ComponentActivity() {
 
     internal val viewModel: ReaderViewModel by viewModels()
 
     var onHardwarePlayPause: (() -> Unit)? = null
     var onHardwareNext: (() -> Unit)? = null
     var onHardwarePrevious: (() -> Unit)? = null
-    var onIncomingShare: ((String, Uri?, Boolean) -> Unit)? = null
+    private val pendingIncomingShares = mutableListOf<IncomingShare>()
+    internal var onIncomingShare: ((IncomingShare) -> Unit)? = null
+        set(value) {
+            field = value
+            if (value != null) {
+                val pending = pendingIncomingShares.toList()
+                pendingIncomingShares.clear()
+                pending.forEach(value)
+            }
+        }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -27,27 +39,8 @@ class MainActivity : ComponentActivity() {
         val widgetAction = intent.getStringExtra(EXTRA_WIDGET_ACTION)
         val noteId = intent.getStringExtra(EXTRA_NOTE_ID)
         val documentId = intent.getStringExtra(EXTRA_DOCUMENT_ID)
-        val incomingAction = intent.action
-        val isShareToNotes = intent.component?.className?.endsWith("ShareToNotesActivity") == true
-        val sharedText = intent.takeIf { incomingAction == Intent.ACTION_SEND }
-            ?.getStringExtra(Intent.EXTRA_TEXT)
-            .orEmpty()
-        val sharedUri = when (incomingAction) {
-            Intent.ACTION_VIEW -> intent.data
-            Intent.ACTION_SEND -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
-                }
-            }
-            else -> null
-        }
+        val share = IncomingShare.from(intent)
 
-        if (widgetAction == ACTION_CONTINUE_READING && !documentId.isNullOrBlank()) {
-            PlaybackStateStore.activeDocumentId = documentId
-        }
 
         if (widgetAction != null) {
             viewModel.updateState { state ->
@@ -60,14 +53,16 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        if (sharedText.isNotBlank() || sharedUri != null) {
-            onIncomingShare?.invoke(sharedText, sharedUri, isShareToNotes)
+        if (share.hasContent) {
+            val callback = onIncomingShare
+            if (callback != null) callback(share) else pendingIncomingShares.add(share)
         }
 
         intent.action = null
         intent.data = null
         intent.removeExtra(Intent.EXTRA_TEXT)
         intent.removeExtra(Intent.EXTRA_STREAM)
+        intent.clipData = null
         intent.removeExtra(EXTRA_WIDGET_ACTION)
         intent.removeExtra(EXTRA_NOTE_ID)
         intent.removeExtra(EXTRA_DOCUMENT_ID)
@@ -89,6 +84,11 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         viewModel.onAppBackgrounded()
         super.onStop()
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        ReadingSessionTracker.get(applicationContext).interaction()
     }
 
     @SuppressLint("RestrictedApi")
@@ -169,7 +169,7 @@ class MainActivity : ComponentActivity() {
                     startActivity(
                         Intent(
                             Intent.ACTION_VIEW,
-                            android.net.Uri.parse("market://details?id=com.google.android.tts")
+                            Uri.parse("market://details?id=com.google.android.tts")
                         )
                     )
                 }.onFailure {
@@ -177,7 +177,7 @@ class MainActivity : ComponentActivity() {
                         startActivity(
                             Intent(
                                 Intent.ACTION_VIEW,
-                                android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.tts")
+                                Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.tts")
                             )
                         )
                     }
@@ -188,7 +188,15 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val startupAppearance = runCatching {
+            getSharedPreferences("veritas_reader_library", MODE_PRIVATE)
+                .getString(DocumentRepository.KEY_READER_SETTINGS, null)
+                ?.let { ReaderSettings.fromJson(org.json.JSONObject(it)) } ?: ReaderSettings()
+        }.getOrDefault(ReaderSettings())
+        setTheme(VernCustomization.startupTheme(this, startupAppearance))
+        VernCustomization.watchApplication(application)
         super.onCreate(savedInstanceState)
+        configureVernSystemSplash(startupAppearance)
 
         // Field visibility: capture uncaught crashes locally and offer (user-initiated,
         // nothing automatic) to share last session's report. Then a one-time hint if the
@@ -202,35 +210,13 @@ class MainActivity : ComponentActivity() {
         StreakReminderWorker.schedule(this)
         updateVeritasWidgets(this)
 
-        val incomingAction = intent?.action
+        val initialShare = intent?.let(IncomingShare::from)?.takeIf { it.hasContent }
         val openVoiceStudioOnStart = intent?.getBooleanExtra(EXTRA_OPEN_VOICE_STUDIO, false) == true
         val widgetAction = intent?.getStringExtra(EXTRA_WIDGET_ACTION)
         val noteId = intent?.getStringExtra(EXTRA_NOTE_ID)
         val documentId = intent?.getStringExtra(EXTRA_DOCUMENT_ID)
-        val sharedText = intent?.takeIf { incomingAction == Intent.ACTION_SEND }
-            ?.getStringExtra(Intent.EXTRA_TEXT)
-            .orEmpty()
-
-        val sharedUri = intent?.let { incoming ->
-            when (incomingAction) {
-                Intent.ACTION_VIEW -> incoming.data
-                Intent.ACTION_SEND -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        incoming.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        incoming.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
-                    }
-                }
-
-                else -> null
-            }
-        }
 
         // Handle continue reading action from widgets
-        if (widgetAction == ACTION_CONTINUE_READING && !documentId.isNullOrBlank()) {
-            PlaybackStateStore.activeDocumentId = documentId
-        }
 
         if (widgetAction != null) {
             viewModel.updateState { state ->
@@ -249,34 +235,43 @@ class MainActivity : ComponentActivity() {
             it.data = null
             it.removeExtra(Intent.EXTRA_TEXT)
             it.removeExtra(Intent.EXTRA_STREAM)
+            it.clipData = null
             it.removeExtra(EXTRA_WIDGET_ACTION)
             it.removeExtra(EXTRA_NOTE_ID)
             it.removeExtra(EXTRA_DOCUMENT_ID)
         }
 
-        val isShareToNotes = intent?.component?.className?.endsWith("ShareToNotesActivity") == true
 
         // Synchronously load saved reader settings and initialize theme state before setContent
         // to guarantee zero-flash frame-1 rendering in the user's chosen theme, font, and pack.
-        val initialSettings = DocumentRepository(this).loadReaderSettings()
+        // Read only the small appearance preference here. Library migration,
+        // credential migration and study loading belong to ViewModel's I/O startup.
+        val initialSettings = startupAppearance
+        viewModel.updateState { it.copy(readerSettings = initialSettings) }
         PlaybackStateStore.restoreFromPersistence(this)
         VeritasThemeState.themeId = initialSettings.themeId
         VeritasThemeState.themePackId = initialSettings.themePackId
         VeritasThemeState.adaptiveCover = initialSettings.adaptiveCover
         VeritasThemeState.uiFontId = initialSettings.uiFontId
         VeritasThemeState.reduceMotion = initialSettings.reduceMotion
+        VeritasThemeState.reduceTransparency = initialSettings.reduceTransparency
+        VeritasThemeState.glassFloatingControls = initialSettings.glassFloatingControls
         VeritasThemeState.amoledMode = initialSettings.amoledMode
+        VeritasThemeState.launcherPalette = initialSettings.launcherPalette
+        VeritasThemeState.splashAnimation = initialSettings.splashAnimation
+        VeritasThemeState.scatteredCards = initialSettings.scatteredCards
 
         setContent {
             VeritasTheme {
-                VeritasReaderApp(
-                    initialSharedText = sharedText,
-                    initialSharedUri = sharedUri,
-                    isShareToNotes = isShareToNotes,
-                    openVoiceStudioOnStart = openVoiceStudioOnStart,
-                    widgetAction = widgetAction,
-                    noteId = noteId
-                )
+                Box(Modifier.fillMaxSize()) {
+                    VeritasReaderApp(
+                        initialShare = initialShare,
+                        openVoiceStudioOnStart = openVoiceStudioOnStart,
+                        widgetAction = widgetAction,
+                        noteId = noteId
+                    )
+
+                }
             }
         }
     }
@@ -304,4 +299,3 @@ class MainActivity : ComponentActivity() {
         const val ACTION_IMPORT_DOCUMENTS = "import_documents"
     }
 }
-

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.TextImportDecoderTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:48.629Z" hostname="FIRWEWALL" time="0.751">
+  <properties/>
+  <testcase name="autoDetectUsesUtf16LittleEndianBom" classname="com.veritas.reader.TextImportDecoderTest" time="0.75"/>
+  <testcase name="declaredHtmlEncodingUsesDocumentCharset" classname="com.veritas.reader.TextImportDecoderTest" time="0.001"/>
+  <testcase name="explicitLegacyEncodingDecodesSelectedCharset" classname="com.veritas.reader.TextImportDecoderTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

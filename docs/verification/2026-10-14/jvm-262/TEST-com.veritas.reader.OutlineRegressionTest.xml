@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.OutlineRegressionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:43.392Z" hostname="FIRWEWALL" time="0.23">
+  <properties/>
+  <testcase name="headingTargetsBeatEarlierMentionsAndSupportUnicode" classname="com.veritas.reader.OutlineRegressionTest" time="0.001"/>
+  <testcase name="lateChaptersAreDetectedAcrossALongDocument" classname="com.veritas.reader.OutlineRegressionTest" time="0.224"/>
+  <testcase name="ordinaryListsAreExcludedButNumberedSectionsWithBodySurvive" classname="com.veritas.reader.OutlineRegressionTest" time="0.002"/>
+  <testcase name="repeatedChaptersInCollectionsAreRetained" classname="com.veritas.reader.OutlineRegressionTest" time="0.001"/>
+  <testcase name="ordinarySentencesAreNotHeadingsOrTruncatedIntoHeadings" classname="com.veritas.reader.OutlineRegressionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

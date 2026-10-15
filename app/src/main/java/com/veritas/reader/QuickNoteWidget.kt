@@ -14,6 +14,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
@@ -45,7 +46,9 @@ class QuickNoteWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repository = DocumentRepository(context)
-        val notes = repository.loadGeneralNotes().take(10)
+        val notes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            repository.loadGeneralNotes().sortedWith(compareByDescending<GeneralNote> { it.pinned }.thenByDescending { it.updatedAt }).take(10)
+        }
 
         provideContent {
             val size = androidx.glance.LocalSize.current
@@ -70,12 +73,12 @@ class QuickNoteWidget : GlanceAppWidget() {
                             ),
                             modifier = GlanceModifier.defaultWeight()
                         )
-                        
+
                         Box(
                             modifier = GlanceModifier
                                 .cornerRadius(12.dp)
                                 .background(VeritasWidgetColors.playButtonAccent)
-                                .clickable(actionRunCallback<NewNoteActionCallback>())
+                                .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_NEW_NOTE)))
                                 .padding(horizontal = 10.dp, vertical = 4.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -94,7 +97,7 @@ class QuickNoteWidget : GlanceAppWidget() {
 
                     if (notes.isEmpty()) {
                         Box(
-                            modifier = GlanceModifier.fillMaxSize().clickable(actionRunCallback<LaunchAppActionCallback>()),
+                            modifier = GlanceModifier.fillMaxSize().clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_NEW_NOTE))),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -111,11 +114,11 @@ class QuickNoteWidget : GlanceAppWidget() {
                         ) {
                             items(notes) { note ->
                                 val title = note.title.ifBlank { "Untitled Note" }
-                                val preview = note.content.ifBlank { "(Empty note)" }
-                                
+                                val preview = com.veritas.reader.ui.screens.renderMarkdown(note.content).text.ifBlank { if (note.allAudioUrls.isNotEmpty()) "Voice memo" else if (note.allImageUrls.isNotEmpty()) "Image attached" else "Empty note" }
+
                                 val clickParams = actionParametersOf(NoteClickCallback.NoteIdKey to note.id)
                                 val pinParams = actionParametersOf(TogglePinActionCallback.NoteIdKey to note.id)
-                                
+
                                 Box(
                                     modifier = GlanceModifier
                                         .fillMaxWidth()
@@ -132,7 +135,7 @@ class QuickNoteWidget : GlanceAppWidget() {
                                         Column(
                                             modifier = GlanceModifier
                                                 .defaultWeight()
-                                                .clickable(actionRunCallback<NoteClickCallback>(clickParams))
+                                                .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_EDIT_NOTE, noteId = note.id)))
                                         ) {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 if (note.isChecklist) {
@@ -164,13 +167,13 @@ class QuickNoteWidget : GlanceAppWidget() {
                                                 maxLines = 1
                                             )
                                         }
-                                        
+
                                         Spacer(modifier = GlanceModifier.width(6.dp))
-                                        
+
                                         Box(
                                             modifier = GlanceModifier
-                                                .size(28.dp)
-                                                .cornerRadius(14.dp)
+                                                .size(48.dp)
+                                                .cornerRadius(24.dp)
                                                 .background(
                                                     if (note.pinned) VeritasWidgetColors.cardElevated else ColorProvider(Color.Transparent)
                                                 )
@@ -229,13 +232,10 @@ class TogglePinActionCallback : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val noteId = parameters[NoteIdKey] ?: return
         val repository = DocumentRepository(context)
-        val notes = repository.loadGeneralNotes()
-        val note = notes.firstOrNull { it.id == noteId } ?: return
-        
-        val updatedNote = note.copy(pinned = !note.pinned)
-        val updatedNotes = notes.map { if (it.id == noteId) updatedNote else it }
-        repository.saveGeneralNotes(updatedNotes)
-        
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            repository.mutateGeneralNotes { notes -> notes.map { if (it.id == noteId) it.copy(pinned = !it.pinned) else it } }
+        }
+
         updateVeritasWidgets(context)
     }
 

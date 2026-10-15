@@ -69,17 +69,11 @@ internal fun QuizLabMetricsDialog(
         return "General Quiz Set"
     }
     fun calibrateScore(q: QuizSet): Int {
-        if (q.bestScore < 0) return -1
-        if (q.totalQuestions <= 0) return 0
-        return if (q.bestScore > q.totalQuestions) {
-            ((q.bestScore.toFloat() / 100f) * q.totalQuestions.toFloat()).roundToInt().coerceIn(0, q.totalQuestions)
-        } else {
-            q.bestScore.coerceIn(0, q.totalQuestions)
-        }
+        return q.calibratedBestScore
     }
 
     val totalQuizzes = quizzes.size
-    val playedQuizzes = quizzes.filter { it.bestScore >= 0 }
+    val playedQuizzes = quizzes.filter { it.bestScore >= 0 && it.totalQuestions > 0 }
     val playedCount = playedQuizzes.size
     val totalQuestionsAnswered = playedQuizzes.sumOf { it.totalQuestions }
     val totalCorrectAnswered = playedQuizzes.sumOf { calibrateScore(it) }
@@ -499,7 +493,7 @@ internal fun QuizLabMetricsDialog(
                         } else {
                             filteredQuizzes.forEach { quiz ->
                                 val score = calibrateScore(quiz)
-                                val hasPlayed = quiz.bestScore >= 0
+                                val hasPlayed = quiz.bestScore >= 0 && quiz.totalQuestions > 0
                                 val pct = if (quiz.totalQuestions > 0 && hasPlayed) (score * 100 / quiz.totalQuestions) else 0
                                 val isMastered = hasPlayed && score == quiz.totalQuestions
 
@@ -585,4 +579,3 @@ internal fun QuizLabMetricsDialog(
         }
     }
 }
-

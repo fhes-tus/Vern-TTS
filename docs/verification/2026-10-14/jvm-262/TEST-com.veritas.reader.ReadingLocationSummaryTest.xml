@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.ReadingLocationSummaryTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:44.807Z" hostname="FIRWEWALL" time="0.218">
+  <properties/>
+  <testcase name="largeHistoryClassificationProcessesEveryMeasuredLocation" classname="com.veritas.reader.ReadingLocationSummaryTest" time="0.209"/>
+  <testcase name="exclusionsRevisionsManualEntriesAndCorrectionsRemainHonest" classname="com.veritas.reader.ReadingLocationSummaryTest" time="0.002"/>
+  <testcase name="seeksDoNotVisitSkippedLocationsAndCheckpointContinuationsAreNotRevisits" classname="com.veritas.reader.ReadingLocationSummaryTest" time="0.001"/>
+  <testcase name="csvQuotesTextAndIncludesCorrectionAndExclusionState" classname="com.veritas.reader.ReadingLocationSummaryTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

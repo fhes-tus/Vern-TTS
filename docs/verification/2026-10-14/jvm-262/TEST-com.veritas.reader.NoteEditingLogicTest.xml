@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.NoteEditingLogicTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:42.739Z" hostname="FIRWEWALL" time="0.038">
+  <properties/>
+  <testcase name="enterContinuesBulletsAndCheckboxes" classname="com.veritas.reader.NoteEditingLogicTest" time="0.002"/>
+  <testcase name="prefixOnlyAffectsLinesTouchedBySelection" classname="com.veritas.reader.NoteEditingLogicTest" time="0.003"/>
+  <testcase name="caretLineGetsBulletWithoutSelection" classname="com.veritas.reader.NoteEditingLogicTest" time="0.0"/>
+  <testcase name="numberingContinuesPastTwo" classname="com.veritas.reader.NoteEditingLogicTest" time="0.006"/>
+  <testcase name="inlineMarkerWrapsSelection" classname="com.veritas.reader.NoteEditingLogicTest" time="0.007"/>
+  <testcase name="deletionIsUntouched" classname="com.veritas.reader.NoteEditingLogicTest" time="0.001"/>
+  <testcase name="enterContinuesNumberedList" classname="com.veritas.reader.NoteEditingLogicTest" time="0.0"/>
+  <testcase name="inlineMarkerUnwrapsAlreadyWrappedSelection" classname="com.veritas.reader.NoteEditingLogicTest" time="0.0"/>
+  <testcase name="newlineOnNonListLineIsUntouched" classname="com.veritas.reader.NoteEditingLogicTest" time="0.001"/>
+  <testcase name="parseNoteBlocksExtractsAttachmentsWithoutExtraWhitespace" classname="com.veritas.reader.NoteEditingLogicTest" time="0.001"/>
+  <testcase name="imeBatchEditStillContinuesList" classname="com.veritas.reader.NoteEditingLogicTest" time="0.0"/>
+  <testcase name="inlineMarkerAtCaretInsertsEmptyPairWithCaretInside" classname="com.veritas.reader.NoteEditingLogicTest" time="0.0"/>
+  <testcase name="enterOnEmptyItemEndsList" classname="com.veritas.reader.NoteEditingLogicTest" time="0.0"/>
+  <testcase name="plainTypingIsUntouched" classname="com.veritas.reader.NoteEditingLogicTest" time="0.001"/>
+  <testcase name="serializeNoteBlocksRoundtripDoesNotAccumulateNewlines" classname="com.veritas.reader.NoteEditingLogicTest" time="0.005"/>
+  <testcase name="indentedListsKeepIndentation" classname="com.veritas.reader.NoteEditingLogicTest" time="0.0"/>
+  <testcase name="numberedListTogglesOffWhenAllLinesNumbered" classname="com.veritas.reader.NoteEditingLogicTest" time="0.001"/>
+  <testcase name="headingTogglesOnAndOff" classname="com.veritas.reader.NoteEditingLogicTest" time="0.001"/>
+  <testcase name="selectAllThenNumberedListNumbersEveryLine" classname="com.veritas.reader.NoteEditingLogicTest" time="0.006"/>
+  <testcase name="blankLinesInSelectionAreSkippedByNumbering" classname="com.veritas.reader.NoteEditingLogicTest" time="0.0"/>
+  <testcase name="numberingReplacesExistingBulletMarkers" classname="com.veritas.reader.NoteEditingLogicTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

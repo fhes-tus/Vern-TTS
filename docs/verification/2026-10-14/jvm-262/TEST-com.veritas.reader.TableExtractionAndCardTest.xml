@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.TableExtractionAndCardTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:48.534Z" hostname="FIRWEWALL" time="0.062">
+  <properties/>
+  <testcase name="parsePageContentSegments splits prose and tables into structured segments" classname="com.veritas.reader.TableExtractionAndCardTest" time="0.06"/>
+  <testcase name="parsePageContentSegments keeps preceding text strictly as prose and does not absorb into table" classname="com.veritas.reader.TableExtractionAndCardTest" time="0.001"/>
+  <testcase name="parsePageContentSegments bridges empty lines between table rows into a single table card" classname="com.veritas.reader.TableExtractionAndCardTest" time="0.001"/>
+  <testcase name="parsePageContentSegments returns single prose segment when no table exists" classname="com.veritas.reader.TableExtractionAndCardTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.SafeSpannableStringTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:45.171Z" hostname="FIRWEWALL" time="0.006">
+  <properties/>
+  <testcase name="testSamsungAndroid16NegativeSpanDoesNotCrash" classname="com.veritas.reader.SafeSpannableStringTest" time="0.003"/>
+  <testcase name="testPositiveOutOfBoundsIsClampedSafely" classname="com.veritas.reader.SafeSpannableStringTest" time="0.001"/>
+  <testcase name="testDelegatingActionModeCallbackDefaults" classname="com.veritas.reader.SafeSpannableStringTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

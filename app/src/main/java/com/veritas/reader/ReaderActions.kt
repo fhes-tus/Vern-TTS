@@ -33,17 +33,35 @@ fun sendPlaybackIntent(
     action: String,
     documentId: String? = null,
     startIndex: Int = PlaybackStateStore.currentIndex,
-    rate: Float = PlaybackStateStore.rate,
-    pitch: Float = PlaybackStateStore.pitch
+    rate: Float? = null,
+    pitch: Float? = null,
+    charOffset: Int? = null,
+    transientSettings: Boolean = false,
+    endTransientSettings: Boolean = false
 ) {
-    val intent = Intent(context, PlaybackService::class.java).setAction(action)
+    val intent = PlaybackCommandSecurity.authorize(context, Intent(context, PlaybackService::class.java).setAction(action))
+    if (transientSettings) intent.putExtra(PlaybackActions.EXTRA_TRANSIENT_SETTINGS, true)
+    if (endTransientSettings) intent.putExtra(PlaybackActions.EXTRA_END_TRANSIENT_SETTINGS, true)
     documentId?.let { intent.putExtra(PlaybackActions.EXTRA_DOCUMENT_ID, it) }
     intent.putExtra(PlaybackActions.EXTRA_START_INDEX, startIndex)
-    intent.putExtra(PlaybackActions.EXTRA_RATE, rate)
-    intent.putExtra(PlaybackActions.EXTRA_PITCH, pitch)
+    charOffset?.let { intent.putExtra(PlaybackActions.EXTRA_CHAR_OFFSET, it.coerceAtLeast(0)) }
+    // Ordinary Play restores that book's memory. Explicit controls and a just-made
+    // gesture override it, including the short period before settings are saved.
+    val pendingGesture = action == PlaybackActions.ACTION_PLAY && PlaybackStateStore.pendingVoiceSettings
+    (rate ?: PlaybackStateStore.rate.takeIf { pendingGesture })?.let { intent.putExtra(PlaybackActions.EXTRA_RATE, it) }
+    (pitch ?: PlaybackStateStore.pitch.takeIf { pendingGesture })?.let { intent.putExtra(PlaybackActions.EXTRA_PITCH, it) }
     if (action == PlaybackActions.ACTION_PLAY) {
-        ContextCompat.startForegroundService(context, intent)
+        PlaybackStateStore.beginPreparing(documentId ?: PlaybackStateStore.activeDocumentId)
+        try {
+            ContextCompat.startForegroundService(context, intent)
+        } catch (error: RuntimeException) {
+            PlaybackStateStore.finishPreparing()
+            throw error
+        }
     } else {
+        if (action == PlaybackActions.ACTION_PAUSE || action == PlaybackActions.ACTION_STOP) {
+            PlaybackStateStore.finishPreparing()
+        }
         context.startService(intent)
     }
 }
@@ -51,9 +69,9 @@ fun sendPlaybackIntent(
 fun sendSelectionSpeechIntent(context: Context, selection: String) {
     val cleanSelection = selection.replace(Regex("\\s+"), " ").trim()
     if (cleanSelection.isBlank()) return
-    val intent = Intent(context, PlaybackService::class.java)
+    val intent = PlaybackCommandSecurity.authorize(context, Intent(context, PlaybackService::class.java)
         .setAction(PlaybackActions.ACTION_SPEAK_SELECTION)
-        .putExtra(PlaybackActions.EXTRA_SELECTION_TEXT, cleanSelection)
+        .putExtra(PlaybackActions.EXTRA_SELECTION_TEXT, cleanSelection))
     ContextCompat.startForegroundService(context, intent)
 }
 
@@ -311,7 +329,7 @@ fun shareBookmarkAsImage(
     val height = 1350
     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
-    
+
     val paint = Paint()
     val bgGrad = LinearGradient(
         0f, 0f, 0f, height.toFloat(),
@@ -322,17 +340,17 @@ fun shareBookmarkAsImage(
     paint.shader = bgGrad
     canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
     paint.shader = null
-    
+
     val textPaint = TextPaint().apply {
         color = 0xFF1E293B.toInt()
         textSize = 42f
         isAntiAlias = true
         typeface = Typeface.create("serif", Typeface.NORMAL)
     }
-    
+
     val textPaddingLeft = 110f
     val textWidth = width - textPaddingLeft - 100f
-    
+
     var currentTextSize = 42f
     var staticLayout: StaticLayout
     var textHeight: Float
@@ -349,7 +367,7 @@ fun shareBookmarkAsImage(
             .setLineSpacing(10f, 1.2f)
             .build()
         textHeight = staticLayout.height.toFloat()
-        
+
         if (textHeight <= 700f || currentTextSize <= 26f) {
             break
         }
@@ -385,40 +403,40 @@ fun shareBookmarkAsImage(
         isAntiAlias = true
     }
     canvas.drawText("“", 80f, startY - 20f * quoteScale, quotePaint)
-    
+
     val accentPaint = Paint().apply {
         color = quoteColor
         style = Paint.Style.FILL
         isAntiAlias = true
     }
     canvas.drawRoundRect(60f, startY, 75f, startY + textHeight, 8f, 8f, accentPaint)
-        
+
     canvas.save()
     canvas.translate(textPaddingLeft, startY)
     staticLayout.draw(canvas)
     canvas.restore()
-    
+
     val linePaint = Paint().apply {
         color = 0xFFCBD5E1.toInt()
         strokeWidth = 2f
         style = Paint.Style.STROKE
     }
     canvas.drawLine(100f, 1050f, width - 100f, 1050f, linePaint)
-    
+
     val bookTitlePaint = TextPaint().apply {
         color = 0xFF0F172A.toInt()
         textSize = 36f
         isAntiAlias = true
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
     }
-    
+
     val authorPaint = TextPaint().apply {
         color = 0xFF475569.toInt()
         textSize = 32f
         isAntiAlias = true
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.ITALIC)
     }
-    
+
     val brandingPaint = TextPaint().apply {
         color = 0xFF94A3B8.toInt()
         textSize = 28f
@@ -426,7 +444,7 @@ fun shareBookmarkAsImage(
         textAlign = Paint.Align.RIGHT
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
     }
-    
+
     val bookTitleClean = if (bookTitle.length > 50) bookTitle.take(47) + "..." else bookTitle
     val hasAuthor = authorName.isNotBlank() && authorName != "Vern" && authorName != "Veritas Reader"
     if (hasAuthor) {
@@ -436,7 +454,7 @@ fun shareBookmarkAsImage(
         canvas.drawText(bookTitleClean, 100f, 1150f, bookTitlePaint)
     }
     canvas.drawText("Shared via Vern", width - 100f, 1220f, brandingPaint)
-    
+
     val dotPaint = Paint().apply {
         color = quoteColor
         isAntiAlias = true
@@ -447,15 +465,15 @@ fun shareBookmarkAsImage(
     } else {
         canvas.drawCircle(80f, 1138f, 10f, dotPaint)
     }
-    
+
     val shareDir = File(context.cacheDir, "shares").apply { mkdirs() }
     val shareFile = File(shareDir, "Vern_Highlight_${System.currentTimeMillis()}.png")
     try {
         FileOutputStream(shareFile).use { out ->
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
         }
-        
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", shareFile)
+
+        val uri = com.veritas.reader.SafeFileSharing.uri(context, "${context.packageName}.fileprovider", shareFile)
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "image/png"
             putExtra(Intent.EXTRA_STREAM, uri)
@@ -662,7 +680,7 @@ fun shareVocabularyAsImage(
         FileOutputStream(shareFile).use { out ->
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
         }
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", shareFile)
+        val uri = com.veritas.reader.SafeFileSharing.uri(context, "${context.packageName}.fileprovider", shareFile)
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "image/png"
             putExtra(Intent.EXTRA_STREAM, uri)
@@ -680,11 +698,11 @@ fun shareNoteText(context: Context, noteText: String) {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, noteText)
     }
-    
+
     val resolveInfos = pm.queryIntentActivities(sendIntent, 0)
     val targetIntents = mutableListOf<Intent>()
     val noteKeywords = listOf("note", "keep", "memo", "journal", "evernote", "onenote", "notion")
-    
+
     for (info in resolveInfos) {
         val packageName = info.activityInfo.packageName
         val label = info.loadLabel(pm).toString()
@@ -696,7 +714,7 @@ fun shareNoteText(context: Context, noteText: String) {
             targetIntents.add(intent)
         }
     }
-    
+
     val chooserIntent = Intent.createChooser(sendIntent, "Share note via...").apply {
         if (targetIntents.isNotEmpty()) {
             putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toTypedArray())
@@ -712,17 +730,18 @@ fun shareToAi(
     selection: ReaderTextSelection?,
     customPageRange: IntRange?,
     settings: AskAiSettings? = null,
-    noPrompt: Boolean = false
+    noPrompt: Boolean = false,
+    readerIndex: Int = PlaybackStateStore.currentIndex
 ) {
     val model = ReaderTextModelCache.get(document.id, document.rawText, document.pageCount)
-    
+
     val selectedSentences = when (scope) {
         ShareScope.SELECTED_TEXT -> {
             if (selection == null) return
             model.sentences.filter { it.index in selection.sentenceIndexes }
         }
         ShareScope.CURRENT_SENTENCE -> {
-            val currentIndex = PlaybackStateStore.currentIndex
+            val currentIndex = readerIndex
             if (currentIndex in model.sentences.indices) {
                 listOf(model.sentences[currentIndex])
             } else {
@@ -730,7 +749,7 @@ fun shareToAi(
             }
         }
         ShareScope.CURRENT_SECTION -> {
-            val currentIndex = PlaybackStateStore.currentIndex
+            val currentIndex = readerIndex
             val part = model.partForSentence(currentIndex) ?: return
             model.sentences.subList(part.sentenceStartIndex, part.sentenceEndIndexExclusive)
         }
@@ -742,19 +761,19 @@ fun shareToAi(
             model.sentences
         }
     }
-    
+
     if (selectedSentences.isEmpty()) {
         Toast.makeText(context, "No content to share", Toast.LENGTH_SHORT).show()
         return
     }
-    
+
     val markdownText = buildMarkdownForSentences(selectedSentences)
-    
+
     val minPage = selectedSentences.minOfOrNull { it.pageNumber } ?: 1
     val maxPage = selectedSentences.maxOfOrNull { it.pageNumber } ?: 1
     val bookTitle = document.title.trim()
     val sanitizedTitle = bookTitle.replace(Regex("[\\\\/:*?\"<>|]"), "_")
-    
+
     val selectedPackage = settings?.let { s ->
         when {
             s.packageName.isNotBlank() && isPackageInstalled(context, s.packageName) -> s.packageName
@@ -768,7 +787,7 @@ fun shareToAi(
 
     val fileNameMd = when (scope) {
         ShareScope.SELECTED_TEXT -> "Vern - $sanitizedTitle - Selection.md"
-        ShareScope.CURRENT_SENTENCE -> "Vern - $sanitizedTitle - Sentence ${PlaybackStateStore.currentIndex + 1}.md"
+        ShareScope.CURRENT_SENTENCE -> "Vern - $sanitizedTitle - Sentence ${readerIndex + 1}.md"
         ShareScope.CURRENT_SECTION -> {
             if (minPage == maxPage) "Vern - $sanitizedTitle - Page $minPage.md"
             else "Vern - $sanitizedTitle - Pages $minPage-$maxPage.md"
@@ -779,10 +798,10 @@ fun shareToAi(
         }
         ShareScope.ENTIRE_DOCUMENT -> "Vern - $sanitizedTitle - Entire Document.md"
     }
-    
+
     val prompt = "Attached is the document text from '$bookTitle'. Please analyze the contents."
     val textBody = if (noPrompt) markdownText else "$prompt\n\n$markdownText"
-    
+
     if (!noPrompt) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("Vern Prompt", prompt))
@@ -795,10 +814,10 @@ fun shareToAi(
         FileOutputStream(shareFileMd).use { out ->
             out.write(markdownText.toByteArray(Charsets.UTF_8))
         }
-        
+
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", shareFileMd)
+            val uri = com.veritas.reader.SafeFileSharing.uri(context, "${context.packageName}.fileprovider", shareFileMd)
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             clipData = ClipData.newRawUri("Vern Share", uri)
@@ -826,7 +845,7 @@ fun shareToAi(
                             out.write(markdownText.toByteArray(Charsets.UTF_8))
                         }
                     }
-                    val uriTxt = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", shareFileTxt)
+                    val uriTxt = com.veritas.reader.SafeFileSharing.uri(context, "${context.packageName}.fileprovider", shareFileTxt)
                     val txtIntent = Intent(shareIntent).apply {
                         putExtra(Intent.EXTRA_STREAM, uriTxt)
                         clipData = ClipData.newRawUri("Vern Share", uriTxt)

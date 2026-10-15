@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.AiResultParserTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:40.528Z" hostname="FIRWEWALL" time="0.181">
+  <properties/>
+  <testcase name="parses multiple quiz questions separated by blank lines" classname="com.veritas.reader.AiResultParserTest" time="0.098"/>
+  <testcase name="parses flashcards from raw JSON array" classname="com.veritas.reader.AiResultParserTest" time="0.019"/>
+  <testcase name="parses quiz with letter answer resolution" classname="com.veritas.reader.AiResultParserTest" time="0.004"/>
+  <testcase name="parses quiz from JSON format" classname="com.veritas.reader.AiResultParserTest" time="0.001"/>
+  <testcase name="multi-line answers are joined" classname="com.veritas.reader.AiResultParserTest" time="0.023"/>
+  <testcase name="parses flashcards from numbered bold definitions" classname="com.veritas.reader.AiResultParserTest" time="0.001"/>
+  <testcase name="SM-2 spaced repetition scheduler computes intervals accurately" classname="com.veritas.reader.AiResultParserTest" time="0.006"/>
+  <testcase name="quiz without enough options is dropped" classname="com.veritas.reader.AiResultParserTest" time="0.001"/>
+  <testcase name="parses Front Back and markdown bold variants" classname="com.veritas.reader.AiResultParserTest" time="0.001"/>
+  <testcase name="garbage input produces no cards" classname="com.veritas.reader.AiResultParserTest" time="0.001"/>
+  <testcase name="parses Q A pairs with preamble chatter" classname="com.veritas.reader.AiResultParserTest" time="0.002"/>
+  <testcase name="parses flashcards from markdown table" classname="com.veritas.reader.AiResultParserTest" time="0.023"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

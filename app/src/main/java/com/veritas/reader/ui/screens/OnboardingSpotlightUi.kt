@@ -64,8 +64,9 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.withSaveLayer
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -87,7 +88,7 @@ fun OnboardingSpotlightOverlay(
     isTransitioning: Boolean = false
 ) {
     val targetBounds = OnboardingController.componentBounds[step.targetKey ?: ""]
-    
+
     var lastNonNullBounds by remember { mutableStateOf<Rect?>(null) }
     LaunchedEffect(targetBounds) {
         if (targetBounds != null) {
@@ -97,7 +98,7 @@ fun OnboardingSpotlightOverlay(
 
     val baseBounds = targetBounds ?: lastNonNullBounds
     val hasTarget = step.targetKey != null && baseBounds != null
-    
+
     // Animate the cutout alpha to fade out during step transitions
     val cutoutAlpha by animateFloatAsState(
         targetValue = if (isTransitioning) 0f else 1f,
@@ -107,22 +108,22 @@ fun OnboardingSpotlightOverlay(
 
     // Animate the cutout coordinates to slide smoothly between locations
     val animatedLeft = animateFloatAsState(
-        targetValue = if (hasTarget) (baseBounds?.left ?: 0f) else 0f,
+        targetValue = if (hasTarget) baseBounds.left else 0f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "left"
     )
     val animatedTop = animateFloatAsState(
-        targetValue = if (hasTarget) (baseBounds?.top ?: 0f) else 0f,
+        targetValue = if (hasTarget) baseBounds.top else 0f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "top"
     )
     val animatedRight = animateFloatAsState(
-        targetValue = if (hasTarget) (baseBounds?.right ?: 0f) else 0f,
+        targetValue = if (hasTarget) baseBounds.right else 0f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "right"
     )
     val animatedBottom = animateFloatAsState(
-        targetValue = if (hasTarget) (baseBounds?.bottom ?: 0f) else 0f,
+        targetValue = if (hasTarget) baseBounds.bottom else 0f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "bottom"
     )
@@ -139,8 +140,7 @@ fun OnboardingSpotlightOverlay(
     }
 
     val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
-    val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+    val screenHeightPx = LocalWindowInfo.current.containerSize.height.toFloat()
 
     // Convert dimensions outside the canvas to be safe
     val paddingPx = with(density) { 8.dp.toPx() }
@@ -193,7 +193,7 @@ fun OnboardingSpotlightOverlay(
 
                     if (animBounds != null) {
                         val rect = animBounds.inflate(paddingPx)
-                        
+
                         // Clear the shape where the view lies
                         drawRoundRect(
                             color = Color.Transparent,
@@ -224,7 +224,7 @@ fun OnboardingSpotlightOverlay(
             val glowHeight = baseRect.height * pulseScale
             val dx = (glowWidth - baseRect.width) / 2
             val dy = (glowHeight - baseRect.height) / 2
-            
+
             Box(
                 modifier = Modifier
                     .offset(
@@ -275,7 +275,7 @@ fun OnboardingSpotlightOverlay(
             } else {
                 // Center it vertically when there is no target
                 val estCardHeightDp = 220.dp
-                val screenHeightDp = configuration.screenHeightDp.dp
+                val screenHeightDp = with(density) { screenHeightPx.toDp() }
                 ((screenHeightDp - estCardHeightDp) / 2f).coerceAtLeast(0.dp)
             }
             val yOffset by animateDpAsState(
@@ -287,7 +287,7 @@ fun OnboardingSpotlightOverlay(
             Box(
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
-                    .offset(y = yOffset)
+                    .offset { IntOffset(0, yOffset.roundToPx()) }
                     .graphicsLayer { alpha = cutoutAlpha }
             ) {
                 OnboardingInfoCard(

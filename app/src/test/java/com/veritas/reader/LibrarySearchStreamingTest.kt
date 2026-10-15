@@ -24,7 +24,7 @@ class LibrarySearchStreamingTest {
                 while (reader.read(charBuffer, 0, bufferSize).also { charsRead = it } != -1) {
                     val chunk = buildString(carryOver.length + charsRead) {
                         append(carryOver)
-                        append(charBuffer, 0, charsRead)
+                        appendRange(charBuffer, 0, charsRead)
                     }
                     if (chunk.contains(needle, ignoreCase = true)) {
                         return@use true

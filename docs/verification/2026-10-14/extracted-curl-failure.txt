@@ -1,0 +1,3 @@
+active=Curl gesture check 6b7d6abe-c865-485e-8030-713fb27c219d position=45 playback=378 mode=TEXT stack=[]
+android.widget.TextView shown=true visible=false text=Gesture page 2 has selectable prose with words that remain readable when scrolling and tur
+android.widget.TextView shown=true visible=true text=Gesture page 3 has selectable prose with words that remain readable when scrolling and tur

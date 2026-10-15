@@ -2,5 +2,4 @@ name = "vern-telegram-bot"
 main = "worker.js"
 compatibility_date = "2024-09-01"
 
-[vars]
-TELEGRAM_BOT_TOKEN = "8285832720:AAHM20ABnUrB1VzLM81eUgkO6NdXnb7Je-o"
+# TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_SECRET are Worker secrets.

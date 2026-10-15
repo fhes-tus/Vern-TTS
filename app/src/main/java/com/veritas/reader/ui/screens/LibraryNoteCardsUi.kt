@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import com.veritas.reader.vernScatteredCard
+
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
@@ -78,10 +80,10 @@ fun groupNotes(
 ): List<NoteGroup> {
     val sorted = annotations.sortedBy { it.chunkIndex }
     val groups = mutableListOf<NoteGroup>()
-    
+
     val withGroup = sorted.filter { !it.selectionGroupId.isNullOrBlank() }
     val withoutGroup = sorted.filter { it.selectionGroupId.isNullOrBlank() }
-    
+
     val groupedById = withGroup.groupBy { it.selectionGroupId }
     groupedById.forEach { (groupId, groupAnnots) ->
         val sortedAnnots = groupAnnots.sortedBy { it.chunkIndex }
@@ -105,7 +107,7 @@ fun groupNotes(
             )
         )
     }
-    
+
     withoutGroup.forEach { ann ->
         groups.add(
             NoteGroup(
@@ -121,7 +123,7 @@ fun groupNotes(
             )
         )
     }
-    
+
     return groups.sortedBy { it.startSentence }
 }
 
@@ -137,10 +139,10 @@ internal fun NoteGroupCard(
     val context = LocalContext.current
     var expanded by rememberSaveable(group.id) { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
-    
+
     val bookTitle = group.document.title
     val (cleanTitle, authorName) = remember(bookTitle) { getBookAndAuthor(bookTitle) }
-    
+
     val collapsedText = remember(group, sentenceTextLookup) {
         val firstAnn = group.annotations.firstOrNull()
         val firstText = firstAnn?.let { sentenceTextLookup(it.chunkIndex) }
@@ -154,7 +156,7 @@ internal fun NoteGroupCard(
 
     val memoDuration = remember(group.audioPath, group.audioDurationSeconds) {
         if (group.audioDurationSeconds > 0) {
-            String.format(java.util.Locale.US, "%02d:%02d", group.audioDurationSeconds / 60, group.audioDurationSeconds % 60)
+            String.format(Locale.US, "%02d:%02d", group.audioDurationSeconds / 60, group.audioDurationSeconds % 60)
         } else if (!group.audioPath.isNullOrBlank()) {
             try {
                 val file = java.io.File(group.audioPath)
@@ -165,7 +167,7 @@ internal fun NoteGroupCard(
                     val durMs = durStr?.toLongOrNull() ?: 0L
                     val totalSec = durMs / 1000
                     retriever.release()
-                    String.format(java.util.Locale.US, "%02d:%02d", totalSec / 60, totalSec % 60)
+                    String.format(Locale.US, "%02d:%02d", totalSec / 60, totalSec % 60)
                 } else "0:00"
             } catch (_: Exception) {
                 "0:00"
@@ -178,17 +180,18 @@ internal fun NoteGroupCard(
     val isPlayingThis = recordingState == com.veritas.reader.VoiceRecordingState.PLAYING && activeAudioPath == group.audioPath
     val playbackProgress by com.veritas.reader.VoiceNoteRecorder.playbackProgress.collectAsState()
     val playbackPositionMs by com.veritas.reader.VoiceNoteRecorder.playbackPositionMs.collectAsState()
-    
+
     val highlightColor = remember(group.highlightColor) {
         runCatching { Color(android.graphics.Color.parseColor(group.highlightColor)) }
             .getOrDefault(Color(0xFFFFE082))
     }
-    
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp)
-            .animateContentSize(),
+            .padding(vertical = 6.dp)
+            .vernScatteredCard("booknote-${group.id}")
+            .animateContentSize(animationSpec = com.veritas.reader.ui.VeritasMotion.spatial()),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
@@ -209,9 +212,9 @@ internal fun NoteGroupCard(
                         .size(10.dp)
                         .background(color = highlightColor, shape = CircleShape)
                 )
-                
+
                 Spacer(modifier = Modifier.width(10.dp))
-                
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = collapsedText,
@@ -252,32 +255,32 @@ internal fun NoteGroupCard(
                         }
                     }
                 }
-                
+
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                     contentDescription = if (expanded) "Collapse" else "Expand",
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
-            
+
             if (expanded) {
                 Spacer(modifier = Modifier.height(10.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                 Spacer(modifier = Modifier.height(10.dp))
-                
+
                 val sentencesText = remember(group.annotations, sentenceTextLookup) {
                     group.annotations.map { ann ->
                         sentenceTextLookup(ann.chunkIndex) ?: ""
                     }
                 }
-                
+
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     group.annotations.forEachIndexed { idx, ann ->
                         val text = sentencesText.getOrNull(idx)?.ifBlank { null } ?: "Loading sentence text..."
-                        
+
                         Row(
                             verticalAlignment = Alignment.Top,
                             modifier = Modifier.fillMaxWidth()
@@ -296,7 +299,7 @@ internal fun NoteGroupCard(
                             )
                         }
                     }
-                    
+
                     if (group.noteText.isNotBlank()) {
                         Spacer(modifier = Modifier.height(6.dp))
                         Card(
@@ -363,9 +366,9 @@ internal fun NoteGroupCard(
                             }
                         )
                     }
-                    
+
                     Spacer(modifier = Modifier.height(6.dp))
-                    
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -384,7 +387,7 @@ internal fun NoteGroupCard(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        
+
                         Box {
                             IconButton(onClick = { showMenu = true }) {
                                 Icon(
@@ -393,7 +396,7 @@ internal fun NoteGroupCard(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            
+
                             DropdownMenu(
                                 expanded = showMenu,
                                 onDismissRequest = { showMenu = false }
@@ -452,6 +455,3 @@ internal fun NoteGroupCard(
          }
      }
  }
-
-
-

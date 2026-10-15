@@ -1,0 +1,155 @@
+INSTRUMENTATION_STATUS: class=com.veritas.reader.LibraryNavigationUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.LibraryNavigationUiTest:
+INSTRUMENTATION_STATUS: test=libraryBottomNavBarDisplaysAllTabs
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.LibraryNavigationUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=libraryBottomNavBarDisplaysAllTabs
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.LibraryNavigationUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=clickingTabTriggersCallback
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.LibraryNavigationUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=clickingTabTriggersCallback
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.ThemeAndStartupChoicesUiTest:
+INSTRUMENTATION_STATUS: test=themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Failed to assert the following: (Text + InputText + EditableText contains 'Stellar' (ignoreCase: false))
+Semantics of the node:
+Node #320 at (l=47.0, t=972.0, r=316.0, b=1006.0)px, Tag: 'resolved-icon-theme'
+Text = '[Midnight Light · Stellar]'
+Actions = [ClearTextSubstitution, GetTextLayoutResult, SetTextSubstitution, ShowTextSubstitution]
+Has 44 siblings
+Selector used: (TestTag = 'resolved-icon-theme')
+
+	at androidx.compose.ui.test.AssertionsKt.assert(Assertions.kt:264)
+	at androidx.compose.ui.test.AssertionsKt.assert$default(Assertions.kt:254)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains(Assertions.kt:208)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains$default(Assertions.kt:204)
+	at com.veritas.reader.ThemeAndStartupChoicesUiTest.themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls(ThemeAndStartupChoicesUiTest.kt:57)
+
+INSTRUMENTATION_STATUS: stream=
+Error in themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls(com.veritas.reader.ThemeAndStartupChoicesUiTest):
+java.lang.AssertionError: Failed to assert the following: (Text + InputText + EditableText contains 'Stellar' (ignoreCase: false))
+Semantics of the node:
+Node #320 at (l=47.0, t=972.0, r=316.0, b=1006.0)px, Tag: 'resolved-icon-theme'
+Text = '[Midnight Light · Stellar]'
+Actions = [ClearTextSubstitution, GetTextLayoutResult, SetTextSubstitution, ShowTextSubstitution]
+Has 44 siblings
+Selector used: (TestTag = 'resolved-icon-theme')
+
+	at androidx.compose.ui.test.AssertionsKt.assert(Assertions.kt:264)
+	at androidx.compose.ui.test.AssertionsKt.assert$default(Assertions.kt:254)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains(Assertions.kt:208)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains$default(Assertions.kt:204)
+	at com.veritas.reader.ThemeAndStartupChoicesUiTest.themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls(ThemeAndStartupChoicesUiTest.kt:57)
+
+INSTRUMENTATION_STATUS: test=themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=everyFollowedThemeMatchesItsPrimaryAndEveryPaletteHasTheCorrectStartingTheme
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ThemeAndStartupChoicesUiTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=everyFollowedThemeMatchesItsPrimaryAndEveryPaletteHasTheCorrectStartingTheme
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ClassicArchiveLinksUiTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.ClassicArchiveLinksUiTest:
+INSTRUMENTATION_STATUS: test=allArchiveSearchButtonsOpenTheirSelectedDestination
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ClassicArchiveLinksUiTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=allArchiveSearchButtonsOpenTheirSelectedDestination
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.HomeBrandThemeUiTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.HomeBrandThemeUiTest:
+INSTRUMENTATION_STATUS: test=sidebarCloseReleasesHomeWithoutSpringSettlingPause
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.HomeBrandThemeUiTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=sidebarCloseReleasesHomeWithoutSpringSettlingPause
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.HomeBrandThemeUiTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=vWordmarkFitsLargeTextHeaderAcrossThemes
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.HomeBrandThemeUiTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=7
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=vWordmarkFitsLargeTextHeaderAcrossThemes
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 14.349
+There was 1 failure:
+1) themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls(com.veritas.reader.ThemeAndStartupChoicesUiTest)
+java.lang.AssertionError: Failed to assert the following: (Text + InputText + EditableText contains 'Stellar' (ignoreCase: false))
+Semantics of the node:
+Node #320 at (l=47.0, t=972.0, r=316.0, b=1006.0)px, Tag: 'resolved-icon-theme'
+Text = '[Midnight Light · Stellar]'
+Actions = [ClearTextSubstitution, GetTextLayoutResult, SetTextSubstitution, ShowTextSubstitution]
+Has 44 siblings
+Selector used: (TestTag = 'resolved-icon-theme')
+
+	at androidx.compose.ui.test.AssertionsKt.assert(Assertions.kt:264)
+	at androidx.compose.ui.test.AssertionsKt.assert$default(Assertions.kt:254)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains(Assertions.kt:208)
+	at androidx.compose.ui.test.AssertionsKt.assertTextContains$default(Assertions.kt:204)
+	at com.veritas.reader.ThemeAndStartupChoicesUiTest.themeChoiceReflectsFamilyChangesAndStartupPreviewIsVisibleBesideTheControls(ThemeAndStartupChoicesUiTest.kt:57)
+
+FAILURES!!!
+Tests run: 7,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

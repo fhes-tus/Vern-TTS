@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.PageSentenceSyncTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:43.628Z" hostname="FIRWEWALL" time="0.178">
+  <properties/>
+  <testcase name="selectionThatMatchesNothingReturnsNull" classname="com.veritas.reader.PageSentenceSyncTest" time="0.01"/>
+  <testcase name="epubExtractionChapterCountMatchesTheParsersChapterCount" classname="com.veritas.reader.PageSentenceSyncTest" time="0.038"/>
+  <testcase name="unevenSentenceDistributionDoesNotDriftTheMapping" classname="com.veritas.reader.PageSentenceSyncTest" time="0.001"/>
+  <testcase name="pageToFirstSentenceResolvesExactly" classname="com.veritas.reader.PageSentenceSyncTest" time="0.001"/>
+  <testcase name="pageWithNoSentencesIsSimplyAbsentFromTheLookup" classname="com.veritas.reader.PageSentenceSyncTest" time="0.0"/>
+  <testcase name="matcherMatchesASentenceContainedInALongerLine" classname="com.veritas.reader.PageSentenceSyncTest" time="0.002"/>
+  <testcase name="selectionStillResolvesWhenThePageIsUnknown" classname="com.veritas.reader.PageSentenceSyncTest" time="0.002"/>
+  <testcase name="sentenceToPageResolvesExactly" classname="com.veritas.reader.PageSentenceSyncTest" time="0.001"/>
+  <testcase name="docxExtractionPageCountMatchesTheParsersPageCount" classname="com.veritas.reader.PageSentenceSyncTest" time="0.104"/>
+  <testcase name="sentencesInheritThePageOfTheMarkerAboveThem" classname="com.veritas.reader.PageSentenceSyncTest" time="0.001"/>
+  <testcase name="matcherRejectsBlankInput" classname="com.veritas.reader.PageSentenceSyncTest" time="0.001"/>
+  <testcase name="selectionPrefersAMatchOnThePageItWasMadeOn" classname="com.veritas.reader.PageSentenceSyncTest" time="0.002"/>
+  <testcase name="matcherRejectsUnrelatedLines" classname="com.veritas.reader.PageSentenceSyncTest" time="0.001"/>
+  <testcase name="matcherRejectsShortIncidentalOverlap" classname="com.veritas.reader.PageSentenceSyncTest" time="0.001"/>
+  <testcase name="matcherMatchesALineContainedInALongerSentence" classname="com.veritas.reader.PageSentenceSyncTest" time="0.0"/>
+  <testcase name="docxTableCellsAreSeparatedSoSpeechDoesNotRunThemTogether" classname="com.veritas.reader.PageSentenceSyncTest" time="0.009"/>
+  <testcase name="matcherIgnoresPunctuationAndCaseDifferences" classname="com.veritas.reader.PageSentenceSyncTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

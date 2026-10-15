@@ -1,0 +1,4 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/vern_icon_background_stellar" />
+    <item android:drawable="@drawable/vern_starting_mark_stellar" android:gravity="center" android:width="192dp" android:height="192dp" />
+</layer-list>

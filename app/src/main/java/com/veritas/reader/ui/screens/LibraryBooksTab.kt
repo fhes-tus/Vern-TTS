@@ -48,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -127,16 +128,22 @@ internal fun LibraryBooksTab(
     onReorderDocuments: (List<SavedDocument>) -> Unit = {},
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
+    filters: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var lastMainPageRefreshAt by remember { mutableStateOf(0L) }
+    val floatingBottomPadding = LocalHomeBottomPadding.current
+
+    var lastMainPageRefreshAt by remember { mutableLongStateOf(0L) }
     var showLibraryViewMenu by remember { mutableStateOf(false) }
     var showBatchMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val libraryPrefs = remember { context.getSharedPreferences("veritas_library_settings", Context.MODE_PRIVATE) }
     val selectionMode = selectedDocumentIds.isNotEmpty()
-    val readingCount = remember(documents) { documents.count { it.chunkCount > 1 && it.currentIndex in 1 until it.chunkCount - 1 } }
-    val completedCount = remember(documents) { documents.count { it.chunkCount > 0 && it.currentIndex >= it.chunkCount - 1 } }
+    val hasActiveFilters = libraryQuery.isNotBlank() || statusFilter != "All" || sourceFilter != "All" ||
+        collectionFilter != "All" || readingListFilter != "All"
+    LaunchedEffect(libraryQuery, statusFilter, sourceFilter, collectionFilter, readingListFilter, sortMode) {
+        libraryListState.requestScrollToItem(0)
+    }
     val selectedHomeTab = VeritasHomeTab.LIBRARY
 
     val libraryFeatures = remember(documents.size, queuedDocuments.size) {
@@ -218,132 +225,11 @@ internal fun LibraryBooksTab(
 
 
                                 Column(modifier = Modifier.fillMaxSize()) {
-                                    Surface(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .zIndex(2f),
-                                        color = Color.Transparent,
-                                        shadowElevation = 0.dp
-                                    ) {
-                                        Row(
-                                            modifier = Modifier
-                                                .staggeredEntrance(0)
-                                                .fillMaxWidth()
-                                                .padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 6.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                        BasicTextField(
-                                            value = libraryQuery,
-                                            onValueChange = { onLibraryQueryChange(it) },
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(38.dp)
-                                                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50)),
-                                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-                                            singleLine = true,
-                                            cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
-                                            decorationBox = { innerTextField ->
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .padding(horizontal = 14.dp),
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Filled.Search,
-                                                        contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                        modifier = Modifier.size(20.dp)
-                                                    )
-                                                    Box(
-                                                        modifier = Modifier.weight(1f),
-                                                        contentAlignment = Alignment.CenterStart
-                                                    ) {
-                                                        if (libraryQuery.isEmpty()) {
-                                                            Text(
-                                                                text = "Search library...",
-                                                                style = MaterialTheme.typography.bodyMedium,
-                                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                                            )
-                                                        }
-                                                        innerTextField()
-                                                    }
-                                                    if (libraryQuery.isNotEmpty()) {
-                                                        IconButton(
-                                                            onClick = { onLibraryQueryChange("") },
-                                                            modifier = Modifier.size(24.dp)
-                                                        ) {
-                                                            Icon(
-                                                                imageVector = Icons.Filled.Close,
-                                                                contentDescription = "Clear search",
-                                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                                modifier = Modifier.size(16.dp)
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        )
-
-                                        Box {
-                                            IconButton(
-                                                onClick = { showLibraryViewMenu = true },
-                                                modifier = Modifier
-                                                    .size(38.dp)
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                                            ) {
-                                                Icon(
-                                                    imageVector = when (libraryViewMode) {
-                                                        LibraryViewMode.TILES -> Icons.Filled.GridView
-                                                        else -> Icons.AutoMirrored.Filled.List
-                                                    },
-                                                    contentDescription = "View mode",
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                            }
-                                            DropdownMenu(expanded = showLibraryViewMenu, onDismissRequest = { showLibraryViewMenu = false }) {
-                                                LibraryViewMode.entries.forEach { mode ->
-                                                    DropdownMenuItem(
-                                                        text = { Text("${mode.icon} ${mode.label}") },
-                                                        onClick = {
-                                                            onLibraryViewModeChange(mode)
-                                                            libraryPrefs.edit {
-                                                                putString("library_view_mode", mode.name)
-                                                            }
-                                                            showLibraryViewMenu = false
-                                                        }
-                                                    )
-                                                }
-                                                HorizontalDivider()
-                                                FeatureDropdownMenuItem(
-                                                    feature = libraryFeature(VeritasFeatureId.READING_LISTS),
-                                                    label = "Reading lists",
-                                                    onClick = {
-                                                        showLibraryViewMenu = false
-                                                        onOpenReadingLists()
-                                                    }
-                                                )
-                                                FeatureDropdownMenuItem(
-                                                    feature = libraryFeature(VeritasFeatureId.READING_HISTORY),
-                                                    label = "Reading history",
-                                                    onClick = {
-                                                        showLibraryViewMenu = false
-                                                        onOpenReadingHistory()
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    }
-                                    }
-
                                     if (libraryQuery.trim().length >= 3) {
                                         TextButton(
                                             onClick = {
                                                 onSearchLibraryContent(libraryQuery)
-                                                
+
                                             },
                                             modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp)
                                         ) {
@@ -376,17 +262,35 @@ internal fun LibraryBooksTab(
                                             }
                                             .padding(horizontal = 18.dp),
                                         state = libraryListState,
-                                        contentPadding = PaddingValues(top = 0.dp, bottom = 22.dp),
+                                        contentPadding = PaddingValues(top = 0.dp, bottom = floatingBottomPadding + 92.dp),
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        if (selectedHomeTab == VeritasHomeTab.LIBRARY) item {
+                                        item("library_filters") { filters() }
+        if (!selectionMode && documents.isNotEmpty()) item("library-results-summary") {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    if (hasActiveFilters) "${visibleDocuments.size} of ${documents.size} items" else "${documents.size} saved ${if (documents.size == 1) "item" else "items"}",
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (hasActiveFilters) TextButton(onClick = {
+                    onLibraryQueryChange("")
+                    onStatusFilterChange("All")
+                    onSourceFilterChange("All")
+                    onCollectionFilterChange("All")
+                    onReadingListFilterChange("All")
+                }) { Text("Reset") }
+            }
+        }
+        if (selectedHomeTab == VeritasHomeTab.LIBRARY && selectionMode) item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         if (selectionMode) {
                             "${selectedDocumentIds.size} selected • ${visibleDocuments.size} showing"
                         } else {
-                            "${documents.size} total • $readingCount in progress • $completedCount completed"
+                            "${visibleDocuments.size} showing"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -431,7 +335,7 @@ internal fun LibraryBooksTab(
                             DropdownMenuItem(
                                 text = { Text("Move to collection") },
                                 onClick = {
-                                    
+
                                     showBatchMenu = false
                                     onShowBatchCollectionDialog()
                                 }
@@ -463,7 +367,7 @@ internal fun LibraryBooksTab(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("No matching readings", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                                        Text(if (libraryQuery.isNotBlank()) "No results for “${libraryQuery.trim()}”" else "No matching readings", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text("Clear the search or change filters to see more saved readings.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         OutlinedButton(
                             onClick = {
@@ -487,13 +391,13 @@ internal fun LibraryBooksTab(
                             .animateItem()
                             .fillMaxWidth()
                             .zIndex(if (rowDocs.any { it.id == draggingDocId }) 100f else 1f),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         rowDocs.forEach { doc ->
                             val isDragging = doc.id == draggingDocId
                             val dragScale by animateFloatAsState(
                                 targetValue = if (isDragging) 1.06f else 1f,
-                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                                animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
                                 label = "gridDragScale"
                             )
                             val gridColThresholdPx = with(density) { 130.dp.toPx() }
@@ -632,7 +536,7 @@ internal fun LibraryBooksTab(
                     val isDragging = doc.id == draggingDocId
                     val dragScale by animateFloatAsState(
                         targetValue = if (isDragging) 1.04f else 1f,
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                        animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
                         label = "listDragScale"
                     )
                     val listThresholdPx = with(density) { 90.dp.toPx() }

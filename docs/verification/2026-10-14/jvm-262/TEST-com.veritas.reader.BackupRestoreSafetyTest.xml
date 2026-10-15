@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.BackupRestoreSafetyTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:40.984Z" hostname="FIRWEWALL" time="0.51">
+  <properties/>
+  <testcase name="interruptedPublicationRecoversPreviousFilesOnRestart" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.152"/>
+  <testcase name="legacyContentUriIsNotTreatedAsAFilePath" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.002"/>
+  <testcase name="successfulCommitKeepsAllPublishedFiles" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.052"/>
+  <testcase name="rejectsPathTraversalAndUnsafeOriginalReferences" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.004"/>
+  <testcase name="rejectsMalformedLaterSectionsAndUnsupportedSchemas" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.007"/>
+  <testcase name="rejectsDuplicateDocumentIdsBeforePublication" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.002"/>
+  <testcase name="validatesCurrentAndLegacyBackups" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.003"/>
+  <testcase name="failedStagingLeavesExistingFilesUntouched" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.03"/>
+  <testcase name="boundsReadsAndAcceptsTheExactLimit" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.002"/>
+  <testcase name="stagingCannotWriteOutsideItsRoot" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.023"/>
+  <testcase name="failedMetadataRollsBackPublishedFiles" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.083"/>
+  <testcase name="partialPublicationFailureRestoresPreviouslyPublishedFiles" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.09"/>
+  <testcase name="committedRestoreSurvivesDeathBeforeJournalCleanup" classname="com.veritas.reader.BackupRestoreSafetyTest" time="0.057"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

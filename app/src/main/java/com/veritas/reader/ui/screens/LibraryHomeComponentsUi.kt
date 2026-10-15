@@ -166,7 +166,7 @@ internal fun HomeQuickActions(
                         Text("🎧", fontSize = 28.sp)
                     }
                 }
-                
+
                 // Detailed Information
                 Column(
                     modifier = Modifier.weight(1f),
@@ -193,15 +193,15 @@ internal fun HomeQuickActions(
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.titleMedium
                         )
-                        
+
                         val progressPercentVal = progressPercent(continueDocument)
-                        
+
                         Text(
                             text = "Sentence ${continueDocument.currentIndex + 1} of ${continueDocument.chunkCount} • $progressPercentVal% read",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        
+
                         // Inline Progress Bar
                         LinearProgressIndicator(
                             progress = { progressFraction(continueDocument) },
@@ -214,7 +214,7 @@ internal fun HomeQuickActions(
                         )
                     }
                 }
-                
+
                 // Audio controls inline
                 if (continueDocument != null) {
                     val isActiveAndPlaying = PlaybackStateStore.activeDocumentId == continueDocument.id && PlaybackStateStore.isPlaying
@@ -229,12 +229,9 @@ internal fun HomeQuickActions(
                                 .clickable { onPlayPauseContinue(continueDocument) },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = if (isActiveAndPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                contentDescription = if (isActiveAndPlaying) "Pause" else "Play",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(26.dp)
-                            )
+                            com.veritas.reader.PlaybackControlIcon(isActiveAndPlaying,
+                                PlaybackStateStore.isPreparingFor(continueDocument.id),
+                                tint = MaterialTheme.colorScheme.onPrimary, size = 26.dp)
                         }
                         IconButton(
                             onClick = { onClearContinue(continueDocument) },
@@ -413,6 +410,3 @@ fun HomePanel(
         }
     }
 }
-
-
-

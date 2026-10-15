@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.NoteSharingTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:42.781Z" hostname="FIRWEWALL" time="0.027">
+  <properties/>
+  <testcase name="mixedAttachmentsUseAMimeTypeThatIncludesEveryFile" classname="com.veritas.reader.NoteSharingTest" time="0.004"/>
+  <testcase name="attachmentOnlyAndLegacyNotesStillHaveShareableFiles" classname="com.veritas.reader.NoteSharingTest" time="0.012"/>
+  <testcase name="checklistSharingKeepsChecksAndStripsAttachments" classname="com.veritas.reader.NoteSharingTest" time="0.006"/>
+  <testcase name="sharingKeepsTextAndLinksButOmitsEveryAttachmentPathAndInternalTag" classname="com.veritas.reader.NoteSharingTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

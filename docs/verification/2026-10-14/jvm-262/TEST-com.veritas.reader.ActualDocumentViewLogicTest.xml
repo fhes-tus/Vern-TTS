@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.ActualDocumentViewLogicTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:40.479Z" hostname="FIRWEWALL" time="0.041">
+  <properties/>
+  <testcase name="testCentroidFocalPointOffsetCalculations" classname="com.veritas.reader.ActualDocumentViewLogicTest" time="0.017"/>
+  <testcase name="testClampOffsetBelowOneAndAboveOne" classname="com.veritas.reader.ActualDocumentViewLogicTest" time="0.002"/>
+  <testcase name="testPaperToneModeTransitions" classname="com.veritas.reader.ActualDocumentViewLogicTest" time="0.003"/>
+  <testcase name="testZoomStepDecrementsDownTo75Percent" classname="com.veritas.reader.ActualDocumentViewLogicTest" time="0.0"/>
+  <testcase name="testZoomStepIncrements25Percent" classname="com.veritas.reader.ActualDocumentViewLogicTest" time="0.001"/>
+  <testcase name="testZoomClampsAtMax500Percent" classname="com.veritas.reader.ActualDocumentViewLogicTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

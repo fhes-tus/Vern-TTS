@@ -1,4 +1,4 @@
-﻿package com.veritas.reader
+package com.veritas.reader
 
 import org.json.JSONArray
 
@@ -27,7 +27,7 @@ fun DocumentRepository.loadQueueDocuments(): List<SavedDocument> {
     return queueDocs
 }
 
-fun DocumentRepository.loadReadingHistory(): List<ReadingHistoryEntry> {
+fun DocumentRepository.loadReadingHistory(): List<ReadingHistoryEntry> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val existingDocs = loadDocuments().associateBy { it.id }
     val raw = prefs.getString(DocumentRepository.KEY_READING_HISTORY, "[]") ?: "[]"
     val array = runCatching { JSONArray(raw) }.getOrDefault(JSONArray())
@@ -53,10 +53,10 @@ fun DocumentRepository.loadReadingHistory(): List<ReadingHistoryEntry> {
     }
     val normalized = entries.sortedByDescending { it.openedAt }.take(DocumentRepository.MAX_READING_HISTORY)
     if (normalized.size != array.length()) saveReadingHistory(normalized)
-    return normalized
+    normalized
 }
 
-fun DocumentRepository.addReadingHistory(document: SavedDocument, currentIndex: Int = document.currentIndex): List<ReadingHistoryEntry> {
+fun DocumentRepository.addReadingHistory(document: SavedDocument, currentIndex: Int = document.currentIndex): List<ReadingHistoryEntry> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val safeIndex = currentIndex.coerceIn(0, (document.chunkCount - 1).coerceAtLeast(0))
     val entry = ReadingHistoryEntry(
         documentId = document.id,
@@ -70,18 +70,18 @@ fun DocumentRepository.addReadingHistory(document: SavedDocument, currentIndex: 
         (listOf(entry) + loadReadingHistory().filterNot { it.documentId == document.id })
             .take(DocumentRepository.MAX_READING_HISTORY)
     )
-    return loadReadingHistory()
+    loadReadingHistory()
 }
 
-fun DocumentRepository.clearReadingHistory(): List<ReadingHistoryEntry> {
+fun DocumentRepository.clearReadingHistory(): List<ReadingHistoryEntry> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     saveReadingHistory(emptyList())
-    return emptyList()
+    emptyList()
 }
 
-fun DocumentRepository.removeReadingHistoryEntry(documentId: String): List<ReadingHistoryEntry> {
+fun DocumentRepository.removeReadingHistoryEntry(documentId: String): List<ReadingHistoryEntry> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val current = loadReadingHistory().filterNot { it.documentId == documentId }
     saveReadingHistory(current)
-    return loadReadingHistory()
+    loadReadingHistory()
 }
 
 fun DocumentRepository.isQueued(documentId: String): Boolean {

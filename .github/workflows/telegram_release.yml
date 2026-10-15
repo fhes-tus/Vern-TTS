@@ -8,7 +8,10 @@ on:
       release_tag:
         description: 'Release Tag to broadcast (e.g. v2.5.0)'
         required: false
-        default: 'v2.5.1'
+        default: ''
+
+permissions:
+  contents: read
 
 jobs:
   broadcast:
@@ -25,7 +28,7 @@ jobs:
 
       - name: Run Broadcast Script
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || '8285832720:AAHM20ABnUrB1VzLM81eUgkO6NdXnb7Je-o' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID || '@myreader_veritas' }}
           RELEASE_TAG: ${{ github.event.inputs.release_tag || github.event.release.tag_name }}
           GITHUB_REPOSITORY: ${{ github.repository }}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.SpeechPunctuationTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:45.232Z" hostname="FIRWEWALL" time="0.012">
+  <properties/>
+  <testcase name="asciiQuestionsCommasAndDecimalsArePreserved" classname="com.veritas.reader.SpeechPunctuationTest" time="0.002"/>
+  <testcase name="expressionCanBeDisabledOrReducedToZero" classname="com.veritas.reader.SpeechPunctuationTest" time="0.004"/>
+  <testcase name="settingsRoundTripAndLegacyDefaultsPreserveControl" classname="com.veritas.reader.SpeechPunctuationTest" time="0.001"/>
+  <testcase name="engineOptOutRetainsCharacterSettingsWithoutPunctuationCues" classname="com.veritas.reader.SpeechPunctuationTest" time="0.0"/>
+  <testcase name="normalExclamationAndHesitationHaveDifferentDelivery" classname="com.veritas.reader.SpeechPunctuationTest" time="0.001"/>
+  <testcase name="unicodePunctuationReachesSpeechWithoutShiftingOffsets" classname="com.veritas.reader.SpeechPunctuationTest" time="0.001"/>
+  <testcase name="questionCuesWorkWithoutCharacterNarration" classname="com.veritas.reader.SpeechPunctuationTest" time="0.0"/>
+  <testcase name="quotedAndBracketedQuestionsKeepTheirMeaning" classname="com.veritas.reader.SpeechPunctuationTest" time="0.0"/>
+  <testcase name="mixedParagraphIsNotGivenQuestionPitchBecauseOfAnEarlierQuestion" classname="com.veritas.reader.SpeechPunctuationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,7 @@
+{
+  "packageName": "com.veritas.reader",
+  "verifiedOn": "2026-10-15",
+  "playAppSigningSha256": "c54a80058d6d9142c1179818de7cb206bf0119e246403beac5ffa23686297e45",
+  "uploadAndLegacyApkSha256": "3b143a77a70253305a496595432461b018ffcb3792e82a96905bd10243424db8",
+  "apkDistribution": "Use a Google Play-signed universal APK for Play-compatible distribution. Locally signed APKs use the upload key and are not interchangeable with the current Play signing identity."
+}

@@ -1,0 +1,202 @@
+<resources>
+    <style name="Theme.Vern.StartupIndigo" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#4540D8</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupIndigoStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#4540D8</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupForest" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#295548</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_forest</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupForestStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#295548</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_forest</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupOcean" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#145B7A</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_ocean</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupOceanStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#145B7A</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_ocean</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupRose" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#873C57</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_rose</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupRoseStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#873C57</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_rose</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupAmber" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#8A4C20</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_amber</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupAmberStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#8A4C20</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_amber</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupMidnight" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#202534</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_midnight</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupMidnightStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#202534</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_midnight</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupCopper" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#C07318</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_copper</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupCopperStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#C07318</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_copper</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupGold" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#E5A93C</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_gold</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupGoldStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#E5A93C</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_gold</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupStellar" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#4338CA</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_stellar</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupStellarStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#4338CA</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_stellar</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupLilac" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#A79BFF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_lilac</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupLilacStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#A79BFF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_lilac</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupViolet" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#7D4EBA</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_violet</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupVioletStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#7D4EBA</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_violet</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupLavender" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#BD93F9</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_lavender</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupLavenderStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#BD93F9</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_lavender</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupCobalt" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#4078F2</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_cobalt</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupCobaltStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#4078F2</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_cobalt</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupAzure" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#58A6FF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_azure</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupAzureStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#58A6FF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_azure</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupNeon" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#00E5FF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_neon</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupNeonStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#00E5FF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_neon</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupSky" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#90CAF9</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_sky</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupSkyStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#90CAF9</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_sky</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupInk" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#111111</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_ink</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupInkStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#111111</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_ink</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupPearl" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#F2F2F2</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_pearl</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupPearlStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#F2F2F2</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_pearl</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupPaper" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#FFFFFF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_paper</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupPaperStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#FFFFFF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_paper</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupOnyx" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#000000</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_onyx</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupOnyxStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#000000</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_onyx</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+</resources>

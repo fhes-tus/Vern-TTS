@@ -46,6 +46,7 @@ import com.veritas.reader.installedPackageForOption
 import com.veritas.reader.ui.VeritasSleekSlider
 import com.veritas.reader.ui.VeritasSwitch
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun AccessibilitySettingsDialog(
     settings: ReaderSettings,
@@ -57,207 +58,82 @@ fun AccessibilitySettingsDialog(
     onGoalMinutesChange: (Int) -> Unit,
     onToggleStreakReminder: () -> Unit,
     onToggleReduceMotion: () -> Unit,
+    onToggleReduceTransparency: () -> Unit,
     onToggleBionicReading: () -> Unit = {},
     onToggleShakeToExtend: () -> Unit = {},
     onToggleCollapsibleBars: () -> Unit = {},
     onToggleNavLabels: () -> Unit = {}
 ) {
+    val scheme = MaterialTheme.colorScheme
     FullScreenSettingsScaffold(title = "Accessibility", onBack = onDismiss) {
-        // Reading focus & comprehension
-        SettingsHubSectionTitle("Focus & comprehension")
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = VeritasPackStyle.cardShape(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
-        ) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Collapsible reader bars", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Single tap on reading canvas hides/shows top and bottom bars. Toggle off to keep bars permanently pinned.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    VeritasSwitch(checked = settings.collapsibleReaderBars, onCheckedChange = { onToggleCollapsibleBars() })
-                }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Bionic reading mode", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Bold leading letters to guide eye fixation and speed comprehension", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    VeritasSwitch(checked = settings.bionicReading, onCheckedChange = { onToggleBionicReading() })
-                }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Shake to extend sleep timer", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Gently shake phone in final minute to add 10 min without unlocking", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    VeritasSwitch(checked = settings.shakeToExtendSleepTimer, onCheckedChange = { onToggleShakeToExtend() })
-                }
-            }
+        Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Comfort comes first", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+            Text("Shape your reading space around what feels good to you.", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
         }
-
-        // Reading goal
-        SettingsHubSectionTitle("Daily reading goal")
-        val goalOn = settings.dailyGoalMinutes > 0
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = VeritasPackStyle.cardShape(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
-        ) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Set daily reading goal", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Shows daily progress ring on the home card", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    VeritasSwitch(
-                        checked = goalOn,
-                        onCheckedChange = { on -> onGoalMinutesChange(if (on) 20 else 0) }
-                    )
-                }
-                if (goalOn) {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Daily target", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                        Text("${settings.dailyGoalMinutes} min", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    }
-                    VeritasSleekSlider(
-                        value = settings.dailyGoalMinutes.coerceIn(5, 180).toFloat(),
-                        onValueChange = { onGoalMinutesChange(it.toInt().coerceIn(5, 180)) },
-                        valueRange = 5f..180f,
-                        steps = 34
-                    )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Streak reminder", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                            Text("Evening nudge when daily goal is at risk", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        VeritasSwitch(checked = settings.streakReminderEnabled, onCheckedChange = { onToggleStreakReminder() })
+        AccessibilityGroup("Reading & focus") {
+            AccessibilityToggle("Collapsible reader bars", "Tap the page to hide or show reader controls.", settings.collapsibleReaderBars, onToggleCollapsibleBars)
+            AccessibilityToggle("Bionic reading", "Emphasise the first letters of each word.", settings.bionicReading, onToggleBionicReading)
+            AccessibilityToggle("Section labels", "Show section numbers for easier study and search.", settings.showSectionNumbers, onToggleSectionNumbers)
+        }
+        AccessibilityGroup("Motion & clarity") {
+            AccessibilityToggle("Reduce motion", "Keep decorative animations still.", settings.reduceMotion, onToggleReduceMotion)
+            AccessibilityToggle("Reduce transparency", "Use solid panels for clearer text and controls.", settings.reduceTransparency, onToggleReduceTransparency)
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("High contrast", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+                Text("Tap the selected preset again to restore your previous theme.", style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("dark_high_contrast" to "Dark", "white_high_contrast" to "Light", "amoled" to "AMOLED").forEach { (id, label) ->
+                        androidx.compose.material3.FilterChip(settings.themeId == id, {
+                            if (settings.themeId == id) {
+                                val previous = settings.previousThemeId?.takeUnless { it in listOf("dark_high_contrast", "white_high_contrast", "amoled") || it.isBlank() }
+                                    ?: if (id == "white_high_contrast") "light" else "dark"
+                                onToggleContrastTheme(previous, null)
+                            } else onToggleContrastTheme(id, if (settings.themeId in listOf("dark_high_contrast", "white_high_contrast", "amoled")) settings.previousThemeId else settings.themeId)
+                        }, label = { Text(label) })
                     }
                 }
             }
         }
-
-        SettingsHubSectionTitle("Motion & contrast")
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = VeritasPackStyle.cardShape(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
-        ) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Reduce motion", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Disable decorative animations and pulses", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    VeritasSwitch(checked = settings.reduceMotion, onCheckedChange = { onToggleReduceMotion() })
+        AccessibilityGroup("Daily rhythm") {
+            val goalOn = settings.dailyGoalMinutes > 0
+            AccessibilityToggle("Daily reading goal", "A small target to help make reading a habit.", goalOn, { onGoalMinutesChange(if (goalOn) 0 else 20) })
+            if (goalOn) {
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    Text("${settings.dailyGoalMinutes} minutes a day", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = scheme.primary)
+                    VeritasSleekSlider(value = settings.dailyGoalMinutes.coerceIn(5, 180).toFloat(),
+                        onValueChange = { onGoalMinutesChange(it.toInt().coerceIn(5, 180)) }, valueRange = 5f..180f, steps = 34)
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("High-contrast quick presets", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                    
-                    val isDarkContrast = settings.themeId == "dark_high_contrast"
-                    val isLightContrast = settings.themeId == "white_high_contrast"
-                    val isAmoled = settings.themeId == "amoled"
-                    val isHighContrast = isDarkContrast || isLightContrast || isAmoled
-
-                    fun toggleContrast(targetThemeId: String) {
-                        if (settings.themeId == targetThemeId) {
-                            // Toggle OFF: restore previous theme before high contrast was activated
-                            val restoreTheme = settings.previousThemeId?.takeIf {
-                                it.isNotBlank() && it != "dark_high_contrast" && it != "white_high_contrast" && it != "blue_high_contrast" && it != "amoled"
-                            } ?: if (targetThemeId == "white_high_contrast") "light" else "dark"
-                            onToggleContrastTheme(restoreTheme, null)
-                        } else {
-                            // Toggle ON: remember current theme (if not already high contrast) and switch
-                            val savedPrev = if (!isHighContrast) settings.themeId else settings.previousThemeId
-                            onToggleContrastTheme(targetThemeId, savedPrev)
-                        }
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (isDarkContrast) {
-                            Button(
-                                onClick = { toggleContrast("dark_high_contrast") },
-                                modifier = Modifier.weight(1f),
-                                shape = VeritasPackStyle.chipShape()
-                            ) {
-                                Text("Contrast Dark", fontWeight = FontWeight.Bold)
-                            }
-                        } else {
-                            OutlinedButton(
-                                onClick = { toggleContrast("dark_high_contrast") },
-                                modifier = Modifier.weight(1f),
-                                shape = VeritasPackStyle.chipShape()
-                            ) {
-                                Text("Contrast Dark")
-                            }
-                        }
-
-                        if (isLightContrast) {
-                            Button(
-                                onClick = { toggleContrast("white_high_contrast") },
-                                modifier = Modifier.weight(1f),
-                                shape = VeritasPackStyle.chipShape()
-                            ) {
-                                Text("Contrast Light", fontWeight = FontWeight.Bold)
-                            }
-                        } else {
-                            OutlinedButton(
-                                onClick = { toggleContrast("white_high_contrast") },
-                                modifier = Modifier.weight(1f),
-                                shape = VeritasPackStyle.chipShape()
-                            ) {
-                                Text("Contrast Light")
-                            }
-                        }
-                    }
-                }
+                AccessibilityToggle("Streak reminder", "An evening nudge when your goal is at risk.", settings.streakReminderEnabled, onToggleStreakReminder)
             }
+            AccessibilityToggle("Shake to extend timer", "Shake in the final minute to add ten minutes.", settings.shakeToExtendSleepTimer, onToggleShakeToExtend)
         }
+        AccessibilityGroup("Appearance") {
+            AccessibilityToggle("Adaptive cover theme", "Let your current book colour the reading space.", settings.adaptiveCover, onToggleAdaptiveCover)
+            AccessibilityToggle("Navigation labels", "Show names beneath navigation icons.", settings.showNavLabels, onToggleNavLabels)
+        }
+        Spacer(Modifier.height(16.dp))
+    }
+}
 
-        SettingsHubSectionTitle("Appearance extras")
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = VeritasPackStyle.cardShape(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
-        ) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Adaptive cover theme", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Blend active book cover palette into theme", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    VeritasSwitch(checked = settings.adaptiveCover, onCheckedChange = { onToggleAdaptiveCover() })
-                }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Show section labels", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Display indices for study and search jumps", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    VeritasSwitch(checked = settings.showSectionNumbers, onCheckedChange = { onToggleSectionNumbers() })
-                }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Show navigation tab labels", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Display text labels beneath floating navigation bar icons. Toggle off for minimalist icon-only navigation.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    VeritasSwitch(checked = settings.showNavLabels, onCheckedChange = { onToggleNavLabels() })
-                }
-            }
+@Composable
+private fun AccessibilityGroup(title: String, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+    Text(title, Modifier.padding(top = 16.dp, bottom = 4.dp), style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+    Card(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+        Column(content = content)
+    }
+}
+
+@Composable
+private fun AccessibilityToggle(title: String, description: String, checked: Boolean, onToggle: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        VeritasSwitch(checked = checked, onCheckedChange = { onToggle() })
     }
 }
 

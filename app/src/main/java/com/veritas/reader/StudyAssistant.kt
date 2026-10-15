@@ -14,13 +14,18 @@ data class QuizQuestion(
     val question: String,
     val answer: String,
     val options: List<String>,
-    val explanation: String = ""
+    val explanation: String = "",
+    val attachments: List<ManagedAttachment> = emptyList()
 ) {
+    val isPlayable: Boolean get() = question.isNotBlank() && options.size >= 2 &&
+        options.all { it.isNotBlank() } && options.distinct().size == options.size && answer in options
+
     fun toJson(): JSONObject = JSONObject()
         .put("question", question)
         .put("answer", answer)
         .put("options", JSONArray(options))
         .put("explanation", explanation)
+        .put("attachments", JSONArray().apply { attachments.forEach { put(it.toJson()) } })
 
     companion object {
         fun fromJson(json: JSONObject): QuizQuestion {
@@ -33,7 +38,8 @@ data class QuizQuestion(
                 question = json.optString("question", ""),
                 answer = json.optString("answer", ""),
                 options = opts,
-                explanation = json.optString("explanation", "")
+                explanation = json.optString("explanation", ""),
+                attachments = ManagedAttachment.list(json.optJSONArray("attachments"))
             )
         }
     }
@@ -45,9 +51,21 @@ data class QuizSet(
     val documentId: String = "",
     val questions: List<QuizQuestion>,
     val bestScore: Int = -1,
-    val totalQuestions: Int = questions.size,
     val createdAtTimestamp: Long = System.currentTimeMillis()
 ) {
+    // Stored totals in older imports can disagree with the actual question list.
+    val totalQuestions: Int get() = questions.size
+    val isPlayable: Boolean get() = questions.isNotEmpty() && questions.all { it.isPlayable }
+
+    /** Older versions stored percentages; current quizzes store correct-answer counts. */
+    val calibratedBestScore: Int get() = when {
+        bestScore < 0 -> -1
+        totalQuestions == 0 -> 0
+        bestScore > totalQuestions ->
+            (bestScore.coerceAtMost(100) / 100f * totalQuestions).roundToInt().coerceIn(0, totalQuestions)
+        else -> bestScore
+    }
+
     fun toJson(): JSONObject {
         val qArray = JSONArray()
         questions.forEach { qArray.put(it.toJson()) }
@@ -56,7 +74,7 @@ data class QuizSet(
             .put("title", title)
             .put("documentId", documentId)
             .put("questions", qArray)
-            .put("bestScore", bestScore)
+            .put("bestScore", calibratedBestScore)
             .put("totalQuestions", totalQuestions)
             .put("createdAtTimestamp", createdAtTimestamp)
     }
@@ -75,7 +93,6 @@ data class QuizSet(
                 documentId = json.optString("documentId", ""),
                 questions = qList,
                 bestScore = json.optInt("bestScore", -1),
-                totalQuestions = json.optInt("totalQuestions", qList.size),
                 createdAtTimestamp = json.optLong("createdAtTimestamp", System.currentTimeMillis())
             )
         }
@@ -155,7 +172,6 @@ object SpacedRepetitionScheduler {
     fun previewNextInterval(card: FlashcardProgress, rating: String): String {
         val rated = rateCard(card, rating)
         return when {
-            rating.equals(BUCKET_AGAIN, ignoreCase = true) -> "<1d"
             rated.intervalDays <= 1 -> "1d"
             else -> "${rated.intervalDays}d"
         }
@@ -185,6 +201,22 @@ object AiResultParser {
         .replace(Regex("""^\s*(?:[-*•]|\d+[.)])\s*"""), "")
         .trim()
 
+    // Numeric option labels are meaningful in a quiz, unlike list numbering in prose.
+    private fun cleanQuizLine(raw: String): String = raw
+        .replace(Regex("""\*\*|__|`"""), "")
+        .replace(Regex("""^\s*[-*•]\s*"""), "")
+        .trim()
+
+    private fun resolveQuizAnswer(raw: String, options: Map<String, String>): String? {
+        val answer = raw.trim()
+        // Match the whole answer first: "Carbon" must not be interpreted as label C.
+        options.values.firstOrNull { it.equals(answer, ignoreCase = true) }?.let { return it }
+        val label = Regex("""^([A-Za-z0-9])(?:[).:\-]\s*(.*))?$""").matchEntire(answer) ?: return null
+        val resolved = options[label.groupValues[1].uppercase()] ?: return null
+        val trailingText = label.groupValues[2].trim()
+        return resolved.takeIf { trailingText.isEmpty() || it.equals(trailingText, ignoreCase = true) }
+    }
+
     private fun markerContent(line: String, markers: List<String>): String? {
         val cleaned = cleanLine(line)
         val lower = cleaned.lowercase()
@@ -198,7 +230,7 @@ object AiResultParser {
         val distinctOptions = mutableSetOf<Char>()
         var hasAnswerLine = false
         text.lineSequence().forEach { rawLine ->
-            val line = cleanLine(rawLine)
+            val line = cleanQuizLine(rawLine)
             val match = optionRegex.matchEntire(line)
             if (match != null) {
                 val key = match.groupValues[1].uppercase().firstOrNull()
@@ -212,7 +244,8 @@ object AiResultParser {
             if (answerLineRegex.matches(line)) hasAnswerLine = true
         }
         val hasMultipleOptions = distinctOptions.contains('B') || distinctOptions.size >= 2
-        return (hasMultipleOptions && (distinctOptions.size >= 2 || hasAnswerLine))
+        // Numbered definitions also look like choices; a numeric quiz needs an answer marker.
+        return hasMultipleOptions && (distinctOptions.any { it in 'A'..'D' } || hasAnswerLine)
     }
 
     fun parseFlashcards(text: String): List<Flashcard> {
@@ -371,33 +404,30 @@ object AiResultParser {
                     val obj = array.optJSONObject(i) ?: continue
                     val q = obj.optString("question", "").ifBlank { obj.optString("q", "") }
                     val explanation = obj.optString("explanation", "").ifBlank { obj.optString("reason", "") }
-                    val opts = mutableListOf<String>()
+                    val optionsByLabel = linkedMapOf<String, String>()
 
                     val optArray = obj.optJSONArray("options")
                     if (optArray != null) {
                         for (j in 0 until optArray.length()) {
-                            opts.add(optArray.optString(j))
+                            optionsByLabel[('A' + j).toString()] = optArray.optString(j).trim()
                         }
                     } else {
                         val optObj = obj.optJSONObject("options")
                         if (optObj != null) {
                             listOf("A", "B", "C", "D", "a", "b", "c", "d").forEach { key ->
-                                if (optObj.has(key)) opts.add(optObj.optString(key))
+                                if (optObj.has(key)) optionsByLabel[key.uppercase()] = optObj.optString(key).trim()
                             }
                         }
                     }
 
-                    var ans = obj.optString("answer", "").ifBlank { obj.optString("correct", "") }
+                    val opts = optionsByLabel.values.toList()
+                    val rawAnswer = obj.optString("answer", "").ifBlank { obj.optString("correct", "") }
                     val ansIndex = obj.optInt("answerIndex", -1)
-                    if (ansIndex in opts.indices) {
-                        ans = opts[ansIndex]
-                    } else if (ans.length == 1) {
-                        val letterIdx = ans.uppercase()[0] - 'A'
-                        if (letterIdx in opts.indices) ans = opts[letterIdx]
-                    }
+                    val ans = if (ansIndex in opts.indices) opts[ansIndex]
+                        else resolveQuizAnswer(rawAnswer, optionsByLabel)
 
-                    if (q.isNotBlank() && opts.size >= 2 && ans.isNotBlank()) {
-                        questions.add(QuizQuestion(q.trim(), ans.trim(), opts, explanation.trim()))
+                    if (q.isNotBlank() && opts.size >= 2 && opts.all { it.isNotBlank() } && opts.distinct().size == opts.size && ans != null) {
+                        questions.add(QuizQuestion(q.trim(), ans, opts, explanation.trim()))
                     }
                 }
             }
@@ -415,14 +445,14 @@ object AiResultParser {
         fun flush() {
             val q = question?.trim().orEmpty()
             val answerRaw = answerKeyOrText?.trim().orEmpty()
-            if (q.isNotBlank() && options.size >= 2 && answerRaw.isNotBlank()) {
-                val answerLetter = answerRaw.take(1).uppercase()
-                val answerText = options[answerLetter] ?: answerRaw
+            val answerText = resolveQuizAnswer(answerRaw, options)
+            val values = options.values.toList()
+            if (q.isNotBlank() && values.size >= 2 && values.all { it.isNotBlank() } && values.distinct().size == values.size && answerText != null) {
                 questions.add(
                     QuizQuestion(
                         question = q,
                         answer = answerText,
-                        options = options.values.toList(),
+                        options = values,
                         explanation = explanation.trim()
                     )
                 )
@@ -436,14 +466,19 @@ object AiResultParser {
         text.lineSequence().forEach { rawLine ->
             val line = cleanLine(rawLine)
             val questionContent = markerContent(rawLine.trim(), listOf("q:", "question:"))
-            val optionMatch = optionRegex.matchEntire(line)
+            val optionMatch = optionRegex.matchEntire(cleanQuizLine(rawLine))
             val answerMatch = answerLineRegex.matchEntire(line)
             val explanationMatch = explanationRegex.matchEntire(line)
+            val numberedQuestion = rawLine.trim().matches(Regex("""^\d+[.)]\s+.+\?$"""))
 
             when {
                 questionContent != null -> {
                     flush()
                     question = questionContent
+                }
+                numberedQuestion && (question == null || answerKeyOrText != null) -> {
+                    flush()
+                    question = cleanLine(rawLine)
                 }
                 answerMatch != null && question != null -> {
                     answerKeyOrText = answerMatch.groupValues[1]

@@ -11,7 +11,12 @@ import android.os.Vibrator
 import android.os.VibratorManager
 
 internal fun PlaybackService.requestAudioFocus(): Boolean {
+    // Reuse the same focus client. A new listener on every Play competes with
+    // our previous request and delivers a duck/loss callback back to ourselves.
+    audioFocusRequest?.let { return audioManager.requestAudioFocus(it) == android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED }
+    lateinit var req: android.media.AudioFocusRequest
     val focusChangeListener = android.media.AudioManager.OnAudioFocusChangeListener { focusChange ->
+        if (audioFocusRequest !== req) return@OnAudioFocusChangeListener
         when (focusChange) {
             android.media.AudioManager.AUDIOFOCUS_LOSS -> {
                 pausedDueToTransientFocusLoss = false
@@ -24,10 +29,12 @@ internal fun PlaybackService.requestAudioFocus(): Boolean {
                 }
             }
             android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                tts?.setSpeechRate(PlaybackStateStore.rate * 0.75f)
+                if (PlaybackStateStore.isPlaying) {
+                    pausedDueToTransientFocusLoss = true
+                    pauseSpeechTransiently("Paused - another app needs audio.")
+                }
             }
             android.media.AudioManager.AUDIOFOCUS_GAIN -> {
-                tts?.setSpeechRate(PlaybackStateStore.rate)
                 if (pausedDueToTransientFocusLoss) {
                     pausedDueToTransientFocusLoss = false
                     handlePlay(null)
@@ -35,22 +42,24 @@ internal fun PlaybackService.requestAudioFocus(): Boolean {
             }
         }
     }
-    val req = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+    req = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
         .setAudioAttributes(
             android.media.AudioAttributes.Builder()
                 .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
                 .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
                 .build()
         )
-        .setOnAudioFocusChangeListener(focusChangeListener)
+        .setWillPauseWhenDucked(true)
+        .setOnAudioFocusChangeListener(focusChangeListener, mainHandler)
         .build()
     audioFocusRequest = req
     return audioManager.requestAudioFocus(req) == android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED
 }
 
 internal fun PlaybackService.abandonAudioFocus() {
-    audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+    val previous = audioFocusRequest
     audioFocusRequest = null
+    previous?.let { audioManager.abandonAudioFocusRequest(it) }
 }
 
 internal fun PlaybackService.createShakeEventListener(): SensorEventListener = object : SensorEventListener {
@@ -134,12 +143,7 @@ internal fun PlaybackService.vibrateShake() {
         } else {
             @Suppress("DEPRECATION")
             val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator?.vibrate(VibrationEffect.createOneShot(120L, VibrationEffect.DEFAULT_AMPLITUDE))
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator?.vibrate(120L)
-            }
+            vibrator?.vibrate(VibrationEffect.createOneShot(120L, VibrationEffect.DEFAULT_AMPLITUDE))
         }
     }
 }

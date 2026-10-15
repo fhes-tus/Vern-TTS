@@ -137,12 +137,13 @@ object SpeechSanitizer {
      * Formats an individual table cell for natural speech with full-stop pitch drops and empty-cell handling.
      */
     fun formatTableCellForSpeech(cell: String): String {
-        val cleaned = cell.trim()
+        val cleaned = SpeechPunctuation.normalize(cell.trim())
         return when {
             cleaned.isEmpty() || cleaned == "-" || cleaned == "—" || cleaned == "–" ||
                 cleaned.equals("N/A", ignoreCase = true) || cleaned.equals("NA", ignoreCase = true) ||
                 cleaned.equals("None", ignoreCase = true) -> "None."
-            cleaned.endsWith(".") || cleaned.endsWith("!") || cleaned.endsWith("?") || cleaned.endsWith(":") -> cleaned
+            cleaned.trimEnd { it.isWhitespace() || SpeechPunctuation.isClosingDelimiter(it) }
+                .lastOrNull()?.let { it in ".!?:…" } == true -> cleaned
             else -> "$cleaned."
         }
     }
@@ -201,8 +202,13 @@ object SpeechSanitizer {
             when {
                 isSilent(char) -> ' '
                 char == '…' -> '.' // … one pause, not "dot dot dot"
-                else -> char
+                else -> SpeechPunctuation.normalize(char)
             }
+        }
+        // Older imports contain synthetic page labels in their saved prose.
+        // Silence those without reindexing existing notes or progress offsets.
+        Regex("(?m)^Page \\d+[ \\t]*(?=\\n|$)").findAll(raw).forEach { match ->
+            for (i in match.range) chars[i] = ' '
         }
         // Dot leaders ("......" in tables of contents): keep the first dot for a
         // single pause, blank the rest — run length is preserved.

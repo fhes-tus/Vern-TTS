@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import com.veritas.reader.vernScatteredCard
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -76,14 +78,13 @@ import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.ResolvedVeritasFeature
 import com.veritas.reader.SavedDocument
 import com.veritas.reader.StorageBreakdown
-import com.veritas.reader.UnrestrictedBatteryDialog
 import com.veritas.reader.VeritasFeatureContext
 import com.veritas.reader.VeritasFeatureId
 import com.veritas.reader.VeritasFeatureRegistry
 import com.veritas.reader.VeritasFeatureSurface
 import com.veritas.reader.VeritasPackStyle
-import com.veritas.reader.isBatteryOptimizationIgnored
-import com.veritas.reader.requestIgnoreBatteryOptimizations
+import com.veritas.reader.openAppBatterySettings
+import com.veritas.reader.rememberBatteryOptimizationIgnored
 import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.OnboardingStep
 import com.veritas.reader.ui.ReaderUiState
@@ -112,7 +113,8 @@ fun SettingsHubDialog(
     onOpenUserManual: () -> Unit,
     onOpenStorage: () -> Unit = {},
     onOpenAccessibility: () -> Unit = {},
-    onCheckForUpdates: () -> Unit = {}
+    onCheckForUpdates: () -> Unit = {},
+    onSaveCustomization: (com.veritas.reader.ReaderSettings) -> Unit = {}
 ) {
     val context = LocalContext.current
     val documentCount = uiState.documents.size
@@ -133,7 +135,8 @@ fun SettingsHubDialog(
         settingsFeatures.requireResolvedFeature(id)
 
     var showAboutDialog by remember { mutableStateOf(false) }
-    var showBatteryDialog by remember { mutableStateOf(false) }
+    var showCustomization by remember { mutableStateOf(false) }
+    val batteryExempt = rememberBatteryOptimizationIgnored()
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -193,20 +196,18 @@ fun SettingsHubDialog(
                         Icons.Outlined.Palette, onOpenReaderSettings
                     ),
                     SettingsRowSpec(
+                        "Customization", "Icon colours, startup motion & scattered cards",
+                        Icons.Outlined.AutoAwesome, { showCustomization = true }
+                    ),
+                    SettingsRowSpec(
                         "Accessibility", "Reading goal, reduce motion & contrast",
                         Icons.Outlined.Accessibility, onOpenAccessibility
                     ),
                     SettingsRowSpec(
                         "Background playback",
-                        if (isBatteryOptimizationIgnored(LocalContext.current)) "Battery optimization unrestricted (Optimal)" else "Battery optimized (Tap to enable unrestricted)",
+                        if (batteryExempt) "Battery exemption enabled · Tap to manage" else "Battery optimized · Tap to manage",
                         Icons.Outlined.PowerSettingsNew,
-                        {
-                            if (isBatteryOptimizationIgnored(context)) {
-                                requestIgnoreBatteryOptimizations(context)
-                            } else {
-                                showBatteryDialog = true
-                            }
-                        }
+                        { openAppBatterySettings(context) }
                     )
                 ))
 
@@ -380,6 +381,9 @@ fun SettingsHubDialog(
         }
     }
 
+    if (showCustomization) {
+        CustomizationSettingsDialog(uiState.readerSettings, onSaveCustomization, { showCustomization = false })
+    }
     if (showAboutDialog) {
         AboutDialog(
             uiState = uiState,
@@ -388,12 +392,7 @@ fun SettingsHubDialog(
         )
     }
 
-    if (showBatteryDialog) {
-        UnrestrictedBatteryDialog(
-            onDismiss = { showBatteryDialog = false },
-            onOpenSettings = { requestIgnoreBatteryOptimizations(context) }
-        )
-    }
+
 }
 
 fun formatVeritasBytes(bytes: Long): String {
@@ -419,7 +418,7 @@ fun StorageDialog(
         confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
         title = { Text("Storage") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (breakdown == null) {
                     Text("Measuring…", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
@@ -432,6 +431,7 @@ fun StorageDialog(
                     Text("Covers & thumbnails: ${formatVeritasBytes(breakdown.coversBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Database & storage index: ${formatVeritasBytes(breakdown.databaseBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Temporary cache & audio: ${formatVeritasBytes(breakdown.cacheBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    NoteMediaCleanupControl()
 
                     if (onClearCache != null) {
                         val cacheBytes = breakdown.cacheBytes
@@ -512,7 +512,7 @@ fun featureRowSpec(
 @Composable
 fun SettingsHubGroup(rows: List<SettingsRowSpec>) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().vernScatteredCard("settings-${rows.firstOrNull()?.title}", amount = .35f),
         shape = VeritasPackStyle.cardShape(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
@@ -607,6 +607,10 @@ internal fun FullScreenSettingsScaffold(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Dialog(onDismissRequest = onBack, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onBackground,
+            com.veritas.reader.LocalVernCardEntrance provides androidx.compose.runtime.remember(title) { android.os.SystemClock.uptimeMillis() }
+        ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -636,6 +640,7 @@ internal fun FullScreenSettingsScaffold(
                     content = content
                 )
             }
+        }
         }
     }
 }

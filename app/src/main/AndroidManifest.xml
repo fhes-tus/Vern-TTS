@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
@@ -42,8 +44,8 @@
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:label="@string/app_name"
-        android:icon="@drawable/veritas_reader_icon"
-        android:roundIcon="@mipmap/veritas_reader_round_icon"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Vern">
 
@@ -64,10 +66,7 @@
             android:exported="true"
             android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize"
             android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+
 
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -113,6 +112,211 @@
             </intent-filter>
         </activity>
 
+
+
+
+        <!-- BEGIN VERN LAUNCHERS -->
+        <activity android:name=".StartupIndigoStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupIndigoStatic" android:icon="@mipmap/ic_launcher" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupForestActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupForest" android:icon="@mipmap/vern_launcher_forest" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupForestStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupForestStatic" android:icon="@mipmap/vern_launcher_forest" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupOceanActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupOcean" android:icon="@mipmap/vern_launcher_ocean" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupOceanStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupOceanStatic" android:icon="@mipmap/vern_launcher_ocean" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupRoseActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupRose" android:icon="@mipmap/vern_launcher_rose" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupRoseStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupRoseStatic" android:icon="@mipmap/vern_launcher_rose" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupAmberActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupAmber" android:icon="@mipmap/vern_launcher_amber" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupAmberStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupAmberStatic" android:icon="@mipmap/vern_launcher_amber" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupMidnightActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupMidnight" android:icon="@mipmap/vern_launcher_midnight" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupMidnightStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupMidnightStatic" android:icon="@mipmap/vern_launcher_midnight" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupCopperActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupCopper" android:icon="@mipmap/vern_launcher_copper" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupCopperStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupCopperStatic" android:icon="@mipmap/vern_launcher_copper" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupGoldActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupGold" android:icon="@mipmap/vern_launcher_gold" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupGoldStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupGoldStatic" android:icon="@mipmap/vern_launcher_gold" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupStellarActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupStellar" android:icon="@mipmap/vern_launcher_stellar" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupStellarStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupStellarStatic" android:icon="@mipmap/vern_launcher_stellar" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupLilacActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupLilac" android:icon="@mipmap/vern_launcher_lilac" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupLilacStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupLilacStatic" android:icon="@mipmap/vern_launcher_lilac" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupVioletActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupViolet" android:icon="@mipmap/vern_launcher_violet" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupVioletStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupVioletStatic" android:icon="@mipmap/vern_launcher_violet" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupLavenderActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupLavender" android:icon="@mipmap/vern_launcher_lavender" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupLavenderStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupLavenderStatic" android:icon="@mipmap/vern_launcher_lavender" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupCobaltActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupCobalt" android:icon="@mipmap/vern_launcher_cobalt" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupCobaltStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupCobaltStatic" android:icon="@mipmap/vern_launcher_cobalt" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupAzureActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupAzure" android:icon="@mipmap/vern_launcher_azure" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupAzureStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupAzureStatic" android:icon="@mipmap/vern_launcher_azure" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupNeonActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupNeon" android:icon="@mipmap/vern_launcher_neon" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupNeonStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupNeonStatic" android:icon="@mipmap/vern_launcher_neon" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupSkyActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupSky" android:icon="@mipmap/vern_launcher_sky" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupSkyStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupSkyStatic" android:icon="@mipmap/vern_launcher_sky" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupInkActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupInk" android:icon="@mipmap/vern_launcher_ink" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupInkStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupInkStatic" android:icon="@mipmap/vern_launcher_ink" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupPearlActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupPearl" android:icon="@mipmap/vern_launcher_pearl" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupPearlStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupPearlStatic" android:icon="@mipmap/vern_launcher_pearl" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupPaperActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupPaper" android:icon="@mipmap/vern_launcher_paper" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupPaperStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupPaperStatic" android:icon="@mipmap/vern_launcher_paper" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupOnyxActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupOnyx" android:icon="@mipmap/vern_launcher_onyx" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".StartupOnyxStaticActivity" android:exported="false" android:theme="@style/Theme.Vern.StartupOnyxStatic" android:icon="@mipmap/vern_launcher_onyx" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity-alias android:name=".LauncherIndigo" android:targetActivity=".MainActivity"
+            android:enabled="true" android:exported="true" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherIndigoStatic" android:targetActivity=".StartupIndigoStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherForest" android:targetActivity=".StartupForestActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_forest" android:roundIcon="@mipmap/vern_launcher_forest" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherForestStatic" android:targetActivity=".StartupForestStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_forest" android:roundIcon="@mipmap/vern_launcher_forest" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherOcean" android:targetActivity=".StartupOceanActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_ocean" android:roundIcon="@mipmap/vern_launcher_ocean" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherOceanStatic" android:targetActivity=".StartupOceanStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_ocean" android:roundIcon="@mipmap/vern_launcher_ocean" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherRose" android:targetActivity=".StartupRoseActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_rose" android:roundIcon="@mipmap/vern_launcher_rose" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherRoseStatic" android:targetActivity=".StartupRoseStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_rose" android:roundIcon="@mipmap/vern_launcher_rose" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherAmber" android:targetActivity=".StartupAmberActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_amber" android:roundIcon="@mipmap/vern_launcher_amber" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherAmberStatic" android:targetActivity=".StartupAmberStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_amber" android:roundIcon="@mipmap/vern_launcher_amber" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherMidnight" android:targetActivity=".StartupMidnightActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_midnight" android:roundIcon="@mipmap/vern_launcher_midnight" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherMidnightStatic" android:targetActivity=".StartupMidnightStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_midnight" android:roundIcon="@mipmap/vern_launcher_midnight" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherCopper" android:targetActivity=".StartupCopperActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_copper" android:roundIcon="@mipmap/vern_launcher_copper" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherCopperStatic" android:targetActivity=".StartupCopperStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_copper" android:roundIcon="@mipmap/vern_launcher_copper" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherGold" android:targetActivity=".StartupGoldActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_gold" android:roundIcon="@mipmap/vern_launcher_gold" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherGoldStatic" android:targetActivity=".StartupGoldStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_gold" android:roundIcon="@mipmap/vern_launcher_gold" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherStellar" android:targetActivity=".StartupStellarActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_stellar" android:roundIcon="@mipmap/vern_launcher_stellar" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherStellarStatic" android:targetActivity=".StartupStellarStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_stellar" android:roundIcon="@mipmap/vern_launcher_stellar" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherLilac" android:targetActivity=".StartupLilacActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_lilac" android:roundIcon="@mipmap/vern_launcher_lilac" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherLilacStatic" android:targetActivity=".StartupLilacStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_lilac" android:roundIcon="@mipmap/vern_launcher_lilac" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherViolet" android:targetActivity=".StartupVioletActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_violet" android:roundIcon="@mipmap/vern_launcher_violet" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherVioletStatic" android:targetActivity=".StartupVioletStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_violet" android:roundIcon="@mipmap/vern_launcher_violet" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherLavender" android:targetActivity=".StartupLavenderActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_lavender" android:roundIcon="@mipmap/vern_launcher_lavender" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherLavenderStatic" android:targetActivity=".StartupLavenderStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_lavender" android:roundIcon="@mipmap/vern_launcher_lavender" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherCobalt" android:targetActivity=".StartupCobaltActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_cobalt" android:roundIcon="@mipmap/vern_launcher_cobalt" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherCobaltStatic" android:targetActivity=".StartupCobaltStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_cobalt" android:roundIcon="@mipmap/vern_launcher_cobalt" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherAzure" android:targetActivity=".StartupAzureActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_azure" android:roundIcon="@mipmap/vern_launcher_azure" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherAzureStatic" android:targetActivity=".StartupAzureStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_azure" android:roundIcon="@mipmap/vern_launcher_azure" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherNeon" android:targetActivity=".StartupNeonActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_neon" android:roundIcon="@mipmap/vern_launcher_neon" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherNeonStatic" android:targetActivity=".StartupNeonStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_neon" android:roundIcon="@mipmap/vern_launcher_neon" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherSky" android:targetActivity=".StartupSkyActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_sky" android:roundIcon="@mipmap/vern_launcher_sky" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherSkyStatic" android:targetActivity=".StartupSkyStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_sky" android:roundIcon="@mipmap/vern_launcher_sky" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherInk" android:targetActivity=".StartupInkActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_ink" android:roundIcon="@mipmap/vern_launcher_ink" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherInkStatic" android:targetActivity=".StartupInkStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_ink" android:roundIcon="@mipmap/vern_launcher_ink" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherPearl" android:targetActivity=".StartupPearlActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_pearl" android:roundIcon="@mipmap/vern_launcher_pearl" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherPearlStatic" android:targetActivity=".StartupPearlStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_pearl" android:roundIcon="@mipmap/vern_launcher_pearl" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherPaper" android:targetActivity=".StartupPaperActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_paper" android:roundIcon="@mipmap/vern_launcher_paper" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherPaperStatic" android:targetActivity=".StartupPaperStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_paper" android:roundIcon="@mipmap/vern_launcher_paper" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherOnyx" android:targetActivity=".StartupOnyxActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_onyx" android:roundIcon="@mipmap/vern_launcher_onyx" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".LauncherOnyxStatic" android:targetActivity=".StartupOnyxStaticActivity"
+            android:enabled="false" android:exported="true" android:icon="@mipmap/vern_launcher_onyx" android:roundIcon="@mipmap/vern_launcher_onyx" android:label="@string/app_name">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity-alias>
+        <!-- END VERN LAUNCHERS -->
+
         <activity-alias
             android:name=".ShareToNotesActivity"
             android:targetActivity=".MainActivity"
@@ -120,9 +324,9 @@
             android:label="@string/share_to_notes">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
-                <data android:mimeType="image/*" />
+                <data android:mimeType="*/*" />
             </intent-filter>
         </activity-alias>
 
@@ -221,9 +425,11 @@
                 android:resource="@xml/study_dashboard_widget_info" />
         </receiver>
 
+        <!-- Media3 exposes the session to system and external playback controllers. -->
         <service
             android:name=".PlaybackService"
             android:exported="true"
+            tools:ignore="ExportedService"
             android:foregroundServiceType="mediaPlayback">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />

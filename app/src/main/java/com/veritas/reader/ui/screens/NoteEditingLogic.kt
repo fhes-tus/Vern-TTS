@@ -2,6 +2,7 @@ package com.veritas.reader.ui.screens
 
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import com.veritas.reader.ui.QuoteCitationStyle
 
 /**
  * Pure text-editing logic for the general notes editor: inline markers, line prefixes
@@ -14,6 +15,79 @@ object VeritasNoteEditing {
     private val NUMBERED_LINE_REGEX = Regex("^\\d+\\. .*")
     private val NUMBERED_PREFIX_REGEX = Regex("\\d+\\. ")
     private val LIST_ITEM_REGEX = Regex("^(\\s*)(?:([-*•])|(\\d+)\\.|(\\[[ xX]\\]))\\s+(.*)$")
+
+    fun toggleChecklistItem(
+        items: MutableList<Pair<Boolean, TextFieldValue>>,
+        index: Int,
+        isChecked: Boolean,
+        moveCheckedToBottom: Boolean = true
+    ): Int {
+        if (index !in items.indices) return index
+        val tfv = items[index].second
+        if (isChecked && moveCheckedToBottom && items.size > 1) {
+            items.removeAt(index)
+            items.add(true to tfv)
+            return items.lastIndex
+        } else if (!isChecked && moveCheckedToBottom && items.size > 1) {
+            items.removeAt(index)
+            val firstChecked = items.indexOfFirst { it.first }
+            val targetIdx = if (firstChecked >= 0) firstChecked else items.size
+            items.add(targetIdx, false to tfv)
+            return targetIdx
+        } else {
+            items[index] = isChecked to tfv
+            return index
+        }
+    }
+
+    fun addNewChecklistItem(
+        items: MutableList<Pair<Boolean, TextFieldValue>>,
+        addNewItemsToTop: Boolean = false,
+        moveCheckedToBottom: Boolean = true,
+        text: String = ""
+    ): Int {
+        val newItem = false to TextFieldValue(text, TextRange(text.length))
+        return if (addNewItemsToTop) {
+            items.add(0, newItem)
+            0
+        } else {
+            val targetIdx = if (moveCheckedToBottom) {
+                val firstChecked = items.indexOfFirst { it.first }
+                if (firstChecked >= 0) firstChecked else items.size
+            } else {
+                items.size
+            }
+            items.add(targetIdx, newItem)
+            targetIdx
+        }
+    }
+
+    fun formatQuoteCitation(
+        quote: String,
+        bookTitle: String = "",
+        author: String = "",
+        style: QuoteCitationStyle = QuoteCitationStyle.MARKDOWN
+    ): String {
+        val cleanQuote = quote.trim().trim('"', '“', '”')
+        val cite = when {
+            bookTitle.isNotBlank() && author.isNotBlank() -> "— $author, $bookTitle"
+            bookTitle.isNotBlank() -> "— $bookTitle"
+            author.isNotBlank() -> "— $author"
+            else -> ""
+        }
+        return when (style) {
+            QuoteCitationStyle.MARKDOWN -> {
+                val lines = cleanQuote.lines().map { "> \"$it\"" }.joinToString("\n")
+                if (cite.isNotBlank()) "$lines\n> $cite" else lines
+            }
+            QuoteCitationStyle.CLEAN -> {
+                if (cite.isNotBlank()) "\"$cleanQuote\"\n$cite" else "\"$cleanQuote\""
+            }
+            QuoteCitationStyle.ACADEMIC -> {
+                if (cite.isNotBlank()) "\"$cleanQuote\" (In: $bookTitle by $author)" else "\"$cleanQuote\""
+            }
+        }
+    }
 
     fun applyIndent(value: TextFieldValue): TextFieldValue {
         val text = value.text
@@ -203,7 +277,7 @@ object VeritasNoteEditing {
 
     fun parseNoteBlocks(content: String): MutableList<NoteBlock> {
         if (content.isEmpty()) return mutableListOf(NoteBlock.Text(TextFieldValue("")))
-        val regex = Regex("""(!\[(?:image|photo)?\]\([^)]+\)|\[image:[^]]+\]|\[audio\]\([^)]+\)|\[audio:[^]]+\]|\[video\]\([^)]+\)|\[video:[^]]+\])""", RegexOption.IGNORE_CASE)
+        val regex = Regex("""(!\[(?:image|photo)?\]\([^)]+\)|\[image:[^]]+\]|\[image\]\([^)]+\)|\[audio\]\([^)]+\)|\[audio:[^]]+\]|\[video\]\([^)]+\)|\[video:[^]]+\]|\[file(?::[^\n]*?)?\]\((?:[^()\n]|\([^()\n]*\))+\)|\[file:[^]]+\])""", RegexOption.IGNORE_CASE)
 
         val blocks = mutableListOf<NoteBlock>()
         var lastIndex = 0
@@ -230,6 +304,31 @@ object VeritasNoteEditing {
                     val path = extractPathFromTag(matchStr)
                     blocks.add(NoteBlock.Video(path))
                 }
+                matchStr.startsWith("[file", ignoreCase = true) -> {
+                    val path = extractPathFromTag(matchStr)
+                    var fileName = ""
+                    var sizeBytes = 0L
+                    val parenIdx = matchStr.indexOf("](").let { if (it >= 0) it + 1 else -1 }
+                    val tagPrefix = if (parenIdx >= 0) matchStr.substring(0, parenIdx) else matchStr
+                    if (tagPrefix.startsWith("[file:", ignoreCase = true)) {
+                        val metaStr = tagPrefix.substring(6).removeSuffix("]").trim()
+                        val sizeIndex = metaStr.lastIndexOf(':')
+                        val hasSize = sizeIndex >= 0 && metaStr.substring(sizeIndex + 1).toLongOrNull() != null
+                        val parts = if (hasSize) listOf(metaStr.substring(0, sizeIndex), metaStr.substring(sizeIndex + 1)) else listOf(metaStr)
+                        if (parts.isNotEmpty()) fileName = parts[0].trim().let { if (it.startsWith("~")) runCatching { java.net.URLDecoder.decode(it.drop(1), "UTF-8") }.getOrDefault(it) else it }
+                        if (parts.size > 1) sizeBytes = parts[1].trim().toLongOrNull() ?: 0L
+                    }
+                    if (fileName.isBlank() && path.isNotBlank()) {
+                        fileName = java.io.File(path).name
+                    }
+                    if (sizeBytes == 0L && path.isNotBlank()) {
+                        runCatching {
+                            val f = java.io.File(path)
+                            if (f.exists()) sizeBytes = f.length()
+                        }
+                    }
+                    blocks.add(NoteBlock.File(path = path, fileName = fileName, sizeBytes = sizeBytes))
+                }
             }
             lastIndex = match.range.last + 1
             if (lastIndex < content.length && content[lastIndex] == '\n') {
@@ -247,7 +346,7 @@ object VeritasNoteEditing {
     }
 
     private fun extractPathFromTag(tag: String): String {
-        val parenStart = tag.indexOf('(')
+        val parenStart = tag.indexOf("](").let { if (it >= 0) it + 1 else -1 }
         val parenEnd = tag.lastIndexOf(')')
         if (parenStart != -1 && parenEnd > parenStart) {
             return tag.substring(parenStart + 1, parenEnd).trim()
@@ -263,8 +362,7 @@ object VeritasNoteEditing {
     fun serializeNoteBlocks(blocks: List<NoteBlock>): String {
         val sb = StringBuilder()
         for (i in blocks.indices) {
-            val block = blocks[i]
-            when (block) {
+            when (val block = blocks[i]) {
                 is NoteBlock.Text -> {
                     sb.append(block.value.text)
                 }
@@ -283,6 +381,18 @@ object VeritasNoteEditing {
                     sb.append("[video](").append(block.path).append(")")
                     if (i < blocks.lastIndex) sb.append("\n")
                 }
+                is NoteBlock.File -> {
+                    if (sb.isNotEmpty() && !sb.endsWith("\n")) sb.append("\n")
+                    if (block.fileName.isNotBlank() && block.sizeBytes > 0L) {
+                        sb.append("[file:").append("~" + java.net.URLEncoder.encode(block.fileName, "UTF-8")).append(":").append(block.sizeBytes).append("](")
+                    } else if (block.fileName.isNotBlank()) {
+                        sb.append("[file:").append("~" + java.net.URLEncoder.encode(block.fileName, "UTF-8")).append("](")
+                    } else {
+                        sb.append("[file](")
+                    }
+                    sb.append(block.path).append(")")
+                    if (i < blocks.lastIndex) sb.append("\n")
+                }
             }
         }
         return sb.toString()
@@ -294,4 +404,7 @@ sealed class NoteBlock {
     data class Image(val path: String) : NoteBlock()
     data class Audio(val path: String) : NoteBlock()
     data class Video(val path: String) : NoteBlock()
+    data class File(val path: String, val fileName: String = "", val sizeBytes: Long = 0L) : NoteBlock()
 }
+
+internal data class NoteEditorSnapshot(val content: String, val checklist: Boolean, val blockIndex: Int, val selection: TextRange, val title: String = "", val at: Long = System.currentTimeMillis())

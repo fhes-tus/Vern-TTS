@@ -1,0 +1,197 @@
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.CustomizationAndListenUiTest:
+INSTRUMENTATION_STATUS: test=listenReadControlsCollapseAndFullScreenCanExitWithoutSeeking
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=listenReadControlsCollapseAndFullScreenCanExitWithoutSeeking
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=customizationChoicesPersistAndInvalidValuesFallBack
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=customizationChoicesPersistAndInvalidValuesFallBack
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=paletteChangesKeepExactlyOneLaunchableEntry
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=paletteChangesKeepExactlyOneLaunchableEntry
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=aboutRemainsScrollableWithLargeText
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.CustomizationAndListenUiTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=aboutRemainsScrollableWithLargeText
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ListenRedesignUiTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.ListenRedesignUiTest:
+INSTRUMENTATION_STATUS: test=safeAreaKeepsControlsClearAndDoesNotDoubleConsumedInsets
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ListenRedesignUiTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=safeAreaKeepsControlsClearAndDoesNotDoubleConsumedInsets
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ListenRedesignUiTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=glassModesRetainToolsScrubbingAndSmoothSentenceSelection
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.ListenRedesignUiTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: Check failed.
+	at com.veritas.reader.ListenRedesignUiTest.glassModesRetainToolsScrubbingAndSmoothSentenceSelection(ListenRedesignUiTest.kt:62)
+
+INSTRUMENTATION_STATUS: stream=
+Error in glassModesRetainToolsScrubbingAndSmoothSentenceSelection(com.veritas.reader.ListenRedesignUiTest):
+java.lang.IllegalStateException: Check failed.
+	at com.veritas.reader.ListenRedesignUiTest.glassModesRetainToolsScrubbingAndSmoothSentenceSelection(ListenRedesignUiTest.kt:62)
+
+INSTRUMENTATION_STATUS: test=glassModesRetainToolsScrubbingAndSmoothSentenceSelection
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=
+com.veritas.reader.BookPageCurlUiTest:
+INSTRUMENTATION_STATUS: test=curvedPagesRenderForwardAndBackAndReturnToLiveText
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Failed to assert count of nodes.
+Reason: Did not expect any node but found '2' nodes that satisfy: (TestTag = 'book-curl-live')
+Nodes found:
+1) Node #858 at (l=1080.0, t=0.0, r=2160.0, b=2340.0)px, Tag: 'book-curl-live'
+Shape = 'RectangleShape'
+Has 1 child, 1 sibling
+2) Node #845 at (l=0.0, t=0.0, r=1080.0, b=2340.0)px, Tag: 'book-curl-live'
+Shape = 'RectangleShape'
+Has 1 child, 1 sibling
+
+	at androidx.compose.ui.test.AssertionsKt.assertCountEquals(Assertions.kt:282)
+	at com.veritas.reader.BookPageCurlUiTest.curvedPagesRenderForwardAndBackAndReturnToLiveText(BookPageCurlUiTest.kt:72)
+
+INSTRUMENTATION_STATUS: stream=
+Error in curvedPagesRenderForwardAndBackAndReturnToLiveText(com.veritas.reader.BookPageCurlUiTest):
+java.lang.AssertionError: Failed to assert count of nodes.
+Reason: Did not expect any node but found '2' nodes that satisfy: (TestTag = 'book-curl-live')
+Nodes found:
+1) Node #858 at (l=1080.0, t=0.0, r=2160.0, b=2340.0)px, Tag: 'book-curl-live'
+Shape = 'RectangleShape'
+Has 1 child, 1 sibling
+2) Node #845 at (l=0.0, t=0.0, r=1080.0, b=2340.0)px, Tag: 'book-curl-live'
+Shape = 'RectangleShape'
+Has 1 child, 1 sibling
+
+	at androidx.compose.ui.test.AssertionsKt.assertCountEquals(Assertions.kt:282)
+	at com.veritas.reader.BookPageCurlUiTest.curvedPagesRenderForwardAndBackAndReturnToLiveText(BookPageCurlUiTest.kt:72)
+
+INSTRUMENTATION_STATUS: test=curvedPagesRenderForwardAndBackAndReturnToLiveText
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=meshAcceptsTurnEndpointsAndProducesPaperReverse
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.veritas.reader.BookPageCurlUiTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=8
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: expected:<-2330> but was:<-16776961>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at com.veritas.reader.BookPageCurlUiTest.meshAcceptsTurnEndpointsAndProducesPaperReverse(BookPageCurlUiTest.kt:90)
+
+INSTRUMENTATION_STATUS: stream=
+Error in meshAcceptsTurnEndpointsAndProducesPaperReverse(com.veritas.reader.BookPageCurlUiTest):
+java.lang.AssertionError: expected:<-2330> but was:<-16776961>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at com.veritas.reader.BookPageCurlUiTest.meshAcceptsTurnEndpointsAndProducesPaperReverse(BookPageCurlUiTest.kt:90)
+
+INSTRUMENTATION_STATUS: test=meshAcceptsTurnEndpointsAndProducesPaperReverse
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 19.748
+There were 3 failures:
+1) glassModesRetainToolsScrubbingAndSmoothSentenceSelection(com.veritas.reader.ListenRedesignUiTest)
+java.lang.IllegalStateException: Check failed.
+	at com.veritas.reader.ListenRedesignUiTest.glassModesRetainToolsScrubbingAndSmoothSentenceSelection(ListenRedesignUiTest.kt:62)
+2) curvedPagesRenderForwardAndBackAndReturnToLiveText(com.veritas.reader.BookPageCurlUiTest)
+java.lang.AssertionError: Failed to assert count of nodes.
+Reason: Did not expect any node but found '2' nodes that satisfy: (TestTag = 'book-curl-live')
+Nodes found:
+1) Node #858 at (l=1080.0, t=0.0, r=2160.0, b=2340.0)px, Tag: 'book-curl-live'
+Shape = 'RectangleShape'
+Has 1 child, 1 sibling
+2) Node #845 at (l=0.0, t=0.0, r=1080.0, b=2340.0)px, Tag: 'book-curl-live'
+Shape = 'RectangleShape'
+Has 1 child, 1 sibling
+
+	at androidx.compose.ui.test.AssertionsKt.assertCountEquals(Assertions.kt:282)
+	at com.veritas.reader.BookPageCurlUiTest.curvedPagesRenderForwardAndBackAndReturnToLiveText(BookPageCurlUiTest.kt:72)
+3) meshAcceptsTurnEndpointsAndProducesPaperReverse(com.veritas.reader.BookPageCurlUiTest)
+java.lang.AssertionError: expected:<-2330> but was:<-16776961>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at com.veritas.reader.BookPageCurlUiTest.meshAcceptsTurnEndpointsAndProducesPaperReverse(BookPageCurlUiTest.kt:90)
+
+FAILURES!!!
+Tests run: 8,  Failures: 3
+
+
+INSTRUMENTATION_CODE: -1

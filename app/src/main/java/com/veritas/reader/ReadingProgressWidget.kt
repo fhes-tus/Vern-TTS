@@ -19,6 +19,7 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -49,25 +50,23 @@ class ReadingProgressWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repository = DocumentRepository(context)
-        val documents = repository.loadDocuments()
-        val tracker = repository.loadReaderTrackerSnapshot()
-        val settings = repository.loadReaderSettings()
-
-        // Find the active document
-        val activeId = PlaybackStateStore.activeDocumentId
-        val activeDoc = if (activeId != null) {
-            repository.findDocument(activeId)
-        } else {
-            documents.filter { it.chunkCount > 1 && it.currentIndex in 1 until it.chunkCount }
-                .maxByOrNull { it.updatedAt } ?: documents.firstOrNull()
+        val (state, tracker, settings) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            Triple(repository.widgetReadingState(), repository.loadReaderTrackerSnapshot(), repository.loadReaderSettings())
         }
+        val activeDoc = state.document
+        val coverBitmap = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { widgetCover(context, activeDoc) }
 
         val hasGoal = settings.dailyGoalMinutes > 0
         val dailyGoalMinutes = settings.dailyGoalMinutes.toLong()
 
         val cal = Calendar.getInstance()
         val dayIdx = (cal.get(Calendar.DAY_OF_WEEK) + 5) % 7 // Monday = 0 ... Sunday = 6
-        val todayMillis = tracker.weeklyUsageByDay.getOrNull(dayIdx) ?: 0L
+        val weekStart = (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -dayIdx) }
+        val weeklyReadingByDay = List(7) { offset ->
+            val day = (weekStart.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, offset) }
+            tracker.readingMillisByDate[trackerDateKey(day.timeInMillis)] ?: 0L
+        }
+        val todayMillis = tracker.readingMillisByDate[trackerDateKey(System.currentTimeMillis())] ?: 0L
         val todayMinutes = (todayMillis / 60000L).coerceAtLeast(0L)
 
         val goalProgress = if (hasGoal && dailyGoalMinutes > 0) {
@@ -86,7 +85,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                     .cornerRadius(32.dp)
                     .background(VeritasWidgetColors.widgetBackground)
                     .padding(if (isCompact) 10.dp else 12.dp)
-                    .clickable(actionRunCallback<ShowReaderTrackerActionCallback>())
+                    .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_SHOW_READER_TRACKER)))
             ) {
                 // Header: Title + Streak badge
                 Row(
@@ -131,7 +130,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                             .cornerRadius(18.dp)
                             .background(VeritasWidgetColors.cardBackground)
                             .padding(12.dp)
-                            .clickable(actionRunCallback<LaunchAppActionCallback>()),
+                            .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_OPEN_LIBRARY))),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -143,14 +142,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                         )
                     }
                 } else {
-                    val progressVal = if (activeDoc.chunkCount > 0) {
-                        val currIndex = if (PlaybackStateStore.activeDocumentId == activeDoc.id) {
-                            PlaybackStateStore.currentIndex
-                        } else {
-                            activeDoc.currentIndex
-                        }
-                        (currIndex.toFloat() / activeDoc.chunkCount.toFloat()).coerceIn(0f, 1f)
-                    } else 0f
+                    val progressVal = state.progress
 
                     val progressPercent = (progressVal * 100).toInt()
 
@@ -166,17 +158,14 @@ class ReadingProgressWidget : GlanceAppWidget() {
                             .cornerRadius(18.dp)
                             .background(VeritasWidgetColors.cardBackground)
                             .padding(if (isCompact) 8.dp else 10.dp)
-                            .clickable(actionRunCallback<ContinueReadingActionCallback>(continueParams)),
+                            .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_CONTINUE_READING, activeDoc.id))),
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Row(
                             modifier = GlanceModifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val coverFile = CoverExtractor.coverFile(context, activeDoc.id)
-                            val bitmap = if (coverFile != null && coverFile.exists()) {
-                                runCatching { BitmapFactory.decodeFile(coverFile.absolutePath) }.getOrNull()
-                            } else null
+                            val bitmap = coverBitmap
 
                             val coverWidth = if (isCompact) 34.dp else 44.dp
                             val coverHeight = if (isCompact) 46.dp else 56.dp
@@ -244,7 +233,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                 modifier = GlanceModifier
                                     .cornerRadius(16.dp)
                                     .background(VeritasWidgetColors.playButtonAccent)
-                                    .clickable(actionRunCallback<ContinueReadingActionCallback>(continueParams))
+                                    .clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_CONTINUE_READING, activeDoc.id)))
                                     .padding(horizontal = if (isCompact) 10.dp else 14.dp, vertical = 7.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -323,7 +312,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                         .background(VeritasWidgetColors.cardBackground)
                                         .padding(horizontal = 8.dp, vertical = 6.dp)
                                 ) {
-                                    val weeklyAvgMin = (tracker.weeklyAverageMillis / 60000L).coerceAtLeast(0L)
+                                    val weeklyAvgMin = (tracker.weeklyReadingMillis / 7L / 60000L).coerceAtLeast(0L)
                                     Text(
                                         text = "Avg: $weeklyAvgMin min/d",
                                         style = TextStyle(
@@ -346,7 +335,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Weekly Activity",
+                                text = "Reading this week",
                                 style = TextStyle(
                                     fontSize = if (isWide) 13.sp else 11.sp,
                                     fontWeight = FontWeight.Bold,
@@ -354,7 +343,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                 ),
                                 modifier = GlanceModifier.defaultWeight()
                             )
-                            val totalWeeklyMin = tracker.weeklyUsageByDay.sum() / 60000L
+                            val totalWeeklyMin = weeklyReadingByDay.sum() / 60000L
                             Text(
                                 text = if (hasGoal) "Goal: ${dailyGoalMinutes}m/d" else "$totalWeeklyMin min this week",
                                 style = TextStyle(
@@ -377,10 +366,10 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                 .padding(horizontal = 8.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.Bottom
                         ) {
-                            val maxVal = tracker.weeklyUsageByDay.maxOrNull()?.coerceAtLeast(1L) ?: 1L
+                            val maxVal = weeklyReadingByDay.maxOrNull()?.coerceAtLeast(1L) ?: 1L
                             val labels = listOf("M", "T", "W", "T", "F", "S", "S")
 
-                            tracker.weeklyUsageByDay.forEachIndexed { i, value ->
+                            weeklyReadingByDay.forEachIndexed { i, value ->
                                 val isToday = i == dayIdx
                                 val fraction = (value.toFloat() / maxVal.toFloat()).coerceIn(0f, 1f)
                                 val barHeight = (fraction * 36f).toInt().coerceAtLeast(4)

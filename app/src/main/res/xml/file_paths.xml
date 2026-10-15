@@ -2,8 +2,8 @@
 <paths>
     <external-files-path name="vern_audio_exports" path="Music/VernExports/" />
     <external-files-path name="veritas_audio_exports" path="Music/VeritasExports/" />
-    <files-path name="vern_files" path="." />
-    <files-path name="veritas_files" path="." />
-    <cache-path name="vern_cache" path="." />
-    <cache-path name="veritas_cache" path="." />
+    <files-path name="notes_media" path="notes_media/" />
+    <files-path name="original_documents" path="original_documents/" />
+    <cache-path name="shared_exports" path="shared_exports/" />
+    <cache-path name="note_camera" path="note_camera/" />
 </paths>

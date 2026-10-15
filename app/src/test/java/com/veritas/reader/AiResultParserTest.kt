@@ -182,7 +182,7 @@ class AiResultParserTest {
         val againCard = SpacedRepetitionScheduler.rateCard(card, SpacedRepetitionScheduler.BUCKET_AGAIN)
         assertEquals(0, againCard.repetitionCount)
         assertEquals(1, againCard.intervalDays)
-        assertEquals("<1d", SpacedRepetitionScheduler.previewNextInterval(card, "again"))
+        assertEquals("1d", SpacedRepetitionScheduler.previewNextInterval(card, "again"))
 
         val goodCard = SpacedRepetitionScheduler.rateCard(card, SpacedRepetitionScheduler.BUCKET_GOOD)
         assertEquals(1, goodCard.repetitionCount)

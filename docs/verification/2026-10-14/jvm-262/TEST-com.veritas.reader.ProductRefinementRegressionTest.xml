@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.ProductRefinementRegressionTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:44.492Z" hostname="FIRWEWALL" time="0.028">
+  <properties/>
+  <testcase name="exactPhraseOnAdjacentPageWinsOverPartialCurrentPage" classname="com.veritas.reader.ProductRefinementRegressionTest" time="0.002"/>
+  <testcase name="pronunciationMatchesOriginalTextWithoutCascading" classname="com.veritas.reader.ProductRefinementRegressionTest" time="0.011"/>
+  <testcase name="pronunciationRespectsUnicodeWordsAndContractions" classname="com.veritas.reader.ProductRefinementRegressionTest" time="0.001"/>
+  <testcase name="selectionAfterInlineContentPreservesSentenceOffset" classname="com.veritas.reader.ProductRefinementRegressionTest" time="0.005"/>
+  <testcase name="longestLiteralPhraseWinsAndAcceptsHorizontalWhitespace" classname="com.veritas.reader.ProductRefinementRegressionTest" time="0.001"/>
+  <testcase name="dialogueAttributionDoesNotTreatContractionsOrListsAsSpeech" classname="com.veritas.reader.ProductRefinementRegressionTest" time="0.001"/>
+  <testcase name="expandedAndSkippedSpeechKeepsOriginalOffsets" classname="com.veritas.reader.ProductRefinementRegressionTest" time="0.005"/>
+  <testcase name="sourceLookupDoesNotMatchInsideWordsAndRetainsLigatureOffsets" classname="com.veritas.reader.ProductRefinementRegressionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

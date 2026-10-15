@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.veritas.reader.RichTextFormatterTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-14T22:36:45.119Z" hostname="FIRWEWALL" time="0.035">
+  <properties/>
+  <testcase name="offsetMappingClampsOutOfRangeOffsets" classname="com.veritas.reader.RichTextFormatterTest" time="0.017"/>
+  <testcase name="studyNoteFormattingHasNoVisibleSyntaxAndPreservesLiteralPunctuation" classname="com.veritas.reader.RichTextFormatterTest" time="0.002"/>
+  <testcase name="inlineMarkersAreHiddenInContext" classname="com.veritas.reader.RichTextFormatterTest" time="0.007"/>
+  <testcase name="unbalancedMarkersAreLeftVisible" classname="com.veritas.reader.RichTextFormatterTest" time="0.001"/>
+  <testcase name="stripMarkupRemovesInlineMarkersAndHeadings" classname="com.veritas.reader.RichTextFormatterTest" time="0.002"/>
+  <testcase name="headingPrefixIsHidden" classname="com.veritas.reader.RichTextFormatterTest" time="0.001"/>
+  <testcase name="everyVisibleCaretRoundTripsAndSelectionReplacesOnlyTheSelectedWords" classname="com.veritas.reader.RichTextFormatterTest" time="0.001"/>
+  <testcase name="boldMarkersAreHiddenAndStyled" classname="com.veritas.reader.RichTextFormatterTest" time="0.0"/>
+  <testcase name="offsetMappingRoundTripsAroundHiddenMarkers" classname="com.veritas.reader.RichTextFormatterTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

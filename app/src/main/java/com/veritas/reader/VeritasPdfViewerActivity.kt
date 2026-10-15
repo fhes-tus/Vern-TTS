@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Color
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.pdf.PdfRect
 import androidx.pdf.view.Highlight
 import androidx.pdf.view.PdfView
@@ -36,6 +39,8 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     internal lateinit var repository: DocumentRepository
     internal var document: SavedDocument? = null
     internal var fragmentContainer: FrameLayout? = null
+    internal var pdfPaperLayerPaint: android.graphics.Paint? = null
+    internal var pdfChromeSettings by androidx.compose.runtime.mutableStateOf(ReaderSettings())
     internal var viewerFragment: PdfViewerFragment? = null
     internal var pdfView: PdfView? = null
     internal var playPauseControl: TextView? = null
@@ -93,6 +98,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         repository = DocumentRepository(applicationContext)
 
         val settings = repository.loadReaderSettings()
+        pdfChromeSettings = settings
         paperToneMode = PaperToneMode.fromString(settings.paperToneMode)
         val themeId = settings.themeId
         val packId = settings.themePackId
@@ -132,6 +138,13 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         }
         document = metadata
         buildLayout(metadata.title.ifBlank { getString(R.string.app_name) })
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+                androidx.compose.runtime.snapshotFlow {
+                    PlaybackStateStore.isPlaying to PlaybackStateStore.isPreparingFor(document?.id)
+                }.collect { updatePlaybackControls() }
+            }
+        }
         applyPaperToneMode()
         loadHighlightTextAsync(metadata)
         loadPdfMetadataAndLinks(uri)
@@ -164,15 +177,23 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         }
     }
 
-    // Silent reading in this viewer happens while MainActivity is stopped, so the app's
-    // session timer isn't running — without this, Original-mode reading earned no reading
-    // time and no streak day. Wall-clock while resumed, recorded on pause.
-    private var viewerReadingStartedAt = 0L
+    // Native Original mode shares the same process-wide idle policy and session ledger.
+    private var readingSessionJob: Job? = null
 
     override fun onResume() {
         super.onResume()
-        viewerReadingStartedAt = System.currentTimeMillis()
+        readingSessionJob?.cancel()
+        readingSessionJob = lifecycleScope.launch {
+            while (true) {
+                val visiblePage = runCatching { pdfView?.firstVisiblePage?.plus(1) }.getOrNull()
+                val visibleLocation = readerTextModel?.sentences?.indexOfFirst { it.pageNumber == visiblePage }?.takeIf { it >= 0 }
+                ReadingSessionTracker.get(applicationContext).reader("pdf", document?.id,
+                    visibleLocation ?: document?.currentIndex ?: 0)
+                delay(5_000)
+            }
+        }
         val settings = repository.loadReaderSettings()
+        pdfChromeSettings = settings
         val newTone = PaperToneMode.fromString(settings.paperToneMode)
         if (newTone != paperToneMode) {
             paperToneMode = newTone
@@ -185,6 +206,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
+        (playPauseControl?.foreground as? PlaybackLoadingDrawable)?.stop()
         super.onPause()
         saveCurrentProgress()
         recordViewerReadingSession()
@@ -193,21 +215,12 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     }
 
     private fun recordViewerReadingSession() {
-        val doc = document ?: return
-        val startedAt = viewerReadingStartedAt
-        viewerReadingStartedAt = 0L
-        if (startedAt <= 0L) return
-        val delta = System.currentTimeMillis() - startedAt
-        // Cap defensively: a forgotten open viewer overnight shouldn't count 8 hours.
-        if (delta in 1_000L..(3L * 60L * 60L * 1000L)) {
-            lifecycleScope.launch(Dispatchers.IO) {
-                repository.recordDocReadingTime(doc.id, delta)
-                repository.recordDocumentRead(doc.id, doc.title)
-            }
-        }
+        readingSessionJob?.cancel()
+        ReadingSessionTracker.get(applicationContext).reader("pdf", null)
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        if (ev?.actionMasked == MotionEvent.ACTION_DOWN) ReadingSessionTracker.get(applicationContext).interaction()
         resetInactivityTimer()
         return super.dispatchTouchEvent(ev)
     }
@@ -235,7 +248,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                 sentenceIndex = model.sentences.mapIndexed { idx, s -> idx to abs(s.pageNumber - pageNum) }
                     .minByOrNull { it.second }?.first ?: -1
             }
-            
+
             if (sentenceIndex != -1) {
                 repository.updateProgress(metadata.id, sentenceIndex, model.sentences.size)
                 if (PlaybackStateStore.activeDocumentId == metadata.id) {
@@ -302,6 +315,11 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         }
     }
 
+    private fun setPdfPaperLayer(paint: android.graphics.Paint?) {
+        pdfPaperLayerPaint = paint
+        fragmentContainer?.setLayerType(if (paint == null) View.LAYER_TYPE_NONE else View.LAYER_TYPE_HARDWARE, paint)
+    }
+
     internal fun applyPaperToneMode() {
         when (paperToneMode) {
             PaperToneMode.ACTIVE_THEME -> {
@@ -331,7 +349,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                             0f,     0f,     0f,     1f, 0f
                         ))
                     }
-                    fragmentContainer?.setLayerType(View.LAYER_TYPE_HARDWARE, paint)
+                    setPdfPaperLayer(paint)
                 } else {
                     val paint = android.graphics.Paint().apply {
                         colorFilter = android.graphics.ColorMatrixColorFilter(floatArrayOf(
@@ -341,7 +359,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                             0f,  0f,  0f,  1f, 0f
                         ))
                     }
-                    fragmentContainer?.setLayerType(View.LAYER_TYPE_HARDWARE, paint)
+                    setPdfPaperLayer(paint)
                 }
             }
             PaperToneMode.DARK -> {
@@ -355,7 +373,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                         0f,    0f,    0f,    1f, 0f
                     ))
                 }
-                fragmentContainer?.setLayerType(View.LAYER_TYPE_HARDWARE, paint)
+                setPdfPaperLayer(paint)
             }
             PaperToneMode.WARM_SEPIA -> {
                 // Multiplicative Tint: #FBF0D9 background (251, 240, 217). Preserves 100% natural colors in photos!
@@ -370,10 +388,10 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                         0f,     0f,     0f,     1f, 0f
                     ))
                 }
-                fragmentContainer?.setLayerType(View.LAYER_TYPE_HARDWARE, paint)
+                setPdfPaperLayer(paint)
             }
             PaperToneMode.NATURAL_WHITE -> {
-                fragmentContainer?.setLayerType(View.LAYER_TYPE_NONE, null)
+                setPdfPaperLayer(null)
             }
         }
     }
@@ -431,7 +449,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                         false
                     }
                     startHighlightUpdates()
-                    
+
                     // Initial scroll to saved page
                     launch {
                         val metadata = document ?: return@launch
@@ -441,21 +459,21 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                             retryCount++
                         }
                         val model = readerTextModel ?: return@launch
-                        
+
                         var docRetryCount = 0
                         while (runCatching { found.pdfDocument }.getOrNull() == null && docRetryCount < 50) {
                             delay(100)
                             docRetryCount++
                         }
                         val pdfDoc = runCatching { found.pdfDocument }.getOrNull() ?: return@launch
-                        
+
                         val safeIndex = metadata.currentIndex.coerceIn(0, model.sentences.lastIndex.coerceAtLeast(0))
                         val targetPage = model.sentences.getOrNull(safeIndex)?.pageNumber?.minus(1) ?: 0
                         val pageCount = pdfDoc.pageCount.coerceAtLeast(1)
                         val scrollPage = targetPage.coerceIn(0, pageCount - 1)
                         runCatching { found.scrollToPage(scrollPage) }
                     }
-                    
+
                     return@launch
                 }
                 delay(150)
@@ -759,4 +777,3 @@ data class OverflowMenuItem(
     val enabled: Boolean = true,
     val action: (() -> Unit)? = null
 )
-
