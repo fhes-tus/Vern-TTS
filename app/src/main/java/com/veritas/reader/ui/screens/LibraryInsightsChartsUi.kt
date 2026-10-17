@@ -118,7 +118,6 @@ internal fun InteractiveDonutChart(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -207,13 +206,12 @@ internal fun InteractiveDonutChart(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = if (totalVal >= 1000f) "%.1fk".format(totalVal / 1000f) else "${totalVal.toInt()}",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
+                            style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = totalLabel,
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
                     }
@@ -249,7 +247,7 @@ internal fun InteractiveDonutChart(
                             )
                             Text(
                                 text = slice.label,
-                                style = if (isSelected) MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold) else MaterialTheme.typography.bodySmall,
+                                style = if (isSelected) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodySmall,
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -262,7 +260,6 @@ internal fun InteractiveDonutChart(
                                 Text(
                                     text = "$percentage%",
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
                                     color = slice.color,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
@@ -291,7 +288,7 @@ internal fun InteractiveDonutChart(
                         ) {
                             Text(
                                 text = slice.label,
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                style = MaterialTheme.typography.titleSmall,
                                 color = slice.color
                             )
                             Surface(
@@ -301,7 +298,6 @@ internal fun InteractiveDonutChart(
                                 Text(
                                     text = "${slice.value.toInt()} docs ($percentage%)",
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
                                     color = slice.color,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                                 )
@@ -338,7 +334,6 @@ internal fun InteractiveDonutChart(
                                     Text(
                                         text = "Active filter: ${slice.label.split(" ").firstOrNull() ?: slice.label}",
                                         style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
                                         color = slice.color
                                     )
                                 }
@@ -399,7 +394,6 @@ internal fun ReadingVelocityAndPaceCard(
                     Text(
                         text = "Reading Velocity & Daily Goal",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -418,7 +412,6 @@ internal fun ReadingVelocityAndPaceCard(
                             else -> "${(progress * 100).toInt()}% today"
                         },
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                         color = if (isGoalEnabled && goalReached) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                     )
@@ -436,7 +429,6 @@ internal fun ReadingVelocityAndPaceCard(
                         Text(
                             text = "~240",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
@@ -455,7 +447,6 @@ internal fun ReadingVelocityAndPaceCard(
                         Text(
                             text = formatTrackerDuration(dailyAvgMillis),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
@@ -474,7 +465,6 @@ internal fun ReadingVelocityAndPaceCard(
                         Text(
                             text = "$activeDocsCount",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
@@ -496,14 +486,12 @@ internal fun ReadingVelocityAndPaceCard(
                     Text(
                         text = "Daily Reading Target",
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (isGoalEnabled) {
                         Text(
                             text = "${dailyGoalMinutes} min/day",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -526,7 +514,6 @@ internal fun ReadingVelocityAndPaceCard(
                                 Text(
                                     text = label,
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
                                     color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -556,7 +543,6 @@ internal fun ReadingVelocityAndPaceCard(
                         Text(
                             text = "Target: ${dailyGoalMinutes}m/day",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }

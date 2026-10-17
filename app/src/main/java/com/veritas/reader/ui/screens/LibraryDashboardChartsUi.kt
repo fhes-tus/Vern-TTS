@@ -139,7 +139,6 @@ internal fun DashboardDonutChart(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -239,12 +238,12 @@ internal fun DashboardDonutChart(
                             val pct = (selectedSlice.value * 100f / totalVal).toInt()
                             Text(
                                 text = "$pct%",
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
+                                style = MaterialTheme.typography.labelMedium,
                                 color = selectedSlice.color
                             )
                             Text(
                                 text = selectedSlice.label,
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.5.sp),
+                                style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -252,12 +251,12 @@ internal fun DashboardDonutChart(
                         } else {
                             Text(
                                 text = if (totalVal >= 1000f) "%.1fk".format(totalVal / 1000f) else "${totalVal.toInt()}",
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
+                                style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = totalLabel,
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                                style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             )
                         }
@@ -295,7 +294,6 @@ internal fun DashboardDonutChart(
                             Text(
                                 text = slice.label,
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 9.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                 ),
                                 color = MaterialTheme.colorScheme.onSurface,
@@ -305,7 +303,7 @@ internal fun DashboardDonutChart(
                             )
                             Text(
                                 text = "$percentage%",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                                style = MaterialTheme.typography.labelSmall,
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -360,7 +358,6 @@ private fun DonutChartDetailDialog(
                         Text(
                             text = title,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
@@ -414,14 +411,12 @@ private fun DonutChartDetailDialog(
                                         Text(
                                             text = slice.label,
                                             style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.SemiBold,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                     }
                                     Text(
                                         text = "${if (slice.value >= 1000f) "%.1fk".format(slice.value / 1000f) else "${slice.value.toInt()}"} (${pct}%)",
                                         style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }
@@ -547,7 +542,6 @@ internal fun AnnotationDocumentCard(
                         Text(
                             text = document.title,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -641,7 +635,6 @@ internal fun AnnotationDocumentCard(
                         Text(
                             text = "Notes",
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         if (hasDocumentNote) {
@@ -678,7 +671,7 @@ internal fun AnnotationDocumentCard(
                                     )
                                 }
                                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                    Text("General document note", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                                    Text("General document note", style = MaterialTheme.typography.bodyMedium)
                                     Text(documentNote, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                                 }
                                 Box(
@@ -690,9 +683,7 @@ internal fun AnnotationDocumentCard(
                                     Text(
                                         text = if (selectionMode) (if (selectedDocumentNote) "Selected" else "Select") else "Open",
                                         color = MaterialTheme.colorScheme.primary,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                        style = MaterialTheme.typography.labelSmall)
                                 }
                             }
                         }
@@ -828,8 +819,6 @@ internal fun AudioVoiceMemoWaveform(
         Text(
             text = durationLabel,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Medium
-        )
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

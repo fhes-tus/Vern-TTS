@@ -240,8 +240,7 @@ internal fun FileBrowserDialog(
                                     Icon(Icons.Filled.Close, "Clear selection", tint = MaterialTheme.colorScheme.primary)
                                 }
                                 Column(Modifier.weight(1f)) {
-                                    Text("${selectedFiles.size} selected", style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                    Text("${selectedFiles.size} selected", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                     Text(if (allVisibleSelected) "All ${selectedTab.label} selected" else
                                         "${files.count { vf -> selectedFiles.any { it.uri == vf.uri } }} of ${files.size} in ${selectedTab.label}",
                                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -302,7 +301,6 @@ internal fun FileBrowserDialog(
                                     Text(
                                         "File browser",
                                         style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
@@ -517,9 +515,7 @@ internal fun FileBrowserDialog(
                                     Text(
                                         text = "${sortMode.label} ${if (sortAscending) "▲" else "▼"}",
                                         color = MaterialTheme.colorScheme.primary,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                        style = MaterialTheme.typography.labelSmall)
                                 }
                             }
                             DropdownMenu(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
@@ -665,9 +661,7 @@ internal fun FileBrowserDialog(
                                                     VeritasBrowserTab.OCR -> "Photos & Images"
                                                     else -> "${selectedTab.label} Documents"
                                                 },
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Black
-                                            )
+                                                style = MaterialTheme.typography.titleMedium)
                                             Text(
                                                 text = when (selectedTab) {
                                                     VeritasBrowserTab.ALL -> "Documents prioritized • Images at end"
@@ -700,9 +694,7 @@ internal fun FileBrowserDialog(
                                             Spacer(modifier = Modifier.width(4.dp))
                                             Text(
                                                 text = if (allVisibleSelected) "Deselect ${selectedTab.label}" else "Select all ${selectedTab.label} (${files.size})",
-                                                style = MaterialTheme.typography.labelMedium,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
+                                                style = MaterialTheme.typography.labelMedium)
                                         }
                                     }
                                 }
@@ -766,7 +758,6 @@ internal fun FileBrowserDialog(
                                     Text(
                                         "Folders",
                                         style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Black,
                                         modifier = Modifier.padding(top = 12.dp)
                                     )
                                 }

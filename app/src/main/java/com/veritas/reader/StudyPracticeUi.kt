@@ -255,7 +255,6 @@ internal fun QuizPlayerDialog(
                     Text(
                         text = quizTitle,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
@@ -286,7 +285,6 @@ internal fun QuizPlayerDialog(
                             Text(
                                 text = if (finished) "Results" else "${safeIndex + 1} / ${editableQuestions.size}",
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
@@ -405,7 +403,6 @@ internal fun QuizPlayerDialog(
                                 else -> "Review Needed"
                             },
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center
                         )
@@ -415,9 +412,7 @@ internal fun QuizPlayerDialog(
                         Text(
                             text = "You scored $score out of ${editableQuestions.size} ($percentage%)",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                            color = MaterialTheme.colorScheme.primary)
 
                         // Exam stats breakdown
                         Row(
@@ -427,15 +422,15 @@ internal fun QuizPlayerDialog(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("$score", fontWeight = FontWeight.Bold, color = Color(0xFF10B981), style = MaterialTheme.typography.titleMedium)
+                                Text("$score", color = Color(0xFF10B981), style = MaterialTheme.typography.titleMedium)
                                 Text("Correct", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("${editableQuestions.size - score}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.titleMedium)
+                                Text("${editableQuestions.size - score}", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.titleMedium)
                                 Text("Missed", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("${flagged.size}", fontWeight = FontWeight.Bold, color = Color(0xFFE5A93C), style = MaterialTheme.typography.titleMedium)
+                                Text("${flagged.size}", color = Color(0xFFE5A93C), style = MaterialTheme.typography.titleMedium)
                                 Text("Flagged", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
@@ -496,7 +491,6 @@ internal fun QuizPlayerDialog(
                                 Text(
                                     text = question.question,
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -572,7 +566,6 @@ internal fun QuizPlayerDialog(
                                                     else -> optionLabels.getOrElse(optIndex) { "${optIndex + 1}" }
                                                 },
                                                 style = MaterialTheme.typography.labelMedium,
-                                                fontWeight = FontWeight.Bold,
                                                 color = if (showEvaluation && (isCorrect || isPicked)) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
@@ -606,7 +599,6 @@ internal fun QuizPlayerDialog(
                                         Text(
                                             "Explanation",
                                             style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary
                                         )
                                         Text(

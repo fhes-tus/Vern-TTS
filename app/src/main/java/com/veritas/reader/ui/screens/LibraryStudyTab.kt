@@ -337,9 +337,7 @@ internal fun LibraryStudyTab(
                                                     Column(modifier = Modifier.weight(1f)) {
                                                         Text(
                                                             text = "Study Content on Clipboard",
-                                                            style = MaterialTheme.typography.titleSmall,
-                                                            fontWeight = FontWeight.Bold
-                                                        )
+                                                            style = MaterialTheme.typography.titleSmall)
                                                         Text(
                                                             text = if (detectedClipboardFlashcards.isNotEmpty())
                                                                 "${detectedClipboardFlashcards.size} flashcards ready to import"
@@ -363,7 +361,7 @@ internal fun LibraryStudyTab(
                                                         shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                     ) {
-                                                        Text("1-Tap Import", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                                        Text("1-Tap Import", style = MaterialTheme.typography.labelSmall)
                                                     }
                                                     IconButton(
                                                         onClick = {
@@ -550,7 +548,7 @@ internal fun LibraryStudyTab(
                                                         modifier = Modifier.size(24.dp)
                                                     )
                                                     Column(modifier = Modifier.weight(1f)) {
-                                                        Text(doc.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                                                        Text(doc.title, style = MaterialTheme.typography.bodyMedium)
                                                         Text("Vocabulary (${entries.size} word${if (entries.size == 1) "" else "s"})", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                                     }
                                                 }

@@ -93,9 +93,7 @@ internal fun AiFreeModeDialog(
                     ) {
                         Text(
                             "Free AI approach",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black
-                        )
+                            style = MaterialTheme.typography.titleMedium)
                         Text(
                             "Vern does not bundle a large offline model and does not require an API key. It prepares prompts for the AI apps already installed on this phone.",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -460,7 +458,6 @@ internal fun AiAppStudyDialog(
                                 Text(
                                     "AI Study Studio",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
@@ -500,7 +497,6 @@ internal fun AiAppStudyDialog(
                                         Text(
                                             "Study Hub",
                                             style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSecondaryContainer
                                         )
                                     }
@@ -549,7 +545,6 @@ internal fun AiAppStudyDialog(
                                     Text(
                                         if (hasGeminiKey) "${activeProvider.label} In-App" else defaultAiName,
                                         style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
                                         color = if (hasGeminiKey) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -589,7 +584,6 @@ internal fun AiAppStudyDialog(
                                 Text(
                                     "STUDY FOCUS",
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
@@ -695,7 +689,6 @@ internal fun AiAppStudyDialog(
                                     Text(
                                         generatingStatus,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
@@ -816,7 +809,6 @@ private fun QuickExternalAiChips(
                 Text(
                     "Quick External AI Hand-off",
                     style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(

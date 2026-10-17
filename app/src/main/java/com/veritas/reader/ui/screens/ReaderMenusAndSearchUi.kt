@@ -167,9 +167,7 @@ internal fun ReaderToolsMenu(
         ) {
             Text(
                 "Reader tools",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Black
-            )
+                style = MaterialTheme.typography.titleSmall)
             IconButton(
                 onClick = { choose(onOpenDocumentDetails) },
                 modifier = Modifier.size(28.dp)
@@ -194,9 +192,7 @@ internal fun ReaderToolsMenu(
         Text(
             "Read",
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold
-        )
+            style = MaterialTheme.typography.labelLarge)
         DropdownMenuItem(
             text = { Text("Jump to page...") },
             leadingIcon = {
@@ -242,9 +238,7 @@ internal fun ReaderToolsMenu(
         Text(
             "Notes and bookmarks",
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold
-        )
+            style = MaterialTheme.typography.labelLarge)
         DropdownMenuItem(
             text = { Text("Bookmarks") },
             leadingIcon = { Icon(Icons.Filled.Bookmark, contentDescription = null) },
@@ -265,9 +259,7 @@ internal fun ReaderToolsMenu(
         Text(
             "Study",
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold
-        )
+            style = MaterialTheme.typography.labelLarge)
         DropdownMenuItem(
             text = { Text("AI Assistant: ${askAiSettings.assistantLabel}") },
             leadingIcon = { Icon(aiAssistantIcon(askAiSettings.assistantId), contentDescription = null, modifier = Modifier.size(20.dp)) },
@@ -289,7 +281,6 @@ internal fun ReaderToolsMenu(
                     Text(
                         text = "Default Assistant App",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp)
                     )
@@ -354,9 +345,7 @@ internal fun ReaderToolsMenu(
         Text(
             "Voice and settings",
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold
-        )
+            style = MaterialTheme.typography.labelLarge)
         FeatureDropdownMenuItem(
             feature = readerFeature(VeritasFeatureId.VOICE_STUDIO),
             label = "Voice and language",
@@ -683,7 +672,6 @@ internal fun SearchPanel(
                     Text(
                         text = "$currentMatch of $matchCount",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )

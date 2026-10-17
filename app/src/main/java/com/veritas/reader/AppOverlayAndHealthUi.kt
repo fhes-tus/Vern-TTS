@@ -176,7 +176,6 @@ internal fun FloatingRecordOverlay(
                     } else {
                         Text(
                             if (inProgress) "Finishing…" else "No audio yet",
-                            fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.bodySmall
                         )
                         TextButton(onClick = onDiscard) { Text("Discard") }
@@ -197,7 +196,6 @@ internal fun FloatingRecordOverlay(
                     Text(
                         elapsed,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Black,
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -230,7 +228,6 @@ internal fun RecordPillDot(
             Text(
                 "✓",
                 color = Color.White,
-                fontWeight = FontWeight.Black,
                 style = MaterialTheme.typography.labelSmall
             )
         }
@@ -278,9 +275,7 @@ internal fun AppHealthDialog(
                     ) {
                         Text(
                             "Vern",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black
-                        )
+                            style = MaterialTheme.typography.titleMedium)
                         val context = LocalContext.current
                         val appVersion = remember(context) {
                             runCatching {
@@ -351,7 +346,7 @@ internal fun ReadinessBlock(title: String, items: List<String>) {
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
+            Text(title, style = MaterialTheme.typography.titleSmall)
             items.forEach { item ->
                 Text(
                     "• $item",

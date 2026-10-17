@@ -204,13 +204,12 @@ fun VoiceStudioDialog(
             border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
         ) {
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("CURRENT VOICE MODEL", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
+                Text("CURRENT VOICE MODEL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             activeVoiceDisplayName,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -255,7 +254,6 @@ fun VoiceStudioDialog(
                             Text(
                                 "${String.format(Locale.US, "%.2f", preset.rate)}x • ${String.format(Locale.US, "%.2f", preset.pitch)}p",
                                 style = MaterialTheme.typography.labelSmall,
-                                fontSize = 10.sp,
                                 color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -297,7 +295,6 @@ fun VoiceStudioDialog(
                         ) {
                             Text(
                                 text = selectedPreset.name,
-                                fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -310,7 +307,6 @@ fun VoiceStudioDialog(
                                     text = "${String.format(Locale.US, "%.2f", selectedPreset.rate)}x • ${String.format(Locale.US, "%.2f", selectedPreset.pitch)}p",
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
                             }
@@ -399,8 +395,7 @@ fun VoiceStudioDialog(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                        style = MaterialTheme.typography.labelLarge)
                     Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                 }
                 DropdownMenu(
@@ -425,7 +420,7 @@ fun VoiceStudioDialog(
                     DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text("Use Vern Studio", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Text("Use Vern Studio", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                                 if (settings.enginePackage == VoiceManager.VERITAS_STUDIO) {
                                     Icon(Icons.Filled.Check, contentDescription = "Selected", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                                 }
@@ -440,7 +435,7 @@ fun VoiceStudioDialog(
                     DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text("Use Vern Lite", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Text("Use Vern Lite", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                                 if (settings.enginePackage == VoiceManager.VERITAS_LITE) {
                                     Icon(Icons.Filled.Check, contentDescription = "Selected", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                                 }
@@ -528,7 +523,6 @@ fun VoiceStudioDialog(
                             Text(
                                 voice.label.ifBlank { voice.name },
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold,
                                 color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -536,7 +530,7 @@ fun VoiceStudioDialog(
                             if (isCurrent) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Icon(Icons.Filled.CheckCircle, contentDescription = "Active", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
-                                    Text("Active", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                    Text("Active", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         }
@@ -560,9 +554,7 @@ fun VoiceStudioDialog(
                             }) {
                                 Text(
                                     "Get · ${offlineVoice.downloadSizeMb.toInt()}MB",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                    style = MaterialTheme.typography.labelMedium)
                             }
                         }
                     } else {
@@ -619,7 +611,7 @@ fun VoiceStudioDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(pkg.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(pkg.title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
                                 pkg.description,
                                 style = MaterialTheme.typography.bodySmall,
@@ -645,7 +637,7 @@ fun VoiceStudioDialog(
                             Row(modifier = Modifier.graphicsLayer { alpha = installedAlpha },
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Icon(Icons.Filled.CheckCircle, contentDescription = "Installed", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
-                                Text("Installed", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                Text("Installed", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
                                 IconButton(onClick = {
                                     com.veritas.reader.tts.VoiceModelManager.deleteVoice(context, pkg.targetVoiceId)
                                     refreshTrigger++

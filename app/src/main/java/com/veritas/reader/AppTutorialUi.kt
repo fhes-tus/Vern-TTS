@@ -187,7 +187,6 @@ internal fun TutorialDialog(
                     Text(
                         "Vern setup",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
                         modifier = Modifier.weight(1f)
                     )
                     TextButton(onClick = { onDismiss(nameDraft) }) { Text("Skip") }
@@ -220,7 +219,6 @@ internal fun TutorialDialog(
                         Text(
                             "Welcome to Vern",
                             style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Black,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -233,9 +231,7 @@ internal fun TutorialDialog(
                     } else if (stepIndex == 1) {
                         Text(
                             "What should we call you?",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Black
-                        )
+                            style = MaterialTheme.typography.headlineMedium)
                         OutlinedTextField(
                             value = nameDraft,
                             onValueChange = { nameDraft = it.take(48) },
@@ -352,9 +348,7 @@ internal fun TutorialStage(frame: TutorialFrame, progress: Float, pulse: Float) 
                 ) {
                     Text(
                         frame.icon,
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Black
-                    )
+                        style = MaterialTheme.typography.displaySmall)
                 }
                 Box(
                     modifier = Modifier
@@ -375,9 +369,7 @@ internal fun TutorialStage(frame: TutorialFrame, progress: Float, pulse: Float) 
             }
             Text(
                 frame.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black
-            )
+                style = MaterialTheme.typography.titleMedium)
             Text(frame.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (frame.action != null) {
                 Button(onClick = frame.action, shape = RoundedCornerShape(50)) { Text("Open") }

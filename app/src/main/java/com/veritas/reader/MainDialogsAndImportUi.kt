@@ -33,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.PictureAsPdf
@@ -638,7 +639,6 @@ internal fun MainDialogsHost(
                                         Text(
                                             text = fileExtension.ifBlank { target.sourceLabel.take(4).uppercase() },
                                             style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                     }
@@ -655,7 +655,7 @@ internal fun MainDialogsHost(
                         Text(
                             text = target.title,
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center,
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis
@@ -666,7 +666,6 @@ internal fun MainDialogsHost(
                                 text = "by $displayAuthor",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -687,7 +686,6 @@ internal fun MainDialogsHost(
                             Text(
                                 text = fileExtension.ifBlank { target.sourceLabel.ifBlank { "Document" } },
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
@@ -701,7 +699,6 @@ internal fun MainDialogsHost(
                                 Text(
                                     text = fileSizeText,
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                 )
@@ -716,7 +713,6 @@ internal fun MainDialogsHost(
                             Text(
                                 text = lengthLabel,
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
@@ -729,7 +725,6 @@ internal fun MainDialogsHost(
                             Text(
                                 text = "⏱️ ${formatEstimatedReadTime(target)}",
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
@@ -743,7 +738,6 @@ internal fun MainDialogsHost(
                                 Text(
                                     text = "🔖 $bookmarksCount",
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                 )
@@ -758,7 +752,6 @@ internal fun MainDialogsHost(
                                 Text(
                                     text = "📝 $notesCount",
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                 )
@@ -813,7 +806,6 @@ internal fun MainDialogsHost(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Start,
-                        lineHeight = 20.sp,
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -836,7 +828,6 @@ internal fun MainDialogsHost(
                                 Text(
                                     text = "$percent%",
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -854,16 +845,7 @@ internal fun MainDialogsHost(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    OutlinedButton(onClick = saveBookToPhone, modifier = Modifier.fillMaxWidth()) {
-                        Text("Save to phone")
-                    }
-                    Text(
-                        "Keep a copy outside Vern so it stays available after uninstalling. Books downloaded from the catalog are saved as TXT.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    // Bottom Action Bar: Full-Width Stretched Read/Resume Button + Native Share Button
+                    // One action row: primary reading action, export, then sharing.
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -887,11 +869,18 @@ internal fun MainDialogsHost(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = if (target.currentIndex > 0) "Resume" else "Read",
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.labelLarge
                             )
                         }
 
+                        FilledTonalIconButton(
+                            onClick = saveBookToPhone,
+                            modifier = Modifier.size(50.dp),
+                            shape = com.veritas.reader.VeritasPackStyle.compactShape()
+                        ) {
+                            Icon(Icons.Filled.FileDownload, contentDescription = "Save to phone",
+                                tint = MaterialTheme.colorScheme.primary)
+                        }
                         FilledTonalIconButton(
                             onClick = {
                                 val uri = viewModel.repository.originalUri(target)

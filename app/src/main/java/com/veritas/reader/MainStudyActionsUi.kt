@@ -86,7 +86,6 @@ internal fun AiStudyClipboardBanner(
                     )
                     Text(
                         "Study Content Found on Clipboard!",
-                        fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -552,7 +551,6 @@ internal fun AiStudyManualAccordion(
                                     Text(
                                         "Manual Importers & AI Settings",
                                         style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
@@ -586,9 +584,7 @@ internal fun AiStudyManualAccordion(
                                             else -> "✓ Recognized Study Notes / Summary"
                                         },
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                        color = MaterialTheme.colorScheme.primary)
 
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),

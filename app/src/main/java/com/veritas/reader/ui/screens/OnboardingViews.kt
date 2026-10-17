@@ -212,7 +212,7 @@ fun RevampedOnboardingFlow(
 
 @Composable
 private fun SetupHeading(title: String, body: String) {
-    Text(title, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+    Text(title, style = MaterialTheme.typography.headlineLarge)
     Text(body, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
@@ -245,7 +245,7 @@ private fun SetupChoice(title: String, body: String, checked: Boolean, glyph: St
 
 @Composable
 private fun SetupFeature(title: String, body: String) {
-    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+    Text(title, style = MaterialTheme.typography.titleMedium)
     Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 

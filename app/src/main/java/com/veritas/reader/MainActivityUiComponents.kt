@@ -177,7 +177,7 @@ fun VeritasWordmark(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         BrandMark(size = 28.dp)
-        Text("ern", style = MaterialTheme.typography.titleLarge.copy(fontSize = 26.sp, lineHeight = 30.sp),
+        Text("ern", style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Black, maxLines = 1)
     }
 }
@@ -196,9 +196,7 @@ fun SoftChip(label: String, emphasis: Boolean = false) {
         Text(
             label,
             style = MaterialTheme.typography.labelMedium,
-            color = if (emphasis) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.SemiBold
-        )
+            color = if (emphasis) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -223,7 +221,6 @@ fun StatTile(value: String, label: String, modifier: Modifier = Modifier) {
             Text(
                 value,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -250,7 +247,6 @@ fun SourceBadge(label: String) {
         Text(
             label,
             style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSecondaryContainer
         )
     }
@@ -274,9 +270,7 @@ internal fun ShareTargetChooserDialog(
                 BrandMark(compact = true)
                 Text(
                     text = "Share to Vern",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                    style = MaterialTheme.typography.titleLarge)
             }
         },
         text = {
@@ -342,7 +336,6 @@ internal fun ShareTargetChooserDialog(
                             Text(
                                 text = "Import to Read",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
@@ -388,7 +381,6 @@ internal fun ShareTargetChooserDialog(
                             Text(
                                 text = "Add to Notes",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(

@@ -147,7 +147,6 @@ fun VeritasCoverPlaceholder(
                     text = title,
                     color = Color.White,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Serif,
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
@@ -171,7 +170,6 @@ fun VeritasCoverPlaceholder(
                     text = sourceLabel.uppercase(),
                     color = Color.White.copy(alpha = 0.70f),
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
                     letterSpacing = 1.sp,
                     maxLines = 1
                 )

@@ -96,7 +96,7 @@ fun QueueSection(
         Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Queue", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                    Text("Queue", style = MaterialTheme.typography.titleMedium)
                     Text(
                         if (queuedDocuments.isEmpty()) "Build a playlist from your library." else "${queuedDocuments.size} queued item${if (queuedDocuments.size == 1) "" else "s"} ready for continuous playback.",
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -161,7 +161,7 @@ fun QueueItemRow(
                         .background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.small),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("$position", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
+                    Text("$position", style = MaterialTheme.typography.titleSmall)
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f).clickable { onOpen() }) {
@@ -208,7 +208,6 @@ internal fun EmbeddedOnboardingBlock(
             Text(
                 "Listen to anything, eyes-free.",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -373,7 +372,6 @@ internal fun RowScope.BottomNavItem(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = 11.sp,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                     ),
                     color = contentColor,
@@ -407,19 +405,13 @@ internal fun ImportSheetMenu(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Add something", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text("Add something", style = MaterialTheme.typography.titleLarge)
             IconButton(onClick = onDismiss) {
                 Icon(imageVector = Icons.Filled.Close, contentDescription = "Close")
             }
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            ImportSheetOptionCard(
-                icon = Icons.AutoMirrored.Filled.LibraryBooks,
-                title = "Classic Books Catalog",
-                subtitle = "Browse free public domain masterpieces (Meditations, Art of War…)",
-                onClick = { onSelectOption(ImportOption.CLASSICS) }
-            )
             ImportSheetOptionCard(
                 icon = Icons.Filled.FolderOpen,
                 title = "File browser",
@@ -492,7 +484,7 @@ internal fun ImportSheetOptionCard(
                 modifier = Modifier.size(26.dp)
             )
             Column {
-                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
+                Text(title, style = MaterialTheme.typography.bodyLarge)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -520,7 +512,7 @@ internal fun ImportSheetWeb(
             IconButton(onClick = onBack) {
                 Text("←", fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Text("Import link", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text("Import link", style = MaterialTheme.typography.titleLarge)
         }
 
         Text("Paste a link to any web article, report, or blog post below:", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -565,7 +557,7 @@ internal fun ImportSheetPaste(
             IconButton(onClick = onBack) {
                 Text("←", fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Text("Paste text", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text("Paste text", style = MaterialTheme.typography.titleLarge)
         }
 
         Text("Paste loose text, a document snippet, or email contents below:", color = MaterialTheme.colorScheme.onSurfaceVariant)

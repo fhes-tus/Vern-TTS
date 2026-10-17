@@ -78,8 +78,7 @@ internal fun VeritasHomeHeroCard(
                 WeeklyPickContent(weeklyBook, onCardColor) { onPreviewClassic(weeklyBook) }
             } else if (doc == null) {
                 Icon(Icons.Filled.AutoStories, null, tint = onCardColor, modifier = Modifier.size(32.dp))
-                Text("Your next read starts here", style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold, color = onCardColor)
+                Text("Your next read starts here", style = MaterialTheme.typography.headlineSmall, color = onCardColor)
                 Text("Add a book, document or article to read and listen at your own pace.",
                     style = MaterialTheme.typography.bodyMedium, color = onCardColor.copy(alpha = 0.85f))
                 Button(onClick = onAddContent, shape = VeritasPackStyle.chipShape(),
@@ -90,8 +89,7 @@ internal fun VeritasHomeHeroCard(
             } else {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Continue reading", style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold, color = onCardColor)
+                        Text("Continue reading", style = MaterialTheme.typography.titleSmall, color = onCardColor)
                         Text("Pick up where you left off", style = MaterialTheme.typography.bodySmall,
                             color = onCardColor.copy(alpha = 0.8f))
                     }
@@ -119,7 +117,7 @@ internal fun VeritasHomeHeroCard(
                                     modifier = Modifier.fillMaxSize())
                             }
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text(doc.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
+                                Text(doc.title, style = MaterialTheme.typography.titleLarge,
                                     color = onCardColor, maxLines = 3, overflow = TextOverflow.Ellipsis)
                                 if (doc.sourceLabel.isNotBlank()) Text(doc.sourceLabel,
                                     style = MaterialTheme.typography.bodySmall, color = onCardColor.copy(alpha = 0.8f),
@@ -153,8 +151,7 @@ private fun ContinueReadingAction(doc: SavedDocument, onOpen: (SavedDocument) ->
 @Composable
 private fun WeeklyPickContent(book: ClassicBookEntry, onCardColor: Color, onPreview: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Book of the Week", style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold, color = onCardColor)
+        Text("Book of the Week", style = MaterialTheme.typography.titleSmall, color = onCardColor)
         Text("A new classic every Monday", style = MaterialTheme.typography.bodySmall,
             color = onCardColor.copy(alpha = 0.8f))
     }
@@ -162,7 +159,7 @@ private fun WeeklyPickContent(book: ClassicBookEntry, onCardColor: Color, onPrev
         horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         ClassicBookCover(book, modifier = Modifier.clickable(onClick = onPreview), width = 96.dp, height = 144.dp)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(book.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
+            Text(book.title, style = MaterialTheme.typography.titleLarge,
                 color = onCardColor, maxLines = 3, overflow = TextOverflow.Ellipsis)
             Text(book.author, style = MaterialTheme.typography.bodyMedium,
                 color = onCardColor.copy(alpha = 0.85f), maxLines = 2, overflow = TextOverflow.Ellipsis)

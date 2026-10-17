@@ -85,7 +85,6 @@ fun WidgetMenuDialog(
                 Text(
                     text = "Quick Action",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -158,9 +157,7 @@ fun WidgetMenuItem(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Medium
-            )
+                color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }

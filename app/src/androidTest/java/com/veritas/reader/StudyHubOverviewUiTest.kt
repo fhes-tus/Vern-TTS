@@ -32,7 +32,7 @@ class StudyHubOverviewUiTest {
                 }
             }
         }
-        rule.onNodeWithText("1 flashcard due").assertExists()
+        rule.onNodeWithText("1 card ready").assertExists()
         rule.onNodeWithText("1 card").assertExists()
         rule.onNodeWithText("5 words").assertExists()
         listOf("Flashcards", "Quizzes", "Vocabulary", "Bookmarks", "Booknotes", "History").forEach { title ->

@@ -181,7 +181,6 @@ internal fun HomeSidebarDialog(
                                     Text(
                                         displayName,
                                         style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
@@ -240,14 +239,12 @@ internal fun HomeSidebarDialog(
                                     Text(
                                         tierTitle,
                                         style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }
                                 Text(
                                     "${snapshot.currentStreak}d Streak",
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Black,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
@@ -265,7 +262,6 @@ internal fun HomeSidebarDialog(
                         Text(
                             "Navigation",
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 4.dp)
                         )
@@ -355,7 +351,6 @@ internal fun ReaderTrackerSidebarCard(snapshot: ReaderTrackerSnapshot, onOpenSta
                     Text(
                         "Reading Rhythm",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
@@ -370,7 +365,7 @@ internal fun ReaderTrackerSidebarCard(snapshot: ReaderTrackerSnapshot, onOpenSta
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.height(32.dp)
                 ) {
-                    Text("Insights", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text("Insights", style = MaterialTheme.typography.labelMedium)
                 }
             }
 
@@ -437,7 +432,6 @@ internal fun SidebarAction(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
@@ -456,7 +450,6 @@ internal fun SidebarAction(
                     Text(
                         text = badgeText,
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )

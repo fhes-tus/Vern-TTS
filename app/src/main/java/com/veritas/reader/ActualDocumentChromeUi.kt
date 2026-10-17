@@ -85,7 +85,6 @@ internal fun ActualDocumentZoomPill(
                 Text(
                     "${(zoomScale * 100).roundToInt()}%",
                     style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -182,7 +181,7 @@ internal fun ActualDocumentTopBar(
                     ) {
                         Text(
                             text = if (isPdf) "PDF" else if (isPresentation) "PPT" else if (isEpub) "EPUB" else if (isDocx) "DOCX" else if (isImage) "IMG" else "DOC",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Black),
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
                         )
@@ -192,7 +191,6 @@ internal fun ActualDocumentTopBar(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -211,17 +209,13 @@ internal fun ActualDocumentTopBar(
                             Text(
                                 text = "• ${(zoomScale * 100).toInt()}%",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
+                                color = MaterialTheme.colorScheme.primary)
                         }
                         if (rotationDegrees != 0) {
                             Text(
                                 text = "• ${rotationDegrees}°",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.secondary,
-                                fontWeight = FontWeight.Bold
-                            )
+                                color = MaterialTheme.colorScheme.secondary)
                         }
                     }
                     SlimPageSlider(
@@ -382,7 +376,6 @@ internal fun ActualDocumentOverflowMenu(
         Text(
             text = "Document Tools",
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Black,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         Text(
@@ -399,7 +392,6 @@ internal fun ActualDocumentOverflowMenu(
         Text(
             text = "Display",
             style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
@@ -480,7 +472,6 @@ internal fun ActualDocumentOverflowMenu(
             Text(
                 text = "Navigation",
                 style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
@@ -543,7 +534,6 @@ internal fun ActualDocumentOverflowMenu(
         Text(
             text = "Reading & Audio",
             style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )

@@ -46,9 +46,9 @@ internal fun StudyHubOverview(
         StudyCollection("History", state.readingHistory.size, "recent books", Icons.Outlined.History)
     )
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        StudyDailyReviewHeroCard(review.notDuePercent, review.dueCards.size, onStartReview)
+        StudyDailyReviewHeroCard(review.dueCards.size, onStartReview)
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Your study material", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text("Your study material", style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
             collections.chunked(2).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                     row.forEach { collection ->
@@ -59,14 +59,19 @@ internal fun StudyHubOverview(
                             colors = CardDefaults.cardColors(containerColor = VeritasPackStyle.panelColor(colors)),
                             border = VeritasPackStyle.cardBorder(colors)
                         ) {
-                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Icon(collection.icon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(24.dp))
-                                Text(if (collection.section == "Vocab") "Vocabulary" else collection.section, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                                val unit = if (collection.count != 1) collection.unit else when (collection.unit) {
-                                    "quizzes" -> "quiz"
-                                    else -> collection.unit.removeSuffix("s")
+                            Row(Modifier.fillMaxWidth().heightIn(min = 76.dp).padding(12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(collection.icon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(22.dp))
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text(if (collection.section == "Vocab") "Vocabulary" else collection.section,
+                                        style = MaterialTheme.typography.titleSmall, color = colors.onSurface)
+                                    val unit = if (collection.count != 1) collection.unit else when (collection.unit) {
+                                        "quizzes" -> "quiz"
+                                        "recent books" -> "recent book"
+                                        else -> collection.unit.removeSuffix("s")
+                                    }
+                                    Text("${collection.count} $unit", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
                                 }
-                                Text("${collection.count} $unit", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
                             }
                         }
                     }
@@ -76,7 +81,7 @@ internal fun StudyHubOverview(
         if (sets.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Your decks", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text("Your decks", style = MaterialTheme.typography.titleMedium, color = colors.onSurface, modifier = Modifier.weight(1f))
                     TextButton(onClick = { onSelectSection("Flashcards") }) { Text("See all") }
                 }
                 sets.take(3).forEachIndexed { index, set ->
@@ -87,12 +92,12 @@ internal fun StudyHubOverview(
         Card(
             modifier = Modifier.fillMaxWidth().vernScatteredCard("study-create", amount = .45f),
             shape = VeritasPackStyle.cardShape(),
-            colors = CardDefaults.cardColors(containerColor = colors.secondaryContainer.copy(alpha = .45f)),
+            colors = CardDefaults.cardColors(containerColor = VeritasPackStyle.panelColor(colors)),
             border = BorderStroke(1.dp, colors.outlineVariant.copy(alpha = .5f))
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Build your study material", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text("Paste flashcards or quizzes, or choose a book for AI flashcards.", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+                Text("Create something new", style = MaterialTheme.typography.titleMedium)
+                Text("Start with your own cards or questions, or build a set from a book.", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = onImportFlashcards, modifier = Modifier.weight(1f)) { Text("Paste cards") }
                     OutlinedButton(onClick = onImportQuiz, modifier = Modifier.weight(1f)) { Text("Paste quiz") }

@@ -222,16 +222,12 @@ internal fun MainSettingsDialogsHost(
                 title = {
                     Text(
                         text = userManualTipTitle,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                        style = MaterialTheme.typography.titleMedium)
                 },
                 text = {
                     Text(
                         text = userManualTipText!!,
-                        style = MaterialTheme.typography.bodyMedium,
-                        lineHeight = 20.sp
-                    )
+                        style = MaterialTheme.typography.bodyMedium)
                 },
                 confirmButton = {
                     TextButton(

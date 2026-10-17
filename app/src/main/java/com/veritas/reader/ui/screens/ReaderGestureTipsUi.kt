@@ -94,7 +94,6 @@ internal fun ReaderGestureTipsBanner(
                         Text(
                             text = "Reader Gestures",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -145,9 +144,7 @@ internal fun ReaderGestureTipsBanner(
                         Text(
                             text = "Don't show again",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
+                            color = MaterialTheme.colorScheme.primary)
                     }
                     Spacer(modifier = Modifier.width(4.dp))
                     TextButton(
@@ -186,15 +183,10 @@ private fun GestureTipRow(
         Text(
             text = title,
             style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 12.sp
-        )
+            color = MaterialTheme.colorScheme.onSurface)
         Text(
             text = " — $description",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 12.sp
-        )
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

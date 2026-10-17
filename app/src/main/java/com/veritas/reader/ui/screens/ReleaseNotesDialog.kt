@@ -26,9 +26,7 @@ fun ReleaseNotesDialog(
         title = {
             Text(
                 text = "What's New in $versionName",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+                style = MaterialTheme.typography.titleMedium)
         },
         text = {
             Column(

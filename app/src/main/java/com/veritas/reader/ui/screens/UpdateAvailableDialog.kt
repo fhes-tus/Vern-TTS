@@ -56,7 +56,6 @@ fun UpdateAvailableDialog(
             Text(
                 text = "New Update Available: $versionName",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         },
@@ -103,7 +102,6 @@ fun UpdateAvailableDialog(
                         Text(
                             text = "What's New:",
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

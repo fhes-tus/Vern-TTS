@@ -344,7 +344,6 @@ internal fun TextEditorDialog(
                         Text(
                             "Edit extracted text",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -436,7 +435,6 @@ internal fun TextEditorDialog(
                             Text(
                                 "Page ${currentPartIndex + 1} of $totalPages",
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                             )
@@ -625,22 +623,22 @@ internal fun TextEditorDialog(
 
                         // Bold
                         IconButton(onClick = { wrapSelection("**") }) {
-                            Text("B", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                            Text("B", style = MaterialTheme.typography.titleMedium)
                         }
 
                         // Italic
                         IconButton(onClick = { wrapSelection("*") }) {
-                            Text("I", style = MaterialTheme.typography.titleMedium, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, fontWeight = FontWeight.Bold)
+                            Text("I", style = MaterialTheme.typography.titleMedium, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                         }
 
                         // Strikethrough
                         IconButton(onClick = { wrapSelection("~~") }) {
-                            Text("S", style = MaterialTheme.typography.titleMedium, textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough, fontWeight = FontWeight.Bold)
+                            Text("S", style = MaterialTheme.typography.titleMedium, textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough)
                         }
 
                         // Inline code
                         IconButton(onClick = { wrapSelection("`") }) {
-                            Text("<>", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            Text("<>", style = MaterialTheme.typography.labelMedium)
                         }
 
                         Box(
@@ -652,16 +650,16 @@ internal fun TextEditorDialog(
 
                         // Headings
                         IconButton(onClick = { toggleLinePrefix("# ") }) {
-                            Text("H1", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black)
+                            Text("H1", style = MaterialTheme.typography.labelMedium)
                         }
 
                         IconButton(onClick = { toggleLinePrefix("## ") }) {
-                            Text("H2", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            Text("H2", style = MaterialTheme.typography.labelMedium)
                         }
 
                         // Quote
                         IconButton(onClick = { toggleLinePrefix("> ") }) {
-                            Text("❝", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Text("❝", style = MaterialTheme.typography.titleMedium)
                         }
 
                         Box(
@@ -695,7 +693,7 @@ internal fun TextEditorDialog(
                         IconButton(onClick = {
                             transformSelection { it.uppercase() }
                         }) {
-                            Text("AA", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            Text("AA", style = MaterialTheme.typography.labelMedium)
                         }
 
                         IconButton(onClick = {
@@ -705,7 +703,7 @@ internal fun TextEditorDialog(
                                 }
                             }
                         }) {
-                            Text("Aa", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            Text("Aa", style = MaterialTheme.typography.labelMedium)
                         }
 
                         // Clean whitespace & formatting

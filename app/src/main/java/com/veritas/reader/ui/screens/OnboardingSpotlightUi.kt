@@ -354,7 +354,6 @@ fun OnboardingInfoCard(
                 Text(
                     text = step.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 IconButton(
@@ -374,7 +373,6 @@ fun OnboardingInfoCard(
             Text(
                 text = step.body,
                 style = MaterialTheme.typography.bodyMedium,
-                lineHeight = 20.sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
@@ -420,9 +418,7 @@ fun OnboardingInfoCard(
                     Text(
                         text = "Tip: Open a reading to see this live in the reader!",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Medium
-                    )
+                        color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
             }
 

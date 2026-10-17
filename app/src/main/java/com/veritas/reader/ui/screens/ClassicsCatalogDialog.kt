@@ -793,7 +793,6 @@ fun ClassicBookCover(
                         text = book.author,
                         style = MaterialTheme.typography.labelSmall,
                         color = book.accentColor,
-                        fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Serif,
                         fontSize = if (large) 9.sp else 7.sp,
                         maxLines = 1,
@@ -814,7 +813,6 @@ fun ClassicBookCover(
                             text = book.title,
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.White,
-                            fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Serif,
                             fontSize = if (large) 13.sp else 9.sp,
                             lineHeight = if (large) 16.sp else 11.5.sp,
@@ -828,9 +826,7 @@ fun ClassicBookCover(
                         style = MaterialTheme.typography.labelSmall,
                         color = book.accentColor.copy(alpha = 0.85f),
                         fontSize = if (large) 7.sp else 5.5.sp,
-                        letterSpacing = 0.8.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                        letterSpacing = 0.8.sp)
                 }
             }
         }
@@ -916,16 +912,13 @@ fun ClassicBookDetailSheet(
                 Text(
                     text = book.title,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "by ${book.author}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
+                    color = MaterialTheme.colorScheme.primary)
             }
 
             // Metadata Badges (Genre & Reading Time)
@@ -941,7 +934,6 @@ fun ClassicBookDetailSheet(
                         text = book.genre,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
@@ -953,7 +945,6 @@ fun ClassicBookDetailSheet(
                         text = "⏱️ ~${book.estimatedMinutes} min read",
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -1028,7 +1019,7 @@ fun ClassicBookDetailSheet(
                 ) {
                     Icon(Icons.Filled.AutoStories, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Open book", fontWeight = FontWeight.Bold)
+                    Text("Open book", style = MaterialTheme.typography.labelLarge)
                 }
             } else {
                 Button(
@@ -1050,7 +1041,7 @@ fun ClassicBookDetailSheet(
                     } else {
                         Icon(if (book.hasDirectTextDownload) Icons.Filled.Download else Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(if (book.hasDirectTextDownload) selectedState.actionLabel else "Visit website", fontWeight = FontWeight.Bold)
+                        Text(if (book.hasDirectTextDownload) selectedState.actionLabel else "Visit website", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }

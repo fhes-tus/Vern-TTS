@@ -131,7 +131,6 @@ internal fun PresentationSlideCanvas(
                         Text(
                             text = "Slide ${slide.number} of $slideCount",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
@@ -146,7 +145,6 @@ internal fun PresentationSlideCanvas(
                             Text(
                                 text = "Notes (${slide.notesLines.size})",
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
                                 color = if (showNotes) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                             )
@@ -305,7 +303,6 @@ internal fun PresentationSlideCanvas(
                                 Text(
                                     text = "Speaker Notes",
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
                                 slide.notesLines.forEach { note ->
@@ -371,7 +368,6 @@ internal fun EpubBookCanvas(
                     Text(
                         text = "Chapter ${chapter.number} of $chapterCount",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -464,8 +460,7 @@ internal fun EpubBookCanvas(
                                 }
                                 Text(
                                     text = para,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        lineHeight = 25.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif
+                                    style = MaterialTheme.typography.bodyMedium.copy( fontFamily = androidx.compose.ui.text.font.FontFamily.Serif
                                     ),
                                     color = contentColor,
                                     modifier = Modifier.weight(1f)
@@ -525,7 +520,6 @@ internal fun DocxDocumentCanvas(
                     Text(
                         text = "Page ${page.pageNumber} of $pageCount",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )

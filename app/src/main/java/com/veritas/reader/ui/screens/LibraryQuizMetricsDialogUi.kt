@@ -151,9 +151,7 @@ internal fun QuizLabMetricsDialog(
                                     )
                                     Text(
                                         "Quiz Lab & Performance",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                        style = MaterialTheme.typography.titleMedium)
                                 }
                                 Text(
                                     "Retention, mastery & score calibration",
@@ -201,7 +199,6 @@ internal fun QuizLabMetricsDialog(
                                 Text(
                                     "Overall Learning Metrics",
                                     style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Surface(
@@ -211,7 +208,6 @@ internal fun QuizLabMetricsDialog(
                                     Text(
                                         text = if (playedCount > 0) "$overallAccuracy% Accuracy" else "No Data Yet",
                                         style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
                                         color = if (overallAccuracy >= 80) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                     )
@@ -226,7 +222,6 @@ internal fun QuizLabMetricsDialog(
                                     Text(
                                         "$playedCount / $totalQuizzes",
                                         style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                     Text("Completed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -235,7 +230,6 @@ internal fun QuizLabMetricsDialog(
                                     Text(
                                         "$masteredCount",
                                         style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Black,
                                         color = Color(0xFF10B981)
                                     )
                                     Text("Mastered 🏆", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -244,7 +238,6 @@ internal fun QuizLabMetricsDialog(
                                     Text(
                                         "$totalCorrectAnswered / $totalQuestionsAnswered",
                                         style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.secondary
                                     )
                                     Text("Questions Right", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -258,7 +251,7 @@ internal fun QuizLabMetricsDialog(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text("Retention Gauge", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("$overallAccuracy%", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text("$overallAccuracy%", style = MaterialTheme.typography.labelSmall)
                                 }
                                 androidx.compose.material3.LinearProgressIndicator(
                                     progress = { if (totalQuestionsAnswered > 0) (overallAccuracy / 100f).coerceIn(0f, 1f) else 0f },
@@ -289,9 +282,7 @@ internal fun QuizLabMetricsDialog(
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(
                                 "Score & Mastery Distribution",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
-                            )
+                                style = MaterialTheme.typography.titleSmall)
 
                             if (masterySlices.isNotEmpty()) {
                                 DashboardDonutChart(
@@ -359,7 +350,7 @@ internal fun QuizLabMetricsDialog(
                                     color = Color(0xFF10B981).copy(alpha = 0.12f)
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("$masteredCount", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF10B981))
+                                        Text("$masteredCount", style = MaterialTheme.typography.titleMedium, color = Color(0xFF10B981))
                                         Text("100% Perfect", style = MaterialTheme.typography.labelSmall, color = Color(0xFF10B981))
                                     }
                                 }
@@ -369,7 +360,7 @@ internal fun QuizLabMetricsDialog(
                                     color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("$proficientCount", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                        Text("$proficientCount", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                                         Text("70-99% Passing", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                     }
                                 }
@@ -379,7 +370,7 @@ internal fun QuizLabMetricsDialog(
                                     color = Color(0xFFEF4444).copy(alpha = 0.12f)
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("$reviewCount", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFFEF4444))
+                                        Text("$reviewCount", style = MaterialTheme.typography.titleMedium, color = Color(0xFFEF4444))
                                         Text("<70% Review", style = MaterialTheme.typography.labelSmall, color = Color(0xFFEF4444))
                                     }
                                 }
@@ -389,7 +380,7 @@ internal fun QuizLabMetricsDialog(
                                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("$unplayedCount", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("$unplayedCount", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         Text("Unplayed", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 }
@@ -402,9 +393,7 @@ internal fun QuizLabMetricsDialog(
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
                                 "Performance Per Book / Document",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
-                            )
+                                style = MaterialTheme.typography.titleSmall)
                             for ((bookTitle, bookQuizzes) in quizzesByBook) {
                                 val bookPlayed = bookQuizzes.filter { it.bestScore >= 0 }
                                 val bookTotalQ = bookPlayed.sumOf { it.totalQuestions }
@@ -427,7 +416,6 @@ internal fun QuizLabMetricsDialog(
                                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             Text(
                                                 bookTitle,
-                                                fontWeight = FontWeight.Bold,
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
@@ -445,7 +433,6 @@ internal fun QuizLabMetricsDialog(
                                             Text(
                                                 text = if (bookPlayed.isNotEmpty()) "$bookAvg% Avg" else "Unplayed",
                                                 style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
                                                 color = if (bookAvg >= 80) Color(0xFF10B981) else MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                             )
@@ -465,9 +452,7 @@ internal fun QuizLabMetricsDialog(
                         ) {
                             Text(
                                 "All Quizzes (${filteredQuizzes.size})",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
-                            )
+                                style = MaterialTheme.typography.titleSmall)
                         }
 
                         OutlinedTextField(
@@ -486,7 +471,7 @@ internal fun QuizLabMetricsDialog(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text("No quizzes found", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                                    Text("No quizzes found", style = MaterialTheme.typography.bodyMedium)
                                     Text("Create quizzes using AI Study Studio to practice here.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
                                 }
                             }
@@ -525,7 +510,6 @@ internal fun QuizLabMetricsDialog(
                                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                             Text(
                                                 quiz.title,
-                                                fontWeight = FontWeight.Bold,
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
@@ -550,7 +534,6 @@ internal fun QuizLabMetricsDialog(
                                                         Text(
                                                             text = if (isMastered) "Mastered 100%" else "Best: $score/${quiz.totalQuestions} ($pct%)",
                                                             style = MaterialTheme.typography.labelSmall,
-                                                            fontWeight = FontWeight.Bold,
                                                             color = if (isMastered) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
                                                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                                         )
@@ -567,7 +550,7 @@ internal fun QuizLabMetricsDialog(
                                             shape = RoundedCornerShape(50),
                                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                                         ) {
-                                            Text(if (hasPlayed) "Retake" else "Play", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                            Text(if (hasPlayed) "Retake" else "Play", style = MaterialTheme.typography.labelSmall)
                                         }
                                     }
                                 }

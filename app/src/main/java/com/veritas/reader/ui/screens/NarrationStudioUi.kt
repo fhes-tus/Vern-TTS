@@ -269,7 +269,7 @@ private fun NarrationPanel(content: @Composable androidx.compose.foundation.layo
 private fun NarrationToggle(title: String, detail: String, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(title, style = MaterialTheme.typography.bodyLarge)
             Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         VeritasSwitch(checked = checked, onCheckedChange = onChange, enabled = enabled)
@@ -327,7 +327,6 @@ fun PronunciationRulesDialog(
                 Text(
                     "Common abbreviations",
                     style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Row(
@@ -364,7 +363,6 @@ fun PronunciationRulesDialog(
                     Text(
                         "Word or phrase",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
 
@@ -444,7 +442,6 @@ fun PronunciationRulesDialog(
                         Text(
                             "Try your rules",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         IconButton(
@@ -515,7 +512,6 @@ fun PronunciationRulesDialog(
                         Text(
                             testOutput,
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(10.dp)
                         )
@@ -526,7 +522,6 @@ fun PronunciationRulesDialog(
             Text(
                 "Saved rules (${rules.count { it.enabled }} enabled)",
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
@@ -550,7 +545,6 @@ fun PronunciationRulesDialog(
                             Column(modifier = Modifier.weight(1f).clickable { onNewFindChange(rule.find); onNewReplaceChange(rule.replaceWith) }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
                                     "${rule.find} → ${rule.replaceWith.ifBlank { "Skip when speaking" }}",
-                                    fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )

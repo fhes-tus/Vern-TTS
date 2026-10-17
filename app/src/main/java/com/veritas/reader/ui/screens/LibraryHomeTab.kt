@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
@@ -87,7 +88,15 @@ internal fun LibraryHomeTab(
     }
     val tracker = uiState.readerTrackerSnapshot
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(Unit) {
+    val homeVisible = LocalLibraryPageVisible.current
+    val context = LocalContext.current
+    val greetingPrefs = remember(context) { context.getSharedPreferences("vern_home_greeting", android.content.Context.MODE_PRIVATE) }
+    val previousVisit = remember { greetingPrefs.getLong("last_visit", 0L) }
+    val welcomeBack = previousVisit > 0 && now - previousVisit >= 36 * 60 * 60 * 1000L
+    LaunchedEffect(homeVisible) {
+        if (!homeVisible) return@LaunchedEffect
+        now = System.currentTimeMillis()
+        greetingPrefs.edit().putLong("last_visit", now).apply()
         while (true) {
             delay(60_000)
             val timestamp = System.currentTimeMillis()
@@ -101,24 +110,19 @@ internal fun LibraryHomeTab(
     var previewClassicBook by remember { mutableStateOf<ClassicBookEntry?>(null) }
     var showGoalPicker by remember { mutableStateOf(false) }
     val todayMillis = (tracker.readingMillisByDate[todayKey] ?: 0L).coerceAtLeast(0L)
-    val readingDaysThisWeek = remember(todayKey, tracker.readingMillisByDate) {
+    val weekReadingMillis = remember(todayKey, tracker.readingMillisByDate) {
         val today = Calendar.getInstance().apply { timeInMillis = now }
         val dayIndex = (today.get(Calendar.DAY_OF_WEEK) + 5) % 7
         val monday = (today.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -dayIndex) }
-        (0..dayIndex).count { offset ->
+        List(7) { offset ->
             val day = (monday.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, offset) }
-            (tracker.readingMillisByDate[trackerDateKey(day.timeInMillis)] ?: 0L) > 0L
+            if (offset > dayIndex) 0L else
+                (tracker.readingMillisByDate[trackerDateKey(day.timeInMillis)] ?: 0L).coerceAtLeast(0L)
         }
     }
+    val readingDaysThisWeek = weekReadingMillis.count { it > 0L }
+    val weeklyMillis = weekReadingMillis.sum()
     val goalMinutes = uiState.readerSettings.dailyGoalMinutes
-    val weeklyMillis = remember(todayKey, tracker.readingMillisByDate) {
-        val today = Calendar.getInstance().apply { timeInMillis = now }
-        val dayIndex = (today.get(Calendar.DAY_OF_WEEK) + 5) % 7
-        (0..dayIndex).sumOf { offset ->
-            val day = (today.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -offset) }
-            (tracker.readingMillisByDate[trackerDateKey(day.timeInMillis)] ?: 0L).coerceAtLeast(0L)
-        }
-    }
     val hasRecordedActivity = tracker.readingMillisByDate.values.any { it > 0L } || tracker.activeDateKeys.isNotEmpty()
     val showTodayCard = goalMinutes > 0 || hasRecordedActivity
     val showWeeklyPick = documents.isNotEmpty() || uiState.hasCompletedOnboarding ||
@@ -135,11 +139,11 @@ internal fun LibraryHomeTab(
         gradient = Brush.linearGradient(listOf(first, second))
         onCard = if ((first.luminance() + second.luminance()) / 2 > 0.4f) Color(0xFF0F172A) else Color.White
     } else {
-        gradient = Brush.linearGradient(listOf(scheme.primaryContainer, blendColors(scheme.primaryContainer, scheme.surface, 0.55f)))
-        onCard = scheme.onPrimaryContainer
+        gradient = Brush.linearGradient(listOf(blendColors(scheme.surfaceContainer, scheme.primary, 0.10f), scheme.surface))
+        onCard = scheme.onSurface
     }
 
-    val classicsIndex = 2 + (if (recentBooks.isNotEmpty()) 2 else 0)
+    val classicsIndex = 3 + (if (recentBooks.isNotEmpty()) 1 else 0)
     LaunchedEffect(OnboardingController.activeStep, classicsIndex) {
         if (OnboardingController.activeStep == OnboardingStep.CLASSICS_SPOTLIGHT) homeListState.animateScrollToItem(classicsIndex)
     }
@@ -165,8 +169,13 @@ internal fun LibraryHomeTab(
         }.padding(horizontal = 18.dp),
         state = homeListState,
         contentPadding = PaddingValues(top = 12.dp, bottom = floatingBottomPadding + 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        item(key = "greeting") {
+            Text(homeGreeting(uiState.userName, Calendar.getInstance().apply { timeInMillis = now }.get(Calendar.HOUR_OF_DAY), welcomeBack),
+                style = MaterialTheme.typography.titleMedium, color = scheme.onSurface,
+                modifier = Modifier.padding(top = 2.dp, bottom = 2.dp))
+        }
         item(key = "continue") {
             Column(Modifier.staggeredEntrance(1)) {
                 VeritasHomeHeroCard(continueDocument, weeklyBook.takeIf { showWeeklyPick }, gradient, onCard,
@@ -176,17 +185,17 @@ internal fun LibraryHomeTab(
         }
         if (showTodayCard) item(key = "today") {
             HomeTodayReadingCard(todayMillis, goalMinutes, readingDaysThisWeek,
-                onShowReadingStatsHome, onGoalMinutesChange, Modifier.staggeredEntrance(2), weeklyMillis)
+                onShowReadingStatsHome, onGoalMinutesChange, Modifier.staggeredEntrance(2), weeklyMillis, weekReadingMillis)
         } else item(key = "goal-prompt") {
             TextButton(onClick = { showGoalPicker = true }, modifier = Modifier.fillMaxWidth()) {
                 Text("Set a daily reading goal")
             }
         }
         if (recentBooks.isNotEmpty()) {
-            item(key = "recent-heading") {
+            item(key = "recent-books") {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Recent books", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold, color = scheme.onSurface)
+                    Text("Recent books", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
                     IconButton(onClick = onToggleHomeGridView) {
                         Icon(if (isHomeGridView) Icons.AutoMirrored.Filled.List else Icons.Filled.GridView,
                             if (isHomeGridView) "Switch to list view" else "Switch to grid view",
@@ -194,8 +203,6 @@ internal fun LibraryHomeTab(
                     }
                     TextButton(onClick = { onNavigateToTab(VeritasHomeTab.LIBRARY) }) { Text("See all →") }
                 }
-            }
-            item(key = "recent-books") {
                 if (isHomeGridView) Row(Modifier.staggeredEntrance(3).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     recentBooks.forEach { doc -> HomeRecentBookGridItem(doc, { onOpenDocument(doc) }, Modifier.weight(1f)) }
                     if (recentBooks.size == 1) Spacer(Modifier.weight(1f))
@@ -208,6 +215,7 @@ internal fun LibraryHomeTab(
                             onRename = { onRenameDocument(doc) }, onShowDetails = { onShowDetails(doc) }, onDelete = { onDeleteDocument(doc) })
                     }
                 }
+            }
             }
         }
         item(key = "classics") {

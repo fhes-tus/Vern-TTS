@@ -176,7 +176,6 @@ fun BooknotesDialog(
                 Text(
                     document.title,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Black,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface
@@ -206,7 +205,6 @@ fun BooknotesDialog(
                     Text(
                         "Attached Voice Memos (${generalMemos.size})",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Row(
@@ -300,7 +298,7 @@ fun BooknotesDialog(
                 HorizontalDivider()
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Sentence notes", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Sentence notes", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                         Text(
                             "Notes attached to individual sentences.",
                             style = MaterialTheme.typography.bodySmall,
@@ -349,7 +347,7 @@ fun BooknotesDialog(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         "Sentence ${note.chunkIndex + 1}",
-                                        fontWeight = FontWeight.Black,
+                                        style = MaterialTheme.typography.titleMedium,
                                         modifier = Modifier.weight(1f),
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -361,7 +359,7 @@ fun BooknotesDialog(
                                 }
                                 Text(
                                     note.note.ifBlank { "Empty note" },
-                                    fontWeight = FontWeight.SemiBold,
+                                    style = MaterialTheme.typography.labelLarge,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 if (note.audioPath != null) {
@@ -480,7 +478,6 @@ internal fun BookmarksOverviewDialog(
                 Text(
                     document.title,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Black,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface
@@ -492,7 +489,6 @@ internal fun BookmarksOverviewDialog(
                     Text(
                         "Bookmarks",
                         style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     bookmarkRanges.forEach { range ->
@@ -530,7 +526,6 @@ internal fun BookmarksOverviewDialog(
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         label,
-                                        fontWeight = FontWeight.Black,
                                         modifier = Modifier.weight(1f),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface

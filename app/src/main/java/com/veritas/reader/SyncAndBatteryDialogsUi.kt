@@ -138,7 +138,6 @@ internal fun SyncAndBackupCenterDialog(
                     Text(
                         text = "Sync & Backup Center",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.weight(1f)
                     )
@@ -168,15 +167,12 @@ internal fun SyncAndBackupCenterDialog(
                             Text(
                                 text = "Library Sync & Backup Engine",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
                                 text = "Vern Sync & Backup creates portable backup files containing your entire library, reading progress, flashcards, notes, bookmarks, and custom voice rules. Import safely merges data without deleting local readings.",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
-                                lineHeight = 20.sp
-                            )
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f))
                         }
                     }
 
@@ -196,7 +192,6 @@ internal fun SyncAndBackupCenterDialog(
                             Text(
                                 text = "Data Included in Backup & Sync",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             SyncInfoRow("Saved Readings", documentCount.toString())
@@ -225,7 +220,6 @@ internal fun SyncAndBackupCenterDialog(
                             Text(
                                 text = "Portable backup actions",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
 
@@ -301,7 +295,6 @@ internal fun SyncAndBackupCenterDialog(
                                 Text(
                                     text = "Automatic Weekly Backups",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
@@ -412,7 +405,6 @@ fun UnrestrictedBatteryDialog(
             Text(
                 text = "Unrestricted Battery Playback",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -439,7 +431,6 @@ fun UnrestrictedBatteryDialog(
                         Text(
                             text = "How to enable uninterrupted audio:",
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(

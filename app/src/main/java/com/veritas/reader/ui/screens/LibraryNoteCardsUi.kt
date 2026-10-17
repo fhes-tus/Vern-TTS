@@ -219,7 +219,6 @@ internal fun NoteGroupCard(
                     Text(
                         text = collapsedText,
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -320,9 +319,7 @@ internal fun NoteGroupCard(
                                     Text(
                                         text = "Note",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                        color = MaterialTheme.colorScheme.primary)
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
@@ -383,9 +380,7 @@ internal fun NoteGroupCard(
                             Text(
                                 text = "Open in document ↗",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
+                                color = MaterialTheme.colorScheme.primary)
                         }
 
                         Box {

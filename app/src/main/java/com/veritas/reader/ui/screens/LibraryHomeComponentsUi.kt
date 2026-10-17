@@ -93,7 +93,6 @@ internal fun HomeQuickActions(
         Text(
             text = headerTitle,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(top = 4.dp)
         )
@@ -175,7 +174,6 @@ internal fun HomeQuickActions(
                     if (continueDocument == null) {
                         Text(
                             text = "Resume reading",
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -189,7 +187,6 @@ internal fun HomeQuickActions(
                             text = continueDocument.title,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -252,7 +249,6 @@ internal fun HomeQuickActions(
         Text(
             text = "Add content",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(top = 4.dp)
         )
@@ -317,7 +313,7 @@ internal fun HomeActionRow(
             )
         }
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
             Text(body, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Icon(
@@ -357,13 +353,12 @@ internal fun OverviewPill(
         ) {
             Text(
                 text = value,
-                fontWeight = FontWeight.Black,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                style = MaterialTheme.typography.labelSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -392,7 +387,6 @@ fun HomePanel(
             Text(
                 text = "Reading Overview",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }

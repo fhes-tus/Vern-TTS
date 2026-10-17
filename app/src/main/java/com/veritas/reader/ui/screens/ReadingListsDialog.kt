@@ -81,7 +81,7 @@ fun ReadingListsDialog(
                     )
                 ) {
                     Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Create list", fontWeight = FontWeight.Black)
+                        Text("Create list", style = MaterialTheme.typography.labelLarge)
                         OutlinedTextField(
                             value = newListTitle,
                             onValueChange = { newListTitle = it },
@@ -166,7 +166,7 @@ private fun ReadingListCard(
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(list.title, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(list.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
                         "${orderedDocuments.size} reading${if (orderedDocuments.size == 1) "" else "s"}",
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -271,7 +271,7 @@ private fun ReadingListDocumentRow(
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.weight(1f).clickable { onOpen() }) {
-            Text(document.title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
+            Text(document.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
             Text(
                 document.sourceLabel.ifBlank { "Text" },
                 maxLines = 1,
@@ -314,9 +314,7 @@ fun ManageDocumentListsDialog(
         title = {
             Text(
                 text = "Save to lists",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+                style = MaterialTheme.typography.titleLarge)
         },
         text = {
             Column(
@@ -377,7 +375,7 @@ fun ManageDocumentListsDialog(
                                 )
                                 Text(
                                     text = list.title,
-                                    fontWeight = FontWeight.SemiBold,
+                                    style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.weight(1f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -402,7 +400,7 @@ fun ManageDocumentListsDialog(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("New reading list", fontWeight = FontWeight.Bold)
+                        Text("New reading list", style = MaterialTheme.typography.titleLarge)
                         OutlinedTextField(
                             value = newListTitle,
                             onValueChange = { newListTitle = it },

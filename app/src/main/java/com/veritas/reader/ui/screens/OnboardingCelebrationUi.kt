@@ -239,7 +239,6 @@ fun OnboardingReadyCelebrationScreen(
         Text(
             text = if (userName.isNotBlank()) "Your Sanctuary is Ready, ${userName.trim()}." else "Your Sanctuary Awaits.",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
@@ -301,7 +300,6 @@ fun OnboardingReadyCelebrationScreen(
                         Text(
                             text = "VERITAS STUDIO PASS",
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
                             letterSpacing = 1.8.sp
                         )
@@ -322,7 +320,6 @@ fun OnboardingReadyCelebrationScreen(
                             text = "SANCTUARY · 001",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
                             letterSpacing = 0.8.sp
                         )
                     }
@@ -369,7 +366,6 @@ fun OnboardingReadyCelebrationScreen(
                         Text(
                             text = monogram,
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -448,7 +444,6 @@ fun OnboardingReadyCelebrationScreen(
                         text = "🔒 LOCAL LIBRARY · NO ADS · OFFLINE VOICES",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-                        fontSize = 9.sp,
                         letterSpacing = 0.8.sp,
                         textAlign = TextAlign.Center
                     )
@@ -490,15 +485,12 @@ fun VipStudioPassBadge(
                 text = label.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold,
                 letterSpacing = 0.5.sp
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1
             )
@@ -524,7 +516,6 @@ fun OnboardingSummaryRow(label: String, value: String) {
         Text(
             text = value,
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
         )
     }

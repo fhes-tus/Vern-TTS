@@ -179,7 +179,6 @@ internal fun ReadingHistoryRow(
                         Text(
                             document.sourceLabel.take(3).uppercase(),
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
@@ -187,7 +186,6 @@ internal fun ReadingHistoryRow(
                     Text(
                         document.sourceLabel.take(3).uppercase(),
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
@@ -202,7 +200,6 @@ internal fun ReadingHistoryRow(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Row(
@@ -216,7 +213,6 @@ internal fun ReadingHistoryRow(
                         Text(
                             "$percent%",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )

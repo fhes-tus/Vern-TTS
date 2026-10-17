@@ -151,7 +151,6 @@ internal fun LibraryTopAndFilterBar(
                                             "My Library",
                                             modifier = Modifier.weight(1f),
                                             style = MaterialTheme.typography.titleLarge,
-                                            fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         headerActions()
@@ -194,7 +193,6 @@ internal fun LibraryTopAndFilterBar(
                                             Text(
                                                 "Notes & Annotations",
                                                 style = MaterialTheme.typography.titleLarge,
-                                                fontWeight = FontWeight.Bold,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
                                                 }
@@ -247,7 +245,7 @@ internal fun LibraryTopAndFilterBar(
                                                     ),
                                                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                 ) {
-                                                    Text(option, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                                                    Text(option, style = MaterialTheme.typography.labelMedium)
                                                 }
                                             } else {
                                                 OutlinedButton(
@@ -284,7 +282,6 @@ internal fun LibraryTopAndFilterBar(
                                         Text(
                                             "Study Hub",
                                             style = MaterialTheme.typography.titleLarge,
-                                            fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Surface(
@@ -306,9 +303,7 @@ internal fun LibraryTopAndFilterBar(
                                                 )
                                                 Text(
                                                     text = if (streak > 0) "$streak-Day Streak" else "0-Day Streak",
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    fontWeight = FontWeight.Bold
-                                                )
+                                                    style = MaterialTheme.typography.labelMedium)
                                             }
                                         }
                                     }
@@ -470,7 +465,7 @@ internal fun LibraryDocumentFilters(
                                                     ),
                                                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                 ) {
-                                                    Text(chip.label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                                                    Text(chip.label, style = MaterialTheme.typography.labelMedium)
                                                 }
                                             } else {
                                                 OutlinedButton(

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.requiredHeight
@@ -41,25 +40,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.ui.LocalVeritasMotion
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
-import kotlin.math.PI
-import kotlin.math.sin
 import kotlin.math.ceil
 
 /** Uses recorded reading duration, never app-open duration or invented listening totals. */
@@ -71,7 +64,8 @@ internal fun HomeTodayReadingCard(
     onOpenInsights: () -> Unit,
     onGoalMinutesChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    weeklyMillis: Long = 0L
+    weeklyMillis: Long = 0L,
+    weekReadingMillis: List<Long> = emptyList()
 ) {
     val scheme = MaterialTheme.colorScheme
     val goalMillis = goalMinutes.toLong() * 60_000L
@@ -98,11 +92,12 @@ internal fun HomeTodayReadingCard(
         if (!hasGoal) "Read at your own pace" else if (reachedGoal) "Today’s target complete" else "To your target"),
         ReadingCardStat("Weekly reading", "${weeklyMillis.coerceAtLeast(todayMillis) / 60_000L} min", "Total since Monday"))
     val reduceMotion = LocalVeritasMotion.current.reduceMotion
+    val pageVisible = LocalLibraryPageVisible.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var statIndex by remember(hasGoal) { mutableStateOf(0) }
-    LaunchedEffect(lifecycle, reduceMotion, hasGoal) {
+    LaunchedEffect(lifecycle, reduceMotion, hasGoal, pageVisible) {
         statIndex = 0
-        if (!reduceMotion) lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+        if (!reduceMotion && pageVisible) lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             while (true) {
                 delay(6_000)
                 statIndex = (statIndex + 1) % stats.size
@@ -113,14 +108,15 @@ internal fun HomeTodayReadingCard(
     Card(modifier.fillMaxWidth().testTag("home-today-reading-card"), shape = VeritasPackStyle.cardShape(),
         colors = CardDefaults.cardColors(containerColor = VeritasPackStyle.panelColor(scheme)),
         border = VeritasPackStyle.cardBorder(scheme)) {
-        Column(Modifier.readingPageCanvas()
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(Modifier.fillMaxWidth().clipToBounds()) {
-                    // Measure the actual page typography, including custom fonts/font scaling.
-                    // Every page uses the same single-line slots, so rotation cannot resize it.
-                    ReadingStatPage(stats.first(), 0, stats.size, fraction, hasGoal, goalMinutes, days,
-                        Modifier.graphicsLayer { alpha = 0f }.clearAndSetSemantics {})
+                    // Reserve the tallest page at the user's font scale, including wrapped text.
+                    // Rotating statistics must not move the books underneath this card.
+                    stats.forEachIndexed { index, stat ->
+                        ReadingStatPage(stat, index, stats.size, fraction, hasGoal, goalMinutes, weekReadingMillis,
+                            Modifier.graphicsLayer { alpha = 0f }.clearAndSetSemantics {})
+                    }
                     AnimatedContent(targetState = statIndex, modifier = Modifier.matchParentSize(),
                         transitionSpec = {
                             if (reduceMotion) fadeIn(tween(0)) togetherWith fadeOut(tween(0))
@@ -129,7 +125,7 @@ internal fun HomeTodayReadingCard(
                                 .using(null)
                         }, label = "todayReadingStats") { index ->
                         val page = index.coerceIn(stats.indices)
-                        ReadingStatPage(stats[page], page, stats.size, fraction, hasGoal, goalMinutes, days)
+                        ReadingStatPage(stats[page], page, stats.size, fraction, hasGoal, goalMinutes, weekReadingMillis)
                     }
                 }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -146,27 +142,13 @@ internal fun HomeTodayReadingCard(
 private data class ReadingCardStat(val title: String, val value: String, val detail: String)
 
 @Composable
-private fun ReadingStatText(stat: ReadingCardStat, modifier: Modifier = Modifier) {
-    val scheme = MaterialTheme.colorScheme
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(stat.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
-            color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(stat.value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold,
-            color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(stat.detail, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant,
-            maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
-}
-
-@Composable
 private fun ReadingStatPage(stat: ReadingCardStat, page: Int, pages: Int, fraction: Float,
-    hasGoal: Boolean, goalMinutes: Int, days: Int, modifier: Modifier = Modifier) {
+    hasGoal: Boolean, goalMinutes: Int, weekReadingMillis: List<Long>, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
-    val phase = rememberInsightsPhase("todayReadingGraphic")
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(stat.title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold, color = scheme.onSurface, maxLines = 1)
+            Text(stat.title, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall,
+                color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Canvas(Modifier.width((pages * 12).dp).heightIn(min = 8.dp).semantics {
                 contentDescription = "Statistic ${page + 1} of $pages"
             }) {
@@ -180,56 +162,50 @@ private fun ReadingStatPage(stat: ReadingCardStat, page: Int, pages: Int, fracti
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(.58f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(stat.value, style = MaterialTheme.typography.headlineSmall.copy(fontSize = 28.sp, lineHeight = 32.sp),
-                    fontWeight = FontWeight.Bold, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Column(Modifier.weight(.55f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(stat.value, style = MaterialTheme.typography.titleLarge,
+                    color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(stat.detail, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
-            Column(Modifier.weight(.42f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(if (page == 1) "Weekly rhythm" else if (page == 3) "Time well spent" else if (hasGoal) "${(fraction * 100).toInt()}% complete" else "Recorded time",
-                    style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1)
-                Canvas(Modifier.fillMaxWidth().requiredHeight(18.dp)) {
-                    val breath = sin(phase.value * 2f * PI.toFloat()) * .6.dp.toPx()
-                    if (page == 0) {
-                        val radius = size.height * .42f
-                        val center = Offset(size.width / 2f, size.height / 2f)
-                        drawCircle(scheme.onSurface.copy(alpha = .16f), radius, center, style = Stroke(1.5.dp.toPx()))
-                        drawLine(scheme.primary, center, center + Offset(0f, -radius * .65f), 1.5.dp.toPx(), StrokeCap.Round)
-                        drawLine(scheme.primary, center, center + Offset(radius * .55f, radius * .25f), 1.5.dp.toPx(), StrokeCap.Round)
-                        drawLine(scheme.onSurface.copy(alpha = .12f), Offset(0f, center.y), Offset(center.x - radius * 2f, center.y), 1.dp.toPx())
-                        drawLine(scheme.onSurface.copy(alpha = .12f), Offset(center.x + radius * 2f, center.y), Offset(size.width, center.y), 1.dp.toPx())
-                    } else if (page == 3) {
-                        val path = androidx.compose.ui.graphics.Path().apply {
-                            moveTo(0f, size.height * .85f)
-                            cubicTo(size.width * .35f, size.height * .85f, size.width * .65f, size.height * .15f, size.width, size.height * .15f)
-                        }
-                        drawPath(path, scheme.primary.copy(alpha = .65f), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
-                    } else if (page == 2) {
-                        val arc = Size(size.width - 4.dp.toPx(), size.height * 2 - 4.dp.toPx())
-                        val origin = Offset(2.dp.toPx(), 2.dp.toPx())
-                        drawArc(scheme.onSurface.copy(alpha = .12f), 180f, 180f, false, origin, arc,
-                            style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
-                        drawArc(scheme.primary, 180f, 180f * fraction, false, origin, arc,
-                            style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
-                    } else {
-                        val count = if (page == 1) 7 else 10
-                        val amount = if (page == 1) days.toFloat() else if (hasGoal) fraction * count else 0f
-                        val step = size.width / count
-                        repeat(count) { i ->
-                            val x = step * (i + .5f)
-                            val bottom = size.height - 2.dp.toPx()
-                            val top = 2.dp.toPx() + breath
-                            val ink = (amount - i).coerceIn(0f, 1f)
-                            drawLine(scheme.onSurface.copy(alpha = .12f), Offset(x, bottom), Offset(x, top),
-                                4.dp.toPx(), StrokeCap.Round)
-                            if (ink > 0f) drawLine(scheme.primary, Offset(x, bottom), Offset(x, bottom - (bottom - top) * ink),
+            Column(Modifier.weight(.45f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                val weekly = page == 1 || page == 3
+                Text(if (weekly) "Minutes by day" else if (hasGoal) "Daily progress" else "Your own pace",
+                    style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+                if (weekly) {
+                    val values = List(7) { weekReadingMillis.getOrElse(it) { 0L }.coerceAtLeast(0L) }
+                    Canvas(Modifier.fillMaxWidth().requiredHeight(24.dp).semantics {
+                        contentDescription = "Reading minutes, Monday to Sunday: " +
+                            values.joinToString(", ") { "${it / 60_000L}" }
+                    }) {
+                        val peak = values.maxOrNull()?.coerceAtLeast(60_000L) ?: 60_000L
+                        val step = size.width / 7
+                        val bottom = size.height - 2.dp.toPx()
+                        values.forEachIndexed { index, value ->
+                            val x = step * (index + .5f)
+                            drawCircle(scheme.onSurface.copy(alpha = .15f), 2.dp.toPx(), Offset(x, bottom))
+                            if (value > 0) drawLine(scheme.primary.copy(alpha = .8f), Offset(x, bottom),
+                                Offset(x, bottom - (size.height - 4.dp.toPx()) * value.toFloat() / peak),
                                 4.dp.toPx(), StrokeCap.Round)
                         }
                     }
+                    Row(Modifier.fillMaxWidth().clearAndSetSemantics {}) {
+                        listOf("M", "T", "W", "T", "F", "S", "S").forEach { day ->
+                            Text(day, Modifier.weight(1f), style = MaterialTheme.typography.labelSmall,
+                                color = scheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        }
+                    }
+                } else {
+                    Canvas(Modifier.fillMaxWidth().requiredHeight(24.dp)) {
+                        val y = size.height / 2
+                        drawLine(scheme.onSurface.copy(alpha = .12f), Offset(0f, y), Offset(size.width, y),
+                            4.dp.toPx(), StrokeCap.Round)
+                        if (hasGoal && fraction > 0f) drawLine(scheme.primary, Offset(0f, y), Offset(size.width * fraction, y),
+                            4.dp.toPx(), StrokeCap.Round)
+                    }
+                    Text(if (hasGoal) "$goalMinutes min target" else "No daily target",
+                        style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                 }
-                Text(if (page == 1 || page == 3) "$days active ${if (days == 1) "day" else "days"}" else if (hasGoal) "$goalMinutes min target" else "No daily target",
-                    style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1)
             }
         }
     }

@@ -67,7 +67,7 @@ fun AccessibilitySettingsDialog(
     val scheme = MaterialTheme.colorScheme
     FullScreenSettingsScaffold(title = "Accessibility", onBack = onDismiss) {
         Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Comfort comes first", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+            Text("Comfort comes first", style = MaterialTheme.typography.headlineSmall, color = scheme.onSurface)
             Text("Shape your reading space around what feels good to you.", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
         }
         AccessibilityGroup("Reading & focus") {
@@ -79,7 +79,7 @@ fun AccessibilitySettingsDialog(
             AccessibilityToggle("Reduce motion", "Keep decorative animations still.", settings.reduceMotion, onToggleReduceMotion)
             AccessibilityToggle("Reduce transparency", "Use solid panels for clearer text and controls.", settings.reduceTransparency, onToggleReduceTransparency)
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("High contrast", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+                Text("High contrast", style = MaterialTheme.typography.titleSmall, color = scheme.onSurface)
                 Text("Tap the selected preset again to restore your previous theme.", style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("dark_high_contrast" to "Dark", "white_high_contrast" to "Light", "amoled" to "AMOLED").forEach { (id, label) ->
@@ -99,7 +99,7 @@ fun AccessibilitySettingsDialog(
             AccessibilityToggle("Daily reading goal", "A small target to help make reading a habit.", goalOn, { onGoalMinutesChange(if (goalOn) 0 else 20) })
             if (goalOn) {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    Text("${settings.dailyGoalMinutes} minutes a day", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = scheme.primary)
+                    Text("${settings.dailyGoalMinutes} minutes a day", style = MaterialTheme.typography.titleMedium, color = scheme.primary)
                     VeritasSleekSlider(value = settings.dailyGoalMinutes.coerceIn(5, 180).toFloat(),
                         onValueChange = { onGoalMinutesChange(it.toInt().coerceIn(5, 180)) }, valueRange = 5f..180f, steps = 34)
                 }
@@ -117,8 +117,7 @@ fun AccessibilitySettingsDialog(
 
 @Composable
 private fun AccessibilityGroup(title: String, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
-    Text(title, Modifier.padding(top = 16.dp, bottom = 4.dp), style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+    Text(title, Modifier.padding(top = 16.dp, bottom = 4.dp), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
     Card(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
         Column(content = content)
@@ -130,7 +129,7 @@ private fun AccessibilityToggle(title: String, description: String, checked: Boo
     Row(Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+            Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
             Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         VeritasSwitch(checked = checked, onCheckedChange = { onToggle() })
@@ -165,7 +164,6 @@ fun AskAiSettingsDialog(
                 Text(
                     text = "AI Assistant Preference",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
@@ -181,7 +179,6 @@ fun AskAiSettingsDialog(
         Text(
             text = "Select Preferred AI App",
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
 
@@ -254,7 +251,7 @@ fun AskAiSettingsDialog(
                     )
                 } else if (!installed) {
                     TextButton(onClick = { onInstallAssistant(option.packageName) }) {
-                        Text("Install", fontWeight = FontWeight.Bold)
+                        Text("Install", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -265,7 +262,6 @@ fun AskAiSettingsDialog(
         Text(
             text = "Custom Prompt Template",
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
 
@@ -299,7 +295,7 @@ fun AskAiSettingsDialog(
             modifier = Modifier.fillMaxWidth(),
             shape = VeritasPackStyle.chipShape()
         ) {
-            Text("Save AI Settings", fontWeight = FontWeight.Bold)
+            Text("Save AI Settings", style = MaterialTheme.typography.labelLarge)
         }
     }
 }

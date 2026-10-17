@@ -80,26 +80,20 @@ fun OnboardingPersonaSelectionScreen(
         Text(
             text = "Choose Your Rhythm",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            lineHeight = 32.sp
-        )
+            color = MaterialTheme.colorScheme.onBackground)
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = "Vern tunes its typography, neural pacing, and synthesis tools to your reading discipline.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = 20.sp
-        )
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
             text = "Select your reading discipline:",
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary
         )
 
@@ -237,7 +231,6 @@ fun PersonaSquircleCard(
                 Text(
                     text = persona.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
@@ -249,9 +242,7 @@ fun PersonaSquircleCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    lineHeight = 13.sp
-                )
+                    maxLines = 2)
             }
 
             // Selection indicator badge

@@ -216,7 +216,6 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                         Text(
                             text = "⚡ RSVP Speed Reader",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
@@ -412,7 +411,6 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                             Text(
                                 text = if (audioNarration) "${String.format(java.util.Locale.ROOT, "%.2f", audioRate)}×" else "${wordsPerMinute.toInt()} WPM",
                                 style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.width(68.dp),
                                 textAlign = TextAlign.End
@@ -439,7 +437,6 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                                 Text(
                                     text = if (audioNarration) timingLabel else if (document.id == null) "Silent RSVP · save for audio" else "Silent visual RSVP",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }

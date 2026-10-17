@@ -800,7 +800,6 @@ fun ReaderScreen(
                         Text(
                             text = label,
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                         )

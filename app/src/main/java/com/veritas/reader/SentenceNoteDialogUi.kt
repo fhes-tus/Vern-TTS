@@ -165,7 +165,6 @@ internal fun SentenceNoteDialog(
                                     if (isThisPlaying) "▶️ Playing memo ${idx + 1} (${memo.second}s)"
                                     else "🎙️ Voice memo ${idx + 1} (${memo.second}s)",
                                     style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Medium,
                                     color = if (isThisPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f)
                                 )

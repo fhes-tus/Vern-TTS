@@ -270,7 +270,6 @@ fun BookCatalogBrowserDialog(
                                     Text(
                                         text = pageTitle.ifBlank { siteName },
                                         style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -319,7 +318,6 @@ fun BookCatalogBrowserDialog(
                             Text(
                                 text = downloadStatus,
                                 style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }

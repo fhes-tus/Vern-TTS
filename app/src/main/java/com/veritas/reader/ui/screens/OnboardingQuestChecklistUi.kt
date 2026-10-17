@@ -113,7 +113,6 @@ fun OnboardingQuestChecklist(
                         Text(
                             text = if (progress == 1f) "All Quests Complete! 🎉" else "Onboarding Quests",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
@@ -248,7 +247,6 @@ fun QuestItemRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
                 color = if (done) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface
             )
             Text(

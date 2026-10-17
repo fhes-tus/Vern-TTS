@@ -104,7 +104,7 @@ fun VeritasImportPreviewDialog(
 
                 if (pendingImport.isPptx) {
                     item {
-                        Text("Slides options", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                        Text("Slides options", style = MaterialTheme.typography.titleSmall)
                     }
                     item {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -146,7 +146,7 @@ fun VeritasImportPreviewDialog(
 
                 if (pendingImport.isPdf) {
                     item {
-                        Text("PDF options", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                        Text("PDF options", style = MaterialTheme.typography.titleSmall)
                     }
 
                     item {
@@ -271,7 +271,7 @@ fun VeritasImportPreviewDialog(
                     }
                 } else if (pendingImport.mimeType.contains("text") || pendingImport.mimeType.contains("html") || pendingImport.name.endsWith(".txt") || pendingImport.name.endsWith(".html") || pendingImport.name.endsWith(".htm")) {
                     item {
-                        Text("Text Options", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                        Text("Text Options", style = MaterialTheme.typography.titleSmall)
                     }
 
                     item {

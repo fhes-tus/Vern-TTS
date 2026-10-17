@@ -715,7 +715,6 @@ fun UserManualDialog(
                     Text(
                         text = "User Manual",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.weight(1f)
                     )
@@ -778,7 +777,6 @@ fun UserManualDialog(
                             text = "No matching manual sections found.\nTry searching for 'voice', 'dark mode', 'pdf', or 'backup'.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            lineHeight = 22.sp,
                             modifier = Modifier.padding(horizontal = 24.dp)
                         )
                     }
@@ -855,7 +853,6 @@ fun SectionCard(
                     Text(
                         text = section.title,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
@@ -937,7 +934,6 @@ fun ChapterCard(
                     Text(
                         text = chapter.title,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
@@ -962,9 +958,7 @@ fun ChapterCard(
                     Text(
                         text = chapter.content,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp
-                    )
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                     // Workflow steps if present
                     if (chapter.flowSteps.isNotEmpty()) {
@@ -979,7 +973,6 @@ fun ChapterCard(
                             Text(
                                 text = "Workflow Steps",
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.height(6.dp))
@@ -991,7 +984,6 @@ fun ChapterCard(
                                     Text(
                                         text = "${index + 1}. ",
                                         style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                     Text(

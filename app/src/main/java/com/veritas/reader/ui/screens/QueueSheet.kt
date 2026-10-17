@@ -76,7 +76,7 @@ fun VeritasQueueSheet(
         onDismissRequest = onDismiss,
         title = {
             Column {
-                Text("Play queue", fontWeight = FontWeight.Bold)
+                Text("Play queue", style = MaterialTheme.typography.labelLarge)
                 Text(
                     if (queue.isEmpty()) "Nothing queued"
                     else "${queue.size} reading${if (queue.size == 1) "" else "s"} · hold to reorder",
@@ -131,7 +131,6 @@ fun VeritasQueueSheet(
                                 Text(
                                     document.title,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )

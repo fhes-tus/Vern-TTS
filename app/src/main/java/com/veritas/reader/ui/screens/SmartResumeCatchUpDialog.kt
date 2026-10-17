@@ -74,7 +74,7 @@ fun SmartResumeCatchUpDialog(
                     )
                 }
                 Column {
-                    Text("Smart Resume Catch-Up", fontWeight = FontWeight.Bold)
+                    Text("Smart Resume Catch-Up", style = MaterialTheme.typography.titleLarge)
                     Text(
                         "$timeAgoText • Progress: ${((lastIndex + 1) * 100 / document.chunkCount.coerceAtLeast(1))}%",
                         style = MaterialTheme.typography.labelMedium,
@@ -93,7 +93,6 @@ fun SmartResumeCatchUpDialog(
                 Text(
                     document.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -120,7 +119,6 @@ fun SmartResumeCatchUpDialog(
                             Text(
                                 "Where you left off (Sentence ${lastIndex + 1}):",
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -128,7 +126,6 @@ fun SmartResumeCatchUpDialog(
                         Text(
                             text = if (recapText.isNotBlank()) "“$recapText”" else document.preview.ifBlank { "Ready to resume." },
                             style = MaterialTheme.typography.bodyMedium,
-                            lineHeight = 20.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

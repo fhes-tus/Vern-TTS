@@ -110,7 +110,7 @@ internal fun LazyListScope.studyQuizSection(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text("Saved Quizzes (${quizzes.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                    Text("Saved Quizzes (${quizzes.size})", style = MaterialTheme.typography.titleMedium)
                                     OutlinedButton(
                                         onClick = { onShowQuizLabMetrics() },
                                         shape = com.veritas.reader.VeritasPackStyle.chipShape(),
@@ -152,7 +152,7 @@ internal fun LazyListScope.studyQuizSection(
                                         }
                                     }
                                     Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        Text(quiz.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                                        Text(quiz.title, style = MaterialTheme.typography.bodyMedium)
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                             Text("${quiz.totalQuestions} Questions", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                             if (quiz.bestScore >= 0 && quiz.totalQuestions > 0) {
@@ -166,7 +166,6 @@ internal fun LazyListScope.studyQuizSection(
                                                     Text(
                                                         text = if (isMastered) "Mastered 🏆" else "Best: $calibratedBest/${quiz.totalQuestions}",
                                                         style = MaterialTheme.typography.labelSmall,
-                                                        fontWeight = FontWeight.Bold,
                                                         color = if (isMastered) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
                                                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                                     )
@@ -179,7 +178,7 @@ internal fun LazyListScope.studyQuizSection(
                                         shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                                     ) {
-                                        Text(if (quiz.isPlayable) "Play" else "Check quiz", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                        Text(if (quiz.isPlayable) "Play" else "Check quiz", style = MaterialTheme.typography.labelSmall)
                                     }
                                     IconButton(onClick = { onDeleteQuiz(quiz) }) {
                                         Icon(Icons.Filled.Delete, contentDescription = "Delete quiz", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
@@ -237,7 +236,7 @@ internal fun LazyListScope.studyHistorySection(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Recent history", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                Text("Recent history", style = MaterialTheme.typography.titleMedium)
                                 TextButton(onClick = { confirmClearHistory = true }) {
                                     Text("Clear all", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
@@ -353,7 +352,6 @@ internal fun LazyListScope.studyHistorySection(
                                                     Text(
                                                         text = (doc?.sourceLabel ?: "DOC").take(3).uppercase(),
                                                         style = MaterialTheme.typography.labelMedium,
-                                                        fontWeight = FontWeight.Black,
                                                         color = if (isRemoved) MaterialTheme.colorScheme.onSurfaceVariant
                                                         else MaterialTheme.colorScheme.onPrimaryContainer
                                                     )
@@ -366,7 +364,6 @@ internal fun LazyListScope.studyHistorySection(
                                             ) {
                                                 Text(
                                                     text = historyEntry.title,
-                                                    fontWeight = FontWeight.Bold,
                                                     style = MaterialTheme.typography.titleSmall,
                                                     color = if (isRemoved) {
                                                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
@@ -386,9 +383,7 @@ internal fun LazyListScope.studyHistorySection(
                                                             text = "Removed from library",
                                                             style = MaterialTheme.typography.labelSmall,
                                                             color = MaterialTheme.colorScheme.onErrorContainer,
-                                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                                            fontWeight = FontWeight.Bold
-                                                        )
+                                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                                     }
                                                 } else {
                                                     Row(
@@ -402,7 +397,6 @@ internal fun LazyListScope.studyHistorySection(
                                                             Text(
                                                                 "$percent%",
                                                                 style = MaterialTheme.typography.labelSmall,
-                                                                fontWeight = FontWeight.Bold,
                                                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                                             )

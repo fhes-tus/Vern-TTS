@@ -75,7 +75,7 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     DocumentArtwork(document, Modifier.size(46.dp).clearAndSetSemantics {}, compact = true)
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text(document.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(document.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(if (count > 0 && !needsStatus) "${if (playing) "Listening" else "Paused"} · Sentence ${index + 1} of $count" else status,
                             style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }

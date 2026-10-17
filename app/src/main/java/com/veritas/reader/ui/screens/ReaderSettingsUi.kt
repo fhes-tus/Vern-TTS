@@ -110,7 +110,6 @@ fun VeritasFontPicker(
                         text = font.label,
                         fontFamily = family,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
@@ -374,7 +373,6 @@ fun VeritasThemePicker(
         Text(
             text = "Appearance Mode",
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
@@ -410,7 +408,6 @@ fun VeritasThemePicker(
                             Text(
                                 text = label,
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
                                 maxLines = 1
                             )
                         }
@@ -436,7 +433,6 @@ fun VeritasThemePicker(
                             Text(
                                 text = label,
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Normal,
                                 maxLines = 1
                             )
                         }
@@ -449,7 +445,6 @@ fun VeritasThemePicker(
         Text(
             text = "Theme Palette Sets",
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
@@ -570,7 +565,6 @@ fun ReaderSettingsDialog(
                         Text(
                             "Theme pack: ${VeritasThemePackCatalog.displayName(settings.themePackId)}",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
@@ -617,7 +611,6 @@ fun ReaderSettingsDialog(
                         Text(
                             "Colour theme: ${VeritasThemeCatalog.displayName(settings.themeId)}",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
@@ -676,7 +669,6 @@ fun ReaderSettingsDialog(
                                 PaperToneMode.DARK -> "Paper tone: Dark slate"
                             },
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
@@ -753,7 +745,6 @@ fun ReaderSettingsDialog(
                         Text(
                             "Selected Font: ${settings.uiFontId.replaceFirstChar { it.uppercase() }}",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
@@ -797,13 +788,11 @@ fun ReaderSettingsDialog(
                     Text(
                         "Text size",
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         "${settings.fontSizeSp} sp",
                         style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -822,13 +811,11 @@ fun ReaderSettingsDialog(
                     Text(
                         "Line spacing",
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         "${settings.sectionSpacingDp} dp",
                         style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -862,13 +849,11 @@ fun ReaderSettingsDialog(
                         Text(
                             "Page number",
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             "Page $currentPage of $totalPages",
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -938,7 +923,7 @@ fun ReaderSettingsDialog(
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Vibrant hero card", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Vibrant hero card", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                         Text("Bold accent gradient on the home card", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     VeritasSwitch(checked = settings.vibrantHero, onCheckedChange = { onToggleVibrantHero() })
@@ -946,7 +931,7 @@ fun ReaderSettingsDialog(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Auto-play queue", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Auto-play queue", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                         Text("Automatically play next queued book", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     VeritasSwitch(checked = settings.autoPlayQueue, onCheckedChange = { onToggleAutoPlayQueue() })
@@ -954,7 +939,7 @@ fun ReaderSettingsDialog(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("AMOLED Mode", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("AMOLED Mode", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                         Text("Pure black background for dark themes and battery saving", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     VeritasSwitch(checked = settings.amoledMode, onCheckedChange = { onToggleAmoledMode() })

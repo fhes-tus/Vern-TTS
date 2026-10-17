@@ -147,7 +147,6 @@ internal fun CalendarHeatMap(
                     Text(
                         text = "Reading Activity",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -167,7 +166,6 @@ internal fun CalendarHeatMap(
                             Text(
                                 "Month",
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
                                 color = if (!isYearView) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
@@ -180,7 +178,6 @@ internal fun CalendarHeatMap(
                             Text(
                                 "Year",
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
                                 color = if (isYearView) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
@@ -219,7 +216,6 @@ internal fun CalendarHeatMap(
                         Text(
                             text = "${currentMonthData.name} $selectedYear",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         if (selectedMonthIndex != currentMonth || selectedYear != currentYear) {
@@ -265,13 +261,11 @@ internal fun CalendarHeatMap(
                         Text(
                             text = if (activeDaysInMonth > 0) "🔥 $activeDaysInMonth active days in ${currentMonthData.name}" else "No reading days yet in ${currentMonthData.name}",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
                             color = if (activeDaysInMonth > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "$percentage% consistency",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -286,7 +280,7 @@ internal fun CalendarHeatMap(
                     weekdays.forEach { day ->
                         Text(
                             text = day,
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             modifier = Modifier.weight(1f),
                             textAlign = TextAlign.Center
@@ -374,7 +368,6 @@ internal fun CalendarHeatMap(
                                         Text(
                                             text = "${day.dayOfMonth}",
                                             style = MaterialTheme.typography.bodySmall.copy(
-                                                fontSize = 11.sp,
                                                 fontWeight = if (isActive || isToday || isSelected) FontWeight.Black else FontWeight.Normal
                                             ),
                                             color = textColor,
@@ -421,7 +414,6 @@ internal fun CalendarHeatMap(
                                 Text(
                                     text = dateFormatted,
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
@@ -430,7 +422,7 @@ internal fun CalendarHeatMap(
                                         isInspectedOpened -> "Vern opened"
                                         else -> "No reading activity recorded"
                                     },
-                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -466,13 +458,12 @@ internal fun CalendarHeatMap(
                                 Text(
                                     name.take(3),
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
                                     color = if (selectedMonthIndex == mIdx) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
                                 if (activeInMonth > 0) {
                                     Text(
                                         "$activeInMonth",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                        style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Black
                                     )
@@ -509,7 +500,6 @@ internal fun CalendarHeatMap(
                                         Text(
                                             text = month.name.take(3),
                                             style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Black,
                                             color = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.padding(bottom = 4.dp)
                                         )

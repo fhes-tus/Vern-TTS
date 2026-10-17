@@ -144,7 +144,7 @@ private fun NotesAccentIcon(icon: ImageVector, accent: Color, size: Int = 36) {
 private fun NotesPaperChoices(selectedTemplate: NotesPaperTemplate, onSelect: (NotesPaperTemplate) -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Paper", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        Text("Paper", style = MaterialTheme.typography.titleSmall)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             NotesPaperTemplate.entries.forEach { template ->
                 val active = template == selectedTemplate
@@ -181,7 +181,7 @@ private fun NotesWritingPreview(settings: NotesSettings) {
                 Icon(Icons.Outlined.Palette, null, Modifier.size(16.dp), tint = scheme.tertiary)
                 Text("Live preview", style = MaterialTheme.typography.labelSmall, color = scheme.tertiary)
             }
-            Text("A thought worth keeping", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text("A thought worth keeping", style = MaterialTheme.typography.titleSmall)
             val bodyStyle = MaterialTheme.typography.bodyLarge.copy(
                 fontSize = MaterialTheme.typography.bodyLarge.fontSize * settings.editorFontScale,
                 lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * settings.editorFontScale * settings.editorLineSpacing)
@@ -204,7 +204,7 @@ private fun NotesWritingPreview(settings: NotesSettings) {
 @Composable
 private fun <T> NotesChoices(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     Column {
-        Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        Text(label, style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             options.forEach { (value, text) ->
                 FilterChip(selected == value, { onSelect(value) }, label = { Text(text) }, shape = VeritasPackStyle.chipShape(),
@@ -223,7 +223,7 @@ private fun NotesToggle(title: String, description: String, checked: Boolean, ic
         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         NotesAccentIcon(icon, MaterialTheme.colorScheme.primary, 32)
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(title, style = MaterialTheme.typography.titleSmall)
             Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         VeritasSwitch(checked = checked, onCheckedChange = onChange)

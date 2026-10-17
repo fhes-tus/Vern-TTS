@@ -114,61 +114,35 @@ fun VeritasUiFont.asTypeface(
     }
 }
 
-/**
- * The Veritas type ramp.
- *
- * Not Material 3 scaled by a constant. Two things shape it:
- *
- * 1. **The top of M3's ramp is far too generous for a phone reading app.** Nothing
- *    here is a marketing page; `displayLarge` at 57sp never had a job. The display
- *    and headline steps take the deepest cuts, titles a moderate one.
- *
- * 2. **The bottom cannot move.** `bodySmall`, `labelMedium` and `labelSmall` are
- *    the app's most-used roles (111, 45 and 35 call sites) and already sit at
- *    11-12sp. A user running system `font_scale` below 1.0 renders those smaller
- *    still — 11sp becomes 9.9sp at 0.9 — so they hold exactly where they are.
- *    Shrinking the whole ramp proportionally would have pushed captions past
- *    legibility to win space that the top of the ramp was wasting.
- *
- * The result compresses ~21% at the top and 0% at the bottom, which also opens up
- * M3's flat spots: stock has `titleSmall`, `bodyMedium` and `labelLarge` all at
- * 14sp and `bodySmall`/`labelMedium` both at 12sp, so a title and its caption were
- * separated only by weight. Here the title roles sit clear of the body roles.
- *
- * Line heights move with their sizes, each keeping its original ratio — shrinking
- * text while holding M3's line heights would have left the app looking airy and
- * loose rather than denser.
- *
- * `titleMedium` 15 / `bodyMedium` 13 were settled first, against the settings hub
- * on-device; the rest of the ramp is built to sit consistently around them.
- */
-private data class Step(val size: Int, val lineHeight: Int)
+/** Shared app-chrome hierarchy. Reader text keeps its independent font settings. */
+private data class Step(val size: Int, val lineHeight: Int, val weight: FontWeight)
 
 private val RAMP = mapOf(
-    // role            M3 size/line     Veritas
-    "displayLarge" to Step(45, 51),   // was 57/64
-    "displayMedium" to Step(36, 42),  // was 45/52
-    "displaySmall" to Step(30, 37),   // was 36/44
-    "headlineLarge" to Step(26, 33),  // was 32/40
-    "headlineMedium" to Step(23, 30), // was 28/36
-    "headlineSmall" to Step(20, 27),  // was 24/32  — the "Settings" header
-    "titleLarge" to Step(19, 24),     // was 22/28  — screen titles
-    "titleMedium" to Step(15, 22),    // was 16/24  — list-row titles
-    "titleSmall" to Step(13, 19),     // was 14/20
-    "bodyLarge" to Step(15, 22),      // was 16/24
-    "bodyMedium" to Step(13, 19),     // was 14/20  — row subtitles
-    "bodySmall" to Step(12, 16),      // unchanged  — floor
-    "labelLarge" to Step(13, 19),     // was 14/20
-    "labelMedium" to Step(12, 16),    // unchanged  — floor
-    "labelSmall" to Step(11, 16)      // unchanged  — floor
+    "displayLarge" to Step(36, 44, FontWeight.SemiBold),
+    "displayMedium" to Step(32, 40, FontWeight.SemiBold),
+    "displaySmall" to Step(28, 36, FontWeight.SemiBold),
+    "headlineLarge" to Step(26, 34, FontWeight.SemiBold),
+    "headlineMedium" to Step(24, 32, FontWeight.SemiBold),
+    "headlineSmall" to Step(22, 29, FontWeight.SemiBold),
+    "titleLarge" to Step(22, 28, FontWeight.SemiBold),
+    "titleMedium" to Step(17, 24, FontWeight.Medium),
+    "titleSmall" to Step(15, 21, FontWeight.Medium),
+    "bodyLarge" to Step(16, 24, FontWeight.Normal),
+    "bodyMedium" to Step(14, 21, FontWeight.Normal),
+    "bodySmall" to Step(12, 18, FontWeight.Normal),
+    "labelLarge" to Step(14, 20, FontWeight.Medium),
+    "labelMedium" to Step(12, 16, FontWeight.Medium),
+    "labelSmall" to Step(11, 16, FontWeight.Medium)
 )
 
 private fun TextStyle.step(role: String, family: FontFamily?): TextStyle {
-    val s = RAMP.getValue(role)
+    val step = RAMP.getValue(role)
     return copy(
         fontFamily = family ?: fontFamily,
-        fontSize = s.size.sp,
-        lineHeight = s.lineHeight.sp
+        fontSize = step.size.sp,
+        lineHeight = step.lineHeight.sp,
+        fontWeight = step.weight,
+        letterSpacing = if (role.startsWith("display") || role.startsWith("headline")) (-0.25).sp else 0.sp
     )
 }
 

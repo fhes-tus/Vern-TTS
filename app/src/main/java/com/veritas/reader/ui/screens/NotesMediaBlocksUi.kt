@@ -542,10 +542,7 @@ internal fun NoteFileBlockItem(
                         )
                         Text(
                             text = ext.take(4),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 9.sp
-                        )
+                            style = MaterialTheme.typography.labelSmall,)
                     }
                 }
             }
@@ -554,7 +551,6 @@ internal fun NoteFileBlockItem(
                 Text(
                     text = fileName,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
                     color = onCardColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

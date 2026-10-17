@@ -131,7 +131,7 @@ internal fun NotesHeaderActions(
 @Composable
 internal fun LibrarySortControl(sort: String, onSort: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+    Row(horizontalArrangement = Arrangement.End) {
         Box {
             TextButton({ expanded = true }) { Text("Sort: $sort") }
             DropdownMenu(expanded, { expanded = false }) {

@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -116,7 +117,7 @@ internal fun StudyEmptyState(
                 modifier = Modifier.size(40.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(title, style = MaterialTheme.typography.titleLarge)
             Text(
                 description,
                 style = MaterialTheme.typography.bodyMedium,
@@ -288,7 +289,6 @@ internal fun FlashcardSetTile(
             Text(
                 set.name,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
@@ -324,7 +324,6 @@ internal fun FlashcardSetTile(
                                     "$n $label",
                                     color = color,
                                     style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp)
                                 )
                             }
@@ -442,7 +441,6 @@ internal fun FlashcardViewerDialog(
                     Text(
                         setName,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
@@ -546,7 +544,6 @@ internal fun FlashcardViewerDialog(
                                     Text(
                                         text = if (isShowingBack) "ANSWER · TAP TO FLIP" else "QUESTION · TAP TO FLIP",
                                         style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
                                         color = if (isShowingBack) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                     )
@@ -633,13 +630,12 @@ internal fun FlashcardViewerDialog(
                                 Text(
                                     if (selected) "✓$label" else label,
                                     style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
                                     color = Color.White,
                                     maxLines = 1
                                 )
                                 Text(
                                     intervalHint,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    style = MaterialTheme.typography.labelSmall,
                                     color = Color.White.copy(alpha = 0.85f),
                                     maxLines = 1
                                 )
@@ -674,106 +670,28 @@ internal fun FlashcardViewerDialog(
 
 @Composable
 internal fun StudyDailyReviewHeroCard(
-    completionPercent: Int,
     cardsToReview: Int,
     onStartReview: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Card(
         modifier = modifier.fillMaxWidth().vernScatteredCard("study-review", amount = .45f),
-        shape = com.veritas.reader.VeritasPackStyle.cardShape(),
-        colors = CardDefaults.cardColors(
-            containerColor = com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
+        shape = VeritasPackStyle.cardShape(),
+        colors = CardDefaults.cardColors(containerColor = VeritasPackStyle.panelColor(colors)),
+        border = VeritasPackStyle.cardBorder(colors)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Box(
-                modifier = Modifier.size(80.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                val primaryColor = MaterialTheme.colorScheme.primary
-                val trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
-                val animatedProgress by animateFloatAsState(
-                    targetValue = (completionPercent.coerceIn(0, 100)) / 100f,
-                    animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow(),
-                    label = "review_gauge"
-                )
-
-                androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                    val strokeWidth = 7.dp.toPx()
-                    drawCircle(
-                        color = trackColor,
-                        style = Stroke(width = strokeWidth)
-                    )
-                    drawArc(
-                        color = primaryColor,
-                        startAngle = -90f,
-                        sweepAngle = animatedProgress * 360f,
-                        useCenter = false,
-                        style = Stroke(width = strokeWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-                    )
-                }
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = if (completionPercent == 0 && cardsToReview == 0) "—" else "$completionPercent%",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text("Not due", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "Review queue",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "$cardsToReview ${if (cardsToReview == 1) "flashcard" else "flashcards"} due",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Button(
-                    onClick = onStartReview,
-                    shape = com.veritas.reader.VeritasPackStyle.chipShape(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.PlayArrow,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = if (cardsToReview > 0) "Start Review" else "Browse cards",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Your next review", style = MaterialTheme.typography.labelLarge, color = colors.onSurfaceVariant)
+            Text(if (cardsToReview > 0) "$cardsToReview ${if (cardsToReview == 1) "card" else "cards"} ready" else "All caught up",
+                style = MaterialTheme.typography.headlineSmall, color = colors.onSurface)
+            Text(if (cardsToReview > 0) "Pick up where you left off with a short review." else "No cards are due. You can still browse your flashcards.",
+                style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+            Button(onClick = onStartReview, shape = VeritasPackStyle.chipShape(),
+                modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                Icon(Icons.Filled.PlayArrow, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(if (cardsToReview > 0) "Start review" else "Browse cards", style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -819,7 +737,6 @@ internal fun StudyAiToolCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
@@ -855,14 +772,12 @@ internal fun StudyActiveDeckItem(
             Text(
                 text = "$indexNumber)",
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

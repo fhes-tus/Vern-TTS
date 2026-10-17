@@ -39,6 +39,7 @@ import androidx.compose.material3.DropdownMenu
 import com.veritas.reader.rememberSaveBookToPhone
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -148,21 +149,12 @@ internal fun RecentImportItem(
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = document.title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            val subtitleText = buildString {
-                append(document.sourceLabel)
-                append(" • ")
-                append(formatEstimatedReadTime(document))
-                val progress = progressPercent(document)
-                if (progress > 0) {
-                    append(" • $progress% read")
-                }
-            }
+            val subtitleText = com.veritas.reader.libraryReadingSummary(document)
             Text(
                 text = subtitleText,
                 style = MaterialTheme.typography.bodySmall,
@@ -279,7 +271,6 @@ internal fun HomeRecentBookGridItem(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
@@ -318,7 +309,7 @@ fun EmptyLibraryCard(onImportFile: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             BrandMark(compact = true)
-            Text("No saved readings yet", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+            Text("No saved readings yet", style = MaterialTheme.typography.titleLarge)
             Text(
                 "Import a file or paste text to create your first local reading item. Progress, annotations, and queue state will be saved automatically.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -446,7 +437,6 @@ fun DocumentCard(
                     Text(
                         if (selected) "✓" else "★",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
                         color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
                     )
                 } else {
@@ -463,12 +453,11 @@ fun DocumentCard(
                 Text(
                     document.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    "${document.sourceLabel} • ${progressPercent(document)}% • ${formatEstimatedReadTime(document)} • ${document.chunkCount} sent.",
+                    com.veritas.reader.libraryReadingSummary(document),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -502,7 +491,7 @@ fun DocumentCard(
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 if (selectionMode) {
                     Box(
@@ -518,33 +507,21 @@ fun DocumentCard(
                         Text(if (selected) "✓" else "+", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 } else {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f))
-                            .clickable { onShowDetails() },
-                        contentAlignment = Alignment.Center
-                    ) {
+                    IconButton(onClick = onShowDetails, modifier = Modifier.size(48.dp)) {
                         Icon(
                             imageVector = Icons.Outlined.Info,
                             contentDescription = "Book Summary & Details",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            modifier = Modifier.size(15.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                     Box {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape)
-                                .clickable { showActions = true },
-                            contentAlignment = Alignment.Center
-                        ) {
+                        IconButton(onClick = { showActions = true }, modifier = Modifier.size(48.dp)) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
                                 contentDescription = "Document actions",
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         DropdownMenu(
@@ -777,20 +754,13 @@ fun DocumentTileCard(
                 minLines = 2,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            val subtitleText = buildString {
-                append(formatEstimatedReadTime(document))
-                val progress = progressPercent(document)
-                if (progress > 0) {
-                    append(" • $progress% read")
-                }
-            }
+            val subtitleText = com.veritas.reader.libraryReadingSummary(document)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically

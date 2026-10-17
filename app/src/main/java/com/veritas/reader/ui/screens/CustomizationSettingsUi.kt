@@ -39,12 +39,12 @@ internal fun CustomizationSettingsDialog(settings: ReaderSettings, onSave: (Read
                     Image(painterResource(R.drawable.vern_v_cream), null, Modifier.size(50.dp), colorFilter = ColorFilter.tint(Color(palette.foreground)))
                 }
                 Column(Modifier.weight(1f)) {
-                    Text("Make Vern yours", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text("Make Vern yours", style = MaterialTheme.typography.titleLarge)
                     Text("Colours, card character and page motion.", style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
-        Text("App icon colours", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text("App icon colours", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleMedium)
         Text("Choose a palette for your launcher icon. The launcher updates when you leave Vern, so your settings stay open.", style = MaterialTheme.typography.bodyMedium)
         FilterChip(settings.launcherPalette == "theme", { onSave(settings.copy(launcherPalette = "theme")) },
             modifier = Modifier.testTag("icon-follow-theme"), label = { Text("Follow my colour theme") })
@@ -63,7 +63,7 @@ internal fun CustomizationSettingsDialog(settings: ReaderSettings, onSave: (Read
             }
         }
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        Text("Startup animation", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text("Startup animation", style = MaterialTheme.typography.titleMedium)
         CustomizationChoices(settings.splashAnimation, listOf("bloom" to "Bloom", "fade" to "Fade", "rise" to "Rise", "none" to "None")) {
             previewRun++
             onSave(settings.copy(splashAnimation = it))
@@ -78,7 +78,7 @@ internal fun CustomizationSettingsDialog(settings: ReaderSettings, onSave: (Read
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Funky cards", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("Funky cards", style = MaterialTheme.typography.titleMedium)
                 Text("Books, Notes and dashboard cards drop into varied tilts and offsets. Each card keeps its place.", style = MaterialTheme.typography.bodyMedium)
             }
             Switch(settings.scatteredCards, { onSave(settings.copy(scatteredCards = it)) }, Modifier.testTag("scattered-cards-switch"))
@@ -87,12 +87,12 @@ internal fun CustomizationSettingsDialog(settings: ReaderSettings, onSave: (Read
             listOf("book-a", "note-b", "book-c").forEachIndexed { i, key ->
                 Card(Modifier.weight(1f).fillMaxHeight().vernScatteredCard(key, settings.scatteredCards), shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = if (i == 1) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primaryContainer)) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(if (i == 1) "Notes" else "Book", fontWeight = FontWeight.Bold) }
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(if (i == 1) "Notes" else "Book", style = MaterialTheme.typography.labelLarge) }
                 }
             }
         }
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        Text("Reading page turns", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text("Reading page turns", style = MaterialTheme.typography.titleMedium)
         CustomizationChoices(settings.pageTurnStyle, listOf("slide" to "Slide", "flip" to "Page curl", "hinge" to "Light flip", "none" to "None")) { onSave(settings.copy(pageTurnStyle = it)) }
         Text("Page curl bends text pages with a shaded paper reverse. Light flip uses a simpler spine rotation. Native PDF and original-document viewers keep their own navigation.", style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(12.dp))
@@ -128,7 +128,7 @@ private fun StartupMotionPreview(palette: VernIconPalette, style: String, reduce
         .clip(RoundedCornerShape(26.dp))
         .background(Color(palette.background), RoundedCornerShape(26.dp)), contentAlignment = Alignment.Center) {
         if (finished && style != "bloom") {
-            Text("Vern is ready", Modifier.testTag("startup-preview-ready"), color = Color(palette.foreground), fontWeight = FontWeight.SemiBold)
+            Text("Vern is ready", Modifier.testTag("startup-preview-ready"), color = Color(palette.foreground), style = MaterialTheme.typography.labelLarge)
         } else Image(painterResource(R.drawable.vern_v_cream), "Startup preview",
             Modifier.size(100.dp).testTag("startup-preview-logo").graphicsLayer {
                 alpha = pose.alpha

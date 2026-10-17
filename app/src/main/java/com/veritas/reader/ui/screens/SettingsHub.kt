@@ -153,7 +153,7 @@ fun SettingsHubDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Settings", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
+                    Text("Settings", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
                     TextButton(onClick = onDismiss) { Text("Close") }
                 }
                 Column(
@@ -316,7 +316,6 @@ fun SettingsHubDialog(
                             Text(
                                 text = OnboardingStep.SETTINGS_SPOTLIGHT.title,
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             IconButton(
@@ -337,7 +336,6 @@ fun SettingsHubDialog(
                         Text(
                             text = OnboardingStep.SETTINGS_SPOTLIGHT.body,
                             style = MaterialTheme.typography.bodyMedium,
-                            lineHeight = 20.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
 
@@ -424,8 +422,7 @@ fun StorageDialog(
                 } else {
                     Text(
                         "Vern is using ${formatVeritasBytes(breakdown.totalBytes)} across ${breakdown.documentCount} document${if (breakdown.documentCount == 1) "" else "s"}",
-                        fontWeight = FontWeight.Bold
-                    )
+                        style = MaterialTheme.typography.bodyLarge)
                     Text("Original books & files: ${formatVeritasBytes(breakdown.originalsBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Extracted text: ${formatVeritasBytes(breakdown.textBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Covers & thumbnails: ${formatVeritasBytes(breakdown.coversBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -481,7 +478,6 @@ fun SettingsHubSectionTitle(title: String) {
     Text(
         title.uppercase(currentLocale),
         style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.Bold,
         letterSpacing = 0.8.sp,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = 10.dp, bottom = 2.dp, start = 4.dp)
@@ -575,7 +571,6 @@ fun SettingsHubRow(row: SettingsRowSpec) {
             Text(
                 text = row.title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
@@ -628,7 +623,7 @@ internal fun FullScreenSettingsScaffold(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
-                    Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                 }
                 Column(
                     modifier = Modifier

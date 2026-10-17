@@ -84,7 +84,7 @@ internal fun PdfImportOptionsDialog(
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                    Text("PDF & import tools", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text("PDF & import tools", style = MaterialTheme.typography.titleLarge)
                 }
             LazyColumn(
                 modifier = Modifier

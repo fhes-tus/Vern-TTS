@@ -139,7 +139,7 @@ internal fun ReaderDocumentDetailsDialog(
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                Text("Document Details", fontWeight = FontWeight.Bold)
+                Text("Document Details", style = MaterialTheme.typography.titleLarge)
             }
         },
         text = {
@@ -154,15 +154,11 @@ internal fun ReaderDocumentDetailsDialog(
                         Text(
                             text = item.label,
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Medium
-                        )
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             text = item.value,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                            color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -237,7 +233,7 @@ fun SleepTimerDialog(
                                 modifier = Modifier.weight(1f),
                                 verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                Text(activeLabel, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleSmall)
+                                Text(activeLabel, style = MaterialTheme.typography.titleSmall)
                                 Text(
                                     activeTimer.action.label,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -499,7 +495,6 @@ internal fun ReaderDialogsAndSheetsHost(
                     Text(
                         text = if (isAlreadyBookmarked) "Bookmark Options" else "Highlight Passage",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     if (isAlreadyBookmarked) {
@@ -600,9 +595,7 @@ internal fun ReaderDialogsAndSheetsHost(
             title = {
                 Text(
                     text = "Ask AI",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                    style = MaterialTheme.typography.titleMedium)
             },
             text = {
                 Column(
@@ -719,7 +712,7 @@ internal fun ReaderDialogsAndSheetsHost(
                         onDismissShareToAi()
                     }
                 ) {
-                    Text("Share", fontWeight = FontWeight.Bold)
+                    Text("Share", style = MaterialTheme.typography.labelLarge)
                 }
             },
             dismissButton = {
@@ -774,7 +767,6 @@ fun JumpToPageDialog(
             Text(
                 "Jump to Page",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
         },
@@ -802,9 +794,7 @@ fun JumpToPageDialog(
                         { Text("Please enter 1 to $pageCount", color = MaterialTheme.colorScheme.error) }
                     } else null,
                     textStyle = MaterialTheme.typography.titleLarge.copy(
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold
-                    ),
+                        textAlign = TextAlign.Center),
                     shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                         keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
@@ -826,7 +816,7 @@ fun JumpToPageDialog(
                 enabled = isValid,
                 shape = VeritasPackStyle.chipShape()
             ) {
-                Text("Jump", fontWeight = FontWeight.Bold)
+                Text("Jump", style = MaterialTheme.typography.labelLarge)
             }
         },
         dismissButton = {

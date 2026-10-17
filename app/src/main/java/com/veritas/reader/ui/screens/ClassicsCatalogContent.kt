@@ -109,7 +109,7 @@ fun ClassicsCatalogContent(
                         ClassicBookCover(book, width = 72.dp, height = 108.dp)
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text("This week’s pick", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-                            Text(book.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text(book.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text(book.author, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text("${book.genre} · ~${book.estimatedMinutes} min", style = MaterialTheme.typography.labelSmall)
                         }
@@ -147,7 +147,7 @@ fun ClassicsCatalogContent(
             item("shelf_$name") {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(Modifier.padding(horizontal = 16.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                        Text(name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                         Text("${books.size} books", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -187,7 +187,7 @@ private fun ClassicShelfCard(book: ClassicBookEntry, state: ClassicDownloadState
             Column(Modifier.clickable(onClickLabel = "Details for ${book.title}", onClick = onPreview)) {
                 BookCoverStage(height = 144.dp) { ClassicBookCover(book, width = 80.dp, height = 120.dp) }
                 Spacer(Modifier.height(6.dp))
-                Text(book.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                Text(book.title, style = MaterialTheme.typography.titleSmall,
                     minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text("${book.author} · ~${book.estimatedMinutes} min", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -218,7 +218,7 @@ private fun ClassicCatalogRow(book: ClassicBookEntry, state: ClassicDownloadStat
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Column(Modifier.clickable(onClick = onPreview)) {
-                    Text(book.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                    Text(book.title, style = MaterialTheme.typography.titleSmall,
                         maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text("${book.author} · ${book.genre}", style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)

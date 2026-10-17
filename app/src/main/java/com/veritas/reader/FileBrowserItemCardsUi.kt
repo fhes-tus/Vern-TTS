@@ -245,9 +245,7 @@ internal fun FileBrowserFileRow(
                 Text(
                     text = if (file.isDirectory) "Open" else if (file.isSupported) "Import" else "Unsupported",
                     color = if (buttonEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                    style = MaterialTheme.typography.labelMedium)
             }
         }
     }
@@ -331,7 +329,6 @@ internal fun FileBrowserFileTileCard(
                 text = file.name,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -367,9 +364,7 @@ internal fun FileBrowserFileTileCard(
                     Text(
                         text = if (file.name == GO_UP_FILE_NAME) "Go Up" else if (file.isDirectory) "Open" else if (file.isSupported) "Import" else "Unsupported",
                         color = if (buttonEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                        style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
@@ -520,7 +515,6 @@ internal fun DeletePreviewRow(file: VeritasBrowserFile) {
             Text(
                 file.name,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -614,9 +608,7 @@ internal fun FileBrowserEmptyState(
             ) {
                 Text(
                     "No file access yet",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black
-                )
+                    style = MaterialTheme.typography.titleMedium)
                 Text(
                     "Grant All Files access for broad phone storage browsing, or choose specific folders to scan.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant

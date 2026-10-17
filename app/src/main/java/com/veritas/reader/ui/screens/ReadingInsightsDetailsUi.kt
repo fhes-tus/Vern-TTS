@@ -49,7 +49,7 @@ internal fun InsightsDetailCard(title: String? = null, icon: ImageVector? = null
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (title != null) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (icon != null) InsightsDetailEmblem(icon, "insights-detail-$title")
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             }
             content()
         }
@@ -102,7 +102,7 @@ internal fun InsightsBookCard(document: SavedDocument, sessions: List<ReadingSes
                     }, compact = true)
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(document.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
+                Text(document.title, style = MaterialTheme.typography.titleMedium,
                     maxLines = 3, overflow = TextOverflow.Ellipsis)
                 if (finishedAt != null) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp), tint = scheme.primary)
@@ -149,7 +149,7 @@ internal fun InsightsModeBars(reading: Long, listening: Long, key: String) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(label, style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
-                    Text(formatTrackerDuration(duration), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                    Text(formatTrackerDuration(duration), style = MaterialTheme.typography.labelMedium)
                 }
                 Canvas(Modifier.fillMaxWidth().height(9.dp).testTag("insights-mode-$key-$label").semantics {
                     contentDescription = "$label: ${formatTrackerDuration(duration)}"
@@ -195,7 +195,7 @@ internal fun InsightsGoalRing(totalMillis: Long, goalMinutes: Int) {
             Icon(if (progress >= 1f) Icons.Default.Check else Icons.Default.Flag, null, Modifier.size(26.dp), tint = scheme.primary)
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Today total ${formatTrackerDuration(totalMillis)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("Today total ${formatTrackerDuration(totalMillis)}", style = MaterialTheme.typography.titleMedium)
             Text(if (goalMinutes > 0) "${formatTrackerDuration(totalMillis)} of ${goalMinutes}m" else "Choose your daily target",
                 style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
             if (progress >= 1f && goalMinutes > 0) Text("Goal reached", style = MaterialTheme.typography.labelMedium, color = scheme.primary)
@@ -217,7 +217,7 @@ internal fun InsightsSessionCard(session: ReadingSession, document: SavedDocumen
                 Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = tint)
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(session.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                Text(session.title, style = MaterialTheme.typography.titleSmall,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text("$mode · ${formatTrackerDuration(session.activeMillis)}", style = MaterialTheme.typography.bodyMedium, color = tint)
                 Text(insightsTime(session.startedAt), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)

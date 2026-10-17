@@ -208,7 +208,6 @@ internal fun SelectedTextActionCard(
                     Text(
                         text = "Selected Text Actions",
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -302,7 +301,6 @@ internal fun ActualDocumentUnavailableNotice(
             Text(
                 text = "⚠️ original document view is unavailable",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.error
             )
             Text(

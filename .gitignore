@@ -81,3 +81,6 @@ __pycache__/
 # Signed release binaries and exact-build symbol mappings stay local.
 /release/**/builds/
 /release/**/symbols/
+/release/backup*/
+/release/original-backup*/
+

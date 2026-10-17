@@ -100,6 +100,7 @@ internal fun LibraryBooksTab(
     readingListFilter: String,
     onReadingListFilterChange: (String) -> Unit,
     sortMode: String,
+    onSortModeChange: (String) -> Unit,
     columnCount: Int,
     libraryViewMode: LibraryViewMode,
     onLibraryViewModeChange: (LibraryViewMode) -> Unit,
@@ -281,6 +282,7 @@ internal fun LibraryBooksTab(
                     onCollectionFilterChange("All")
                     onReadingListFilterChange("All")
                 }) { Text("Reset") }
+                LibrarySortControl(sortMode, onSortModeChange)
             }
         }
         if (selectedHomeTab == VeritasHomeTab.LIBRARY && selectionMode) item {
@@ -367,7 +369,7 @@ internal fun LibraryBooksTab(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Text(if (libraryQuery.isNotBlank()) "No results for “${libraryQuery.trim()}”" else "No matching readings", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                        Text(if (libraryQuery.isNotBlank()) "No results for “${libraryQuery.trim()}”" else "No matching readings", style = MaterialTheme.typography.titleMedium)
                         Text("Clear the search or change filters to see more saved readings.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         OutlinedButton(
                             onClick = {

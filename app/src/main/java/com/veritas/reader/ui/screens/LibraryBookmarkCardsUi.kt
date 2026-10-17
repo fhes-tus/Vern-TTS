@@ -218,7 +218,6 @@ internal fun BookmarkDocumentCard(
                         Text(
                             text = document.title,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -375,7 +374,6 @@ internal fun BookmarkGroupCard(
                 Text(
                     text = collapsedText,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -442,9 +440,7 @@ internal fun BookmarkGroupCard(
                             Text(
                                 text = "Open in document ↗",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
+                                color = MaterialTheme.colorScheme.primary)
                         }
 
                         Box {

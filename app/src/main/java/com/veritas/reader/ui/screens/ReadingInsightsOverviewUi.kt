@@ -53,16 +53,16 @@ internal fun InsightsStreaksCard(snapshot: ReaderTrackerSnapshot, weekKeys: List
             .insightsCardGraphic(scheme.primary, scheme.tertiary, phase)
             .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Streaks", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("Streaks", style = MaterialTheme.typography.titleMedium)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 InsightsStreakEmblem(trophy = false)
                 Column(Modifier.weight(1f)) {
-                    Text("$current", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+                    Text("$current", style = MaterialTheme.typography.headlineLarge)
                     Text("Current streak", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     InsightsStreakEmblem(trophy = true)
-                    Text("$best days", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("$best days", style = MaterialTheme.typography.titleMedium)
                     Text("Best", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
                 }
             }
@@ -161,10 +161,10 @@ internal fun InsightsWeeklyAppCard(snapshot: ReaderTrackerSnapshot, weekStart: L
         Column(Modifier.background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primaryContainer.copy(alpha = .20f), MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .28f)))).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Default.Schedule, null, tint = MaterialTheme.colorScheme.primary)
-                Text("Weekly App Activity", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("Weekly App Activity", style = MaterialTheme.typography.titleMedium)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-                Text(formatTrackerDuration(shown.totalMillis), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text(formatTrackerDuration(shown.totalMillis), style = MaterialTheme.typography.headlineMedium)
                 Text("${formatTrackerDuration(shown.totalMillis / 7)} / day", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             WeeklyReadingBarsPager(history, barHeight = 82.dp, chartLabel = "Weekly app activity", accented = true, onWeekChanged = { shown = it })
@@ -210,8 +210,8 @@ internal fun InsightsReadingRing(snapshot: ReaderTrackerSnapshot, weekKeys: List
                 }
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(formatTrackerDuration(total), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text("This week", fontSize = 10.sp, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                Text(formatTrackerDuration(total), style = MaterialTheme.typography.titleLarge)
+                Text("This week", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
             }
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -219,7 +219,7 @@ internal fun InsightsReadingRing(snapshot: ReaderTrackerSnapshot, weekKeys: List
                 if (index < 2 || legacy > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(Modifier.size(7.dp).background(colors[index], CircleShape))
                     Column {
-                        Text(formatTrackerDuration(amounts[index]), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(formatTrackerDuration(amounts[index]), style = MaterialTheme.typography.titleMedium)
                         Text(label, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                     }
                 }

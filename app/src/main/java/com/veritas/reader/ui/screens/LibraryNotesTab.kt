@@ -296,7 +296,6 @@ internal fun LibraryNotesTab(
                                                         Text(
                                                             text = if (noteSearchQuery.isNotBlank()) "No matching notes" else if (showTrash) "Trash is empty" else "No notes found",
                                                             style = MaterialTheme.typography.titleMedium,
-                                                            fontWeight = FontWeight.Bold,
                                                             color = MaterialTheme.colorScheme.onSurface
                                                         )
                                                         Text(
@@ -417,7 +416,6 @@ internal fun LibraryNotesTab(
                                                                                 Text(
                                                                                     text = "Pinned",
                                                                                     style = MaterialTheme.typography.labelSmall,
-                                                                                    fontWeight = FontWeight.Bold,
                                                                                     color = MaterialTheme.colorScheme.primary
                                                                                 )
                                                                             }
@@ -465,7 +463,6 @@ internal fun LibraryNotesTab(
                                                                     if (generalNote.title.isNotBlank()) {
                                                                         Text(
                                                                             generalNote.title,
-                                                                            fontWeight = FontWeight.Bold,
                                                                             style = MaterialTheme.typography.titleSmall,
                                                                             color = onCardColor,
                                                                             maxLines = 1,
@@ -584,7 +581,7 @@ internal fun LibraryNotesTab(
                                                                             )
                                                                             Text(
                                                                                 text = mLabel,
-                                                                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                                                                style = MaterialTheme.typography.bodySmall,
                                                                                 color = onCardColor,
                                                                                 maxLines = 1,
                                                                                 overflow = TextOverflow.Ellipsis
@@ -627,7 +624,7 @@ internal fun LibraryNotesTab(
                                                                             )
                                                                             Text(
                                                                                 text = mLabel,
-                                                                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                                                                style = MaterialTheme.typography.bodySmall,
                                                                                 color = onCardColor,
                                                                                 maxLines = 1,
                                                                                 overflow = TextOverflow.Ellipsis
@@ -875,7 +872,6 @@ internal fun LibraryNotesTab(
                                                     Text(
                                                         text = "PINNED",
                                                         style = MaterialTheme.typography.labelMedium,
-                                                        fontWeight = FontWeight.Bold,
                                                         color = MaterialTheme.colorScheme.primary,
                                                         modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
                                                     )
@@ -921,7 +917,6 @@ internal fun LibraryNotesTab(
                                                         Text(
                                                             text = "OTHERS",
                                                             style = MaterialTheme.typography.labelMedium,
-                                                            fontWeight = FontWeight.Bold,
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                             modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
                                                         )

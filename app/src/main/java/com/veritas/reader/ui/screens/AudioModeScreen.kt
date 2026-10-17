@@ -185,7 +185,7 @@ fun AudioModeScreen(
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Column(Modifier.weight(1f)) {
-                        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
+                        Text(title, style = MaterialTheme.typography.titleLarge,
                             color = scheme.onBackground, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Text(if (totalChunks > 0) "Sentence ${index + 1} of $totalChunks" else "Ready to listen",
                             style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
@@ -333,7 +333,7 @@ private fun ListenSentenceList(chunks: List<String>, currentIndex: Int, onSenten
                 Text(sentence, Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                     .graphicsLayer { this.alpha = alpha; scaleX = scale; scaleY = scale; translationY = with(density) { lift.dp.toPx() } }
                     .semantics { selected = active }.clickable { onSentenceClick(index) },
-                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 20.sp, lineHeight = 30.sp, fontWeight = FontWeight.SemiBold),
+                    style = MaterialTheme.typography.bodyLarge,
                     color = scheme.onBackground)
             }
         }

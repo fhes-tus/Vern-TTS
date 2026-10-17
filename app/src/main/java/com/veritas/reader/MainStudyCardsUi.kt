@@ -62,7 +62,7 @@ internal fun ScopeSelector(
     onScopeSelected: (AiPromptScope) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Scope", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+        Text("Scope", style = MaterialTheme.typography.bodySmall)
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -195,7 +195,6 @@ internal fun TaskExpandableCard(
                     Column {
                         Text(
                             text = title,
-                            fontWeight = FontWeight.SemiBold,
                             style = MaterialTheme.typography.bodyLarge,
                             color = if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                         )
@@ -329,7 +328,7 @@ internal fun ModernToolActionCard(
                     }
 
                     Column {
-                        Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                        Text(title, style = MaterialTheme.typography.titleSmall)
                         Surface(
                             shape = VeritasPackStyle.chipShape(),
                             color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),
@@ -339,9 +338,7 @@ internal fun ModernToolActionCard(
                                 badge,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
-                                fontSize = 9.sp
-                            )
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp))
                         }
                     }
                 }
@@ -372,7 +369,7 @@ internal fun ModernToolActionCard(
                         modifier = Modifier.size(15.dp)
                     )
                     Spacer(Modifier.width(6.dp))
-                    Text(primaryActionLabel, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                    Text(primaryActionLabel, style = MaterialTheme.typography.labelMedium)
                 }
             } else {
                 Row(
@@ -400,7 +397,6 @@ internal fun ModernToolActionCard(
                             Text(
                                 "Open",
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
@@ -453,7 +449,6 @@ internal fun ModernStudyResultPreviewCard(
                             is ModernStudyResultPreview.Quiz -> "🎯 Created ${preview.quizSet.questions.size} Exam Questions"
                             is ModernStudyResultPreview.NoteText -> "📝 ${preview.title}"
                         },
-                        fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleSmall
                     )
                 }
@@ -488,16 +483,12 @@ internal fun ModernStudyResultPreviewCard(
                                     Text(
                                         if (showBack) "ANSWER (Tap to flip)" else "QUESTION (Tap to flip)",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                        color = MaterialTheme.colorScheme.primary)
                                     Text("Sample 1 of ${preview.cards.size}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Text(
                                     if (showBack) sampleCard.back else sampleCard.front,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium
-                                )
+                                    style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
@@ -542,8 +533,8 @@ internal fun ModernStudyResultPreviewCard(
                                 modifier = Modifier.padding(14.dp),
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Text("Sample Question 1", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                                Text(sampleQ.question, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                Text("Sample Question 1", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                Text(sampleQ.question, style = MaterialTheme.typography.bodyMedium)
                                 sampleQ.options.take(2).forEachIndexed { i, opt ->
                                     Text("${('A' + i)}) $opt", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
@@ -648,7 +639,7 @@ internal fun InfoStepCard(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+            Text(title, style = MaterialTheme.typography.labelLarge)
             content()
         }
     }

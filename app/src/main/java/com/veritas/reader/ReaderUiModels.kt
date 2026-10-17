@@ -131,12 +131,19 @@ fun aiAssistantIcon(assistantId: String): ImageVector {
 fun progressPercent(document: SavedDocument): Int = (progressFraction(document) * 100f).toInt().coerceIn(0, 100)
 
 fun formatEstimatedReadTime(document: SavedDocument): String {
+    return formatReadMinutes(estimatedReadMinutes(document))
+}
+
+private fun estimatedReadMinutes(document: SavedDocument): Int {
     val wordCount = if (document.charCount > 0) {
         document.charCount / 5
     } else {
         document.chunkCount * 17
     }
-    val totalMinutes = (wordCount / 200).coerceAtLeast(1)
+    return (wordCount / 200).coerceAtLeast(1)
+}
+
+private fun formatReadMinutes(totalMinutes: Int): String {
     return if (totalMinutes < 60) {
         "~${totalMinutes}m"
     } else {
@@ -144,6 +151,15 @@ fun formatEstimatedReadTime(document: SavedDocument): String {
         val mins = totalMinutes % 60
         if (mins == 0) "~${hours}h" else "~${hours}h ${mins}m"
     }
+}
+
+/** Compact reader-facing summary; technical file details live in the Details sheet. */
+fun libraryReadingSummary(document: SavedDocument): String {
+    val percent = progressPercent(document)
+    if (percent >= 100) return "Finished"
+    if (document.currentIndex <= 0 || percent <= 0) return "Not started · ${formatEstimatedReadTime(document)}"
+    val minutesLeft = kotlin.math.ceil(estimatedReadMinutes(document) * (1.0 - progressFraction(document))).toInt().coerceAtLeast(1)
+    return "$percent% read · ${formatReadMinutes(minutesLeft)} left"
 }
 
 fun capWords(text: String, maxWords: Int): String {

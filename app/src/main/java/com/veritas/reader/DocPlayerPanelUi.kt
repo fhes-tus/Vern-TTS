@@ -282,9 +282,7 @@ internal fun DocPlayerPanel(
                         Text(
                             "Speed ${"%.2f".format(rate)}x",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                            color = MaterialTheme.colorScheme.onSurface)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(3.dp)
@@ -300,7 +298,7 @@ internal fun DocPlayerPanel(
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("-", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                Text("-", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
                             }
                             Box(
                                 modifier = Modifier
@@ -313,7 +311,7 @@ internal fun DocPlayerPanel(
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("+", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                Text("+", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     }
@@ -342,9 +340,7 @@ internal fun DocPlayerPanel(
                                 Text(
                                     "Pitch ${"%.2f".format(pitch)}",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                    color = MaterialTheme.colorScheme.onSurface)
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(3.dp)
@@ -360,7 +356,7 @@ internal fun DocPlayerPanel(
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("-", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                        Text("-", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
                                     }
                                     Box(
                                         modifier = Modifier
@@ -373,7 +369,7 @@ internal fun DocPlayerPanel(
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("+", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                        Text("+", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 }
                             }
@@ -394,9 +390,7 @@ internal fun DocPlayerPanel(
                                 Text(
                                     "Text size ${fontSizeSp}sp",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                    color = MaterialTheme.colorScheme.onSurface)
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(3.dp)
@@ -409,7 +403,7 @@ internal fun DocPlayerPanel(
                                             .clickable { onFontSizeChange((fontSizeSp - 1).coerceIn(10, 28)) },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("-", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                        Text("-", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
                                     }
                                     Box(
                                         modifier = Modifier
@@ -419,7 +413,7 @@ internal fun DocPlayerPanel(
                                             .clickable { onFontSizeChange((fontSizeSp + 1).coerceIn(10, 28)) },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("+", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                        Text("+", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 }
                             }
@@ -450,9 +444,7 @@ internal fun DocPlayerPanel(
                             Text(
                                 "Line Spacing ${sectionSpacingDp}dp",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                                color = MaterialTheme.colorScheme.onSurface)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(3.dp)
@@ -465,7 +457,7 @@ internal fun DocPlayerPanel(
                                         .clickable { onSectionSpacingChange((sectionSpacingDp - 1).coerceIn(6, 24)) },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("-", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("-", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
                                 }
                                 Box(
                                     modifier = Modifier
@@ -475,7 +467,7 @@ internal fun DocPlayerPanel(
                                         .clickable { onSectionSpacingChange((sectionSpacingDp + 1).coerceIn(6, 24)) },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("+", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("+", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
                                 }
                             }
                         }
@@ -520,7 +512,6 @@ internal fun DocPlayerPanel(
                         Text(
                             "Voice",
                             modifier = Modifier.padding(horizontal = 8.dp),
-                            fontWeight = FontWeight.SemiBold,
                             style = MaterialTheme.typography.bodySmall
                         )
                         Row(

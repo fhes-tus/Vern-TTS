@@ -924,7 +924,6 @@ fun LibraryScreen(
                                         LibraryDocumentFilters(documents, queuedDocuments, uiState,
                                             statusFilter, { statusFilter = it }, sourceFilter, { sourceFilter = it },
                                             collectionFilter, { collectionFilter = it }, readingListFilter, { readingListFilter = it })
-                                        LibrarySortControl(sortMode) { sortMode = it }
                                     },
                                     documents = documents,
                                     queuedDocuments = queuedDocuments,
@@ -941,6 +940,7 @@ fun LibraryScreen(
                                     readingListFilter = readingListFilter,
                                     onReadingListFilterChange = { readingListFilter = it },
                                     sortMode = sortMode,
+                                    onSortModeChange = { sortMode = it },
                                     columnCount = columnCount,
                                     libraryViewMode = libraryViewMode,
                                     onLibraryViewModeChange = {

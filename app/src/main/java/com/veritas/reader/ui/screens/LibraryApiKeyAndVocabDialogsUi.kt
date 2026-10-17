@@ -73,7 +73,7 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text("AI Provider & Key Setup", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("AI Provider & Key Setup", style = MaterialTheme.typography.titleMedium)
         },
         text = {
             Column(
@@ -91,7 +91,6 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                 Text(
                     "Model",
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -140,7 +139,6 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                     Text(
                         "Provider",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
@@ -285,7 +283,7 @@ internal fun VocabularyEntryRow(
     ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(entry.word, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                Text(entry.word, style = MaterialTheme.typography.bodyMedium)
                 if (!entry.pronunciation.isNullOrBlank()) {
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
@@ -323,7 +321,6 @@ internal fun VocabularyEntryRow(
                 text = entry.source,
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable(enabled = entry.sentenceIndex >= 0) { onOpenDocumentAt(document, entry.sentenceIndex) }
             )
         }

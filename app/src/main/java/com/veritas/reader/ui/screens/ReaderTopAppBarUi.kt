@@ -142,9 +142,7 @@ internal fun ReaderTopAppBar(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Black
-                        )
+                            color = MaterialTheme.colorScheme.onSurface)
                         Text(
                             "${document.sourceLabel} • $progressLabel",
                             style = MaterialTheme.typography.bodySmall,

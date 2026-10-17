@@ -247,7 +247,6 @@ private fun AboutOptionRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -276,7 +275,7 @@ fun OpenSourceLicensesDialog(onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(onClick = onDismiss) { Text("Close") }
         },
-        title = { Text("Open Source Licenses", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
+        title = { Text("Open Source Licenses", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface) },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -298,7 +297,7 @@ fun OpenSourceLicensesDialog(onDismiss: () -> Unit) {
                 )
                 licenses.forEach { (lib, lic) ->
                     Column {
-                        Text(lib, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(lib, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
                         Text(lic, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
@@ -339,11 +338,11 @@ fun AboutDialog(uiState: ReaderUiState? = null, onCheckForUpdates: () -> Unit = 
                                     colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(androidx.compose.ui.graphics.Color(palette.foreground)), contentScale = ContentScale.Fit)
                             }
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                Text("Vern", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black, color = scheme.onSurface)
+                                Text("Vern", style = MaterialTheme.typography.displaySmall, color = scheme.onSurface)
                                 Text("A little space for big ideas.", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                             }
                         }
-                        Text("Read. Listen.\nMake it yours.", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+                        Text("Read. Listen.\nMake it yours.", style = MaterialTheme.typography.headlineMedium, color = scheme.onSurface)
                         Text("Your books, your notes, your pace. A quieter place to read, listen and follow your curiosity.",
                             style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                         androidx.compose.material3.Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
@@ -356,7 +355,7 @@ fun AboutDialog(uiState: ReaderUiState? = null, onCheckForUpdates: () -> Unit = 
             Card(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow)) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Always growing", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = scheme.onSurface)
+                    Text("Always growing", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
                     Text("Keep your reading space up to date.", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                     androidx.compose.material3.FilledTonalButton(onCheckForUpdates, enabled = uiState?.isCheckingForUpdates != true, modifier = Modifier.fillMaxWidth()) {
                         if (uiState?.isCheckingForUpdates == true) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
@@ -368,7 +367,7 @@ fun AboutDialog(uiState: ReaderUiState? = null, onCheckForUpdates: () -> Unit = 
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("Made better together", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = scheme.onSurface)
+                Text("Made better together", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
                 Card(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow)) {
                     Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
@@ -384,7 +383,7 @@ fun AboutDialog(uiState: ReaderUiState? = null, onCheckForUpdates: () -> Unit = 
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("Find Vern online", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = scheme.onSurface)
+                Text("Find Vern online", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
                 Card(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow)) {
                     Row(Modifier.fillMaxWidth().padding(vertical = 14.dp), horizontalArrangement = Arrangement.SpaceEvenly) {

@@ -118,7 +118,6 @@ internal fun UsageTooltip(visible: Boolean, label: String, duration: String) {
                 Text(
                     text = duration,
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -369,7 +368,6 @@ internal fun WeeklyReadingBarsPager(
                         Text(
                             text = visibleWeek.label,
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
                             color = if (visibleWeek.isCurrentWeek) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                         )
@@ -399,7 +397,6 @@ internal fun WeeklyReadingBarsPager(
                     Text(
                         text = "Total: ${formatTrackerDuration(visibleWeek.totalMillis)}",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
@@ -451,14 +448,12 @@ internal fun WeeklyReadingBarsPager(
                             Text(
                                 text = "$tooltipLabel: $tooltipDuration",
                                 style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         Text(
                             text = "✕",
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .clickable { selectedBarIndex = -1 }

@@ -72,7 +72,7 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Reading Insights", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text("Reading Insights", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
                     IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, "Close Insights") }
                 }
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -172,7 +172,7 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Icon(Icons.Default.Timeline, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
                                     Text(if (date == today) "Today’s sessions" else date.format(DateTimeFormatter.ofPattern("EEE, d MMM yyyy")),
-                                        style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                        style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                                     Text("${entries.size}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
@@ -215,7 +215,7 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
     Card(Modifier.fillMaxWidth().vernScatteredCard("insights-$title", amount = .4f), shape = VeritasPackStyle.cardShape(), border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(title, style = MaterialTheme.typography.titleMedium)
             content()
         }
     }

@@ -144,9 +144,7 @@ fun ReaderToolsSheet(
                 ) {
                     Text(
                         text = "Reader Tools",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
+                        style = MaterialTheme.typography.titleLarge)
                     IconButton(
                         onClick = { choose(onOpenDocumentDetails) },
                         modifier = Modifier.align(Alignment.CenterEnd)
@@ -198,9 +196,7 @@ fun ReaderToolsSheet(
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
                         text = "All Settings",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
+                        style = MaterialTheme.typography.titleLarge)
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(onClick = { choose(onOpenDocumentDetails) }) {
                         Icon(
@@ -217,7 +213,6 @@ fun ReaderToolsSheet(
                     text = "Read",
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -260,7 +255,6 @@ fun ReaderToolsSheet(
                     text = "Notes and bookmarks",
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -293,7 +287,6 @@ fun ReaderToolsSheet(
                     text = "Study",
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -332,7 +325,6 @@ fun ReaderToolsSheet(
                     text = "Voice and settings",
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -391,9 +383,7 @@ private fun ToolItem(icon: ImageVector, label: String, onClick: () -> Unit) {
         Text(
             label,
             style = MaterialTheme.typography.labelMedium,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Medium
-        )
+            textAlign = TextAlign.Center)
     }
 }
 

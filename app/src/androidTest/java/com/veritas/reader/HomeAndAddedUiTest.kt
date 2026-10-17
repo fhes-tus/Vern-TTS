@@ -21,6 +21,41 @@ import org.junit.Test
 class HomeAndAddedUiTest {
     @get:Rule val rule = createComposeRule()
 
+    @Test fun weeklyStatisticUsesRecordedDaysWithoutRepeatingTheHeadline() {
+        rule.setContent {
+            MaterialTheme {
+                HomeTodayReadingCard(0, 30, 2, {}, {}, weeklyMillis = 180_000,
+                    weekReadingMillis = listOf(60_000, 0, 120_000, 0, 0, 0, 0))
+            }
+        }
+        rule.waitForIdle()
+        val initialHeight = rule.onNodeWithTag("home-today-reading-card").fetchSemanticsNode().boundsInRoot.height
+        rule.waitUntil(15_000) { rule.onAllNodesWithText("This week").fetchSemanticsNodes().isNotEmpty() }
+        rule.waitForIdle()
+        rule.onNodeWithText("This week").assertIsDisplayed()
+        rule.onNodeWithText("2 days").assertIsDisplayed()
+        rule.onNodeWithText("2 active days").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Reading minutes, Monday to Sunday: 1, 0, 2, 0, 0, 0, 0").assertIsDisplayed()
+        assertEquals(initialHeight, rule.onNodeWithTag("home-today-reading-card").fetchSemanticsNode().boundsInRoot.height, 1f)
+    }
+
+    @Test fun readingGoalActionsFitWithLargeTextInNarrowWindow() {
+        var opened = false
+        rule.setContent {
+            val density = LocalDensity.current.density
+            CompositionLocalProvider(LocalDensity provides Density(density, 1.5f)) {
+                MaterialTheme {
+                    Column(Modifier.width(320.dp)) {
+                        HomeTodayReadingCard(0, 30, 0, { opened = true }, {})
+                    }
+                }
+            }
+        }
+        rule.onNodeWithText("Edit goal").assertIsDisplayed()
+        rule.onNodeWithText("View insights →").assertIsDisplayed().performClick()
+        assertEquals(true, opened)
+    }
+
     @Test fun homeGoalCanBeSetChangedAndDisabled() {
         var goal by mutableIntStateOf(0)
         var insightsOpened = false
@@ -79,7 +114,7 @@ class HomeAndAddedUiTest {
                     sourceFilter = source, onSourceFilterChange = { source = it },
                     collectionFilter = collection, onCollectionFilterChange = { collection = it },
                     readingListFilter = readingList, onReadingListFilterChange = { readingList = it },
-                    sortMode = "Newest", columnCount = 2, libraryViewMode = LibraryViewMode.LIST,
+                    sortMode = "Newest", onSortModeChange = {}, columnCount = 2, libraryViewMode = LibraryViewMode.LIST,
                     onLibraryViewModeChange = {}, selectedDocumentIds = emptySet(), onSelectedDocumentIdsChange = {},
                     onBatchFavoriteDocuments = {}, onBatchQueueDocuments = {}, onShowBatchCollectionDialog = {}, onConfirmBatchDelete = {},
                     onOpenDocument = {}, onDeleteDocument = {}, onToggleQueue = {}, onMoveQueueUp = {}, onMoveQueueDown = {},

@@ -94,7 +94,6 @@ fun OnboardingVoiceAuditionScreen(
         Text(
             text = "Select Your Narrator",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
 
@@ -120,7 +119,6 @@ fun OnboardingVoiceAuditionScreen(
         Text(
             text = "Voice Personalities",
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary
         )
 
@@ -219,7 +217,6 @@ fun OnboardingVoiceAuditionScreen(
                                 Text(
                                     text = preset.title,
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
                                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -235,18 +232,14 @@ fun OnboardingVoiceAuditionScreen(
                                     Text(
                                         text = "${preset.speed}x",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                             Spacer(modifier = Modifier.height(3.dp))
                             Text(
                                 text = preset.description,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                lineHeight = 16.sp
-                            )
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
 
                         if (isSelected) {
@@ -306,7 +299,6 @@ fun OnboardingVoiceAuditionScreen(
                         Text(
                             text = "Auditioning: ${selectedPreset.title}",
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -323,7 +315,6 @@ fun OnboardingVoiceAuditionScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     fontStyle = FontStyle.Italic,
                     color = MaterialTheme.colorScheme.onSurface,
-                    lineHeight = 22.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
@@ -677,7 +668,6 @@ fun OnboardingAiSelectionScreen(
         Text(
             text = "Pair Your AI Study Partner",
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
 
@@ -692,7 +682,6 @@ fun OnboardingAiSelectionScreen(
         Text(
             text = "Official AI Assistants",
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary
         )
 
@@ -761,7 +750,6 @@ fun OnboardingAiSelectionScreen(
         Text(
             text = "Primary Study Focus",
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary
         )
 
@@ -829,7 +817,6 @@ fun OnboardingFeatureShowcaseScreen() {
         Text(
             text = "Your Reading Superpowers",
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
 
@@ -909,16 +896,13 @@ fun OnboardingFeatureCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = desc,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 18.sp
-            )
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

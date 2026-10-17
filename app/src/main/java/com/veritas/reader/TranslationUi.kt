@@ -115,7 +115,6 @@ internal fun TranslationToolsDialog(
                 Text(
                     "Priority translation targets",
                     style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Row(
@@ -161,7 +160,6 @@ internal fun TranslationToolsDialog(
                             Text(
                                 "Spoken Audio Read-Out",
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -177,7 +175,6 @@ internal fun TranslationToolsDialog(
                                     Text(
                                         "Original Sentence ${currentIndex + 1}",
                                         style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
@@ -207,7 +204,6 @@ internal fun TranslationToolsDialog(
                         Text(
                             "Translated Text (type or paste to listen)",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         OutlinedTextField(
@@ -243,7 +239,6 @@ internal fun TranslationToolsDialog(
                 Text(
                     "Target language",
                     style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
@@ -280,7 +275,6 @@ internal fun TranslationToolsDialog(
                 Text(
                     "Translation scope & mode",
                     style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
@@ -371,7 +365,7 @@ private fun TranslationModeCard(
                 modifier = Modifier.size(24.dp)
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                Text(title, style = MaterialTheme.typography.bodyMedium)
                 Text(
                     description,
                     style = MaterialTheme.typography.bodySmall,

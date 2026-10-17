@@ -154,7 +154,7 @@ object VeritasPackStyle {
         return RoundedCornerShape(topStart = radius, topEnd = radius)
     }
 
-    fun headerColorForPack(scheme: ColorScheme, packId: String): Color = when (VeritasThemePackCatalog.normalizePackId(packId)) {
+    fun headerColorForPack(scheme: ColorScheme, packId: String): Color = if (scheme.background.luminance() < .3f) scheme.background else when (VeritasThemePackCatalog.normalizePackId(packId)) {
         "material_you" -> scheme.primaryContainer
         "one_ui" -> scheme.background
         "liquid_glass" -> scheme.surfaceContainerLow
@@ -366,7 +366,7 @@ fun AnnotationPill(label: String) {
             .padding(horizontal = 10.dp, vertical = 5.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+        Text(label, style = MaterialTheme.typography.labelSmall)
     }
 }
 
@@ -484,7 +484,11 @@ internal fun VeritasTheme(content: @Composable () -> Unit) {
     )
 
     val isAmoled = !isLight && (VeritasThemeState.amoledMode || resolvedTheme == "amoled")
-    val colorScheme = if (isAmoled) veritasAmoledColorScheme(packColorScheme) else packColorScheme
+    val colorScheme = when {
+        resolvedTheme.contains("high_contrast") -> packColorScheme
+        !isLight -> veritasDarkSurfaceScheme(packColorScheme, isAmoled)
+        else -> packColorScheme
+    }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -529,26 +533,8 @@ internal fun VeritasTheme(content: @Composable () -> Unit) {
 }
 
 internal fun veritasPackTypography(base: androidx.compose.material3.Typography, packId: String): androidx.compose.material3.Typography {
-    val headingWeight = when (VeritasThemePackCatalog.normalizePackId(packId)) {
-        "one_ui" -> FontWeight.Medium
-        "material_you" -> FontWeight.Normal
-        "liquid_glass" -> FontWeight.SemiBold
-        else -> FontWeight.Bold
-    }
-    val labelWeight = when (VeritasThemePackCatalog.normalizePackId(packId)) {
-        "one_ui" -> FontWeight.Medium
-        "material_you" -> FontWeight.Medium
-        else -> FontWeight.SemiBold
-    }
-    val headingScale = if (VeritasThemePackCatalog.normalizePackId(packId) == "one_ui") 1.08f else 1f
-    return base.copy(
-        headlineLarge = base.headlineLarge.copy(fontWeight = headingWeight, fontSize = base.headlineLarge.fontSize * headingScale, lineHeight = base.headlineLarge.lineHeight * headingScale),
-        headlineMedium = base.headlineMedium.copy(fontWeight = headingWeight, fontSize = base.headlineMedium.fontSize * headingScale, lineHeight = base.headlineMedium.lineHeight * headingScale),
-        headlineSmall = base.headlineSmall.copy(fontWeight = headingWeight, fontSize = base.headlineSmall.fontSize * headingScale, lineHeight = base.headlineSmall.lineHeight * headingScale),
-        titleLarge = base.titleLarge.copy(fontWeight = headingWeight, fontSize = base.titleLarge.fontSize * headingScale, lineHeight = base.titleLarge.lineHeight * headingScale),
-        titleMedium = base.titleMedium.copy(fontWeight = labelWeight),
-        labelLarge = base.labelLarge.copy(fontWeight = labelWeight)
-    )
+    // Packs own component shapes/materials; text roles stay consistent throughout Vern.
+    return base
 }
 
 internal fun veritasPackShapes(packId: String): Shapes {
@@ -587,23 +573,62 @@ internal fun veritasPackShapes(packId: String): Shapes {
     }
 }
 
-internal fun veritasAmoledColorScheme(base: ColorScheme): ColorScheme = base.copy(
-    background = Color.Black,
-    surface = Color.Black,
-    surfaceContainerLowest = Color.Black,
-    surfaceContainerLow = Color.Black,
-    surfaceContainer = Color(0xFF101216),
-    surfaceContainerHigh = Color(0xFF181B20),
-    surfaceContainerHighest = Color(0xFF22262D),
-    surfaceVariant = Color(0xFF1C1F26)
-)
+internal fun veritasAmoledColorScheme(base: ColorScheme): ColorScheme = veritasDarkSurfaceScheme(base, true)
+
+/** One quiet, theme-tinted neutral ladder. AMOLED moves the dark page tone onto cards. */
+internal fun veritasDarkSurfaceScheme(base: ColorScheme, amoled: Boolean): ColorScheme {
+    val page = blendColors(Color(0xFF141414), base.primary, .025f)
+    val card = blendColors(Color(0xFF222222), base.primary, .035f)
+    val raised = blendColors(Color(0xFF2B2B2B), base.primary, .04f)
+    val ink = Color(0xFFF2F2F1)
+    return veritasReadableInk(base.copy(
+        background = if (amoled) Color.Black else page,
+        onBackground = ink,
+        surface = if (amoled) page else card,
+        onSurface = ink,
+        surfaceDim = if (amoled) Color.Black else page,
+        surfaceBright = raised,
+        surfaceContainerLowest = if (amoled) Color.Black else page,
+        surfaceContainerLow = if (amoled) page else blendColors(page, card, .55f),
+        surfaceContainer = if (amoled) page else card,
+        surfaceContainerHigh = if (amoled) card else raised,
+        surfaceContainerHighest = blendColors(raised, ink, .035f),
+        surfaceVariant = if (amoled) card else raised,
+        onSurfaceVariant = Color(0xFFBFC1C4),
+        outline = blendColors(raised, ink, .24f),
+        outlineVariant = blendColors(if (amoled) page else card, ink, .10f)
+    ))
+}
+
+/** Keep each palette's preferred ink when readable, otherwise use a neutral contrast pair. */
+internal fun veritasReadableInk(base: ColorScheme): ColorScheme {
+    fun ink(background: Color, preferred: Color): Color {
+        fun ratio(a: Color, b: Color): Float {
+            val l1 = a.luminance(); val l2 = b.luminance()
+            return (maxOf(l1, l2) + .05f) / (minOf(l1, l2) + .05f)
+        }
+        if (ratio(background, preferred) >= 4.5f) return preferred
+        return if (ratio(background, Color.Black) >= ratio(background, Color.White)) Color.Black else Color.White
+    }
+    return base.copy(
+        onPrimary = ink(base.primary, base.onPrimary),
+        onSecondary = ink(base.secondary, base.onSecondary),
+        onTertiary = ink(base.tertiary, base.onTertiary),
+        onPrimaryContainer = ink(base.primaryContainer, base.onPrimaryContainer),
+        onSecondaryContainer = ink(base.secondaryContainer, base.onSecondaryContainer),
+        onTertiaryContainer = ink(base.tertiaryContainer, base.onTertiaryContainer),
+        onError = ink(base.error, base.onError),
+        onErrorContainer = ink(base.errorContainer, base.onErrorContainer)
+    )
+}
 
 internal fun veritasPackColorScheme(base: ColorScheme, packId: String, themeId: String = ""): ColorScheme {
     val pack = VeritasThemePackCatalog.normalizePackId(packId)
     // Keep color identity and accessibility schemes separate from the component material.
-    if (themeId.contains("high_contrast") || themeId == "amoled") return base
+    if (themeId.contains("high_contrast")) return base
+    if (themeId == "amoled") return veritasDarkSurfaceScheme(base, true)
     val dark = base.background.luminance() < 0.3f
-    return when (pack) {
+    val packed = when (pack) {
         "material_you" -> {
             // Keep three expressive tonal roles, with a softer tertiary tint for
             // playback and filters. Wallpaper palettes retain their generated tertiary.
@@ -633,4 +658,5 @@ internal fun veritasPackColorScheme(base: ColorScheme, packId: String, themeId: 
         // Glass transparency is controlled per surface, keeping text and dialogs opaque.
         else -> base
     }
+    return if (dark) veritasDarkSurfaceScheme(packed, false) else veritasReadableInk(packed)
 }
