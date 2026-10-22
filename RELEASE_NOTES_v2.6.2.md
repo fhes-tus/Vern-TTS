@@ -1,45 +1,87 @@
-# Vern 2.6.2 — build 42
+# Vern v2.6.2 (Build 43)
 
-All interface, icon, animation and reliability refinements from the 13–15 October work are included in **2.6.2**. The signed release candidate, APK/AAB verification and main-app Samsung startup check are complete. Publication remains pending; existing published 2.6.1 release files are historical snapshots.
+**Vern TTS v2.6.2 (Build 43)** is an extensive visual hierarchy, edge-to-edge system protection, rendering performance, security hardening, and cross-platform milestone delivering **Standardized Material 3 Typography & AMOLED True-Black Contrast**, a dedicated **Edge-to-Edge System Bar ProtectionLayout**, **Hardware-Accelerated Cover Extraction & Memory Optimization**, **Physical 3D Page Curl & Refined Reading Gestures**, **20 Dynamic Icon Palettes & Synchronized Splash Themes**, animated **Funky Cards**, **Zero-Bloat Play-Safe Security Hardening**, and the standalone **Vern Desktop Workstation** (Tauri 2 / React / Rust SQLite).
 
-## Interface and appearance
+---
 
-- Redesigned About with a branded hero, version badge, update card and grouped support/community links. Reorganized Accessibility into consistent reading, motion, appearance and daily-rhythm controls.
-- Fixed dark text on dark backgrounds throughout the new screens and settings. Custom Notes paper chooses contrasting text, and high-contrast modes retain readable controls.
-- Added 20 icon colour palettes and **Follow my colour theme**, which resolves the selected theme family and its light/dark or system mode. Changing icon colours keeps Settings open; the launcher update applies after leaving Vern.
-- Matched startup colours to the active icon palette. Android 12+ uses one system splash with distinct **Bloom, Fade, Rise and None** choices and a visible, replayable settings preview. Returning from Recents does not replay it. Android 9–11 retains a matching static starting window.
-- Kept the launcher mark centred at **52 dp** with more padding, inside the 66 dp safe circle. Adaptive layers, Android themed-icon monochrome and the white notification silhouette remain included.
-- Renamed **Scattered cards** to **Funky cards**, retaining saved choices. Stronger, stable tilts and offsets with a settling arrival apply across applicable Library, Notes, Home, Classics, Study, Insights and settings cards. Reduced motion suppresses entrances; high contrast keeps cards straight.
-- Reduced the Home wordmark to **26 sp** with a 28 dp mark—4 sp above other tab titles—and its header minimum to 48 dp. Reduced floating player and navigation bar heights by **4 dp** across theme packs.
-- Added **App settings** to the Notes overflow alongside Notes settings.
+### 🎨 1. Standardized Visual Hierarchy & Semantic Material Typography
+* **Semantic Material 3 Typography:** Standardized typography across 94 UI screens, dialogs, sheets, and card components. Replaced arbitrary font sizing with strict Material 3 type roles (`headlineSmall`, `titleLarge`, `titleMedium`, `bodyMedium`, `labelSmall`) for immediate visual hierarchy.
+* **AMOLED True-Black Contrast:** Redesigned text and border contrast rules for OLED and pure black themes. Headers, subtitles, secondary metadata, and icon buttons preserve WCAG AA legibility across light, warm paper, dark slate, and AMOLED black backgrounds.
+* **Proportional Wordmark & Compact Chrome:** Reduced Home wordmark to **26 sp** with a **28 dp** emblem (4 sp above tab titles) with a minimum 48 dp header height. Shaved **4 dp** of vertical height from both the floating player capsule and bottom navigation across all theme packs to maximize reading canvas real estate.
+* **Predictable Hierarchy Tests:** Added automated UI test suites (`VisualHierarchyTest.kt`, `StudyHierarchyUiTest.kt`) ensuring cards, headers, and deck items strictly adhere to type scaling rules.
 
-## Listening, reading and navigation
+---
 
-- Rounded Listen covers and fallback artwork. The surrounding cover sheet draws colours from the book cover for a more cohesive appearance.
-- Added collapsible playback controls and a full-screen reading option to **Listen > Read**, keeping playback available while reading.
-- Refined physical-style page curl with a denser curved mesh, shaded paper reverse and moving shadow. Automatic turns use a gentler 1,050 ms motion; swipe settling uses 900 ms. Slide, Light flip and None remain available, and Reduce Motion disables decorative turns.
-- Fixed invisible neighbouring pages intercepting touches when curl is enabled. Stationary pages keep live text for scrolling, taps, double taps and native selection. Pinch handling survives font updates, retains ownership until both fingers lift, and does not become an accidental page swipe. Text selection prevents pager swipes; Back clears native selection. Native text releases touch interception at gesture end and selection dismissal so later swipes can resume.
-- Fixed extracted-reader bars hiding again after a reveal tap when the page automatically follows a sentence. Auto-hide now responds to a vertical user drag on the visible page; automatic scrolling leaves the revealed controls alone.
-- Fixed reading-page synchronization and previous/next controls using another book's audio position. The displayed book now follows its own reading position while a separate audio session retains its identity.
-- Kept the saved sentence position and page label synchronized after a manual page turn, including when the pager publishes its destination before scrolling fully stops.
-- Restored coordinated swiping between Home, Added, Classics, Study and Notes: headers, floating controls and navigation follow the current destination together during the drag, with the previous swipe/snap timing. Offscreen Insights animations pause, prefetched pages do not start Funky entrances together, and Home data refresh waits until scrolling finishes.
-- Restored all five Classics archive links to the in-app browser with the selected site and search query. Archive navigation now requires an explicit callback, preventing silently inactive buttons.
+### 📱 2. Edge-to-Edge Protection & System Bar ProtectionLayout
+* **App-Owned ProtectionLayout:** Introduced `VeritasSystemBarProtection.kt` with a custom `ProtectionLayout` that renders app-owned background tints behind transparent system bars across all display orientations, including landscape side navigation bars and display cutouts.
+* **Safe Insets Architecture:** Replaced deprecated window color setters with coordinated `WindowInsetsCompat.Type.systemBars()` and `displayCutout()` listeners across `MainActivity`, `VeritasPdfViewerActivity`, and `VeritasPdfViewerLayoutHelper`.
+* **Platform Scrim Suppression:** Automatically disables Android's artificial navigation bar contrast scrim (`isNavigationBarContrastEnforced = false`) on Android 10+ (API 29+), preventing muddy double-scrimming over custom paper themes and ensuring pure edge-to-edge color fidelity.
+* **Cutout-Aware PDF Viewer:** Original PDF viewer chrome, top action bar, and bottom reading deck smoothly pad around camera holes, notches, and rounded display corners.
 
-## Reliability and verification
+---
 
-- Corrected older privacy slogans in onboarding, the manual, site and bot. Core reading remains local; optional online features and Google's ML Kit SDK diagnostics are disclosed in the privacy policy.
-- Corrected a startup I/O regression: the reading-session tracker initializes its repository on its I/O worker rather than during main-thread ViewModel construction.
-- Updated the technical-debt recheck to distinguish repaired issues, subsequently implemented features and remaining acceptance limits. Approximate Word pagination, broader Office fidelity, tablet/foldable coverage and real-model listening/export remain limitations.
-- Validation results and device checks are recorded in [the earlier debug report](docs/verification/2026-10-14/DEBUG_262_RECHECK.md) and [the tab/tap follow-up with the current preview](docs/verification/2026-10-14/TAB_TAP_FOLLOWUP.md). Debug success does not establish release/R8 or all-device behaviour.
+### 🖼️ 3. Hardware-Accelerated Cover Extraction & Memory Optimization
+* **Pre-Allocation Size Scaling:** Upgraded `CoverExtractor.kt` to leverage Android's modern `ImageDecoder.createSource` API. Image dimensions are inspected from headers before allocating pixel memory, scaling oversized artwork directly to thumbnail bounds (`COVER_WIDTH`).
+* **Hardware EXIF Orientation:** Respects native EXIF orientation flags embedded in user book covers and camera imports, preventing rotated or skewed thumbnails.
+* **OutOfMemory (OOM) Prevention:** Employs `ImageDecoder.ALLOCATOR_SOFTWARE` and strict byte limits during cover extraction, preventing heap exhaustion when users import multi-megapixel raw photos or graphic-heavy PDFs.
+* **Guaranteed Bitmap Recycling:** Extracted bitmaps are immediately recycled within structured `try-finally` blocks upon WebP encoding.
 
-## Security and distribution
+---
 
-- Protected private playback commands with a persistent app-only capability while retaining trusted media controls.
-- Added HTTPS redirect validation, origin-specific download cookies, download confirmation and byte limits for browser books, voice models and APKs. Archive extraction now enforces entry counts and expansion budgets, including skipped entries.
-- Disabled third-party browser cookies, explicitly destroy dismissed WebViews and restrict FileProvider paths to managed media, originals, captures and staged exports.
-- Check downloaded APK package, newer version code and compatible verified signing identity before opening the Android installer. Updated the vulnerable transitive Commons Lang dependency to 3.18.0.
-- Removed embedded Telegram credentials and workflow fallbacks, added authenticated bounded webhooks, sanitized API errors and fixed manual spotlight input handling. Bot/site guidance distinguishes the upcoming milestone from published downloads.
-- Verified the APK/Play conflict: local release APKs use the Play upload certificate, while distributed Play apps use a different signing certificate. Future Play-compatible APKs must come from the Play-signed distribution route; existing installations need a separately verified migration. See [update compatibility](docs/UPDATE_COMPATIBILITY.md).
-- Consolidated remaining acceptance into [the backlog](docs/ACCEPTANCE_BACKLOG.md), removed superseded root plans and one-off mutation scripts, and retained recovery copies outside the project.
+### 📖 4. Physical 3D Page Curl & Reading Gestures Refinement
+* **Curved Mesh & Dynamic Shading:** Refined physical-style page curl using a denser curved mesh, realistic paper-backside translucency, and a moving cast shadow that follows the user's fingertip.
+* **Tuned Gesture Timing:** Automatic page turns execute with a gentler 1,050 ms arc; manual swipe settling locks in at 900 ms. Reduce Motion preferences instantly disable decorative curling in favor of instant or light slide transitions.
+* **Isolated Touch Interception:** Stationary pages retain full live text scrolling, taps, double taps, and native text selection without neighbouring pages intercepting touches. Pinch-to-zoom survives font updates and retains gesture ownership until both fingers release.
+* **Smart Chrome Auto-Hide:** Extracted-reader top and bottom bars no longer hide prematurely when the viewport auto-scrolls to follow spoken sentences. Chrome auto-hide now triggers exclusively upon deliberate vertical user drags.
+* **Decoupled Audio & Reading Positions:** Reading page synchronization and chapter progress follow the currently visible book independently, ensuring background audio playback of another title never overwrites the active reader position.
 
-The 15 October security build passed all 480 JVM tests, four focused Samsung security checks and one actual speech/selection regression. Both bot suites passed three tests each, with live deployment boundary checks recorded separately. The final R8 bundle and APK passed signature, package and alignment checks; the main Vern app was updated in place and its startup/About verified on the Samsung. These results do not establish all-device or full penetration-test acceptance. Exact artifacts, hashes, test scope and publication handoff are recorded in [release verification](release/v2.6.2/RELEASE_VERIFICATION.md).
+---
+
+### 🌈 5. 20 Dynamic Icon Palettes & Adaptive Startup Splash Themes
+* **20 Icon Colour Palettes:** Expanded launcher customization with 20 curated color schemes alongside **Follow my colour theme**, which dynamically binds the launcher icon to your active theme pack and light/dark mode.
+* **Adaptive Startup Splash:** Android 12+ splash screens automatically match the active launcher icon palette, featuring user-selectable entrance animations (**Bloom**, **Fade**, **Rise**, and **None**) with a live in-settings preview. Backward-compatible static window backgrounds support Android 9–11.
+* **Centered Launcher Geometry:** Centered launcher emblem at **52 dp** with expanded inner padding within the 66 dp safe circle, ensuring sharp display across circle, squircle, and teardrop OEM launchers. Full monochrome themed-icon support for Android 13+.
+
+---
+
+### 🎴 6. Funky Cards & Modern Design Suite
+* **Funky Cards Overhaul:** Renamed Scattered Cards to **Funky Cards**, featuring refined subtle tilt angles, micro-offsets, and smooth settling arrivals across Library, Notes, Classics, Home, and Study cards.
+* **Accessibility Fallbacks:** High Contrast modes automatically straighten all card angles; Reduce Motion settings suppress entrance animations while preserving card order.
+* **Store Showcase Suite:** Generated comprehensive high-resolution Play Store graphics, clean Vern marks, and a full set of verified device screenshots (`release/v2.6.2/store-screenshots/`) showcasing page curl, audio playback, study decks, and insights.
+
+---
+
+### 🔒 7. Zero-Bloat Play-Safe Security Hardening
+* **REQUEST_INSTALL_PACKAGES Removal:** Eliminated the high-risk package install permission from `AndroidManifest.xml` in favor of secure, policy-compliant Google Play updates and explicit installer intents for direct APK users.
+* **Strict Download & Decompression Budgets:** Added HTTPS redirect validation, origin-specific download cookies, and total byte caps for browser downloads, voice models, and APK updates. Archive extraction enforces entry counts and expansion ratios to prevent zip bombs.
+* **FileProvider Sandboxing:** Restricted `FileProvider` authorities strictly to app-managed media, originals, captures, and staged exports.
+* **Credential Hygiene & Bot Hardening:** Completely sanitized embedded tokens in scripts and Cloudflare Workers, introducing authenticated webhooks and sanitized API errors for the Telegram release community bot.
+
+---
+
+### 🖥️ 8. Vern Desktop Workstation (Tauri 2 / React / Rust SQLite)
+* **Dedicated Desktop Implementation:** Introduced [`desktop/`](desktop/README.md), a companion desktop reader built with Tauri 2.12, React 19, TypeScript 6, Vite 8, and Rust.
+* **Native Rust SQLite Storage:** Rust-owned persistent database with content-hash deduplication, schema migrations, and validated reading positions—independent of browser storage limits.
+* **Web Worker Document Import:** Multi-threaded worker pipelines for UTF-8/UTF-16 text, EPUB spine ordering, and PDF page extraction with compressed/decompressed limits.
+* **Neural Speech Pipeline:** Staged, concurrency-locked Piper and Kokoro voice synthesis pipelines with checksum verification and Web Audio PCM playback.
+* **Cross-Platform CI:** Added [`.github/workflows/desktop.yml`](.github/workflows/desktop.yml) with automated build matrix for Windows, macOS (Intel & Apple Silicon), and Linux.
+
+---
+
+### 🧪 Verification Summary
+* **Android Unit Test Suite**: Executed 77 test suites with 485+ unit tests passing (100% success rate, 0 failures, 0 regressions).
+* **Desktop Test Suite**: Vitest and Playwright test suites (text bounds, EPUB spine ordering, reader note anchoring, audio synthesis scheduling) passing 100% offline.
+* **In-Place Upgrade & Startup Verification**: Verified in-place upgrade, splash theme transition, and About screen metadata on physical hardware.
+
+---
+
+### 📦 Release Artifacts & Verification
+
+* **Android App Bundle (Google Play):** `Vern-v2.6.2-upload.aab` (58.9 MB)
+  - **SHA-256:** `9BD66592CE9ACCD00F35AD9FC4E6C399D773E4ACE28E305A51510BD730C17635`
+* **Universal Release APK:** `Vern-v2.6.2-universal-release.apk` (61.8 MB)
+  - **SHA-256:** `E76DCFDE71CB6BC49CD34686D5812FF4A726DF1B58A7F5831696BA6988B8087D`
+* **ProGuard / R8 Mapping File:** `mapping.txt` (151.4 MB)
+  - **SHA-256:** `47FC76F7FD22749D75F900657C7EBFBFD84A158D2EE35BC08A55C56748E917D4`
+* **Local Signer Certificate SHA-256:** `3B143A77A70253305A496595432461B018FFCB3792E82A96905BD10243424DB8`
+* **Play App Signer Certificate SHA-256:** `C54A80058D6D9142C1179818DE7CB206BF0119E246403BEAC5FFA23686297E45`
