@@ -6,7 +6,7 @@
 
 ### *Your intelligent, private reading workstation, neural audiobook studio, and active-recall study suite for Android.*
 
-[![Latest Release](https://img.shields.io/badge/Release-v2.6.1-orange.svg)](https://github.com/fhes-tus/Vern-TTS/releases)
+[![Latest Release](https://img.shields.io/badge/Release-v2.6.2-orange.svg)](https://github.com/fhes-tus/Vern-TTS/releases)
 [![Target Platform](https://img.shields.io/badge/Platform-Android%2016%20(API%2036)-3DDC84.svg?logo=android&logoColor=white)](https://developer.android.com/)
 [![Minimum SDK](https://img.shields.io/badge/Min%20SDK-Android%209.0%20(API%2028)-blue.svg)](https://developer.android.com/)
 [![Language](https://img.shields.io/badge/Kotlin-2.4.0-7F52FF.svg?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
@@ -159,3 +159,8 @@ Suggestions, bug reports, and pull requests are welcome! Feel free to open an is
 ## Current development milestone
 
 Source is **2.6.2 / build 42**; published downloads remain **2.6.1** until the authorized local release builds are verified and publication is approved. See [2.6.2 notes](RELEASE_NOTES_v2.6.2.md), [remaining acceptance](docs/ACCEPTANCE_BACKLOG.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and the verification snapshots under `docs/verification/`.
+
+### Desktop implementation
+
+The separate Tauri 2 / React / TypeScript desktop implementation is in [desktop/](desktop/README.md). See [architecture](docs/desktop-architecture.md), [source-based feature inventory](docs/desktop-feature-parity.md), and [progress and actual verification](progress.md). The older eritas-pc/ Kotlin experiment is retained as reference. Android setup and builds are unchanged.
+

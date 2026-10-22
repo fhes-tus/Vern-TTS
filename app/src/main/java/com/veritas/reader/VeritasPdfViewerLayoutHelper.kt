@@ -349,6 +349,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         root.addView(toolbar)
         root.addView(controlsOuter)
         setContentView(root)
+        configureSystemBars()
         ViewCompat.requestApplyInsets(root)
         // Minimized chrome is the default. INVISIBLE (not GONE) so the bars are
         // measured on the first layout pass and can slide in from their real heights.
@@ -359,32 +360,22 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
 
     private fun VeritasPdfViewerActivity.applyToolbarInsets(toolbar: View) {
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { view, insets ->
-            val top = maxOf(
-                insets.getInsets(WindowInsetsCompat.Type.statusBars()).top,
-                statusBarHeight(),
-                34.dp
-            )
-            view.setPadding(8.dp, top + 14.dp, 6.dp, 8.dp)
+            val safe = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(8.dp + safe.left, safe.top + 14.dp, 6.dp + safe.right, 8.dp)
             insets
         }
     }
 
     private fun VeritasPdfViewerActivity.applyDeckInsets(deck: View) {
         ViewCompat.setOnApplyWindowInsetsListener(deck) { view, insets ->
-            val bottom = maxOf(
-                insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom,
-                navigationBarHeight(),
-                6.dp
-            )
-            view.setPadding(20.dp, 6.dp, 20.dp, bottom + 10.dp)
+            val safe = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(20.dp + safe.left, 6.dp, 20.dp + safe.right, safe.bottom + 10.dp)
             insets
         }
     }
 
-    @Suppress("DEPRECATION")
     internal fun VeritasPdfViewerActivity.configureSystemBars() {
-        window.statusBarColor = colorToolbar
-        window.navigationBarColor = colorBackground
+        updateVeritasSystemBarProtection(window, colorToolbar, colorBackground)
         val controller = WindowCompat.getInsetsController(window, window.decorView)
         controller.isAppearanceLightStatusBars = isLightTheme
         controller.isAppearanceLightNavigationBars = isLightTheme
@@ -410,7 +401,14 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             setPadding(0, 12.dp, 0, 18.dp)
         })
         root.addView(prominentButton("Back to Vern") { finish() })
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val safe = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(24.dp + safe.left, 24.dp + safe.top, 24.dp + safe.right, 24.dp + safe.bottom)
+            insets
+        }
         setContentView(root)
+        configureSystemBars()
+        ViewCompat.requestApplyInsets(root)
     }
 
     // Material play/pause glyphs rendered as a centered foreground drawable; the

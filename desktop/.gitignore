@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.tools/
+src-tauri/target/
+src-tauri/gen/
+test-results/
+playwright-report/
+.artifacts/

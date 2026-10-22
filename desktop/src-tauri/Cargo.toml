@@ -1,0 +1,36 @@
+[package]
+name = "vern-desktop"
+version = "0.1.0"
+description = "Vern offline reading and neural speech"
+edition = "2021"
+rust-version = "1.88"
+default-run = "vern-desktop"
+
+[lib]
+name = "vern_desktop_lib"
+# Desktop binaries link this Rust library directly; no mobile/FFI exports are needed.
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.40", features = ["bundled"] }
+reqwest = { version = "0.13", default-features = false, features = ["blocking", "rustls-no-provider"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+tokio = { version = "1", features = ["sync", "rt", "time"] }
+sha2 = "0.11"
+uuid = { version = "1", features = ["v4"] }
+tar = "0.4"
+bzip2 = "0.6"
+sherpa-onnx = "=1.13.8"
+unicode-normalization = "0.1"
+regex = "1.13"
+
+[[example]]
+name = "verify-native"
+path = "examples/verify-native.rs"

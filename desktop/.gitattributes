@@ -1,0 +1,3 @@
+# Preserve upstream book/licence text exactly, including its original whitespace.
+fixtures/*.txt -whitespace
+public/licenses/*.txt -whitespace

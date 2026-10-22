@@ -497,10 +497,7 @@ internal fun VeritasTheme(content: @Composable () -> Unit) {
             if (window != null) {
                 val statusBarColor = VeritasPackStyle.headerColorForPack(colorScheme, selectedPack)
                 val navBarColor = if (isAmoled) Color.Black else if (!isLight) colorScheme.background else colorScheme.surface
-                @Suppress("DEPRECATION")
-                window.statusBarColor = statusBarColor.toArgb()
-                @Suppress("DEPRECATION")
-                window.navigationBarColor = navBarColor.toArgb()
+                updateVeritasSystemBarProtection(window, statusBarColor.toArgb(), navBarColor.toArgb())
                 val isLightStatusBar = statusBarColor.luminance() > 0.45f
                 val isLightNavBar = navBarColor.luminance() > 0.45f
                 val insetsController = WindowCompat.getInsetsController(window, view)

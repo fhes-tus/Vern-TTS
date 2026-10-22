@@ -1,0 +1,326 @@
+[
+  {
+    "id": "classic_wizard_of_oz",
+    "title": "The Wonderful Wizard of Oz",
+    "author": "L. Frank Baum",
+    "category": "Family & Youth",
+    "description": "Dorothy's magical journey through the Land of Oz with the Scarecrow, Tin Woodman, and Cowardly Lion.",
+    "url": "https://www.gutenberg.org/cache/epub/55/pg55.txt",
+    "minutes": 180
+  },
+  {
+    "id": "classic_alice_wonderland",
+    "title": "Alice in Wonderland",
+    "author": "Lewis Carroll",
+    "category": "Family & Youth",
+    "description": "Alice plunges down a rabbit hole into a whimsical, topsy-turvy subterranean fantasy world.",
+    "url": "https://www.gutenberg.org/cache/epub/11/pg11.txt",
+    "minutes": 120
+  },
+  {
+    "id": "classic_peter_pan",
+    "title": "Peter Pan",
+    "author": "J.M. Barrie",
+    "category": "Family & Youth",
+    "description": "The boy who wouldn't grow up whisks Wendy and her brothers away to the enchanted island of Neverland.",
+    "url": "https://www.gutenberg.org/cache/epub/16/pg16.txt",
+    "minutes": 200
+  },
+  {
+    "id": "classic_anne_green_gables",
+    "title": "Anne of Green Gables",
+    "author": "L.M. Montgomery",
+    "category": "Family & Youth",
+    "description": "An imaginative, fiercely spirited red-headed orphan brings joy and vitality to Prince Edward Island.",
+    "url": "https://www.gutenberg.org/cache/epub/45/pg45.txt",
+    "minutes": 360
+  },
+  {
+    "id": "classic_secret_garden",
+    "title": "The Secret Garden",
+    "author": "Frances Hodgson Burnett",
+    "category": "Family & Youth",
+    "description": "Mary Lennox discovers an overgrown, locked garden that heals her spirit and transforms her family.",
+    "url": "https://www.gutenberg.org/cache/epub/113/pg113.txt",
+    "minutes": 320
+  },
+  {
+    "id": "classic_aesop",
+    "title": "Aesop's Fables",
+    "author": "Aesop",
+    "category": "Family & Youth",
+    "description": "Timeless moral tales starring clever animals teaching wisdom, honesty, and humility.",
+    "url": "https://www.gutenberg.org/cache/epub/21/pg21.txt",
+    "minutes": 45
+  },
+  {
+    "id": "classic_sherlock_holmes",
+    "title": "The Adventures of Sherlock Holmes",
+    "author": "Arthur Conan Doyle",
+    "category": "Mystery",
+    "description": "Twelve brilliant detective cases solved by Sherlock Holmes and Dr. Watson at 221B Baker Street.",
+    "url": "https://www.gutenberg.org/cache/epub/1661/pg1661.txt",
+    "minutes": 320
+  },
+  {
+    "id": "classic_hound_baskervilles",
+    "title": "The Hound of the Baskervilles",
+    "author": "Arthur Conan Doyle",
+    "category": "Mystery",
+    "description": "Holmes investigates the curse of a spectral hound haunting the foggy Dartmoor bogs.",
+    "url": "https://www.gutenberg.org/cache/epub/2852/pg2852.txt",
+    "minutes": 240
+  },
+  {
+    "id": "classic_styles",
+    "title": "The Mysterious Affair at Styles",
+    "author": "Agatha Christie",
+    "category": "Mystery",
+    "description": "The dazzling mystery debut introducing the eccentric and meticulous Belgian detective Hercule Poirot.",
+    "url": "https://www.gutenberg.org/cache/epub/863/pg863.txt",
+    "minutes": 260
+  },
+  {
+    "id": "classic_rue_morgue",
+    "title": "The Murders in the Rue Morgue",
+    "author": "Edgar Allan Poe",
+    "category": "Mystery",
+    "description": "The pioneering locked-room whodunit where detective C. Auguste Dupin solves an impossible double murder.",
+    "url": "https://www.gutenberg.org/cache/epub/2147/pg2147.txt",
+    "minutes": 55
+  },
+  {
+    "id": "classic_around_world_80_days",
+    "title": "Around the World in 80 Days",
+    "author": "Jules Verne",
+    "category": "Adventure",
+    "description": "Phileas Fogg bets his fortune on a breathless, high-stakes global race across steamers, trains, and elephants.",
+    "url": "https://www.gutenberg.org/cache/epub/103/pg103.txt",
+    "minutes": 280
+  },
+  {
+    "id": "classic_treasure_island",
+    "title": "Treasure Island",
+    "author": "Robert Louis Stevenson",
+    "category": "Adventure",
+    "description": "Young Jim Hawkins discovers a pirate treasure map, setting sail against the cunning Long John Silver.",
+    "url": "https://www.gutenberg.org/cache/epub/120/pg120.txt",
+    "minutes": 260
+  },
+  {
+    "id": "classic_call_of_the_wild",
+    "title": "The Call of the Wild",
+    "author": "Jack London",
+    "category": "Adventure",
+    "description": "Stolen from California and sold into the Yukon gold rush, Buck must rediscover his primal wolf instincts.",
+    "url": "https://www.gutenberg.org/cache/epub/215/pg215.txt",
+    "minutes": 110
+  },
+  {
+    "id": "classic_twenty_thousand_leagues",
+    "title": "20,000 Leagues Under the Sea",
+    "author": "Jules Verne",
+    "category": "Adventure",
+    "description": "Professor Aronnax embarks on an awe-inspiring underwater voyage aboard Captain Nemo's submarine, the Nautilus.",
+    "url": "https://www.gutenberg.org/cache/epub/164/pg164.txt",
+    "minutes": 420
+  },
+  {
+    "id": "classic_three_musketeers",
+    "title": "The Three Musketeers",
+    "author": "Alexandre Dumas",
+    "category": "Adventure",
+    "description": "D'Artagnan joins Athos, Porthos, and Aramis in swashbuckling swordplay, state intrigue, and brotherhood.",
+    "url": "https://www.gutenberg.org/cache/epub/1257/pg1257.txt",
+    "minutes": 620
+  },
+  {
+    "id": "classic_pride_and_prejudice",
+    "title": "Pride and Prejudice",
+    "author": "Jane Austen",
+    "category": "Romance",
+    "description": "The sparkling romantic battle of wits between the witty Elizabeth Bennet and proud Mr. Darcy.",
+    "url": "https://www.gutenberg.org/cache/epub/1342/pg1342.txt",
+    "minutes": 420
+  },
+  {
+    "id": "classic_little_women",
+    "title": "Little Women",
+    "author": "Louisa May Alcott",
+    "category": "Romance",
+    "description": "The heartwarming story of the four March sisters navigating love, creativity, ambition, and family.",
+    "url": "https://www.gutenberg.org/cache/epub/514/pg514.txt",
+    "minutes": 520
+  },
+  {
+    "id": "classic_jane_eyre",
+    "title": "Jane Eyre",
+    "author": "Charlotte Brontë",
+    "category": "Romance",
+    "description": "An independent orphaned governess falls for the brooding Mr. Rochester while uncovering Thornfield's dark secret.",
+    "url": "https://www.gutenberg.org/cache/epub/1260/pg1260.txt",
+    "minutes": 540
+  },
+  {
+    "id": "classic_sense_and_sensibility",
+    "title": "Sense and Sensibility",
+    "author": "Jane Austen",
+    "category": "Romance",
+    "description": "The Dashwood sisters find love and learn to balance reason and intense emotion in Victorian society.",
+    "url": "https://www.gutenberg.org/cache/epub/161/pg161.txt",
+    "minutes": 410
+  },
+  {
+    "id": "classic_ben_franklin",
+    "title": "The Autobiography of Benjamin Franklin",
+    "author": "Benjamin Franklin",
+    "category": "Life & Habits",
+    "description": "The founding father's charming handbook on daily routines, practical virtues, and personal self-discipline.",
+    "url": "https://www.gutenberg.org/cache/epub/20203/pg20203.txt",
+    "minutes": 210
+  },
+  {
+    "id": "classic_as_a_man_thinketh",
+    "title": "As a Man Thinketh",
+    "author": "James Allen",
+    "category": "Life & Habits",
+    "description": "A short, profound handbook explaining how the mind shapes personal destiny, joy, and success.",
+    "url": "https://www.gutenberg.org/cache/epub/4507/pg4507.txt",
+    "minutes": 45
+  },
+  {
+    "id": "classic_the_prophet",
+    "title": "The Prophet",
+    "author": "Kahlil Gibran",
+    "category": "Life & Habits",
+    "description": "Twenty-six poetic essays offering gentle reflections on love, marriage, work, friendship, and peace.",
+    "url": "https://www.gutenberg.org/cache/epub/58585/pg58585.txt",
+    "minutes": 65
+  },
+  {
+    "id": "classic_self_reliance",
+    "title": "Self-Reliance",
+    "author": "Ralph Waldo Emerson",
+    "category": "Life & Habits",
+    "description": "An inspiring manifesto urging every person to trust their inner intuition rather than societal conformity.",
+    "url": "https://www.gutenberg.org/cache/epub/16643/pg16643.txt",
+    "minutes": 50
+  },
+  {
+    "id": "classic_meditations",
+    "title": "Meditations",
+    "author": "Marcus Aurelius",
+    "category": "Life & Habits",
+    "description": "Private journals of the Roman Emperor on stoic duty, resilience, emotional mastery, and inner peace.",
+    "url": "https://www.gutenberg.org/cache/epub/2680/pg2680.txt",
+    "minutes": 180
+  },
+  {
+    "id": "classic_art_of_war",
+    "title": "The Art of War",
+    "author": "Sun Tzu",
+    "category": "Life & Habits",
+    "description": "Ancient Chinese strategic wisdom on leadership, deception, conflict resolution, and self-possession.",
+    "url": "https://www.gutenberg.org/cache/epub/132/pg132.txt",
+    "minutes": 90
+  },
+  {
+    "id": "classic_gift_of_magi",
+    "title": "The Gift of the Magi",
+    "author": "O. Henry",
+    "category": "Quick Reads",
+    "description": "A heartwarming Christmas masterpiece about love, selfless sacrifice, and the true meaning of giving.",
+    "url": "https://www.gutenberg.org/cache/epub/7256/pg7256.txt",
+    "minutes": 25
+  },
+  {
+    "id": "classic_christmas_carol",
+    "title": "A Christmas Carol",
+    "author": "Charles Dickens",
+    "category": "Quick Reads",
+    "description": "The miserly Ebenezer Scrooge is visited by three spirits who transform his cold heart into joyful generosity.",
+    "url": "https://www.gutenberg.org/cache/epub/46/pg46.txt",
+    "minutes": 95
+  },
+  {
+    "id": "classic_yellow_wallpaper",
+    "title": "The Yellow Wallpaper",
+    "author": "Charlotte Perkins Gilman",
+    "category": "Quick Reads",
+    "description": "A chilling psychological tale documenting a woman's battle for autonomy and creativity in a confined room.",
+    "url": "https://www.gutenberg.org/cache/epub/1952/pg1952.txt",
+    "minutes": 40
+  },
+  {
+    "id": "classic_metamorphosis",
+    "title": "The Metamorphosis",
+    "author": "Franz Kafka",
+    "category": "Quick Reads",
+    "description": "Traveling salesman Gregor Samsa awakens one morning to find himself transformed into a giant insect.",
+    "url": "https://www.gutenberg.org/cache/epub/5200/pg5200.txt",
+    "minutes": 80
+  },
+  {
+    "id": "classic_monte_cristo",
+    "title": "The Count of Monte Cristo",
+    "author": "Alexandre Dumas",
+    "category": "Epic Classics",
+    "description": "The ultimate saga of betrayal, hidden treasure, enduring patience, retribution, and redemption.",
+    "url": "https://www.gutenberg.org/cache/epub/1184/pg1184.txt",
+    "minutes": 850
+  },
+  {
+    "id": "classic_frankenstein",
+    "title": "Frankenstein",
+    "author": "Mary Shelley",
+    "category": "Epic Classics",
+    "description": "The seminal sci-fi gothic tragedy of Victor Frankenstein and the sentient creature he brought to life.",
+    "url": "https://www.gutenberg.org/cache/epub/84/pg84.txt",
+    "minutes": 260
+  },
+  {
+    "id": "classic_dracula",
+    "title": "Dracula",
+    "author": "Bram Stoker",
+    "category": "Epic Classics",
+    "description": "The definitive vampire classic detailing Count Dracula's attempt to move from Transylvania to England.",
+    "url": "https://www.gutenberg.org/cache/epub/345/pg345.txt",
+    "minutes": 450
+  },
+  {
+    "id": "classic_dorian_gray",
+    "title": "The Picture of Dorian Gray",
+    "author": "Oscar Wilde",
+    "category": "Epic Classics",
+    "description": "A hedonistic young man sells his soul for eternal youth while his portrait absorbs the sins of his life.",
+    "url": "https://www.gutenberg.org/cache/epub/174/pg174.txt",
+    "minutes": 240
+  },
+  {
+    "id": "classic_tale_two_cities",
+    "title": "A Tale of Two Cities",
+    "author": "Charles Dickens",
+    "category": "Epic Classics",
+    "description": "Set in London and Paris during the French Revolution, depicting sacrifice, love, and redemption.",
+    "url": "https://www.gutenberg.org/cache/epub/98/pg98.txt",
+    "minutes": 390
+  },
+  {
+    "id": "classic_walden",
+    "title": "Walden",
+    "author": "Henry David Thoreau",
+    "category": "Epic Classics",
+    "description": "A reflection upon simple living in natural surroundings and personal declaration of independence.",
+    "url": "https://www.gutenberg.org/cache/epub/205/pg205.txt",
+    "minutes": 280
+  },
+  {
+    "id": "classic_pilgrims_progress",
+    "title": "The Pilgrim's Progress",
+    "author": "John Bunyan",
+    "category": "Faith & Spirit",
+    "description": "An epic allegorical journey of Christian from the City of Destruction to the Celestial City, navigating timeless perils of faith and endurance.",
+    "url": "https://www.gutenberg.org/cache/epub/39452/pg39452.txt",
+    "minutes": 320
+  }
+]

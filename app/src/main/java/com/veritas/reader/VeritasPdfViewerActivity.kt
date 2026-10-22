@@ -94,7 +94,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.enableEdgeToEdge(window)
         repository = DocumentRepository(applicationContext)
 
         val settings = repository.loadReaderSettings()
@@ -126,8 +126,6 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         colorSyncBackground = scheme.primaryContainer.toArgb()
         colorActiveStrip = scheme.primary.toArgb()
         colorAccentButton = scheme.primary.toArgb()
-
-        configureSystemBars()
 
         val documentId = intent.getStringExtra(EXTRA_DOCUMENT_ID).orEmpty()
         val metadata = repository.findDocument(documentId)

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.ImageDecoder
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.util.Log
@@ -523,22 +524,35 @@ object CoverExtractor {
      */
     fun extractImageCover(context: Context, documentId: String, uri: Uri): String? {
         return try {
-            val stream = context.contentResolver.openInputStream(uri) ?: return null
-            val bitmap = BitmapFactory.decodeStream(stream) ?: return null
-            val format = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                Bitmap.CompressFormat.WEBP_LOSSY
-            } else {
-                @Suppress("DEPRECATION")
-                Bitmap.CompressFormat.WEBP
+            // Set the decode size from the header, before allocating pixels. ImageDecoder
+            // owns the source descriptor and also respects the image's EXIF orientation.
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+                val scale = minOf(1.0, COVER_WIDTH.toDouble() / info.size.width,
+                    (COVER_WIDTH * 2).toDouble() / info.size.height)
+                decoder.setTargetSize(
+                    (info.size.width * scale).toInt().coerceAtLeast(1),
+                    (info.size.height * scale).toInt().coerceAtLeast(1)
+                )
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
             }
-            val fileName = "$documentId.cover.webp"
-            val coverFile = File(coversDir(context), fileName)
-            coverFile.outputStream().use { out ->
-                bitmap.compress(format, COVER_QUALITY, out)
+            try {
+                val format = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                    Bitmap.CompressFormat.WEBP_LOSSY
+                } else {
+                    @Suppress("DEPRECATION")
+                    Bitmap.CompressFormat.WEBP
+                }
+                val fileName = "$documentId.cover.webp"
+                val coverFile = File(coversDir(context), fileName)
+                coverFile.outputStream().use { out ->
+                    check(bitmap.compress(format, COVER_QUALITY, out)) { "Could not encode image cover" }
+                }
+                Log.i(TAG, "Successfully extracted image cover for $documentId")
+                fileName
+            } finally {
+                bitmap.recycle()
             }
-            bitmap.recycle()
-            Log.i(TAG, "Successfully extracted image cover for $documentId")
-            fileName
         } catch (e: Exception) {
             Log.w(TAG, "Failed to extract image cover for $documentId", e)
             null

@@ -9,8 +9,16 @@ import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.core.view.WindowCompat
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import com.veritas.reader.ui.ReaderViewModel
 import com.veritas.reader.ui.reloadReaderSettings
@@ -196,6 +204,7 @@ open class MainActivity : ComponentActivity() {
         setTheme(VernCustomization.startupTheme(this, startupAppearance))
         VernCustomization.watchApplication(application)
         super.onCreate(savedInstanceState)
+        WindowCompat.enableEdgeToEdge(window)
         configureVernSystemSplash(startupAppearance)
 
         // Field visibility: capture uncaught crashes locally and offer (user-initiated,
@@ -263,7 +272,10 @@ open class MainActivity : ComponentActivity() {
 
         setContent {
             VeritasTheme {
-                Box(Modifier.fillMaxSize()) {
+                // Screens own top/bottom chrome insets. Consume horizontal safe insets
+                // here so cutouts and landscape navigation cannot cover any screen.
+                Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
                     VeritasReaderApp(
                         initialShare = initialShare,
                         openVoiceStudioOnStart = openVoiceStudioOnStart,

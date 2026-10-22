@@ -1,0 +1,46 @@
+{
+  "name": "vern-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 1420 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 1420 --strictPort",
+    "tauri": "tauri",
+    "test": "vitest run --dir src",
+    "test:e2e": "playwright test",
+    "lint": "eslint src tests",
+    "format": "prettier --write src tests *.json *.ts *.js",
+    "format:check": "prettier --check src tests *.json *.ts *.js"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.12.4",
+    "@xmldom/xmldom": "^0.9.12",
+    "fflate": "^0.8.3",
+    "pdfjs-dist": "^6.4.299",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
+    "@tauri-apps/cli": "^2.12.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "jsdom": "^30.1.3",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.0",
+    "typescript-eslint": "^8.71.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
+  }
+}
