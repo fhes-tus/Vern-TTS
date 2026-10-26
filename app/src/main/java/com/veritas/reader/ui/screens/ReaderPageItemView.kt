@@ -152,7 +152,10 @@ internal fun ReaderPageItemView(
     onOpenColorPalette: (List<Int>) -> Unit,
     onOpenShareToAi: (ReaderTextSelection?, Boolean) -> Unit,
     onFontSizeChange: (Int) -> Unit = {},
-    onPinchChanged: (Boolean) -> Unit = {}
+    onPinchChanged: (Boolean) -> Unit = {},
+    continuous: Boolean = false,
+    onActiveOffset: (Int) -> Unit = {},
+    onSentenceOffsets: (Map<Int, Int>) -> Unit = {}
 ) {
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
@@ -160,7 +163,7 @@ internal fun ReaderPageItemView(
 
                     val pageItem = pageItems.getOrNull(pageIndex)
                     if (pageItem == null) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()), contentAlignment = Alignment.Center) {
                             Text("Page not found", style = MaterialTheme.typography.bodyMedium)
                         }
                     } else {
@@ -241,7 +244,7 @@ internal fun ReaderPageItemView(
                         val latestToggleBars by rememberUpdatedState(onToggleBars)
                         Box(
                             modifier = Modifier
-                                .fillMaxSize()
+                                .then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
                                 .padding(horizontal = 4.dp, vertical = 4.dp)
                                 .pointerInput(isCollapsible) {
                                     if (!isCollapsible) return@pointerInput
@@ -266,7 +269,7 @@ internal fun ReaderPageItemView(
                                 .readerFontPinch(readerSettings.fontSizeSp, onFontSizeChange, onPinchChanged)
                         ) {
                             Surface(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()),
                                 shape = RoundedCornerShape(14.dp),
                                 color = canvasBg,
                                 border = androidx.compose.foundation.BorderStroke(
@@ -281,11 +284,11 @@ internal fun ReaderPageItemView(
                                 shadowElevation = 3.dp
                             ) {
                                 Box(
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
                                 ) {
                                     Column(
                                         modifier = Modifier
-                                            .fillMaxSize()
+                                            .then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
                                             .padding(horizontal = 10.dp, vertical = 8.dp)
                                     ) {
                                     // Page Top Header (Tappable to toggle collapsible bars)
@@ -333,7 +336,7 @@ internal fun ReaderPageItemView(
                                     val pageDragged by pageScrollState.interactionSource.collectIsDraggedAsState()
                                     val latestHideBars by rememberUpdatedState(onHideBars)
                                     LaunchedEffect(pageScrollState, pagerState, pageIndex, isCollapsible) {
-                                        if (!isCollapsible) return@LaunchedEffect
+                                        if (!isCollapsible || continuous) return@LaunchedEffect
                                         // Automatic sentence following also scrolls this column.
                                         // It must not undo a tap that just revealed the controls.
                                         snapshotFlow {
@@ -343,9 +346,9 @@ internal fun ReaderPageItemView(
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .weight(1f)
+                                            .then(if (continuous) Modifier else Modifier.weight(1f))
                                             .testTag("reader-page-scroll-$pageNumber")
-                                            .verticalScroll(pageScrollState)
+                                            .then(if (continuous) Modifier else Modifier.verticalScroll(pageScrollState))
                                             .padding(bottom = 16.dp)
                                     ) pageContent@{
                                         if (!pageMediaReady) {
@@ -407,7 +410,7 @@ internal fun ReaderPageItemView(
                                                         androidx.compose.foundation.Image(
                                                             bitmap = coverBitmap.asImageBitmap(),
                                                             contentDescription = "Cover",
-                                                            modifier = Modifier.fillMaxSize(),
+                                                            modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()),
                                                             contentScale = androidx.compose.ui.layout.ContentScale.Crop
                                                         )
                                                     }
@@ -428,8 +431,28 @@ internal fun ReaderPageItemView(
                                         val segmentTextViews = remember { mutableMapOf<Int, TextView>() }
                                         var activeTextView by remember { mutableStateOf<TextView?>(null) }
                                         var textViewContentTopPx by remember { mutableFloatStateOf(0f) }
+                                        fun reportSentenceOffsets() {
+                                            if (!continuous) return
+                                            val offsets = mutableMapOf<Int, Int>()
+                                            segments.forEach { segment ->
+                                                val top = segmentTopPx[segment.segmentIndex] ?: return@forEach
+                                                when (segment) {
+                                                    is PageContentSegment.Prose -> {
+                                                        val view = segmentTextViews[segment.segmentIndex] ?: return@forEach
+                                                        val layout = view.layout ?: return@forEach
+                                                        segment.subPart.sentenceRanges.forEach { range ->
+                                                            val line = layout.getLineForOffset(range.start.coerceIn(0, view.text.length))
+                                                            offsets[range.sentenceIndex] = (top + layout.getLineTop(line)).toInt()
+                                                        }
+                                                    }
+                                                    is PageContentSegment.Table -> offsets[segment.sentenceStartIndex] = top.toInt()
+                                                    is PageContentSegment.Image -> Unit
+                                                }
+                                            }
+                                            onSentenceOffsets(offsets)
+                                        }
 
-                                        LaunchedEffect(activeSentenceOnThisPage) {
+                                        LaunchedEffect(activeSentenceOnThisPage, readerSettings.fontSizeSp, segmentTopPx.toMap()) {
                                             if (selectedTextSelection != null || segmentTextViews.values.any { it.hasSelection() }) return@LaunchedEffect
                                             if (activeSentenceOnThisPage >= 0) {
                                                 val activeSegment = segments.firstOrNull { segment ->
@@ -444,7 +467,8 @@ internal fun ReaderPageItemView(
                                                     val currentScroll = pageScrollState.value
                                                     val viewportHeight = pageScrollState.viewportSize
                                                     val isVisible = viewportHeight > 0 && tableTop >= currentScroll && tableTop <= (currentScroll + viewportHeight - 80)
-                                                    if (!isVisible) {
+                                                    if (continuous) onActiveOffset((tableTop + 40).toInt().coerceAtLeast(0))
+                                                    else if (!isVisible) {
                                                         pageScrollState.animateScrollTo((tableTop - 60).toInt().coerceAtLeast(0))
                                                     }
                                                 } else if (activeSegment is PageContentSegment.Prose) {
@@ -467,7 +491,8 @@ internal fun ReaderPageItemView(
                                                     val isVisible = viewportHeight > 0 &&
                                                         sentenceY >= currentScroll &&
                                                         (sentenceY + (lineBottom - lineTop)) <= (currentScroll + viewportHeight - 80)
-                                                    if (!isVisible) {
+                                                    if (continuous) onActiveOffset(sentenceY.coerceAtLeast(0))
+                                                    else if (!isVisible) {
                                                         val targetY = (sentenceY - 60).coerceAtLeast(0)
                                                         pageScrollState.animateScrollTo(targetY)
                                                     }
@@ -501,7 +526,7 @@ internal fun ReaderPageItemView(
                                                         textColor = textColor,
                                                         boldTypeface = boldTypeface,
                                                         currentPageNumber = currentPageNumber,
-                                                        isVisiblePage = pagerState.currentPage == pageIndex,
+                                                        isVisiblePage = if (continuous) currentPageNumber == pageNumber else pagerState.currentPage == pageIndex,
                                                         pageNumber = pageNumber,
                                                         document = document,
                                                         bookmarkedSentenceIndexes = bookmarkedSentenceIndexes,
@@ -526,6 +551,7 @@ internal fun ReaderPageItemView(
                                                         onGloballyPositionedTop = { top ->
                                                             segmentTopPx[segment.segmentIndex] = top
                                                             if (segment.segmentIndex == 0) textViewContentTopPx = top
+                                                            reportSentenceOffsets()
                                                         },
                                                         onTextViewActive = { tv ->
                                                             activeTextView = tv
@@ -548,6 +574,7 @@ internal fun ReaderPageItemView(
                                                             .fillMaxWidth()
                                                             .onGloballyPositioned {
                                                                 segmentTopPx[segment.segmentIndex] = it.positionInParent().y + pageScrollState.value
+                                                                reportSentenceOffsets()
                                                             }
                                                     )
                                                 }
@@ -608,7 +635,7 @@ internal fun ReaderPageItemView(
                                         Spacer(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .heightIn(min = 450.dp)
+                                                .heightIn(min = if (continuous) 80.dp else 450.dp)
                                                 .clickable(
                                                     interactionSource = remember { MutableInteractionSource() },
                                                     indication = null
@@ -619,8 +646,8 @@ internal fun ReaderPageItemView(
                                     }
                                 }
 
-                                // Tactile Book Spine Crease along left edge
-                                Box(
+                                // A spine belongs to paginated paper, not the scrolling flow.
+                                if (!continuous) Box(
                                     modifier = Modifier
                                         .align(Alignment.CenterStart)
                                         .width(10.dp)

@@ -140,7 +140,7 @@ class CustomizationAndListenUiTest {
         }
     }
 
-    @Test fun listenReadControlsCollapseAndFullScreenCanExitWithoutSeeking() {
+    @Test fun listenReadFullScreenReplacesCollapseAndCanExitWithoutSeeking() {
         var seeks = 0
         rule.setContent {
             CompositionLocalProvider(LocalVeritasMotion provides VeritasMotionScheme(reduceMotion = true)) {
@@ -156,15 +156,11 @@ class CustomizationAndListenUiTest {
         }
         capture("listen-rounded-placeholder")
         rule.onNodeWithText("Read", useUnmergedTree = true).performClick()
-        rule.onNodeWithContentDescription("Collapse player controls").performClick()
-        rule.onNodeWithContentDescription("Playback speed").assertDoesNotExist()
-        capture("listen-collapsed")
-        rule.onNodeWithContentDescription("More options").performClick()
-        rule.onNodeWithText("Full screen reading").performClick()
+        rule.onNodeWithContentDescription("Collapse player controls").assertDoesNotExist()
+        rule.onNodeWithTag("listen-fullscreen").performClick()
         rule.onNodeWithContentDescription("Exit full screen reading").assertIsDisplayed()
         capture("listen-fullscreen")
         rule.onNodeWithContentDescription("Exit full screen reading").performClick()
-        rule.onAllNodesWithContentDescription("Expand player controls")[0].performClick()
         rule.onNodeWithContentDescription("Playback speed").assertIsDisplayed()
         rule.runOnIdle { assertEquals("Visibility controls must not move narration", 0, seeks) }
     }

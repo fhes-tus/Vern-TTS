@@ -111,6 +111,7 @@ import com.veritas.reader.ui.saveReaderSettings
 import com.veritas.reader.ui.saveSentenceNote
 import com.veritas.reader.ui.saveTextEditorChanges
 import com.veritas.reader.ui.screens.CURATED_CLASSICS
+import com.veritas.reader.ui.screens.bookCoverMotion
 import com.veritas.reader.ui.screens.ClassicBookCover
 import com.veritas.reader.ui.screens.DocumentNotesDialog
 import com.veritas.reader.ui.setDocumentCollection
@@ -594,6 +595,7 @@ internal fun MainDialogsHost(
                         Surface(
                             modifier = Modifier
                                 .size(110.dp, 160.dp)
+                                .bookCoverMotion("details-${target.id}")
                                 .shadow(8.dp, RoundedCornerShape(12.dp)),
                             shape = com.veritas.reader.VeritasPackStyle.compactShape(),
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,

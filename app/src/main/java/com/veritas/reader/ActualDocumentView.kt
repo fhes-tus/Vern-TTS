@@ -91,6 +91,7 @@ internal fun ActualDocumentView(
     onClose: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val pageSettings = remember(document.id) { repository.loadReaderSettings() }
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
     val original = repository.originalUri(document)
@@ -299,7 +300,7 @@ internal fun ActualDocumentView(
     // from the swipe direction while fading, instead of hard-cutting. 0 = just arrived.
     val pageEnter = remember { Animatable(1f) }
     LaunchedEffect(bitmap) {
-        if (bitmap != null) {
+        if (bitmap != null && !isPdf && !pageSettings.reduceMotion && pageSettings.pageTurnStyle != "none") {
             pageEnter.snapTo(0f)
             pageEnter.animateTo(1f, tween(durationMillis = 260, easing = LinearOutSlowInEasing))
         }
@@ -470,9 +471,9 @@ internal fun ActualDocumentView(
                         scaleX = zoomScale
                         scaleY = zoomScale
                         rotationZ = rotationDegrees.toFloat()
-                        translationX = zoomOffset.x + (1f - enter) * pageTurnDirection * 48.dp.toPx()
+                        translationX = zoomOffset.x + if (isPdf) 0f else (1f - enter) * pageTurnDirection * 48.dp.toPx()
                         translationY = zoomOffset.y
-                        alpha = 0.3f + 0.7f * enter
+                        alpha = if (isPdf) 1f else 0.3f + 0.7f * enter
                     }
                     .pointerInput(pageIndex, pageCount, viewportWidthPx, viewportHeightPx) {
                         awaitEachGesture {
@@ -527,7 +528,7 @@ internal fun ActualDocumentView(
                                     } else if (!isPinchZoom) {
                                         dragTotalX += pan.x
                                         dragTotalY += pan.y
-                                        if (!childHandledGesture && kotlin.math.abs(dragTotalX) > swipeThreshold / 2 && kotlin.math.abs(dragTotalX) > kotlin.math.abs(dragTotalY) * 1.4f) {
+                                        if (!isPdf && !childHandledGesture && kotlin.math.abs(dragTotalX) > swipeThreshold / 2 && kotlin.math.abs(dragTotalX) > kotlin.math.abs(dragTotalY) * 1.4f) {
                                             change.consume()
                                         }
                                     }
@@ -537,7 +538,7 @@ internal fun ActualDocumentView(
                             if (!isPinchZoom && !childHandledGesture && zoomScale <= 1.05f) {
                                 val absX = kotlin.math.abs(dragTotalX)
                                 val absY = kotlin.math.abs(dragTotalY)
-                                if (absX > swipeThreshold && absX > absY * 1.4f) {
+                                if (!isPdf && absX > swipeThreshold && absX > absY * 1.4f) {
                                     if (dragTotalX < -swipeThreshold) {
                                         selectPage(pageIndex + 1)
                                     } else if (dragTotalX > swipeThreshold) {
@@ -560,6 +561,10 @@ internal fun ActualDocumentView(
             ) {
                 val image = bitmap
                 when {
+                    isPdf && original != null && pageCount > 0 -> {
+                        com.veritas.reader.ui.screens.OriginalPdfPager(original, pageIndex, pageCount, bitmap,
+                            pageSettings, zoomScale > 1.05f, darkThemeColorFilter, ::selectPage)
+                    }
                     image != null -> {
                         Image(
                             bitmap = image.asImageBitmap(),

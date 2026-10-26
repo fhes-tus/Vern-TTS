@@ -64,6 +64,15 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     internal var tapDownY = 0f
     internal var tapDownTime = 0L
     internal var tapMoved = false
+    internal var pdfFitWidthZoom = 0f
+    internal var pdfSelectionActive = false
+    internal var pdfSwipeStartX = 0f
+    internal var pdfSwipeStartY = 0f
+    internal var pdfSwipeEligible = false
+    internal var pdfSwipeClaimed = false
+    internal var pdfSwipeMultiTouch = false
+    internal var pdfSwipeTracking = false
+    internal var pdfNavigationPage = 0
     // Expandable bottom panel state
     internal var panelExpanded = false
     internal var expandedPanelContent: LinearLayout? = null
@@ -220,6 +229,32 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
         if (ev?.actionMasked == MotionEvent.ACTION_DOWN) ReadingSessionTracker.get(applicationContext).interaction()
         resetInactivityTimer()
+        val view = pdfView
+        if (ev != null && view != null) {
+            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+                fun contains(target: View?): Boolean {
+                    val rect = android.graphics.Rect()
+                    return target != null && target.isShown && target.getGlobalVisibleRect(rect) && rect.contains(ev.rawX.toInt(), ev.rawY.toInt())
+                }
+                pdfSwipeTracking = !chromeMenuOpen && contains(view) &&
+                    !(chromeVisible && (contains(toolbarChrome) || contains(bottomChrome)))
+            }
+            if (pdfSwipeTracking) {
+                val location = IntArray(2).also(view::getLocationOnScreen)
+                val local = MotionEvent.obtain(ev).apply { offsetLocation(ev.rawX - ev.x - location[0], ev.rawY - ev.y - location[1]) }
+                val wasClaimed = pdfSwipeClaimed
+                val consumed = handlePdfPageSwipe(view, local)
+                local.recycle()
+                if (consumed && !wasClaimed && ev.actionMasked == MotionEvent.ACTION_MOVE) {
+                    val cancel = MotionEvent.obtain(ev).apply { action = MotionEvent.ACTION_CANCEL }
+                    super.dispatchTouchEvent(cancel)
+                    cancel.recycle()
+                    hideChrome()
+                }
+                if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) pdfSwipeTracking = false
+                if (consumed) return true
+            }
+        }
         return super.dispatchTouchEvent(ev)
     }
 
@@ -261,9 +296,15 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
 
     override fun onActionModeStarted(mode: android.view.ActionMode?) {
         super.onActionModeStarted(mode)
+        pdfSelectionActive = true
         handleActionModeStarted(mode)
     }
 
+
+    override fun onActionModeFinished(mode: android.view.ActionMode?) {
+        super.onActionModeFinished(mode)
+        pdfSelectionActive = false
+    }
 
     internal fun toggleSearch() {
         val fragment = viewerFragment ?: return
@@ -442,10 +483,28 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                 val found = fragment.view?.let(::findPdfView) ?: fragmentContainer?.let(::findPdfView)
                 if (found != null) {
                     pdfView = found
+                    pdfFitWidthZoom = found.zoom
                     found.setOnTouchListener { _, event ->
                         handleDocumentChromeTouch(found, event)
                         false
                     }
+                    found.addOnViewportChangedListener(object : PdfView.OnViewportChangedListener {
+                        override fun onViewportChanged(firstVisiblePage: Int, visiblePagesCount: Int,
+                            pageLocations: android.util.SparseArray<android.graphics.RectF>, zoomLevel: Float) {
+                            val pageWidth = pageLocations[firstVisiblePage]?.width() ?: return
+                            if (pageWidth > 0f && found.width > 0) pdfFitWidthZoom = zoomLevel * found.width / pageWidth
+                            var mostVisible = firstVisiblePage
+                            var largestArea = -1f
+                            for (index in 0 until pageLocations.size()) {
+                                val rect = android.graphics.RectF(pageLocations.valueAt(index))
+                                if (rect.intersect(0f, 0f, found.width.toFloat(), found.height.toFloat())) {
+                                    val area = rect.width() * rect.height()
+                                    if (area > largestArea) { mostVisible = pageLocations.keyAt(index); largestArea = area }
+                                }
+                            }
+                            pdfNavigationPage = mostVisible
+                        }
+                    })
                     startHighlightUpdates()
 
                     // Initial scroll to saved page

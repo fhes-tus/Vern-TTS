@@ -9,6 +9,12 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -105,12 +111,21 @@ internal fun HomeTodayReadingCard(
         }
     }
     var showGoalPicker by remember { mutableStateOf(false) }
-    Card(modifier.fillMaxWidth().testTag("home-today-reading-card"), shape = VeritasPackStyle.cardShape(),
+    Card(modifier.fillMaxWidth().testTag("home-today-reading-card").pointerInput(stats.size) {
+                    var drag = 0f
+                    detectHorizontalDragGestures(onDragStart = { drag = 0f }, onDragCancel = { drag = 0f },
+                        onDragEnd = {
+                            if (kotlin.math.abs(drag) > 40.dp.toPx()) statIndex = (statIndex + if (drag < 0f) 1 else stats.size - 1) % stats.size
+                        }, onHorizontalDrag = { change, distance -> change.consume(); drag += distance })}, shape = VeritasPackStyle.cardShape(),
         colors = CardDefaults.cardColors(containerColor = VeritasPackStyle.panelColor(scheme)),
         border = VeritasPackStyle.cardBorder(scheme)) {
-        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box(Modifier.fillMaxWidth().clipToBounds()) {
+        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 0.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Box(Modifier.fillMaxWidth().clipToBounds().semantics {
+                    customActions = listOf(
+                        CustomAccessibilityAction("Next reading statistic") { statIndex = (statIndex + 1) % stats.size; true },
+                        CustomAccessibilityAction("Previous reading statistic") { statIndex = (statIndex + stats.size - 1) % stats.size; true })
+                }) {
                     // Reserve the tallest page at the user's font scale, including wrapped text.
                     // Rotating statistics must not move the books underneath this card.
                     stats.forEachIndexed { index, stat ->
@@ -120,8 +135,8 @@ internal fun HomeTodayReadingCard(
                     AnimatedContent(targetState = statIndex, modifier = Modifier.matchParentSize(),
                         transitionSpec = {
                             if (reduceMotion) fadeIn(tween(0)) togetherWith fadeOut(tween(0))
-                            else (slideInHorizontally(tween(550)) { -it } + fadeIn(tween(350)))
-                                .togetherWith(slideOutHorizontally(tween(550)) { it } + fadeOut(tween(300)))
+                            else (slideInHorizontally(tween(550)) { it } + fadeIn(tween(350)))
+                                .togetherWith(slideOutHorizontally(tween(550)) { -it } + fadeOut(tween(300)))
                                 .using(null)
                         }, label = "todayReadingStats") { index ->
                         val page = index.coerceIn(stats.indices)
@@ -145,66 +160,85 @@ private data class ReadingCardStat(val title: String, val value: String, val det
 private fun ReadingStatPage(stat: ReadingCardStat, page: Int, pages: Int, fraction: Float,
     hasGoal: Boolean, goalMinutes: Int, weekReadingMillis: List<Long>, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(stat.title, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall,
                 color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Canvas(Modifier.width((pages * 12).dp).heightIn(min = 8.dp).semantics {
-                contentDescription = "Statistic ${page + 1} of $pages"
-            }) {
-                repeat(pages) { i ->
-                    drawLine(if (i == page) scheme.primary else scheme.onSurface.copy(alpha = .18f),
-                        Offset(i * 12.dp.toPx() + 2.dp.toPx(), size.height / 2),
-                        Offset(i * 12.dp.toPx() + (if (i == page) 8 else 4).dp.toPx(), size.height / 2),
-                        3.dp.toPx(), StrokeCap.Round)
-                }
+            Canvas(Modifier.width((pages * 12).dp).heightIn(min = 8.dp).semantics { contentDescription = "Statistic ${page + 1} of $pages" }) {
+                repeat(pages) { i -> drawLine(if (i == page) scheme.primary else scheme.onSurface.copy(alpha = .18f),
+                    Offset(i * 12.dp.toPx() + 2.dp.toPx(), size.height / 2),
+                    Offset(i * 12.dp.toPx() + (if (i == page) 8 else 4).dp.toPx(), size.height / 2), 3.dp.toPx(), StrokeCap.Round) }
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(.55f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(stat.value, style = MaterialTheme.typography.titleLarge,
-                    color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(stat.detail, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(.56f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(stat.value, style = MaterialTheme.typography.titleLarge, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(stat.detail, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
-            Column(Modifier.weight(.45f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                val weekly = page == 1 || page == 3
-                Text(if (weekly) "Minutes by day" else if (hasGoal) "Daily progress" else "Your own pace",
-                    style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
-                if (weekly) {
-                    val values = List(7) { weekReadingMillis.getOrElse(it) { 0L }.coerceAtLeast(0L) }
-                    Canvas(Modifier.fillMaxWidth().requiredHeight(24.dp).semantics {
-                        contentDescription = "Reading minutes, Monday to Sunday: " +
-                            values.joinToString(", ") { "${it / 60_000L}" }
-                    }) {
-                        val peak = values.maxOrNull()?.coerceAtLeast(60_000L) ?: 60_000L
-                        val step = size.width / 7
-                        val bottom = size.height - 2.dp.toPx()
-                        values.forEachIndexed { index, value ->
-                            val x = step * (index + .5f)
-                            drawCircle(scheme.onSurface.copy(alpha = .15f), 2.dp.toPx(), Offset(x, bottom))
-                            if (value > 0) drawLine(scheme.primary.copy(alpha = .8f), Offset(x, bottom),
-                                Offset(x, bottom - (size.height - 4.dp.toPx()) * value.toFloat() / peak),
-                                4.dp.toPx(), StrokeCap.Round)
-                        }
+            Column(Modifier.weight(.44f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                ReadingStatIllustration(page, fraction, weekReadingMillis)
+                Text(when (page) { 1 -> "Days with reading"; 3 -> "Minutes by day"; else -> if (hasGoal) "$goalMinutes min target" else "No daily target" },
+                    style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReadingStatIllustration(page: Int, fraction: Float, week: List<Long>) {
+    val scheme = MaterialTheme.colorScheme
+    val phase = rememberInsightsPhase("home-stat-$page")
+    val reduced = LocalVeritasMotion.current.reduceMotion
+    val values = List(7) { week.getOrElse(it) { 0L }.coerceAtLeast(0) }
+    val description = when (page) {
+        0 -> "Daily reading progress ${(fraction * 100).toInt()} percent"
+        1 -> "Reading days, Monday to Sunday: " + values.joinToString(", ") { if (it > 0) "read" else "no reading" }
+        2 -> "Daily goal progress ${(fraction * 100).toInt()} percent"
+        else -> "Reading minutes, Monday to Sunday: " + values.joinToString(", ") { "${it / 60_000L}" }
+    }
+    Canvas(Modifier.fillMaxWidth().requiredHeight(50.dp).testTag("reading-stat-graphic-$page").semantics { contentDescription = description }) {
+        val ink = scheme.primary
+        val quiet = scheme.primary.copy(alpha = .12f)
+        val drift = if (reduced) 0f else kotlin.math.sin(phase.value * kotlin.math.PI.toFloat() * 2) * 1.5.dp.toPx()
+        when (page) {
+            0 -> {
+                val left = size.width * .06f
+                val width = size.width * .88f
+                val top = size.height * .35f
+                val height = size.height * .3f
+                val radius = androidx.compose.ui.geometry.CornerRadius(height / 2)
+                drawRoundRect(quiet, Offset(left, top), androidx.compose.ui.geometry.Size(width, height), radius)
+                if (fraction > 0f) drawRoundRect(ink, Offset(left, top), androidx.compose.ui.geometry.Size(width * fraction.coerceIn(0f, 1f), height), radius)
+                val x = left + width * fraction.coerceIn(0f, 1f)
+                drawCircle(scheme.surface, height * .48f, Offset(x, top + height / 2))
+                drawCircle(ink, height * .3f, Offset(x, top + height / 2))
+                drawLine(ink.copy(alpha = .4f), Offset(left + width, top - 5.dp.toPx()), Offset(left + width, top + height + 5.dp.toPx()), 1.5.dp.toPx(), StrokeCap.Round)
+            }
+            1 -> {
+                val step = size.width / 7; val width = step * .76f
+                values.forEachIndexed { i, value ->
+                    val x = step * i + (step - width) / 2; val y = size.height * .18f + if (value > 0) drift else 0f
+                    drawRoundRect(if (value > 0) ink.copy(alpha = .85f) else quiet, Offset(x, y), androidx.compose.ui.geometry.Size(width, size.height * .62f), androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()))
+                    if (value > 0) {
+                        drawLine(scheme.onPrimary, Offset(x + width * .2f, y + size.height * .31f), Offset(x + width * .43f, y + size.height * .4f), 1.5.dp.toPx(), StrokeCap.Round)
+                        drawLine(scheme.onPrimary, Offset(x + width * .43f, y + size.height * .4f), Offset(x + width * .8f, y + size.height * .22f), 1.5.dp.toPx(), StrokeCap.Round)
                     }
-                    Row(Modifier.fillMaxWidth().clearAndSetSemantics {}) {
-                        listOf("M", "T", "W", "T", "F", "S", "S").forEach { day ->
-                            Text(day, Modifier.weight(1f), style = MaterialTheme.typography.labelSmall,
-                                color = scheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                        }
-                    }
-                } else {
-                    Canvas(Modifier.fillMaxWidth().requiredHeight(24.dp)) {
-                        val y = size.height / 2
-                        drawLine(scheme.onSurface.copy(alpha = .12f), Offset(0f, y), Offset(size.width, y),
-                            4.dp.toPx(), StrokeCap.Round)
-                        if (hasGoal && fraction > 0f) drawLine(scheme.primary, Offset(0f, y), Offset(size.width * fraction, y),
-                            4.dp.toPx(), StrokeCap.Round)
-                    }
-                    Text(if (hasGoal) "$goalMinutes min target" else "No daily target",
-                        style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+                }
+            }
+            2 -> {
+                val radius = size.height * .36f; val c = center.copy(y = center.y + drift)
+                drawCircle(quiet, radius, c, style = Stroke(6.dp.toPx()))
+                drawArc(ink, -90f, fraction.coerceIn(0f, 1f) * 360, false, c - Offset(radius, radius), androidx.compose.ui.geometry.Size(radius * 2, radius * 2), style = Stroke(6.dp.toPx(), cap = StrokeCap.Round))
+                drawLine(ink.copy(alpha = .65f), c, c + Offset(0f, -radius * .5f), 2.dp.toPx(), StrokeCap.Round)
+                drawLine(ink.copy(alpha = .65f), c, c + Offset(radius * .35f, 0f), 2.dp.toPx(), StrokeCap.Round)
+            }
+            else -> {
+                val peak = values.maxOrNull()?.coerceAtLeast(60_000L) ?: 60_000L
+                val step = size.width / 7; val bottom = size.height - 4.dp.toPx()
+                values.forEachIndexed { i, value ->
+                    val x = step * (i + .5f)
+                    drawCircle(quiet, 2.dp.toPx(), Offset(x, bottom))
+                    if (value > 0) drawLine(ink.copy(alpha = .85f), Offset(x, bottom), Offset(x, bottom - (size.height - 8.dp.toPx()) * value.toFloat() / peak), 6.dp.toPx(), StrokeCap.Round)
                 }
             }
         }

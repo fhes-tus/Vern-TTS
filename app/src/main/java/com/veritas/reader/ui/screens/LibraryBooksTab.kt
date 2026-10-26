@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -388,12 +390,14 @@ internal fun LibraryBooksTab(
         } else {
             if (libraryViewMode == LibraryViewMode.TILES) {
                 itemsIndexed(localDocuments.chunked(columnCount), key = { index, _ -> "grid-row-$index" }) { _, rowDocs ->
+                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    val tileWidth = (maxWidth - 12.dp * (columnCount - 1)) / columnCount
                     Row(
                         modifier = Modifier
                             .animateItem()
                             .fillMaxWidth()
                             .zIndex(if (rowDocs.any { it.id == draggingDocId }) 100f else 1f),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
                     ) {
                         rowDocs.forEach { doc ->
                             val isDragging = doc.id == draggingDocId
@@ -424,7 +428,7 @@ internal fun LibraryBooksTab(
                                 onSetCollection = { onSetCollection(doc) },
                                 onShowDetails = { onShowDetails(doc) },
                                 modifier = Modifier
-                                    .weight(1f)
+                                    .width(tileWidth)
                                     .animateItem()
                                     .zIndex(if (isDragging) 100f else 1f)
                                     .graphicsLayer {
@@ -529,9 +533,10 @@ internal fun LibraryBooksTab(
                         }
                         val remainder = columnCount - rowDocs.size
                         repeat(remainder) {
-                            Spacer(modifier = Modifier.weight(1f))
+                            Spacer(modifier = Modifier.width(tileWidth))
                         }
                     }
+                }
                 }
             } else {
                 itemsIndexed(localDocuments, key = { _, doc -> doc.id }) { _, doc ->

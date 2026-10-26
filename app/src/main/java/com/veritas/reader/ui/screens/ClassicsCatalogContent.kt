@@ -182,10 +182,10 @@ fun ClassicsCatalogContent(
 
 @Composable
 private fun ClassicShelfCard(book: ClassicBookEntry, state: ClassicDownloadState, onPreview: () -> Unit, onAction: () -> Unit, onCancel: () -> Unit) {
-    LibraryBookSurface(Modifier.width(174.dp).testTag("classic_card_${book.id}")) {
+    LibraryBookSurface(Modifier.width(LibraryShelfWidth).testTag("classic_card_${book.id}")) {
         Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Column(Modifier.clickable(onClickLabel = "Details for ${book.title}", onClick = onPreview)) {
-                BookCoverStage(height = 144.dp) { ClassicBookCover(book, width = 80.dp, height = 120.dp) }
+                BookCoverStage(height = LibraryCoverHeight) { ClassicBookCover(book, width = LibraryArtworkWidth, height = LibraryArtworkHeight) }
                 Spacer(Modifier.height(6.dp))
                 Text(book.title, style = MaterialTheme.typography.titleSmall,
                     minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)

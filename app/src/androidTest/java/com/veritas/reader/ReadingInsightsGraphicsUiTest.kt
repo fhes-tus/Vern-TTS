@@ -76,7 +76,10 @@ class ReadingInsightsGraphicsUiTest {
                     Column(Modifier.width(320.dp).fillMaxHeight().verticalScroll(rememberScrollState()).testTag("compact-insights").padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         InsightsStreaksCard(snapshot, keys)
                         InsightsWeeklyAppCard(snapshot, monday)
-                        CalendarHeatMap(snapshot.activeDateKeys, readingMillisByDate = snapshot.readingMillisByDate, summary = { InsightsReadingRing(snapshot, keys) })
+                        CalendarHeatMap(snapshot.activeDateKeys, readingMillisByDate = snapshot.readingMillisByDate, summary = { periodKeys, label ->
+                            InsightsReadingRing(snapshot, keys)
+                            InsightsReadingRing(snapshot, periodKeys, label)
+                        })
                     }
                 }
             }
@@ -87,7 +90,7 @@ class ReadingInsightsGraphicsUiTest {
         rule.onNodeWithContentDescription("Next week").performClick()
         rule.onAllNodesWithText("This week")[0].assertIsDisplayed()
         rule.onNodeWithText("Reading Activity").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("Listening").assertIsDisplayed()
+        rule.onAllNodesWithText("Listening")[0].assertIsDisplayed()
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val output = File(context.getExternalFilesDir(null), "remaining-fixes/insights-compact-graphics.png").apply { parentFile!!.mkdirs() }
         output.outputStream().use { rule.onNodeWithTag("compact-insights").captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it) }

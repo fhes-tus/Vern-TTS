@@ -51,7 +51,9 @@ data class ReaderSettings(
     val launcherPalette: String = "indigo",
     val splashAnimation: String = "bloom",
     val scatteredCards: Boolean = false,
-    val pageTurnStyle: String = "slide"
+    val pageTurnStyle: String = "slide",
+    val readingLayout: String = "pages",
+    val pdfNavigationMode: String = "scroll"
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("fontSizeSp", fontSizeSp)
@@ -81,6 +83,8 @@ data class ReaderSettings(
         .put("splashAnimation", splashAnimation)
         .put("scatteredCards", scatteredCards)
         .put("pageTurnStyle", pageTurnStyle)
+        .put("readingLayout", readingLayout)
+        .put("pdfNavigationMode", pdfNavigationMode)
 
     companion object {
         fun fromJson(obj: JSONObject): ReaderSettings {
@@ -114,7 +118,9 @@ data class ReaderSettings(
                 launcherPalette = obj.optString("launcherPalette", "indigo").takeIf { it in VernCustomization.paletteIds } ?: "indigo",
                 splashAnimation = obj.optString("splashAnimation", "bloom").takeIf { it in listOf("bloom", "fade", "rise", "none") } ?: "bloom",
                 scatteredCards = obj.optBoolean("scatteredCards", false),
-                pageTurnStyle = obj.optString("pageTurnStyle", "slide").takeIf { it in listOf("slide", "flip", "hinge", "none") } ?: "slide"
+                pageTurnStyle = obj.optString("pageTurnStyle", "slide").takeIf { it in listOf("slide", "flip", "hinge", "none") } ?: "slide",
+                readingLayout = obj.optString("readingLayout", "pages").takeIf { it in listOf("pages", "scroll") } ?: "pages",
+                pdfNavigationMode = obj.optString("pdfNavigationMode", "scroll").takeIf { it in listOf("swipe", "scroll") } ?: "scroll"
             )
         }
     }

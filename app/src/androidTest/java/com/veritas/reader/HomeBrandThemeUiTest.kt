@@ -87,7 +87,7 @@ class HomeBrandThemeUiTest {
             rule.onNodeWithText("ern").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }
             val title = layouts.single()
             assertEquals(if (night) darkColorScheme().onSurface else lightColorScheme().onSurface, title.layoutInput.style.color)
-            assertEquals(26.sp, title.layoutInput.style.fontSize)
+            assertEquals(22.sp, title.layoutInput.style.fontSize)
             assertEquals(FontWeight.Black, title.layoutInput.style.fontWeight)
             val mark = rule.onNodeWithTag("vern-wordmark").fetchSemanticsNode().boundsInRoot
             val header = rule.onNodeWithTag("shared_home_header").fetchSemanticsNode().boundsInRoot

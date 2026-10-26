@@ -22,6 +22,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -228,6 +231,9 @@ fun ReaderScreen(
     var showRsvpSpeedReader by remember(document.id) { mutableStateOf(false) }
     var showJumpToPageDialog by remember(document.id) { mutableStateOf(false) }
     val showAudioMode = state.readerMode == ReaderMode.LISTEN
+    LaunchedEffect(showAudioMode) {
+        if (showAudioMode) { showTools = false; showSearch = false; showBookmarks = false }
+    }
     var selectedTextSelection by remember(document.id) { mutableStateOf<ReaderTextSelection?>(null) }
     var selectedTextView by remember(document.id) { mutableStateOf<TextView?>(null) }
     var pinchInProgress by remember(document.id) { mutableStateOf(false) }
@@ -348,6 +354,10 @@ fun ReaderScreen(
         initialPage = (pageItems.indexOfFirst { it.pageNumber == currentPageNumber }.takeIf { it >= 0 } ?: (currentPageNumber - 1))
             .coerceIn(0, (pageItems.size - 1).coerceAtLeast(0))
     ) { pageItems.size.coerceAtLeast(1) }
+    val continuous = readerSettings.readingLayout == "scroll"
+    val continuousState = rememberLazyListState(initialFirstVisibleItemIndex = pagerState.currentPage)
+    var manualScrollSentence by remember(document.id) { mutableStateOf<Int?>(null) }
+    val continuousSentenceOffsets = remember(document.id) { mutableMapOf<Int, Map<Int, Int>>() }
     val coroutineScope = rememberCoroutineScope()
 
     // The swipe listener below is keyed on pagerState alone, whose identity never changes,
@@ -370,7 +380,7 @@ fun ReaderScreen(
                     .takeIf { it >= 0 } ?: (targetPageNum - 1))
                     .coerceIn(0, (latestPageItems.value.size - 1).coerceAtLeast(0))
                 coroutineScope.launch {
-                    pagerState.scrollToPage(pageIdx)
+                    if (continuous) continuousState.scrollToItem(pageIdx) else pagerState.scrollToPage(pageIdx)
                 }
             }
             onSentenceClick(targetSentenceIdx)
@@ -387,12 +397,16 @@ fun ReaderScreen(
         androidx.compose.animation.core.tween<Float>(1050, easing = androidx.compose.animation.core.CubicBezierEasing(.33f, 0f, .25f, 1f))
         else VeritasMotion.spatialSlow<Float>()
     // Page sync: whether playing TTS or user jumps to a section/sentence via outline/bookmarks/slider
-    LaunchedEffect(currentPageNumber, pageItems.size, selectedTextSelection != null) {
+    LaunchedEffect(currentPageNumber, pageItems.size, selectedTextSelection != null, continuous) {
         // Reading may continue while the user selects a word on this page.
         // Keep that page in place until the native selection is dismissed.
         if (selectedTextSelection != null || selectedTextView?.hasSelection() == true) return@LaunchedEffect
         val targetPage = (pageItems.indexOfFirst { it.pageNumber == currentPageNumber }.takeIf { it >= 0 } ?: (currentPageNumber - 1))
             .coerceIn(0, (pageItems.size - 1).coerceAtLeast(0))
+        if (continuous) {
+            if (manualScrollSentence != currentIndex) continuousState.scrollToItem(targetPage)
+            return@LaunchedEffect
+        }
         // A sync landing mid-scroll used to be dropped outright, and because this effect only
         // re-runs when the page number changes it never caught up — narration would carry on
         // reading a page the pager was no longer showing. Wait the scroll out instead: at 380ms
@@ -414,10 +428,29 @@ fun ReaderScreen(
         }
     }
 
+    LaunchedEffect(continuous, continuousState) {
+        if (!continuous) return@LaunchedEffect
+        androidx.compose.runtime.snapshotFlow { continuousState.isScrollInProgress }.collect { scrolling ->
+            if (!scrolling && !latestIsPlaying.value && selectedTextSelection == null) {
+                val item = latestPageItems.value.getOrNull(continuousState.firstVisibleItemIndex)
+                if (item != null && item.sentenceRanges.isNotEmpty()) {
+                    val offsets = continuousSentenceOffsets[continuousState.firstVisibleItemIndex].orEmpty()
+                    val anchor = offsets.entries.filter { it.value <= continuousState.firstVisibleItemScrollOffset }
+                        .maxByOrNull { it.value }?.key ?: item.sentenceStartIndex
+                    if (anchor != latestCurrentIndex.value) {
+                        manualScrollSentence = anchor
+                        onSentenceClick(anchor)
+                    }
+                }
+            }
+        }
+    }
+
     // Prefetch images for adjacent pages in the background so they are instantly ready when swiping
     val docRepository = remember(context) { DocumentRepository(context.applicationContext) }
-    LaunchedEffect(pagerState.currentPage, document.id) {
-        val curPageIdx = pagerState.currentPage
+    val visibleReadingPage = if (continuous) continuousState.firstVisibleItemIndex else pagerState.currentPage
+    LaunchedEffect(visibleReadingPage, document.id) {
+        val curPageIdx = visibleReadingPage
         val pagesToPrefetch = listOfNotNull(
             pageItems.getOrNull(curPageIdx)?.pageNumber,
             pageItems.getOrNull(curPageIdx - 1)?.pageNumber,
@@ -434,7 +467,8 @@ fun ReaderScreen(
     }
 
     // Manual page swipe -> update playback sentence so it stays on the flipped page smoothly
-    LaunchedEffect(pagerState) {
+    LaunchedEffect(pagerState, continuous) {
+        if (continuous) return@LaunchedEffect
         // settledPage can publish before isScrollInProgress becomes false.
         // Observe both so that final position update is never dropped.
         androidx.compose.runtime.snapshotFlow { pagerState.settledPage to pagerState.isScrollInProgress }
@@ -447,7 +481,7 @@ fun ReaderScreen(
                     // would land it on a different page, and the sync effect above would then
                     // immediately flip away from the blank page the user just swiped to.
                     val hasOwnSentences = targetPageItem != null && targetPageItem.sentenceRanges.isNotEmpty()
-                    if (targetPageItem != null && hasOwnSentences && !latestIsPlaying.value) {
+                    if (!continuous && targetPageItem != null && hasOwnSentences && !latestIsPlaying.value) {
                         val activeIdx = latestCurrentIndex.value
                         val isAlreadyOnTargetPage = activeIdx in targetPageItem.sentenceStartIndex until targetPageItem.sentenceEndIndexExclusive
                         val currentSentencePage =
@@ -541,6 +575,7 @@ fun ReaderScreen(
 
     val glassEnabled = VeritasPackStyle.glassChromeEnabled() && com.veritas.reader.isDeviceGlassCapable()
     val readerBackdrop = if (glassEnabled) com.veritas.reader.rememberVeritasLayerBackdrop() else null
+    if (!showAudioMode) {
     com.veritas.reader.VeritasBackdropProvider(readerBackdrop) {
     Box(
         modifier = Modifier
@@ -568,47 +603,8 @@ fun ReaderScreen(
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxSize(),
-                        userScrollEnabled = selectedTextSelection == null && !pinchInProgress,
-                        flingBehavior = androidx.compose.foundation.pager.PagerDefaults.flingBehavior(
-                            state = pagerState,
-                            snapAnimationSpec = if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion)
-                                androidx.compose.animation.core.tween(900, easing = androidx.compose.animation.core.CubicBezierEasing(.33f, 0f, .25f, 1f))
-                            else VeritasMotion.spatial<Float>()),
-                        pageSpacing = if (readerSettings.pageTurnStyle in listOf("flip", "hinge") && !readerSettings.reduceMotion) 0.dp else 16.dp,
-                        beyondViewportPageCount = 1,
-                        key = { pageItems.getOrNull(it)?.pageNumber ?: it }
-                    ) { pageIndex ->
-                        val flip = readerSettings.pageTurnStyle == "hinge" && !readerSettings.reduceMotion && pagerState.isScrollInProgress
-                        Box(Modifier.fillMaxSize().zIndex(if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion && pagerState.isScrollInProgress) {
-                            val position = (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
-                            if (position > .001f && position < .999f) 2f else if (kotlin.math.abs(position) < .001f) 1f else 0f
-                        } else if (pagerState.currentPage == pageIndex) 1f else 0f)
-                            .graphicsLayer {
-                                if (flip) {
-                                    val offset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
-                                    translationX = offset * size.width
-                                    rotationY = -offset * 90f
-                                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(if (offset > 0f) 0f else 1f, .5f)
-                                    cameraDistance = 18f * density
-                                    shadowElevation = kotlin.math.abs(offset) * 10.dp.toPx()
-                                }
-                            }.drawWithContent {
-                                drawContent()
-                                if (flip) {
-                                    val fold = kotlin.math.abs((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(0f, 1f)
-                                    drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(
-                                        androidx.compose.ui.graphics.Color.Black.copy(alpha = fold * .18f),
-                                        androidx.compose.ui.graphics.Color.Transparent,
-                                        androidx.compose.ui.graphics.Color.Black.copy(alpha = fold * .08f))))
-                                }
-                            }) {
-                        BookPageCurl(readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion,
-                            pagerState.isScrollInProgress,
-                            { (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction }, MaterialTheme.colorScheme.background) {
-                        ReaderPageItemView(
+                    val renderReadingPage: @Composable (Int) -> Unit = { pageIndex ->
+ReaderPageItemView(
                             pageIndex = pageIndex,
                             pageItems = pageItems,
                             document = document,
@@ -663,8 +659,62 @@ fun ReaderScreen(
                                 showShareToAiSheet = true
                             },
                             onFontSizeChange = onFontSizeChange,
-                            onPinchChanged = { pinchInProgress = it }
+                            onPinchChanged = { pinchInProgress = it },
+                            continuous = continuous,
+                            onSentenceOffsets = { continuousSentenceOffsets[pageIndex] = it },
+                            onActiveOffset = { offset ->
+                                if (continuous && manualScrollSentence != currentIndex && !continuousState.isScrollInProgress && selectedTextSelection == null) coroutineScope.launch {
+                                    continuousState.scrollToItem(pageIndex, offset)
+                                }
+                            }
                         )
+                    }
+                    if (continuous) {
+                        LazyColumn(Modifier.fillMaxSize().testTag("reader-continuous-scroll"), state = continuousState) {
+                            itemsIndexed(pageItems, key = { _, page -> page.pageNumber }) { pageIndex, _ -> renderReadingPage(pageIndex) }
+                        }
+                    } else
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        userScrollEnabled = selectedTextSelection == null && !pinchInProgress,
+                        flingBehavior = androidx.compose.foundation.pager.PagerDefaults.flingBehavior(
+                            state = pagerState,
+                            snapAnimationSpec = if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion)
+                                androidx.compose.animation.core.tween(900, easing = androidx.compose.animation.core.CubicBezierEasing(.33f, 0f, .25f, 1f))
+                            else VeritasMotion.spatial<Float>()),
+                        pageSpacing = if (readerSettings.pageTurnStyle in listOf("flip", "hinge") && !readerSettings.reduceMotion) 0.dp else 16.dp,
+                        beyondViewportPageCount = 1,
+                        key = { pageItems.getOrNull(it)?.pageNumber ?: it }
+                    ) { pageIndex ->
+                        val flip = readerSettings.pageTurnStyle == "hinge" && !readerSettings.reduceMotion && pagerState.isScrollInProgress
+                        Box(Modifier.fillMaxSize().zIndex(if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion && pagerState.isScrollInProgress) {
+                            val position = (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
+                            if (position > .001f && position < .999f) 2f else if (kotlin.math.abs(position) < .001f) 1f else 0f
+                        } else if (pagerState.currentPage == pageIndex) 1f else 0f)
+                            .graphicsLayer {
+                                if (flip) {
+                                    val offset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
+                                    translationX = offset * size.width
+                                    rotationY = -offset * 90f
+                                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(if (offset > 0f) 0f else 1f, .5f)
+                                    cameraDistance = 18f * density
+                                    shadowElevation = kotlin.math.abs(offset) * 10.dp.toPx()
+                                }
+                            }.drawWithContent {
+                                drawContent()
+                                if (flip) {
+                                    val fold = kotlin.math.abs((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(0f, 1f)
+                                    drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(
+                                        androidx.compose.ui.graphics.Color.Black.copy(alpha = fold * .18f),
+                                        androidx.compose.ui.graphics.Color.Transparent,
+                                        androidx.compose.ui.graphics.Color.Black.copy(alpha = fold * .08f))))
+                                }
+                            }) {
+                        BookPageCurl(readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion,
+                            pagerState.isScrollInProgress,
+                            { (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction }, MaterialTheme.colorScheme.background) {
+                        renderReadingPage(pageIndex)
                         }
                         }
             }
@@ -740,7 +790,14 @@ fun ReaderScreen(
             progress = progress,
             onSearchQueryChange = onSearchQueryChange,
             onPaperToneModeChange = onPaperToneModeChange,
-            onSentenceClick = handleSentenceClick
+            onSentenceClick = handleSentenceClick,
+            verticalPageIndex = if (continuous) visibleReadingPage else null,
+            onVerticalPageSelected = if (continuous) { target ->
+                coroutineScope.launch {
+                    continuousState.scrollToItem(target)
+                    pageItems.getOrNull(target)?.takeIf { it.sentenceRanges.isNotEmpty() }?.let { onSentenceClick(it.sentenceStartIndex) }
+                }
+            } else null
         )
         val currentChunkText = remember(currentIndex, document.chunks) {
             document.chunks.getOrNull(currentIndex)?.trim().orEmpty()
@@ -864,9 +921,11 @@ fun ReaderScreen(
     }
 
     } // Reader backdrop provider
+    } // Listen owns its own controls; no hidden reader hit targets.
 
     ReaderDialogsAndSheetsHost(
         showAudioMode = showAudioMode,
+        onFontSizeChange = onFontSizeChange,
         document = document,
         currentIndex = currentIndex,
         isPlaying = isPlaying,
@@ -921,12 +980,16 @@ fun ReaderScreen(
 
     JumpToPageDialog(
         isOpen = showJumpToPageDialog,
-        currentPageIndex = pagerState.currentPage,
+        currentPageIndex = if (continuous) visibleReadingPage else pagerState.currentPage,
         pageCount = pageItems.size.coerceAtLeast(1),
         onDismiss = { showJumpToPageDialog = false },
         onConfirm = { targetPageIndex ->
             coroutineScope.launch {
-                pagerState.animateScrollToPage(targetPageIndex.coerceIn(0, (pageItems.size - 1).coerceAtLeast(0)))
+                val target = targetPageIndex.coerceIn(0, (pageItems.size - 1).coerceAtLeast(0))
+                if (continuous) {
+                    continuousState.scrollToItem(target)
+                    pageItems.getOrNull(target)?.takeIf { it.sentenceRanges.isNotEmpty() }?.let { onSentenceClick(it.sentenceStartIndex) }
+                } else pagerState.animateScrollToPage(target)
             }
         }
     )

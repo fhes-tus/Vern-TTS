@@ -86,7 +86,9 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                         item { InsightsWeeklyAppCard(snapshot, weekStart) }
                         item {
                             CalendarHeatMap(snapshot.activeDateKeys, readingMillisByDate = snapshot.readingMillisByDate,
-                                summary = { InsightsReadingRing(snapshot, weekKeys) })
+                                summary = { periodKeys, periodLabel ->
+                                    InsightsReadingRings(snapshot, weekKeys, periodKeys, periodLabel)
+                                })
                         }
                     } else if (tab == 1) {
                         item(key = "books-summary") {
