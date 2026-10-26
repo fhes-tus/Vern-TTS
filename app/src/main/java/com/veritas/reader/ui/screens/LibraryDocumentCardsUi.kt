@@ -750,7 +750,7 @@ fun DocumentTileCard(
 
             Text(
                 text = document.title,
-                minLines = 1,
+                minLines = 2,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleSmall,
@@ -765,7 +765,7 @@ fun DocumentTileCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    if (document.sourceLabel.isNotBlank()) Text(
+                    Text(
                         text = document.sourceLabel.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -811,6 +811,8 @@ fun DocumentTileCard(
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
                 )
+            } else {
+                Spacer(Modifier.height(9.dp))
             }
             }
         }
