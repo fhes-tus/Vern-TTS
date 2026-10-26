@@ -46,6 +46,11 @@ internal fun LibrarySearchField(value: String, onChange: (String) -> Unit, place
         })
 }
 
+internal val LibraryShelfWidth = 174.dp
+internal val LibraryCoverHeight = 144.dp
+internal val LibraryArtworkWidth = 80.dp
+internal val LibraryArtworkHeight = 120.dp
+
 @Composable
 internal fun LibraryBookSurface(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Card(modifier, shape = VeritasPackStyle.cardShape(),

@@ -70,7 +70,7 @@ internal fun CalendarHeatMap(
     activeDateKeys: Set<String>,
     openedDateKeys: Set<String> = emptySet(),
     readingMillisByDate: Map<String, Long> = emptyMap(),
-    summary: (@Composable () -> Unit)? = null
+    summary: (@Composable (List<String>, String) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val currentCal = remember { Calendar.getInstance() }
@@ -186,7 +186,10 @@ internal fun CalendarHeatMap(
                 }
             }
 
-            summary?.invoke()
+            val periodDays = if (isYearView) months.flatMap { it.days.filterNotNull() }
+                else months.getOrNull(selectedMonthIndex)?.days.orEmpty().filterNotNull()
+            val periodLabel = if (isYearView) selectedYear.toString() else "${monthNames[selectedMonthIndex]} $selectedYear"
+            summary?.invoke(periodDays.map { it.dateKey }.filter { it <= todayKey }, periodLabel)
 
             if (!isYearView) {
                 // ==================== MONTH VIEW (DEFAULT) ====================

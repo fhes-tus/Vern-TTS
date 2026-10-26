@@ -277,12 +277,13 @@ internal fun RowScope.BottomNavItem(
 ) {
     val scheme = MaterialTheme.colorScheme
     val isDark = scheme.surface.luminance() < 0.5f
+    val glassLabels = VeritasPackStyle.glassChromeEnabled() && com.veritas.reader.isDeviceGlassCapable()
 
     val contentColor by animateColorAsState(
         targetValue = if (selected) {
             scheme.primary
         } else {
-            scheme.onSurfaceVariant.copy(alpha = 0.72f)
+            if (glassLabels) scheme.onSurfaceVariant else scheme.onSurfaceVariant.copy(alpha = 0.72f)
         },
         animationSpec = com.veritas.reader.ui.VeritasMotion.effectsFast(),
         label = "navColor"
@@ -302,7 +303,9 @@ internal fun RowScope.BottomNavItem(
             else androidx.compose.animation.core.spring(dampingRatio = .72f, stiffness = 500f),
         label = "navPill"
     )
-    val activePillColor = if (isDark) {
+    val activePillColor = if (glassLabels) {
+        androidx.compose.ui.graphics.lerp(scheme.surface, scheme.primary, if (isDark) .28f else .18f)
+    } else if (isDark) {
         scheme.primary.copy(alpha = 0.28f)
     } else {
         scheme.primary.copy(alpha = 0.18f)
@@ -338,6 +341,9 @@ internal fun RowScope.BottomNavItem(
             },
         contentAlignment = Alignment.Center
     ) {
+        if (glassLabels && !selected && showLabel) {
+            Box(Modifier.width(pillWidth).height(pillHeight).background(scheme.surface.copy(alpha = .82f), pillShape))
+        }
         if (showSelectionPill && pillProgress > 0.01f) {
             Box(
                 modifier = Modifier

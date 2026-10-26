@@ -173,7 +173,7 @@ internal fun InsightsWeeklyAppCard(snapshot: ReaderTrackerSnapshot, weekStart: L
 }
 
 @Composable
-internal fun InsightsReadingRing(snapshot: ReaderTrackerSnapshot, weekKeys: List<String>) {
+internal fun InsightsReadingRing(snapshot: ReaderTrackerSnapshot, weekKeys: List<String>, periodLabel: String = "This week", compact: Boolean = false) {
     val scheme = MaterialTheme.colorScheme
     val reading = weekKeys.sumOf { snapshot.measuredReadingMillisByDate[it] ?: 0 }
     val listening = weekKeys.sumOf { snapshot.listeningMillisByDate[it] ?: 0 }
@@ -188,8 +188,8 @@ internal fun InsightsReadingRing(snapshot: ReaderTrackerSnapshot, weekKeys: List
         else { reveal.snapTo(0f); reveal.animateTo(1f, tween(1000, easing = FastOutSlowInEasing)) }
     }
     val phase = rememberInsightsPhase("insightsReadingRing")
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        Box(Modifier.size(120.dp).testTag("insights-reading-ring").semantics { contentDescription = "This week: reading ${formatTrackerDuration(reading)}, listening ${formatTrackerDuration(listening)}" },
+    val ring: @Composable () -> Unit = {
+        Box(Modifier.size(120.dp).testTag("insights-reading-ring").semantics { contentDescription = "$periodLabel: reading ${formatTrackerDuration(reading)}, listening ${formatTrackerDuration(listening)}" },
             contentAlignment = Alignment.Center) {
             Canvas(Modifier.fillMaxSize().padding(6.dp)) {
                 val stroke = 10.dp.toPx()
@@ -211,19 +211,45 @@ internal fun InsightsReadingRing(snapshot: ReaderTrackerSnapshot, weekKeys: List
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(formatTrackerDuration(total), style = MaterialTheme.typography.titleLarge)
-                Text("This week", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                if (!compact) Text(periodLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    }
+    val legend: @Composable () -> Unit = {
+        Column(verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
             listOf("Reading", "Listening", "Earlier").forEachIndexed { index, label ->
                 if (index < 2 || legacy > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(Modifier.size(7.dp).background(colors[index], CircleShape))
                     Column {
-                        Text(formatTrackerDuration(amounts[index]), style = MaterialTheme.typography.titleMedium)
+                        Text(formatTrackerDuration(amounts[index]), style = if (compact) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleMedium)
                         Text(label, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                     }
                 }
             }
+        }
+    }
+    if (compact) Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(periodLabel, style = MaterialTheme.typography.titleSmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        ring()
+        legend()
+    } else Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        ring()
+        Box(Modifier.weight(1f)) { legend() }
+    }
+
+}
+
+@Composable
+internal fun InsightsReadingRings(snapshot: ReaderTrackerSnapshot, weekKeys: List<String>, periodKeys: List<String>, periodLabel: String) {
+    val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        if (maxWidth >= 280.dp && fontScale < 1.3f) Row(Modifier.fillMaxWidth().testTag("insights-rings-side-by-side"), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+            Box(Modifier.weight(1f)) { InsightsReadingRing(snapshot, weekKeys, compact = true) }
+            Box(Modifier.weight(1f)) { InsightsReadingRing(snapshot, periodKeys, periodLabel, compact = true) }
+        } else Column(Modifier.fillMaxWidth().testTag("insights-rings-stacked"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            InsightsReadingRing(snapshot, weekKeys)
+            InsightsReadingRing(snapshot, periodKeys, periodLabel)
         }
     }
 }

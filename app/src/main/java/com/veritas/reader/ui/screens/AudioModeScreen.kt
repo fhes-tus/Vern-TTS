@@ -75,6 +75,8 @@ fun AudioModeScreen(
     onOpenNarrationStudio: () -> Unit = {},
     onExportAudio: () -> Unit = {},
     documentId: String? = null,
+    fontSizeSp: Int = 18,
+    onFontSizeChange: (Int) -> Unit = {},
     contentWindowInsets: WindowInsets = WindowInsets.safeDrawing
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -83,10 +85,10 @@ fun AudioModeScreen(
     val backdrop = if (glass) rememberVeritasLayerBackdrop() else null
     val haptics = rememberVeritasHaptics()
     var showRead by rememberSaveable(documentId) { mutableStateOf(false) }
-    var playerCollapsed by rememberSaveable(documentId) { mutableStateOf(false) }
     var fullScreenRead by rememberSaveable(documentId) { mutableStateOf(false) }
     BackHandler(fullScreenRead) { fullScreenRead = false }
     var toolsExpanded by remember { mutableStateOf(false) }
+    var showTextSize by remember { mutableStateOf(false) }
     var ratesExpanded by remember { mutableStateOf(false) }
     var scrub by remember(documentId) { mutableStateOf<Float?>(null) }
     val lastIndex = (totalChunks - 1).coerceAtLeast(0)
@@ -132,7 +134,7 @@ fun AudioModeScreen(
                         ListenControl(Icons.Default.MoreVert, "More options", glass, Modifier.size(48.dp), onClick = { toolsExpanded = true })
                         DropdownMenu(toolsExpanded, { toolsExpanded = false }) {
                             DropdownMenuItem(text = { Text("Full screen reading") }, leadingIcon = { Icon(Icons.Default.Fullscreen, null) },
-                                onClick = { toolsExpanded = false; showRead = true; playerCollapsed = true; fullScreenRead = true })
+                                onClick = { toolsExpanded = false; showRead = true; fullScreenRead = true })
                             listOf(
                                 Triple("Sleep timer", Icons.Outlined.Timer, onOpenSleepTimer),
                                 Triple("Voice & language", Icons.Outlined.RecordVoiceOver, onOpenVoiceStudio),
@@ -146,11 +148,9 @@ fun AudioModeScreen(
                     }
                 }
                 Row(Modifier.align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = !showRead, onClick = { showRead = false; playerCollapsed = false }, label = { Text("Player") })
+                    FilterChip(selected = !showRead, onClick = { showRead = false }, label = { Text("Player") })
                     FilterChip(selected = showRead, onClick = { showRead = true }, label = { Text("Read") })
-                    if (showRead) ListenControl(if (playerCollapsed) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        if (playerCollapsed) "Expand player controls" else "Collapse player controls", glass, Modifier.size(48.dp).testTag("listen-collapse-controls"),
-                        onClick = { playerCollapsed = !playerCollapsed })
+
                 }
                 }
                 AnimatedContent(showRead, modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -159,10 +159,12 @@ fun AudioModeScreen(
                             (fadeOut(effects) + slideOutVertically(spatial) { -it / 12 })
                     }, label = "listenViewTransition") { read ->
                     if (read) Box(Modifier.fillMaxSize()) {
-                        ListenSentenceList(documentChunks.ifEmpty { listOf(currentSentence) }, index, onSentenceClick)
+                        ListenSentenceList(documentChunks.ifEmpty { listOf(currentSentence) }, index, onSentenceClick, fontSizeSp)
                         if (fullScreenRead) Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             ListenControl(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, if (isPlaying) "Pause" else "Play", glass,
                                 Modifier.size(52.dp), playback = true, preparing = preparing, onClick = onPlayPause)
+                            ListenControl(Icons.Default.FormatSize, "Text size", glass, Modifier.size(52.dp),
+                                onClick = { showTextSize = true })
                             ListenControl(Icons.Default.FullscreenExit, "Exit full screen reading", glass, Modifier.size(52.dp).testTag("listen-exit-fullscreen"),
                                 onClick = { fullScreenRead = false })
                         }
@@ -170,28 +172,27 @@ fun AudioModeScreen(
                     else ListenArtwork(coverFile, if (totalChunks > 0) (index + 1f) / totalChunks else 0f,
                         { haptics.select(); onNext() }, { haptics.select(); onPrevious() })
                 }
-                if (showRead && playerCollapsed && !fullScreenRead) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(title, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleSmall)
-                        ListenControl(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, if (isPlaying) "Pause" else "Play", glass,
-                            Modifier.size(48.dp), playback = true, preparing = preparing, onClick = onPlayPause)
-                        ListenControl(Icons.Default.KeyboardArrowUp, "Expand player controls", glass, Modifier.size(48.dp), onClick = { playerCollapsed = false })
-                    }
-                }
-                AnimatedVisibility(visible = !fullScreenRead && (!showRead || !playerCollapsed),
+                AnimatedVisibility(visible = !fullScreenRead,
                     enter = if (VeritasMotion.scheme.reduceMotion) EnterTransition.None else fadeIn(effects) + expandVertically(),
                     exit = if (VeritasMotion.scheme.reduceMotion) ExitTransition.None else fadeOut(effects) + shrinkVertically()) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Column(Modifier.weight(1f)) {
-                        Text(title, style = MaterialTheme.typography.titleLarge,
-                            color = scheme.onBackground, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(title, style = MaterialTheme.typography.titleLarge,
+                        color = scheme.onBackground, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
                         Text(if (totalChunks > 0) "Sentence ${index + 1} of $totalChunks" else "Ready to listen",
+                            modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ListenControl(if (isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkAdd,
+                            if (isBookmarked) "Remove bookmark" else "Add bookmark", glass, Modifier.size(48.dp), onClick = onToggleBookmark)
+                        ListenControl(Icons.Default.Fullscreen, "Full screen reading", glass, Modifier.size(48.dp).testTag("listen-fullscreen"),
+                            onClick = { showRead = true; fullScreenRead = true })
+                        ListenControl(Icons.Default.FormatSize, "Text size", glass, Modifier.size(48.dp).testTag("listen-text-size"),
+                            onClick = { showTextSize = true })
+                        }
                     }
-                    ListenControl(if (isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkAdd,
-                        if (isBookmarked) "Remove bookmark" else "Add bookmark", glass, Modifier.size(50.dp), onClick = onToggleBookmark)
                 }
                 Column {
                     VeritasSleekSlider(position, { scrub = it },
@@ -240,6 +241,18 @@ fun AudioModeScreen(
             }
         }
     }
+    if (showTextSize) AlertDialog(onDismissRequest = { showTextSize = false },
+        title = { Text("Reading text size") },
+        text = { Column { Text("$fontSizeSp sp")
+            VeritasSleekSlider(value = fontSizeSp.toFloat(), onValueChange = { onFontSizeChange(it.roundToInt().coerceIn(10, 28)) },
+                valueRange = 10f..28f, stepIncrement = 1f, sliderHeight = 48.dp,
+                modifier = Modifier.semantics {
+                    contentDescription = "Reading text size"
+                    progressBarRangeInfo = ProgressBarRangeInfo(fontSizeSp.toFloat(), 10f..28f, 17)
+                    setProgress { onFontSizeChange(it.roundToInt().coerceIn(10, 28)); true }
+                })
+        } }, confirmButton = { TextButton({ showTextSize = false }) { Text("Done") } })
+
 }
 
 @Composable
@@ -300,12 +313,12 @@ private fun ListenArtwork(coverFile: File?, progress: Float, onNext: () -> Unit,
 }
 
 @Composable
-private fun ListenSentenceList(chunks: List<String>, currentIndex: Int, onSentenceClick: (Int) -> Unit) {
+private fun ListenSentenceList(chunks: List<String>, currentIndex: Int, onSentenceClick: (Int) -> Unit, fontSizeSp: Int) {
     val state = rememberLazyListState()
     val scheme = MaterialTheme.colorScheme
     val reducedMotion = VeritasMotion.scheme.reduceMotion
     val density = LocalDensity.current
-    LaunchedEffect(currentIndex, chunks.size, reducedMotion) {
+    LaunchedEffect(currentIndex, chunks.size, reducedMotion, fontSizeSp) {
         if (currentIndex !in chunks.indices) return@LaunchedEffect
         repeat(15) {
             if (state.layoutInfo.viewportEndOffset <= 0) delay(30)
@@ -333,7 +346,7 @@ private fun ListenSentenceList(chunks: List<String>, currentIndex: Int, onSenten
                 Text(sentence, Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                     .graphicsLayer { this.alpha = alpha; scaleX = scale; scaleY = scale; translationY = with(density) { lift.dp.toPx() } }
                     .semantics { selected = active }.clickable { onSentenceClick(index) },
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = fontSizeSp.sp, lineHeight = (fontSizeSp * 1.5f).sp),
                     color = scheme.onBackground)
             }
         }

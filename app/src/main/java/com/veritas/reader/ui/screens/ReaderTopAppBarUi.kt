@@ -107,7 +107,9 @@ internal fun ReaderTopAppBar(
     progress: Float,
     onSearchQueryChange: (String) -> Unit,
     onPaperToneModeChange: (PaperToneMode) -> Unit = {},
-    onSentenceClick: (Int) -> Unit = {}
+    onSentenceClick: (Int) -> Unit = {},
+    verticalPageIndex: Int? = null,
+    onVerticalPageSelected: ((Int) -> Unit)? = null
 ) {
     var internalShowTools by remember(showTools) { mutableStateOf(showTools) }
 
@@ -251,11 +253,13 @@ onOpenAskAi = onOpenAskAi,
                 Spacer(modifier = Modifier.height(4.dp))
                 if (pageItems.size > 1) {
                     SlimPageSlider(
-                        pageIndex = pagerState.currentPage,
+                        pageIndex = verticalPageIndex ?: pagerState.currentPage,
                         pageCount = pageItems.size,
                         onPageSelected = { targetPage ->
+                            if (onVerticalPageSelected != null) onVerticalPageSelected(targetPage)
+                            else
                             coroutineScope.launch {
-                                pagerState.animateScrollToPage(targetPage)
+                                if (verticalPageIndex == null) pagerState.animateScrollToPage(targetPage)
                                 val pageItem = pageItems.getOrNull(targetPage)
                                 if (pageItem != null && pageItem.sentenceRanges.isNotEmpty()) {
                                     onSentenceClick(pageItem.sentenceStartIndex)

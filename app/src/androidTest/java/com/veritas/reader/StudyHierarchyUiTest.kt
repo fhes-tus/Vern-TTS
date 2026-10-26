@@ -51,7 +51,7 @@ class StudyHierarchyUiTest {
         rule.onNodeWithText("0%").assertDoesNotExist()
         rule.onNodeWithText("Start review").performClick()
         assertEquals(1, reviews)
-        rule.onNodeWithText("Vocabulary").performClick()
+        rule.onNodeWithText("Vocabulary").performScrollTo().performClick()
         assertEquals("Vocab", selected)
         rule.mainClock.advanceTimeBy(1_000)
         capture("study-dark")

@@ -47,37 +47,6 @@ internal fun StudyHubOverview(
     )
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         StudyDailyReviewHeroCard(review.dueCards.size, onStartReview)
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Your study material", style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
-            collections.chunked(2).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                    row.forEach { collection ->
-                        Card(
-                            onClick = { onSelectSection(collection.section) },
-                            modifier = Modifier.weight(1f).vernScatteredCard("study-${collection.section}"),
-                            shape = VeritasPackStyle.cardShape(),
-                            colors = CardDefaults.cardColors(containerColor = VeritasPackStyle.panelColor(colors)),
-                            border = VeritasPackStyle.cardBorder(colors)
-                        ) {
-                            Row(Modifier.fillMaxWidth().heightIn(min = 76.dp).padding(12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(collection.icon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(22.dp))
-                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                    Text(if (collection.section == "Vocab") "Vocabulary" else collection.section,
-                                        style = MaterialTheme.typography.titleSmall, color = colors.onSurface)
-                                    val unit = if (collection.count != 1) collection.unit else when (collection.unit) {
-                                        "quizzes" -> "quiz"
-                                        "recent books" -> "recent book"
-                                        else -> collection.unit.removeSuffix("s")
-                                    }
-                                    Text("${collection.count} $unit", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
         if (sets.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -86,6 +55,28 @@ internal fun StudyHubOverview(
                 }
                 sets.take(3).forEachIndexed { index, set ->
                     StudyActiveDeckItem(index + 1, set.name, set.cards.size, Icons.Outlined.Style, { onOpenDeck(set) })
+                }
+            }
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Your study material", style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
+            collections.chunked(2).forEach { pair ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    pair.forEach { collection ->
+                        TextButton(onClick = { onSelectSection(collection.section) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                            shape = VeritasPackStyle.compactShape(),
+                            colors = ButtonDefaults.textButtonColors(containerColor = colors.surfaceContainerHigh.copy(alpha = .65f))) {
+                            Text(if (collection.section == "Vocab") "Vocabulary" else collection.section,
+                                modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Start,
+                                style = MaterialTheme.typography.bodyMedium, color = colors.onSurface)
+                            val unit = if (collection.count != 1) collection.unit else when (collection.unit) {
+                                "quizzes" -> "quiz"
+                                "recent books" -> "recent book"
+                                else -> collection.unit.removeSuffix("s")
+                            }
+                            Text("${collection.count} $unit", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+                        }
+                    }
                 }
             }
         }

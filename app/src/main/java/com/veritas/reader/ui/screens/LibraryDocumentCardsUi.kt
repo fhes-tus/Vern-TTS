@@ -1,4 +1,5 @@
 package com.veritas.reader.ui.screens
+import androidx.compose.ui.draw.shadow
 
 import com.veritas.reader.vernScatteredCard
 
@@ -581,7 +582,7 @@ fun DocumentTileCard(
 
     var pressed by remember { mutableStateOf(false) }
     Card(
-        modifier = modifier.vernScatteredCard(document.id, !selectionMode && com.veritas.reader.VeritasThemeState.scatteredCards)
+        modifier = modifier
             .fillMaxWidth()
             .graphicsLayer(scaleX = selectionScale, scaleY = selectionScale)
             .pressScale(pressed),
@@ -590,7 +591,7 @@ fun DocumentTileCard(
             containerColor = if (selected) {
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = VeritasPackStyle.surfaceAlpha())
             } else {
-                com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
+                MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
             }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -614,14 +615,12 @@ fun DocumentTileCard(
                         onTap = { if (selectionMode) onToggleSelected() else onOpen() }
                     )
                 }
-                .padding(10.dp)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(166.dp)
-                    .clip(VeritasPackStyle.coverStageShape(inset = 10.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .height(LibraryCoverHeight)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
                     .then(
                         if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                             with(sharedTransitionScope) {
@@ -637,15 +636,15 @@ fun DocumentTileCard(
                     Image(
                         bitmap = coverBitmap.asImageBitmap(),
                         contentDescription = "Cover",
-                        modifier = Modifier.width(96.dp).height(144.dp).align(Alignment.Center).clip(RoundedCornerShape(6.dp)),
-                        contentScale = ContentScale.Crop
+                        modifier = Modifier.width(LibraryArtworkWidth).height(LibraryArtworkHeight).bookCoverMotion("cover-${document.id}").align(Alignment.Center).clip(RoundedCornerShape(6.dp)),
+                        contentScale = ContentScale.Fit
                     )
                 } else {
                     VeritasCoverPlaceholder(
                         documentId = document.id,
                         title = document.title,
                         sourceLabel = document.sourceLabel,
-                        modifier = Modifier.width(96.dp).height(144.dp).align(Alignment.Center).clip(RoundedCornerShape(6.dp)),
+                        modifier = Modifier.width(LibraryArtworkWidth).height(LibraryArtworkHeight).bookCoverMotion("cover-${document.id}").align(Alignment.Center).clip(RoundedCornerShape(6.dp)),
                         compact = false
                     )
                 }
@@ -680,7 +679,7 @@ fun DocumentTileCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(6.dp),
+                        .padding(10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -747,11 +746,11 @@ fun DocumentTileCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp)) {
 
             Text(
                 text = document.title,
-                minLines = 2,
+                minLines = 1,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleSmall,
@@ -812,6 +811,7 @@ fun DocumentTileCard(
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
                 )
+            }
             }
         }
     }

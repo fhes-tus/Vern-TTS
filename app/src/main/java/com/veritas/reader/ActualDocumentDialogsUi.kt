@@ -5,6 +5,11 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.setProgress
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -331,6 +336,13 @@ internal fun SlimPageSlider(
     val tickingPageSelect = com.veritas.reader.ui.rememberStepHaptics(pageIndex, onPageSelected)
     BoxWithConstraints(
         modifier = modifier
+            .semantics {
+                contentDescription = "Page position"
+                progressBarRangeInfo = ProgressBarRangeInfo((pageIndex + 1).toFloat(), 1f..pageCount.toFloat(), (pageCount - 2).coerceAtLeast(0))
+                setProgress { requested ->
+                    tickingPageSelect((requested.roundToInt() - 1).coerceIn(0, pageCount - 1)); true
+                }
+            }
             .pointerInput(pageCount) {
                 detectTapGestures { offset ->
                     val width = size.width.toFloat().coerceAtLeast(1f)

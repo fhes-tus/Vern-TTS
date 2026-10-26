@@ -35,7 +35,16 @@ class HomeAndAddedUiTest {
         rule.onNodeWithText("This week").assertIsDisplayed()
         rule.onNodeWithText("2 days").assertIsDisplayed()
         rule.onNodeWithText("2 active days").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Reading days, Monday to Sunday: read, no reading, read, no reading, no reading, no reading, no reading").assertIsDisplayed()
+        rule.mainClock.autoAdvance = false
+        repeat(2) {
+            val actions = rule.onNode(SemanticsMatcher.keyIsDefined(androidx.compose.ui.semantics.SemanticsActions.CustomActions))
+                .fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsActions.CustomActions]
+            rule.runOnIdle { actions.first { it.label == "Next reading statistic" }.action() }
+            rule.mainClock.advanceTimeBy(700)
+        }
         rule.onNodeWithContentDescription("Reading minutes, Monday to Sunday: 1, 0, 2, 0, 0, 0, 0").assertIsDisplayed()
+        rule.mainClock.autoAdvance = true
         assertEquals(initialHeight, rule.onNodeWithTag("home-today-reading-card").fetchSemanticsNode().boundsInRoot.height, 1f)
     }
 

@@ -107,7 +107,9 @@ private fun NavigationCapsule(shape: Shape, glass: Boolean, opaqueFallback: Bool
                     translationX = if (rtl) -distance else distance
                     alpha = opacity
                 }
-                .background(scheme.primary.copy(alpha = if (scheme.surface.luminance() < .5f) .28f else .18f), VeritasPackStyle.chipShape())
+                .background(if (glass) androidx.compose.ui.graphics.lerp(scheme.surface, scheme.primary,
+                    if (scheme.surface.luminance() < .5f) .28f else .18f)
+                    else scheme.primary.copy(alpha = if (scheme.surface.luminance() < .5f) .28f else .18f), VeritasPackStyle.chipShape())
                 .border(1.dp, scheme.primary.copy(alpha = .35f), VeritasPackStyle.chipShape()))
             Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically, content = content)
         }

@@ -85,6 +85,9 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
 
         // Display
         items.add(OverflowMenuItem(title = "Display", isHeader = true))
+        items.add(OverflowMenuItem(title = "PDF settings",
+            subtitle = if (pdfChromeSettings.pdfNavigationMode == "swipe") "Swipe to turn pages" else "Scroll through pages",
+            iconRes = R.drawable.ic_m3_fitscreen, action = { showPdfNavigationSettings() }))
 
         items.add(OverflowMenuItem(
             title = "Fit to Screen",
