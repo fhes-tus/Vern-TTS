@@ -8,39 +8,17 @@ $pack = Join-Path $repo ('release/v' + $releaseVersion)
 foreach ($folder in @('text','graphics','existing-screenshots','verification')) {
     New-Item -ItemType Directory -Force (Join-Path $pack $folder) | Out-Null
 }
-$notes = @'
-Vern 2.6.2 refreshes About and Accessibility, fixes themed text, and adds App settings to Notes. Choose 20 icon palettes or follow your theme, with matching startup colours and motion previews. Enjoy Funky cards across more screens, rounded cover-matched Listen artwork and collapsible/full-screen reading. Page curl, touch gestures and tab swiping are refined, Classics archive links work again, and the wordmark, player and navigation are more compact.
-'@
-$notes = $notes.Trim()
+# Listing text is reviewed in the versioned pack; never replace it with old release copy.
+foreach ($name in @('release-notes-en-US.txt','app-title.txt','short-description.txt','full-description.txt')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $pack "text/$name"))) { throw "Missing reviewed listing text: $name" }
+}
+$notes = [IO.File]::ReadAllText((Join-Path $pack 'text/release-notes-en-US.txt')).Trim()
 if ($notes.Length -gt 500) { throw 'Release notes exceed 500 characters' }
-[IO.File]::WriteAllText((Join-Path $pack 'text/release-notes-en-US.txt'), $notes)
 [IO.File]::WriteAllText((Join-Path $pack 'text/play-console-paste.txt'), "<en-US>`n$notes`n</en-US>")
-$title = 'Vern'
-$short = 'Read, listen and take notes with your books and documents.'
-$full = @'
-Bring reading, listening and study together with Vern.
-
-YOUR LIBRARY
-Import supported books and documents, organize your library, and pick up where you left off. Explore the classics catalog for your next read.
-
-READ OR LISTEN
-Read on screen or use text-to-speech with supported Android and downloadable voices. Adjust playback and follow along with highlighted text. Voice availability and expression depend on the selected engine.
-
-NOTES AND STUDY
-Keep highlights and annotations alongside your reading. Create and share notes, and organize study materials in Study Hub.
-
-BUILD YOUR READING HABIT
-Set a daily goal and review recorded reading time, weekly activity and reading insights. The home screen brings your current book and progress together.
-
-MAKE IT YOURS
-Choose light or dark themes, icon palettes and startup motion. Try an optional Funky cards layout and curved paper page turns. Collapsible Listen controls make more room for reading. Reduced-motion options keep the interface comfortable.
-
-Optional online and AI features require an internet connection and their relevant setup. Download voice models before using them offline.
-'@
+$title = [IO.File]::ReadAllText((Join-Path $pack 'text/app-title.txt')).Trim()
+$short = [IO.File]::ReadAllText((Join-Path $pack 'text/short-description.txt')).Trim()
+$full = [IO.File]::ReadAllText((Join-Path $pack 'text/full-description.txt')).Trim()
 if ($title.Length -gt 30 -or $short.Length -gt 80 -or $full.Length -gt 4000) { throw 'Listing text exceeds a Play limit' }
-[IO.File]::WriteAllText((Join-Path $pack 'text/app-title.txt'), $title)
-[IO.File]::WriteAllText((Join-Path $pack 'text/short-description.txt'), $short)
-[IO.File]::WriteAllText((Join-Path $pack 'text/full-description.txt'), $full)
 Copy-Item (Join-Path $repo 'docs/playstore_icon_512.png') (Join-Path $pack 'graphics/app-icon-512.png')
 $banner = [Drawing.Bitmap]::new(1024,500,[Drawing.Imaging.PixelFormat]::Format24bppRgb)
 $g = [Drawing.Graphics]::FromImage($banner)

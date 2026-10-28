@@ -1,0 +1,24 @@
+Bring reading, listening and study together with Vern.
+
+YOUR LIBRARY
+Import supported PDF, EPUB, Word, PowerPoint and text documents. Organise your books and pick up where you left off. Explore the classics catalog for your next read. Files without artwork get a readable, title-based cover.
+
+SCAN A PAGE
+Take a photo or choose an image with Android's photo picker, then extract text with on-device OCR. Automatic OCR can also help with image-only pages in PDFs. Recognition depends on image quality and supported script.
+
+READ OR LISTEN
+Use extracted text or original PDF pages. Choose page swiping or vertical scrolling, adjust the reader's text and paper tone, and keep Listen's text size independent. Use supported Android and downloadable voices, change playback speed and follow highlighted sentences. Voice availability and expression depend on the selected engine.
+
+SHARE A PASSAGE
+Long-press in Listen's Read view and select up to five sentences. Preview a quote image, choose its colour and edit the author or character credit before sharing it with the book cover and title.
+
+NOTES AND STUDY
+Keep highlights and annotations alongside your reading. Create notes and organise study materials in Study Hub. Choose a saved book there to export a study guide PDF.
+
+BUILD YOUR READING HABIT
+Set a daily goal and review recorded reading time, activity and insights. Home brings your current book and progress together. Reading and player widgets offer quick access from your launcher.
+
+MAKE IT YOURS
+Choose light, dark and AMOLED themes, icon palettes and startup motion. Home colours follow your selected theme. Try optional Funky cards and page-turn effects. Reduced-motion options keep the interface comfortable.
+
+Your library and reading data stay on the device by default. Optional online, sharing, AI and translation features use their relevant services and setup. Download voice models before using them offline. No account is required to read local files. See the privacy policy for online features and ML Kit diagnostics.

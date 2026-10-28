@@ -31,6 +31,8 @@ class DocumentImportWorker(
         } catch (error: Exception) {
             Log.e("DocumentImportWorker", "Could not start import", error)
             Result.failure(workDataOf("error" to (error.message ?: "Could not start import")))
+        } finally {
+            inputData.getString("uri")?.let { ScanCaptureStore.discard(applicationContext, Uri.parse(it)) }
         }
         if (!inputData.getBoolean("batchImport", false)) return result
         // A rejected file is a completed batch item, so later files still run.
@@ -69,6 +71,7 @@ class DocumentImportWorker(
         if (existingImport != null && !existingImport.partial) {
             return Result.success(workDataOf("documentId" to existingImport.id))
         }
+        val validated = validateDocumentImport(applicationContext, uri)
         var publishedDocumentId: String? = existingImport?.id
 
         // Setup notification channel
@@ -134,9 +137,7 @@ class DocumentImportWorker(
                 ocrSlideImages = inputData.getBoolean("pptx_ocrSlideImages", true)
             )
 
-            val isPdf = applicationContext.contentResolver.getType(uri)?.contains("pdf") == true ||
-                uri.path?.lowercase()?.endsWith(".pdf") == true ||
-                title.lowercase().endsWith(".pdf")
+            val isPdf = validated.format == ImportFormat.PDF
 
             if (isPdf && existingImport == null) {
                 try {

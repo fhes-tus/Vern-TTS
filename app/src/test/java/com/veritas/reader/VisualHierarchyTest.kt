@@ -13,7 +13,7 @@ import org.junit.Test
 
 class VisualHierarchyTest {
     @Test fun greetingUsesTimeAndSavedNameWithoutRandomRecompositionChanges() {
-        val expected = mapOf(0 to "Night owl", 4 to "Dawn owl", 6 to "Early bird", 8 to "Good morning",
+        val expected = mapOf(0 to "Good to see you", 4 to "Welcome to a new day", 6 to "Rise and shine", 8 to "Good morning",
             12 to "Good afternoon", 17 to "Good evening", 22 to "Good night")
         expected.forEach { (hour, greeting) ->
             assertEquals("$greeting, Festus", homeGreeting("  Festus  ", hour))

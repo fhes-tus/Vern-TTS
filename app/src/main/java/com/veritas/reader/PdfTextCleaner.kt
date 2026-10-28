@@ -55,7 +55,7 @@ object PdfTextCleaner {
 
         pageLines.forEachIndexed { pageIndex, lines ->
             val cleanedLines = mutableListOf<String>()
-            lines.forEach { line ->
+            lines.forEachIndexed { lineIndex, line ->
                 val cleanLine = if (isPipeTableLine(line)) {
                     line.trim()
                 } else {
@@ -63,7 +63,8 @@ object PdfTextCleaner {
                 }
                 val key = normalizedLineKey(cleanLine)
                 when {
-                    options.cleanupRepeatedLines && key in repeatedKeys -> removedRepeated++
+                    options.cleanupRepeatedLines && key in repeatedKeys &&
+                        (lineIndex < 3 || lineIndex >= lines.size - 3) -> removedRepeated++
                     options.removePageNumbers && isStandalonePageNumber(cleanLine) -> removedPageNumbers++
                     else -> cleanedLines.add(cleanLine)
                 }
@@ -101,7 +102,11 @@ object PdfTextCleaner {
             }
             candidates.forEach { line ->
                 val key = normalizedLineKey(line)
-                if (key.length in 4..120 && !isStandalonePageNumber(line)) {
+                // Contents entries and real section headings may repeat within a short batch.
+                // Frequency alone must never turn them into disposable running headers.
+                if (key.length in 4..120 && !isStandalonePageNumber(line) &&
+                    !isStructuralChapterHeading(line.trim()) &&
+                    key !in setOf("contents", "table of contents", "dedication", "acknowledgements", "acknowledgments")) {
                     counts[key] = (counts[key] ?: 0) + 1
                 }
             }

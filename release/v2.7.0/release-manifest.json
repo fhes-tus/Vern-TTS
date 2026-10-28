@@ -1,0 +1,12 @@
+{
+  "versionName": "2.7.0",
+  "versionCode": 45,
+  "package": "com.veritas.reader",
+  "minimumSdk": 28,
+  "targetSdk": 36,
+  "architectures": ["arm64-v8a", "armeabi-v7a"],
+  "source": "Current local main working tree; see progress.md for verified snapshots.",
+  "status": "Release copy prepared; signed distribution artifacts pending.",
+  "publication": "Not uploaded or published by this preparation.",
+  "files": []
+}

@@ -118,6 +118,7 @@ internal fun LibraryStudyTab(
     onRenameFlashcardSet: (FlashcardSet) -> Unit,
     onNavigateToTab: (VeritasHomeTab) -> Unit,
     onImportFile: () -> Unit,
+    onExportStudyGuidePdf: (SavedDocument) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val floatingBottomPadding = LocalHomeBottomPadding.current
@@ -139,6 +140,17 @@ internal fun LibraryStudyTab(
     val annotationSelectionMode = selectedAnnotationKeys.isNotEmpty()
 
     var showAiBookPicker by remember { mutableStateOf(false) }
+    var showStudyGuideBookPicker by remember { mutableStateOf(false) }
+    if (showStudyGuideBookPicker) {
+        StudyBookPickerDialog(
+            documents = documents,
+            onSelect = { document -> showStudyGuideBookPicker = false; onExportStudyGuidePdf(document) },
+            onGoToLibrary = { showStudyGuideBookPicker = false; onNavigateToTab(VeritasHomeTab.LIBRARY) },
+            onDismiss = { showStudyGuideBookPicker = false },
+            title = "Choose a book for your study guide",
+            emptyDescription = "Add a book to your library, then export its booknotes and highlights as a study guide."
+        )
+    }
     LaunchedEffect(annotationFilter) { studyListState.requestScrollToItem(0) }
     if (showAiBookPicker) {
         StudyBookPickerDialog(
@@ -418,7 +430,8 @@ internal fun LibraryStudyTab(
                                                     if (GeminiStudyService.hasApiKey(context)) showAiBookPicker = true
                                                     else onShowGeminiApiKeyDialog()
                                                 },
-                                                onSetupAi = onShowGeminiApiKeyDialog
+                                                onSetupAi = onShowGeminiApiKeyDialog,
+                                                onExportStudyGuide = { showStudyGuideBookPicker = true }
                                             )
                                         }
                                     }

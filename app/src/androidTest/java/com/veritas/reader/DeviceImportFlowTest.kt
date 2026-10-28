@@ -29,6 +29,7 @@ import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 import com.veritas.reader.ui.ReaderViewModel
 import com.veritas.reader.ui.importDocumentFromUri
+import com.veritas.reader.ui.prepareImport
 import com.veritas.reader.ui.appendVocabularyWord
 import com.veritas.reader.ui.removeVocabularyWord
 import com.veritas.reader.ui.importMultipleDocuments
@@ -123,12 +124,69 @@ class DeviceImportFlowTest {
         assertEquals(text, repository.readText(saved))
         await("reader opens imported text") { viewModel.uiState.value.activeDocument?.id == saved.id }
         assertTrue(viewModel.uiState.value.activeDocument!!.rawText.contains("Café"))
+        compose.waitForIdle()
         await("completion status consumed") { viewModel.uiState.value.importMessage == null }
         scenario.onActivity { viewModel.returnToLibrary() }
         scenario.moveToState(Lifecycle.State.CREATED)
         scenario.moveToState(Lifecycle.State.RESUMED)
         instrumentation.waitForIdleSync()
         assertNull("Returning/resuming must not replay the consumed status", viewModel.uiState.value.importMessage)
+    }
+
+    @Test fun unsupportedBundleIsRejectedBeforePreviewWithoutCrashingTheActivity() {
+        val file = File(fixtures, "release.aab").apply { writeBytes(byteArrayOf(0x50, 0x4b, 3, 4, 0, 0)) }
+        scenario.moveToState(Lifecycle.State.CREATED)
+        scenario.onActivity { viewModel.prepareImport(Uri.fromFile(file)) }
+        await("unsupported preview rejected") { !viewModel.uiState.value.isOpeningDocument }
+        assertNull(viewModel.uiState.value.pendingImport)
+        assertTrue(viewModel.uiState.value.importMessage.orEmpty().contains("Unsupported file"))
+        assertFalse(repository.loadDocuments().any { it.title == "release" })
+        scenario.moveToState(Lifecycle.State.RESUMED)
+        scenario.onActivity { assertFalse(it.isFinishing) }
+    }
+
+    @Test fun workerRejectsBundlesAndDisguisedBinariesEvenWithACustomTextTitle() {
+        val manager = WorkManager.getInstance(context)
+        for (extension in listOf("aab", "txt")) {
+            val file = File(fixtures, "binary.$extension").apply { writeBytes(byteArrayOf(0x50, 0x4b, 3, 4, 0, 0)) }
+            val request = OneTimeWorkRequestBuilder<DocumentImportWorker>()
+                .setInputData(workDataOf("uri" to Uri.fromFile(file).toString(), "title" to "$token.txt")).build()
+            workIds.add(request.id)
+            manager.enqueue(request).result.get(10, TimeUnit.SECONDS)
+            await("worker safely rejects $extension") { manager.getWorkInfoById(request.id).get().state.isFinished }
+            val result = manager.getWorkInfoById(request.id).get()
+            assertEquals(WorkInfo.State.FAILED, result.state)
+            assertTrue(result.outputData.getString("error").orEmpty().contains(if (extension == "aab") "Unsupported file" else "binary data"))
+            assertNull(repository.findDocument(request.id.toString()))
+        }
+    }
+
+    @Test fun completedWorkerCanResumeAfterTheTemporarySourceIsGone() {
+        val missing = File(fixtures, "already_copied.txt")
+        val request = OneTimeWorkRequestBuilder<DocumentImportWorker>().setInputData(workDataOf(
+            "uri" to Uri.fromFile(missing).toString(), "title" to token)).build()
+        workIds.add(request.id)
+        repository.createDocumentWithResult(title = token, text = "This reading was already saved.",
+            sourceLabel = "TXT", documentId = request.id.toString())
+        val manager = WorkManager.getInstance(context)
+        manager.enqueue(request).result.get(10, TimeUnit.SECONDS)
+        await("completed import resumes without its temporary source") { manager.getWorkInfoById(request.id).get().state.isFinished }
+        assertEquals(WorkInfo.State.SUCCEEDED, manager.getWorkInfoById(request.id).get().state)
+        assertEquals(1, repository.loadDocuments().count { it.id == request.id.toString() })
+    }
+
+    @Test fun rejectedBundleDoesNotStopTheNextBatchFile() {
+        val bundle = File(fixtures, "release.aab").apply { writeBytes(byteArrayOf(0x50, 0x4b, 3, 4)) }
+        val text = File(fixtures, "$token.txt").apply { writeText("A valid reading after a rejected Android bundle.") }
+        val ids = startBatch(listOf(bundle, text), queue = false)
+        await("batch registers") {
+            viewModel.uiState.value.batchImportTotal == 2
+        }
+        await("batch continues after bundle rejection") { !viewModel.uiState.value.isBatchImporting }
+        assertEquals(1, viewModel.uiState.value.batchImportFailed)
+        assertEquals(2, viewModel.uiState.value.batchImportCurrent)
+        assertEquals(1, repository.loadDocuments().count { it.title == token })
+        assertTrue(ids.all { WorkManager.getInstance(context).getWorkInfoById(it).get().state.isFinished })
     }
 
     @Test fun multiChunkPdfFinishesInOneReadingAndDisplaysLastPage() {
@@ -228,6 +286,7 @@ class DeviceImportFlowTest {
         val result = WorkManager.getInstance(context).getWorkInfoById(workIds.single()).get()
         assertEquals(WorkInfo.State.FAILED, result.state)
         assertFalse(viewModel.uiState.value.isOpeningDocument)
+        compose.waitForIdle()
         await("failure status consumed") { viewModel.uiState.value.importMessage == null }
     }
 

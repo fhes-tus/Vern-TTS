@@ -215,6 +215,7 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
     private fun VeritasPdfViewerActivity.showAddNoteDialog(sentenceIndex: Int) {
         val docId = document?.id ?: return
         val input = android.widget.EditText(this).apply {
+            stylePdfInput(this)
             hint = "Write sentence note..."
             setTextColor(colorTextPrimary)
             setHintTextColor(colorTextSecondary)

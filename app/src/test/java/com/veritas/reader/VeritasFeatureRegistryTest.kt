@@ -6,6 +6,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class VeritasFeatureRegistryTest {
+    @Test fun readingListsRemainInLibraryAndSettingsOnly() {
+        val surfaces = VeritasFeatureRegistry.feature(VeritasFeatureId.READING_LISTS).surfaces
+        assertFalse(VeritasFeatureSurface.READER_OVERFLOW in surfaces)
+        assertTrue(VeritasFeatureSurface.LIBRARY_OVERFLOW in surfaces)
+        assertTrue(VeritasFeatureSurface.SETTINGS_HUB in surfaces)
+    }
+
     @Test
     fun registryDefinesEveryFeatureId() {
         assertTrue(VeritasFeatureRegistry.definitions.isNotEmpty())

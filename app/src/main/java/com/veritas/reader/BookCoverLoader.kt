@@ -38,4 +38,15 @@ object BookCoverLoader {
         }
         return asset(context, catalogId)
     }
+
+    /** Generated jackets are memory-only; never replace an extracted or bundled cover. */
+    fun generated(context: Context, identity: String, title: String, sourceLabel: String, author: String = ""): Bitmap {
+        val key = "jacket:1:$identity:$title:$sourceLabel:$author"
+        cache.get(key)?.let { return it }
+        return GeneratedBookCover.render(context, identity, title, sourceLabel, author).also { cache.put(key, it) }
+    }
+
+    fun forDocument(context: Context, document: SavedDocument): Bitmap =
+        this.document(context, document.id, document.catalogId)
+            ?: generated(context, document.id, document.title, document.sourceLabel)
 }

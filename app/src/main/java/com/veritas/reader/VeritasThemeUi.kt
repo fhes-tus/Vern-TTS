@@ -98,13 +98,21 @@ object VeritasPackStyle {
         }
     }
 
-    @Composable
-    fun playerSurfaceColor(scheme: ColorScheme): Color = if (VeritasThemeState.reduceTransparency || VeritasThemeState.themeId.contains("high_contrast")) scheme.surface else when (currentPackId()) {
-        "material_you" -> scheme.tertiaryContainer.copy(alpha = chromeOpacity(currentPackId()))
-        "one_ui" -> scheme.surfaceContainerHigh.copy(alpha = chromeOpacity(currentPackId()))
-        "liquid_glass" -> scheme.surface.copy(alpha = playerOpacity(currentPackId()))
-        else -> scheme.surface.copy(alpha = chromeOpacity(currentPackId()))
+    fun playerSurfaceColorForPack(scheme: ColorScheme, packId: String, opaque: Boolean = false): Color {
+        // Dark controls share the neutral card plane. Accents belong to their actions.
+        if (opaque || scheme.background.luminance() < .3f) return scheme.surface
+        return when (VeritasThemePackCatalog.normalizePackId(packId)) {
+            "material_you" -> scheme.tertiaryContainer.copy(alpha = chromeOpacity(packId))
+            "one_ui" -> scheme.surfaceContainerHigh.copy(alpha = chromeOpacity(packId))
+            "liquid_glass" -> scheme.surface.copy(alpha = playerOpacity(packId))
+            else -> scheme.surface.copy(alpha = chromeOpacity(packId))
+        }
     }
+
+    @Composable
+    fun playerSurfaceColor(scheme: ColorScheme): Color = playerSurfaceColorForPack(
+        scheme, currentPackId(), VeritasThemeState.reduceTransparency || VeritasThemeState.themeId.contains("high_contrast")
+    )
 
     fun chromeOpacity(packId: String): Float = when (VeritasThemePackCatalog.normalizePackId(packId)) {
         "one_ui" -> 0.90f
@@ -333,8 +341,6 @@ fun themePreviewColors(themeId: String): List<Color> {
     return when (VeritasThemeCatalog.normalizeThemeId(themeId)) {
         "light" -> listOf(Color(0xFFFAF7F2), Color(0xFFC07318), Color(0xFF52695C))
         "neon" -> listOf(Color(0xFF08090C), Color(0xFF00E5FF), Color(0xFF00E676))
-        "solarized_dark" -> listOf(Color(0xFF002B36), Color(0xFF2AA198), Color(0xFFB58900))
-        "tomorrow_night_blue" -> listOf(Color(0xFF002451), Color(0xFFBBDAFF), Color(0xFFFFC58F))
         "dark_high_contrast" -> listOf(Color.Black, Color.White, Color(0xFFFFD400))
         "white_high_contrast" -> listOf(Color.White, Color.Black, Color(0xFF004B65))
         "amoled" -> listOf(Color.Black, Color(0xFF90CAF9), Color(0xFF80CBC4))
@@ -477,18 +483,14 @@ internal fun VeritasTheme(content: @Composable () -> Unit) {
         baseColorScheme
     }
 
-    val packColorScheme = veritasPackColorScheme(
+    val colorScheme = veritasPackColorScheme(
         base = blendedColorScheme,
         packId = selectedPack,
-        themeId = resolvedTheme
+        themeId = resolvedTheme,
+        amoledMode = VeritasThemeState.amoledMode
     )
 
     val isAmoled = !isLight && (VeritasThemeState.amoledMode || resolvedTheme == "amoled")
-    val colorScheme = when {
-        resolvedTheme.contains("high_contrast") -> packColorScheme
-        !isLight -> veritasDarkSurfaceScheme(packColorScheme, isAmoled)
-        else -> packColorScheme
-    }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -619,7 +621,7 @@ internal fun veritasReadableInk(base: ColorScheme): ColorScheme {
     )
 }
 
-internal fun veritasPackColorScheme(base: ColorScheme, packId: String, themeId: String = ""): ColorScheme {
+internal fun veritasPackColorScheme(base: ColorScheme, packId: String, themeId: String = "", amoledMode: Boolean = false): ColorScheme {
     val pack = VeritasThemePackCatalog.normalizePackId(packId)
     // Keep color identity and accessibility schemes separate from the component material.
     if (themeId.contains("high_contrast")) return base
@@ -655,5 +657,5 @@ internal fun veritasPackColorScheme(base: ColorScheme, packId: String, themeId: 
         // Glass transparency is controlled per surface, keeping text and dialogs opaque.
         else -> base
     }
-    return if (dark) veritasDarkSurfaceScheme(packed, false) else veritasReadableInk(packed)
+    return if (dark) veritasDarkSurfaceScheme(packed, amoledMode) else veritasReadableInk(packed)
 }

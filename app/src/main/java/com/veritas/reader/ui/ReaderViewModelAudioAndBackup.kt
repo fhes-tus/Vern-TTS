@@ -9,6 +9,7 @@ import com.veritas.reader.AudioExportManager
 import com.veritas.reader.GeneralNote
 import com.veritas.reader.PlaybackStateStore
 import com.veritas.reader.ReaderTextIndex
+import com.veritas.reader.SavedDocument
 import com.veritas.reader.StudyGuidePdfExporter
 import com.veritas.reader.applyPronunciationRules
 import com.veritas.reader.buildBackupJson
@@ -264,39 +265,49 @@ fun ReaderViewModel.shareActiveDocumentNotes() {
     getApplication<Application>().startActivity(Intent.createChooser(shareIntent, "Export notes to notes app").apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK })
 }
 
-fun ReaderViewModel.exportStudyGuidePdf() {
-    val doc = uiState.value.activeDocument ?: return
+fun ReaderViewModel.exportStudyGuidePdf(document: SavedDocument? = null) {
+    val active = uiState.value.activeDocument
+    val documentId = document?.id ?: active?.id ?: return
+    val title = document?.title ?: active?.title ?: return
     val context = getApplication<Application>()
     viewModelScope.launch(Dispatchers.IO) {
-        val sentences = ReaderTextIndex.build(doc.rawText, doc.pageCount).sentences
-        val generalNote = repository.loadDocumentNote(doc.id.orEmpty())
-        val file = StudyGuidePdfExporter.generateStudyGuidePdf(
-            context = context,
-            documentTitle = doc.title,
-            documentId = doc.id.orEmpty(),
-            annotations = uiState.value.annotations,
-            generalNote = generalNote,
-            sentences = sentences
-        )
-        if (file != null && file.exists()) {
-            val uri = com.veritas.reader.SafeFileSharing.uri(
-                context,
-                "${context.packageName}.fileprovider",
-                file
+        try {
+            val rawText = document?.let { repository.readText(it) } ?: active?.rawText.orEmpty()
+            val sentences = ReaderTextIndex.build(rawText, document?.pageCount ?: active?.pageCount ?: 0).sentences
+            val generalNote = repository.loadDocumentNote(documentId)
+            val file = StudyGuidePdfExporter.generateStudyGuidePdf(
+                context = context,
+                documentTitle = title,
+                documentId = documentId,
+                annotations = repository.loadAnnotations(documentId),
+                generalNote = generalNote,
+                sentences = sentences
             )
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "application/pdf"
-                putExtra(Intent.EXTRA_SUBJECT, "Study Guide - ${doc.title}")
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            withContext(Dispatchers.Main) {
-                context.startActivity(
-                    Intent.createChooser(shareIntent, "Share Study Guide PDF").apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    }
+            if (file != null && file.exists()) {
+                val uri = com.veritas.reader.SafeFileSharing.uri(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file
                 )
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/pdf"
+                    putExtra(Intent.EXTRA_SUBJECT, "Study Guide - $title")
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                withContext(Dispatchers.Main) {
+                    context.startActivity(
+                        Intent.createChooser(shareIntent, "Share Study Guide PDF").apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                    )
+                }
             }
+            else error("The study guide could not be created.")
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            _uiState.update { it.copy(importMessage = "Could not export study guide: ${error.message ?: "Please try again."}") }
         }
     }
 }

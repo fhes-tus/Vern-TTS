@@ -371,6 +371,7 @@ internal fun MainSettingsDialogsHost(
 
             ReaderSettingsDialog(
                 settings = uiState.readerSettings,
+                onReadingSettingsChange = { viewModel.saveReaderSettings(it) },
                 onToggleGlassFloatingControls = {
                     viewModel.saveReaderSettings(uiState.readerSettings.copy(glassFloatingControls = !uiState.readerSettings.glassFloatingControls))
                 },

@@ -73,6 +73,16 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     internal var pdfSwipeMultiTouch = false
     internal var pdfSwipeTracking = false
     internal var pdfNavigationPage = 0
+    internal var pdfVisiblePagesCount = 0
+    internal var pdfDefaultPageSpacing: Int? = null
+    internal var pdfDefaultMinZoom: Float? = null
+    internal var pdfDefaultViewportMargins: android.graphics.Rect? = null
+    internal val pdfPageDimensions = linkedMapOf<Int, Pair<Float, Float>>()
+    internal var pdfFocusRequest: Int? = null
+    internal var pdfFocusPosted = false
+    internal var pdfFocusApplying = false
+    internal var pdfFocusInitialized = false
+    internal var pdfVerticalSwipeBlocked = false
     // Expandable bottom panel state
     internal var panelExpanded = false
     internal var expandedPanelContent: LinearLayout? = null
@@ -93,6 +103,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     internal var colorBackground = 0
     internal var colorToolbar = 0
     internal var colorSurface = 0
+    internal var colorPlayerSurface = 0
     internal var colorSurfaceVariant = 0
     internal var colorTextPrimary = 0
     internal var colorTextSecondary = 0
@@ -109,25 +120,16 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         val settings = repository.loadReaderSettings()
         pdfChromeSettings = settings
         paperToneMode = PaperToneMode.fromString(settings.paperToneMode)
-        val themeId = settings.themeId
-        val packId = settings.themePackId
-
-        val resolvedTheme = if (themeId == "system") {
-            val mode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-            if (mode == android.content.res.Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
-        } else {
-            themeId
-        }
-
-        val baseScheme = veritasColorScheme(resolvedTheme, this)
-        val scheme = veritasPackColorScheme(baseScheme, packId)
+        val scheme = veritasReaderColorScheme(settings, this)
 
         isLightTheme = scheme.background.luminance() > 0.45f
 
         colorPrimary = scheme.primary.toArgb()
         colorBackground = scheme.background.toArgb()
-        colorToolbar = scheme.surface.toArgb()
+        colorToolbar = VeritasPackStyle.headerColorForPack(scheme, settings.themePackId).toArgb()
         colorSurface = scheme.surface.toArgb()
+        colorPlayerSurface = VeritasPackStyle.playerSurfaceColorForPack(scheme, settings.themePackId,
+            settings.reduceTransparency || settings.themeId.contains("high_contrast") || settings.themePackId == "liquid_glass").toArgb()
         colorSurfaceVariant = scheme.surfaceVariant.toArgb()
         colorTextPrimary = scheme.onSurface.toArgb()
         colorTextSecondary = scheme.onSurfaceVariant.toArgb()
@@ -363,11 +365,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         when (paperToneMode) {
             PaperToneMode.ACTIVE_THEME -> {
                 val settings = repository.loadReaderSettings()
-                val resolvedTheme = if (settings.themeId == "system") {
-                    val mode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-                    if (mode == android.content.res.Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
-                } else settings.themeId
-                val scheme = veritasPackColorScheme(veritasColorScheme(resolvedTheme, activity), settings.themePackId)
+                val scheme = veritasReaderColorScheme(settings, activity)
                 val bgR = scheme.surface.red
                 val bgG = scheme.surface.green
                 val bgB = scheme.surface.blue
@@ -375,7 +373,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                 val fgG = scheme.onSurface.green
                 val fgB = scheme.onSurface.blue
 
-                val isDark = resolvedTheme == "dark" || resolvedTheme == "amoled" || (0.299f * bgR + 0.587f * bgG + 0.114f * bgB) < 0.5f
+                val isDark = scheme.background.luminance() < .3f
                 if (isDark) {
                     val scaleR = (bgR * 255f - fgR * 255f) / 255f
                     val scaleG = (bgG * 255f - fgG * 255f) / 255f
@@ -484,6 +482,20 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                 if (found != null) {
                     pdfView = found
                     pdfFitWidthZoom = found.zoom
+                    pdfDefaultPageSpacing = found.verticalPageSpacing
+                    pdfDefaultMinZoom = found.minZoom
+                    updatePdfSwipeViewport()
+                    listOfNotNull(toolbarChrome, bottomChrome).forEach { chrome ->
+                        chrome.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+                            if (bottom - top != oldBottom - oldTop) updatePdfSwipeViewport()
+                        }
+                    }
+                    found.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+                        if (pdfChromeSettings.pdfNavigationMode == "swipe" &&
+                            (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop)) {
+                            focusPdfPage(pdfNavigationPage)
+                        }
+                    }
                     found.setOnTouchListener { _, event ->
                         handleDocumentChromeTouch(found, event)
                         false
@@ -492,7 +504,16 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                         override fun onViewportChanged(firstVisiblePage: Int, visiblePagesCount: Int,
                             pageLocations: android.util.SparseArray<android.graphics.RectF>, zoomLevel: Float) {
                             val pageWidth = pageLocations[firstVisiblePage]?.width() ?: return
-                            if (pageWidth > 0f && found.width > 0) pdfFitWidthZoom = zoomLevel * found.width / pageWidth
+                            pdfVisiblePagesCount = visiblePagesCount
+                            if (zoomLevel > 0f) for (index in 0 until pageLocations.size()) {
+                                val rect = pageLocations.valueAt(index)
+                                if (rect.width() > 0 && rect.height() > 0) pdfPageDimensions[pageLocations.keyAt(index)] =
+                                    (rect.width() / zoomLevel) to (rect.height() / zoomLevel)
+                            }
+                            while (pdfPageDimensions.size > 64) pdfPageDimensions.remove(pdfPageDimensions.keys.first())
+                            if (pdfChromeSettings.pdfNavigationMode != "swipe" && pageWidth > 0f && found.width > 0)
+                                pdfFitWidthZoom = zoomLevel * found.width / pageWidth
+                            val previousPage = pdfNavigationPage
                             var mostVisible = firstVisiblePage
                             var largestArea = -1f
                             for (index in 0 until pageLocations.size()) {
@@ -503,6 +524,11 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                                 }
                             }
                             pdfNavigationPage = mostVisible
+                            if (pdfChromeSettings.pdfNavigationMode == "swipe" && !pdfFocusApplying &&
+                                (!pdfFocusInitialized || previousPage != mostVisible || pdfFocusRequest != null)) {
+                                if (pdfFocusRequest == null) pdfFocusRequest = mostVisible
+                                schedulePdfPageFocus()
+                            }
                         }
                     })
                     startHighlightUpdates()
@@ -528,7 +554,9 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                         val targetPage = model.sentences.getOrNull(safeIndex)?.pageNumber?.minus(1) ?: 0
                         val pageCount = pdfDoc.pageCount.coerceAtLeast(1)
                         val scrollPage = targetPage.coerceIn(0, pageCount - 1)
-                        runCatching { found.scrollToPage(scrollPage) }
+                        runCatching {
+                            navigateToPdfPage(scrollPage)
+                        }
                     }
 
                     return@launch
@@ -715,7 +743,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         if (syncEnabled || manualSync) {
             val scrollPage = (lastHighlightPage ?: targetPage).coerceIn(0, pageCount - 1)
             if (manualSync || lastSyncedTargetPage != scrollPage) {
-                runCatching { view.scrollToPage(scrollPage) }
+                runCatching { navigateToPdfPage(scrollPage) }
                 lastSyncedTargetPage = scrollPage
             }
         }
@@ -832,5 +860,7 @@ data class OverflowMenuItem(
     val iconRes: Int? = null,
     val isHeader: Boolean = false,
     val enabled: Boolean = true,
-    val action: (() -> Unit)? = null
+    val action: (() -> Unit)? = null,
+    val choices: List<OverflowMenuItem> = emptyList(),
+    val selected: Boolean = false
 )

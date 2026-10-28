@@ -14,6 +14,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupWindow
+import android.widget.RadioButton
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
@@ -28,6 +29,7 @@ import kotlin.math.roundToInt
 internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
         val total = runCatching { pdfView?.pdfDocument?.pageCount }.getOrNull() ?: 1
         val input = EditText(this).apply {
+            stylePdfInput(this)
             inputType = InputType.TYPE_CLASS_NUMBER
             hint = "1–$total"
             setTextColor(colorTextPrimary)
@@ -51,7 +53,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             .setPositiveButton("Go") { _, _ ->
                 val num = input.text.toString().trim().toIntOrNull()
                 if (num != null && num in 1..total) {
-                    pdfView?.scrollToPage(num - 1)
+                    navigateToPdfPage(num - 1)
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -85,15 +87,24 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
 
         // Display
         items.add(OverflowMenuItem(title = "Display", isHeader = true))
-        items.add(OverflowMenuItem(title = "PDF settings",
+        items.add(OverflowMenuItem(title = "Reading layout",
             subtitle = if (pdfChromeSettings.pdfNavigationMode == "swipe") "Swipe to turn pages" else "Scroll through pages",
-            iconRes = R.drawable.ic_m3_fitscreen, action = { showPdfNavigationSettings() }))
+            iconRes = R.drawable.ic_m3_swipe_horizontal,
+            choices = listOf("swipe" to "Page swipe", "scroll" to "Vertical scroll").map { (mode, label) ->
+                OverflowMenuItem(title = label,
+                    subtitle = if (mode == "swipe") "Swipe to turn pages" else "Scroll through pages",
+                    selected = pdfChromeSettings.pdfNavigationMode == mode,
+                    action = { setPdfNavigationMode(mode) })
+            }))
 
         items.add(OverflowMenuItem(
             title = "Fit to Screen",
-            subtitle = "Reset zoom and fit page width",
+            subtitle = "Fit the current page",
             iconRes = R.drawable.ic_m3_fitscreen,
-            action = { pdfView?.scrollToPage(pdfView?.firstVisiblePage ?: 0) }
+            action = {
+                if (pdfChromeSettings.pdfNavigationMode == "swipe") focusPdfPage(pdfNavigationPage)
+                else pdfView?.scrollToPage(pdfView?.firstVisiblePage ?: 0)
+            }
         ))
         items.add(OverflowMenuItem(
             title = "Rotate View (90°)",
@@ -137,13 +148,13 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
                 title = "First Page (1)",
                 subtitle = "Jump to beginning",
                 iconRes = R.drawable.ic_m3_first_page,
-                action = { pdfView?.scrollToPage(0) }
+                action = { navigateToPdfPage(0) }
             ))
             items.add(OverflowMenuItem(
                 title = "Last Page ($pageCount)",
                 subtitle = "Jump to end of document",
                 iconRes = R.drawable.ic_m3_last_page,
-                action = { pdfView?.scrollToPage(pageCount - 1) }
+                action = { navigateToPdfPage(pageCount - 1) }
             ))
         }
 
@@ -268,6 +279,17 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
                 }
                 menu.addView(headerView)
             } else {
+                var subtitleView: TextView? = null
+                val choices = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    visibility = View.GONE
+                    setPadding(12.dp, 0, 8.dp, 4.dp)
+                }
+                val expandIcon = ImageView(this).apply {
+                    setImageResource(R.drawable.ic_m3_expand_more)
+                    setColorFilter(colorTextSecondary)
+                    layoutParams = LinearLayout.LayoutParams(20.dp, 20.dp)
+                }
                 val itemRow = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     gravity = Gravity.CENTER_VERTICAL
@@ -314,16 +336,58 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
                             textSize = 10.5f
                             setPadding(0, 2.dp, 0, 0)
                         }
+                        subtitleView = subView
                         textCol.addView(subView)
                     }
                     addView(textCol)
+                    if (item.choices.isNotEmpty()) addView(expandIcon)
 
                     setOnClickListener {
-                        popup.dismiss()
-                        item.action?.invoke()
+                        if (item.choices.isNotEmpty()) {
+                            val expanded = choices.visibility != View.VISIBLE
+                            choices.visibility = if (expanded) View.VISIBLE else View.GONE
+                            expandIcon.setImageResource(if (expanded) R.drawable.ic_m3_expand_less else R.drawable.ic_m3_expand_more)
+                        } else {
+                            popup.dismiss()
+                            item.action?.invoke()
+                        }
                     }
                 }
                 menu.addView(itemRow)
+                if (item.choices.isNotEmpty()) {
+                    val radios = mutableListOf<RadioButton>()
+                    item.choices.forEachIndexed { index, choice ->
+                        val radio = RadioButton(this).apply {
+                            isChecked = choice.selected
+                            isClickable = false
+                            isFocusable = false
+                            buttonTintList = android.content.res.ColorStateList.valueOf(colorPrimary)
+                            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                        }
+                        radios.add(radio)
+                        choices.addView(LinearLayout(this).apply {
+                            orientation = LinearLayout.HORIZONTAL
+                            gravity = Gravity.CENTER_VERTICAL
+                            setPadding(16.dp, 2.dp, 12.dp, 2.dp)
+                            minimumHeight = 48.dp
+                            isFocusable = true
+                            addView(radio, LinearLayout.LayoutParams(38.dp, 40.dp))
+                            addView(TextView(activity).apply {
+                                text = choice.title
+                                textSize = 13.5f
+                                setTextColor(colorTextPrimary)
+                            })
+                            setOnClickListener {
+                                choice.action?.invoke()
+                                radios.forEachIndexed { i, button -> button.isChecked = i == index }
+                                subtitleView?.text = choice.subtitle ?: choice.title
+                                choices.visibility = View.GONE
+                                expandIcon.setImageResource(R.drawable.ic_m3_expand_more)
+                            }
+                        })
+                    }
+                    menu.addView(choices)
+                }
             }
         }
 

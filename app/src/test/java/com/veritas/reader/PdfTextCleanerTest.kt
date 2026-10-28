@@ -5,6 +5,25 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PdfTextCleanerTest {
+    @Test fun repeatedContentsAndChapterEntriesAreNeverRunningHeaders() {
+        val pages = listOf("Publisher details\nCopyright notice", "A dedication to family.",
+            "Contents\nIntroduction\nWhat is self-love?\nPart One: A Matter of Vibes\nIntroduction\nA chapter\nPart Two: Positive Habits\nIntroduction",
+            "Meditate\nPart Three: Make Yourself a Priority\nIntroduction\nA chapter\nPart Four: Accepting Yourself\nIntroduction\nA chapter\nPart Five: Mind Work\nIntroduction",
+            "Part Six: The Next Steps\nA chapter\nA final chapter")
+        val cleaned = PdfTextCleaner.cleanPages(pages).text
+        org.junit.Assert.assertEquals(6, Regex("Introduction").findAll(cleaned).count())
+        assertTrue(cleaned.contains("Contents"))
+        assertTrue(cleaned.contains("Publisher details"))
+    }
+
+    @Test fun runningHeadersAreRemovedOnlyAtPageEdges() {
+        val pages = (1..3).map { page ->
+            "A running title\nFirst body line $page.\nSecond body line.\nThird body line.\nA running title\nFourth body line.\nFifth body line.\nSixth body line.\n$page"
+        }
+        val result = PdfTextCleaner.cleanPages(pages)
+        org.junit.Assert.assertEquals(3, Regex("A running title").findAll(result.text).count())
+    }
+
     @Test fun `page metadata never becomes spoken prose`() {
         val text = PdfTextCleaner.cleanPages(listOf("A readable paragraph."), listOf(47),
             PdfImportOptions(includePageMarkers = true)).text

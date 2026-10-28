@@ -8,21 +8,17 @@ import org.junit.Test
 class VeritasFileBrowserLogicTest {
 
     @Test
-    fun `detects extended compatible office, book, presentation, and text formats`() {
-        assertEquals(VeritasBrowserTab.DOC, VeritasFileBrowserScanner.fileTypeFor("resume.doc", ""))
-        assertEquals(VeritasBrowserTab.DOC, VeritasFileBrowserScanner.fileTypeFor("paper.rtf", ""))
-        assertEquals(VeritasBrowserTab.DOC, VeritasFileBrowserScanner.fileTypeFor("thesis.odt", ""))
+    fun `only detects formats with a shipped extractor`() {
+        listOf("resume.doc", "paper.rtf", "thesis.odt", "novel.mobi", "guide.azw", "story.azw3",
+            "folklore.fb2", "open.odp", "app.aab", "app.apk", "archive.zip", "scan.tiff", "vector.svg").forEach {
+            assertEquals(it, null, VeritasFileBrowserScanner.fileTypeFor(it, ""))
+        }
         assertEquals(VeritasBrowserTab.DOC, VeritasFileBrowserScanner.fileTypeFor("notes.docx", ""))
 
         assertEquals(VeritasBrowserTab.BOOKS, VeritasFileBrowserScanner.fileTypeFor("classic.epub", ""))
-        assertEquals(VeritasBrowserTab.BOOKS, VeritasFileBrowserScanner.fileTypeFor("novel.mobi", ""))
-        assertEquals(VeritasBrowserTab.BOOKS, VeritasFileBrowserScanner.fileTypeFor("guide.azw", ""))
-        assertEquals(VeritasBrowserTab.BOOKS, VeritasFileBrowserScanner.fileTypeFor("story.azw3", ""))
-        assertEquals(VeritasBrowserTab.BOOKS, VeritasFileBrowserScanner.fileTypeFor("folklore.fb2", ""))
 
         assertEquals(VeritasBrowserTab.SLIDES, VeritasFileBrowserScanner.fileTypeFor("deck.pptx", ""))
         assertEquals(VeritasBrowserTab.SLIDES, VeritasFileBrowserScanner.fileTypeFor("legacy.ppt", ""))
-        assertEquals(VeritasBrowserTab.SLIDES, VeritasFileBrowserScanner.fileTypeFor("open.odp", ""))
 
         assertEquals(VeritasBrowserTab.TXT, VeritasFileBrowserScanner.fileTypeFor("notes.txt", ""))
         assertEquals(VeritasBrowserTab.TXT, VeritasFileBrowserScanner.fileTypeFor("math.tex", ""))

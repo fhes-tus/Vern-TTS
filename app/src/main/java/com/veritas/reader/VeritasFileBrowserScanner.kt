@@ -805,56 +805,17 @@ object VeritasFileBrowserScanner {
             )
     }
 
-    internal fun fileTypeFor(name: String, mimeType: String): VeritasBrowserTab? {
-        val lowerName = name.lowercase(Locale.getDefault())
-        val lowerMime = mimeType.lowercase(Locale.getDefault())
-        // Explicitly exclude .xml files from being added to the file browser
-        if (lowerName.endsWith(".xml") || lowerMime == "text/xml" || lowerMime == "application/xml") {
-            return null
+    internal fun fileTypeFor(name: String, mimeType: String): VeritasBrowserTab? =
+        when (ImportFilePolicy.detect(name, mimeType)) {
+            ImportFormat.PDF -> VeritasBrowserTab.PDF
+            ImportFormat.DOCX -> VeritasBrowserTab.DOC
+            ImportFormat.PPTX, ImportFormat.PPT -> VeritasBrowserTab.SLIDES
+            ImportFormat.EPUB -> VeritasBrowserTab.BOOKS
+            ImportFormat.HTML -> VeritasBrowserTab.HTML
+            ImportFormat.TEXT -> VeritasBrowserTab.TXT
+            ImportFormat.IMAGE -> VeritasBrowserTab.OCR
+            null -> null
         }
-        fun named(vararg suffixes: String) = suffixes.any { lowerName.endsWith(it) }
-        return when {
-            lowerMime.contains("pdf") || named(".pdf") -> VeritasBrowserTab.PDF
-            // Word & Office documents
-            lowerMime.contains("wordprocessingml") ||
-                lowerMime.contains("msword") ||
-                lowerMime.contains("opendocument.text") ||
-                lowerMime.contains("rtf") ||
-                named(".docx", ".docm", ".doc", ".dot", ".dotx", ".rtf", ".odt", ".wpd", ".wps") -> VeritasBrowserTab.DOC
-            // Presentations
-            lowerMime.contains("presentationml") ||
-                lowerMime.contains("ms-powerpoint") ||
-                lowerMime.contains("opendocument.presentation") ||
-                named(".pptx", ".pptm", ".ppt", ".pps", ".ppsx", ".odp", ".pot", ".potx") -> VeritasBrowserTab.SLIDES
-            // E-Books
-            lowerMime.contains("epub") ||
-                lowerMime.contains("mobipocket") ||
-                lowerMime.contains("amazon.ebook") ||
-                lowerMime.contains("fictionbook") ||
-                named(".epub", ".mobi", ".azw", ".azw3", ".fb2", ".ibooks", ".cbz", ".cbr") -> VeritasBrowserTab.BOOKS
-            // Web documents
-            lowerMime.contains("html") || named(".html", ".htm", ".xhtml", ".mhtml") -> VeritasBrowserTab.HTML
-            // Text & Markdown & Config & Source docs
-            lowerMime.startsWith("text/") ||
-                lowerMime.contains("json") ||
-                lowerMime.contains("yaml") ||
-                lowerMime.contains("latex") ||
-                named(
-                    ".txt", ".text", ".md", ".markdown", ".csv", ".tsv", ".log",
-                    ".json", ".yml", ".yaml", ".rst", ".srt", ".vtt",
-                    ".tex", ".latex", ".ini", ".conf", ".properties", ".asciidoc", ".adoc"
-                ) -> VeritasBrowserTab.TXT
-            // Images (least priority in browser)
-            lowerMime.startsWith("image/") ||
-                named(
-                    ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff",
-                    ".heic", ".heif", ".avif", ".gif"
-                ) -> VeritasBrowserTab.OCR
-
-            else -> null
-        }
-    }
-
     internal fun mimeTypeForFileName(name: String): String {
         val lowerName = name.lowercase(Locale.getDefault())
         return when {
@@ -940,26 +901,4 @@ private const val EXTERNAL_AGGREGATE_VOLUME = "external"
 private const val MAX_IMAGE_RESULTS = 300
 private const val MAX_SCAN_RESULTS = 5000
 
-internal fun readableImportMimeTypes(): Array<String> = arrayOf(
-    "text/plain",
-    "text/*",
-    "text/html",
-    "text/rtf",
-    "application/rtf",
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    "application/vnd.ms-powerpoint",
-    "application/vnd.ms-powerpoint.presentation.macroEnabled.12",
-    "application/vnd.ms-word.document.macroEnabled.12",
-    "application/vnd.oasis.opendocument.text",
-    "application/vnd.oasis.opendocument.presentation",
-    "application/epub+zip",
-    "application/x-mobipocket-ebook",
-    "application/vnd.amazon.ebook",
-    "application/x-fictionbook+xml",
-    "application/xhtml+xml",
-    "application/octet-stream",
-    "image/*"
-)
+internal fun readableImportMimeTypes(): Array<String> = ImportFilePolicy.chooserMimeTypes()

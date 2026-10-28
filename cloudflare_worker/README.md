@@ -1,6 +1,6 @@
 # Vern Telegram bot
 
-Cloudflare Worker for `@VernTTS_bot`. It serves book searches, guides, published downloads and the upcoming 2.6.2 milestone. Downloads resolve actual APK assets in the latest published GitHub release; development notes do not publish new packages.
+Cloudflare Worker for `@VernTTS_bot`. It serves book searches, guides, published downloads and the upcoming 2.7.0 preview. Downloads resolve actual APK assets in the latest published GitHub release; preview notes do not publish new packages. The local 2.7.0 copy is prepared for review and has not been deployed. See [release drafts](../release/v2.7.0/README.md).
 
 ## Configuration
 

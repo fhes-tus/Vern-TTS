@@ -329,22 +329,18 @@ internal fun PlaybackService.currentNotificationArtwork(): Bitmap {
 
 internal fun PlaybackService.loadNotificationCover(document: SavedDocument): Bitmap? {
     // 1. Try to load pre-extracted cover if it exists
-    CoverExtractor.coverFile(this, document.id)?.let { file ->
-        runCatching {
-            BitmapFactory.decodeFile(file.absolutePath)
-        }.getOrNull()?.let { return it }
-    }
+    BookCoverLoader.document(this, document.id, document.catalogId)?.let { return it }
 
     // 2. Fallback to on-the-fly loading/rendering
-    val original = repository.originalUri(document) ?: return null
+    val original = repository.originalUri(document)
     val mime = document.originalMimeType.lowercase()
-    return when {
-        mime.startsWith("image/") -> {
-            contentResolver.openInputStream(original)?.use { BitmapFactory.decodeStream(it) }
+    return runCatching { when {
+        original != null && mime.startsWith("image/") -> {
+            OcrImageLoader.load(this, original, maxDimension = 512, maxPixels = 512 * 512)
         }
-        mime == "application/pdf" || document.originalFileName.endsWith(".pdf", ignoreCase = true) -> renderPdfFirstPage(original)
+        original != null && (mime == "application/pdf" || document.originalFileName.endsWith(".pdf", ignoreCase = true)) -> renderPdfFirstPage(original)
         else -> null
-    }
+    } }.getOrNull() ?: BookCoverLoader.generated(this, document.id, document.title, document.sourceLabel)
 }
 
 internal fun PlaybackService.renderPdfFirstPage(uri: Uri): Bitmap? {

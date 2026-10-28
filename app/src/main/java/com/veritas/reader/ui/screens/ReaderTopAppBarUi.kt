@@ -109,7 +109,8 @@ internal fun ReaderTopAppBar(
     onPaperToneModeChange: (PaperToneMode) -> Unit = {},
     onSentenceClick: (Int) -> Unit = {},
     verticalPageIndex: Int? = null,
-    onVerticalPageSelected: ((Int) -> Unit)? = null
+    onVerticalPageSelected: ((Int) -> Unit)? = null,
+    onReadingSettingsChange: (com.veritas.reader.ReaderSettings) -> Unit = {}
 ) {
     var internalShowTools by remember(showTools) { mutableStateOf(showTools) }
 
@@ -119,8 +120,8 @@ internal fun ReaderTopAppBar(
                 .fillMaxWidth()
                 .graphicsLayer { translationY = topBarOffset }
                 .testTag("reader-top-controls"),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 3.dp,
+            color = com.veritas.reader.VeritasPackStyle.headerColor(MaterialTheme.colorScheme),
+            tonalElevation = 0.dp,
             shadowElevation = if (topBarVisible) 3.dp else 0.dp
         ) {
             Column(
@@ -196,6 +197,8 @@ internal fun ReaderTopAppBar(
                             onClick = { internalShowTools = true; onShowToolsChange(true) }
                         ) { Icon(Icons.Filled.MoreVert, contentDescription = "More", tint = MaterialTheme.colorScheme.onSurface) }
                         ReaderToolsMenu(
+                            readerSettings = state.readerSettings,
+                            onReadingSettingsChange = onReadingSettingsChange,
                             expanded = internalShowTools,
                             onDismiss = { internalShowTools = false; onShowToolsChange(false) },
                             summary = "${document.sourceLabel} • $progressLabel",

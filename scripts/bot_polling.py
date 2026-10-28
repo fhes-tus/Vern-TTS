@@ -728,7 +728,7 @@ def handle_update(update):
         text = raw_text.lower()
 
         if re.match(r"^/(milestone|customize|security)(@\w+)?(?:\s|$)", text):
-            send_message(chat_id, "<b>Vern 2.6.2 — in development</b>\n\n20 icon palettes, matching startup colours, Funky cards, refreshed About and Accessibility, Notes settings, improved Listen controls, page curl, gestures and coordinated tab swipes. Security changes bound downloads and archives and verify APK signers. Published downloads remain the latest stable release.\n\nAPK and Play updates need the same package and compatible certificates. Export a backup before any uninstall.")
+            send_message(chat_id, "<b>Vern 2.7.0 — release preview</b>\n\nThis update is in development; published downloads remain the latest stable release.\n\nTake a photo or choose one for Scan / OCR. Share up to five Listen sentences as quote images with 14 colours and editable credit. Enjoy focused PDF swipes, inline layout choices and separate Listen text size. Study-guide PDF export is in Study Hub, with new missing covers in details and widgets too. Fixes preserve contents entries and improve unsupported imports, Funky cards, greetings and AMOLED colours. Home colours follow your theme with the original animated rings.\n\nAPK and Play updates need the same package and compatible certificates. Export a backup before any uninstall.")
             return
 
         # If message contains only media (photo, video, document, voice, audio) without text

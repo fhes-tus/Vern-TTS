@@ -550,15 +550,16 @@ async function getLatestRelease() {
 
 async function sendMilestone(token, chatId) {
   await sendMessage(token, chatId,
-    "<b>Vern 2.6.2 development milestone</b>\n\n" +
+    "<b>Vern 2.7.0 release preview</b>\n\n" +
     "This update is in development; published downloads still use the latest stable release.\n\n" +
-    "• 20 icon palettes, matching startup colours and theme following.\n" +
-    "• Funky cards, refreshed About and Accessibility, and settings from Notes.\n" +
-    "• Rounded Listen artwork, collapsible controls, improved page curl and touch gestures.\n" +
-    "• Coordinated tab swiping and restored Classics archive links.\n" +
-    "• Bounded downloads and archives, safer sharing and verified APK updates.\n\n" +
+    "• Take a photo or choose one for on-device Scan / OCR.\n" +
+    "• Share up to five Listen sentences as quote images, with 14 colours and editable credit.\n" +
+    "• Focused PDF swipes, inline layout choices and separate Listen text size.\n" +
+    "• Study-guide PDF export in Study Hub; new missing covers in details and widgets too.\n" +
+    "• Fixes for contents entries, unsupported imports, Funky cards, greetings and AMOLED colours.\n" +
+    "• Theme-following Home colours with the original animated rings.\n\n" +
     "APK and Play updates require the same package and compatible signing certificates. Keep your installed app while checking compatibility; export a backup before any uninstall.",
-    { inline_keyboard: [[{ text: "Milestone notes", url: `${GITHUB_URL}/blob/main/RELEASE_NOTES_v2.6.2.md` }]] });
+    { inline_keyboard: [[{ text: "Preview notes", url: `${GITHUB_URL}/blob/main/RELEASE_NOTES_v2.7.0.md` }]] });
 }
 
 
@@ -699,7 +700,7 @@ async function sendWelcome(token, chatId, messageId = null) {
         { text: `📋 What's New (${rel.tag})`, callback_data: "cmd_changelog" }
       ],
       [
-        { text: "2.6.2 milestone", callback_data: "cmd_milestone" },
+        { text: "2.7.0 preview", callback_data: "cmd_milestone" },
         { text: "📚 Curated Classics", callback_data: "cmd_classics" }
       ],
       [

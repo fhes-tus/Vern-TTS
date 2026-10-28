@@ -194,7 +194,8 @@ fun ReaderScreen(
     onDismissShareToAi: () -> Unit = {},
     onDismissGestureTipsPermanently: () -> Unit = {},
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
-    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
+    onReadingSettingsChange: (com.veritas.reader.ReaderSettings) -> Unit = {}
 ) {
     val document = state.document
     val currentIndex = state.currentIndex
@@ -713,7 +714,8 @@ ReaderPageItemView(
                             }) {
                         BookPageCurl(readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion,
                             pagerState.isScrollInProgress,
-                            { (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction }, MaterialTheme.colorScheme.background) {
+                            { (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction },
+                            com.veritas.reader.getCanvasColors(PaperToneMode.fromString(readerSettings.paperToneMode)).first) {
                         renderReadingPage(pageIndex)
                         }
                         }
@@ -724,6 +726,7 @@ ReaderPageItemView(
 
         // 2. Docked Top app bar (Collapsible)
         ReaderTopAppBar(
+            onReadingSettingsChange = onReadingSettingsChange,
             modifier = Modifier.align(Alignment.TopCenter),
             document = document,
             progressLabel = progressLabel,
@@ -925,7 +928,7 @@ ReaderPageItemView(
 
     ReaderDialogsAndSheetsHost(
         showAudioMode = showAudioMode,
-        onFontSizeChange = onFontSizeChange,
+        onListenFontSizeChange = { onReadingSettingsChange(readerSettings.copy(listenFontSizeSp = it)) },
         document = document,
         currentIndex = currentIndex,
         isPlaying = isPlaying,

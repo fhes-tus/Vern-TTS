@@ -9,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import com.veritas.reader.CoverExtractor
 import com.veritas.reader.DocumentExtractor
 import com.veritas.reader.DocumentImportWorker
+import com.veritas.reader.ImportFormat
+import com.veritas.reader.ScanCaptureStore
+import com.veritas.reader.validateDocumentImport
 import com.veritas.reader.PdfImportOptions
 import com.veritas.reader.PlaybackStateStore
 import com.veritas.reader.PptxImportOptions
@@ -137,27 +140,15 @@ fun ReaderViewModel.prepareImport(uri: Uri, sourceNameHint: String? = null) {
     documentOpenJob?.cancel()
     autoOpenImportId = null
     val app = getApplication<Application>()
-    val name = getDisplayName(app, uri).ifBlank { "Imported document" }
-    val mimeType = app.contentResolver.getType(uri).orEmpty().lowercase()
-    val extension = name.substringAfterLast('.', "").lowercase()
-    val isPdf = mimeType.contains("pdf") || extension == "pdf" || uri.path?.lowercase()?.endsWith(".pdf") == true
-
-    val sizeBytes = if (uri.scheme == "file") {
-        uri.path?.let { File(it).length() } ?: 0L
-    } else {
-        try {
-            app.contentResolver.openFileDescriptor(uri, "r")?.use { fd ->
-                fd.statSize
-            } ?: 0L
-        } catch (e: Exception) {
-            0L
-        }
-    }
-
-    _uiState.update { it.copy(isOpeningDocument = true, importSourceName = name, importAwaitingReadyPages = false) }
+    _uiState.update { it.copy(pendingImport = null, isOpeningDocument = true, importSourceName = "Selected file", importAwaitingReadyPages = false) }
 
     documentOpenJob = viewModelScope.launch(Dispatchers.IO) {
         try {
+            val validated = validateDocumentImport(app, uri)
+            val name = validated.name
+            val mimeType = validated.mimeType
+            val sizeBytes = validated.sizeBytes
+            val isPdf = validated.format == ImportFormat.PDF
             val pageCount = if (isPdf) {
                 DocumentExtractor.getPdfPageCount(app, uri)
             } else 0
@@ -183,12 +174,12 @@ fun ReaderViewModel.prepareImport(uri: Uri, sourceNameHint: String? = null) {
                     }
                     openSavedDocument(duplicate)
                 }
+                ScanCaptureStore.discard(app, uri)
                 return@launch
             }
 
             withContext(Dispatchers.Main) {
-                val isPptx = mimeType.contains("presentationml", ignoreCase = true) ||
-                    name.endsWith(".pptx", ignoreCase = true)
+                val isPptx = validated.format == ImportFormat.PPTX
                 val pending = VeritasPendingImport(
                     uri = uri,
                     name = name,
@@ -215,15 +206,17 @@ fun ReaderViewModel.prepareImport(uri: Uri, sourceNameHint: String? = null) {
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
+            ScanCaptureStore.discard(app, uri)
             withContext(Dispatchers.Main) {
-                _uiState.update { it.copy(isOpeningDocument = false,
-                    importMessage = "Could not prepare $name: ${error.message ?: "unknown error"}") }
+                _uiState.update { it.copy(pendingImport = null, isOpeningDocument = false,
+                    importMessage = "Could not open file: ${error.message ?: "Please choose the file again."}") }
             }
         }
     }
 }
 
 fun ReaderViewModel.cancelPendingImport() {
+    uiState.value.pendingImport?.uri?.let { ScanCaptureStore.discard(getApplication<Application>(), it) }
     _uiState.update { it.copy(pendingImport = null) }
 }
 

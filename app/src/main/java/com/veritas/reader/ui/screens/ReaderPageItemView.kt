@@ -206,6 +206,7 @@ internal fun ReaderPageItemView(
 
                         val paperTone = PaperToneMode.fromString(readerSettings.paperToneMode)
                         val (canvasBg, canvasTextColor) = getCanvasColors(paperTone)
+                        val paperAccent = com.veritas.reader.readableDocumentInk(MaterialTheme.colorScheme.primary, canvasBg)
 
                         val sentenceBackground =
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)
@@ -269,7 +270,7 @@ internal fun ReaderPageItemView(
                                 .readerFontPinch(readerSettings.fontSizeSp, onFontSizeChange, onPinchChanged)
                         ) {
                             Surface(
-                                modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()),
+                                modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()).testTag("reader-paper-$pageNumber"),
                                 shape = RoundedCornerShape(14.dp),
                                 color = canvasBg,
                                 border = androidx.compose.foundation.BorderStroke(
@@ -280,7 +281,7 @@ internal fun ReaderPageItemView(
                                         MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
                                     }
                                 ),
-                                tonalElevation = 2.dp,
+                                tonalElevation = 0.dp,
                                 shadowElevation = 3.dp
                             ) {
                                 Box(
@@ -321,7 +322,7 @@ internal fun ReaderPageItemView(
                                                 text = "Page $pageNumber of ${pageItems.size}",
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.SemiBold,
-                                                color = if (paperTone == PaperToneMode.WARM_SEPIA) Color(0xFF6D4C41) else MaterialTheme.colorScheme.primary
+                                                color = if (paperTone == PaperToneMode.WARM_SEPIA) Color(0xFF6D4C41) else paperAccent
                                             )
                                         }
                                     }
@@ -923,6 +924,7 @@ internal fun ReaderComposeTableCard(
     modifier: Modifier = Modifier
 ) {
     val maxCols = (table.rows.maxOfOrNull { it.size } ?: 1).coerceAtLeast(1)
+    val paperAccent = com.veritas.reader.readableDocumentInk(MaterialTheme.colorScheme.primary, getCanvasColors(paperTone).first)
     val isWide = maxCols >= 3 || table.rows.any { row -> row.any { it.length > 25 } }
     val cardBg = when (paperTone) {
         PaperToneMode.WARM_SEPIA -> Color(0xFFF3ECE0)
@@ -968,7 +970,7 @@ internal fun ReaderComposeTableCard(
                     text = "Table • ${table.rows.size} rows",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = paperAccent
                 )
                 Surface(
                     shape = RoundedCornerShape(12.dp),
@@ -984,12 +986,12 @@ internal fun ReaderComposeTableCard(
                             text = "Skip Table",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = paperAccent
                         )
                         Text(
                             text = "⏭",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = paperAccent
                         )
                     }
                 }
@@ -1051,7 +1053,7 @@ internal fun ReaderComposeTableCard(
                                     text = cellText,
                                     style = if (isHeaderRow) MaterialTheme.typography.labelMedium else MaterialTheme.typography.bodySmall,
                                     fontWeight = if (isHeaderRow || isRowActive) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isCellSpotlighted || isHeaderRow) MaterialTheme.colorScheme.primary else rowTextColor,
+                                    color = if (isCellSpotlighted || isHeaderRow) paperAccent else rowTextColor,
                                     maxLines = 4,
                                     overflow = TextOverflow.Ellipsis
                                 )

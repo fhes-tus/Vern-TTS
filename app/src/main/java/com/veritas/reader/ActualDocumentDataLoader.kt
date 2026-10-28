@@ -207,9 +207,7 @@ internal fun renderPdfPage(context: Context, original: Uri, pageIndex: Int): Ren
  * Decodes an image file or stream to an in-memory Bitmap.
  */
 internal fun decodeImageBitmap(context: Context, original: Uri): Bitmap {
-    return context.contentResolver.openInputStream(original)?.use { input ->
-        BitmapFactory.decodeStream(input)
-    } ?: throw IllegalStateException("Could not open image stream")
+    return OcrImageLoader.load(context, original)
 }
 
 /**

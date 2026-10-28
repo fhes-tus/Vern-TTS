@@ -77,12 +77,7 @@ object DocumentExtractor {
 
     fun getPdfPageCount(context: Context, uri: Uri): Int {
         return runCatching {
-            PDFBoxResourceLoader.init(context.applicationContext)
-            context.contentResolver.openInputStream(uri)?.use { stream ->
-                PDDocument.load(stream, defaultPdfMemorySetting(context)).use { document ->
-                    document.numberOfPages
-                }
-            } ?: 0
+            openPdfDocument(context, uri).use { it.pageCount }
         }.getOrDefault(0)
     }
 
@@ -107,11 +102,11 @@ object DocumentExtractor {
      */
     fun openPdfDocument(context: Context, uri: Uri): ManagedPdfDocument {
         PDFBoxResourceLoader.init(context.applicationContext)
-        val tempFile = java.io.File(context.cacheDir, "temp_pdf_load_${System.currentTimeMillis()}.pdf")
+        val tempFile = java.io.File.createTempFile("temp_pdf_load_", ".pdf", context.cacheDir)
         try {
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 tempFile.outputStream().use { out ->
-                    stream.copyTo(out)
+                    ResourceLimits.copy(stream, out, ResourceLimits.DOCUMENT_INPUT_BYTES)
                 }
             } ?: throw IllegalStateException("Cannot open PDF URI")
 
@@ -191,12 +186,15 @@ object DocumentExtractor {
 
         val pageNumbers = mutableListOf<Int>()
         val pageTexts = mutableListOf<String>()
+        var partial = false
 
         for (pageNumber in startPage..endPage) {
             coroutineContext.ensureActive()
             pageNumbers.add(pageNumber)
-            val pageText = PdfPageTextExtractor.extractPage(document, pageNumber)
-            pageTexts.add(pageText)
+            val page = extractPdfTextPage(context, uri, document, pageNumber, normalizedOptions)
+            pageTexts.add(page.text)
+            diagnostics.addAll(page.diagnostics)
+            if (page.partial) { partial = true; break }
             yield()
         }
 
@@ -238,8 +236,31 @@ object DocumentExtractor {
             text = text,
             sourceLabel = "PDF",
             note = diagnostics.joinToString("\n").ifBlank { null },
-            pageCount = selectedPageCount
+            pageCount = selectedPageCount,
+            partial = partial
         )
+    }
+
+    /** A mixed PDF can have a scanned cover/page even when the book's average text count is high. */
+    private suspend fun extractPdfTextPage(context: Context, uri: Uri, document: PDDocument, pageNumber: Int,
+        options: PdfImportOptions, deadlineMillis: Long? = null): ExtractionBody {
+        val direct = PdfPageTextExtractor.extractPage(document, pageNumber)
+        if (direct.isNotBlank() || !options.preferOcrWhenLowText) return ExtractionBody(direct)
+        fun hasImage(resources: com.tom_roush.pdfbox.pdmodel.PDResources?, depth: Int): Boolean {
+            if (resources == null || depth > 3) return false
+            return resources.xObjectNames.take(256).any { name ->
+                when (val objectValue = runCatching { resources.getXObject(name) }.getOrNull()) {
+                    is com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject -> true
+                    is com.tom_roush.pdfbox.pdmodel.graphics.form.PDFormXObject -> hasImage(objectValue.resources, depth + 1)
+                    else -> false
+                }
+            }
+        }
+        if (!hasImage(document.getPage(pageNumber - 1).resources, 0)) return ExtractionBody(direct)
+        if (!hasImportTimeRemaining(deadlineMillis)) return ExtractionBody(direct, partial = true)
+        val ocr = extractPdfOcr(context, uri, options.copy(startPage = pageNumber, endPage = pageNumber), deadlineMillis)
+        return ocr.copy(text = ReaderTextIndex.stripInternalMarkers(ocr.text).trim(),
+            diagnostics = if (ocr.text.isNotBlank()) listOf("OCR read image-only PDF page $pageNumber.") else ocr.diagnostics)
     }
 
     suspend fun extract(
@@ -252,18 +273,8 @@ object DocumentExtractor {
         foregroundBudgetMillis: Long? = DEFAULT_IMPORT_TIMEOUT_MS
     ): ExtractedImport {
         coroutineContext.ensureActive()
-        val extension = displayName.substringAfterLast('.', missingDelimiterValue = "").lowercase(Locale.getDefault())
-        val mimeType = context.contentResolver.getType(uri).orEmpty().lowercase(Locale.getDefault())
-
-        val sourceLabel = when {
-            mimeType.contains("pdf") || extension == "pdf" || uri.path?.lowercase(Locale.getDefault())?.endsWith(".pdf") == true -> "PDF"
-            mimeType.contains("wordprocessingml") || extension == "docx" || uri.path?.lowercase(Locale.getDefault())?.endsWith(".docx") == true -> "DOCX"
-            mimeType.contains("presentationml") || extension == "pptx" || uri.path?.lowercase(Locale.getDefault())?.endsWith(".pptx") == true -> "PPTX"
-            extension == "ppt" || mimeType.contains("ms-powerpoint") -> "PPT"
-            mimeType.contains("epub") || extension == "epub" || uri.path?.lowercase(Locale.getDefault())?.endsWith(".epub") == true -> "EPUB"
-            mimeType.startsWith("image/") || extension in imageExtensions || imageExtensions.any { uri.path?.lowercase(Locale.getDefault())?.endsWith(".$it") == true } -> "OCR"
-            else -> "TXT"
-        }
+        val validated = validateDocumentImport(context, uri)
+        val sourceLabel = validated.format.sourceLabel
 
         val extracted = when (sourceLabel) {
             "OCR" -> extractImageOcr(context, uri)
@@ -272,7 +283,7 @@ object DocumentExtractor {
             "PPTX" -> extractPptx(readAllBytes(context, uri), pptxOptions, foregroundBudgetMillis)
             "PPT" -> PptLegacyExtractor.extract(readAllBytes(context, uri))
             "EPUB" -> extractEpub(readAllBytes(context, uri))
-            else -> extractPlainText(context, uri, textOptions, isHtmlish(displayName) || mimeType.contains("html"))
+            else -> extractPlainText(context, uri, textOptions, validated.format == ImportFormat.HTML)
         }
 
         val text = extracted.text.normalizeExtractedText()
@@ -312,8 +323,11 @@ object DocumentExtractor {
     }
 
     private suspend fun extractImageOcr(context: Context, uri: Uri): ExtractionBody {
-        val image = InputImage.fromFilePath(context.applicationContext, uri)
-        val recognized = recognizeText(image)
+        val importContext = coroutineContext
+        val bitmap = OcrImageLoader.load(context, uri) { importContext.ensureActive() }
+        val recognized = try {
+            recognizeText(InputImage.fromBitmap(bitmap, 0))
+        } finally { bitmap.recycle() }
         val text = formatRecognizedText(recognized)
         val diagnostics = buildList {
             add("OCR completed using on-device Latin-script text recognition.")
@@ -472,7 +486,10 @@ object DocumentExtractor {
     private suspend fun recognizeText(image: InputImage): MlText {
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         return try {
-            recognizer.process(image).awaitResult()
+            // ML Kit's Task cannot be cancelled. Keep its pixels alive until it completes.
+            kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                recognizer.process(image).awaitResult()
+            }.also { coroutineContext.ensureActive() }
         } finally {
             recognizer.close()
         }
@@ -540,9 +557,10 @@ object DocumentExtractor {
         options: TextImportOptions,
         htmlish: Boolean
     ): ExtractionBody {
-        val bytes = readAllBytes(context, uri)
+        val bytes = readAllBytes(context, uri, ImportFilePolicy.byteLimit(ImportFormat.TEXT))
         if (bytes.isEmpty()) return ExtractionBody("")
         val decoded = TextImportDecoder.decode(bytes, options)
+        ImportFilePolicy.validateText(decoded.text)
         val text = if (htmlish) htmlishToText(decoded.text) else normalizePlainTextParagraphs(decoded.text)
         return ExtractionBody(text, decoded.diagnostics)
     }
@@ -554,56 +572,96 @@ object DocumentExtractor {
         foregroundBudgetMillis: Long? = DEFAULT_IMPORT_TIMEOUT_MS
     ): ExtractionBody {
         PDFBoxResourceLoader.init(context.applicationContext)
-        context.contentResolver.openInputStream(uri).use { stream ->
-            if (stream == null) return ExtractionBody("")
-            val document = try {
-                PDDocument.load(stream, defaultPdfMemorySetting(context))
-            } catch (e: com.tom_roush.pdfbox.pdmodel.encryption.InvalidPasswordException) {
-                throw IllegalArgumentException("This PDF is password-protected. Please remove password protection before importing.", e)
-            } catch (e: java.io.IOException) {
-                if (e.message?.contains("password", ignoreCase = true) == true || e.message?.contains("encrypted", ignoreCase = true) == true) {
-                    throw IllegalArgumentException("This PDF is password-protected or encrypted. Please remove password protection before importing.", e)
-                }
-                throw e
+        val managed = openPdfDocument(context, uri)
+        val document = managed.document
+        return try {
+            val pageCount = document.numberOfPages.coerceAtLeast(1)
+            val normalizedOptions = options.normalized(pageCount)
+            val startPage = normalizedOptions.startPage ?: 1
+            val endPage = normalizedOptions.endPage ?: pageCount
+            val selectedPageCount = (endPage - startPage + 1).coerceAtLeast(1)
+            val diagnostics = mutableListOf<String>()
+
+            if (startPage != 1 || endPage != pageCount) {
+                diagnostics.add("Imported selected PDF page range: $startPage–$endPage of $pageCount pages.")
             }
-            return try {
-                val pageCount = document.numberOfPages.coerceAtLeast(1)
-                val normalizedOptions = options.normalized(pageCount)
-                val startPage = normalizedOptions.startPage ?: 1
-                val endPage = normalizedOptions.endPage ?: pageCount
-                val selectedPageCount = (endPage - startPage + 1).coerceAtLeast(1)
-                val diagnostics = mutableListOf<String>()
+            if (normalizedOptions.extractionMode.isNotBlank()) {
+                diagnostics.add("Import mode: ${normalizedOptions.extractionMode}.")
+            }
+            if (normalizedOptions.markPdfLinesForCanvas) {
+                diagnostics.add("Canvas line marks are enabled for comparing extracted text with the original PDF view.")
+            }
+            if (normalizedOptions.cropRect != null) {
+                diagnostics.add("Manual crop applied to the extraction area.")
+                val r = normalizedOptions.cropRect
+                for (page in document.pages) {
+                    val mediaBox = page.mediaBox
+                    val cropX = mediaBox.lowerLeftX + r.left * mediaBox.width
+                    val cropY = mediaBox.lowerLeftY + (1f - r.bottom) * mediaBox.height
+                    val cropW = (r.right - r.left) * mediaBox.width
+                    val cropH = (r.bottom - r.top) * mediaBox.height
+                    page.cropBox = com.tom_roush.pdfbox.pdmodel.common.PDRectangle(cropX, cropY, cropW, cropH)
+                }
+            }
+            if (normalizedOptions.forceFreshExtraction) {
+                diagnostics.add("Fresh extraction was requested for this import.")
+            }
 
-                if (startPage != 1 || endPage != pageCount) {
-                    diagnostics.add("Imported selected PDF page range: $startPage–$endPage of $pageCount pages.")
-                }
-                if (normalizedOptions.extractionMode.isNotBlank()) {
-                    diagnostics.add("Import mode: ${normalizedOptions.extractionMode}.")
-                }
-                if (normalizedOptions.markPdfLinesForCanvas) {
-                    diagnostics.add("Canvas line marks are enabled for comparing extracted text with the original PDF view.")
-                }
-                if (normalizedOptions.cropRect != null) {
-                    diagnostics.add("Manual crop applied to the extraction area.")
-                    val r = normalizedOptions.cropRect
-                    for (page in document.pages) {
-                        val mediaBox = page.mediaBox
-                        val cropX = mediaBox.lowerLeftX + r.left * mediaBox.width
-                        val cropY = mediaBox.lowerLeftY + (1f - r.bottom) * mediaBox.height
-                        val cropW = (r.right - r.left) * mediaBox.width
-                        val cropH = (r.bottom - r.top) * mediaBox.height
-                        page.cropBox = com.tom_roush.pdfbox.pdmodel.common.PDRectangle(cropX, cropY, cropW, cropH)
-                    }
-                }
-                if (normalizedOptions.forceFreshExtraction) {
-                    diagnostics.add("Fresh extraction was requested for this import.")
-                }
+            val deadlineMillis = foregroundBudgetMillis?.let { System.currentTimeMillis() + it }
 
-                val deadlineMillis = foregroundBudgetMillis?.let { System.currentTimeMillis() + it }
+            if (normalizedOptions.forceOcr) {
+                diagnostics.add("Forced OCR mode was used for this PDF import.")
+                val ocr = extractPdfOcr(context, uri, normalizedOptions, deadlineMillis)
+                return ExtractionBody(
+                    text = ocr.text,
+                    diagnostics = diagnostics + ocr.diagnostics,
+                    pageCount = selectedPageCount,
+                    partial = ocr.partial
+                )
+            }
 
-                if (normalizedOptions.forceOcr) {
-                    diagnostics.add("Forced OCR mode was used for this PDF import.")
-                    val ocr = extractPdfOcr(context, uri, normalizedOptions, deadlineMillis)
+            val pageNumbers = mutableListOf<Int>()
+            val pageTexts = mutableListOf<String>()
+            var partial = false
+
+            for (pageNumber in startPage..endPage) {
+                coroutineContext.ensureActive()
+                if (deadlineMillis != null && pageTexts.isNotEmpty() && System.currentTimeMillis() >= deadlineMillis) {
+                    partial = true
+                    break
+                }
+                pageNumbers.add(pageNumber)
+                val page = extractPdfTextPage(context, uri, document, pageNumber, normalizedOptions, deadlineMillis)
+                pageTexts.add(page.text)
+                diagnostics.addAll(page.diagnostics)
+                if (page.partial) { partial = true; break }
+                yield()
+            }
+
+            yield()
+            val cleaned = PdfTextCleaner.cleanPages(pageTexts, pageNumbers, normalizedOptions)
+            if (partial) {
+                diagnostics.add("Opened ${pageTexts.size} of $selectedPageCount selected PDF pages after the foreground import window. Vern will continue extracting the rest in the background.")
+            }
+            if (normalizedOptions.cleanupRepeatedLines && cleaned.removedRepeatedLineCount > 0) {
+                diagnostics.add("Removed ${cleaned.removedRepeatedLineCount} repeated header/footer line${if (cleaned.removedRepeatedLineCount == 1) "" else "s"}.")
+            }
+            if (normalizedOptions.removePageNumbers && cleaned.removedPageNumberCount > 0) {
+                diagnostics.add("Removed ${cleaned.removedPageNumberCount} standalone page number${if (cleaned.removedPageNumberCount == 1) "" else "s"}.")
+            }
+            if (normalizedOptions.repairHyphenation && cleaned.joinedHyphenationCount > 0) {
+                diagnostics.add("Joined ${cleaned.joinedHyphenationCount} hyphenated line break${if (cleaned.joinedHyphenationCount == 1) "" else "s"}.")
+            }
+            if (normalizedOptions.includePageMarkers) {
+                diagnostics.add("Inserted page markers into the imported text.")
+            }
+
+            val extractedPageCount = pageTexts.size.coerceAtLeast(1)
+            val averageCharsPerPage = cleaned.text.length / extractedPageCount
+            if (!partial && normalizedOptions.preferOcrWhenLowText && (cleaned.text.isBlank() || averageCharsPerPage < 80)) {
+                diagnostics.add("Very little extractable PDF text was found in the selected range, so OCR was attempted on rendered PDF pages.")
+                val ocr = extractPdfOcr(context, uri, normalizedOptions, deadlineMillis)
+                if (ocr.text.isNotBlank()) {
                     return ExtractionBody(
                         text = ocr.text,
                         diagnostics = diagnostics + ocr.diagnostics,
@@ -611,60 +669,11 @@ object DocumentExtractor {
                         partial = ocr.partial
                     )
                 }
-
-                val pageNumbers = mutableListOf<Int>()
-                val pageTexts = mutableListOf<String>()
-                var partial = false
-
-                for (pageNumber in startPage..endPage) {
-                    coroutineContext.ensureActive()
-                    if (deadlineMillis != null && pageTexts.isNotEmpty() && System.currentTimeMillis() >= deadlineMillis) {
-                        partial = true
-                        break
-                    }
-                    pageNumbers.add(pageNumber)
-                    val pageText = PdfPageTextExtractor.extractPage(document, pageNumber)
-                    pageTexts.add(pageText)
-                    yield()
-                }
-
-                yield()
-                val cleaned = PdfTextCleaner.cleanPages(pageTexts, pageNumbers, normalizedOptions)
-                if (partial) {
-                    diagnostics.add("Opened ${pageTexts.size} of $selectedPageCount selected PDF pages after the foreground import window. Vern will continue extracting the rest in the background.")
-                }
-                if (normalizedOptions.cleanupRepeatedLines && cleaned.removedRepeatedLineCount > 0) {
-                    diagnostics.add("Removed ${cleaned.removedRepeatedLineCount} repeated header/footer line${if (cleaned.removedRepeatedLineCount == 1) "" else "s"}.")
-                }
-                if (normalizedOptions.removePageNumbers && cleaned.removedPageNumberCount > 0) {
-                    diagnostics.add("Removed ${cleaned.removedPageNumberCount} standalone page number${if (cleaned.removedPageNumberCount == 1) "" else "s"}.")
-                }
-                if (normalizedOptions.repairHyphenation && cleaned.joinedHyphenationCount > 0) {
-                    diagnostics.add("Joined ${cleaned.joinedHyphenationCount} hyphenated line break${if (cleaned.joinedHyphenationCount == 1) "" else "s"}.")
-                }
-                if (normalizedOptions.includePageMarkers) {
-                    diagnostics.add("Inserted page markers into the imported text.")
-                }
-
-                val extractedPageCount = pageTexts.size.coerceAtLeast(1)
-                val averageCharsPerPage = cleaned.text.length / extractedPageCount
-                if (!partial && normalizedOptions.preferOcrWhenLowText && (cleaned.text.isBlank() || averageCharsPerPage < 80)) {
-                    diagnostics.add("Very little extractable PDF text was found in the selected range, so OCR was attempted on rendered PDF pages.")
-                    val ocr = extractPdfOcr(context, uri, normalizedOptions, deadlineMillis)
-                    if (ocr.text.isNotBlank()) {
-                        return ExtractionBody(
-                            text = ocr.text,
-                            diagnostics = diagnostics + ocr.diagnostics,
-                            pageCount = selectedPageCount,
-                            partial = ocr.partial
-                        )
-                    }
-                    diagnostics.add("OCR did not find readable text. The PDF may be low-resolution, handwritten, encrypted, or image quality may be too poor.")
-                }
-                ExtractionBody(cleaned.text, diagnostics, pageCount = selectedPageCount, partial = partial)
-            } finally {
-                document.close()
+                diagnostics.add("OCR did not find readable text. The PDF may be low-resolution, handwritten, encrypted, or image quality may be too poor.")
             }
+            ExtractionBody(cleaned.text, diagnostics, pageCount = selectedPageCount, partial = partial)
+        } finally {
+            managed.close()
         }
     }
 
@@ -887,9 +896,9 @@ object DocumentExtractor {
         }.getOrDefault(text)
     }
 
-    private fun readAllBytes(context: Context, uri: Uri): ByteArray {
+    private fun readAllBytes(context: Context, uri: Uri, limit: Long = ResourceLimits.DOCUMENT_INPUT_BYTES): ByteArray {
         context.contentResolver.openInputStream(uri).use { stream ->
-            return stream?.let { ResourceLimits.read(it) } ?: ByteArray(0)
+            return stream?.let { ResourceLimits.read(it, limit) } ?: ByteArray(0)
         }
     }
 
@@ -897,7 +906,6 @@ object DocumentExtractor {
     private const val MAX_PDF_OCR_PAGES = 150 // Increased to support longer scanned documents
     private const val MAX_PPTX_OCR_IMAGES = 80
     private const val MIN_PPTX_OCR_IMAGE_DIMENSION = 200 // px; skips logos/icons/dividers
-    private val imageExtensions = setOf("png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff")
 }
 
 data class ExtractionBody(

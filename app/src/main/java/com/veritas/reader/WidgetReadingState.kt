@@ -3,7 +3,6 @@ package com.veritas.reader
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 
 /** A widget must have a valid, durable document even after its process was reclaimed. */
@@ -47,13 +46,12 @@ internal fun widgetActivityIntent(context: Context, action: String? = null, docu
     }
 
 internal fun widgetCover(context: Context, document: SavedDocument?): Bitmap? {
-    val file = document?.let { CoverExtractor.coverFile(context, it.id) }?.takeIf { it.exists() } ?: return null
+    if (document == null) return null
     return runCatching {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(file.absolutePath, bounds)
-        var sample = 1
-        while (bounds.outWidth / sample > 256 || bounds.outHeight / sample > 256) sample *= 2
-        BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply { inSampleSize = sample })
+        val source = BookCoverLoader.forDocument(context, document)
+        val scale = minOf(1f, 256f / maxOf(source.width, source.height))
+        if (scale == 1f) source else Bitmap.createScaledBitmap(source,
+            (source.width * scale).toInt().coerceAtLeast(1), (source.height * scale).toInt().coerceAtLeast(1), true)
     }.getOrNull()
 }
 

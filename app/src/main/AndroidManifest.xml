@@ -85,7 +85,6 @@
                      picks Veritas and gets an error. -->
                 <data android:mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation" />
                 <data android:mimeType="application/vnd.ms-powerpoint" />
-                <data android:mimeType="application/octet-stream" />
                 <data android:mimeType="image/*" />
             </intent-filter>
 
@@ -98,7 +97,6 @@
                 <data android:mimeType="application/pdf" />
                 <data android:mimeType="application/epub+zip" />
                 <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-                <data android:mimeType="application/octet-stream" />
                 <data android:mimeType="image/*" />
             </intent-filter>
 

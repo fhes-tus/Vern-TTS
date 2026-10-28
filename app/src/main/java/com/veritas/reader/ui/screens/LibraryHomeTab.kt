@@ -33,10 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -44,7 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.SavedDocument
 import com.veritas.reader.VeritasPackStyle
-import com.veritas.reader.blendColors
 import com.veritas.reader.trackerDateKey
 import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.OnboardingStep
@@ -129,19 +124,7 @@ internal fun LibraryHomeTab(
         uiState.isHeroContinueDismissed || hasRecordedActivity
 
     val scheme = MaterialTheme.colorScheme
-    val gradient: Brush
-    val onCard: Color
-    if (uiState.readerSettings.vibrantHero) {
-        val hsv = FloatArray(3)
-        android.graphics.Color.colorToHSV(scheme.primary.toArgb(), hsv)
-        val first = Color(android.graphics.Color.HSVToColor(floatArrayOf(hsv[0], (hsv[1] * 0.7f).coerceIn(0f, 1f), (hsv[2] * 1.15f).coerceIn(0f, 1f))))
-        val second = Color(android.graphics.Color.HSVToColor(floatArrayOf((hsv[0] + 15f) % 360f, hsv[1], (hsv[2] * 0.85f).coerceIn(0f, 1f))))
-        gradient = Brush.linearGradient(listOf(first, second))
-        onCard = if ((first.luminance() + second.luminance()) / 2 > 0.4f) Color(0xFF0F172A) else Color.White
-    } else {
-        gradient = Brush.linearGradient(listOf(blendColors(scheme.surfaceContainer, scheme.primary, 0.10f), scheme.surface))
-        onCard = scheme.onSurface
-    }
+    val heroColors = com.veritas.reader.veritasHeroColors(scheme, uiState.readerSettings.vibrantHero)
 
     val classicsIndex = 3 + (if (recentBooks.isNotEmpty()) 1 else 0)
     LaunchedEffect(OnboardingController.activeStep, classicsIndex) {
@@ -178,7 +161,7 @@ internal fun LibraryHomeTab(
         }
         item(key = "continue") {
             Column(Modifier.staggeredEntrance(1)) {
-                VeritasHomeHeroCard(continueDocument, weeklyBook.takeIf { showWeeklyPick }, gradient, onCard,
+                VeritasHomeHeroCard(continueDocument, weeklyBook.takeIf { showWeeklyPick }, heroColors,
                     onOpenDocument, onClearContinueDocument, onShowImportSheet,
                     onPreviewClassic = { previewClassicBook = it })
             }

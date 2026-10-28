@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -52,5 +53,23 @@ class StudyHubOverviewUiTest {
         }
         rule.onNodeWithText("Chosen book").performClick()
         assertEquals(second, selected)
+    }
+
+    @Test fun studyGuideExportChoosesABookWithoutAnActiveReader() {
+        val book = SavedDocument("study-guide", "Selected guide source", "guide.txt", "TXT", 1, 1, 0, 1, 30, "")
+        var showPicker by mutableStateOf(false)
+        var selected: SavedDocument? = null
+        rule.setContent { MaterialTheme {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                StudyHubOverview(ReaderUiState(), emptyList(), 0, StudyReviewSummary.from(emptyList(), 100),
+                    {}, {}, {}, {}, {}, {}, {}, onExportStudyGuide = { showPicker = true })
+            }
+            if (showPicker) StudyBookPickerDialog(listOf(book), { selected = it; showPicker = false }, {}, { showPicker = false },
+                title = "Choose a book for your study guide")
+        } }
+        rule.onNodeWithText("Export study guide PDF").performScrollTo().performClick()
+        rule.onNodeWithText("Choose a book for your study guide").assertIsDisplayed()
+        rule.onNodeWithText(book.title).performClick()
+        assertEquals(book, selected)
     }
 }

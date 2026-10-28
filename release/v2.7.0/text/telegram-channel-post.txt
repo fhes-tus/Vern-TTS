@@ -1,0 +1,18 @@
+Vern 2.7.0 · Build 45
+
+This update is about the small things that make reading feel better.
+
+• Scan / OCR now lets you take a photo or choose one from your device.
+• Long-press in Listen's Read view and share up to five sentences as a quote image. Pick a colour, preview it, and credit the author or a character.
+• PDF Page swipe keeps one page in focus. Swipe left or right to turn it, or switch back to vertical scrolling.
+• Reading layout and swipe effects expand inside reader tools. Listen text size now saves separately.
+• Files without artwork get proper title-based covers, including the details preview and widgets.
+• Study-guide PDF export has moved to Study Hub. Reading lists stay in Library and app Settings.
+• Fixed missing contents entries, unsupported-file imports, Funky cards on more screens, awkward greetings and inconsistent dark/AMOLED colours.
+• Home's quiet and vibrant colours follow your theme, with the original animated rings retained.
+
+Google Play: https://play.google.com/store/apps/details?id=com.veritas.reader
+Website: https://fhes-tus.github.io/Vern-TTS/
+Release notes: https://github.com/fhes-tus/Vern-TTS/blob/main/RELEASE_NOTES_v2.7.0.md
+
+Thanks for reading with Vern. If something looks wrong, include the document type and your Android version when reporting it.

@@ -44,6 +44,8 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Spellcheck
 import androidx.compose.material.icons.outlined.TheaterComedy
 import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material.icons.outlined.Swipe
+import androidx.compose.material.icons.outlined.ViewCarousel
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -130,7 +132,9 @@ internal fun ReaderToolsMenu(
     onOpenJumpToPage: () -> Unit = {},
     onAddGeneralNote: () -> Unit = {},
     onAddSentenceNote: () -> Unit = {},
-    onOpenBookmarks: () -> Unit = onToggleBookmarks
+    onOpenBookmarks: () -> Unit = onToggleBookmarks,
+    readerSettings: com.veritas.reader.ReaderSettings = com.veritas.reader.ReaderSettings(),
+    onReadingSettingsChange: (com.veritas.reader.ReaderSettings) -> Unit = {}
 ) {
     val context = LocalContext.current
     var showAiChooser by remember { mutableStateOf(false) }
@@ -193,6 +197,7 @@ internal fun ReaderToolsMenu(
             "Read",
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelLarge)
+        ReaderNavigationOverflowItems(readerSettings, onReadingSettingsChange)
         DropdownMenuItem(
             text = { Text("Jump to page...") },
             leadingIcon = {
@@ -215,12 +220,6 @@ internal fun ReaderToolsMenu(
             label = if (sleepTimerLabel.isBlank()) "Sleep timer" else sleepTimerLabel,
             onClick = { choose(onOpenSleepTimer) },
             leadingIcon = Icons.Filled.Timer
-        )
-        FeatureDropdownMenuItem(
-            feature = readerFeature(VeritasFeatureId.READING_LISTS),
-            label = "Reading lists ($activeDocumentReadingListCount/$readingListCount)",
-            onClick = { choose(onOpenReadingLists) },
-            leadingIcon = Icons.Filled.CollectionsBookmark
         )
         DropdownMenuItem(
             text = { Text("Play Queue ($queueCount)") },
@@ -249,11 +248,6 @@ internal fun ReaderToolsMenu(
             label = "Document notes${if (noteCount > 0) " • $noteCount sentence${if (noteCount == 1) "" else "s"}" else ""}",
             onClick = { choose(onOpenDocumentNotes) },
             leadingIcon = Icons.Filled.EditNote
-        )
-        DropdownMenuItem(
-            text = { Text("Export Study Guide PDF") },
-            leadingIcon = { Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null) },
-            onClick = { choose(onExportStudyGuidePdf) }
         )
         HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
         Text(
@@ -374,6 +368,35 @@ internal fun ReaderToolsMenu(
             leadingIcon = Icons.Outlined.FileDownload,
             onClick = { choose(onExportAudio) }
         )
+    }
+}
+
+@Composable
+internal fun ReaderNavigationOverflowItems(settings: com.veritas.reader.ReaderSettings,
+    onSave: (com.veritas.reader.ReaderSettings) -> Unit) {
+    var layoutsOpen by remember { mutableStateOf(false) }
+    var effectsOpen by remember { mutableStateOf(false) }
+    val layouts = listOf("pages" to "Page swipe", "scroll" to "Vertical scroll")
+    val effects = listOf("slide" to "Slide", "flip" to "Page curl", "hinge" to "Light flip", "none" to "None")
+    androidx.compose.material3.DropdownMenuItem(
+        text = { Text("Reading layout: ${layouts.firstOrNull { it.first == settings.readingLayout }?.second.orEmpty()}") },
+        leadingIcon = { Icon(Icons.Outlined.ViewCarousel, contentDescription = null) },
+        trailingIcon = { Icon(if (layoutsOpen) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null) },
+        onClick = { layoutsOpen = !layoutsOpen; effectsOpen = false })
+    if (layoutsOpen) layouts.forEach { (id, title) ->
+        androidx.compose.material3.DropdownMenuItem(text = { Text(title) },
+            leadingIcon = { androidx.compose.material3.RadioButton(settings.readingLayout == id, onClick = null) },
+            onClick = { onSave(settings.copy(readingLayout = id)); layoutsOpen = false })
+    }
+    androidx.compose.material3.DropdownMenuItem(
+        text = { Text("Swipe effect: ${effects.firstOrNull { it.first == settings.pageTurnStyle }?.second.orEmpty()}") },
+        leadingIcon = { Icon(Icons.Outlined.Swipe, contentDescription = null) },
+        trailingIcon = { Icon(if (effectsOpen) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null) },
+        onClick = { effectsOpen = !effectsOpen; layoutsOpen = false })
+    if (effectsOpen) effects.forEach { (id, title) ->
+        androidx.compose.material3.DropdownMenuItem(text = { Text(title) },
+            leadingIcon = { androidx.compose.material3.RadioButton(settings.pageTurnStyle == id, onClick = null) },
+            onClick = { onSave(settings.copy(pageTurnStyle = id)); effectsOpen = false })
     }
 }
 

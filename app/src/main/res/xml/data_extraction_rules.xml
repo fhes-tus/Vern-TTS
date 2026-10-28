@@ -8,6 +8,7 @@
         <exclude domain="file" path="original_documents" />
         <exclude domain="file" path="covers" />
         <exclude domain="file" path="restore_transactions" />
+        <exclude domain="file" path="scan_imports" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="veritas_reader_secrets.xml" />
@@ -16,5 +17,6 @@
         <include domain="file" path="." />
         <exclude domain="file" path="original_documents" />
         <exclude domain="file" path="restore_transactions" />
+        <exclude domain="file" path="scan_imports" />
     </device-transfer>
 </data-extraction-rules>

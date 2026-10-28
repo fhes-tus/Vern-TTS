@@ -53,10 +53,12 @@ data class ReaderSettings(
     val scatteredCards: Boolean = false,
     val pageTurnStyle: String = "slide",
     val readingLayout: String = "pages",
-    val pdfNavigationMode: String = "scroll"
+    val pdfNavigationMode: String = "scroll",
+    val listenFontSizeSp: Int = 18
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("fontSizeSp", fontSizeSp)
+        .put("listenFontSizeSp", listenFontSizeSp)
         .put("sectionSpacingDp", sectionSpacingDp)
         .put("showSectionNumbers", showSectionNumbers)
         .put("autoPlayQueue", autoPlayQueue)
@@ -93,6 +95,8 @@ data class ReaderSettings(
             val migratedTheme = if (rawThemeId == "material_you") "default_dark_2026" else rawThemeId
             return ReaderSettings(
                 fontSizeSp = obj.optInt("fontSizeSp", 18).coerceIn(10, 28),
+                // Preserve the previous Listen size once, then save the two sizes independently.
+                listenFontSizeSp = obj.optInt("listenFontSizeSp", obj.optInt("fontSizeSp", 18)).coerceIn(10, 28),
                 sectionSpacingDp = obj.optInt("sectionSpacingDp", 10).coerceIn(6, 24),
                 showSectionNumbers = obj.optBoolean("showSectionNumbers", true),
                 autoPlayQueue = obj.optBoolean("autoPlayQueue", true),

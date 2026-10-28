@@ -1,100 +1,50 @@
-# Vern TTS — Telegram Community Management Kit (`@myreader_veritas`)
+# Vern Telegram community kit
 
----
+The channel is `@myreader_veritas`; the bot is `@VernTTS_bot`.
 
-## 📌 1. Channel / Group Info & Bio
+## 2.7.0 / 45 drafts
 
-**Title:** `Vern TTS — Official Community`  
-**Username:** `@myreader_veritas`  
-**Description / Bio:**
+- [Channel announcement](release/v2.7.0/text/telegram-channel-post.txt)
+- [Bot preview copy](release/v2.7.0/text/telegram-bot-preview.html)
+- [Full release notes](RELEASE_NOTES_v2.7.0.md)
+- [Release preparation and verification](release/v2.7.0/README.md)
+
+These are local drafts. Review the channel post after the update is available. The Worker and polling bot's `/milestone` response describes the upcoming version; `/download` and `/changelog` continue to resolve actual published releases. Source updates have not deployed a bot or sent a message.
+
+## Channel bio
+
 ```text
-Official community for Vern TTS — The 100% private, offline-first Android reader & speech engine with authentic classic editions.
+Vern — read, listen and study with your books and documents.
+Offline-first reading and OCR, optional online tools, and no account required for local reading.
 
-🌐 Website: https://fhes-tus.github.io/Vern-TTS/
-📦 Releases: https://github.com/fhes-tus/Vern-TTS/releases
-💬 Group Chat: @myreader_veritas
+Google Play: https://play.google.com/store/apps/details?id=com.veritas.reader
+Website: https://fhes-tus.github.io/Vern-TTS/
+Bot: @VernTTS_bot
 ```
 
----
-
-## 📌 2. Pinned Welcome Message (Copy & Paste to Pinned Post)
+## Pinned welcome message
 
 ```text
-👋 Welcome to the Official Vern TTS Community!
+Welcome to the Vern community.
 
-Vern TTS (rooted in the German Vernehmen — to hear & perceive) is a privacy-first, 100% on-device reading and text-to-speech engine for Android.
+Read supported books and documents, listen with on-device or supported Android voices, and keep your notes and study materials together.
 
-━━━━━━━━━━━━━━━━━━━━━
-📚 QUICK LINKS
-━━━━━━━━━━━━━━━━━━━━━
-⬇️ Download Latest Release (v2.5.0):
-https://github.com/fhes-tus/Vern-TTS/releases/tag/v2.5.0
+Get Vern:
+https://play.google.com/store/apps/details?id=com.veritas.reader
 
-🌐 Official Website & Guide:
+Published APKs and release notes:
+https://github.com/fhes-tus/Vern-TTS/releases
+
+Website:
 https://fhes-tus.github.io/Vern-TTS/
 
-⭐️ Star on GitHub:
-https://github.com/fhes-tus/Vern-TTS
+For download links and published changes, ask @VernTTS_bot with /download or /changelog. Use /milestone to preview the next update.
 
-━━━━━━━━━━━━━━━━━━━━━
-🚀 KEY FEATURES
-━━━━━━━━━━━━━━━━━━━━━
-• 100% Offline & Private (No accounts, no tracking)
-• 35+ Curated Classics with authentic cover artwork
-• All Document Formats (PDF, EPUB, DOCX, TXT)
-• Neural On-Device Text-to-Speech & sentence tracking
-• 4 Unified Reading Themes (Default, Warm Sepia, Soft Dark, AMOLED)
-• Active Recall Study Hub & Leitner Flashcards
+Your reading data stays on the device by default. Optional AI, translation, sharing and online catalog features use their relevant services; the privacy policy explains these and ML Kit diagnostics.
 
-━━━━━━━━━━━━━━━━━━━━━
-🤝 COMMUNITY GUIDELINES
-━━━━━━━━━━━━━━━━━━━━━
-1. Share book recommendations, study tips, and feedback.
-2. Report bugs with your Android version and document type.
-3. Be respectful and constructive.
+Share reading recommendations and feedback. For a bug report, include your Android version, document format, the steps that caused it and a screenshot if useful. Keep conversations respectful.
 ```
 
----
+## Publication
 
-## 🚀 3. Official v2.5.0 Release Announcement Post
-
-```text
-🎉 Vern TTS v2.5.0 (Build 38) Is Officially Live!
-
-We're thrilled to introduce Vern TTS v2.5.0 — bringing a reimagined identity, authentic published book covers, and unified paper tones!
-
-🌟 WHAT'S NEW:
-• Meet Vern TTS: Formalized new brand identity rooted in Vernehmen (to perceive/comprehend).
-• 35+ Authentic Published Covers: Integrated high-res edition artwork across the classic catalog and your library shelf.
-• Bidirectional Paper Tone Sync: Seamless theme consistency across Extracted Text, Original Document, and PDF views.
-• Enhanced PDF Player: Added the missing Next skip button and instant portrait/landscape toggle.
-• Smart Heuristic Synopsis: Automatically extracts clean opening prose when importing books from phone storage.
-• Streamlined Library UI: Floating card drag reordering, subtle info icons, and split-action hero card.
-
-📦 DIRECT DOWNLOADS:
-• 64-bit ARM (Recommended): https://github.com/fhes-tus/Vern-TTS/releases/download/v2.5.0/Veritas-Reader-v2.5.0-arm64-v8a-release.apk
-• Universal Release: https://github.com/fhes-tus/Vern-TTS/releases/download/v2.5.0/Veritas-Reader-v2.5.0-universal-release.apk
-• 32-bit Legacy ARM: https://github.com/fhes-tus/Vern-TTS/releases/download/v2.5.0/Veritas-Reader-v2.5.0-armeabi-v7a-release.apk
-
-Enjoy distraction-free reading! 📖🎧
-```
-
----
-
-## ❓ 4. Frequently Asked Questions (FAQ) Message
-
-```text
-💡 Vern TTS — Common Questions & Troubleshooting:
-
-Q: How do I install the APK?
-A: Download the APK from our GitHub release. Tap the file in your notifications or Downloads app. If prompted with "Install unknown apps", tap Settings and toggle "Allow from this source".
-
-Q: Where do my notes, books, and highlights go?
-A: Nowhere! Vern TTS stores all data in a local SQLite database directly on your phone. Nothing is ever transmitted over the network.
-
-Q: How do I change TTS voice or speed?
-A: While reading or listening, tap the Settings gear in the reader or swipe up the playback sheet to adjust speed (0.5x – 3.0x), pitch, and select installed Android system voices.
-
-Q: Does Vern support PDF files?
-A: Yes! Vern includes both an extracted text mode with neural TTS tracking and a dedicated native PDF viewer with brightness and orientation controls.
-```
+The existing GitHub release workflow can announce a published release. Do not dispatch it merely to preview this draft. Bot deployment and authenticated webhook configuration are described in [cloudflare_worker/README.md](cloudflare_worker/README.md); running the polling bot changes webhook ownership, so it is not a copy-preview command.

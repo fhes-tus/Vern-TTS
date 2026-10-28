@@ -288,9 +288,8 @@ object VeritasFeatureRegistry {
             description = "Organize saved readings into local lists and playback queues.",
             category = VeritasFeatureCategory.LIBRARY,
             stage = VeritasFeatureStage.EXPANSION,
-            surfaces = setOf(VeritasFeatureSurface.READER_OVERFLOW, VeritasFeatureSurface.LIBRARY_OVERFLOW, VeritasFeatureSurface.SETTINGS_HUB),
+            surfaces = setOf(VeritasFeatureSurface.LIBRARY_OVERFLOW, VeritasFeatureSurface.SETTINGS_HUB),
             surfaceRequirements = mapOf(
-                VeritasFeatureSurface.READER_OVERFLOW to setOf(VeritasFeatureRequirement.ACTIVE_DOCUMENT),
                 VeritasFeatureSurface.LIBRARY_OVERFLOW to setOf(VeritasFeatureRequirement.SAVED_DOCUMENT)
             ),
             priority = 170

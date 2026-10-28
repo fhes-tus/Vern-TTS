@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.VeritasPackStyle
+import com.veritas.reader.vernScatteredCard
 import com.veritas.reader.ui.LocalVeritasMotion
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
@@ -111,7 +112,7 @@ internal fun HomeTodayReadingCard(
         }
     }
     var showGoalPicker by remember { mutableStateOf(false) }
-    Card(modifier.fillMaxWidth().testTag("home-today-reading-card").pointerInput(stats.size) {
+    Card(modifier.fillMaxWidth().vernScatteredCard("home-today-reading", amount = .5f).testTag("home-today-reading-card").pointerInput(stats.size) {
                     var drag = 0f
                     detectHorizontalDragGestures(onDragStart = { drag = 0f }, onDragCancel = { drag = 0f },
                         onDragEnd = {

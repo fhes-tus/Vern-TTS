@@ -439,7 +439,7 @@ internal fun ImportSheetMenu(
             ImportSheetOptionCard(
                 icon = Icons.Filled.PhotoCamera,
                 title = "Scan / OCR",
-                subtitle = "Take a photo of printed text",
+                subtitle = "Capture or choose a photo to extract text",
                 onClick = { onSelectOption(ImportOption.SCAN) }
             )
             ImportSheetOptionCard(

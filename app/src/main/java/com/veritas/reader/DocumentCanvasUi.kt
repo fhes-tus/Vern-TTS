@@ -39,6 +39,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -65,9 +67,12 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalFoundationApi::class)
 
 @Composable
-internal fun getCanvasColors(paperToneMode: PaperToneMode): Pair<androidx.compose.ui.graphics.Color, androidx.compose.ui.graphics.Color> {
+internal fun getCanvasColors(paperToneMode: PaperToneMode): Pair<androidx.compose.ui.graphics.Color, androidx.compose.ui.graphics.Color> =
+    readerPaperColors(MaterialTheme.colorScheme, paperToneMode)
+
+internal fun readerPaperColors(scheme: ColorScheme, paperToneMode: PaperToneMode): Pair<androidx.compose.ui.graphics.Color, androidx.compose.ui.graphics.Color> {
     return when (paperToneMode) {
-        PaperToneMode.ACTIVE_THEME -> MaterialTheme.colorScheme.surfaceContainerLow to MaterialTheme.colorScheme.onSurface
+        PaperToneMode.ACTIVE_THEME -> scheme.surface to scheme.onSurface
         PaperToneMode.DARK -> androidx.compose.ui.graphics.Color(0xFF141414) to androidx.compose.ui.graphics.Color(0xFFE8E8E8)
         PaperToneMode.NATURAL_WHITE -> androidx.compose.ui.graphics.Color(0xFFFFFFFF) to androidx.compose.ui.graphics.Color(0xFF1C1B1F)
         PaperToneMode.WARM_SEPIA -> androidx.compose.ui.graphics.Color(0xFFFBF0D9) to androidx.compose.ui.graphics.Color(0xFF3C2F2F)
@@ -493,6 +498,8 @@ internal fun DocxDocumentCanvas(
     modifier: Modifier = Modifier
 ) {
     val (cardBg, contentColor) = getCanvasColors(paperToneMode)
+    val paperAccent = readableDocumentInk(MaterialTheme.colorScheme.primary, cardBg)
+    val highlightedPaper = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .38f).compositeOver(cardBg)
 
     Card(
         modifier = if (isLandscape) modifier.fillMaxSize() else modifier.fillMaxWidth(),
@@ -582,7 +589,7 @@ internal fun DocxDocumentCanvas(
                                             .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50))
                                     )
                                     DocxFormattedParagraph(DocxBlock.Paragraph(block.text, block.sourceFormat), contentColor,
-                                        MaterialTheme.colorScheme.surface, Modifier.weight(1f),
+                                        cardBg, Modifier.weight(1f),
                                         textStyle = (if (block.level == 1) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall)
                                             .copy(fontWeight = FontWeight.Bold))
                                 }
@@ -605,10 +612,10 @@ internal fun DocxDocumentCanvas(
                                         Text(
                                             text = if (block.level == 0) "•" else "◦",
                                             fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary
+                                            color = paperAccent
                                         )
                                         DocxFormattedParagraph(DocxBlock.Paragraph(block.text, block.sourceFormat?.copy(indentPoints = 0f)),
-                                            contentColor, MaterialTheme.colorScheme.surface, Modifier.weight(1f))
+                                            contentColor, if (isHighlighted) highlightedPaper else cardBg, Modifier.weight(1f))
                                     }
                                 }
                             }
@@ -636,7 +643,7 @@ internal fun DocxDocumentCanvas(
                                         DocxFormattedParagraph(
                                             block = block,
                                             color = contentColor,
-                                            background = if (isHighlighted) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                                            background = if (isHighlighted) highlightedPaper else cardBg,
                                             modifier = Modifier.weight(1f)
                                         )
                                     }
@@ -649,7 +656,7 @@ internal fun DocxDocumentCanvas(
                                         .padding(vertical = 4.dp)
                                         .clickable { onSelectText?.invoke(block.rows.joinToString("\n") { it.joinToString(" | ") }) },
                                     shape = RoundedCornerShape(10.dp),
-                                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f),
+                                    color = blendColors(cardBg, contentColor, .06f),
                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                                 ) {
                                     Column(modifier = Modifier.horizontalScroll(rememberScrollState()).padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -663,7 +670,7 @@ internal fun DocxDocumentCanvas(
                                                         text = cell,
                                                         style = MaterialTheme.typography.bodySmall,
                                                         fontWeight = if (rowIndex == 0) FontWeight.Bold else FontWeight.Normal,
-                                                        color = if (rowIndex == 0) MaterialTheme.colorScheme.primary else contentColor,
+                                                        color = contentColor,
                                                         modifier = Modifier.width(160.dp)
                                                     )
                                                 }

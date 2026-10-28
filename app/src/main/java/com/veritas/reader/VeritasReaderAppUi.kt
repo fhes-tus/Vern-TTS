@@ -247,6 +247,10 @@ internal fun VeritasReaderApp(
 
 
     VeritasTheme {
+        val scanImport = rememberScanImportAction(
+            onImageSelected = { viewModel.prepareImport(it) },
+            onError = { message -> viewModel.updateState { it.copy(importMessage = message) } }
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -283,8 +287,9 @@ internal fun VeritasReaderApp(
                         )
                     },
                     onImportWebArticle = { viewModel.importWebArticle(it) },
+                    onExportStudyGuidePdf = { document -> viewModel.exportStudyGuidePdf(document) },
                     onImportFile = { importFileLauncher.launch(readableImportMimeTypes()) },
-                    onImportImage = { importFileLauncher.launch(arrayOf("image/*")) },
+                    onImportImage = scanImport,
                     onAdvancedPdfImport = { viewModel.updateState { it.copy(showPdfImportTools = true) } },
                     onOpenFileBrowser = { viewModel.openFileBrowser() },
                     onOpenClassicsCatalog = { viewModel.updateState { it.copy(showClassicsCatalog = true) } },
@@ -682,6 +687,7 @@ internal fun VeritasReaderApp(
                         onSearchQueryChange = { query -> viewModel.updateSearchQuery(query) },
                         onNextSearchMatch = { viewModel.moveToNextSearchMatch() },
                         onPreviousSearchMatch = { viewModel.moveToPreviousSearchMatch() },
+                        onReadingSettingsChange = { viewModel.saveReaderSettings(it) },
                         onOpenReaderSettings = { viewModel.updateState { it.copy(showReaderSettings = true) } },
                         onOpenPronunciationRules = {
                             viewModel.updateState {

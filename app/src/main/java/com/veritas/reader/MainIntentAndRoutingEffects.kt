@@ -5,6 +5,7 @@ import com.veritas.reader.ui.withVisibility
 
 import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.AlertDialog
@@ -34,6 +35,13 @@ internal fun MainIntentAndRoutingEffects(
     onOpenInNotes: (IncomingShare) -> Unit,
     onPendingShareChooserChange: (IncomingShare?) -> Unit
 ) {
+    LaunchedEffect(uiState.importMessage) {
+        val message = uiState.importMessage ?: return@LaunchedEffect
+        if (message.isNotBlank()) Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        viewModel.updateState { state ->
+            if (state.importMessage == message) state.copy(importMessage = null) else state
+        }
+    }
     LaunchedEffect(uiState.showClassicsCatalog) {
         if (uiState.showClassicsCatalog) viewModel.openLibrarySection(com.veritas.reader.ui.screens.LibrarySection.CLASSICS)
     }

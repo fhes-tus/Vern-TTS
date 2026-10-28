@@ -7,4 +7,5 @@
     <exclude domain="file" path="original_documents" />
     <exclude domain="file" path="covers" />
     <exclude domain="file" path="restore_transactions" />
+    <exclude domain="file" path="scan_imports" />
 </full-backup-content>

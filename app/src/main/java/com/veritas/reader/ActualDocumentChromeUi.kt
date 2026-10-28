@@ -139,9 +139,9 @@ internal fun ActualDocumentTopBar(
             .statusBarsPadding()
             .padding(horizontal = 12.dp, vertical = 6.dp),
         shape = VeritasPackStyle.cardShape(),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha()),
+        color = VeritasPackStyle.headerColor(MaterialTheme.colorScheme),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
-        tonalElevation = 4.dp,
+        tonalElevation = 0.dp,
         shadowElevation = 3.dp
     ) {
         Row(

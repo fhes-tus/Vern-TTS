@@ -98,7 +98,9 @@ fun ReaderToolsSheet(
     onExportStudyGuidePdf: () -> Unit = {},
     onToggleQueue: () -> Unit,
     onPlayQueue: () -> Unit,
-    onOpenDocumentDetails: () -> Unit = {}
+    onOpenDocumentDetails: () -> Unit = {},
+    readerSettings: com.veritas.reader.ReaderSettings = com.veritas.reader.ReaderSettings(),
+    onReadingSettingsChange: (com.veritas.reader.ReaderSettings) -> Unit = {}
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showAllSettings by remember { mutableStateOf(false) }
@@ -222,15 +224,8 @@ fun ReaderToolsSheet(
                     subtitle = "Metadata, length & format",
                     onClick = { choose(onOpenDocumentDetails) }
                 )
+                ReaderNavigationOverflowItems(readerSettings, onReadingSettingsChange)
 
-                val readingListsFeature = readerFeature(VeritasFeatureId.READING_LISTS)
-                SettingsItem(
-                    title = "Reading lists ($activeDocumentReadingListCount/$readingListCount)",
-                    leadingIcon = Icons.Outlined.CollectionsBookmark,
-                    enabled = readingListsFeature.enabled,
-                    subtitle = if (!readingListsFeature.enabled) readingListsFeature.disabledReason else null,
-                    onClick = { choose(onOpenReadingLists) }
-                )
 
                 SettingsItem(
                     title = "Play Queue ($queueCount)",
@@ -273,12 +268,6 @@ fun ReaderToolsSheet(
                     onClick = { choose(onOpenDocumentNotes) }
                 )
 
-                SettingsItem(
-                    title = "Export Study Guide PDF",
-                    leadingIcon = Icons.AutoMirrored.Outlined.MenuBook,
-                    subtitle = "Styled A4 PDF with booknotes & highlights",
-                    onClick = { choose(onExportStudyGuidePdf) }
-                )
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 

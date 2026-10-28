@@ -43,8 +43,7 @@ internal fun VeritasPdfViewerActivity.installPdfPlayerMaterial(controls: View, w
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             val settings = pdfChromeSettings
-            val resolved = VeritasThemeCatalog.resolveConcreteThemeId(settings.themeId, !isLightTheme)
-            val scheme = veritasPackColorScheme(veritasColorScheme(resolved, activity), settings.themePackId)
+            val scheme = veritasReaderColorScheme(settings, activity)
             val requested = (VeritasThemePackCatalog.normalizePackId(settings.themePackId) == "liquid_glass" || settings.glassFloatingControls) &&
                 !settings.reduceTransparency && !settings.themeId.contains("high_contrast")
             MaterialTheme(colorScheme = scheme) {

@@ -77,7 +77,8 @@ fun AudioModeScreen(
     documentId: String? = null,
     fontSizeSp: Int = 18,
     onFontSizeChange: (Int) -> Unit = {},
-    contentWindowInsets: WindowInsets = WindowInsets.safeDrawing
+    contentWindowInsets: WindowInsets = WindowInsets.safeDrawing,
+    onShareQuoteReady: ((File) -> Unit)? = null
 ) {
     val scheme = MaterialTheme.colorScheme
     val glass = VeritasPackStyle.glassChromeEnabled() && isDeviceGlassCapable()
@@ -87,6 +88,13 @@ fun AudioModeScreen(
     var showRead by rememberSaveable(documentId) { mutableStateOf(false) }
     var fullScreenRead by rememberSaveable(documentId) { mutableStateOf(false) }
     BackHandler(fullScreenRead) { fullScreenRead = false }
+    var quoteSelection by rememberSaveable(documentId, title) { mutableStateOf<List<Int>>(emptyList()) }
+    var showQuotePreview by rememberSaveable(documentId, title) { mutableStateOf(false) }
+    val quoteChunks = documentChunks.ifEmpty { listOf(currentSentence) }
+    val quoteText = remember(quoteChunks, quoteSelection) {
+        if (quoteSelection.isEmpty()) "" else runCatching { QuoteSelection.text(quoteChunks, quoteSelection) }.getOrDefault("")
+    }
+    BackHandler(quoteSelection.isNotEmpty() && !showQuotePreview) { quoteSelection = emptyList() }
     var toolsExpanded by remember { mutableStateOf(false) }
     var showTextSize by remember { mutableStateOf(false) }
     var ratesExpanded by remember { mutableStateOf(false) }
@@ -96,6 +104,18 @@ fun AudioModeScreen(
     val position = scrub ?: index.toFloat()
     val preparing = PlaybackStateStore.isPreparingFor(documentId)
     val context = LocalContext.current
+    fun selectQuoteSentence(sentence: Int) {
+        try {
+            val next = QuoteSelection.toggle(quoteChunks, quoteSelection, sentence)
+            if (quoteSelection.isEmpty() && next.isNotEmpty() && isPlaying) onPlayPause()
+            quoteSelection = next
+            if (next.isEmpty()) showQuotePreview = false
+        } catch (error: IllegalArgumentException) {
+            android.widget.Toast.makeText(context, error.message, android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+    if (quoteSelection.isNotEmpty()) QuoteShareDialog(showQuotePreview, quoteText, title, documentId, coverFile,
+        onDismiss = { showQuotePreview = false }, onShareReady = onShareQuoteReady)
     val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
     val sessionTracker = remember(context, documentId) { documentId?.let { ReadingSessionTracker.get(context) } }
     val latestIndex by rememberUpdatedState(index)
@@ -133,6 +153,13 @@ fun AudioModeScreen(
                     Box {
                         ListenControl(Icons.Default.MoreVert, "More options", glass, Modifier.size(48.dp), onClick = { toolsExpanded = true })
                         DropdownMenu(toolsExpanded, { toolsExpanded = false }) {
+                            DropdownMenuItem(text = { Text("Share quote") }, leadingIcon = { Icon(Icons.Outlined.FormatQuote, null) },
+                                enabled = quoteChunks.getOrNull(index)?.isNotBlank() == true,
+                                onClick = {
+                                    toolsExpanded = false
+                                    showRead = true
+                                    if (quoteSelection.isEmpty()) selectQuoteSentence(index)
+                                })
                             DropdownMenuItem(text = { Text("Full screen reading") }, leadingIcon = { Icon(Icons.Default.Fullscreen, null) },
                                 onClick = { toolsExpanded = false; showRead = true; fullScreenRead = true })
                             listOf(
@@ -148,7 +175,7 @@ fun AudioModeScreen(
                     }
                 }
                 Row(Modifier.align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = !showRead, onClick = { showRead = false }, label = { Text("Player") })
+                    FilterChip(selected = !showRead, onClick = { showRead = false; quoteSelection = emptyList(); showQuotePreview = false }, label = { Text("Player") })
                     FilterChip(selected = showRead, onClick = { showRead = true }, label = { Text("Read") })
 
                 }
@@ -159,8 +186,10 @@ fun AudioModeScreen(
                             (fadeOut(effects) + slideOutVertically(spatial) { -it / 12 })
                     }, label = "listenViewTransition") { read ->
                     if (read) Box(Modifier.fillMaxSize()) {
-                        ListenSentenceList(documentChunks.ifEmpty { listOf(currentSentence) }, index, onSentenceClick, fontSizeSp)
-                        if (fullScreenRead) Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        ListenSentenceList(quoteChunks, index,
+                            { sentence -> if (quoteSelection.isEmpty()) onSentenceClick(sentence) else selectQuoteSentence(sentence) }, fontSizeSp,
+                            quoteSelection, { sentence -> haptics.select(); selectQuoteSentence(sentence) })
+                        if (fullScreenRead && quoteSelection.isEmpty()) Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             ListenControl(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, if (isPlaying) "Pause" else "Play", glass,
                                 Modifier.size(52.dp), playback = true, preparing = preparing, onClick = onPlayPause)
                             ListenControl(Icons.Default.FormatSize, "Text size", glass, Modifier.size(52.dp),
@@ -169,10 +198,16 @@ fun AudioModeScreen(
                                 onClick = { fullScreenRead = false })
                         }
                     }
-                    else ListenArtwork(coverFile, if (totalChunks > 0) (index + 1f) / totalChunks else 0f,
+                    else ListenArtwork(title, documentId, coverFile, if (totalChunks > 0) (index + 1f) / totalChunks else 0f,
                         { haptics.select(); onNext() }, { haptics.select(); onPrevious() })
                 }
-                AnimatedVisibility(visible = !fullScreenRead,
+                if (quoteSelection.isNotEmpty()) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("${quoteSelection.size} of 5 selected", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                    TextButton(onClick = { quoteSelection = emptyList(); showQuotePreview = false }) { Text("Cancel") }
+                    Button(onClick = { showQuotePreview = true }, enabled = quoteText.isNotBlank()) { Text("Preview") }
+                }
+                AnimatedVisibility(visible = !fullScreenRead && quoteSelection.isEmpty(),
                     enter = if (VeritasMotion.scheme.reduceMotion) EnterTransition.None else fadeIn(effects) + expandVertically(),
                     exit = if (VeritasMotion.scheme.reduceMotion) ExitTransition.None else fadeOut(effects) + shrinkVertically()) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -256,21 +291,24 @@ fun AudioModeScreen(
 }
 
 @Composable
-private fun ListenArtwork(coverFile: File?, progress: Float, onNext: () -> Unit, onPrevious: () -> Unit) {
+private fun ListenArtwork(title: String, documentId: String?, coverFile: File?, progress: Float, onNext: () -> Unit, onPrevious: () -> Unit) {
+    val context = LocalContext.current
     val scheme = MaterialTheme.colorScheme
     val next by rememberUpdatedState(onNext)
     val previous by rememberUpdatedState(onPrevious)
-    val artwork by produceState<Pair<android.graphics.Bitmap, androidx.palette.graphics.Palette>?>(null, coverFile?.absolutePath, coverFile?.lastModified()) {
+    val artwork by produceState<Pair<android.graphics.Bitmap, androidx.palette.graphics.Palette>?>(null, documentId, title, coverFile?.absolutePath, coverFile?.lastModified()) {
         value = withContext(Dispatchers.IO) {
-            coverFile?.takeIf { it.isFile }?.let { file -> runCatching {
+            val actual = coverFile?.takeIf { it.isFile }?.let { file -> runCatching {
                 val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                 BitmapFactory.decodeFile(file.absolutePath, bounds)
                 var sample = 1
                 while (maxOf(bounds.outWidth, bounds.outHeight) / sample > 900) sample *= 2
-                BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply { inSampleSize = sample })?.let { bitmap ->
-                    bitmap to androidx.palette.graphics.Palette.from(bitmap).resizeBitmapArea(16000).generate()
-                }
+                BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply { inSampleSize = sample })
             }.getOrNull() }
+            val saved = documentId?.let { DocumentRepository(context).findDocument(it) }
+            val bitmap = actual ?: saved?.let { BookCoverLoader.document(context, it.id, it.catalogId) }
+                ?: BookCoverLoader.generated(context, documentId ?: title, getBookAndAuthor(title).first, saved?.sourceLabel.orEmpty(), getBookAndAuthor(title).second)
+            bitmap to androidx.palette.graphics.Palette.from(bitmap).resizeBitmapArea(16000).generate()
         }
     }
     val bitmap = artwork?.first
@@ -298,9 +336,7 @@ private fun ListenArtwork(coverFile: File?, progress: Float, onNext: () -> Unit,
                     val height = if (ratio < 1f) available else available / ratio
                     Image(bitmap.asImageBitmap(), "Book cover", Modifier.size(width, height).clip(RoundedCornerShape(24.dp)), contentScale = ContentScale.Fit)
                 } else {
-                    Image(painterResource(R.drawable.vern_v_cream), "Book cover", Modifier.size(side * .64f)
-                        .clip(RoundedCornerShape(28.dp)).background(Color(brand.background)).padding(side * .09f),
-                        colorFilter = ColorFilter.tint(Color(brand.foreground)), contentScale = ContentScale.Fit)
+                    VeritasCoverPlaceholder(documentId ?: title, title, "", Modifier.width((side - 28.dp) * 2f / 3f).height(side - 28.dp))
                 }
                 Surface(Modifier.align(Alignment.BottomEnd).padding(14.dp), shape = RoundedCornerShape(50),
                     color = scheme.surface.copy(alpha = .85f), contentColor = scheme.onSurface) {
@@ -312,14 +348,16 @@ private fun ListenArtwork(coverFile: File?, progress: Float, onNext: () -> Unit,
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ListenSentenceList(chunks: List<String>, currentIndex: Int, onSentenceClick: (Int) -> Unit, fontSizeSp: Int) {
+private fun ListenSentenceList(chunks: List<String>, currentIndex: Int, onSentenceClick: (Int) -> Unit, fontSizeSp: Int,
+    quoteSelection: List<Int>, onSentenceLongClick: (Int) -> Unit) {
     val state = rememberLazyListState()
     val scheme = MaterialTheme.colorScheme
     val reducedMotion = VeritasMotion.scheme.reduceMotion
     val density = LocalDensity.current
-    LaunchedEffect(currentIndex, chunks.size, reducedMotion, fontSizeSp) {
-        if (currentIndex !in chunks.indices) return@LaunchedEffect
+    LaunchedEffect(currentIndex, chunks.size, reducedMotion, fontSizeSp, quoteSelection.isNotEmpty()) {
+        if (quoteSelection.isNotEmpty() || currentIndex !in chunks.indices) return@LaunchedEffect
         repeat(15) {
             if (state.layoutInfo.viewportEndOffset <= 0) delay(30)
         }
@@ -339,13 +377,17 @@ private fun ListenSentenceList(chunks: List<String>, currentIndex: Int, onSenten
             contentPadding = PaddingValues(vertical = 72.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
             itemsIndexed(chunks) { index, sentence ->
                 val active = index == currentIndex
-                val alpha by animateFloatAsState(if (active) 1f else .46f, VeritasMotion.effectsSlow(), label = "sentenceOpacity")
-                val scale by animateFloatAsState(if (active || reducedMotion) 1f else .95f, VeritasMotion.spatialSlow(), label = "sentenceScale")
-                val lift by animateFloatAsState(if (active || reducedMotion) 0f else 5f, VeritasMotion.spatialSlow(), label = "sentenceLift")
+                val quoteSelected = index in quoteSelection
+                val alpha by animateFloatAsState(if (active || quoteSelected) 1f else .46f, VeritasMotion.effectsSlow(), label = "sentenceOpacity")
+                val scale by animateFloatAsState(if (active || quoteSelected || reducedMotion) 1f else .95f, VeritasMotion.spatialSlow(), label = "sentenceScale")
+                val lift by animateFloatAsState(if (active || quoteSelected || reducedMotion) 0f else 5f, VeritasMotion.spatialSlow(), label = "sentenceLift")
                 // Stable typography prevents intermediate font sizes from rewrapping the paragraph.
                 Text(sentence, Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                     .graphicsLayer { this.alpha = alpha; scaleX = scale; scaleY = scale; translationY = with(density) { lift.dp.toPx() } }
-                    .semantics { selected = active }.clickable { onSentenceClick(index) },
+                    .background(if (quoteSelected) scheme.primaryContainer else Color.Transparent, RoundedCornerShape(12.dp))
+                    .testTag("listen-sentence-$index")
+                    .semantics { selected = if (quoteSelection.isNotEmpty()) quoteSelected else active }
+                    .combinedClickable(onClick = { onSentenceClick(index) }, onLongClickLabel = "Select for quote", onLongClick = { onSentenceLongClick(index) }),
                     style = MaterialTheme.typography.bodyLarge.copy(fontSize = fontSizeSp.sp, lineHeight = (fontSizeSp * 1.5f).sp),
                     color = scheme.onBackground)
             }

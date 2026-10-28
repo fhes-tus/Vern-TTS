@@ -269,7 +269,7 @@ internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
         }
 
         if (hit.targetPageIndex != null) {
-            pdfView?.scrollToPage(hit.targetPageIndex)
+            navigateToPdfPage(hit.targetPageIndex)
             Toast.makeText(this, "Jumped to page ${hit.targetPageIndex + 1}", Toast.LENGTH_SHORT).show()
             return true
         }
@@ -319,6 +319,7 @@ internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
 
         // Search bar
         val searchBox = EditText(this).apply {
+            stylePdfInput(this)
             hint = "Search chapters & links..."
             setHintTextColor(colorTextSecondary)
             setTextColor(colorTextPrimary)
@@ -403,7 +404,7 @@ internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
                                 }
                             }
                             setOnClickListener {
-                                pdfView?.scrollToPage(item.pageIndex)
+                                navigateToPdfPage(item.pageIndex)
                                 dialogRef?.dismiss()
                                 Toast.makeText(activity, "Jumped to ${item.title} (Page ${item.pageNumber})", Toast.LENGTH_SHORT).show()
                             }
@@ -470,7 +471,7 @@ internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
                                         Toast.makeText(activity, "Could not open link: ${link.url}", Toast.LENGTH_SHORT).show()
                                     }
                                 } else if (link.targetPageIndex != null) {
-                                    pdfView?.scrollToPage(link.targetPageIndex)
+                                    navigateToPdfPage(link.targetPageIndex)
                                     Toast.makeText(activity, "Jumped to page ${link.targetPageIndex + 1}", Toast.LENGTH_SHORT).show()
                                 }
                             }

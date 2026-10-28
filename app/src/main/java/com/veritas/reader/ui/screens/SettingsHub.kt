@@ -192,7 +192,7 @@ fun SettingsHubDialog(
                 SettingsHubSectionTitle("Appearance")
                 SettingsHubGroup(listOf(
                     SettingsRowSpec(
-                        "Display theme", "Theme packs, colour themes & text size",
+                        "Display theme", "Theme packs, colours & page navigation",
                         Icons.Outlined.Palette, onOpenReaderSettings
                     ),
                     SettingsRowSpec(

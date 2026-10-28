@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.7.0] - 2026-10-28 - release preparation (code 45)
+
+- Add camera/photo-picker Scan / OCR and reject unsupported or corrupt imports safely.
+- Share up to five Listen sentences as a previewed quote image with 14 colours, editable credit, book artwork and the Vern mark.
+- Keep one PDF page in focus with horizontal swipes, clear of reader chrome. Expand layout/swipe choices directly in reader tools, with distinct icons.
+- Save Listen and extracted-text sizes independently. Keep Display & theme, move Page navigation below Live preview, and retain text/spacing/paper controls in the reader.
+- Move study-guide PDF export into Study Hub; retain reading lists in Library and app Settings.
+- Replace missing-cover placeholders with shared typographic artwork across Library/Home, details, Listen, reader artwork, quotes, notifications and widgets.
+- Preserve real contents/chapter entries during repeated-header cleanup; use optional per-page OCR for image-only pages in mixed PDFs.
+- Restore Funky cards on Added grids/Study Hub and improve early-morning/night greetings.
+- Align charcoal/AMOLED, drawer, paper and native PDF colours. Keep theme-following quiet/vibrant Home colours, matching previews and the original animated rings.
+- Prepare README, store copy and Telegram/channel/bot drafts. No signed 2.7.0 distribution artifact, upload, channel post or bot deployment is claimed. [Full notes](RELEASE_NOTES_v2.7.0.md), [release pack](release/v2.7.0/README.md), [observed verification](progress.md).
+
+Earlier entries below describe their historical state. Google Play production acceptance of 2.6.2 was confirmed on 28 October.
+
 ## 15 October 2026 — 2.6.2 security and distribution follow-up
 
 Private playback command authorization; bounded HTTPS downloads and archive expansion; narrower sharing; browser cleanup; APK package/version/signer verification; Commons Lang 3.18.0; secret-free bot source, authenticated webhooks and safer workflows. Verified the Play/app signing mismatch and documented Play-signed APK distribution. Updated site/bot milestone guidance and consolidated obsolete project plans/scripts. Release APK/AAB packaging remains on hold. See RELEASE_NOTES_v2.6.2.md and docs/UPDATE_COMPATIBILITY.md.

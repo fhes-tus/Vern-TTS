@@ -45,7 +45,7 @@ class HeroAndQuizMediaUiTest {
                     Column(Modifier.width(320.dp).verticalScroll(rememberScrollState()).background(scheme.surface)) {
                         Box(Modifier.padding(12.dp).testTag("hero-capture")) {
                             VeritasHomeHeroCard(document, null,
-                                Brush.linearGradient(listOf(scheme.primaryContainer, scheme.tertiaryContainer)), scheme.onPrimaryContainer,
+                                veritasHeroColors(scheme, true),
                                 { opened++ }, { cleared++ }, { added++ }, {})
                         }
                     }

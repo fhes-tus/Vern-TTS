@@ -200,6 +200,7 @@ fun LibraryScreen(
     onGenerateInAppFlashcards: (SavedDocument, String?) -> Unit = { _, _ -> },
     onGenerateInAppQuiz: (SavedDocument, String?) -> Unit = { _, _ -> },
     onOpenAiStudyTools: () -> Unit = {},
+    onExportStudyGuidePdf: (SavedDocument) -> Unit = {},
     onCancelAiStudyGeneration: () -> Unit = {},
     onDismissOpeningDocument: () -> Unit = {},
     onOpenNotesSettings: () -> Unit = {},
@@ -1050,7 +1051,8 @@ fun LibraryScreen(
                                     },
                                     onRenameFlashcardSet = { renameSetTarget = it },
                                     onNavigateToTab = navigateToTab,
-                                    onImportFile = onImportFile
+                                    onImportFile = onImportFile,
+                                    onExportStudyGuidePdf = onExportStudyGuidePdf
                                 )
                             }
                         }

@@ -66,6 +66,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -142,16 +143,17 @@ internal fun HomeSidebarDialog(
                 Surface(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .widthIn(min = 320.dp, max = 340.dp),
+                        .widthIn(min = 320.dp, max = 340.dp)
+                        .testTag("home-sidebar-sheet"),
                     shape = RoundedCornerShape(
                         topEnd = VeritasPackStyle.navigationCornerRadius(),
                         bottomEnd = VeritasPackStyle.navigationCornerRadius(),
                         topStart = 0.dp,
                         bottomStart = 0.dp
                     ),
-                    color = VeritasPackStyle.panelColor(MaterialTheme.colorScheme).copy(alpha = 1f),
+                    color = MaterialTheme.colorScheme.background,
                     contentColor = MaterialTheme.colorScheme.onSurface,
-                    tonalElevation = 8.dp,
+                    tonalElevation = 0.dp,
                     shadowElevation = 16.dp,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
                 ) {
@@ -215,8 +217,9 @@ internal fun HomeSidebarDialog(
                         }
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -239,13 +242,13 @@ internal fun HomeSidebarDialog(
                                     Text(
                                         tierTitle,
                                         style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                                 Text(
                                     "${snapshot.currentStreak}d Streak",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -262,7 +265,7 @@ internal fun HomeSidebarDialog(
                         Text(
                             "Navigation",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 4.dp)
                         )
 
@@ -300,7 +303,7 @@ internal fun HomeSidebarDialog(
                         // 5. Local Privacy & Offline Badge
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -415,7 +418,7 @@ internal fun SidebarAction(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         shape = RoundedCornerShape(10.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -423,7 +426,7 @@ internal fun SidebarAction(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -445,12 +448,13 @@ internal fun SidebarAction(
             if (!badgeText.isNullOrBlank()) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 ) {
                     Text(
                         text = badgeText,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }

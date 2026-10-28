@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vern — Offline Reading Workstation &amp; Speech Engine</title>
-  <meta name="description" content="Vern is an offline-first Android reading workstation. Built with on-device speech synthesis, a spaced-repetition study hub, embedded voice memos, and local reading history." />
-  <meta property="og:title" content="Vern TTS — Offline Reading Workstation &amp; Speech Engine" />
-  <meta property="og:description" content="Vern is an offline-first Android reading workstation. Built with on-device speech synthesis, a spaced-repetition study hub, embedded voice memos, and local reading history." />
+  <title>Vern — Read, Listen &amp; Study</title>
+  <meta name="description" content="Read ebooks and documents, listen aloud, and study with notes and flashcards. Vern is a free Android reader with offline reading and no account required." />
+  <meta property="og:title" content="Vern — Read, Listen &amp; Study" />
+  <meta property="og:description" content="Read ebooks and documents, listen aloud, and study with notes and flashcards. Vern is a free Android reader with offline reading and no account required." />
   <meta property="og:image" content="playstore_feature_graphic_1024x500.png" />
   <meta property="og:type" content="website" />
   <link rel="icon" type="image/png" href="icon.png" />
@@ -40,7 +40,7 @@
       --bg-surface: #111318;
       --bg-surface-subtle: #161820;
       --bg-surface-hover: #1c1f2a;
-      
+
       --border-subtle: rgba(255, 255, 255, 0.08);
       --border-medium: rgba(255, 255, 255, 0.14);
       --border-focus: rgba(255, 255, 255, 0.35);
@@ -809,7 +809,7 @@
       font-size: 13.5px;
     }
 
-    .comparison-table th, 
+    .comparison-table th,
     .comparison-table td {
       padding: 14px 18px;
       border-bottom: 1px solid var(--table-border);
@@ -1024,6 +1024,11 @@
     .download-panel .panel-head p {
       color: var(--text-secondary);
       font-size: 14.5px;
+    }
+
+    .download-panel a:not(.btn) {
+      color: var(--accent-warm);
+      text-underline-offset: 3px;
     }
 
     .download-cards-row {
@@ -1463,10 +1468,52 @@
         height: 300px;
       }
     }
+
+    /* Reader-focused content, retaining Vern's existing colours and typography. */
+    :root { --text-secondary: #b0b6c3; --text-tertiary: #a0a7b5; }
+    [data-theme="light"] { --text-secondary: #4b5563; --text-tertiary: #5c6573; --accent-green: #047857; }
+    main a:not(.btn), .feature-link { color: var(--accent-warm); text-underline-offset: 3px; }
+    .hero-title { max-width: 740px; }
+    .hero-cta .btn, #download > .container .btn { padding: 12px 22px; }
+    .feature-link { font-size: 14px; }
+    .hero-meta-strip { color: var(--text-secondary); gap: 14px 24px; }
+    .feature-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; }
+    .feature-list h3 { font-family: var(--font-serif); font-size: 26px; font-weight: 500; margin-bottom: 14px; }
+    .feature-list p { color: var(--text-secondary); font-size: 16px; max-width: 36ch; }
+    .classics-row, .screenshots-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: visible; gap: 24px; padding-bottom: 0; }
+    .classic-tile, .screenshot-thumb { min-width: 0; border: 0; background: transparent; box-shadow: none; border-radius: 0; }
+    .classic-art { height: auto; aspect-ratio: 2 / 3; }
+    .classic-info { padding: 16px 0 0; }
+    .classic-by { margin-bottom: 0; }
+    .screenshot-thumb img { height: auto; border-radius: 0; }
+    .screenshot-label { padding: 14px 0 0; border: 0; font-size: 14px; }
+    .comparison-table tbody th { font-size: 13.5px; background: transparent; }
+    .comparison-note { margin-top: 18px; color: var(--text-secondary); font-size: 13px; }
+    .table-responsive:focus-visible, a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent-warm); outline-offset: 4px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    .release-version { margin: 16px 0 24px; color: var(--text-secondary); font-size: 14px; }
+    .download-alternative { max-width: 68ch; }
+    details summary { cursor: pointer; font-weight: 600; padding: 16px 0; }
+    details p { color: var(--text-secondary); margin: 0 0 16px; max-width: 68ch; }
+    .faq-list { max-width: 720px; margin: 0 auto; }
+    .faq-list details { border-bottom: 1px solid var(--border-subtle); }
+    .support-line { text-align: center; color: var(--text-secondary); margin-top: 32px; }
+    .footer-links { flex-wrap: wrap; }
+    section[id] { scroll-margin-top: 84px; }
+    @media (max-width: 820px) {
+      .feature-list { grid-template-columns: 1fr; gap: 28px; }
+      .feature-list p { max-width: 62ch; }
+      .classics-row, .screenshots-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 18px; }
+      .content-section { padding: 48px 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
   </style>
 </head>
 <body>
-
   <!-- HEADER NAVIGATION -->
   <header>
     <div class="container">
@@ -1474,16 +1521,11 @@
         <a href="#" class="brand-group">
           <img src="icon.png" alt="Vern icon" class="brand-logo" />
           <span class="brand-name">Vern</span>
-          <span class="version-tag">v2.6.2</span>
+          <span class="version-tag">2.7.0</span>
         </a>
 
-        <nav class="nav-links">
-          <a href="#classics">Classics</a>
-          <a href="#architecture">Architecture</a>
-          <a href="#comparison">Compare &amp; Superpowers</a>
-          <a href="#screens">Interface</a>
-          <a href="#download">Download</a>
-          <a href="#faq">FAQ</a>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="#features">Features</a><a href="#classics">Classics</a><a href="#comparison">Compare</a><a href="#screens">Screenshots</a><a href="#faq">FAQ</a>
         </nav>
 
         <div class="nav-cta-group">
@@ -1495,82 +1537,48 @@
             <svg class="svg-icon theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           </button>
 
-          <!-- GitHub Repo Link -->
-          <a href="https://github.com/fhes-tus/Vern-TTS" class="nav-icon-link" target="_blank" rel="noopener" aria-label="GitHub Repository" title="GitHub Repository">
-            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-            <span class="nav-label">GitHub</span>
-          </a>
-
-          <!-- Telegram Community Link -->
-          <a href="https://t.me/myreader_veritas" class="nav-icon-link" target="_blank" rel="noopener" aria-label="Telegram Community" title="Telegram Community">
-            <svg class="svg-icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            <span class="nav-label">Telegram</span>
-          </a>
-
-          <a href="#download" class="btn btn-primary">
+          <a href="https://play.google.com/store/apps/details?id=com.veritas.reader" class="btn btn-primary">
             <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Get APK</span>
+            <span>Google Play</span>
           </a>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- HERO SECTION (CENTERED & DIGNIFIED) -->
+
+  <main>
   <section class="hero-section">
     <div class="container">
-      <div class="status-pill">
-        <span class="indicator-dot"></span>
-        <span>Version 2.6.2 Production Ready &bull; Offline Neural Speech &amp; Edge-to-Edge Protection</span>
-      </div>
-
-      <h1 class="hero-title">
-        Read Deeper. Listen Closer. <em>Retain Everything</em>.
-      </h1>
-
-      <p class="hero-subtitle">
-        Vern is an offline-first Android reading workstation. Built with on-device speech synthesis, a spaced-repetition study hub, embedded voice memos, and local reading history.
-      </p>
-
+      <h1 class="hero-title">Read. Listen. <em>Make it stick.</em></h1>
+      <p class="hero-subtitle">Your books, documents, and study notes in one Android app. Read at your pace, listen on the go, and remember more.</p>
       <div class="hero-cta">
-        <a href="#download" class="btn btn-primary" style="padding:10px 18px; font-size:14px;">
-          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Download Verified Build (v2.6.2)</span>
-        </a>
-        <a href="#comparison" class="btn btn-outline" style="padding:10px 18px; font-size:14px;">
-          <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          <span>Compare Readers &amp; Superpowers</span>
-        </a>
+        <a href="https://play.google.com/store/apps/details?id=com.veritas.reader" class="btn btn-primary">Get it on Google Play</a>
+        <a href="#features" class="feature-link">Explore the features &darr;</a>
       </div>
-
-      <div class="hero-meta-strip">
-        <span><svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> 100% On-Device</span>
-        <span><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Local Reading History</span>
-        <span><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Open Source (Apache 2.0)</span>
-      </div>
-
+      <div class="hero-meta-strip"><span>Offline reading</span><span>No account needed</span><span>Free &amp; open source</span></div>
       <!-- THE LIVING READER STAGE (WITH REAL BROWSER WEB SPEECH VOICE) -->
       <div class="reader-stage-container">
         <div class="reader-viewport">
           <div class="viewport-header">
             <div style="display:flex; align-items:center; gap:8px;">
               <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-              <div><strong>Live Reading Canvas</strong> — Pride and Prejudice</div>
+              <div><strong>Try the reader</strong> — Pride and Prejudice</div>
             </div>
 
             <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:11px; opacity:0.75;">Paper Tone:</span>
+              <span style="font-size:11px; opacity:0.75;">Page colour:</span>
               <div class="tone-switcher">
                 <button class="tone-tab active" onclick="applyTone('sepia', this)">Sepia</button>
-                <button class="tone-tab" onclick="applyTone('white', this)">Bone</button>
-                <button class="tone-tab" onclick="applyTone('slate', this)">Dusk</button>
-                <button class="tone-tab" onclick="applyTone('amoled', this)">OLED</button>
+                <button class="tone-tab" onclick="applyTone('white', this)">Light</button>
+                <button class="tone-tab" onclick="applyTone('slate', this)">Dark</button>
+                <button class="tone-tab" onclick="applyTone('amoled', this)">Black</button>
               </div>
             </div>
           </div>
 
           <div class="canvas-body" id="pageCanvas" style="background:#f5eedc; color:#382b1d;">
-            <div class="canvas-book-info">Chapter I • Curated Classic</div>
+            <div class="canvas-book-info">Chapter I</div>
             <div class="canvas-chapter">Pride and Prejudice — Jane Austen</div>
             <div class="canvas-text" id="bookProse">
               <span class="reader-sentence active-sentence" onclick="selectSentence(0)">"It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife."</span>
@@ -1587,9 +1595,9 @@
               <div>
                 <div class="player-text-status">
                   <span>Speech Preview</span>
-                  <span style="font-size:10px; font-weight:700; background:rgba(212,163,115,0.25); color:var(--accent-warm); padding:1px 6px; border-radius:4px;">Web Speech Audio</span>
+
                 </div>
-                <div class="player-text-sub" id="playerStatusText">Tap Play to hear spoken voice narration, or click any sentence to jump</div>
+                <div class="player-text-sub" id="playerStatusText">Tap play to listen. Try a page colour above.</div>
               </div>
             </div>
 
@@ -1606,635 +1614,83 @@
     </div>
   </section>
 
-  <!-- CURATED CLASSICS SHOWCASE (ALL AUTHENTIC COVERS VERIFIED) -->
+  <section class="content-section" id="features">
+    <div class="container">
+      <div class="section-head"><h2>A little more from every book.</h2></div>
+      <div class="feature-list">
+        <article><h3>Read your way</h3><p>Open PDFs, EPUBs, Word documents, and text files. Choose your fonts and page colours, then pick up where you left off.</p></article>
+        <article><h3>Keep listening</h3><p>Have your books read aloud, adjust the voice and speed, and keep listening with the screen off.</p></article>
+        <article><h3>Remember what matters</h3><p>Save highlights, written notes, and voice memos. Turn what you learn into flashcards and quizzes, and follow your reading habits.</p></article>
+      </div>
+    </div>
+  </section>
+
   <section class="content-section" id="classics">
     <div class="container">
-      <div class="section-head">
-        <div class="eyebrow">Literary Athenaeum</div>
-        <h2>Curated Classics Ready on First Launch</h2>
-        <p>Over 35 foundational works of world literature are pre-curated with authentic vintage cover art, complete text, and immediate offline speech synthesis.</p>
-      </div>
-
+      <div class="section-head"><h2>Find your next classic.</h2><p>Explore a built-in selection of classics, from Jane Austen to Marcus Aurelius.</p></div>
       <div class="classics-row">
-        <!-- Pride and Prejudice -->
-        <div class="classic-tile">
-          <div class="classic-art">
-            <img src="covers/classic_pride_and_prejudice.jpg" alt="Pride and Prejudice cover" loading="lazy" />
-          </div>
-          <div class="classic-info">
-            <div>
-              <div class="classic-name">Pride and Prejudice</div>
-              <div class="classic-by">Jane Austen</div>
-              <div class="classic-quote-text">"It is a truth universally acknowledged..."</div>
-            </div>
-            <div class="classic-badge-row">
-              <span>Fiction</span>
-              <span>11h 45m</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Frankenstein -->
-        <div class="classic-tile">
-          <div class="classic-art">
-            <img src="covers/classic_frankenstein.jpg" alt="Frankenstein cover" loading="lazy" />
-          </div>
-          <div class="classic-info">
-            <div>
-              <div class="classic-name">Frankenstein</div>
-              <div class="classic-by">Mary Shelley</div>
-              <div class="classic-quote-text">"Beware; for I am fearless, and therefore powerful."</div>
-            </div>
-            <div class="classic-badge-row">
-              <span>Gothic Sci-Fi</span>
-              <span>8h 12m</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- The Count of Monte Cristo -->
-        <div class="classic-tile">
-          <div class="classic-art">
-            <img src="covers/classic_monte_cristo.jpg" alt="The Count of Monte Cristo cover" loading="lazy" />
-          </div>
-          <div class="classic-info">
-            <div>
-              <div class="classic-name">The Count of Monte Cristo</div>
-              <div class="classic-by">Alexandre Dumas</div>
-              <div class="classic-quote-text">"All human wisdom is contained in these two words: Wait and hope."</div>
-            </div>
-            <div class="classic-badge-row">
-              <span>Epic Adventure</span>
-              <span>48h 30m</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- The Hound of the Baskervilles -->
-        <div class="classic-tile">
-          <div class="classic-art">
-            <img src="covers/classic_hound_baskervilles.jpg" alt="The Hound of the Baskervilles cover" loading="lazy" />
-          </div>
-          <div class="classic-info">
-            <div>
-              <div class="classic-name">The Hound of the Baskervilles</div>
-              <div class="classic-by">Arthur Conan Doyle</div>
-              <div class="classic-quote-text">"The world is full of obvious things which nobody ever observes."</div>
-            </div>
-            <div class="classic-badge-row">
-              <span>Detective</span>
-              <span>6h 40m</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- The Picture of Dorian Gray -->
-        <div class="classic-tile">
-          <div class="classic-art">
-            <img src="covers/classic_dorian_gray.jpg" alt="The Picture of Dorian Gray cover" loading="lazy" />
-          </div>
-          <div class="classic-info">
-            <div>
-              <div class="classic-name">The Picture of Dorian Gray</div>
-              <div class="classic-by">Oscar Wilde</div>
-              <div class="classic-quote-text">"The only way to get rid of a temptation is to yield to it."</div>
-            </div>
-            <div class="classic-badge-row">
-              <span>Philosophical</span>
-              <span>7h 50m</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Meditations -->
-        <div class="classic-tile">
-          <div class="classic-art">
-            <img src="covers/classic_meditations.jpg" alt="Meditations cover" loading="lazy" />
-          </div>
-          <div class="classic-info">
-            <div>
-              <div class="classic-name">Meditations</div>
-              <div class="classic-by">Marcus Aurelius</div>
-              <div class="classic-quote-text">"You have power over your mind - not outside events."</div>
-            </div>
-            <div class="classic-badge-row">
-              <span>Stoicism</span>
-              <span>5h 15m</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sherlock Holmes -->
-        <div class="classic-tile">
-          <div class="classic-art">
-            <img src="covers/classic_sherlock_holmes.jpg" alt="Sherlock Holmes cover" loading="lazy" />
-          </div>
-          <div class="classic-info">
-            <div>
-              <div class="classic-name">Adventures of Sherlock Holmes</div>
-              <div class="classic-by">Arthur Conan Doyle</div>
-              <div class="classic-quote-text">"When you eliminate the impossible..."</div>
-            </div>
-            <div class="classic-badge-row">
-              <span>Mystery</span>
-              <span>10h 20m</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Alice in Wonderland -->
-        <div class="classic-tile">
-          <div class="classic-art">
-            <img src="covers/classic_alice_wonderland.jpg" alt="Alice in Wonderland cover" loading="lazy" />
-          </div>
-          <div class="classic-info">
-            <div>
-              <div class="classic-name">Alice in Wonderland</div>
-              <div class="classic-by">Lewis Carroll</div>
-              <div class="classic-quote-text">"Curiouser and curiouser!"</div>
-            </div>
-            <div class="classic-badge-row">
-              <span>Fantasy</span>
-              <span>3h 10m</span>
-            </div>
-          </div>
-        </div>
+        <div class="classic-tile"><div class="classic-art"><img src="covers/classic_pride_and_prejudice.jpg" alt="Pride and Prejudice cover" loading="lazy" /></div><div class="classic-info"><div class="classic-name">Pride and Prejudice</div><div class="classic-by">Jane Austen</div></div></div>
+        <div class="classic-tile"><div class="classic-art"><img src="covers/classic_frankenstein.jpg" alt="Frankenstein cover" loading="lazy" /></div><div class="classic-info"><div class="classic-name">Frankenstein</div><div class="classic-by">Mary Shelley</div></div></div>
+        <div class="classic-tile"><div class="classic-art"><img src="covers/classic_meditations.jpg" alt="Meditations cover" loading="lazy" /></div><div class="classic-info"><div class="classic-name">Meditations</div><div class="classic-by">Marcus Aurelius</div></div></div>
+        <div class="classic-tile"><div class="classic-art"><img src="covers/classic_alice_wonderland.jpg" alt="Alice in Wonderland cover" loading="lazy" /></div><div class="classic-info"><div class="classic-name">Alice in Wonderland</div><div class="classic-by">Lewis Carroll</div></div></div>
       </div>
     </div>
   </section>
 
-  <!-- THE ARCHITECTURE OF PRIVATE SOFTWARE -->
-  <section class="content-section" id="architecture">
-    <div class="container">
-      <div class="section-head">
-        <div class="eyebrow">Engineering Teardown</div>
-        <h2>The Architecture of Private Software</h2>
-        <p>Built with native Jetpack Compose for Android 9 through 16 (API 28–36). Every architectural decision protects your focus, battery life, and data sovereignty.</p>
-      </div>
-
-      <div class="grid-3col">
-        <div class="feature-card">
-          <div class="card-icon-wrap">
-            <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-          </div>
-          <h3>On-Device Speech Synthesis</h3>
-          <p>Zero server latency and zero roundtrips. Continuous playback continues in the background while your phone is locked in your pocket with media controls.</p>
-          <div class="spec-pills-row">
-            <span class="spec-pill">Lockscreen Controls</span>
-            <span class="spec-pill">0.5x – 3.0x Velocity</span>
-          </div>
-        </div>
-
-        <div class="feature-card">
-          <div class="card-icon-wrap">
-            <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
-          </div>
-          <h3>Unified Themes &amp; Status Bar Sync</h3>
-          <p>Cohesive status bar color matching across all theme packs (Liquid Glass, One UI, Material You, Dracula, Midnight). Status bar text contrast automatically adapts with zero clipping.</p>
-          <div class="spec-pills-row">
-            <span class="spec-pill">Status Bar Color Sync</span>
-            <span class="spec-pill">4 Theme Packs</span>
-          </div>
-        </div>
-
-        <div class="feature-card">
-          <div class="card-icon-wrap">
-            <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-          <h3>Offline-first Privacy</h3>
-          <p>No mandatory cloud login or ads. Your library, notes and study progress are stored locally. Optional online features and Google ML Kit diagnostics are explained in our <a href="https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md">privacy policy</a>.</p>
-          <div class="spec-pills-row">
-            <span class="spec-pill">100% Offline</span>
-            <span class="spec-pill">No Account Required</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FREEDOM MATRIX & CAPABILITIES EXTENSION -->
   <section class="content-section" id="comparison">
     <div class="container">
-      <div class="section-head">
-        <div class="eyebrow">The Freedom Matrix</div>
-        <h2>Vern TTS vs. Cloud Big-Tech Readers</h2>
-        <p>Why readers, students, and researchers are replacing closed subscription services with a local-first offline reading engine.</p>
-      </div>
-
-      <div class="table-scroll-hint">← Swipe horizontally to compare →</div>
-
-      <!-- Comparison Table -->
-      <div class="table-responsive">
+      <div class="section-head"><h2>Find the right reader.</h2><p>A quick comparison of Vern, Kindle, Speechify, and Audible.</p></div>
+      <p class="table-scroll-hint">Swipe to see all four apps &rarr;</p>
+      <div class="table-responsive" role="region" aria-label="Reader comparison, scroll horizontally to see all apps" tabindex="0">
         <table class="comparison-table">
-          <thead>
-            <tr>
-              <th>Capability</th>
-              <th>Vern TTS</th>
-              <th>Amazon Kindle</th>
-              <th>Speechify</th>
-              <th>Audible</th>
-            </tr>
-          </thead>
+          <caption class="sr-only">Compare reading focus, personal documents, narration, and cost.</caption>
+          <thead><tr><th scope="col">What matters to you</th><th scope="col">Vern TTS</th><th scope="col">Kindle</th><th scope="col">Speechify</th><th scope="col">Audible</th></tr></thead>
           <tbody>
-            <tr>
-              <td><strong>Price / Subscription</strong></td>
-              <td><span style="color:var(--accent-green); font-weight:700;">$0 Free Forever</span></td>
-              <td>$11.99 / month</td>
-              <td>$139.00 / year</td>
-              <td>$14.95 / month</td>
-            </tr>
-            <tr>
-              <td><strong>Privacy &amp; Telemetry</strong></td>
-              <td><span class="table-mark-yes"><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Local Reading Stats</span></td>
-              <td><span class="table-mark-no">Telemetry Logged</span></td>
-              <td><span class="table-mark-no">Cloud Tracked</span></td>
-              <td><span class="table-mark-no">Telemetry Logged</span></td>
-            </tr>
-            <tr>
-              <td><strong>Offline Independence</strong></td>
-              <td><span class="table-mark-yes"><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 100% Offline</span></td>
-              <td>Requires Sync</td>
-              <td>Requires Cloud API</td>
-              <td>Requires Auth Server</td>
-            </tr>
-            <tr>
-              <td><strong>Document Formats (PDF, EPUB, DOCX)</strong></td>
-              <td><span class="table-mark-yes"><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> All Supported</span></td>
-              <td><span class="table-mark-no">Walled Garden</span></td>
-              <td>Limited</td>
-              <td><span class="table-mark-no">Proprietary DRM</span></td>
-            </tr>
-            <tr>
-              <td><strong>Screen-Off Background Audio</strong></td>
-              <td><span class="table-mark-yes"><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Supported</span></td>
-              <td>Audiobooks Only</td>
-              <td>Paywalled</td>
-              <td>Audiobooks Only</td>
-            </tr>
-            <tr>
-              <td><strong>Inbuilt Study Hub &amp; Flashcards</strong></td>
-              <td><span class="table-mark-yes"><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Built In</span></td>
-              <td><span class="table-mark-no">None</span></td>
-              <td><span class="table-mark-no">None</span></td>
-              <td><span class="table-mark-no">None</span></td>
-            </tr>
-            <tr>
-              <td><strong>Paragraph Audio Voice Memos</strong></td>
-              <td><span class="table-mark-yes"><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Built In</span></td>
-              <td><span class="table-mark-no">None</span></td>
-              <td><span class="table-mark-no">None</span></td>
-              <td><span class="table-mark-no">None</span></td>
-            </tr>
-            <tr>
-              <td><strong>Standalone Audiobook WAV Exporter</strong></td>
-              <td><span class="table-mark-yes"><svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Built In</span></td>
-              <td><span class="table-mark-no">None</span></td>
-              <td><span class="table-mark-no">None</span></td>
-              <td><span class="table-mark-no">None</span></td>
-            </tr>
+            <tr><th scope="row">Best suited to</th><td>Reading, listening &amp; studying</td><td>Ebooks &amp; the Kindle library</td><td>Text-to-speech listening</td><td>Narrated audiobooks &amp; podcasts</td></tr>
+            <tr><th scope="row">Your own documents</th><td>PDF, EPUB, DOCX &amp; TXT</td><td>Send to Kindle</td><td>PDFs, documents &amp; more</td><td>Focuses on its audio catalogue</td></tr>
+            <tr><th scope="row">Listening</th><td>Read your documents aloud</td><td>Assistive Reader for eligible books</td><td>Read text aloud</td><td>Recorded narration</td></tr>
+            <tr><th scope="row">Getting started</th><td>Free, no account needed</td><td>Free app; book costs vary</td><td>Free &amp; Premium plans</td><td>Purchases &amp; memberships</td></tr>
           </tbody>
         </table>
       </div>
-
-      <!-- CAPABILITIES EXTENSION: THE UNFAIR SUPERPOWERS -->
-      <div class="comparison-extension-head">
-        <div class="eyebrow">The Superpower Extension</div>
-        <h3>What Vern TTS Does That Big-Tech Readers Won't</h3>
-        <p>Four specialized built-in capabilities engineered to turn passive listening into deep comprehension.</p>
-      </div>
-
-      <div class="superpowers-grid">
-        <!-- 1. Inbuilt Study Hub -->
-        <div class="superpower-card">
-          <div>
-            <div class="superpower-icon-row">
-              <div class="superpower-icon-box">
-                <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-              </div>
-              <span class="superpower-category">Active Recall</span>
-            </div>
-            <h4>Inbuilt Study Hub &amp; Flashcards</h4>
-            <p class="superpower-desc">Turn any book, chapter, or highlighted idea into spaced-repetition flashcard decks and auto-generated multiple-choice quizzes. Includes a dedicated Android home screen widget so you can review cards on the go.</p>
-            <div class="contrast-note">Kindle and Audible only let you passively consume. Vern TTS helps you actually retain and master what you read.</div>
-          </div>
-          <div class="spec-pills-row">
-            <span class="spec-pill">Spaced Repetition</span>
-            <span class="spec-pill">Document Quizzes</span>
-            <span class="spec-pill">Homescreen Widget</span>
-          </div>
-        </div>
-
-        <!-- 2. Inbuilt Notes & Voice Memos -->
-        <div class="superpower-card">
-          <div>
-            <div class="superpower-icon-row">
-              <div class="superpower-icon-box">
-                <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-              </div>
-              <span class="superpower-category">Rich Marginalia</span>
-            </div>
-            <h4>Paragraph Notes &amp; Voice Memos</h4>
-            <p class="superpower-desc">Anchor markdown notes directly to specific sentences, or record audio voice memos with interactive sound waveforms and play durations. Add hashtags (#iQuietime) and generate automatic web bookmark preview cards for referenced links.</p>
-            <div class="contrast-note">Other readers restrict you to plain yellow highlights locked inside their cloud accounts. Vern keeps your notes rich and private.</div>
-          </div>
-          <div class="spec-pills-row">
-            <span class="spec-pill">Interactive Waveforms</span>
-            <span class="spec-pill">Recorded Voice Memos</span>
-            <span class="spec-pill">Web Link Previews</span>
-          </div>
-        </div>
-
-        <!-- 3. Reading Tracker & Insights -->
-        <div class="superpower-card">
-          <div>
-            <div class="superpower-icon-row">
-              <div class="superpower-icon-box">
-                <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-              </div>
-              <span class="superpower-category">Habit Analytics</span>
-            </div>
-            <h4>Private Reading Tracker &amp; Streaks</h4>
-            <p class="superpower-desc">Gain honest insights into your reading velocity with swipeable 8-week daily charts, yearly reading heatmaps, and authentic streaks that only advance when you actually read—never from empty app launches.</p>
-            <div class="contrast-note">Big tech harvests your reading metrics for ad targeting. In Vern TTS, all analytics stay strictly in your device's local database.</div>
-          </div>
-          <div class="spec-pills-row">
-            <span class="spec-pill">Genuine Streaks</span>
-            <span class="spec-pill">8-Week History</span>
-            <span class="spec-pill">Activity Heatmap</span>
-          </div>
-        </div>
-
-        <!-- 4. Audio Exporter & Document Freedom -->
-        <div class="superpower-card">
-          <div>
-            <div class="superpower-icon-row">
-              <div class="superpower-icon-box">
-                <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              </div>
-              <span class="superpower-category">Zero Lock-In</span>
-            </div>
-            <h4>Audiobook Exporter &amp; Universal Files</h4>
-            <p class="superpower-desc">Read any PDF, EPUB, or Word DOCX without DRM barriers. Built-in academic PDF cleaner unfolds two-column layouts, while the Audio Export Studio lets you synthesize entire chapters into standalone .wav files to listen anywhere.</p>
-            <div class="contrast-note">Audible and Kindle trap you in proprietary file silos. Vern TTS gives you complete file ownership and export freedom.</div>
-          </div>
-          <div class="spec-pills-row">
-            <span class="spec-pill">Export to WAV</span>
-            <span class="spec-pill">Academic PDF Cleaner</span>
-            <span class="spec-pill">No DRM Lock-in</span>
-          </div>
-        </div>
-      </div>
+      <p class="comparison-note">Features vary by platform and plan. Details: <a href="https://www.amazon.com/sendtokindle">Kindle documents</a>, <a href="https://www.aboutamazon.com/news/books-and-authors/kindle-accessibility-features-for-all-readers">Kindle audio</a>, <a href="https://speechify.com/pricing/">Speechify</a>, <a href="https://help.audible.com/s/article/download-titles?language=en_US">Audible</a>.</p>
     </div>
   </section>
 
-  <!-- SCREENSHOTS GALLERY (NATIVE COMPOSE VIEWS) -->
   <section class="content-section" id="screens">
     <div class="container">
-      <div class="section-head">
-        <div class="eyebrow">Native Android Interface</div>
-        <h2>Crafted in Jetpack Compose</h2>
-        <p>A fluid, responsive mobile interface engineered specifically for Android devices without sluggish webview wrappers.</p>
-      </div>
-
+      <div class="section-head"><h2>A look inside Vern.</h2><p>A familiar place for your books, audio, and ideas.</p></div>
       <div class="screenshots-strip">
-        <div class="screenshot-thumb">
-          <img src="screenshots/home.png" alt="Home Dashboard" loading="lazy" />
-          <div class="screenshot-label">Home Dashboard &amp; Streak</div>
-        </div>
-        <div class="screenshot-thumb">
-          <img src="screenshots/classics.png" alt="Classics Catalog" loading="lazy" />
-          <div class="screenshot-label">Classics Catalog &amp; Archives</div>
-        </div>
-        <div class="screenshot-thumb">
-          <img src="screenshots/current_reader.png" alt="Reader View" loading="lazy" />
-          <div class="screenshot-label">Synced Speech Narration</div>
-        </div>
-        <div class="screenshot-thumb">
-          <img src="screenshots/audio_player.png" alt="Audio Controls" loading="lazy" />
-          <div class="screenshot-label">Pitch &amp; Velocity Tuning</div>
-        </div>
-        <div class="screenshot-thumb">
-          <img src="screenshots/study.png" alt="Study Hub" loading="lazy" />
-          <div class="screenshot-label">Active Recall Flashcards</div>
-        </div>
-        <div class="screenshot-thumb">
-          <img src="screenshots/notes.png" alt="Inbuilt Notes" loading="lazy" />
-          <div class="screenshot-label">Notes &amp; Voice Memos</div>
-        </div>
-        <div class="screenshot-thumb">
-          <img src="screenshots/insights.png" alt="Reading Insights" loading="lazy" />
-          <div class="screenshot-label">Habits &amp; 8-Week Analytics</div>
-        </div>
-        <div class="screenshot-thumb">
-          <img src="screenshots/pdf_viewer.png" alt="PDF Viewer" loading="lazy" />
-          <div class="screenshot-label">Academic PDF Mode</div>
-        </div>
-        <div class="screenshot-thumb">
-          <img src="screenshots/widgets.png" alt="Android Widgets" loading="lazy" />
-          <div class="screenshot-label">Homescreen Widgets</div>
-        </div>
+        <figure class="screenshot-thumb"><img src="screenshots/current_reader.png" alt="Read your way in Vern" loading="lazy" /><figcaption class="screenshot-label">Read your way</figcaption></figure>
+        <figure class="screenshot-thumb"><img src="screenshots/audio_player.png" alt="Listen at your pace in Vern" loading="lazy" /><figcaption class="screenshot-label">Listen at your pace</figcaption></figure>
+        <figure class="screenshot-thumb"><img src="screenshots/study.png" alt="Review with flashcards in Vern" loading="lazy" /><figcaption class="screenshot-label">Review with flashcards</figcaption></figure>
+        <figure class="screenshot-thumb"><img src="screenshots/notes.png" alt="Keep your ideas in Vern" loading="lazy" /><figcaption class="screenshot-label">Keep your ideas</figcaption></figure>
       </div>
-    </div>
-  </section>
-
-  <!-- DOWNLOAD TERMINAL (CLEAN & RESTRAINED) -->
-  <section class="content-section" id="milestone">
-    <div class="container">
-      <div class="eyebrow">Latest Release &bull; Available Now</div>
-      <h2>What's New in Vern 2.6.2 (Build 43)</h2>
-      <p><strong>Vern 2.6.2</strong> introduces standardized Material 3 typography across 94 UI screens, AMOLED true-black contrast, and dedicated app-owned edge-to-edge system bar protection with display cutout support. Hardware-accelerated image decoding pre-scales book covers to prevent memory pressure on large files.</p>
-      <p>Personalize your experience with 20 vibrant icon palettes, synchronized splash screens (Bloom, Fade, Rise), and playful Funky cards. Reading and listening are more immersive than ever with physical 3D page curl, dynamic shadows, isolated touch gestures, rounded cover-matched audio artwork, and collapsible full-screen reading.</p>
-      <p>Built with zero-bloat Play-safe security and introduces the companion <strong>Vern Desktop Workstation</strong> (Tauri 2, React, TypeScript, Rust, and SQLite) for private reading on PC and Mac.</p>
-      <p><a href="https://github.com/fhes-tus/Vern-TTS/blob/main/RELEASE_NOTES_v2.6.2.md" target="_blank" rel="noopener">Read the complete v2.6.2 release notes &rarr;</a></p>
     </div>
   </section>
 
   <section class="content-section" id="download">
-    <div class="container">
-      <div class="download-panel">
-        <div class="panel-head">
-          <div class="eyebrow">Verified Build v2.6.2 (Build 43)</div>
-          <h2>Download Vern TTS</h2>
-          <p>Install directly on your device. Installs cleanly over previous versions while preserving your library, bookmarks, and flashcard sets.</p>
-        </div>
-
-        <div class="download-cards-row">
-          <!-- Universal APK -->
-          <div class="dl-item highlighted">
-            <div>
-              <div class="dl-item-label">Recommended for Android</div>
-              <div class="dl-item-title">Universal Release APK</div>
-              <div class="dl-item-desc">Compatible with 99% of Android phones, tablets, and Chromebooks (Android 9 through 16). Full on-device neural TTS engine and offline readers.</div>
-            </div>
-            <a href="https://github.com/fhes-tus/Vern-TTS/releases/download/v2.6.2/Vern-v2.6.2-universal-release.apk" class="btn btn-primary" style="width:100%;">
-              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Download Universal APK (61.8 MB)</span>
-            </a>
-          </div>
-
-          <!-- Google Play App Bundle -->
-          <div class="dl-item">
-            <div>
-              <div class="dl-item-label" style="color:var(--text-secondary);">Google Play Package</div>
-              <div class="dl-item-title">Play App Bundle (AAB)</div>
-              <div class="dl-item-desc">Verified signed Android App Bundle ready for Google Play distribution with complete R8 mapping and symbol metadata.</div>
-            </div>
-            <a href="https://github.com/fhes-tus/Vern-TTS/releases/download/v2.6.2/Vern-v2.6.2-upload.aab" class="btn btn-outline" style="width:100%;">
-              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Download Play AAB (58.9 MB)</span>
-            </a>
-          </div>
-
-          <!-- Desktop Companion -->
-          <div class="dl-item">
-            <div>
-              <div class="dl-item-label" style="color:var(--text-secondary);">Cross-Platform</div>
-              <div class="dl-item-title">Vern Desktop Workstation</div>
-              <div class="dl-item-desc">Standalone desktop reader companion built on Tauri 2, React, TypeScript, and native SQLite for Windows, macOS, and Linux.</div>
-            </div>
-            <a href="https://github.com/fhes-tus/Vern-TTS/tree/main/desktop" class="btn btn-outline" style="width:100%;">
-              <svg class="svg-icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              <span>Explore Desktop App</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="store-notice-bar">
-          <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span><strong>Google Play Store:</strong> Application review is currently in progress. The Play Store listing will be available shortly!</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- KNOWLEDGE BASE & FAQ -->
-  <section class="content-section" id="update-compatibility">
-    <div class="container">
-      <h2>Updating between APK and Google Play</h2>
-      <p>An update should preserve your books, notes and progress. Android requires the same package, a compatible signing certificate and an eligible version code. Our current local APKs use the upload key, while Google Play downloads use a different signing key. Future cross-source downloads will need Play-signed APKs; the existing 2.6.2 release files provide our latest verified local builds.</p>
-      <p>If Android reports a signing conflict, keep your installed app and contact support. Export a backup before any uninstall; uninstalling removes local app data. Debug previews install separately from Vern.</p>
-    </div>
+    <div class="container"><div class="download-panel">
+      <div class="panel-head"><h2>Take your reading further.</h2><p>Get Vern for Android and make room for your next good book.</p></div>
+      <a href="https://play.google.com/store/apps/details?id=com.veritas.reader" class="btn btn-primary">Get it on Google Play</a>
+      <p class="release-version">Version 2.7.0 &middot; Build 45</p>
+      <details class="download-alternative"><summary>Prefer a direct APK download?</summary><p>The older <a href="https://github.com/fhes-tus/Vern-TTS/releases/download/v2.6.2/Vern-v2.6.2-universal-release.apk">GitHub APK (version 2.6.2)</a> is also available. It is separate from the current Play release.</p><p>Switching between GitHub and Google Play may require reinstalling. <strong>Export a backup first</strong> to protect your library and notes. If an update fails, <a href="mailto:myreader.veritas@gmail.com">contact support</a> before uninstalling.</p></details>
+    </div></div>
   </section>
 
   <section class="content-section" id="faq">
     <div class="container">
-      <div class="section-head">
-        <div class="eyebrow">Knowledge Base</div>
-        <h2>Frequently Asked Questions</h2>
-        <p>Answers to common questions regarding voice customization, study tools, formats, and offline privacy.</p>
+      <div class="section-head"><h2>A few useful answers.</h2></div>
+      <div class="faq-list">
+        <details><summary>Can I use Vern offline?</summary><p>Yes. Read downloaded books and local documents offline. Listening works offline with an installed offline voice. Downloads and optional online tools need an internet connection.</p></details>
+        <details><summary>Which files can I open?</summary><p>PDF, EPUB, DOCX, and TXT are supported, along with other common reading formats. Import your own files or choose a book from Classics.</p></details>
+        <details><summary>Is my library private?</summary><p>Your library and reading history stay on your device. Optional AI, translation, and web tools connect to the provider you choose. See the <a href="https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md">privacy policy</a> for details.</p></details>
       </div>
-
-      <div class="accordion-wrap">
-        <div class="accordion-entry open">
-          <div class="accordion-trigger" onclick="toggleAccordion(this)">
-            <span>How do I customize and preview voices in Vern TTS?</span>
-            <svg class="svg-icon chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-          <div class="accordion-content">
-            Voice customization, engine selection, and tuning are handled directly <b>inside the app</b>:
-            <ol style="margin-top:8px; padding-left:20px;">
-              <li>While reading any book or document, tap the <b>Speaker / Audio Settings icon</b> on the bottom player bar.</li>
-              <li>Open the <b>Voice Engine &amp; Voice Picker</b> to choose between available engines (such as Vern Lite, Vern Studio, Google, or Samsung) and preview different vocal styles.</li>
-              <li>Fine-tune your reading experience with real-time sliders for <b>Speech Velocity (0.5x – 3.0x)</b> and <b>Vocal Pitch</b>.</li>
-              <li><i>Optional:</i> You can also download additional high-definition neural voice packs from Android System Settings (<i>Accessibility &gt; Text-to-Speech</i>), and Vern TTS will automatically recognize and list them in the in-app voice picker!</li>
-            </ol>
-          </div>
-        </div>
-
-        <div class="accordion-entry">
-          <div class="accordion-trigger" onclick="toggleAccordion(this)">
-            <span>How do the Study Hub flashcards and quizzes work?</span>
-            <svg class="svg-icon chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-          <div class="accordion-content">
-            The Study Hub lets you create custom card sets organized by book or topic. You can review cards using spaced repetition intervals, test retention with auto-generated document quizzes, and place an interactive Study Widget on your phone's home screen to practice quick review sessions throughout the day.
-          </div>
-        </div>
-
-        <div class="accordion-entry">
-          <div class="accordion-trigger" onclick="toggleAccordion(this)">
-            <span>Can I record audio voice notes on specific book paragraphs?</span>
-            <svg class="svg-icon chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-          <div class="accordion-content">
-            Yes! In addition to standard text notes and bookmarks, you can record spoken voice memos anchored directly to any document paragraph or chapter chunk. Spoken notes include duration tracking and instant in-app playback whenever you revisit that passage.
-          </div>
-        </div>
-
-        <div class="accordion-entry">
-          <div class="accordion-trigger" onclick="toggleAccordion(this)">
-            <span>Does Vern TTS send any personal data or books to an external server?</span>
-            <svg class="svg-icon chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-          <div class="accordion-content">
-            <b>Your library and reading statistics are stored locally.</b> Optional AI, translation and web features contact the selected provider; Android speech engines have their own network settings. Google ML Kit can collect operational SDK diagnostics. See our <a href="https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md">privacy policy</a> for details.
-          </div>
-        </div>
-
-        <div class="accordion-entry">
-          <div class="accordion-trigger" onclick="toggleAccordion(this)">
-            <span>Can I listen with the screen off or while multitasking?</span>
-            <svg class="svg-icon chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-          <div class="accordion-content">
-            Yes. Vern TTS features a dedicated background Android Media Service. You can lock your phone, put it in your pocket, or navigate to other apps while enjoying continuous narration with lockscreen media controls.
-          </div>
-        </div>
-      </div>
-
-      <!-- TELEGRAM BOT ASSISTANT CALLOUT -->
-      <div class="bot-callout-card">
-        <div class="bot-callout-copy">
-          <div class="bot-callout-pill">
-            <span class="indicator-dot"></span>
-            <span>24/7 Telegram Assistant</span>
-          </div>
-          <h3>Have more questions or want book recommendations?</h3>
-          <p>Chat with <strong>@VernTTS_bot</strong> directly on Telegram. Explore curated classics, roll for random reading spotlights, check voice setup guides, and get instant answers.</p>
-        </div>
-        <a href="https://t.me/VernTTS_bot" target="_blank" rel="noopener" class="btn btn-primary" style="padding:10px 18px; font-size:14px; flex-shrink:0;">
-          <svg class="svg-icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          <span>Chat with @VernTTS_bot</span>
-        </a>
-      </div>
+      <p class="support-line">Need a hand? <a href="mailto:myreader.veritas@gmail.com">Email us</a> or join the <a href="https://t.me/myreader_veritas">Telegram community</a>.</p>
     </div>
   </section>
-
-  <!-- FOOTER COLOPHON -->
-  <footer>
-    <div class="container">
-      <div class="footer-content">
-        <div>
-          <div class="footer-quote">"Vernehmen — to hear, to perceive, to discern truth without noise."</div>
-          <p>© 2026 Vern TTS. Open source software under Apache 2.0 license.</p>
-        </div>
-
-        <div class="footer-access-grid">
-          <a href="https://github.com/fhes-tus/Vern-TTS" target="_blank" rel="noopener" class="access-pill" title="GitHub Repository">
-            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-            <span>GitHub</span>
-          </a>
-          <a href="https://t.me/myreader_veritas" target="_blank" rel="noopener" class="access-pill" title="Telegram Community">
-            <svg class="svg-icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            <span>Telegram Channel</span>
-          </a>
-          <a href="https://t.me/VernTTS_bot" target="_blank" rel="noopener" class="access-pill" title="Telegram Assistant Bot (@VernTTS_bot)">
-            <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
-            <span>Vern Bot</span>
-          </a>
-          <a href="https://x.com/_1st2us" target="_blank" rel="noopener" class="access-pill" title="X (Twitter)">
-            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            <span>X (Twitter)</span>
-          </a>
-          <a href="mailto:myreader.veritas@gmail.com?subject=Vern%20TTS%20Inquiry%20%26%20Feedback" class="access-pill" title="Email Feedback &amp; Support">
-            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            <span>Email</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </footer>
-
+  </main>
+  <footer><div class="container"><div class="footer-content"><div><div class="footer-quote">Vern. A little closer to every word.</div><p>&copy; 2026 Vern TTS</p></div><div class="footer-links"><a href="https://github.com/fhes-tus/Vern-TTS">Source code</a><a href="https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md">Privacy</a><a href="mailto:myreader.veritas@gmail.com">Support</a></div></div></div></footer>
   <!-- JAVASCRIPT: THEME TOGGLE, ACCORDION, AND WEB SPEECH AUDIO SYNTHESIS -->
   <script>
     // 1. Light / Dark Theme Switcher

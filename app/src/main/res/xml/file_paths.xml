@@ -6,4 +6,5 @@
     <files-path name="original_documents" path="original_documents/" />
     <cache-path name="shared_exports" path="shared_exports/" />
     <cache-path name="note_camera" path="note_camera/" />
+    <files-path name="scan_imports" path="scan_imports/" />
 </paths>

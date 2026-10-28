@@ -6,12 +6,12 @@
 
 ### *Your intelligent, private reading workstation, neural audiobook studio, and active-recall study suite for Android.*
 
-[![Latest Release](https://img.shields.io/badge/Release-v2.6.2-orange.svg)](https://github.com/fhes-tus/Vern-TTS/releases)
+[![Source Version](https://img.shields.io/badge/Source-v2.7.0-orange.svg)](RELEASE_NOTES_v2.7.0.md)
 [![Target Platform](https://img.shields.io/badge/Platform-Android%2016%20(API%2036)-3DDC84.svg?logo=android&logoColor=white)](https://developer.android.com/)
 [![Minimum SDK](https://img.shields.io/badge/Min%20SDK-Android%209.0%20(API%2028)-blue.svg)](https://developer.android.com/)
 [![Language](https://img.shields.io/badge/Kotlin-2.4.0-7F52FF.svg?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![UI Toolkit](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4.svg?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
-[![Privacy](https://img.shields.io/badge/Privacy-100%25%20On--Device-success.svg)](#privacy--offline-first)
+[![Offline First](https://img.shields.io/badge/Offline--first-Core%20reading-success.svg)](#privacy--offline-first)
 
 <br/>
 
@@ -58,6 +58,19 @@ Designed with an **offline-first, privacy-respecting philosophy**, your library,
 
 ---
 
+## What's new in 2.7.0
+
+- Take a photo or choose one for on-device Scan / OCR.
+- Share up to five Listen sentences as a quote image, with 14 colours, a preview and an editable author or character credit.
+- Turn focused PDF pages with left/right swipes. Reading layout and Swipe effect expand directly inside reader tools.
+- Keep Listen text size independent. Page navigation sits below Live preview in Display & theme; text size, spacing and paper tone stay in the reader.
+- Find study-guide PDF export in Study Hub and reading lists in Library or app Settings.
+- See new title-based covers for missing artwork, including details and widgets.
+- Retain real contents/chapter entries during PDF cleanup, reject unsupported files safely, and restore Funky cards across Added grids and Study Hub.
+- Enjoy consistent charcoal/AMOLED colours and theme-following Home colours with the original animated rings.
+
+Source is **2.7.0 / code 45**; this update is being prepared for distribution. [Full notes](RELEASE_NOTES_v2.7.0.md) · [Play and Telegram drafts](release/v2.7.0/README.md) · [Verification](progress.md).
+
 ## 🚀 Key Features
 
 ### 📖 1. Universal Multi-Format Reading
@@ -65,9 +78,9 @@ Designed with an **offline-first, privacy-respecting philosophy**, your library,
 * **Dual Reading Engines**:
   * **Text Flow View**: Clean, continuous, customizable typographic view with sentence-by-sentence reading tracking and instant word lookups.
   * **Original Document View**: High-fidelity page renderer preserving original fonts, layouts, column structures, and embedded illustrations.
-* **Optical Character Recognition (OCR)**: Scanned pages, multi-column research papers, and image-based PDFs are automatically parsed using on-device Google ML Kit OCR.
+* **Optical Character Recognition (OCR)**: Take a photo or choose an image for on-device Google ML Kit text recognition. Optional automatic OCR also handles image-only pages in mixed PDFs; readable pages retain native text extraction.
 * **Interactive Table of Contents**: Jump effortlessly between sections, parts, and chapters with the interactive TOC navigation drawer.
-* **Dyslexia & Comfort Typography**: Includes variable fonts designed for high legibility (*Atkinson Hyperlegible*, *Literata*, *Lora*, *Bitter*), configurable font scaling, line height, and Night Mode PDF color inversion.
+* **Dyslexia & Comfort Typography**: Includes *Atkinson Hyperlegible*, *Bitter*, *Outfit* and system typefaces, configurable reader size and spacing, independent Listen size, and PDF paper tones.
 
 ### 🎙️ 2. On-Device Neural Audiobook Player
 * **Studio-Quality Neural Voices**: Experience lifelike, expressive offline narration powered by **Piper** and **Kokoro** via Sherpa-ONNX runtime—generating natural speech completely offline.
@@ -80,7 +93,7 @@ Designed with an **offline-first, privacy-respecting philosophy**, your library,
 ### 🧠 3. Active-Recall Study Suite & Flashcards
 * **Tactile Spaced-Repetition Flashcards**: Automatically generate or manually build flashcard decks with tactile flip animations, rating intervals, and mastery tracking.
 * **Rich Markdown Notes**: Create study notes directly anchored to document sentences. Attach photos, document snapshots, and recorded voice memos to your cards.
-* **Study Guide PDF Exporter**: Compile highlights, notes, definitions, and LaTeX mathematical equations into a beautifully styled, printable PDF study guide.
+* **Study Guide PDF Exporter**: Choose a saved book in Study Hub and compile its highlights, notes and study material into a printable PDF study guide.
 * **Extracted Sentence Editor**: Fix typographic quirks or customize sentences directly within the app without altering your source document.
 * **Phonetic Pronunciation Rules**: Create custom pronunciation dictionaries (e.g., expanding medical acronyms or correcting foreign names) applied across both live TTS and exported audio.
 
@@ -116,7 +129,7 @@ Designed with an **offline-first, privacy-respecting philosophy**, your library,
 
 ## 📥 Installation
 
-Download the latest release APK from the official repository releases:
+Get Vern from [Google Play](https://play.google.com/store/apps/details?id=com.veritas.reader), or use the published APKs from the official repository releases:
 
 👉 **[Download Latest Vern Release](https://github.com/fhes-tus/Vern-TTS/releases/latest)**
 
@@ -158,9 +171,9 @@ Suggestions, bug reports, and pull requests are welcome! Feel free to open an is
 
 ## Current development milestone
 
-Source is **2.6.2 / build 42**; published downloads remain **2.6.1** until the authorized local release builds are verified and publication is approved. See [2.6.2 notes](RELEASE_NOTES_v2.6.2.md), [remaining acceptance](docs/ACCEPTANCE_BACKLOG.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and the verification snapshots under `docs/verification/`.
+Source is **2.7.0 / build 45**. Google Play accepted the 2.6.2 production release; the 2.7.0 source, release notes and store/community drafts are being prepared here. No new release has been uploaded by this preparation. See [2.7.0 notes](RELEASE_NOTES_v2.7.0.md), the [release pack](release/v2.7.0/README.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and the verification snapshots under `docs/verification/`.
 
 ### Desktop implementation
 
-The separate Tauri 2 / React / TypeScript desktop implementation is in [desktop/](desktop/README.md). See [architecture](docs/desktop-architecture.md), [source-based feature inventory](docs/desktop-feature-parity.md), and [progress and actual verification](progress.md). The older eritas-pc/ Kotlin experiment is retained as reference. Android setup and builds are unchanged.
+The separate Tauri 2 / React / TypeScript desktop implementation is in [desktop/](desktop/README.md). See [architecture](docs/desktop-architecture.md), [source-based feature inventory](docs/desktop-feature-parity.md), and [progress and actual verification](progress.md). The older `veritas-pc/` Kotlin experiment is retained as reference. Android setup and builds are unchanged.
 

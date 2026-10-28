@@ -122,35 +122,8 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
 
         fragmentContainer = FrameLayout(this).apply {
             id = R.id.pdf_fragment_container
-            setBackgroundColor(if (isLightTheme) colorBackground else Color.WHITE)
-            if (!isLightTheme) {
-                val settings = repository.loadReaderSettings()
-                val resolvedTheme = if (settings.themeId == "system") {
-                    val mode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-                    if (mode == Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
-                } else settings.themeId
-                val scheme = veritasPackColorScheme(veritasColorScheme(resolvedTheme, activity), settings.themePackId)
-                val bgR = scheme.surface.red
-                val bgG = scheme.surface.green
-                val bgB = scheme.surface.blue
-                val fgR = scheme.onSurface.red
-                val fgG = scheme.onSurface.green
-                val fgB = scheme.onSurface.blue
-
-                val scaleR = (bgR * 255f - fgR * 255f) / 255f
-                val scaleG = (bgG * 255f - fgG * 255f) / 255f
-                val scaleB = (bgB * 255f - fgB * 255f) / 255f
-
-                val paint = android.graphics.Paint().apply {
-                    colorFilter = android.graphics.ColorMatrixColorFilter(floatArrayOf(
-                        scaleR, 0f,     0f,     0f, fgR * 255f,
-                        0f,     scaleG, 0f,     0f, fgG * 255f,
-                        0f,     0f,     scaleB, 0f, fgB * 255f,
-                        0f,     0f,     0f,     1f, 0f
-                    ))
-                }
-                setLayerType(View.LAYER_TYPE_HARDWARE, paint)
-            }
+            // Paper starts white; applyPaperToneMode owns its single color filter.
+            setBackgroundColor(Color.WHITE)
             setOnTouchListener { _, event ->
                 handleDocumentChromeTouch(this, event)
                 false
@@ -183,13 +156,11 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         val controls = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             clipToOutline = true
-            background = capsuleGradientDrawable(
-                isDark = !isLightTheme,
-                surfaceColor = colorSurface,
-                primaryColor = colorPrimary,
-                containerColor = colorSyncBackground,
-                cornerRadius = 32.dp
-            )
+            background = GradientDrawable().apply {
+                setColor(colorPlayerSurface)
+                cornerRadius = 32.dp.toFloat()
+                setStroke(1.dp, colorOutline)
+            }
             elevation = if (!isLightTheme) 10.dp.toFloat() else 8.dp.toFloat()
             layoutParams = LinearLayout.LayoutParams(
                 barWidthPx,
@@ -563,37 +534,6 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         return GradientDrawable().apply {
             setColor(color)
             cornerRadius = radius.toFloat()
-        }
-    }
-
-    internal fun capsuleGradientDrawable(
-        isDark: Boolean,
-        surfaceColor: Int,
-        primaryColor: Int,
-        containerColor: Int,
-        cornerRadius: Int
-    ): GradientDrawable {
-        val topColor: Int
-        val bottomColor: Int
-        val strokeColor: Int
-        if (isDark) {
-            topColor = androidx.core.graphics.ColorUtils.blendARGB(surfaceColor, primaryColor, 0.12f)
-            bottomColor = androidx.core.graphics.ColorUtils.blendARGB(surfaceColor, Color.BLACK, 0.20f)
-            strokeColor = Color.argb((0.22f * 255).toInt(), 255, 255, 255)
-        } else {
-            topColor = androidx.core.graphics.ColorUtils.blendARGB(surfaceColor, containerColor, 0.35f)
-            bottomColor = androidx.core.graphics.ColorUtils.blendARGB(surfaceColor, primaryColor, 0.08f)
-            strokeColor = Color.argb((0.65f * 255).toInt(), 255, 255, 255)
-        }
-        return GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(
-                androidx.core.graphics.ColorUtils.setAlphaComponent(topColor, (0.94f * 255).toInt()),
-                androidx.core.graphics.ColorUtils.setAlphaComponent(bottomColor, (0.96f * 255).toInt())
-            )
-        ).apply {
-            this.cornerRadius = cornerRadius.toFloat()
-            setStroke(1.dp, strokeColor)
         }
     }
 

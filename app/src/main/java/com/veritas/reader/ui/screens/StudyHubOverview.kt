@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,7 +35,8 @@ internal fun StudyHubOverview(
     onImportFlashcards: () -> Unit,
     onImportQuiz: () -> Unit,
     onCreateWithAi: () -> Unit,
-    onSetupAi: () -> Unit
+    onSetupAi: () -> Unit,
+    onExportStudyGuide: () -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
     val collections = listOf(
@@ -58,12 +60,14 @@ internal fun StudyHubOverview(
                 }
             }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Your study material", style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
             collections.chunked(2).forEach { pair ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     pair.forEach { collection ->
-                        TextButton(onClick = { onSelectSection(collection.section) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                        TextButton(onClick = { onSelectSection(collection.section) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                            .vernScatteredCard("study-material-${collection.section}", amount = .5f)
+                            .testTag("study-material-${collection.section}"),
                             shape = VeritasPackStyle.compactShape(),
                             colors = ButtonDefaults.textButtonColors(containerColor = colors.surfaceContainerHigh.copy(alpha = .65f))) {
                             Text(if (collection.section == "Vocab") "Vocabulary" else collection.section,
@@ -101,16 +105,24 @@ internal fun StudyHubOverview(
                 TextButton(onClick = onSetupAi, modifier = Modifier.align(Alignment.End)) { Text("AI settings") }
             }
         }
+        OutlinedButton(onClick = onExportStudyGuide, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            .vernScatteredCard("study-export-guide", amount = .45f)) {
+            Icon(Icons.Outlined.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Export study guide PDF")
+        }
     }
 }
 
 @Composable
-internal fun StudyBookPickerDialog(documents: List<SavedDocument>, onSelect: (SavedDocument) -> Unit, onGoToLibrary: () -> Unit, onDismiss: () -> Unit) {
+internal fun StudyBookPickerDialog(documents: List<SavedDocument>, onSelect: (SavedDocument) -> Unit, onGoToLibrary: () -> Unit, onDismiss: () -> Unit,
+    title: String = "Choose a book for flashcards",
+    emptyDescription: String = "Add a book to your library first. You can also paste flashcards into Study Hub.") {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Choose a book for flashcards") },
+        title = { Text(title) },
         text = {
-            if (documents.isEmpty()) Text("Add a book to your library first. You can also paste flashcards into Study Hub.")
+            if (documents.isEmpty()) Text(emptyDescription)
             else LazyColumn(Modifier.fillMaxWidth().heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 items(documents, key = { it.id }) { document ->
                     TextButton(onClick = { onSelect(document) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {

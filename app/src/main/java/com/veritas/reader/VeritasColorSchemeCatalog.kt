@@ -74,58 +74,6 @@ internal fun veritasColorScheme(themeId: String, context: Context): ColorScheme 
             outlineVariant = Color(0xFF181F29)
         )
 
-        "solarized_dark" -> darkColorScheme(
-            primary = Color(0xFF2AA198),          // Teal
-            onPrimary = Color(0xFF002B36),
-            primaryContainer = Color(0xFF073642),
-            onPrimaryContainer = Color(0xFF93A1A1),
-            secondary = Color(0xFF268BD2),        // Blue
-            secondaryContainer = Color(0xFF002B36),
-            onSecondaryContainer = Color(0xFF2AA198),
-            tertiary = Color(0xFFB58900),         // Yellow/Gold
-            tertiaryContainer = Color(0xFF073642),
-            onTertiaryContainer = Color(0xFFFDF6E3),
-            background = Color(0xFF002B36),
-            onBackground = Color(0xFFEEE8D5),
-            surface = Color(0xFF073642),
-            onSurface = Color(0xFFEEE8D5),        // High Contrast Solarized Base3
-            surfaceVariant = Color(0xFF0A3F4E),
-            surfaceContainerLowest = Color(0xFF00212B),
-            surfaceContainerLow = Color(0xFF002B36),
-            surfaceContainer = Color(0xFF073642),
-            surfaceContainerHigh = Color(0xFF0B414F),
-            surfaceContainerHighest = Color(0xFF0F4D5D),
-            onSurfaceVariant = Color(0xFF93A1A1), // Solarized Base1
-            outline = Color(0xFF586E75),
-            outlineVariant = Color(0xFF0A3F4E)
-        )
-
-        "tomorrow_night_blue" -> darkColorScheme(
-            primary = Color(0xFFBBDAFF),
-            onPrimary = Color(0xFF002451),
-            primaryContainer = Color(0xFF002047),
-            onPrimaryContainer = Color(0xFFEEFFFF),
-            secondary = Color(0xFFEBBBFF),
-            secondaryContainer = Color(0xFF002451),
-            onSecondaryContainer = Color(0xFFEBBBFF),
-            tertiary = Color(0xFFFFC58F),
-            tertiaryContainer = Color(0xFF00346B),
-            onTertiaryContainer = Color(0xFFFFE5CC),
-            background = Color(0xFF002451),
-            onBackground = Color(0xFFFFFFFF),
-            surface = Color(0xFF002F6C),
-            onSurface = Color(0xFFFFFFFF),
-            surfaceVariant = Color(0xFF003C7A),
-            surfaceContainerLowest = Color(0xFF001B3E),
-            surfaceContainerLow = Color(0xFF002451),
-            surfaceContainer = Color(0xFF002F6C),
-            surfaceContainerHigh = Color(0xFF00387B),
-            surfaceContainerHighest = Color(0xFF00438E),
-            onSurfaceVariant = Color(0xFFB2CCD6),
-            outline = Color(0xFF395F91),
-            outlineVariant = Color(0xFF003C7A)
-        )
-
         "dark_high_contrast" -> darkColorScheme(
             primary = Color(0xFFFFFFFF),
             onPrimary = Color.Black,

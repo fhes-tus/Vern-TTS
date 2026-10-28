@@ -3,7 +3,6 @@ package com.veritas.reader.ui.screens
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.Path
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
@@ -52,7 +51,7 @@ internal fun BookPageCurl(enabled: Boolean, scrolling: Boolean, offset: () -> Fl
                 layer.record { this@drawWithContent.drawContent() }
                 drawLayer(layer)
             }
-        }.background(paper)) { content() }
+        }) { content() }
 }
 
 /** Bounded cylindrical mesh with perspective, a paper reverse and a travelling shadow. */

@@ -55,15 +55,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -76,7 +75,6 @@ import com.veritas.reader.CoverExtractor
 import com.veritas.reader.TtsVoiceOption
 import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.VoiceSettings
-import com.veritas.reader.blendColors
 import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.VeritasSleekSlider
 import kotlinx.coroutines.launch
@@ -155,56 +153,18 @@ internal fun PlayerPanel(
     }
 
     val coroutineScope = rememberCoroutineScope()
-    val coverFile = remember(documentId) { CoverExtractor.coverFile(context, documentId.orEmpty()) }
-    val coverBitmap = remember(coverFile) {
-        if (coverFile != null && coverFile.exists()) {
-            try {
-                android.graphics.BitmapFactory.decodeFile(coverFile.absolutePath)
-            } catch (_: Exception) {
-                null
-            }
-        } else null
+    val coverBitmap by androidx.compose.runtime.produceState<android.graphics.Bitmap?>(null, documentId) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            documentId?.let { com.veritas.reader.DocumentRepository(context).findDocument(it) }
+                ?.let { com.veritas.reader.BookCoverLoader.forDocument(context, it) }
+        }
     }
 
     val scheme = MaterialTheme.colorScheme
     val isGlass = VeritasPackStyle.glassChromeEnabled() && isDeviceGlassCapable() && LocalVeritasBackdrop.current != null
     val opaqueGlassFallback = VeritasPackStyle.currentPackId() == "liquid_glass" && !isGlass
-    val isDark = scheme.surface.luminance() < 0.5f
-    val playerOpacity = VeritasPackStyle.chromeOpacity(VeritasPackStyle.currentPackId())
-
-    val gradientBrush = if (isDark) {
-        Brush.verticalGradient(
-            colors = listOf(
-                blendColors(scheme.surface, scheme.primary, 0.12f).copy(alpha = playerOpacity),
-                blendColors(scheme.surface, androidx.compose.ui.graphics.Color.Black, 0.20f).copy(alpha = playerOpacity)
-            )
-        )
-    } else {
-        Brush.verticalGradient(
-            colors = listOf(
-                blendColors(scheme.surface, scheme.primaryContainer, 0.35f).copy(alpha = playerOpacity),
-                blendColors(scheme.surface, scheme.primary, 0.08f).copy(alpha = playerOpacity)
-            )
-        )
-    }
-
-    val borderBrush = if (isDark) {
-        Brush.verticalGradient(
-            colors = listOf(
-                androidx.compose.ui.graphics.Color.White.copy(alpha = 0.22f),
-                scheme.primary.copy(alpha = 0.32f),
-                androidx.compose.ui.graphics.Color.White.copy(alpha = 0.08f)
-            )
-        )
-    } else {
-        Brush.verticalGradient(
-            colors = listOf(
-                androidx.compose.ui.graphics.Color.White.copy(alpha = 0.65f),
-                scheme.primary.copy(alpha = 0.25f),
-                androidx.compose.ui.graphics.Color.White.copy(alpha = 0.30f)
-            )
-        )
-    }
+    val playerBrush = androidx.compose.ui.graphics.SolidColor(VeritasPackStyle.playerSurfaceColor(scheme))
+    val borderBrush = VeritasPackStyle.navigationBorderBrush(scheme)
 
     val cornerRadius = androidx.compose.ui.unit.lerp(34.dp, 24.dp, progress)
     val capsuleShape = RoundedCornerShape(cornerRadius)
@@ -236,7 +196,7 @@ internal fun PlayerPanel(
                 modifier = Modifier
                     .fillMaxSize()
                     .then(if (isGlass || opaqueGlassFallback) Modifier else Modifier
-                        .background(brush = gradientBrush, shape = capsuleShape)
+                        .background(brush = playerBrush, shape = capsuleShape)
                         .border(width = 1.dp, brush = borderBrush, shape = capsuleShape))
             ) {
                 Column(
@@ -264,7 +224,7 @@ internal fun PlayerPanel(
                     ) {
                         if (coverBitmap != null) {
                             Image(
-                                bitmap = coverBitmap.asImageBitmap(),
+                                bitmap = requireNotNull(coverBitmap).asImageBitmap(),
                                 contentDescription = "Switch to Original Document",
                                 modifier = Modifier
                                     .size(32.dp)

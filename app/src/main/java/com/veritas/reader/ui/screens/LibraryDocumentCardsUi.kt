@@ -224,7 +224,7 @@ internal fun HomeRecentBookGridItem(
     val coverBitmap = rememberDocumentCover(document.id, document.title, document.originalFileName, document.catalogId)
 
     Card(
-        modifier = modifier
+        modifier = modifier.vernScatteredCard("home-recent-${document.id}", amount = .5f)
             .fillMaxWidth()
             .clickable { onOpen() },
         shape = VeritasPackStyle.cardShape(),
@@ -303,6 +303,7 @@ internal fun HomeRecentBookGridItem(
 @Composable
 fun EmptyLibraryCard(onImportFile: () -> Unit) {
     Card(
+        modifier = Modifier.vernScatteredCard("empty-library", amount = .5f),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = VeritasPackStyle.surfaceAlpha())),
         shape = VeritasPackStyle.cardShape(),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -582,7 +583,7 @@ fun DocumentTileCard(
 
     var pressed by remember { mutableStateOf(false) }
     Card(
-        modifier = modifier
+        modifier = modifier.vernScatteredCard(document.id, !selectionMode && com.veritas.reader.VeritasThemeState.scatteredCards)
             .fillMaxWidth()
             .graphicsLayer(scaleX = selectionScale, scaleY = selectionScale)
             .pressScale(pressed),

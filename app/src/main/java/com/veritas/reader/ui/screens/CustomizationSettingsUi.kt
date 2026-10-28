@@ -91,13 +91,6 @@ internal fun CustomizationSettingsDialog(settings: ReaderSettings, onSave: (Read
                 }
             }
         }
-        HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        Text("Reading layout", style = MaterialTheme.typography.titleMedium)
-        CustomizationChoices(settings.readingLayout, listOf("pages" to "Pages", "scroll" to "Vertical scroll")) { onSave(settings.copy(readingLayout = it)) }
-        Text("Vertical scroll keeps extracted text, illustrations, tables and selection in one reading flow.", style = MaterialTheme.typography.bodySmall)
-        Text("Reading page turns", style = MaterialTheme.typography.titleMedium)
-        CustomizationChoices(settings.pageTurnStyle, listOf("slide" to "Slide", "flip" to "Page curl", "hinge" to "Light flip", "none" to "None")) { onSave(settings.copy(pageTurnStyle = it)) }
-        Text("Page curl bends text pages with a shaded paper reverse. Light flip uses a simpler spine rotation. The native PDF viewer has its own Swipe / Scroll choice in PDF settings.", style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(12.dp))
     }
 }

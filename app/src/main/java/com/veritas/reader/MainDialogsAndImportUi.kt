@@ -468,13 +468,8 @@ internal fun MainDialogsHost(
         uiState.detailsTarget?.let { target ->
             val saveBookToPhone = rememberSaveBookToPhone(target)
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-            val coverFile = remember(target.id) { CoverExtractor.coverFile(context, target.id) }
-            val coverState = produceState<android.graphics.Bitmap?>(null, coverFile) {
-                value = withContext(Dispatchers.IO) {
-                    coverFile?.takeIf { it.isFile }?.let { file ->
-                        runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull()
-                    }
-                }
+            val coverState = produceState<android.graphics.Bitmap?>(null, target.id, target.title, target.catalogId, target.sourceLabel) {
+                value = withContext(Dispatchers.IO) { BookCoverLoader.forDocument(context, target) }
             }
             val coverBitmap = coverState.value
             val progress = progressFraction(target)
@@ -609,42 +604,8 @@ internal fun MainDialogsHost(
                                     contentScale = ContentScale.Crop
                                 )
                             } else {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(
-                                            Brush.verticalGradient(
-                                                listOf(
-                                                    MaterialTheme.colorScheme.primaryContainer,
-                                                    MaterialTheme.colorScheme.surfaceContainerHighest
-                                                )
-                                            )
-                                        )
-                                        .padding(12.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = when (fileExtension.lowercase()) {
-                                                "pdf" -> Icons.Outlined.PictureAsPdf
-                                                "epub" -> Icons.Outlined.Book
-                                                else -> Icons.Outlined.Description
-                                            },
-                                            contentDescription = null,
-                                            modifier = Modifier.size(36.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = fileExtension.ifBlank { target.sourceLabel.take(4).uppercase() },
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                }
+                                com.veritas.reader.ui.screens.VeritasCoverPlaceholder(target.id, target.title,
+                                    target.sourceLabel, Modifier.fillMaxSize())
                             }
                         }
                     }

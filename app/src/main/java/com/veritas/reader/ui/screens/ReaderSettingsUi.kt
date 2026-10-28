@@ -49,11 +49,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -67,7 +65,6 @@ import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.LocalVeritasPackId
 import com.veritas.reader.VeritasThemeCatalog
 import com.veritas.reader.VeritasThemePackCatalog
-import com.veritas.reader.blendColors
 import com.veritas.reader.themePreviewColors
 import com.veritas.reader.ui.VeritasSwitch
 import com.veritas.reader.ui.VeritasUiFont
@@ -177,8 +174,8 @@ fun PackPalettePreview(packId: String) {
     val normalized = VeritasThemePackCatalog.normalizePackId(packId)
     val context = LocalContext.current
     val resolved = VeritasThemeCatalog.resolveConcreteThemeId(com.veritas.reader.VeritasThemeState.themeId, isSystemInDarkTheme())
-    val packed = com.veritas.reader.veritasPackColorScheme(veritasColorScheme(resolved, context), normalized, resolved)
-    val scheme = if (VeritasThemeCatalog.isDark(resolved) && (com.veritas.reader.VeritasThemeState.amoledMode || resolved == "amoled")) com.veritas.reader.veritasAmoledColorScheme(packed) else packed
+    val scheme = com.veritas.reader.veritasPackColorScheme(veritasColorScheme(resolved, context), normalized, resolved,
+        com.veritas.reader.VeritasThemeState.amoledMode)
     androidx.compose.runtime.CompositionLocalProvider(LocalVeritasPackId provides normalized) {
         MaterialTheme(colorScheme = scheme, shapes = com.veritas.reader.veritasPackShapes(normalized),
             typography = com.veritas.reader.veritasPackTypography(com.veritas.reader.ui.veritasTypography(com.veritas.reader.ui.VeritasUiFont.fromId(com.veritas.reader.VeritasThemeState.uiFontId)), normalized)) {
@@ -214,24 +211,10 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
     val context = LocalContext.current
     val normalizedPack = VeritasThemePackCatalog.normalizePackId(themePackId)
     val resolvedTheme = VeritasThemeCatalog.resolveConcreteThemeId(themeId, isSystemInDarkTheme())
-    val packed = com.veritas.reader.veritasPackColorScheme(veritasColorScheme(resolvedTheme, context), normalizedPack, resolvedTheme)
-    val scheme = if (VeritasThemeCatalog.isDark(resolvedTheme) && (com.veritas.reader.VeritasThemeState.amoledMode || resolvedTheme == "amoled")) com.veritas.reader.veritasAmoledColorScheme(packed) else packed
-    // Mirror the hero-card style toggle: vibrant = accent poster gradient with a
-    // luminance-picked text colour; subtle = container tones.
-    val heroGradient: Brush
-    val heroOnColor: Color
-    if (vibrantHero) {
-        val hsl = FloatArray(3)
-        android.graphics.Color.colorToHSV(scheme.primary.toArgb(), hsl)
-        val color1 = Color(android.graphics.Color.HSVToColor(floatArrayOf(hsl[0], (hsl[1] * 0.7f).coerceIn(0f, 1f), (hsl[2] * 1.15f).coerceIn(0f, 1f))))
-        val color2 = Color(android.graphics.Color.HSVToColor(floatArrayOf((hsl[0] + 15f) % 360f, hsl[1].coerceIn(0f, 1f), (hsl[2] * 0.85f).coerceIn(0f, 1f))))
-        heroGradient = Brush.linearGradient(listOf(color1, color2))
-        val avgLuminance = (color1.luminance() + color2.luminance()) / 2f
-        heroOnColor = if (avgLuminance > 0.40f) Color(0xFF0F172A) else Color.White
-    } else {
-        heroGradient = Brush.linearGradient(listOf(scheme.primaryContainer, blendColors(scheme.primaryContainer, scheme.surface, 0.5f)))
-        heroOnColor = scheme.onPrimaryContainer
-    }
+    val scheme = com.veritas.reader.veritasPackColorScheme(veritasColorScheme(resolvedTheme, context), normalizedPack, resolvedTheme,
+        com.veritas.reader.VeritasThemeState.amoledMode)
+    val heroColors = com.veritas.reader.veritasHeroColors(scheme, vibrantHero)
+    val heroOnColor = heroColors.content
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             "Live preview",
@@ -274,30 +257,31 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
                             .fillMaxWidth()
                             .height(78.dp)
                             .clip(previewCardShape)
-                            .background(heroGradient)
+                            .background(heroColors.brush)
+                            .testTag("theme-preview-hero")
                             .padding(12.dp)
                     ) {
                         Column {
                             Text(
-                                "Lorem ipsum dolor",
+                                "Continue reading",
                                 color = heroOnColor,
                                 style = MaterialTheme.typography.labelLarge,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                "sit amet consectetur",
-                                color = heroOnColor.copy(alpha = 0.7f),
+                                "Pick up where you left off",
+                                color = heroColors.secondaryContent,
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
                         Box(
-                            modifier = Modifier.align(Alignment.BottomEnd).size(30.dp).background(if (vibrantHero) heroOnColor.copy(alpha = 0.25f) else scheme.primary, CircleShape),
+                            modifier = Modifier.align(Alignment.BottomEnd).size(30.dp).background(heroColors.actionContainer, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Box(modifier = Modifier.size(11.dp).background(if (vibrantHero) heroOnColor else scheme.onPrimary, CircleShape))
+                            Box(modifier = Modifier.size(11.dp).background(heroColors.actionContent, CircleShape))
                         }
                     }
                     // Two content rows on real surface, with sample text
@@ -537,11 +521,11 @@ fun ReaderSettingsDialog(
     onToggleGlassFloatingControls: () -> Unit = {},
     currentPage: Int = 1,
     totalPages: Int = 1,
-    onJumpToPage: ((Int) -> Unit)? = null
+    onJumpToPage: ((Int) -> Unit)? = null,
+    onReadingSettingsChange: (ReaderSettings) -> Unit = {}
 ) {
     var themePacksExpanded by remember { mutableStateOf(false) }
     var colourThemesExpanded by remember { mutableStateOf(false) }
-    var paperToneExpanded by remember { mutableStateOf(false) }
     var typefaceExpanded by remember { mutableStateOf(false) }
 
     FullScreenSettingsScaffold(title = "Display & theme", onBack = onDismiss) {
@@ -643,87 +627,7 @@ fun ReaderSettingsDialog(
             vibrantHero = settings.vibrantHero
         )
 
-        // Document Paper Tone Accordion
-        val currentTone = PaperToneMode.fromString(settings.paperToneMode)
-        SettingsHubSectionTitle("Document paper tone")
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = VeritasPackStyle.cardShape(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
-        ) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { paperToneExpanded = !paperToneExpanded },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            when (currentTone) {
-                                PaperToneMode.ACTIVE_THEME -> "Paper tone: Default"
-                                PaperToneMode.WARM_SEPIA -> "Paper tone: Sepia"
-                                PaperToneMode.NATURAL_WHITE -> "Paper tone: Bone"
-                                PaperToneMode.DARK -> "Paper tone: Dark slate"
-                            },
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            "Authentic paper color and typography for reading canvas",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    IconButton(onClick = { paperToneExpanded = !paperToneExpanded }) {
-                        Icon(
-                            if (paperToneExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                            contentDescription = if (paperToneExpanded) "Collapse" else "Expand",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-                if (paperToneExpanded) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        PaperToneOptionRow(
-                            label = "Default",
-                            description = "Follows active theme background and contrast",
-                            isSelected = currentTone == PaperToneMode.ACTIVE_THEME,
-                            chipColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            textColor = MaterialTheme.colorScheme.onSurface,
-                            onClick = { onPaperToneModeChange(PaperToneMode.ACTIVE_THEME) }
-                        )
-                        PaperToneOptionRow(
-                            label = "Sepia",
-                            description = "Authentic printed book paper (#FBF0D9) with deep ink",
-                            isSelected = currentTone == PaperToneMode.WARM_SEPIA,
-                            chipColor = Color(0xFFFBF0D9),
-                            textColor = Color(0xFF3C2F2F),
-                            onClick = { onPaperToneModeChange(PaperToneMode.WARM_SEPIA) }
-                        )
-                        PaperToneOptionRow(
-                            label = "Bone",
-                            description = "Clean white document page with crisp black ink",
-                            isSelected = currentTone == PaperToneMode.NATURAL_WHITE,
-                            chipColor = Color(0xFFFFFFFF),
-                            textColor = Color(0xFF1C1B1F),
-                            onClick = { onPaperToneModeChange(PaperToneMode.NATURAL_WHITE) }
-                        )
-                        PaperToneOptionRow(
-                            label = "Dark slate",
-                            description = "High-contrast dark paper (#141414) for low-light reading",
-                            isSelected = currentTone == PaperToneMode.DARK,
-                            chipColor = Color(0xFF141414),
-                            textColor = Color(0xFFE8E8E8),
-                            onClick = { onPaperToneModeChange(PaperToneMode.DARK) }
-                        )
-                    }
-                }
-            }
-        }
+        ReaderNavigationSettings(settings, onReadingSettingsChange)
 
         // Typeface Accordion
         SettingsHubSectionTitle("Typeface")
@@ -768,63 +672,6 @@ fun ReaderSettingsDialog(
                         onUiFontChange = onUiFontChange
                     )
                 }
-            }
-        }
-
-        // Text Sizing & Spacing Section
-        SettingsHubSectionTitle("Text sizing & spacing")
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = VeritasPackStyle.cardShape(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
-        ) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Text size",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        "${settings.fontSizeSp} sp",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                VeritasRoundSlider(
-                    value = settings.fontSizeSp.toFloat(),
-                    onValueChange = { onFontSizeChange(it.toInt().coerceIn(10, 28)) },
-                    valueRange = 10f..28f,
-                    steps = 17
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Line spacing",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        "${settings.sectionSpacingDp} dp",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                VeritasRoundSlider(
-                    value = settings.sectionSpacingDp.toFloat(),
-                    onValueChange = { onSpacingChange(it.toInt().coerceIn(6, 24)) },
-                    valueRange = 6f..24f,
-                    steps = 17
-                )
             }
         }
 
@@ -924,7 +771,7 @@ fun ReaderSettingsDialog(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Vibrant hero card", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Bold accent gradient on the home card", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Rich colors from your selected theme", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     VeritasSwitch(checked = settings.vibrantHero, onCheckedChange = { onToggleVibrantHero() })
                 }
@@ -945,6 +792,42 @@ fun ReaderSettingsDialog(
                     VeritasSwitch(checked = settings.amoledMode, onCheckedChange = { onToggleAmoledMode() })
                 }
             }
+        }
+    }
+}
+
+@Composable
+internal fun ReaderNavigationSettings(settings: ReaderSettings, onSave: (ReaderSettings) -> Unit) {
+    SettingsHubSectionTitle("Page navigation")
+    Card(Modifier.fillMaxWidth(), shape = VeritasPackStyle.cardShape(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Reading layout", style = MaterialTheme.typography.titleMedium)
+            ReaderNavigationChoices("layout", settings.readingLayout,
+                listOf("pages" to "Page swipe", "scroll" to "Vertical scroll")) { onSave(settings.copy(readingLayout = it)) }
+            Text("Text, illustrations and tables use the selected reading layout.", style = MaterialTheme.typography.bodySmall)
+            Text("Swipe effect", style = MaterialTheme.typography.titleMedium)
+            ReaderNavigationChoices("turn", settings.pageTurnStyle,
+                listOf("slide" to "Slide", "flip" to "Page curl", "hinge" to "Light flip", "none" to "None")) {
+                onSave(settings.copy(pageTurnStyle = it))
+            }
+            Text("Effects apply to text pages in Page swipe mode. Reduce motion turns off page animations.", style = MaterialTheme.typography.bodySmall)
+            Text("Original PDF navigation", style = MaterialTheme.typography.titleMedium)
+            ReaderNavigationChoices("pdf", settings.pdfNavigationMode, listOf("swipe" to "Swipe", "scroll" to "Scroll")) {
+                onSave(settings.copy(pdfNavigationMode = it))
+            }
+        }
+    }
+}
+
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun ReaderNavigationChoices(group: String, selected: String, choices: List<Pair<String, String>>, onSelect: (String) -> Unit) {
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        choices.forEach { (id, label) ->
+            androidx.compose.material3.FilterChip(selected == id, { onSelect(id) }, label = { Text(label) },
+                modifier = Modifier.testTag("reader-$group-$id"))
         }
     }
 }

@@ -118,7 +118,7 @@ def register_commands():
         {"command": "start", "description": "Welcome & Workstation Overview"},
         {"command": "download", "description": "Get latest verified APK releases"},
         {"command": "changelog", "description": "Latest published release notes"},
-        {"command": "milestone", "description": "Upcoming 2.6.2 improvements"},
+        {"command": "milestone", "description": "Upcoming 2.7.0 improvements"},
         {"command": "customize", "description": "Upcoming appearance options"},
         {"command": "security", "description": "Security and update compatibility"},
         {"command": "features", "description": "Workstation capabilities & tools"},
