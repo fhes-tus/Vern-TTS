@@ -5,7 +5,7 @@
 - text/release-notes-en-US.txt: plain release notes.
 - graphics/app-icon-512.png: new big-head cream V on indigo, 512 x 512 PNG, square with no baked-in corner mask.
 - graphics/feature-graphic-1024x500.png: 1024 x 500 RGB PNG, no alpha.
-- text/: title (4/30), short description (59/80), full description (2034/4000).
+- text/: title (4/30), short description (59/80), full description (2057/4000).
 
 ## Supporting material
 - existing-screenshots/: four carried-forward screenshots from the project's existing store set. These are not new captures of this build; review them against the final app before uploading. New home/navigation fixture captures are under verification, not store screenshots.
