@@ -2,24 +2,22 @@
 
 The channel is `@myreader_veritas`; the bot is `@VernTTS_bot`.
 
-## 2.7.0 / 45 drafts
+## 2.7.0 / 45 content
 
 - [Channel announcement](release/v2.7.0/text/telegram-channel-post.txt)
 - [Bot preview copy](release/v2.7.0/text/telegram-bot-preview.html)
 - [Full release notes](RELEASE_NOTES_v2.7.0.md)
 - [Release preparation and verification](release/v2.7.0/README.md)
 
-These are local drafts. Review the channel post after the update is available. The Worker and polling bot's `/milestone` response describes the upcoming version; `/download` and `/changelog` continue to resolve actual published releases. Source updates have not deployed a bot or sent a message.
+The user confirmed version 2.7.0 / build 45 as the current Play release. The bot uses a concise welcome, Google Play as the primary install option, current release notes, and practical reading help. GitHub APK downloads are labelled separately and resolve actual published assets. [Shared content](scripts/telegram_content.json) supplies both bot implementations, profile text, the channel bio, and the channel announcement. Actual publication receipts are recorded in [progress.md](progress.md).
 
 ## Channel bio
 
 ```text
-Vern — read, listen and study with your books and documents.
-Offline-first reading and OCR, optional online tools, and no account required for local reading.
-
-Google Play: https://play.google.com/store/apps/details?id=com.veritas.reader
-Website: https://fhes-tus.github.io/Vern-TTS/
+Vern for Android — read, listen and study. Updates, reading ideas and help.
+Get Vern: https://play.google.com/store/apps/details?id=com.veritas.reader
 Bot: @VernTTS_bot
+Website: https://fhes-tus.github.io/Vern-TTS/
 ```
 
 ## Pinned welcome message
@@ -38,7 +36,7 @@ https://github.com/fhes-tus/Vern-TTS/releases
 Website:
 https://fhes-tus.github.io/Vern-TTS/
 
-For download links and published changes, ask @VernTTS_bot with /download or /changelog. Use /milestone to preview the next update.
+For installation and current changes, ask @VernTTS_bot with /download or /changelog. Version 2.7.0 / build 45 adds photo scanning, quote images, PDF swipes, and reading improvements.
 
 Your reading data stays on the device by default. Optional AI, translation, sharing and online catalog features use their relevant services; the privacy policy explains these and ML Kit diagnostics.
 

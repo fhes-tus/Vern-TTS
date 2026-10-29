@@ -114,24 +114,9 @@ def delete_webhook():
 
 def register_commands():
     print("Registering bot slash commands...")
-    commands = [
-        {"command": "start", "description": "Welcome & Workstation Overview"},
-        {"command": "download", "description": "Get latest verified APK releases"},
-        {"command": "changelog", "description": "Latest published release notes"},
-        {"command": "milestone", "description": "Upcoming 2.7.0 improvements"},
-        {"command": "customize", "description": "Upcoming appearance options"},
-        {"command": "security", "description": "Security and update compatibility"},
-        {"command": "features", "description": "Workstation capabilities & tools"},
-        {"command": "study", "description": "Spaced repetition & study hub"},
-        {"command": "memos", "description": "Embedded voice memos & notes"},
-        {"command": "voice", "description": "Natural voice customization guide"},
-        {"command": "classics", "description": "Browse 35+ curated classics"},
-        {"command": "random", "description": "Get an instant classic book spotlight"},
-        {"command": "search", "description": "Search books by title or author"},
-        {"command": "insights", "description": "Reading speed & tracker analytics"},
-        {"command": "faq", "description": "Knowledge base & troubleshooting"},
-        {"command": "contact", "description": "Official support, X, & GitHub"}
-    ]
+    content_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "telegram_content.json")
+    with open(content_path, encoding="utf-8") as content_file:
+        commands = json.load(content_file)["commands"]
     res = api_call("setMyCommands", {"commands": commands})
     if res and res.get("ok"):
         print("✅ Bot commands registered successfully with Telegram!")

@@ -1,0 +1,46 @@
+{
+  "version": "2.7.0",
+  "build": 45,
+  "play_url": "https://play.google.com/store/apps/details?id=com.veritas.reader",
+  "welcome": "<b>Welcome to Vern.</b>\n\nRead your books and documents, listen on the go, and keep your notes and study cards together.\n\n• Open PDFs, EPUBs, Word documents and text files.\n• Choose a voice and listen with the screen off.\n• Explore classics, save ideas, and review with flashcards.\n\n<b>Version 2.7.0 · Build 45</b>\nChoose an option below to get started.",
+  "release": "<b>What's new in Vern 2.7.0 · Build 45</b>\n\n• Scan a page with your camera or choose a photo.\n• Share a favourite passage from Listen as a quote image.\n• Turn PDF pages with a swipe, or keep scrolling.\n• Adjust your reading layout and save a separate text size for Listen.\n• Enjoy better book covers, theme colours, and reading fixes.\n\nGet Vern on Google Play, or read the full release notes below.",
+  "download": "<b>Get Vern for Android</b>\n<b>Version 2.7.0 · Build 45</b>\n\nInstall from Google Play for straightforward installation and future updates.\n\nPrefer a direct APK? The GitHub button opens the latest published APK release, which may differ from the Play version.\n\nSwitching between APK and Play installs can require reinstalling. Export a backup first, and contact support before uninstalling if an update fails.",
+  "features_intro": "<b>Read, listen, and remember more.</b>\n\nExplore reading tools, voice settings, notes, study cards, and your reading habits. Choose a topic below.",
+  "voice": "<b>Choose a voice you enjoy.</b>\n\n1. Open a book and tap the speaker or audio settings control.\n2. Choose an engine and preview a voice.\n3. Adjust speed and pitch to suit you.\n\nFor offline listening, install an offline voice first. Android voices depend on your chosen speech engine; additional voice downloads need an internet connection.",
+  "features": {
+    "memos": {"title": "Notes and voice memos", "body": "Keep written notes and spoken thoughts beside the passage that inspired them. Revisit your saved ideas while reading or studying."},
+    "study": {"title": "Make it stick", "body": "Create flashcards, review them with spaced repetition, and practise with quizzes. Keep study materials organised by book or topic. Study-guide PDF export is in Study Hub."},
+    "speech": {"title": "Listen your way", "body": "Choose a voice, adjust speed and pitch, and keep listening with the screen off. Use the player or lock-screen controls to pause and move through the text. Offline listening needs an installed offline voice."},
+    "insights": {"title": "Follow your reading habits", "body": "See your reading time, progress, and streaks. Reading history is stored on your device so you can follow your own pace."},
+    "docs": {"title": "Bring your books", "body": "Open PDFs, EPUBs, Word documents, and text files from your device. Use Scan / OCR to take a photo or choose one, and explore the Classics shelf for your next book."},
+    "tones": {"title": "Make yourself comfortable", "body": "Choose fonts, text size, page colours, and reading layout. Use light, sepia, dark, or black pages, and save a separate text size for Listen."},
+    "modes": {"title": "Turn pages or keep scrolling", "body": "Choose paged reading or continuous scrolling in reader tools. In PDFs, Page swipe keeps one page in focus; you can switch back to vertical scrolling."},
+    "privacy": {"title": "Your library, on your device", "body": "Local reading needs no account. Your library, notes, and reading history stay on your device. Optional AI, translation, and web tools connect to the provider you choose. Google ML Kit may collect operational SDK diagnostics. See the privacy policy for details."}
+  },
+  "faqs": {
+    "voice": {"title": "Voices and listening", "body": "<b>Can I change the voice?</b>\nYes. Open audio settings, select an engine and voice, then preview it. Speed and pitch are adjustable.\n\n<b>Can I listen offline?</b>\nYes, with an installed offline voice. Downloads and some Android speech engines need an internet connection."},
+    "reading": {"title": "Reading and files", "body": "<b>Which files can I read?</b>\nPDF, EPUB, DOCX, and TXT are supported, along with other common reading formats.\n\n<b>Can I change the layout?</b>\nChoose fonts, page colours, text size, and paged or scrolling views in reader tools."},
+    "study": {"title": "Notes and studying", "body": "<b>How do I review what I read?</b>\nSave notes and voice memos, organise flashcards, and practise with quizzes in Study Hub.\n\n<b>Where is study-guide PDF export?</b>\nIn Study Hub. Reading lists remain in Library and app Settings."},
+    "security": {"title": "Privacy and offline use", "body": "<b>Is my library private?</b>\nYour library and reading history stay on your device. Optional online tools connect to chosen providers. Google ML Kit may collect operational SDK diagnostics.\n\n<b>Do I need an account?</b>\nNo account is required for local reading. Details: https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md"},
+    "updates": {"title": "Updates and backups", "body": "<b>How do I update?</b>\nUse Google Play if you installed there. For an APK install, use a compatible official APK. Switching between the two can require reinstalling.\n\n<b>Will I lose my books?</b>\nCompatible updates preserve app data. Export a backup before any uninstall, and contact support if an update fails. Follow @myreader_veritas for updates."}
+  },
+  "commands": [
+    {"command":"start","description":"Start here"},
+    {"command":"download","description":"Get Vern on Google Play or find APKs"},
+    {"command":"changelog","description":"What's new in 2.7.0 · build 45"},
+    {"command":"features","description":"Reading, listening, notes and study tools"},
+    {"command":"classics","description":"Explore the classics shelf"},
+    {"command":"search","description":"Find a classic by title or author"},
+    {"command":"random","description":"Discover a classic to read next"},
+    {"command":"voice","description":"Choose and adjust your reading voice"},
+    {"command":"study","description":"Flashcards, quizzes and study guides"},
+    {"command":"memos","description":"Written notes and voice memos"},
+    {"command":"insights","description":"Reading progress and habits"},
+    {"command":"faq","description":"A few useful answers"},
+    {"command":"contact","description":"Support, channel and website"}
+  ],
+  "bot_description": "Read. Listen. Make it stick. Get Vern for Android, discover classics, and find help with voices, notes and study tools. Version 2.7.0 · build 45. No account needed for local reading.",
+  "bot_short_description": "Vern for Android: read, listen and study. Downloads, classics and help. v2.7.0 · build 45.",
+  "channel_description": "Vern for Android — read, listen and study. Updates, reading ideas and help.\nGet Vern: https://play.google.com/store/apps/details?id=com.veritas.reader\nBot: @VernTTS_bot\nWebsite: https://fhes-tus.github.io/Vern-TTS/",
+  "channel_post": "<b>Vern 2.7.0 · Build 45</b>\n\nA few small changes for better reading:\n\n• Scan a page with your camera or choose a photo.\n• Share a favourite Listen passage as a quote image.\n• Swipe through PDFs or keep scrolling.\n• Save your Listen text size separately.\n• Enjoy better covers, theme colours, and reading fixes.\n\nRead, listen, and keep your ideas together.\n\nGet Vern on Google Play below. For help and book discoveries, visit @VernTTS_bot.\n\nAlready using a GitHub APK? Export a backup before switching install sources; contact support if an update fails."
+}

@@ -1,3 +1,4 @@
+import CONTENT from "../scripts/telegram_content.json";
 /**
  * Vern TTS Autonomous Telegram Bot Worker (Comprehensive Workstation Edition)
  * Serverless 24/7 Telegram Webhook Handler on Cloudflare Workers
@@ -336,7 +337,7 @@ export default {
     if (request.method !== "POST") {
       if (!["GET", "HEAD"].includes(request.method)) return new Response("Method not allowed", { status: 405 });
       if (new URL(request.url).pathname !== "/") return new Response("Not found", { status: 404 });
-      return new Response("Vern TTS Telegram Bot Webhook Active (Workstation Edition)", { status: 200 });
+      return new Response("Vern Telegram bot active", { status: 200 });
     }
 
     if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_WEBHOOK_SECRET) {
@@ -496,21 +497,7 @@ function escapeHtml(str) {
 }
 
 async function setupBotCommands(token) {
-  const commands = [
-    { command: "start", description: "Welcome & Workstation Overview" },
-    { command: "download", description: "Get latest verified APK releases" },
-    { command: "changelog", description: "What's new in latest release" },
-    { command: "features", description: "Workstation capabilities & tools" },
-    { command: "study", description: "Spaced repetition & study hub" },
-    { command: "memos", description: "Embedded voice memos & notes" },
-    { command: "voice", description: "Natural voice customization guide" },
-    { command: "classics", description: "Browse 35+ curated classics" },
-    { command: "random", description: "Get an instant classic book spotlight" },
-    { command: "search", description: "Search books by title or author" },
-    { command: "insights", description: "Reading speed & tracker analytics" },
-    { command: "faq", description: "Knowledge base & troubleshooting" },
-    { command: "contact", description: "Official support, X, & GitHub" }
-  ];
+  const commands = CONTENT.commands;
   const url = `https://api.telegram.org/bot${token}/setMyCommands`;
   const res = await fetch(url, {
     method: "POST",
@@ -549,19 +536,8 @@ async function getLatestRelease() {
 }
 
 async function sendMilestone(token, chatId) {
-  await sendMessage(token, chatId,
-    "<b>Vern 2.7.0 release preview</b>\n\n" +
-    "This update is in development; published downloads still use the latest stable release.\n\n" +
-    "• Take a photo or choose one for on-device Scan / OCR.\n" +
-    "• Share up to five Listen sentences as quote images, with 14 colours and editable credit.\n" +
-    "• Focused PDF swipes, inline layout choices and separate Listen text size.\n" +
-    "• Study-guide PDF export in Study Hub; new missing covers in details and widgets too.\n" +
-    "• Fixes for contents entries, unsupported imports, Funky cards, greetings and AMOLED colours.\n" +
-    "• Theme-following Home colours with the original animated rings.\n\n" +
-    "APK and Play updates require the same package and compatible signing certificates. Keep your installed app while checking compatibility; export a backup before any uninstall.",
-    { inline_keyboard: [[{ text: "Preview notes", url: `${GITHUB_URL}/blob/main/RELEASE_NOTES_v2.7.0.md` }]] });
+  await sendChangelogContent(token, chatId);
 }
-
 
 function markdownToTelegramHtml(mdText, maxBullets = 8) {
   if (!mdText) return "";
@@ -636,282 +612,52 @@ function markdownToTelegramHtml(mdText, maxBullets = 8) {
 }
 
 async function sendChangelogContent(token, chatId, messageId = null) {
-  const rel = await getLatestRelease();
-  const tag = rel.tag;
-  let formattedNotes = "";
-
-  if (rel.body) {
-    formattedNotes = markdownToTelegramHtml(rel.body, 8);
-  }
-
-  if (!formattedNotes) {
-    formattedNotes =
-      "• <b>Bidirectional Notes Sharing</b>: Multi-format export (TXT, PDF, audio recordings, or restorable ZIP) and external stream imports.\n" +
-      "• <b>Measured Reading Sessions Ledger</b>: Crash-resilient tracking separating silent reading from confirmed neural audio playback.\n" +
-      "• <b>Resilient Vocabulary & Wiktionary</b>: Background WorkManager definition resolution with multi-dictionary fallbacks.\n" +
-      "• <b>Save to Phone Storage</b>: Direct external document export surviving app uninstalls.\n" +
-      "• <b>Listen & Insights Redesign</b>: Liquid glass controls, streak flame animations, and Midnight (System) default theme.\n" +
-      "• <b>Kokoro 54-Speaker Voice Compatibility</b>: Concurrency-locked voice downloads and neural speech text cleanup.\n" +
-      "• <b>Leaner APK Packaging</b>: Significant file size reductions across arm64, armeabi-v7a, and Universal builds.";
-  }
-
-  const text =
-    `📋 <b>What's New in Vern TTS ${tag}</b>\n\n` +
-    `${formattedNotes}\n\n` +
-    `<i>Build: ${tag} • 100% Private, On-Device Reading</i>`;
-
-  const markup = {
-    inline_keyboard: [
-      [{ text: `⬇️ Download ${tag} APKs`, callback_data: "cmd_download" }],
-      [{ text: "🐙 GitHub Release", url: `${GITHUB_URL}/releases/tag/${tag}` }, { text: "🌐 Official Website", url: WEBSITE_URL }],
-      [{ text: "⬅️ Back to Main Menu", callback_data: "cmd_menu" }]
-    ]
-  };
-
-  if (messageId) {
-    await editMessageText(token, chatId, messageId, text, markup);
-  } else {
-    await sendMessage(token, chatId, text, markup);
-  }
+  const text = CONTENT.release;
+  const markup = {"inline_keyboard":[[{"text":"Get it on Google Play","url":"https://play.google.com/store/apps/details?id=com.veritas.reader"}],[{"text":"Full release notes","url":"https://github.com/fhes-tus/Vern-TTS/blob/main/RELEASE_NOTES_v2.7.0.md"}],[{"text":"Main menu","callback_data":"cmd_menu"}]]};
+  if (messageId) await editMessageText(token, chatId, messageId, text, markup);
+  else await sendMessage(token, chatId, text, markup);
 }
 
 /* --- Navigation & Menu Handlers --- */
 
 async function sendWelcome(token, chatId, messageId = null) {
-  const rel = await getLatestRelease();
-  const text =
-    `👋 <b>Welcome to the Vern TTS Knowledge Center!</b>\n\n` +
-    `<b>Vern TTS is an offline-first Android reading workstation. Built with on-device speech synthesis, a spaced-repetition study hub, embedded voice memos, and local reading history.</b>\n\n` +
-    `⚡️ <b>Workstation Capabilities:</b>\n` +
-    `• 🎙 <b>Embedded Voice Memos</b>: Spoken margin notes & audio reflections attached to any passage.\n` +
-    `• 🧠 <b>Spaced-Repetition Study Hub</b>: Active recall flashcards, Leitner review scheduling, & retention scoring.\n` +
-    `• 🎧 <b>On-Device Neural Speech</b>: High-fidelity narration with lockscreen media controls & sentence sync.\n` +
-    `• 📄 <b>Universal Document Studio</b>: PDF, EPUB, TXT, DOCX, & Markdown with automatic prose synopses.\n` +
-    `• 👁 <b>4 Unified Paper Tones</b>: Clean White, Warm Sepia, Soft Dark, & True AMOLED Black.\n` +
-    `• 📚 <b>35+ Curated Classics</b>: Built-in library pre-loaded with authentic published first-edition covers.\n` +
-    `• 📊 <b>Local Reading Tracker</b>: WPM speed, daily reading minutes, streaks, and local SQLite data.\n` +
-    `• 🛡 <b>Offline-first</b>: No ads or mandatory account. Library and reading history are stored locally.\n\n` +
-    `<i>Current Verified Build: <b>${rel.tag}</b> • Tap any section below to explore:</i>`;
-
-  const markup = {
-    inline_keyboard: [
-      [
-        { text: "⬇️ Download APKs", callback_data: "cmd_download" },
-        { text: `📋 What's New (${rel.tag})`, callback_data: "cmd_changelog" }
-      ],
-      [
-        { text: "2.7.0 preview", callback_data: "cmd_milestone" },
-        { text: "📚 Curated Classics", callback_data: "cmd_classics" }
-      ],
-      [
-        { text: "🧠 Study Hub & Cards", callback_data: "feat_study" },
-        { text: "🎙 Voice Memos", callback_data: "feat_memos" }
-      ],
-      [
-        { text: "🎧 Voice Setup Guide", callback_data: "cmd_guide_voice" },
-        { text: "❓ In-Depth FAQs", callback_data: "cmd_faq" }
-      ],
-      [
-        { text: "📢 Telegram Community", url: CHANNEL_URL },
-        { text: "🌐 Official Website", url: WEBSITE_URL }
-      ]
-    ]
-  };
-
-  if (messageId) {
-    await editMessageText(token, chatId, messageId, text, markup);
-  } else {
-    await sendMessage(token, chatId, text, markup);
-  }
+  const text = CONTENT.welcome;
+  const markup = {"inline_keyboard":[[{"text":"Get it on Google Play","url":"https://play.google.com/store/apps/details?id=com.veritas.reader"}],[{"text":"What's new in 2.7.0","callback_data":"cmd_changelog"},{"text":"Explore classics","callback_data":"cmd_classics"}],[{"text":"Features","callback_data":"cmd_features"},{"text":"Voices and listening","callback_data":"cmd_guide_voice"}],[{"text":"Help / FAQs","callback_data":"cmd_faq"},{"text":"Telegram channel","url":"https://t.me/myreader_veritas"}],[{"text":"Website","url":"https://fhes-tus.github.io/Vern-TTS/"}]]};
+  if (messageId) await editMessageText(token, chatId, messageId, text, markup);
+  else await sendMessage(token, chatId, text, markup);
 }
 
 async function sendDownloadInfo(token, chatId, messageId = null) {
   const rel = await getLatestRelease();
-  const text =
-    `📦 <b>Download Vern TTS (${rel.tag} Latest Stable)</b>\n\n` +
-    `Select the optimal build for your device architecture:\n\n` +
-    `• <a href="${rel.arm64_url}"><b>64-bit ARM APK (arm64-v8a)</b></a> ⭐️ <i>Recommended</i>\n` +
-    `  Tailored for modern Android devices (Android 9 or later). Smallest footprint and highest execution performance.\n\n` +
-    `• <a href="${rel.universal_url}"><b>Universal Release APK</b></a>\n` +
-    `  Contains runtime binaries for all chipsets. Compatible with any supported phone, tablet, or Chromebook.\n\n` +
-    `• <a href="${rel.arm32_url}"><b>32-bit Legacy APK (armeabi-v7a)</b></a>\n` +
-    `  For older devices and budget hardware architectures running 32-bit chipsets.\n\n` +
-    `🛡 <b>Safe Sideloading Note:</b>\n` +
-    `If Android prompts <i>\"Install from Unknown Sources\"</i>, tap <b>Allow</b>. This is standard for apps installed outside Google Play. Vern has no ads and is open source under the Apache 2.0 license. See the privacy policy for online features and ML Kit SDK diagnostics.\n\n` +
-    `⏳ <b>Google Play Store:</b> Application review is currently in progress. The official Play Store listing will be available shortly!`;
-
-  const markup = {
-    inline_keyboard: [
-      [
-        { text: `⬇️ Download arm64 APK (${rel.tag})`, url: rel.arm64_url }
-      ],
-      [
-        { text: `📋 What's New in ${rel.tag}`, callback_data: "cmd_changelog" },
-        { text: "🌐 Official Website", url: WEBSITE_URL }
-      ],
-      [
-        { text: "📦 All Builds on GitHub", url: `${GITHUB_URL}/releases/latest` }
-      ],
-      [
-        { text: "⬅️ Back to Main Menu", callback_data: "cmd_menu" }
-      ]
-    ]
-  };
-
-  if (messageId) {
-    await editMessageText(token, chatId, messageId, text, markup);
-  } else {
-    await sendMessage(token, chatId, text, markup);
-  }
+  const text = CONTENT.download + '\n\nLatest GitHub APK release: <b>' + escapeHtml(stripHtmlTags(rel.tag)) + '</b>';
+  const markup = {"inline_keyboard":[[{"text":"Get it on Google Play","url":"https://play.google.com/store/apps/details?id=com.veritas.reader"}],[{"text":"Published GitHub APKs","url":"https://github.com/fhes-tus/Vern-TTS/releases/latest"}],[{"text":"What's new","callback_data":"cmd_changelog"},{"text":"Support","callback_data":"cmd_contact"}],[{"text":"Main menu","callback_data":"cmd_menu"}]]};
+  // Use only an actual published asset, never an invented download filename.
+  if (rel.universal_url !== GITHUB_URL + '/releases/latest') markup.inline_keyboard.splice(2, 0, [{text: 'Universal APK (' + stripHtmlTags(rel.tag) + ')', url: rel.universal_url}]);
+  else if (rel.arm64_url !== GITHUB_URL + '/releases/latest') markup.inline_keyboard.splice(2, 0, [{text: 'ARM64 APK (' + stripHtmlTags(rel.tag) + ')', url: rel.arm64_url}]);
+  if (messageId) await editMessageText(token, chatId, messageId, text, markup);
+  else await sendMessage(token, chatId, text, markup);
 }
 
 async function sendFeaturesMenu(token, chatId, messageId = null) {
-  const text =
-    `🌟 <b>Vern TTS Workstation Architecture</b>\n\n` +
-    `Vern TTS transforms your Android device into a focused, distraction-free reading workstation.\n\n` +
-    `Select an engineering pillar below to inspect how it works:`;
-
-  const markup = {
-    inline_keyboard: [
-      [
-        { text: "🎙 Embedded Voice Memos", callback_data: "feat_memos" },
-        { text: "🧠 Spaced-Repetition Study Hub", callback_data: "feat_study" }
-      ],
-      [
-        { text: "🎧 On-Device Speech Synthesis", callback_data: "feat_speech" },
-        { text: "📄 Document Studio & Formats", callback_data: "feat_docs" }
-      ],
-      [
-        { text: "👁 4 Unified Paper Tones", callback_data: "feat_tones" },
-        { text: "📊 Reading Tracker & Insights", callback_data: "feat_insights" }
-      ],
-      [
-        { text: "📖 Dual Reading Modes", callback_data: "feat_modes" },
-        { text: "🛡 100% Offline Privacy", callback_data: "feat_privacy" }
-      ],
-      [
-        { text: "⬅️ Back to Main Menu", callback_data: "cmd_menu" }
-      ]
-    ]
-  };
-
-  if (messageId) {
-    await editMessageText(token, chatId, messageId, text, markup);
-  } else {
-    await sendMessage(token, chatId, text, markup);
-  }
+  const text = CONTENT.features_intro;
+  const markup = {"inline_keyboard":[[{"text":"Reading and files","callback_data":"feat_docs"},{"text":"Voices and listening","callback_data":"feat_speech"}],[{"text":"Notes and voice memos","callback_data":"feat_memos"},{"text":"Flashcards and quizzes","callback_data":"feat_study"}],[{"text":"Page colours and text","callback_data":"feat_tones"},{"text":"Reading habits","callback_data":"feat_insights"}],[{"text":"Page turns and scrolling","callback_data":"feat_modes"},{"text":"Privacy","callback_data":"feat_privacy"}],[{"text":"Main menu","callback_data":"cmd_menu"}]]};
+  if (messageId) await editMessageText(token, chatId, messageId, text, markup);
+  else await sendMessage(token, chatId, text, markup);
 }
 
 async function sendFeatureDetail(token, chatId, messageId, topic) {
-  let title = "";
-  let body = "";
-
-  if (topic === "memos") {
-    title = "🎙 <b>Embedded Voice Memos & Spoken Annotations</b>";
-    body =
-      `• <b>Frictionless Spoken Notes</b>: While reading any book or document, tap any paragraph or margin to record audio reflections without breaking your concentration.\n` +
-      `• <b>Synchronized Timestamps</b>: Every voice memo is tied directly to the exact sentence and chapter where it was recorded.\n` +
-      `• <b>In-Line Playback</b>: Tap the audio memo icon beside any highlighted passage to play back your recorded thoughts directly on the page.\n` +
-      `• <b>100% Local Storage</b>: Audio recordings are stored locally inside the application sandbox with zero cloud transmission or AI data scraping.`;
-  } else if (topic === "study") {
-    title = "🧠 <b>Spaced-Repetition Study Hub & Active Recall</b>";
-    body =
-      `• <b>Active Recall Flashcards</b>: Highlight notable quotes, definitions, or complex arguments to instantly generate interactive Question / Answer study cards.\n` +
-      `• <b>Spaced-Repetition Scheduling</b>: Review cards using calibrated intervals that reinforce memory retention right before forgetting sets in.\n` +
-      `• <b>Study Decks by Book</b>: Filter cards by specific documents, tags, or browse your master library deck.\n` +
-      `• <b>Mastery Progress</b>: Track card retention rates, mastery levels, and review intervals locally on your device.`;
-  } else if (topic === "speech") {
-    title = "🎧 <b>On-Device Neural Speech Synthesis Engine</b>";
-    body =
-      `• <b>Zero-Cloud Latency</b>: All speech generation runs locally using on-device engines. Zero audio streaming delays and zero data sent to servers.\n` +
-      `• <b>Continuous Background Audio</b>: Keep listening seamlessly while multitasking, using other apps, or with your phone display turned off.\n` +
-      `• <b>Lockscreen & Notification Media Controls</b>: Native Android media player controls with Play, Pause, Previous/Next sentence skip, and progress scrub.\n` +
-      `• <b>Synchronized Sentence Highlighting</b>: Words and active sentences dynamically illuminate on screen in sync with the spoken voice.\n` +
-      `• <b>In-App Engine Customization</b>: Tap the speaker icon while reading to switch between Vern Lite, Vern Studio, Google Speech, or Samsung engines, with real-time rate (0.5x–3.0x) and pitch tuning.`;
-  } else if (topic === "insights") {
-    title = "📊 <b>Reading Tracker & Local Insights</b>";
-    body =
-      `• <b>Reading Speed (WPM)</b>: Accurately computes your personal Words-Per-Minute reading pace across different genres.\n` +
-      `• <b>Daily Reading Minutes & Streaks</b>: Visual tracking of reading time and consistency to cultivate steady daily reading habits.\n` +
-      `• <b>Book Completion Statistics</b>: Pages turned, chapters read, and milestones achieved across your bookshelf.\n` +
-      `• <b>Local Reading Statistics</b>: Reading statistics are stored in the app database. See the privacy policy for optional online features and ML Kit diagnostics.`;
-  } else if (topic === "docs") {
-    title = "📄 <b>Universal Document Studio & Formats</b>";
-    body =
-      `• <b>Supported Formats</b>: PDF, EPUB, TXT, DOCX (Word), and Markdown (.md).\n` +
-      `• <b>Intelligent Heuristic Synopsis</b>: Automatically bypasses Gutenberg boilerplate headers, legal notices, and licenses to extract the clean opening prose as a synopsis.\n` +
-      `• <b>Dedicated PDF Media Bar</b>: Tailored PDF controls featuring 1-tap screen orientation switching (Portrait / Landscape) and Next sentence skip.\n` +
-      `• <b>Universal Storage Access</b>: Import documents directly from Internal Storage, SD Cards, Google Drive, or Downloads.`;
-  } else if (topic === "tones") {
-    title = "👁 <b>4 Unified Paper Tones & Eye Comfort</b>";
-    body =
-      `Vern features 4 carefully calibrated color palettes designed for maximum reading endurance:\n\n` +
-      `1. <b>Clean White</b> (Daylight): Crisp, high-contrast black typography on neutral white.\n` +
-      `2. <b>Warm Sepia</b> (Extended Reading): Warm cream background with softened amber tint that eliminates blue-light eye strain during long sessions.\n` +
-      `3. <b>Soft Dark</b> (Evening): Gentle slate-slate contrast that eliminates harsh glare in low-light environments.\n` +
-      `4. <b>AMOLED Black</b> (Night / Battery Saver): Pure 0% luminance black (#000000) pixels that completely deactivate OLED subpixels, saving massive battery life.`;
-  } else if (topic === "modes") {
-    title = "📖 <b>Dual Reading Modes & Navigation</b>";
-    body =
-      `• <b>Paged Reading Mode</b>: Authentic physical book simulation with horizontal page flips, subtle page shadows, and haptic feedback.\n` +
-      `• <b>Continuous Flow Mode</b>: Smooth, frictionless vertical scrolling with responsive typography that automatically reflows to fit your screen size.\n` +
-      `• <b>Sentence Snap</b>: Tap any sentence anywhere on a page to immediately jump audio narration directly to that sentence.\n` +
-      `• <b>Fluid Library Gestures</b>: Drag-and-drop to reorder your bookshelf, hold-to-select for batch actions, and swipe to bookmark.`;
-  } else {
-    title = "🛡 <b>Offline-first Privacy</b>";
-    body =
-      `• <b>Local Reading Statistics</b>: No developer-operated remote reading analytics. Google ML Kit can collect SDK diagnostics; see the privacy policy.\n` +
-      `• <b>Zero Accounts Required</b>: No logins, passwords, or emails. Download and start reading in 2 seconds.\n` +
-      `• <b>Zero Ads Forever</b>: Clean, distraction-free reading with zero banners, popups, or subscriptions.\n` +
-      `• <b>Local SQLite Storage</b>: All reading history, bookmarks, and notes are stored strictly on your phone's internal sandbox.\n` +
-      `• <b>Open Source</b>: Complete source code is auditable on GitHub under the Apache 2.0 license.`;
-  }
-
-  const text = `${title}\n\n${body}`;
-  const markup = {
-    inline_keyboard: [
-      [
-        { text: "⬅️ Back to Features", callback_data: "cmd_features" },
-        { text: "🏠 Main Menu", callback_data: "cmd_menu" }
-      ]
-    ]
-  };
-
-  if (messageId) {
-    await editMessageText(token, chatId, messageId, text, markup);
-  } else {
-    await sendMessage(token, chatId, text, markup);
-  }
+  const detail = CONTENT.features[topic] || CONTENT.features.privacy;
+  const text = '<b>' + escapeHtml(detail.title) + '</b>\n\n' + detail.body;
+  const markup = {inline_keyboard: [[{text: 'Back to features', callback_data:'cmd_features'}, {"text":"Main menu","callback_data":"cmd_menu"}]]};
+  if (messageId) await editMessageText(token, chatId, messageId, text, markup);
+  else await sendMessage(token, chatId, text, markup);
 }
 
 async function sendGuideMasterclass(token, chatId, messageId = null) {
-  const text =
-    `🎧 <b>Masterclass: How to Customize & Preview Voices</b>\n\n` +
-    `Vern TTS gives you complete control over narration directly <b>inside the app</b>:\n\n` +
-    `<b>1. In-App Voice Engine & Picker:</b>\n` +
-    `While reading any document, tap the <b>Speaker icon</b> on the bottom player bar. Tap the voice picker to switch between available engines (such as Vern Lite, Vern Studio, Google Speech, or Samsung) and preview different vocal styles.\n\n` +
-    `<b>2. Real-Time Pitch & Velocity:</b>\n` +
-    `Use the in-app sliders to adjust speech speed from <b>0.5x up to 3.0x</b> and tune vocal pitch to your preference.\n\n` +
-    `<b>3. Optional Extra Voice Packs:</b>\n` +
-    `If you want additional neural accents or languages, you can also install them in Android Settings > Accessibility > Text-to-Speech output. Vern TTS will automatically detect and list them in your in-app voice menu!`;
-
-  const markup = {
-    inline_keyboard: [
-      [
-        { text: "⬇️ Download Vern TTS", callback_data: "cmd_download" },
-        { text: "❓ FAQs", callback_data: "cmd_faq" }
-      ],
-      [
-        { text: "⬅️ Back to Main Menu", callback_data: "cmd_menu" }
-      ]
-    ]
-  };
-
-  if (messageId) {
-    await editMessageText(token, chatId, messageId, text, markup);
-  } else {
-    await sendMessage(token, chatId, text, markup);
-  }
+  const text = CONTENT.voice;
+  const markup = {"inline_keyboard":[[{"text":"Main menu","callback_data":"cmd_menu"}]]};
+  if (messageId) await editMessageText(token, chatId, messageId, text, markup);
+  else await sendMessage(token, chatId, text, markup);
 }
 
 async function sendRandomBook(token, chatId, messageId = null) {
@@ -1081,148 +827,27 @@ async function sendClassicsSearch(token, chatId, query) {
 }
 
 async function sendContactChannels(token, chatId, messageId = null) {
-  const text =
-    `📬 <b>Vern TTS Official Channels & Access</b>\n\n` +
-    `Connect directly with the project and maintain data sovereignty:\n\n` +
-    `• 📢 <b>Telegram Community:</b> @myreader_veritas\n` +
-    `• 🐙 <b>GitHub Repository:</b> <a href="${GITHUB_URL}">fhes-tus/Vern-TTS</a>\n` +
-    `• 𝕏 <b>X (Twitter):</b> <a href="${TWITTER_URL}">@_1st2us</a>\n` +
-    `• ✉️ <b>Support & Inquiries:</b> <code>${EMAIL_ADDRESS}</code>\n` +
-    `• 🌐 <b>Official Website:</b> <a href="${WEBSITE_URL}">${WEBSITE_URL}</a>\n\n` +
-    `<i>Open source under Apache 2.0 license. Local reading history; no ads or mandatory account.</i>`;
-
-  const markup = {
-    inline_keyboard: [
-      [
-        { text: "📢 Telegram Community", url: CHANNEL_URL },
-        { text: "🐙 GitHub Repository", url: GITHUB_URL }
-      ],
-      [
-        { text: "𝕏 Follow on X", url: TWITTER_URL },
-        { text: "🌐 Official Website", url: WEBSITE_URL }
-      ],
-      [
-        { text: "✉️ Email Support", url: `mailto:${EMAIL_ADDRESS}?subject=Vern%20TTS%20Inquiry` }
-      ],
-      [
-        { text: "⬅️ Back to Main Menu", callback_data: "cmd_menu" }
-      ]
-    ]
-  };
-
-  if (messageId) {
-    await editMessageText(token, chatId, messageId, text, markup);
-  } else {
-    await sendMessage(token, chatId, text, markup);
-  }
+  const text = "<b>Stay in touch.</b>\n\nFollow @myreader_veritas for updates and reading ideas.\n\nNeed help? Email myreader.veritas@gmail.com. For a bug report, include your Android version, document format, and what happened.";
+  const markup = {"inline_keyboard":[[{"text":"Telegram channel","url":"https://t.me/myreader_veritas"},{"text":"Website","url":"https://fhes-tus.github.io/Vern-TTS/"}],[{"text":"Source code","url":"https://github.com/fhes-tus/Vern-TTS"}],[{"text":"Main menu","callback_data":"cmd_menu"}]]};
+  if (messageId) await editMessageText(token, chatId, messageId, text, markup);
+  else await sendMessage(token, chatId, text, markup);
 }
 
 async function sendFaqMenu(token, chatId, messageId = null) {
-  const text =
-    `❓ <b>Vern TTS Knowledge Base & FAQs</b>\n\n` +
-    `Choose a category to find comprehensive answers:`;
-
-  const markup = {
-    inline_keyboard: [
-      [
-        { text: "🎧 Voice Quality & Audio", callback_data: "faq_audio" },
-        { text: "📄 Formats & Scanned PDFs", callback_data: "faq_formats" }
-      ],
-      [
-        { text: "👁 Paper Tones & AMOLED", callback_data: "faq_display" },
-        { text: "📝 Study Cards & Voice Memos", callback_data: "faq_study" }
-      ],
-      [
-        { text: "🛡 Privacy & Safe Sideloading", callback_data: "faq_security" },
-        { text: "🔄 Updates & Progress", callback_data: "faq_updates" }
-      ],
-      [
-        { text: "⬅️ Back to Main Menu", callback_data: "cmd_menu" }
-      ]
-    ]
-  };
-
-  if (messageId) {
-    await editMessageText(token, chatId, messageId, text, markup);
-  } else {
-    await sendMessage(token, chatId, text, markup);
-  }
+  const text = '<b>A few useful answers.</b>\n\nChoose a topic below.';
+  const markup = {"inline_keyboard":[[{"text":"Voices and offline listening","callback_data":"faq_voice"}],[{"text":"Reading and files","callback_data":"faq_reading"},{"text":"Notes and studying","callback_data":"faq_study"}],[{"text":"Privacy","callback_data":"faq_security"},{"text":"Updates and backups","callback_data":"faq_updates"}],[{"text":"Main menu","callback_data":"cmd_menu"}]]};
+  if (messageId) await editMessageText(token, chatId, messageId, text, markup);
+  else await sendMessage(token, chatId, text, markup);
 }
 
 async function sendFaqDetail(token, chatId, messageId, topic) {
-  let title = "";
-  let body = "";
-
-  if (topic === "audio") {
-    title = "🎧 <b>Audio & Speech Engine FAQs</b>";
-    body =
-      `<b>Q: Why does the voice sound robotic, and how do I customize it?</b>\n` +
-      `A: You can customize voices directly inside the app! While reading, tap the speaker icon on the bottom player bar to open the Voice Picker. You can switch between engines (Vern Lite, Vern Studio, Google, or Samsung) and select smoother voices. You can also download extra neural voice packs in Android Settings > Text-to-speech, and Vern will automatically list them in the in-app picker.\n\n` +
-      `<b>Q: Can I listen with my phone screen turned off?</b>\n` +
-      `A: Yes! Vern TTS features a persistent Android Media Notification service. It continues narration in the background while your phone is locked or while using other apps.\n\n` +
-      `<b>Q: Can I change playback speed and pitch?</b>\n` +
-      `A: Yes. Tap the speaker icon on the bottom reading bar to adjust speech rate from 0.5x up to 3.0x, tune vocal pitch, and select specific voice engines.\n\n` +
-      `<b>Q: Does text highlight as the voice speaks?</b>\n` +
-      `A: Yes! Active sentences and paragraphs dynamically highlight on screen in sync with the spoken audio.`;
-  } else if (topic === "formats") {
-    title = "📄 <b>Document Formats & Scanned PDFs</b>";
-    body =
-      `<b>Q: What file formats are supported?</b>\n` +
-      `A: Vern TTS supports PDF, EPUB, TXT, DOCX (Microsoft Word), and Markdown (.md).\n\n` +
-      `<b>Q: Can Vern read scanned image-only PDFs?</b>\n` +
-      `A: Standard PDFs with digital text layers extract and read instantly. Image-only scanned PDFs (photocopies without embedded text) require OCR before text can be extracted for speech.\n\n` +
-      `<b>Q: Where are the 35+ classic books stored?</b>\n` +
-      `A: The classics catalog metadata is pre-indexed inside the app. When you tap a book to read, it downloads the clean public domain text on-demand and saves it locally.`;
-  } else if (topic === "display") {
-    title = "👁 <b>Paper Tones & Display FAQs</b>";
-    body =
-      `<b>Q: How does AMOLED Black save battery?</b>\n` +
-      `A: On OLED/AMOLED smartphone screens, black pixels (#000000) are physically turned OFF completely and consume 0% power. Reading in AMOLED Black can extend your battery life by up to 40% during long sessions.\n\n` +
-      `<b>Q: Why is Warm Sepia recommended for reading?</b>\n` +
-      `A: Blue light from white screens disrupts melatonin production and causes eye fatigue. Warm Sepia filters out harsh high-frequency blue spectrums, creating a comforting experience identical to aged physical book pages.\n\n` +
-      `<b>Q: Can I switch between paged flips and vertical scrolling?</b>\n` +
-      `A: Yes! You can toggle between physical-style Paged Mode (with page-turn haptics) and continuous vertical Flow Mode at any time.`;
-  } else if (topic === "study") {
-    title = "📝 <b>Study Hub & Voice Memos FAQs</b>";
-    body =
-      `<b>Q: How do Study Cards work?</b>\n` +
-      `A: While reading, highlight any passage or sentence and tap <i>Save to Study Hub</i>. You can review them anytime with interactive flip cards (Question / Answer) to memorize key concepts using spaced repetition.\n\n` +
-      `<b>Q: How do Embedded Voice Memos work?</b>\n` +
-      `A: Tap on any paragraph to record quick spoken thoughts or reflections. They attach directly to that line with a timestamp and play back inline with zero cloud uploads.\n\n` +
-      `<b>Q: Does Vern track my reading speed?</b>\n` +
-      `A: Yes! Vern calculates your Words Per Minute (WPM), total minutes read, pages completed, and streaks. All stats are calculated 100% locally on your phone.`;
-  } else if (topic === "security") {
-    title = "🛡 <b>Privacy & Safe Sideloading FAQs</b>";
-    body =
-      `<b>Q: Why does Android show \"Unknown App / Source\" when installing?</b>\n` +
-      `A: Android displays this warning for *any* application installed from an APK file outside the Google Play Store. It is standard Android behavior. Use the official downloads and review the open source code on GitHub.\n\n` +
-      `<b>Q: Does Vern require any internet permissions?</b>\n` +
-      `A: Local reading, notes and downloaded neural voices work offline. Catalogs, voice downloads, updates, link previews and optional AI or translation features use the internet. Android voices depend on the installed speech engine.\n\n` +
-      `<b>Q: Does Vern collect or sell my data?</b>\n` +
-      `A: Vern does not sell your reading data. Your library and progress are stored locally. Optional online actions contact chosen providers, and Google ML Kit can collect SDK diagnostics. Details: https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md`;
-  } else if (topic === "updates") {
-    title = "🔄 <b>Updating & Reading Progress FAQs</b>";
-    body =
-      `<b>Q: Will I lose my books and bookmarks when I update?</b>\n` +
-      `A: Compatible updates preserve app data. APK and Play installs need the same package and compatible signing identity. Keep your installed app while checking a conflict; export a backup before any uninstall.\n\n` +
-      `<b>Q: How do I get notified of updates?</b>\n` +
-      `A: Join our official Telegram channel <b>@myreader_veritas</b>! New releases and changelogs are published there automatically as soon as they are ready.`;
-  }
-
-  const text = `${title}\n\n${body}`;
-  const markup = {
-    inline_keyboard: [
-      [
-        { text: "⬅️ Back to FAQs", callback_data: "cmd_faq" },
-        { text: "🏠 Main Menu", callback_data: "cmd_menu" }
-      ]
-    ]
-  };
-
-  await editMessageText(token, chatId, messageId, text, markup);
+  const legacy = {audio:'voice',formats:'reading',display:'reading'};
+  const detail = CONTENT.faqs[legacy[topic] || topic] || CONTENT.faqs.reading;
+  const text = '<b>' + escapeHtml(detail.title) + '</b>\n\n' + detail.body;
+  const markup = {inline_keyboard: [[{text:'Back to FAQs', callback_data:'cmd_faq'},{"text":"Main menu","callback_data":"cmd_menu"}]]};
+  if (messageId) await editMessageText(token, chatId, messageId, text, markup);
+  else await sendMessage(token, chatId, text, markup);
 }
-
-/* --- Core Message & Callback Routers --- */
 
 async function handleMessage(message, env) {
   const token = env.TELEGRAM_BOT_TOKEN;
@@ -1249,8 +874,12 @@ async function handleMessage(message, env) {
     return;
   }
 
-  if (/^\/(milestone|customize|security)(@\w+)?(?:\s|$)/.test(text)) {
+  if (/^\/milestone(@\w+)?(?:\s|$)/.test(text)) {
     await sendMilestone(token, chatId);
+  } else if (/^\/customize(@\w+)?(?:\s|$)/.test(text)) {
+    await sendFeatureDetail(token, chatId, null, 'tones');
+  } else if (/^\/security(@\w+)?(?:\s|$)/.test(text)) {
+    await sendFaqDetail(token, chatId, null, 'security');
   } else if (text.startsWith("/start") || text.startsWith("/help") || text === "menu") {
     await sendWelcome(token, chatId);
   } else if (text.startsWith("/download") || text === "download" || text.includes("apk")) {
@@ -1312,7 +941,7 @@ async function handleMessage(message, env) {
           { text: "📋 What's New", callback_data: "cmd_changelog" }
         ],
         [
-          { text: "🌟 Workstation Features", callback_data: "cmd_features" },
+          { text: "🌟 Features", callback_data: "cmd_features" },
           { text: "📚 Curated Classics", callback_data: "cmd_classics" }
         ],
         [
@@ -1321,7 +950,7 @@ async function handleMessage(message, env) {
         ],
         [
           { text: "🎲 Random Classic", callback_data: "cmd_random_book" },
-          { text: "❓ Knowledge Base", callback_data: "cmd_faq" }
+          { text: "❓ Help and FAQs", callback_data: "cmd_faq" }
         ]
       ]
     });

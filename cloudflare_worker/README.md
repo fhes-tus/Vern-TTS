@@ -1,6 +1,6 @@
 # Vern Telegram bot
 
-Cloudflare Worker for `@VernTTS_bot`. It serves book searches, guides, published downloads and the upcoming 2.7.0 preview. Downloads resolve actual APK assets in the latest published GitHub release; preview notes do not publish new packages. The local 2.7.0 copy is prepared for review and has not been deployed. See [release drafts](../release/v2.7.0/README.md).
+Cloudflare Worker for `@VernTTS_bot`. It serves book searches, reading guides, Google Play installation, and the Vern 2.7.0 / build 45 release summary. The welcome, downloads, feature help, FAQs, command menu, and channel copy share [telegram_content.json](../scripts/telegram_content.json) with the Python polling bot. Google Play is the primary install option. Alternative APK links resolve actual assets from the latest published GitHub release and are labelled separately; no APK filenames are guessed.
 
 ## Configuration
 
@@ -20,4 +20,6 @@ The previously embedded token was removed from current source. It remains in ear
 
 ## Current deployment
 
-Updated 15 October 2026 with encrypted Worker secrets and an authenticated Telegram webhook. Public HTTP admin actions were moved to the authenticated local manager (`scripts/manage_bot.py`). The live message/media/changelog behavior is retained; `/milestone`, `/customize` and `/security` describe the upcoming update. GitHub Actions uses its encrypted token secret. No release announcement was sent.
+The Worker retains encrypted secrets and an authenticated Telegram webhook. Public HTTP administration remains disabled. `/milestone` is a compatibility alias for the current release notes; `/customize` opens appearance help and `/security` opens privacy help. Old FAQ button identifiers remain supported. The command menu and profile descriptions are managed through Telegram's authenticated APIs; code deployment alone does not register them. GitHub release announcements use a short summary, Google Play first, and only actual published APK assets.
+
+Deployment and channel-publication results, including the actual Worker version and channel message receipt, are recorded in [progress.md](../progress.md). Tests use synthetic credentials and mocked networking; they do not establish live Telegram behavior.

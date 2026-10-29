@@ -8,6 +8,8 @@ import os
 import sys
 import json
 import re
+import html
+from pathlib import Path
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -130,99 +132,67 @@ def markdown_to_telegram_html(md_text, max_bullets=10):
     result = re.sub(r'\n{3,}', '\n\n', result)
     return result
 
+def build_announcement(data):
+    if not data or data.get("draft") or data.get("prerelease") or not data.get("tag_name"):
+        raise ValueError("A published stable release is required")
+    with Path(__file__).with_name("telegram_content.json").open(encoding="utf-8") as content_file:
+        content = json.load(content_file)
+    tag = data["tag_name"]
+    release_url = f"https://github.com/{REPO}/releases/tag/" + urllib.parse.quote(tag, safe="")
+    if tag.lstrip("v") == content["version"]:
+        message = content["channel_post"]
+    else:
+        highlights = markdown_to_telegram_html(data.get("body", ""), max_bullets=5)
+        # Whole rendered lines only: avoid cutting an HTML tag at Telegram's limit.
+        if len(highlights) > 2400:
+            highlights = "Full details are in the release notes below."
+        message = "<b>Vern " + html.escape(tag) + "</b>\n\n" + (highlights or "A new Vern update is ready. Read the full release notes below.")
+    keyboard = [
+        [{"text":"Get it on Google Play", "url":content["play_url"]}],
+        [{"text":"Full release notes", "url":release_url}, {"text":"Ask Vern Bot", "url":"https://t.me/VernTTS_bot"}],
+        [{"text":"Website", "url":"https://fhes-tus.github.io/Vern-TTS/"}]
+    ]
+    assets = [asset for asset in data.get("assets", [])
+              if asset.get("name", "").endswith(".apk")
+              and asset.get("browser_download_url", "").startswith(f"https://github.com/{REPO}/releases/download/")]
+    universal = next((asset for asset in assets if "universal" in asset["name"].lower()), None)
+    if universal:
+        keyboard.append([{"text":"Alternative: GitHub APK", "url":universal["browser_download_url"]}])
+    return message, {"inline_keyboard":keyboard}
+
+
 def main():
     if not TOKEN:
         sys.exit("Set TELEGRAM_BOT_TOKEN in the environment.")
-    data = get_event_data()
-    req_tag = os.environ.get("RELEASE_TAG")
-    if not data:
-        data = get_release_data(req_tag)
-    if not data or data.get("draft") or data.get("prerelease"):
-        sys.exit("A published stable release is required; no announcement sent.")
-
-    tag = req_tag or (data.get("tag_name") if data else "v2.6.1")
-    name = data.get("name", f"Vern TTS {tag}") if data else f"Vern TTS {tag}"
-    body = data.get("body", "") if data else ""
-
-    cleaned_highlights = markdown_to_telegram_html(body, max_bullets=10)
-    if not cleaned_highlights:
-        cleaned_highlights = (
-            "• <b>Bidirectional Notes Sharing</b>: Multi-format export (TXT, PDF, audio, restorable ZIP) and incoming shares.\n"
-            "• <b>Measured Reading Sessions</b>: Durable ledger separating reading from listening with crash checkpoints.\n"
-            "• <b>Resilient Background Vocabulary</b>: Offline-safe dictionary lookup with Wiktionary fallback.\n"
-            "• <b>Save to Phone Storage</b>: Export books directly to external device storage surviving uninstalls.\n"
-            "• <b>Listen & Reading Insights Redesign</b>: Bounded liquid glass, streak flame animation, and Midnight theme."
-        )
-
-    # Extract asset links
-    arm64_url = f"https://github.com/{REPO}/releases/download/{tag}/Veritas-Reader-{tag}-arm64-v8a-release.apk"
-    universal_url = f"https://github.com/{REPO}/releases/download/{tag}/Veritas-Reader-{tag}-universal-release.apk"
-    armeabi_url = f"https://github.com/{REPO}/releases/download/{tag}/Veritas-Reader-{tag}-armeabi-v7a-release.apk"
-
-    if data and "assets" in data:
-        for a in data["assets"]:
-            aname = a.get("name", "")
-            if "arm64" in aname:
-                arm64_url = a.get("browser_download_url", arm64_url)
-            elif "universal" in aname:
-                universal_url = a.get("browser_download_url", universal_url)
-            elif "armeabi" in aname:
-                armeabi_url = a.get("browser_download_url", armeabi_url)
-
-    msg = (
-        f"🎉 <b>Vern TTS {tag} Is Officially Live!</b>\n\n"
-        f"We're excited to announce the latest update for <b>Vern TTS</b> — the 100% private, "
-        f"offline-first reading and speech engine for Android!\n\n"
-        f"🌟 <b>WHAT'S NEW:</b>\n"
-        f"{cleaned_highlights}\n\n"
-        f"📦 <b>DIRECT DOWNLOADS:</b>\n"
-        f"• <a href=\"{arm64_url}\">64-bit ARM APK (Recommended)</a>\n"
-        f"• <a href=\"{universal_url}\">Universal Release APK</a>\n"
-        f"• <a href=\"{armeabi_url}\">32-bit Legacy ARM APK</a>\n\n"
-        f"🌐 <a href=\"https://fhes-tus.github.io/Vern-TTS/\">Official Website & Interactive Guide</a>"
-    )
-
-    markup = {
-        "inline_keyboard": [
-            [
-                {"text": "⬇️ Download arm64 APK", "url": arm64_url},
-                {"text": "🌐 Official Website", "url": "https://fhes-tus.github.io/Vern-TTS/"}
-            ],
-            [
-                {"text": "⭐️ GitHub Repository", "url": f"https://github.com/{REPO}"},
-                {"text": "📋 Full Changelog", "url": f"https://github.com/{REPO}/releases/tag/{tag}"}
-            ]
-        ]
-    }
-
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    payload = json.dumps({
-        "chat_id": CHANNEL_ID,
-        "text": msg,
-        "parse_mode": "HTML",
-        "reply_markup": markup
-    }).encode("utf-8")
-
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+    data = get_event_data() or get_release_data(os.environ.get("RELEASE_TAG"))
     try:
-        with urllib.request.urlopen(req) as resp:
-            res_json = json.loads(resp.read().decode("utf-8"))
-            if res_json.get("ok"):
-                msg_id = res_json["result"]["message_id"]
-                print(f"Successfully broadcasted to {CHANNEL_ID} (Message ID: {msg_id})")
+        message, markup = build_announcement(data)
+    except ValueError as error:
+        sys.exit(str(error) + "; no announcement sent.")
+    payload = {"chat_id":CHANNEL_ID, "text":message, "parse_mode":"HTML",
+               "disable_web_page_preview":True, "reply_markup":markup}
+    request = urllib.request.Request(f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+        data=json.dumps(payload).encode("utf-8"), headers={"Content-Type":"application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            result = json.load(response)
+        if not result.get("ok"):
+            sys.exit("Telegram did not accept the announcement.")
+        message_id = result["result"]["message_id"]
+        # Do not retry sendMessage after a pin failure; preserve its accepted message ID.
+        print(f"Channel announcement sent: {CHANNEL_ID}/{message_id}")
+        pin = urllib.request.Request(f"https://api.telegram.org/bot{TOKEN}/pinChatMessage",
+            data=json.dumps({"chat_id":CHANNEL_ID,"message_id":message_id,"disable_notification":True}).encode("utf-8"),
+            headers={"Content-Type":"application/json"})
+        with urllib.request.urlopen(pin, timeout=30) as response:
+            if not json.load(response).get("ok"):
+                sys.exit("Announcement sent, but Telegram did not confirm the pin.")
+        print("Announcement pinned.")
+    except urllib.error.HTTPError as error:
+        sys.exit("Telegram returned HTTP " + str(error.code) + "; check the channel before retrying.")
+    except Exception as error:
+        sys.exit("Telegram request failed (" + type(error).__name__ + "); check the channel before retrying.")
 
-                # Pin message
-                pin_url = f"https://api.telegram.org/bot{TOKEN}/pinChatMessage"
-                pin_payload = json.dumps({"chat_id": CHANNEL_ID, "message_id": msg_id}).encode("utf-8")
-                pin_req = urllib.request.Request(pin_url, data=pin_payload, headers={"Content-Type": "application/json"})
-                with urllib.request.urlopen(pin_req) as pin_resp:
-                    print("Message pinned successfully:", pin_resp.read().decode("utf-8"))
-            else:
-                print("Broadcast failed:", res_json)
-    except urllib.error.HTTPError as e:
-        print(f"HTTP Error {e.code}:", e.read().decode("utf-8"))
-    except Exception as e:
-        print("Error sending broadcast:", type(e).__name__)
 
 if __name__ == "__main__":
     main()

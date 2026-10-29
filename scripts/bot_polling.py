@@ -20,6 +20,9 @@ TWITTER_URL = "https://x.com/_1st2us"
 EMAIL_ADDRESS = "myreader.veritas@gmail.com"
 GITHUB_URL = f"https://github.com/{REPO}"
 
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "telegram_content.json"), encoding="utf-8") as content_file:
+    CONTENT = json.load(content_file)
+
 # In-memory release cache to prevent hitting GitHub API rate limits
 _cached_release = None
 _cached_release_time = 0
@@ -216,16 +219,9 @@ def get_latest_release():
         print(f"Warning: could not fetch release from GitHub API ({e})")
         if _cached_release:
             return _cached_release
-        tag = "v2.6.1"
-        return {
-            "tag": tag,
-            "name": f"Vern TTS {tag}",
-            "body": "",
-            "arm64_url": f"{GITHUB_URL}/releases/download/{tag}/Veritas-Reader-{tag}-arm64-v8a-release.apk",
-            "universal_url": f"{GITHUB_URL}/releases/download/{tag}/Veritas-Reader-{tag}-universal-release.apk",
-            "arm32_url": f"{GITHUB_URL}/releases/download/{tag}/Veritas-Reader-{tag}-armeabi-v7a-release.apk"
-        }
-
+        return {"tag":"Latest published release", "name":"Vern", "body":"",
+            "arm64_url":GITHUB_URL + "/releases/latest", "universal_url":GITHUB_URL + "/releases/latest",
+            "arm32_url":GITHUB_URL + "/releases/latest"}
 def load_classics():
     """Load curated classic literature catalog."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -245,218 +241,36 @@ def load_classics():
     return []
 
 def get_changelog_content():
-    rel = get_latest_release()
-    tag = rel["tag"]
-    body = rel.get("body", "")
-    if not body:
-        candidates = [
-            os.path.join(os.getcwd(), f"RELEASE_NOTES_{tag}.md"),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), f"RELEASE_NOTES_{tag}.md"),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", f"RELEASE_NOTES_{tag}.md"),
-            os.path.join(os.getcwd(), "RELEASE_NOTES_v2.6.1.md"),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "RELEASE_NOTES_v2.6.1.md"),
-            os.path.join(os.getcwd(), "RELEASE_NOTES_v2.6.0.md"),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "RELEASE_NOTES_v2.6.0.md"),
-        ]
-        for c in candidates:
-            if os.path.exists(c):
-                try:
-                    with open(c, "r", encoding="utf-8") as f:
-                        body = f.read()
-                    break
-                except Exception:
-                    pass
+    return CONTENT["release"], {"inline_keyboard": [[{"text": "Get it on Google Play", "url": "https://play.google.com/store/apps/details?id=com.veritas.reader"}], [{"text": "Full release notes", "url": "https://github.com/fhes-tus/Vern-TTS/blob/main/RELEASE_NOTES_v2.7.0.md"}], [{"text": "Main menu", "callback_data": "cmd_menu"}]]}
 
-    formatted_notes = markdown_to_telegram_html(body, max_bullets=14)
-    if not formatted_notes:
-        formatted_notes = (
-            "• <b>Bidirectional Notes Sharing</b>: Multi-format export (TXT, PDF, audio recordings, or restorable ZIP) and external stream imports.\n"
-            "• <b>Measured Reading Sessions Ledger</b>: Crash-resilient tracking separating silent reading from confirmed neural audio playback.\n"
-            "• <b>Resilient Vocabulary & Wiktionary</b>: Background WorkManager definition resolution with multi-dictionary fallbacks.\n"
-            "• <b>Save to Phone Storage</b>: Direct external document export surviving app uninstalls.\n"
-            "• <b>Listen & Insights Redesign</b>: Liquid glass controls, streak flame animations, and Midnight (System) default theme."
-        )
-
-    text = (
-        f"📋 <b>What's New in Vern TTS {tag}</b>\n\n"
-        f"{formatted_notes}\n\n"
-        f"<i>Build: {tag} • 100% Private, On-Device Reading</i>"
-    )
-    markup = {
-        "inline_keyboard": [
-            [{"text": f"⬇️ Download {tag} APKs", "callback_data": "cmd_download"}],
-            [{"text": "🐙 GitHub Release", "url": f"{GITHUB_URL}/releases/tag/{tag}"}, {"text": "🌐 Official Website", "url": WEBSITE_URL}],
-            [{"text": "⬅️ Back to Main Menu", "callback_data": "cmd_menu"}]
-        ]
-    }
-    return text, markup
 
 def get_welcome_content():
-    rel = get_latest_release()
-    tag = rel["tag"]
-    text = (
-        "👋 <b>Welcome to the Vern TTS Knowledge Center!</b>\n\n"
-        "<b>Vern TTS is an offline-first Android reading workstation. Built with on-device speech synthesis, a spaced-repetition study hub, embedded voice memos, and local reading history.</b>\n\n"
-        "⚡️ <b>Workstation Capabilities:</b>\n"
-        "• 🎙 <b>Embedded Voice Memos</b>: Spoken margin notes & audio reflections attached to any passage.\n"
-        "• 🧠 <b>Spaced-Repetition Study Hub</b>: Active recall flashcards, Leitner review scheduling, & retention scoring.\n"
-        "• 🎧 <b>On-Device Neural Speech</b>: High-fidelity narration with lockscreen media controls & sentence sync.\n"
-        "• 📄 <b>Universal Document Studio</b>: PDF, EPUB, TXT, DOCX, & Markdown with automatic prose synopses.\n"
-        "• 👁 <b>4 Unified Paper Tones</b>: Clean White, Warm Sepia, Soft Dark, & True AMOLED Black.\n"
-        "• 📚 <b>35+ Curated Classics</b>: Built-in library pre-loaded with authentic published first-edition covers.\n"
-        "• 📊 <b>Local Reading Tracker</b>: WPM speed, daily reading minutes, streaks, and local SQLite data.\n"
-        "• 🛡 <b>Offline-first</b>: No ads or mandatory account. Library and reading history are stored locally.\n\n"
-        f"<i>Current Verified Build: <b>{tag}</b> • Tap any section below to explore:</i>"
-    )
-    markup = {
-        "inline_keyboard": [
-            [{"text": "⬇️ Download APKs", "callback_data": "cmd_download"}, {"text": f"📋 What's New ({tag})", "callback_data": "cmd_changelog"}],
-            [{"text": "🌟 Workstation Features", "callback_data": "cmd_features"}, {"text": "📚 Curated Classics", "callback_data": "cmd_classics"}],
-            [{"text": "🧠 Study Hub & Cards", "callback_data": "feat_study"}, {"text": "🎙 Voice Memos", "callback_data": "feat_memos"}],
-            [{"text": "🎧 Voice Setup Guide", "callback_data": "cmd_guide_voice"}, {"text": "❓ In-Depth FAQs", "callback_data": "cmd_faq"}],
-            [{"text": "📢 Telegram Community", "url": CHANNEL_URL}, {"text": "🌐 Official Website", "url": WEBSITE_URL}]
-        ]
-    }
-    return text, markup
+    return CONTENT["welcome"], {"inline_keyboard": [[{"text": "Get it on Google Play", "url": "https://play.google.com/store/apps/details?id=com.veritas.reader"}], [{"text": "What's new in 2.7.0", "callback_data": "cmd_changelog"}, {"text": "Explore classics", "callback_data": "cmd_classics"}], [{"text": "Features", "callback_data": "cmd_features"}, {"text": "Voices and listening", "callback_data": "cmd_guide_voice"}], [{"text": "Help / FAQs", "callback_data": "cmd_faq"}, {"text": "Telegram channel", "url": "https://t.me/myreader_veritas"}], [{"text": "Website", "url": "https://fhes-tus.github.io/Vern-TTS/"}]]}
+
 
 def get_download_content():
     rel = get_latest_release()
-    tag = rel["tag"]
-    text = (
-        f"📦 <b>Download Vern TTS ({tag} Latest Stable)</b>\n\n"
-        "Select the optimal build for your device architecture:\n\n"
-        f"• <a href=\"{rel['arm64_url']}\"><b>64-bit ARM APK (arm64-v8a)</b></a> ⭐️ <i>Recommended</i>\n"
-        "  Tailored for modern Android devices (Android 9 or later). Smallest footprint and highest execution performance.\n\n"
-        f"• <a href=\"{rel['universal_url']}\"><b>Universal Release APK</b></a>\n"
-        "  Contains runtime binaries for all chipsets. Compatible with any supported phone, tablet, or Chromebook.\n\n"
-        f"• <a href=\"{rel['arm32_url']}\"><b>32-bit Legacy APK (armeabi-v7a)</b></a>\n"
-        "  For older devices and budget hardware architectures running 32-bit chipsets.\n\n"
-        "🛡 <b>Safe Sideloading Note:</b>\n"
-        "If Android prompts <i>\"Install from Unknown Sources\"</i>, tap <b>Allow</b>. This is standard for apps installed outside Google Play. Vern has no ads and is open source under the Apache 2.0 license. See the privacy policy for online features and ML Kit SDK diagnostics.\n\n"
-        "⏳ <b>Google Play Store:</b> Application review is currently in progress. The official Play Store listing will be available shortly!"
-    )
-    markup = {
-        "inline_keyboard": [
-            [{"text": f"⬇️ Download arm64 APK ({tag})", "url": rel["arm64_url"]}],
-            [{"text": f"📋 What's New in {tag}", "callback_data": "cmd_changelog"}, {"text": "🌐 Website", "url": WEBSITE_URL}],
-            [{"text": "📦 All Builds on GitHub", "url": f"{GITHUB_URL}/releases/latest"}],
-            [{"text": "⬅️ Back to Main Menu", "callback_data": "cmd_menu"}]
-        ]
-    }
+    text = CONTENT["download"] + "\n\nLatest GitHub APK release: <b>" + html.escape(strip_html_tags(rel["tag"])) + "</b>"
+    markup = {"inline_keyboard": [[{"text": "Get it on Google Play", "url": "https://play.google.com/store/apps/details?id=com.veritas.reader"}], [{"text": "Published GitHub APKs", "url": "https://github.com/fhes-tus/Vern-TTS/releases/latest"}], [{"text": "What's new", "callback_data": "cmd_changelog"}, {"text": "Support", "callback_data": "cmd_contact"}], [{"text": "Main menu", "callback_data": "cmd_menu"}]]}
+    for key, label in [("universal_url", "Universal APK"), ("arm64_url", "ARM64 APK")]:
+        if rel[key] != GITHUB_URL + "/releases/latest":
+            markup["inline_keyboard"].insert(2, [{"text": label + " (" + strip_html_tags(rel["tag"]) + ")", "url": rel[key]}])
+            break
     return text, markup
+
 
 def get_features_menu():
-    text = (
-        "🌟 <b>Vern TTS Workstation Architecture</b>\n\n"
-        "Vern TTS transforms your Android device into a focused, distraction-free reading workstation.\n\n"
-        "Select an engineering pillar below to inspect how it works:"
-    )
-    markup = {
-        "inline_keyboard": [
-            [{"text": "🎙 Embedded Voice Memos", "callback_data": "feat_memos"}, {"text": "🧠 Spaced-Repetition Study Hub", "callback_data": "feat_study"}],
-            [{"text": "🎧 On-Device Speech Synthesis", "callback_data": "feat_speech"}, {"text": "📄 Document Studio & Formats", "callback_data": "feat_docs"}],
-            [{"text": "👁 4 Unified Paper Tones", "callback_data": "feat_tones"}, {"text": "📊 Reading Tracker & Insights", "callback_data": "feat_insights"}],
-            [{"text": "📖 Dual Reading Modes", "callback_data": "feat_modes"}, {"text": "🛡 100% Offline Privacy", "callback_data": "feat_privacy"}],
-            [{"text": "⬅️ Back to Main Menu", "callback_data": "cmd_menu"}]
-        ]
-    }
-    return text, markup
+    return CONTENT["features_intro"], {"inline_keyboard": [[{"text": "Reading and files", "callback_data": "feat_docs"}, {"text": "Voices and listening", "callback_data": "feat_speech"}], [{"text": "Notes and voice memos", "callback_data": "feat_memos"}, {"text": "Flashcards and quizzes", "callback_data": "feat_study"}], [{"text": "Page colours and text", "callback_data": "feat_tones"}, {"text": "Reading habits", "callback_data": "feat_insights"}], [{"text": "Page turns and scrolling", "callback_data": "feat_modes"}, {"text": "Privacy", "callback_data": "feat_privacy"}], [{"text": "Main menu", "callback_data": "cmd_menu"}]]}
+
 
 def get_feature_detail(topic):
-    if topic == "memos":
-        title = "🎙 <b>Embedded Voice Memos & Spoken Annotations</b>"
-        body = (
-            "• <b>Frictionless Spoken Notes</b>: While reading any book or document, tap any paragraph or margin to record audio reflections without breaking your concentration.\n"
-            "• <b>Synchronized Timestamps</b>: Every voice memo is tied directly to the exact sentence and chapter where it was recorded.\n"
-            "• <b>In-Line Playback</b>: Tap the audio memo icon beside any highlighted passage to play back your recorded thoughts directly on the page.\n"
-            "• <b>100% Local Storage</b>: Audio recordings are stored locally inside the application sandbox with zero cloud transmission or AI data scraping."
-        )
-    elif topic == "study":
-        title = "🧠 <b>Spaced-Repetition Study Hub & Active Recall</b>"
-        body = (
-            "• <b>Active Recall Flashcards</b>: Highlight notable quotes, definitions, or complex arguments to instantly generate interactive Question / Answer study cards.\n"
-            "• <b>Spaced-Repetition Scheduling</b>: Review cards using calibrated intervals that reinforce memory retention right before forgetting sets in.\n"
-            "• <b>Study Decks by Book</b>: Filter cards by specific documents, tags, or browse your master library deck.\n"
-            "• <b>Mastery Progress</b>: Track card retention rates, mastery levels, and review intervals locally on your device."
-        )
-    elif topic == "speech":
-        title = "🎧 <b>On-Device Neural Speech Synthesis Engine</b>"
-        body = (
-            "• <b>Zero-Cloud Latency</b>: All speech generation runs locally using on-device engines. Zero audio streaming delays and zero data sent to servers.\n"
-            "• <b>Continuous Background Audio</b>: Keep listening seamlessly while multitasking, using other apps, or with your phone display turned off.\n"
-            "• <b>Lockscreen & Notification Media Controls</b>: Native Android media player controls with Play, Pause, Previous/Next sentence skip, and progress scrub.\n"
-            "• <b>Synchronized Sentence Highlighting</b>: Words and active sentences dynamically illuminate on screen in sync with the spoken voice.\n"
-            "• <b>In-App Engine Customization</b>: Tap the speaker icon while reading to switch between Vern Lite, Vern Studio, Google Speech, or Samsung engines, with real-time rate (0.5x–3.0x) and pitch tuning."
-        )
-    elif topic == "insights":
-        title = "📊 <b>Reading Tracker & Local Insights</b>"
-        body = (
-            "• <b>Reading Speed (WPM)</b>: Accurately computes your personal Words-Per-Minute reading pace across different genres.\n"
-            "• <b>Daily Reading Minutes & Streaks</b>: Visual tracking of reading time and consistency to cultivate steady daily reading habits.\n"
-            "• <b>Book Completion Statistics</b>: Pages turned, chapters read, and milestones achieved across your bookshelf.\n"
-            "• <b>Air-Gapped Analytics</b>: All statistics remain exclusively inside your phone's encrypted SQLite storage. No remote analytics SDKs."
-        )
-    elif topic == "docs":
-        title = "📄 <b>Universal Document Studio & Formats</b>"
-        body = (
-            "• <b>Supported Formats</b>: PDF, EPUB, TXT, DOCX (Word), and Markdown (.md).\n"
-            "• <b>Intelligent Heuristic Synopsis</b>: Automatically bypasses Gutenberg boilerplate headers, legal notices, and licenses to extract the clean opening prose as a synopsis.\n"
-            "• <b>Dedicated PDF Media Bar</b>: Tailored PDF controls featuring 1-tap screen orientation switching (Portrait / Landscape) and Next sentence skip.\n"
-            "• <b>Universal Storage Access</b>: Import documents directly from Internal Storage, SD Cards, Google Drive, or Downloads."
-        )
-    elif topic == "tones":
-        title = "👁 <b>4 Unified Paper Tones & Eye Comfort</b>"
-        body = (
-            "Vern features 4 carefully calibrated color palettes designed for maximum reading endurance:\n\n"
-            "1. <b>Clean White</b> (Daylight): Crisp, high-contrast black typography on neutral white.\n"
-            "2. <b>Warm Sepia</b> (Extended Reading): Warm cream background with softened amber tint that eliminates blue-light eye strain during long sessions.\n"
-            "3. <b>Soft Dark</b> (Evening): Gentle slate-slate contrast that eliminates harsh glare in low-light environments.\n"
-            "4. <b>AMOLED Black</b> (Night / Battery Saver): Pure 0% luminance black (#000000) pixels that completely deactivate OLED subpixels, saving massive battery life."
-        )
-    elif topic == "modes":
-        title = "📖 <b>Dual Reading Modes & Navigation</b>"
-        body = (
-            "• <b>Paged Reading Mode</b>: Authentic physical book simulation with horizontal page flips, subtle page shadows, and haptic feedback.\n"
-            "• <b>Continuous Flow Mode</b>: Smooth, frictionless vertical scrolling with responsive typography that automatically reflows to fit your screen size.\n"
-            "• <b>Sentence Snap</b>: Tap any sentence anywhere on a page to immediately jump audio narration directly to that sentence.\n"
-            "• <b>Fluid Library Gestures</b>: Drag-and-drop to reorder your bookshelf, hold-to-select for batch actions, and swipe to bookmark."
-        )
-    else:
-        title = "🛡 <b>Offline-first Privacy</b>"
-        body = (
-            "• <b>Local Reading Statistics</b>: No developer-operated remote reading analytics. Google ML Kit can collect SDK diagnostics; see the privacy policy.\n"
-            "• <b>Zero Accounts Required</b>: No logins, passwords, or emails. Download and start reading in 2 seconds.\n"
-            "• <b>Zero Ads Forever</b>: Clean, distraction-free reading with zero banners, popups, or subscriptions.\n"
-            "• <b>Local SQLite Storage</b>: All reading history, bookmarks, and notes are stored strictly on your phone's internal sandbox.\n"
-            "• <b>Open Source</b>: Complete source code is auditable on GitHub under the Apache 2.0 license."
-        )
+    detail = CONTENT["features"].get(topic, CONTENT["features"]["privacy"])
+    return "<b>" + html.escape(detail["title"]) + "</b>\n\n" + detail["body"], {"inline_keyboard": [[{"text":"Back to features","callback_data":"cmd_features"}, {"text": "Main menu", "callback_data": "cmd_menu"}]]}
 
-    text = f"{title}\n\n{body}"
-    markup = {
-        "inline_keyboard": [
-            [{"text": "⬅️ Back to Features", "callback_data": "cmd_features"}, {"text": "🏠 Main Menu", "callback_data": "cmd_menu"}]
-        ]
-    }
-    return text, markup
 
 def get_guide_content():
-    text = (
-        "🎧 <b>Masterclass: How to Customize & Preview Voices</b>\n\n"
-        "Vern TTS gives you complete control over narration directly <b>inside the app</b>:\n\n"
-        "<b>1. In-App Voice Engine & Picker:</b>\n"
-        "While reading any document, tap the <b>Speaker icon</b> on the bottom player bar. Tap the voice picker to switch between available engines (such as Vern Lite, Vern Studio, Google Speech, or Samsung) and preview different vocal styles.\n\n"
-        "<b>2. Real-Time Pitch & Velocity:</b>\n"
-        "Use the in-app sliders to adjust speech speed from <b>0.5x up to 3.0x</b> and tune vocal pitch to your preference.\n\n"
-        "<b>3. Optional Extra Voice Packs:</b>\n"
-        "If you want additional neural accents or languages, you can also install them in Android Settings > Accessibility > Text-to-Speech output. Vern TTS will automatically detect and list them in your in-app voice menu!"
-    )
-    markup = {
-        "inline_keyboard": [
-            [{"text": "⬇️ Download Vern TTS", "callback_data": "cmd_download"}, {"text": "❓ FAQs", "callback_data": "cmd_faq"}],
-            [{"text": "⬅️ Back to Main Menu", "callback_data": "cmd_menu"}]
-        ]
-    }
-    return text, markup
+    return CONTENT["voice"], {"inline_keyboard": [[{"text": "Main menu", "callback_data": "cmd_menu"}]]}
+
 
 def get_random_book_content():
     books = load_classics()
@@ -581,128 +395,22 @@ def search_classics(query):
     return text, markup
 
 def get_contact_content():
-    text = (
-        "📬 <b>Vern TTS Official Channels & Access</b>\n\n"
-        "Connect directly with the project and maintain data sovereignty:\n\n"
-        f"• 📢 <b>Telegram Community:</b> @myreader_veritas\n"
-        f"• 🐙 <b>GitHub Repository:</b> <a href=\"{GITHUB_URL}\">fhes-tus/Vern-TTS</a>\n"
-        f"• 𝕏 <b>X (Twitter):</b> <a href=\"{TWITTER_URL}\">@_1st2us</a>\n"
-        f"• ✉️ <b>Support & Inquiries:</b> <code>{EMAIL_ADDRESS}</code>\n"
-        f"• 🌐 <b>Official Website:</b> <a href=\"{WEBSITE_URL}\">{WEBSITE_URL}</a>\n\n"
-        "<i>Open source under Apache 2.0 license. Local reading history; no ads or mandatory account.</i>"
-    )
-    markup = {
-        "inline_keyboard": [
-            [{"text": "📢 Telegram Community", "url": CHANNEL_URL}, {"text": "🐙 GitHub Repository", "url": GITHUB_URL}],
-            [{"text": "𝕏 Follow on X", "url": TWITTER_URL}, {"text": "🌐 Official Website", "url": WEBSITE_URL}],
-            [{"text": "✉️ Email Support", "url": f"mailto:{EMAIL_ADDRESS}?subject=Vern%20TTS%20Inquiry"}],
-            [{"text": "⬅️ Back to Main Menu", "callback_data": "cmd_menu"}]
-        ]
-    }
-    return text, markup
+    return "<b>Stay in touch.</b>\n\nFollow @myreader_veritas for updates and reading ideas.\n\nNeed help? Email myreader.veritas@gmail.com. For a bug report, include your Android version, document format, and what happened.", {"inline_keyboard":[[{"text":"Telegram channel","url":"https://t.me/myreader_veritas"},{"text":"Website","url":"https://fhes-tus.github.io/Vern-TTS/"}],[{"text":"Source code","url":"https://github.com/fhes-tus/Vern-TTS"}],[{"text":"Main menu","callback_data":"cmd_menu"}]]}
+
 
 def get_faq_menu():
-    text = (
-        "❓ <b>Vern TTS Knowledge Base & FAQs</b>\n\n"
-        "Choose a category to find comprehensive answers:"
-    )
-    markup = {
-        "inline_keyboard": [
-            [{"text": "🎧 Voice Quality & Audio", "callback_data": "faq_audio"}, {"text": "📄 Formats & Scanned PDFs", "callback_data": "faq_formats"}],
-            [{"text": "👁 Paper Tones & AMOLED", "callback_data": "faq_display"}, {"text": "📝 Study Cards & Voice Memos", "callback_data": "faq_study"}],
-            [{"text": "🛡 Privacy & Safe Sideloading", "callback_data": "faq_security"}, {"text": "🔄 Updates & Progress", "callback_data": "faq_updates"}],
-            [{"text": "⬅️ Back to Main Menu", "callback_data": "cmd_menu"}]
-        ]
-    }
-    return text, markup
+    return '<b>A few useful answers.</b>\n\nChoose a topic below.', {"inline_keyboard":[[{"text":"Voices and offline listening","callback_data":"faq_voice"}],[{"text":"Reading and files","callback_data":"faq_reading"},{"text":"Notes and studying","callback_data":"faq_study"}],[{"text":"Privacy","callback_data":"faq_security"},{"text":"Updates and backups","callback_data":"faq_updates"}],[{"text":"Main menu","callback_data":"cmd_menu"}]]}
+
 
 def get_faq_detail(topic):
-    if topic == "audio":
-        title = "🎧 <b>Audio & Speech Engine FAQs</b>"
-        body = (
-            "<b>Q: Why does the voice sound robotic, and how do I customize it?</b>\n"
-            "A: You can customize voices directly inside the app! While reading, tap the speaker icon on the bottom player bar to open the Voice Picker. You can switch between engines (Vern Lite, Vern Studio, Google, or Samsung) and select smoother voices. You can also download extra neural voice packs in Android Settings > Text-to-speech, and Vern will automatically list them in the in-app picker.\n\n"
-            "<b>Q: Can I listen with my phone screen turned off?</b>\n"
-            "A: Yes! Vern TTS features a persistent Android Media Notification service. It continues narration in the background while your phone is locked or while using other apps.\n\n"
-            "<b>Q: Can I change playback speed and pitch?</b>\n"
-            "A: Yes. Tap the speaker icon on the bottom reading bar to adjust speech rate from 0.5x up to 3.0x, tune vocal pitch, and select specific voice engines.\n\n"
-            "<b>Q: Does text highlight as the voice speaks?</b>\n"
-            "A: Yes! Active sentences and paragraphs dynamically highlight on screen in sync with the spoken audio."
-        )
-    elif topic == "formats":
-        title = "📄 <b>Document Formats & Scanned PDFs</b>"
-        body = (
-            "<b>Q: What file formats are supported?</b>\n"
-            "A: Vern TTS supports PDF, EPUB, TXT, DOCX (Microsoft Word), and Markdown (.md).\n\n"
-            "<b>Q: Can Vern read scanned image-only PDFs?</b>\n"
-            "A: Standard PDFs with digital text layers extract and read instantly. Image-only scanned PDFs (photocopies without embedded text) require OCR before text can be extracted for speech.\n\n"
-            "<b>Q: Where are the 35+ classic books stored?</b>\n"
-            "A: The classics catalog metadata is pre-indexed inside the app. When you tap a book to read, it downloads the clean public domain text on-demand and saves it locally."
-        )
-    elif topic == "display":
-        title = "👁 <b>Paper Tones & Display FAQs</b>"
-        body = (
-            "<b>Q: How does AMOLED Black save battery?</b>\n"
-            "A: On OLED/AMOLED smartphone screens, black pixels (#000000) are physically turned OFF completely and consume 0% power. Reading in AMOLED Black can extend your battery life by up to 40% during long sessions.\n\n"
-            "<b>Q: Why is Warm Sepia recommended for reading?</b>\n"
-            "A: Blue light from white screens disrupts melatonin production and causes eye fatigue. Warm Sepia filters out harsh high-frequency blue spectrums, creating a comforting experience identical to aged physical book pages.\n\n"
-            "<b>Q: Can I switch between paged flips and vertical scrolling?</b>\n"
-            "A: Yes! You can toggle between physical-style Paged Mode (with page-turn haptics) and continuous vertical Flow Mode at any time."
-        )
-    elif topic == "study":
-        title = "📝 <b>Study Hub & Voice Memos FAQs</b>"
-        body = (
-            "<b>Q: How do Study Cards work?</b>\n"
-            "A: While reading, highlight any passage or sentence and tap <i>Save to Study Hub</i>. You can review them anytime with interactive flip cards (Question / Answer) to memorize key concepts using spaced repetition.\n\n"
-            "<b>Q: How do Embedded Voice Memos work?</b>\n"
-            "A: Tap on any paragraph to record quick spoken thoughts or reflections. They attach directly to that line with a timestamp and play back inline with zero cloud uploads.\n\n"
-            "<b>Q: Does Vern track my reading speed?</b>\n"
-            "A: Yes! Vern calculates your Words Per Minute (WPM), total minutes read, pages completed, and streaks. All stats are calculated 100% locally on your phone."
-        )
-    elif topic == "security":
-        title = "🛡 <b>Privacy & Safe Sideloading FAQs</b>"
-        body = (
-            "<b>Q: Why does Android show \"Unknown App / Source\" when installing?</b>\n"
-            "A: Android displays this warning for *any* application installed from an APK file outside the Google Play Store. It is standard Android behavior. Use the official downloads and review the open source code on GitHub.\n\n"
-            "<b>Q: Does Vern require any internet permissions?</b>\n"
-            "A: Local reading, notes and downloaded neural voices work offline. Catalogs, voice downloads, updates, link previews and optional AI or translation features use the internet. Android voices depend on the installed speech engine.\n\n"
-            "<b>Q: Does Vern collect or sell my data?</b>\n"
-            "A: Vern does not sell your reading data. Your library and progress are stored locally. Optional online actions contact chosen providers, and Google ML Kit can collect SDK diagnostics. Details: https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md"
-        )
-    else:
-        title = "🔄 <b>Updating & Reading Progress FAQs</b>"
-        body = (
-            "<b>Q: Will I lose my books and bookmarks when I update?</b>\n"
-            "A: No! When you install a newer version over your existing Vern TTS app, Android preserves your SQLite database, bookmarks, reading progress, and custom settings automatically.\n\n"
-            "<b>Q: How do I get notified of updates?</b>\n"
-            "A: Join our official Telegram channel <b>@myreader_veritas</b>! New releases and changelogs are published there automatically as soon as they are ready."
-        )
+    legacy = {"audio":"voice", "formats":"reading", "display":"reading"}
+    detail = CONTENT["faqs"].get(legacy.get(topic, topic), CONTENT["faqs"]["reading"])
+    return "<b>" + html.escape(detail["title"]) + "</b>\n\n" + detail["body"], {"inline_keyboard": [[{"text":"Back to FAQs","callback_data":"cmd_faq"}, {"text": "Main menu", "callback_data": "cmd_menu"}]]}
 
-    text = f"{title}\n\n{body}"
-    markup = {
-        "inline_keyboard": [
-            [{"text": "⬅️ Back to FAQs", "callback_data": "cmd_faq"}, {"text": "🏠 Main Menu", "callback_data": "cmd_menu"}]
-        ]
-    }
-    return text, markup
 
 def setup_bot_commands():
     """Register rich command menu in Telegram for autocompletion."""
-    commands = [
-        {"command": "start", "description": "Welcome & Workstation Overview"},
-        {"command": "download", "description": "Get latest verified APK releases"},
-        {"command": "changelog", "description": "Latest published release notes"},
-        {"command": "features", "description": "Workstation capabilities & tools"},
-        {"command": "study", "description": "Spaced repetition & study hub"},
-        {"command": "memos", "description": "Embedded voice memos & notes"},
-        {"command": "voice", "description": "Natural voice customization guide"},
-        {"command": "classics", "description": "Browse 35+ curated classics"},
-        {"command": "random", "description": "Get an instant classic book spotlight"},
-        {"command": "search", "description": "Search books by title or author"},
-        {"command": "insights", "description": "Reading speed & tracker analytics"},
-        {"command": "faq", "description": "Knowledge base & troubleshooting"},
-        {"command": "contact", "description": "Official support, X, & GitHub"}
-    ]
+    commands = CONTENT["commands"]
     res = api_call("setMyCommands", {"commands": commands})
     if res and res.get("ok"):
         print("Bot commands registered successfully with Telegram.")
@@ -727,8 +435,14 @@ def handle_update(update):
         raw_text = (msg.get("text") or msg.get("caption") or "").strip()
         text = raw_text.lower()
 
-        if re.match(r"^/(milestone|customize|security)(@\w+)?(?:\s|$)", text):
-            send_message(chat_id, "<b>Vern 2.7.0 — release preview</b>\n\nThis update is in development; published downloads remain the latest stable release.\n\nTake a photo or choose one for Scan / OCR. Share up to five Listen sentences as quote images with 14 colours and editable credit. Enjoy focused PDF swipes, inline layout choices and separate Listen text size. Study-guide PDF export is in Study Hub, with new missing covers in details and widgets too. Fixes preserve contents entries and improve unsupported imports, Funky cards, greetings and AMOLED colours. Home colours follow your theme with the original animated rings.\n\nAPK and Play updates need the same package and compatible certificates. Export a backup before any uninstall.")
+        if re.match(r"^/milestone(@\w+)?(?:\s|$)", text):
+            send_message(chat_id, *get_changelog_content())
+            return
+        if re.match(r"^/customize(@\w+)?(?:\s|$)", text):
+            send_message(chat_id, *get_feature_detail("tones"))
+            return
+        if re.match(r"^/security(@\w+)?(?:\s|$)", text):
+            send_message(chat_id, *get_faq_detail("security"))
             return
 
         # If message contains only media (photo, video, document, voice, audio) without text
@@ -817,9 +531,9 @@ def handle_update(update):
             markup = {
                 "inline_keyboard": [
                     [{"text": "⬇️ Download App", "callback_data": "cmd_download"}, {"text": "📋 Latest release notes", "callback_data": "cmd_changelog"}],
-                    [{"text": "🌟 Workstation Features", "callback_data": "cmd_features"}, {"text": "📚 Curated Classics", "callback_data": "cmd_classics"}],
+                    [{"text": "🌟 Features", "callback_data": "cmd_features"}, {"text": "📚 Curated Classics", "callback_data": "cmd_classics"}],
                     [{"text": "🧠 Study Hub", "callback_data": "feat_study"}, {"text": "🎙 Voice Memos", "callback_data": "feat_memos"}],
-                    [{"text": "🎲 Random Classic", "callback_data": "cmd_random_book"}, {"text": "❓ Knowledge Base", "callback_data": "cmd_faq"}]
+                    [{"text": "🎲 Random Classic", "callback_data": "cmd_random_book"}, {"text": "❓ Help and FAQs", "callback_data": "cmd_faq"}]
                 ]
             }
             send_message(chat_id, fallback, markup)
