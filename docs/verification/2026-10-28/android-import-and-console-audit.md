@@ -1,7 +1,7 @@
 # Android import safety, scanning, reader refinements and Play Console audit
 
 Reviewed 28 October 2026 against the existing `main` checkout, based on `c2de3cf`.
-Current Android configuration: **2.6.3 / versionCode 44**, target SDK 36, AGP 9.2.1.
+Initial reviewed configuration: **2.6.3 / versionCode 44**. Release preparation updated main to **2.7.0 / versionCode 45** on the user’s instruction; target SDK 36, AGP 9.2.1 are unchanged.
 All four supplied Console screenshots identify **2.6.2 / versionCode 43**. They describe that uploaded artifact; they are not evidence that today's source has the same behavior. The exact uploaded code-43 binary and its matching obfuscation mapping were not inspected.
 
 ## Console findings
@@ -44,7 +44,7 @@ Android documents [R8 full mode defaults](https://developer.android.com/topic/pe
 
 ## Missing covers and Good Vibes extraction
 
-- Replaced the faux-cloth/monogram missing-cover component with a flat typographic jacket: the actual title, known author when supplied, source format and a stable page-fold composition. Eight palettes have explicit contrasting ink. Generated images are bounded to 400×600 and share the existing 8 MB memory cache; they are not written over real artwork or saved as book data. Library/Home placeholders, Listen, extracted-reader artwork, notification fallback and quote cards share the renderer. Extracted and bundled covers keep priority.
+- Replaced the faux-cloth/monogram missing-cover component with a flat typographic jacket: the actual title, known author when supplied, source format and a stable page-fold composition. Eight palettes have explicit contrasting ink. Generated images are bounded to 400×600 and share the existing 8 MB memory cache; they are not written over real artwork or saved as book data. Library/Home placeholders, book-details preview, Listen, extracted-reader artwork, notification fallback, reading/player widgets and quote cards share the renderer. Details resolve the shared loader on IO; widgets preserve aspect ratio within 256 pixels. Extracted and bundled covers keep priority.
 - Inspected the user's exact 223-page PDF from the phone and its existing saved text. Pages 2–3 retained every native word. Contents pages 4 and 5 each lost three occurrences of “Introduction”: the existing cleaner inferred a repeated header from a five-page batch and removed matching lines anywhere on the page. That cleaner predates this task's file validation and managed-PDF changes. Protected structural/contents headings and limited repeated-text removal to page edges; added focused regression cases.
 - Page 1 is an image-only cover. Previously, sufficient native text elsewhere in the batch prevented the average-based OCR fallback. Blank text pages containing raster artwork now receive individual OCR when the existing automatic-OCR option is enabled. Already readable pages retain native extraction, and image-free blank pages do not trigger this extra OCR.
 - The supplied PDF remains a local test fixture outside the APK/repository. Device verification compares every native word count on pages 2–5 and checks cover OCR. The optional repair checks the stored original's SHA-256, backs up saved text/metadata/annotations, replaces only pages 1–5, retains page 6 onward verbatim and remaps the saved reading position and annotations.
@@ -54,3 +54,10 @@ Android documents [R8 full mode defaults](https://developer.android.com/topic/pe
 Commands, final results and observed development failures are recorded in the 28 October entry of `progress.md`. Local logs/screenshots are under ignored `.artifacts/import-scan/` in the main checkout.
 
 Native verification uses the separate `com.veritas.reader.checks` package on Samsung SM-A175F, Android 16 / API 36. Real `ImageDecoder`, FileProvider, WorkManager, PDF rendering and on-device ML Kit OCR are exercised. External camera/picker result delivery is simulated with ActivityResultRegistry in the contract tests; a physical shutter capture and manual gallery/cloud-provider selection have not been accepted. No Android 15/older-device, emulator, browser, iOS or desktop acceptance is asserted. No store upload or publishing is part of this work.
+
+### Final main snapshot — 29 October 2026
+
+- Main is configured as 2.7.0 / 45. `git ls-remote origin refs/heads/main` matched final local HEAD `b2e4174` (including the other chat’s Telegram update); all reviewed Android files match the final source after line-ending normalization. Other chats’ current website, theme and Telegram edits were retained.
+- Final debug + AndroidTest APK assembly passed in 3m23s. The prior cover/extraction build passed 503 JVM tests and release Kotlin compilation; the full native suite after PDF viewport correction passed 56 tests in 221.267s.
+- Version-45 focused native run: runner OK (14 tests), 109.534s, with the exact-book fixture guard skipped. After supplying the PDF fixture, that diagnostic independently passed 1 test in 5.828s without a repair argument. The other 13 checks include shared generated covers/widget bounds, widget RemoteViews, quotes, separate text sizes, settings/Funky cards, PDF navigation/colours and Home palettes. Earlier exact-book repair and backups are recorded in progress.md.
+- Play notes are 469/500 characters. Versioned listing text, tagged copy, release manifest, local Markdown links and release-helper PowerShell syntax were checked. Mocked Worker tests: 5 passed; Python bot tests: 9 passed; JavaScript syntax passes. No new signed bundle or Play analysis was produced by this task.
