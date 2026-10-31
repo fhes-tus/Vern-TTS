@@ -1,40 +1,15 @@
 package com.veritas.reader.ui.screens
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.veritas.reader.ReaderDocument
 import com.veritas.reader.ReaderTextIndex
 import com.veritas.reader.ReaderTextModel
 import com.veritas.reader.VeritasDocumentOutlineEntry
-import com.veritas.reader.VeritasPackStyle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -237,183 +212,50 @@ internal fun SmartOutlineDialog(
     currentIndex: Int,
     onJumpToDestination: (pageNumber: Int?, sentenceIndex: Int) -> Unit,
     onDismiss: () -> Unit,
-    readerModel: ReaderTextModel? = null
+    readerModel: ReaderTextModel? = null,
+    origin: androidx.compose.ui.geometry.Offset = androidx.compose.ui.geometry.Offset.Unspecified,
+    currentPage: Int? = null
 ) {
-    var query by remember(document.id) { mutableStateOf("") }
-    var jumpPage by remember(document.id) { mutableStateOf("") }
-    val pageCount = readerModel?.pageCount?.coerceAtLeast(1) ?: 1
-    val requestedPage = jumpPage.toIntOrNull()?.takeIf { it in 1..pageCount }
-    var entries by remember(document.id, document.chunks.size, documentOutline.size) {
-        mutableStateOf<List<SmartOutlineEntry>>(emptyList())
+    var entries by remember(document.id, document.chunks.size, documentOutline) {
+        mutableStateOf<List<SmartOutlineEntry>?>(null)
     }
     LaunchedEffect(document.id, document.chunks.size, documentOutline, readerModel) {
-        withContext(Dispatchers.Default) {
+        entries = withContext(Dispatchers.Default) {
             val cacheKey = "${document.id.orEmpty()}:${document.chunks.size}:${documentOutline.hashCode()}:${document.rawText.hashCode()}"
-            val cached = SmartOutlineCache.get(cacheKey)
-            if (cached != null) {
-                entries = cached
-                return@withContext
-            }
-            val result = if (documentOutline.isNotEmpty()) {
-                documentOutline.mapNotNull { outline ->
-                    val title = outline.title.replace(WHITESPACE_REGEX, " ").trim()
-                    if (title.isBlank()) return@mapNotNull null
-                    val preview = document.chunks.getOrNull(outline.targetIndex).orEmpty()
-                        .replace(WHITESPACE_REGEX, " ").trim()
-                    SmartOutlineEntry(
-                        index = outline.targetIndex,
-                        title = title,
-                        preview = preview.take(180),
-                        isHeading = true,
-                        level = outline.level,
-                        pageNumber = outline.pageNumber,
-                        source = outline.source
-                    )
-                }.distinctBy { Triple(it.title, it.pageNumber, it.index) }
-            } else {
-                buildSmartOutline(document.chunks, readerModel)
-            }
-            SmartOutlineCache.put(cacheKey, result)
-            entries = result
-        }
-    }
-    val filteredEntries = remember(entries, query) {
-        val needle = query.trim()
-        if (needle.isBlank()) {
-            entries
-        } else {
-            entries.filter { entry ->
-                entry.title.contains(needle, ignoreCase = true) ||
-                        entry.preview.contains(needle, ignoreCase = true) ||
-                        entry.source.contains(needle, ignoreCase = true) ||
-                        entry.pageNumber?.toString() == needle ||
-                        (entry.index + 1).toString() == needle
+            SmartOutlineCache.get(cacheKey) ?: run {
+                val result = if (documentOutline.isNotEmpty()) {
+                    documentOutline.mapNotNull { outline ->
+                        val title = outline.title.replace(WHITESPACE_REGEX, " ").trim()
+                        if (title.isBlank()) return@mapNotNull null
+                        SmartOutlineEntry(
+                            index = outline.targetIndex,
+                            title = title,
+                            preview = document.chunks.getOrNull(outline.targetIndex).orEmpty()
+                                .replace(WHITESPACE_REGEX, " ").trim().take(180),
+                            isHeading = true,
+                            level = outline.level,
+                            pageNumber = outline.pageNumber,
+                            source = outline.source
+                        )
+                    }.distinctBy { Triple(it.title, it.pageNumber, it.index) }
+                } else buildSmartOutline(document.chunks, readerModel)
+                SmartOutlineCache.put(cacheKey, result)
+                result
             }
         }
     }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Icon(Icons.AutoMirrored.Filled.List, contentDescription = null)
-                Text(if (documentOutline.isNotEmpty()) "Table of contents" else "Smart outline")
-            }
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    resolveHumanDocumentTitle(document.title, document.sourceLabel),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Filter outline") },
-                    placeholder = { Text("Chapter, topic, sentence number…") },
-                    singleLine = true,
-                    shape = VeritasPackStyle.chipShape()
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = jumpPage,
-                        onValueChange = { jumpPage = it.filter(Char::isDigit).take(6) },
-                        modifier = Modifier.weight(1f),
-                        label = { Text("Jump to page (1–$pageCount)") },
-                        singleLine = true,
-                        isError = jumpPage.isNotEmpty() && requestedPage == null,
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-                    )
-                    Button(enabled = requestedPage != null, onClick = {
-                        requestedPage?.let { page ->
-                            val index = readerModel?.sentences?.firstOrNull { it.pageNumber >= page }?.index ?: currentIndex
-                            onJumpToDestination(page, index)
-                        }
-                    }) { Text("Go") }
-                }
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 390.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (filteredEntries.isEmpty()) {
-                        item {
-                            Text(
-                                "No outline matches.",
-                                modifier = Modifier.padding(vertical = 18.dp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    itemsIndexed(
-                        filteredEntries,
-                        key = { index, entry -> "$index:${entry.index}:${entry.title}" }) { idx, entry ->
-                        val nextEntryIndex = filteredEntries.getOrNull(idx + 1)?.index ?: Int.MAX_VALUE
-                        val active = currentIndex >= entry.index && (currentIndex < nextEntryIndex || idx == filteredEntries.lastIndex)
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = (entry.level.coerceIn(0, 5) * 14).dp)
-                                .clickable { onJumpToDestination(entry.pageNumber, entry.index) },
-                            shape = VeritasPackStyle.compactShape(),
-                            border = androidx.compose.foundation.BorderStroke(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                            ),
-                            colors = CardDefaults.cardColors(
-                                containerColor = when {
-                                    active -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = VeritasPackStyle.surfaceAlpha())
-                                    entry.isHeading -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = VeritasPackStyle.surfaceAlpha())
-                                    else -> MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
-                                }
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.Top,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Text(
-                                    if (entry.source.startsWith("PDF") || entry.source.contains("table of contents", ignoreCase = true)) "☰" else if (entry.isHeading) "◆" else "§",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary
-                                )
-                                Column(
-                                    modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(3.dp)
-                                ) {
-                                    Text(
-                                        entry.title,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = if (active || entry.isHeading) FontWeight.Black else FontWeight.SemiBold,
-                                        color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
-                                    )
-                                    // Location only: Clean page number or sentence fallback
-                                    Text(
-                                        listOfNotNull(
-                                            entry.pageNumber?.let { "Page $it" },
-                                            if (entry.pageNumber == null) "Sentence ${entry.index + 1}" else null
-                                        ).joinToString(" • "),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss, shape = VeritasPackStyle.chipShape()) { Text("Close") }
-        }
+    ReaderOutlineScreen(
+        title = if (documentOutline.isNotEmpty()) "Table of contents" else "Smart outline",
+        documentTitle = resolveHumanDocumentTitle(document.title, document.sourceLabel),
+        entries = entries.orEmpty(),
+        currentIndex = currentIndex,
+        currentPage = currentPage,
+        pageCount = readerModel?.pageCount?.coerceAtLeast(1) ?: 1,
+        loading = entries == null,
+        origin = origin,
+        sentenceForPage = { page -> readerModel?.sentences?.firstOrNull { it.pageNumber >= page }?.index ?: currentIndex },
+        onJumpToDestination = onJumpToDestination,
+        onDismiss = onDismiss
     )
 }
 

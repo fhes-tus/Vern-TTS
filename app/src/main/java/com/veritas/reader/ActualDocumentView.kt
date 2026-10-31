@@ -117,6 +117,7 @@ internal fun ActualDocumentView(
     var showJumpToPageDialog by remember { mutableStateOf(false) }
     var showDocInfoDialog by remember { mutableStateOf(false) }
     var showOutlineDialog by remember { mutableStateOf(false) }
+    var outlineOrigin by remember { mutableStateOf(Offset.Unspecified) }
     val actualReaderDoc = remember(document.id, readerDocument) {
         readerDocument ?: buildReaderDocument(document, repository.readText(document))
     }
@@ -748,6 +749,7 @@ internal fun ActualDocumentView(
             onOpenVoiceStudio = onOpenVoiceStudio,
             onOpenDocInfo = { showDocInfoDialog = true },
             onOpenOutline = { showOutlineDialog = true },
+            onOutlinePositioned = { outlineOrigin = it },
             hasOriginal = original != null,
             originalUri = original,
             modifier = Modifier.align(Alignment.TopCenter)
@@ -761,7 +763,9 @@ internal fun ActualDocumentView(
             SmartOutlineDialog(
                 document = actualReaderDoc,
                 documentOutline = documentOutline,
-                currentIndex = 0,
+                origin = outlineOrigin,
+                currentPage = pageIndex + 1,
+                currentIndex = model.sentences.firstOrNull { it.pageNumber >= pageIndex + 1 }?.index ?: 0,
                 onJumpToDestination = { targetPage, targetIndex ->
                     showOutlineDialog = false
                     val resolvedPage = targetPage

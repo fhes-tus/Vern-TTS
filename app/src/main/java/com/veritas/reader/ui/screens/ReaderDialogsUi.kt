@@ -371,6 +371,7 @@ internal fun ReaderDialogsAndSheetsHost(
     onOpenNarrationStudio: () -> Unit,
     onExportAudio: () -> Unit,
     showOutline: Boolean,
+    outlineOrigin: androidx.compose.ui.geometry.Offset = androidx.compose.ui.geometry.Offset.Unspecified,
     onDismissOutline: () -> Unit,
     showRsvpSpeedReader: Boolean,
     onDismissRsvpSpeedReader: (Int) -> Unit,
@@ -438,6 +439,7 @@ internal fun ReaderDialogsAndSheetsHost(
         SmartOutlineDialog(
             document = document,
             documentOutline = state.outlineEntries,
+            origin = outlineOrigin,
             currentIndex = currentIndex,
             onJumpToDestination = { pageNum, index ->
                 onDismissOutline()

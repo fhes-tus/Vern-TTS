@@ -63,6 +63,7 @@ internal fun ReaderTopAppBar(
     onToggleSearch: (Boolean) -> Unit,
     onOpenDocumentNotes: () -> Unit,
     onOpenOutline: () -> Unit,
+    onOutlinePositioned: (androidx.compose.ui.geometry.Offset) -> Unit = {},
     showTools: Boolean,
     onShowToolsChange: (Boolean) -> Unit,
     showBookmarks: Boolean,
@@ -159,7 +160,8 @@ internal fun ReaderTopAppBar(
                         onClick = { onToggleSearch(!showSearch) }
                     ) { Icon(Icons.Outlined.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurface) }
                     IconButton(
-                        onClick = onOpenOutline
+                        onClick = onOpenOutline,
+                        modifier = Modifier.outlineRevealAnchor(onOutlinePositioned)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_m3_toc),

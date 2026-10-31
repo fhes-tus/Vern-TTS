@@ -115,7 +115,10 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         toolbar.addView(pill)
 
         toolbar.addView(iconButton(R.drawable.ic_m3_search) { toggleSearch() })
-        toolbar.addView(iconButton(R.drawable.ic_m3_toc) { showTableOfContentsDialog() })
+        toolbar.addView(iconButton(R.drawable.ic_m3_toc) { showTableOfContentsDialog() }.also {
+            it.contentDescription = "Table of Contents"
+            outlineButton = it
+        })
         toolbar.addView(iconButton(R.drawable.ic_m3_contrast) { cyclePaperToneMode() })
         toolbar.addView(iconButton(R.drawable.ic_m3_more_vert) { showTopMenu(toolbar) })
         toolbarChrome = toolbar

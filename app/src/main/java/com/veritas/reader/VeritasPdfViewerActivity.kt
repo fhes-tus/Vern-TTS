@@ -55,6 +55,8 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     internal var lastHighlightPage: Int? = null
     internal var pendingManualPageSync = false
     internal var lastSyncedTargetPage: Int? = null
+    internal var outlineButton: View? = null
+    internal var outlineHost: androidx.compose.ui.platform.ComposeView? = null
     internal var toolbarChrome: View? = null
     internal var bottomChrome: View? = null
     internal var chromeHideJob: Job? = null

@@ -229,6 +229,7 @@ fun ReaderScreen(
     var showSearch by remember { mutableStateOf(false) }
     var showBookmarks by remember { mutableStateOf(false) }
     var showOutline by remember { mutableStateOf(false) }
+    var outlineOrigin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Unspecified) }
     var showRsvpSpeedReader by remember(document.id) { mutableStateOf(false) }
     var showJumpToPageDialog by remember(document.id) { mutableStateOf(false) }
     val showAudioMode = state.readerMode == ReaderMode.LISTEN
@@ -745,6 +746,7 @@ ReaderPageItemView(
             },
             onOpenDocumentNotes = onOpenDocumentNotes,
             onOpenOutline = { showOutline = true },
+            onOutlinePositioned = { outlineOrigin = it },
             showTools = showTools,
             onShowToolsChange = { showTools = it },
             showBookmarks = showBookmarks,
@@ -948,6 +950,7 @@ ReaderPageItemView(
         onOpenNarrationStudio = onOpenNarrationStudio,
         onExportAudio = onExportAudio,
         showOutline = showOutline,
+        outlineOrigin = outlineOrigin,
         onDismissOutline = { showOutline = false },
         showRsvpSpeedReader = showRsvpSpeedReader,
         onDismissRsvpSpeedReader = { targetSentenceIndex ->

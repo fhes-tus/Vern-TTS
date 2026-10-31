@@ -1,5 +1,9 @@
 package com.veritas.reader
 
+import androidx.compose.ui.geometry.Offset
+
+import com.veritas.reader.ui.screens.outlineRevealAnchor
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -128,6 +132,7 @@ internal fun ActualDocumentTopBar(
     onOpenVoiceStudio: () -> Unit,
     onOpenDocInfo: () -> Unit,
     onOpenOutline: () -> Unit = {},
+    onOutlinePositioned: (Offset) -> Unit = {},
     hasOriginal: Boolean,
     originalUri: Uri?,
     modifier: Modifier = Modifier
@@ -238,7 +243,7 @@ internal fun ActualDocumentTopBar(
             // Table of Contents / Outline Button
             IconButton(
                 onClick = onOpenOutline,
-                modifier = Modifier
+                modifier = Modifier.outlineRevealAnchor(onOutlinePositioned)
                     .size(38.dp)
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f), CircleShape)
             ) {

@@ -2,18 +2,8 @@ package com.veritas.reader
 
 import android.content.Intent
 import android.graphics.RectF
-import android.graphics.Typeface
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.StateListDrawable
 import android.net.Uri
-import android.text.TextUtils
-import android.view.Gravity
 import android.view.View
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
@@ -209,7 +199,7 @@ internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
                         title = entry.title,
                         pageNumber = p,
                         pageIndex = p - 1,
-                        level = entry.level.coerceIn(0, 3)
+                        level = entry.level
                     )
                 } else null
             }
@@ -278,282 +268,77 @@ internal fun VeritasPdfViewerActivity.loadPdfMetadataAndLinks(uri: Uri) {
     }
 
     internal fun VeritasPdfViewerActivity.showTableOfContentsDialog() {
+        if (outlineHost != null) return
         showChrome(keepVisible = true)
         val pageCount = runCatching { pdfView?.pdfDocument?.pageCount }.getOrNull() ?: 1
         val currentPage = (pdfView?.firstVisiblePage ?: 0) + 1
-
-        val allTocItems = (if (pdfTocItems.isNotEmpty()) pdfTocItems else buildFallbackToc(pageCount))
+        val tocItems = (if (pdfTocItems.isNotEmpty()) pdfTocItems else buildFallbackToc(pageCount))
             .filterNot { com.veritas.reader.ui.screens.isSelfReferentialTocHeading(it.title) }
-        val displayedToc = allTocItems
-        val displayedLinks = allDocumentLinks
-
-        val rootLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(20.dp, 16.dp, 20.dp, 16.dp)
+        val documentLinks = allDocumentLinks
+        val entries = tocItems.map { item ->
+            com.veritas.reader.ui.screens.SmartOutlineEntry(
+                index = item.pageIndex, title = item.title, preview = "", isHeading = true,
+                level = item.level, pageNumber = item.pageNumber, source = "PDF bookmarks"
+            )
         }
-
-        // Header Title Row
-        val headerRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, 0, 0, 10.dp)
+        val location = IntArray(2)
+        val anchor = outlineButton
+        anchor?.getLocationOnScreen(location)
+        val origin = if (anchor != null) androidx.compose.ui.geometry.Offset(
+            location[0] + anchor.width / 2f, location[1] + anchor.height / 2f
+        ) else androidx.compose.ui.geometry.Offset.Unspecified
+        val host = androidx.compose.ui.platform.ComposeView(this)
+        val parent = findViewById<android.view.ViewGroup>(android.R.id.content)
+        fun dismissOutline() {
+            parent.removeView(host)
+            host.disposeComposition()
+            outlineHost = null
+            showChrome()
         }
-        val title = TextView(this).apply {
-            text = "Table of Contents"
-            setTextColor(colorTextPrimary)
-            textSize = 18f
-            typeface = Typeface.DEFAULT_BOLD
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        }
-        val pageBadge = TextView(this).apply {
-            text = "Current: Page $currentPage"
-            setTextColor(colorPrimary)
-            textSize = 11f
-            typeface = Typeface.DEFAULT_BOLD
-            background = rounded(colorSyncBackground, 6.dp)
-            setPadding(8.dp, 3.dp, 8.dp, 3.dp)
-        }
-        headerRow.addView(title)
-        headerRow.addView(pageBadge)
-        rootLayout.addView(headerRow)
-
-        // Search bar
-        val searchBox = EditText(this).apply {
-            stylePdfInput(this)
-            hint = "Search chapters & links..."
-            setHintTextColor(colorTextSecondary)
-            setTextColor(colorTextPrimary)
-            textSize = 13.5f
-            background = rounded(colorSyncBackground, 10.dp)
-            setPadding(12.dp, 8.dp, 12.dp, 8.dp)
-            maxLines = 1
-        }
-        rootLayout.addView(searchBox)
-
-        // Tab Row: Chapters vs Links
-        var selectedTab = 0 // 0 = Chapters, 1 = Links
-        val tabRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 10.dp, 0, 8.dp)
-        }
-        val chaptersTab = TextView(this).apply {
-            text = "📑 Chapters (${allTocItems.size})"
-            textSize = 12.5f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(colorPrimary)
-            background = rounded(colorSyncBackground, 8.dp)
-            setPadding(12.dp, 6.dp, 12.dp, 6.dp)
-        }
-        val linksTab = TextView(this).apply {
-            text = "🔗 Links (${allDocumentLinks.size})"
-            textSize = 12.5f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(colorTextSecondary)
-            background = rounded(colorSurfaceVariant, 8.dp)
-            setPadding(12.dp, 6.dp, 12.dp, 6.dp)
-        }
-        tabRow.addView(chaptersTab)
-        tabRow.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(8.dp, 1) })
-        tabRow.addView(linksTab)
-        rootLayout.addView(tabRow)
-
-        // Content list container
-        val listContainer = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-        val scroll = ScrollView(this).apply {
-            val maxH = (resources.displayMetrics.heightPixels * 0.45f).toInt()
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, maxH)
-            isVerticalScrollBarEnabled = true
-            addView(listContainer)
-        }
-        rootLayout.addView(scroll)
-
-        var dialogRef: androidx.appcompat.app.AlertDialog? = null
-
-        fun renderContent() {
-            listContainer.removeAllViews()
-            val query = searchBox.text.toString().trim().lowercase()
-
-            if (selectedTab == 0) {
-                val filtered = if (query.isBlank()) displayedToc else displayedToc.filter {
-                    it.title.lowercase().contains(query) || "page ${it.pageNumber}".contains(query)
-                }
-                if (filtered.isEmpty()) {
-                    listContainer.addView(TextView(activity).apply {
-                        text = "No matching chapters found"
-                        setTextColor(colorTextSecondary)
-                        textSize = 13f
-                        gravity = Gravity.CENTER
-                        setPadding(0, 24.dp, 0, 24.dp)
-                    })
-                } else {
-                    filtered.forEach { item ->
-                        val isCurrent = item.pageNumber == currentPage
-                        val itemRow = LinearLayout(activity).apply {
-                            orientation = LinearLayout.HORIZONTAL
-                            gravity = Gravity.CENTER_VERTICAL
-                            setPadding((12 + item.level * 16).dp, 10.dp, 12.dp, 10.dp)
-                            isClickable = true
-                            isFocusable = true
-                            background = if (isCurrent) {
-                                rounded(colorSyncBackground, 10.dp)
-                            } else {
-                                StateListDrawable().apply {
-                                    addState(intArrayOf(android.R.attr.state_pressed), rounded(colorSyncBackground, 10.dp))
-                                }
-                            }
-                            setOnClickListener {
-                                navigateToPdfPage(item.pageIndex)
-                                dialogRef?.dismiss()
-                                Toast.makeText(activity, "Jumped to ${item.title} (Page ${item.pageNumber})", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-
-                        val titleView = TextView(activity).apply {
-                            text = if (item.level > 0) "• ${item.title}" else item.title
-                            setTextColor(if (isCurrent) colorPrimary else colorTextPrimary)
-                            textSize = if (item.level == 0) 14f else 13f
-                            typeface = if (item.level == 0) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
-                            maxLines = 2
-                            ellipsize = TextUtils.TruncateAt.END
-                            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                                marginEnd = 8.dp
-                            }
-                        }
-                        val pageChip = TextView(activity).apply {
-                            text = "p. ${item.pageNumber}"
-                            setTextColor(if (isCurrent) colorPrimary else colorTextSecondary)
-                            textSize = 11f
-                            typeface = Typeface.DEFAULT_BOLD
-                            setPadding(6.dp, 2.dp, 6.dp, 2.dp)
-                            background = rounded(if (isCurrent) colorBackground else colorSurfaceVariant, 6.dp)
-                        }
-                        itemRow.addView(titleView)
-                        itemRow.addView(pageChip)
-                        listContainer.addView(itemRow)
+        host.setViewCompositionStrategy(androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        outlineHost = host
+        parent.addView(host, android.view.ViewGroup.LayoutParams(0, 0))
+        host.setContent {
+            androidx.compose.material3.MaterialTheme(
+                colorScheme = veritasReaderColorScheme(pdfChromeSettings, activity),
+                typography = com.veritas.reader.ui.veritasTypography(com.veritas.reader.ui.VeritasUiFont.fromId(pdfChromeSettings.uiFontId)),
+                shapes = veritasPackShapes(pdfChromeSettings.themePackId)
+            ) {
+                com.veritas.reader.ui.screens.ReaderOutlineScreen(
+                    title = "Table of contents",
+                    documentTitle = com.veritas.reader.ui.screens.resolveHumanDocumentTitle(document?.title.orEmpty(), "PDF"),
+                    entries = entries,
+                    currentIndex = currentPage - 1,
+                    currentPage = currentPage,
+                    pageCount = pageCount,
+                    origin = origin,
+                    reduceMotion = pdfChromeSettings.reduceMotion,
+                    onJumpToDestination = { page, _ ->
+                        if (page != null) navigateToPdfPage(page - 1)
+                        dismissOutline()
+                    },
+                    onDismiss = { dismissOutline() },
+                    showLinks = true,
+                    links = documentLinks.map { link ->
+                        com.veritas.reader.ui.screens.OutlineLink(
+                            title = link.label,
+                            detail = if (!link.url.isNullOrBlank()) "Web link · Page ${link.pageNumber}"
+                                else "Jump to page ${(link.targetPageIndex ?: 0) + 1} · Page ${link.pageNumber}",
+                            searchText = link.url.orEmpty()
+                        )
+                    },
+                    onOpenLink = { index ->
+                        val link = documentLinks[index]
+                        dismissOutline()
+                        if (!link.url.isNullOrBlank()) {
+                            runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link.url))) }
+                                .onFailure { Toast.makeText(activity, "Could not open link: ${link.url}", Toast.LENGTH_SHORT).show() }
+                        } else link.targetPageIndex?.let { navigateToPdfPage(it) }
                     }
-                }
-            } else {
-                // Links Tab
-                val filtered = if (query.isBlank()) displayedLinks else displayedLinks.filter {
-                    it.label.lowercase().contains(query) || (it.url?.lowercase()?.contains(query) == true)
-                }
-                if (filtered.isEmpty()) {
-                    listContainer.addView(TextView(activity).apply {
-                        text = if (allDocumentLinks.isEmpty()) "No hyperlinks detected in this document" else "No matching links found"
-                        setTextColor(colorTextSecondary)
-                        textSize = 13f
-                        gravity = Gravity.CENTER
-                        setPadding(0, 24.dp, 0, 24.dp)
-                    })
-                } else {
-                    filtered.forEach { link ->
-                        val itemRow = LinearLayout(activity).apply {
-                            orientation = LinearLayout.HORIZONTAL
-                            gravity = Gravity.CENTER_VERTICAL
-                            setPadding(12.dp, 10.dp, 12.dp, 10.dp)
-                            isClickable = true
-                            isFocusable = true
-                            background = StateListDrawable().apply {
-                                addState(intArrayOf(android.R.attr.state_pressed), rounded(colorSyncBackground, 10.dp))
-                            }
-                            setOnClickListener {
-                                dialogRef?.dismiss()
-                                if (!link.url.isNullOrBlank()) {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link.url)).apply {
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    }
-                                    runCatching {
-                                        activity.startActivity(intent)
-                                        Toast.makeText(activity, "Opening link: ${link.url}", Toast.LENGTH_SHORT).show()
-                                    }.onFailure {
-                                        Toast.makeText(activity, "Could not open link: ${link.url}", Toast.LENGTH_SHORT).show()
-                                    }
-                                } else if (link.targetPageIndex != null) {
-                                    navigateToPdfPage(link.targetPageIndex)
-                                    Toast.makeText(activity, "Jumped to page ${link.targetPageIndex + 1}", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        }
-
-                        val icon = ImageView(activity).apply {
-                            setImageResource(if (!link.url.isNullOrBlank()) R.drawable.ic_m3_open_in_new else R.drawable.ic_m3_jump_page)
-                            setColorFilter(colorPrimary)
-                            layoutParams = LinearLayout.LayoutParams(20.dp, 20.dp).apply {
-                                marginEnd = 10.dp
-                            }
-                        }
-                        val linkCol = LinearLayout(activity).apply {
-                            orientation = LinearLayout.VERTICAL
-                            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                        }
-                        val linkTitle = TextView(activity).apply {
-                            text = link.label
-                            setTextColor(colorTextPrimary)
-                            textSize = 13f
-                            maxLines = 1
-                            ellipsize = TextUtils.TruncateAt.END
-                        }
-                        val linkSub = TextView(activity).apply {
-                            text = if (!link.url.isNullOrBlank()) "Web Link • Found on Page ${link.pageNumber}" else "Jump to Page ${(link.targetPageIndex ?: 0) + 1} • On Page ${link.pageNumber}"
-                            setTextColor(colorTextSecondary)
-                            textSize = 10.5f
-                        }
-                        linkCol.addView(linkTitle)
-                        linkCol.addView(linkSub)
-
-                        itemRow.addView(icon)
-                        itemRow.addView(linkCol)
-                        listContainer.addView(itemRow)
-                    }
-                }
+                )
             }
         }
-
-        chaptersTab.setOnClickListener {
-            selectedTab = 0
-            chaptersTab.setTextColor(colorPrimary)
-            chaptersTab.background = rounded(colorSyncBackground, 8.dp)
-            linksTab.setTextColor(colorTextSecondary)
-            linksTab.background = rounded(colorSurfaceVariant, 8.dp)
-            renderContent()
-        }
-
-        linksTab.setOnClickListener {
-            selectedTab = 1
-            linksTab.setTextColor(colorPrimary)
-            linksTab.background = rounded(colorSyncBackground, 8.dp)
-            chaptersTab.setTextColor(colorTextSecondary)
-            chaptersTab.background = rounded(colorSurfaceVariant, 8.dp)
-            renderContent()
-        }
-
-        searchBox.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                renderContent()
-            }
-            override fun afterTextChanged(s: android.text.Editable?) = Unit
-        })
-
-        renderContent()
-
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
-            .setView(rootLayout)
-            .setPositiveButton("Jump to Page...") { _, _ ->
-                showJumpToPageDialog()
-            }
-            .setNegativeButton("Close", null)
-            .create()
-        dialogRef = dialog
-        dialog.window?.setBackgroundDrawable(ColorDrawable(colorSurface))
-        dialog.show()
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)?.setTextColor(colorPrimary)
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)?.setTextColor(colorTextSecondary)
     }
-
-
 
 
 data class PdfTocItem(
