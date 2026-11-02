@@ -16,6 +16,7 @@ data class ReaderSettings(
     val themeId: String = VeritasThemeCatalog.DEFAULT_ID,
     val previousThemeId: String? = null,
     val themePackId: String = "veritas_media",
+    val customAccentColor: String = "",
     val adaptiveCover: Boolean = false,
     // false = subtle container-tone hero card (theme-matched); true = the original
     // vivid accent-gradient "poster" style. User-selectable — neither is imposed.
@@ -65,6 +66,7 @@ data class ReaderSettings(
         .put("themeId", themeId)
         .put("previousThemeId", previousThemeId)
         .put("themePackId", themePackId)
+        .put("customAccentColor", normalizeCustomAccent(customAccentColor))
         .put("adaptiveCover", adaptiveCover)
         .put("vibrantHero", vibrantHero)
         .put("autoBackupWeekly", autoBackupWeekly)
@@ -103,6 +105,7 @@ data class ReaderSettings(
                 themeId = VeritasThemeCatalog.normalizeThemeId(migratedTheme),
                 previousThemeId = obj.optString("previousThemeId").takeIf { it.isNotBlank() },
                 themePackId = VeritasThemePackCatalog.normalizePackId(migratedPack),
+                customAccentColor = normalizeCustomAccent(obj.optString("customAccentColor", "")),
                 adaptiveCover = obj.optBoolean("adaptiveCover", false),
                 vibrantHero = obj.optBoolean("vibrantHero", false),
                 autoBackupWeekly = obj.optBoolean("autoBackupWeekly", true),
@@ -140,7 +143,8 @@ data class VoiceSettings(
     val profileName: String = "Balanced",
     val preferredRate: Float = 1.0f,
     val preferredPitch: Float = 1.0f,
-    val showNetworkVoices: Boolean = false
+    val showNetworkVoices: Boolean = false,
+    val voiceShaping: Boolean = true
 ) {
     val displayName: String
         get() = if (voiceName.isBlank()) voiceLabel.ifBlank { "System default voice" } else voiceLabel.ifBlank { voiceName }
@@ -152,9 +156,10 @@ data class VoiceSettings(
         .put("voiceLabel", voiceLabel)
         .put("localeTag", localeTag)
         .put("profileName", profileName)
-        .put("preferredRate", preferredRate.toDouble())
-        .put("preferredPitch", preferredPitch.toDouble())
+        .put("preferredRate", SpeechDelivery.userRate(preferredRate).toDouble())
+        .put("preferredPitch", SpeechDelivery.userPitch(preferredPitch).toDouble())
         .put("showNetworkVoices", showNetworkVoices)
+        .put("voiceShaping", voiceShaping)
 
     companion object {
         fun fromJson(obj: JSONObject): VoiceSettings = VoiceSettings(
@@ -164,9 +169,10 @@ data class VoiceSettings(
             voiceLabel = obj.optString("voiceLabel", "System default voice"),
             localeTag = obj.optString("localeTag"),
             profileName = obj.optString("profileName", "Balanced"),
-            preferredRate = obj.optDouble("preferredRate", 1.0).toFloat().coerceIn(0.5f, 2.0f),
-            preferredPitch = obj.optDouble("preferredPitch", 1.0).toFloat().coerceIn(0.7f, 1.4f),
-            showNetworkVoices = obj.optBoolean("showNetworkVoices", false)
+            preferredRate = SpeechDelivery.userRate(obj.optDouble("preferredRate", 1.0).toFloat()),
+            preferredPitch = SpeechDelivery.userPitch(obj.optDouble("preferredPitch", 1.0).toFloat()),
+            showNetworkVoices = obj.optBoolean("showNetworkVoices", false),
+            voiceShaping = obj.optBoolean("voiceShaping", true)
         )
     }
 }
@@ -191,8 +197,8 @@ data class BookCharacter(
         .put("voiceName", voiceName ?: "")
         .put("enginePackage", enginePackage ?: JSONObject.NULL)
         .put("localeTag", localeTag)
-        .put("pitchMultiplier", pitchMultiplier.toDouble())
-        .put("rateMultiplier", rateMultiplier.toDouble())
+        .put("pitchMultiplier", SpeechDelivery.userPitch(pitchMultiplier).toDouble())
+        .put("rateMultiplier", SpeechDelivery.userRate(rateMultiplier).toDouble())
 
     companion object {
         fun fromJson(obj: JSONObject): BookCharacter = BookCharacter(
@@ -202,8 +208,8 @@ data class BookCharacter(
             voiceName = obj.optString("voiceName").takeIf { it.isNotBlank() },
             enginePackage = if (obj.isNull("enginePackage")) null else obj.optString("enginePackage"),
             localeTag = obj.optString("localeTag"),
-            pitchMultiplier = obj.optDouble("pitchMultiplier", 1.0).toFloat().coerceIn(0.70f, 1.40f),
-            rateMultiplier = obj.optDouble("rateMultiplier", 1.0).toFloat().coerceIn(0.50f, 2.00f)
+            pitchMultiplier = SpeechDelivery.userPitch(obj.optDouble("pitchMultiplier", 1.0).toFloat()),
+            rateMultiplier = SpeechDelivery.userRate(obj.optDouble("rateMultiplier", 1.0).toFloat())
         )
     }
 }
@@ -224,21 +230,32 @@ data class NarrationSettings(
     val punctuationExpressionEnabled: Boolean = true,
     val punctuationExpressionStrength: Float = 0.5f
 ) {
+    internal fun normalizedDelivery(): NarrationSettings = copy(
+        narratorRateMultiplier = SpeechDelivery.legacyRate(narratorRateMultiplier),
+        narratorPitchMultiplier = SpeechDelivery.legacyPitch(narratorPitchMultiplier),
+        dialogueRateMultiplier = SpeechDelivery.legacyRate(dialogueRateMultiplier, 1.02f),
+        dialoguePitchMultiplier = SpeechDelivery.legacyPitch(dialoguePitchMultiplier, 1.03f),
+        punctuationExpressionStrength = SpeechDelivery.strength(punctuationExpressionStrength),
+        characterProfiles = characterProfiles.map { it.copy(rateMultiplier = SpeechDelivery.userRate(it.rateMultiplier),
+            pitchMultiplier = SpeechDelivery.userPitch(it.pitchMultiplier)) }
+    )
+
     fun toJson(): JSONObject {
+        val delivery = normalizedDelivery()
         val array = JSONArray()
-        characterProfiles.forEach { array.put(it.toJson()) }
+        delivery.characterProfiles.forEach { array.put(it.toJson()) }
         return JSONObject()
             .put("castVersion", 2)
             .put("enabled", enabled)
             .put("dialogueDetection", dialogueDetection)
-            .put("narratorRateMultiplier", narratorRateMultiplier.toDouble())
-            .put("narratorPitchMultiplier", narratorPitchMultiplier.toDouble())
-            .put("dialogueRateMultiplier", dialogueRateMultiplier.toDouble())
-            .put("dialoguePitchMultiplier", dialoguePitchMultiplier.toDouble())
+            .put("narratorRateMultiplier", delivery.narratorRateMultiplier.toDouble())
+            .put("narratorPitchMultiplier", delivery.narratorPitchMultiplier.toDouble())
+            .put("dialogueRateMultiplier", delivery.dialogueRateMultiplier.toDouble())
+            .put("dialoguePitchMultiplier", delivery.dialoguePitchMultiplier.toDouble())
             .put("showDialogueBadges", showDialogueBadges)
             .put("fullCastEnabled", fullCastEnabled)
             .put("punctuationExpressionEnabled", punctuationExpressionEnabled)
-            .put("punctuationExpressionStrength", punctuationExpressionStrength.toDouble())
+            .put("punctuationExpressionStrength", delivery.punctuationExpressionStrength.toDouble())
             .put("characterProfiles", array)
     }
 
@@ -258,15 +275,15 @@ data class NarrationSettings(
             return NarrationSettings(
                 enabled = obj.optBoolean("enabled", false),
                 dialogueDetection = obj.optBoolean("dialogueDetection", true),
-                narratorRateMultiplier = obj.optDouble("narratorRateMultiplier", 1.0).toFloat().coerceIn(0.80f, 1.20f),
-                narratorPitchMultiplier = obj.optDouble("narratorPitchMultiplier", 1.0).toFloat().coerceIn(0.92f, 1.08f),
-                dialogueRateMultiplier = obj.optDouble("dialogueRateMultiplier", 1.02).toFloat().coerceIn(0.80f, 1.20f),
-                dialoguePitchMultiplier = obj.optDouble("dialoguePitchMultiplier", 1.03).toFloat().coerceIn(0.92f, 1.08f),
+                narratorRateMultiplier = SpeechDelivery.legacyRate(obj.optDouble("narratorRateMultiplier", 1.0).toFloat()),
+                narratorPitchMultiplier = SpeechDelivery.legacyPitch(obj.optDouble("narratorPitchMultiplier", 1.0).toFloat()),
+                dialogueRateMultiplier = SpeechDelivery.legacyRate(obj.optDouble("dialogueRateMultiplier", 1.02).toFloat(), 1.02f),
+                dialoguePitchMultiplier = SpeechDelivery.legacyPitch(obj.optDouble("dialoguePitchMultiplier", 1.03).toFloat(), 1.03f),
                 showDialogueBadges = obj.optBoolean("showDialogueBadges", true),
                 fullCastEnabled = obj.optBoolean("fullCastEnabled", true),
                 characterProfiles = list,
                 punctuationExpressionEnabled = obj.optBoolean("punctuationExpressionEnabled", true),
-                punctuationExpressionStrength = obj.optDouble("punctuationExpressionStrength", 0.5).toFloat().coerceIn(0f, 1f)
+                punctuationExpressionStrength = SpeechDelivery.strength(obj.optDouble("punctuationExpressionStrength", 0.5).toFloat())
             )
         }
     }
@@ -325,19 +342,17 @@ object NarrationAnalyzer {
     }
 
     fun effectiveRate(baseRate: Float, settings: NarrationSettings, text: String, allowPunctuationExpression: Boolean = true, cue: NarrationCue? = null): Float {
-        val characterRate = if (settings.enabled) getActiveCharacter(text, settings, cue).rateMultiplier else 1f
+        val characterRate = if (settings.enabled) SpeechDelivery.userRate(getActiveCharacter(text, settings, cue).rateMultiplier) else 1f
         val punctuationRate = if (allowPunctuationExpression && settings.punctuationExpressionEnabled)
             SpeechPunctuation.rateMultiplier(text, settings.punctuationExpressionStrength) else 1f
-        if (characterRate == 1f && punctuationRate == 1f) return baseRate
-        return (baseRate * characterRate * punctuationRate).coerceIn(0.5f, 2.0f)
+        return SpeechDelivery.rate(SpeechDelivery.rate(baseRate) * characterRate * punctuationRate)
     }
 
     fun effectivePitch(basePitch: Float, settings: NarrationSettings, text: String, allowPunctuationExpression: Boolean = true, cue: NarrationCue? = null): Float {
-        val characterPitch = if (settings.enabled) getActiveCharacter(text, settings, cue).pitchMultiplier else 1f
+        val characterPitch = if (settings.enabled) SpeechDelivery.userPitch(getActiveCharacter(text, settings, cue).pitchMultiplier) else 1f
         val punctuationPitch = if (allowPunctuationExpression && settings.punctuationExpressionEnabled)
             SpeechPunctuation.pitchMultiplier(text, settings.punctuationExpressionStrength) else 1f
-        if (characterPitch == 1f && punctuationPitch == 1f) return basePitch
-        return (basePitch * characterPitch * punctuationPitch).coerceIn(0.60f, 1.50f)
+        return SpeechDelivery.pitch(SpeechDelivery.pitch(basePitch) * characterPitch * punctuationPitch)
     }
 }
 

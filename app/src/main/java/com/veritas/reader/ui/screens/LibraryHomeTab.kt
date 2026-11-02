@@ -124,7 +124,9 @@ internal fun LibraryHomeTab(
         uiState.isHeroContinueDismissed || hasRecordedActivity
 
     val scheme = MaterialTheme.colorScheme
-    val heroColors = com.veritas.reader.veritasHeroColors(scheme, uiState.readerSettings.vibrantHero)
+    val heroColors = com.veritas.reader.veritasHeroColors(scheme, uiState.readerSettings.vibrantHero,
+        preserveAccent = com.veritas.reader.normalizeCustomAccent(uiState.readerSettings.customAccentColor).isNotEmpty() &&
+            !uiState.readerSettings.themeId.contains("high_contrast"))
 
     val classicsIndex = 3 + (if (recentBooks.isNotEmpty()) 1 else 0)
     LaunchedEffect(OnboardingController.activeStep, classicsIndex) {

@@ -6,7 +6,7 @@
 
 ### *Your intelligent, private reading workstation, neural audiobook studio, and active-recall study suite for Android.*
 
-[![Source Version](https://img.shields.io/badge/Source-v2.7.0-orange.svg)](RELEASE_NOTES_v2.7.0.md)
+[![Source Version](https://img.shields.io/badge/Source-v2.7.1-orange.svg)](RELEASE_NOTES_v2.7.1.md)
 [![Target Platform](https://img.shields.io/badge/Platform-Android%2016%20(API%2036)-3DDC84.svg?logo=android&logoColor=white)](https://developer.android.com/)
 [![Minimum SDK](https://img.shields.io/badge/Min%20SDK-Android%209.0%20(API%2028)-blue.svg)](https://developer.android.com/)
 [![Language](https://img.shields.io/badge/Kotlin-2.4.0-7F52FF.svg?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
@@ -58,7 +58,16 @@ Designed with an **offline-first, privacy-respecting philosophy**, your library,
 
 ---
 
-## What's new in 2.7.0
+## What's new in 2.7.1
+
+- Completed books stay at the end of Library in every sort, including custom ordering.
+- Pick any custom accent in Display & theme using a colour field, hue strip and quick swatches, with a live circle preview. Matching accents and tints follow all four theme packs and the selected light, dark or system mode.
+- Pronunciation rules have wider fields, grouped matching controls and a clearer spoken preview, with extra examples and syntax help available when needed.
+- Reset to the theme's colours at any time. High-contrast presets retain their accessibility colours.
+
+Source is **2.7.1 / code 46**. [Full notes](RELEASE_NOTES_v2.7.1.md) · [Verification](progress.md).
+
+## Previous update: 2.7.0
 
 - Take a photo or choose one for on-device Scan / OCR.
 - Share up to five Listen sentences as a quote image, with 14 colours, a preview and an editable author or character credit.
@@ -69,7 +78,7 @@ Designed with an **offline-first, privacy-respecting philosophy**, your library,
 - Retain real contents/chapter entries during PDF cleanup, reject unsupported files safely, and restore Funky cards across Added grids and Study Hub.
 - Enjoy consistent charcoal/AMOLED colours and theme-following Home colours with the original animated rings.
 
-Source is **2.7.0 / code 45**; this update is being prepared for distribution. [Full notes](RELEASE_NOTES_v2.7.0.md) · [Play and Telegram drafts](release/v2.7.0/README.md) · [Verification](progress.md).
+[2.7.0 notes](RELEASE_NOTES_v2.7.0.md) · [2.7.0 Play and Telegram drafts](release/v2.7.0/README.md).
 
 ## 🚀 Key Features
 
@@ -171,7 +180,7 @@ Suggestions, bug reports, and pull requests are welcome! Feel free to open an is
 
 ## Current development milestone
 
-Source is **2.7.0 / build 45**. Google Play accepted the 2.6.2 production release; the 2.7.0 source, release notes and store/community drafts are being prepared here. No new release has been uploaded by this preparation. See [2.7.0 notes](RELEASE_NOTES_v2.7.0.md), the [release pack](release/v2.7.0/README.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and the verification snapshots under `docs/verification/`.
+Source is **2.7.1 / build 46**. This source update has not been published to Google Play or Telegram. See [2.7.1 notes](RELEASE_NOTES_v2.7.1.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and the verification snapshots under `docs/verification/`.
 
 ### Desktop implementation
 

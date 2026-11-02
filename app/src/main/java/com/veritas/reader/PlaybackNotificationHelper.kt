@@ -41,7 +41,7 @@ internal fun PlaybackService.refreshForegroundNotification() {
 internal fun PlaybackService.estimatedDurationMs(): Long {
     if (chunks.isEmpty()) return 0L
     val totalChars = chunks.sumOf { it.length.coerceAtLeast(1) }.coerceAtLeast(1)
-    val charsPerSecond = (14.0 * PlaybackStateStore.rate.coerceIn(0.5f, 2.0f)).coerceAtLeast(7.0)
+    val charsPerSecond = (14.0 * SpeechDelivery.userRate(PlaybackStateStore.rate)).coerceAtLeast(7.0)
     return ((totalChars / charsPerSecond) * 1000.0)
         .toLong()
         .coerceAtLeast(chunks.size * 800L)

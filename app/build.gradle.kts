@@ -52,8 +52,8 @@ android {
         minSdk = 28
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 45
-        versionName = "2.7.0"
+        versionCode = 46
+        versionName = "2.7.1"
 
         ndk {
             abiFilters.addAll(setOf("armeabi-v7a", "arm64-v8a"))
@@ -137,6 +137,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-mlkit-language-id:17.0.0")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("org.apache.commons:commons-compress:1.26.1")
+    implementation("com.google.re2j:re2j:1.8")
     constraints {
         implementation("org.apache.commons:commons-lang3:3.18.0") {
             because("Fix CVE-2025-48924 in the Commons Compress dependency graph.")

@@ -8,6 +8,19 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class HeroColorsTest {
+    @Test fun customVibrantHeroKeepsTheChosenFillAndUsesContrastingInk() {
+        for (accent in listOf(Color.Black, Color.White, Color.Yellow, Color(0xFF12ABEF), Color(0xFFF02090))) {
+            for (base in listOf(lightColorScheme(), darkColorScheme())) {
+                val scheme = veritasReadableInk(base.copy(primary = accent))
+                val hero = veritasHeroColors(scheme, true, preserveAccent = true)
+                assertEquals(accent, hero.container)
+                assertTrue(contrast(hero.content, hero.container) >= 4.5f)
+                assertTrue(contrast(hero.secondaryContent, hero.container) >= 4.5f)
+                assertTrue(contrast(hero.actionContent, hero.actionContainer) >= 4.5f)
+            }
+        }
+    }
+
     @Test fun vibrantThemesKeepBodySecondaryTextAndActionsReadable() {
         val accents = listOf(Color.Black, Color.White, Color.Red, Color.Green, Color.Blue, Color.Cyan, Color.Yellow,
             Color.Magenta, Color(0xFFC07318), Color(0xFFE5A93C), Color(0xFFA79BFF), Color(0xFFBD93F9), Color(0xFF58A6FF))

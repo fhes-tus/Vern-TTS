@@ -3,6 +3,7 @@ package com.veritas.reader.tts
 import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
+import com.veritas.reader.VoiceConfigurator
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
@@ -57,8 +58,7 @@ class SystemTtsEngine(
 
     override suspend fun synthesize(sentence: String, rate: Float, pitch: Float): ShortArray? = withContext(Dispatchers.IO) {
         if (!initDeferred.await()) return@withContext null
-        tts?.setSpeechRate(rate)
-        tts?.setPitch(pitch)
+        if (tts?.let { VoiceConfigurator.applyDelivery(it, rate, pitch) } != true) return@withContext null
 
         val tempWav = File(context.cacheDir, "sys_tts_${System.currentTimeMillis()}.wav")
         val synthDeferred = CompletableDeferred<Boolean>()

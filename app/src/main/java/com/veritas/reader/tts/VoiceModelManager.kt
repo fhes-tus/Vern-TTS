@@ -173,18 +173,18 @@ object VoiceModelManager {
         OfflineVoiceDescriptor("kokoro_bm_daniel", "Daniel (UK Male • Studio)", OfflineEngineType.KOKORO, "English (UK)", "en-GB", 0.0f, false, KOKORO_MODEL_URL),
 
         // Piper Light Voices
-        OfflineVoiceDescriptor("piper_en_gb_alan", "Alan (UK Male) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 20.1f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-alan-medium-int8.tar.bz2", modelBaseName = "en_GB-alan-medium"),
-        OfflineVoiceDescriptor("piper_en_gb_northern", "Fletcher (UK Male) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 20.1f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-northern_english_male-medium-int8.tar.bz2", modelBaseName = "en_GB-northern_english_male-medium"),
-        OfflineVoiceDescriptor("piper_en_gb_southern", "Nigel (UK Male) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 22.5f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-southern_english_male-medium-int8.tar.bz2", modelBaseName = "en_GB-southern_english_male-medium"),
-        OfflineVoiceDescriptor("piper_en_gb_jenny", "Jenny (UK Female) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 20.0f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-jenny_dioco-medium-int8.tar.bz2", modelBaseName = "en_GB-jenny_dioco-medium"),
-        OfflineVoiceDescriptor("piper_en_gb_alba", "Alba (UK Female) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 20.1f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-alba-medium-int8.tar.bz2", modelBaseName = "en_GB-alba-medium"),
-        OfflineVoiceDescriptor("piper_en_gb_cori", "Cori (UK Female) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 20.1f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-cori-medium-int8.tar.bz2", modelBaseName = "en_GB-cori-medium"),
-        OfflineVoiceDescriptor("piper_en_us_ryan", "Ryan (US Male) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 20.1f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-ryan-medium-int8.tar.bz2", modelBaseName = "en_US-ryan-medium"),
-        OfflineVoiceDescriptor("piper_en_us_joe", "Joe (US Male) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 20.2f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-joe-medium-int8.tar.bz2", modelBaseName = "en_US-joe-medium"),
-        OfflineVoiceDescriptor("piper_en_us_hfc_male", "Marcus (US Male) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 20.0f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-hfc_male-medium-int8.tar.bz2", modelBaseName = "en_US-hfc_male-medium"),
-        OfflineVoiceDescriptor("piper_en_us_amy", "Amy (US Female) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 20.1f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-amy-medium-int8.tar.bz2", modelBaseName = "en_US-amy-medium"),
-        OfflineVoiceDescriptor("piper_en_us_lessac", "Lessac (US Female) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 20.0f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-lessac-medium-int8.tar.bz2", modelBaseName = "en_US-lessac-medium"),
-        OfflineVoiceDescriptor("piper_en_us_hfc_fem", "Hana (US Female) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 20.0f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-hfc_female-medium-int8.tar.bz2", modelBaseName = "en_US-hfc_female-medium"),
+        OfflineVoiceDescriptor("piper_en_gb_alan", "Alan (UK Male) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 64.3f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-alan-medium.tar.bz2", modelBaseName = "en_GB-alan-medium"),
+        OfflineVoiceDescriptor("piper_en_gb_northern", "Fletcher (UK Male) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 64.3f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-northern_english_male-medium.tar.bz2", modelBaseName = "en_GB-northern_english_male-medium"),
+        OfflineVoiceDescriptor("piper_en_gb_southern", "Nigel (UK Male) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 72.0f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-southern_english_male-medium.tar.bz2", modelBaseName = "en_GB-southern_english_male-medium"),
+        OfflineVoiceDescriptor("piper_en_gb_jenny", "Jenny (UK Female) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 64.0f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-jenny_dioco-medium.tar.bz2", modelBaseName = "en_GB-jenny_dioco-medium"),
+        OfflineVoiceDescriptor("piper_en_gb_alba", "Alba (UK Female) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 64.3f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-alba-medium.tar.bz2", modelBaseName = "en_GB-alba-medium"),
+        OfflineVoiceDescriptor("piper_en_gb_cori", "Cori (UK Female) • Lite", OfflineEngineType.PIPER, "English (UK)", "en-GB", 64.3f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-cori-medium.tar.bz2", modelBaseName = "en_GB-cori-medium"),
+        OfflineVoiceDescriptor("piper_en_us_ryan", "Ryan (US Male) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 64.3f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-ryan-medium.tar.bz2", modelBaseName = "en_US-ryan-medium"),
+        OfflineVoiceDescriptor("piper_en_us_joe", "Joe (US Male) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 64.6f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-joe-medium.tar.bz2", modelBaseName = "en_US-joe-medium"),
+        OfflineVoiceDescriptor("piper_en_us_hfc_male", "Marcus (US Male) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 64.0f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-hfc_male-medium.tar.bz2", modelBaseName = "en_US-hfc_male-medium"),
+        OfflineVoiceDescriptor("piper_en_us_amy", "Amy (US Female) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 64.3f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-amy-medium.tar.bz2", modelBaseName = "en_US-amy-medium"),
+        OfflineVoiceDescriptor("piper_en_us_lessac", "Lessac (US Female) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 64.0f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-lessac-medium.tar.bz2", modelBaseName = "en_US-lessac-medium"),
+        OfflineVoiceDescriptor("piper_en_us_hfc_fem", "Hana (US Female) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 64.0f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-hfc_female-medium.tar.bz2", modelBaseName = "en_US-hfc_female-medium"),
     )
 
     fun hasAnyModelInstalled(context: Context): Boolean {
@@ -237,7 +237,7 @@ object VoiceModelManager {
             }
             OfflineEngineType.PIPER -> {
                 val base = availableVoices.firstOrNull { it.id == voiceId }?.modelBaseName
-                val model = base?.let { File(dir, "$it.onnx") }
+                val model = base?.let { PiperModelFiles.preferred(dir, it) }
                 model != null && model.isFile && model.length() > 0L &&
                     File(dir, "tokens.txt").isFile &&
                     File(sharedEspeakDirectory(context), "phontab").isFile
@@ -247,6 +247,13 @@ object VoiceModelManager {
 
     fun getInstalledVoices(context: Context): List<OfflineVoiceDescriptor> {
         return availableVoices.filter { isVoiceInstalled(context, it.id) }
+    }
+
+    fun needsQualityUpgrade(context: Context, voiceId: String): Boolean {
+        val voice = availableVoices.firstOrNull { it.id == voiceId && it.engineType == OfflineEngineType.PIPER } ?: return false
+        val base = voice.modelBaseName ?: return false
+        return isVoiceInstalled(context, voiceId) &&
+            PiperModelFiles.preferred(getVoiceDirectory(context, OfflineEngineType.PIPER, voiceId), base)?.name != "$base.fp32.onnx"
     }
 
     // isVoiceInstalled runs once per catalog voice during composition, so a bad
@@ -432,7 +439,7 @@ object VoiceModelManager {
             cleanupOrphans(context)
         }
         try {
-            if (isVoiceInstalled(context, voice.id)) {
+            if (isVoiceInstalled(context, voice.id) && !needsQualityUpgrade(context, voice.id)) {
                 updateState(voice.id, DownloadState.Completed)
                 return true
             }
@@ -476,13 +483,14 @@ object VoiceModelManager {
 
             if (voice.engineType == OfflineEngineType.PIPER) {
                 hoistSharedEspeak(context, staging)
-            }
-
-            voiceDir.deleteRecursively()
-            if (!staging.renameTo(voiceDir)) {
-                staging.deleteRecursively()
-                updateState(voice.id, DownloadState.Failed("Could not install the downloaded voice"))
-                return false
+                PiperModelFiles.publishQuality(staging, voiceDir, requireNotNull(voice.modelBaseName))
+            } else {
+                voiceDir.deleteRecursively()
+                if (!staging.renameTo(voiceDir)) {
+                    staging.deleteRecursively()
+                    updateState(voice.id, DownloadState.Failed("Could not install the downloaded voice"))
+                    return false
+                }
             }
 
             if (!isVoiceInstalled(context, voice.id)) {

@@ -1,59 +1,113 @@
 package com.veritas.reader
 
+import java.text.BreakIterator
+import java.text.Normalizer
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /** Spoken replacements retain their original character positions for range callbacks and resume. */
-class SpokenText private constructor(val text: String, private val positions: IntArray, private val sourceLength: Int) {
-    fun sourceOffset(spokenOffset: Int): Int = if (spokenOffset >= positions.size) sourceLength else positions[spokenOffset.coerceAtLeast(0)]
+class SpokenText private constructor(
+    val text: String,
+    private val positions: IntArray,
+    private val ends: IntArray,
+    private val sourceLength: Int
+) {
+    fun sourceOffset(spokenOffset: Int): Int =
+        if (positions.isEmpty() || spokenOffset >= positions.size) sourceLength else positions[spokenOffset.coerceAtLeast(0)]
+
+    /** Exclusive end of a spoken range, including the whole source span of an expansion. */
+    fun sourceEndOffset(spokenEnd: Int): Int =
+        if (spokenEnd <= 0 || ends.isEmpty()) sourceOffset(0) else ends[spokenEnd.coerceAtMost(ends.size) - 1]
 
     /** Slice spoken text while retaining offsets into the original source. */
     fun slice(start: Int, end: Int): SpokenText =
-        SpokenText(text.substring(start, end), positions.copyOfRange(start, end), sourceOffset(end))
+        SpokenText(text.substring(start, end), positions.copyOfRange(start, end), ends.copyOfRange(start, end),
+            maxOf(sourceOffset(end), sourceEndOffset(end)))
+
+    private data class Edit(val start: Int, val end: Int, val value: String)
 
     fun replace(pattern: Regex, replacement: (MatchResult) -> String): SpokenText {
-        val output = StringBuilder()
-        val offsets = ArrayList<Int>()
-        var cursor = 0
-        fun appendOriginal(end: Int) {
-            for (i in cursor until end) { output.append(text[i]); offsets.add(positions[i]) }
-            cursor = end
-        }
-        pattern.findAll(text).forEach { match ->
-            appendOriginal(match.range.first)
-            val value = replacement(match)
-            if (value == match.value) appendOriginal(match.range.last + 1) else {
-                output.append(value)
-                repeat(value.length) { offsets.add(positions[match.range.first]) }
-                cursor = match.range.last + 1
-            }
-        }
-        appendOriginal(text.length)
-        return SpokenText(output.toString(), offsets.toIntArray(), sourceLength)
+        return edited(pattern.findAll(text).map { Edit(it.range.first, it.range.last + 1, replacement(it)) }.toList())
     }
 
-    /** Sanitization is length preserving and therefore keeps the composed source map. */
+    /** Edits are evaluated against the input once; replacement output is never re-matched. */
     internal fun applyRules(rules: List<DocumentRepository.CompiledPronunciationRule>): SpokenText {
-        val edits = PronunciationRulesEngine.edits(text, rules)
+        return edited(PronunciationRulesEngine.edits(text, rules).map { Edit(it.range.first, it.range.last + 1, it.replacement) })
+    }
+
+    private fun edited(edits: List<Edit>): SpokenText {
         if (edits.isEmpty()) return this
         val output = StringBuilder()
         val offsets = ArrayList<Int>()
+        val endOffsets = ArrayList<Int>()
         var cursor = 0
-        edits.forEach { edit ->
-            for (i in cursor until edit.range.first) { output.append(text[i]); offsets.add(positions[i]) }
-            output.append(edit.replacement)
-            repeat(edit.replacement.length) { offsets.add(positions[edit.range.first]) }
-            cursor = edit.range.last + 1
+        fun appendOriginal(end: Int) {
+            for (i in cursor until end) { output.append(text[i]); offsets.add(positions[i]); endOffsets.add(ends[i]) }
+            cursor = end
         }
-        for (i in cursor until text.length) { output.append(text[i]); offsets.add(positions[i]) }
-        return SpokenText(output.toString(), offsets.toIntArray(), sourceLength)
+        edits.forEach { edit ->
+            appendOriginal(edit.start)
+            if (edit.value == text.substring(edit.start, edit.end)) appendOriginal(edit.end) else {
+                output.append(edit.value)
+                val start = if (edit.start == text.length) sourceEndOffset(edit.start) else sourceOffset(edit.start)
+                val end = if (edit.end > edit.start) sourceEndOffset(edit.end) else start
+                repeat(edit.value.length) { offsets.add(start); endOffsets.add(end) }
+                cursor = edit.end
+            }
+        }
+        appendOriginal(text.length)
+        return SpokenText(output.toString(), offsets.toIntArray(), endOffsets.toIntArray(), sourceLength)
     }
 
-    fun sanitize(): SpokenText = SpokenText(SpeechSanitizer.forSpeech(text), positions, sourceLength)
+    internal fun mapChars(transform: (Int, Char) -> Char): SpokenText =
+        SpokenText(String(CharArray(text.length) { transform(it, text[it]) }), positions, ends, sourceLength)
+
+    internal fun trim(): SpokenText {
+        val start = text.indexOfFirst { !it.isWhitespace() }.let { if (it < 0) text.length else it }
+        val end = text.indexOfLast { !it.isWhitespace() }.let { if (it < 0) start else it + 1 }
+        return SpokenText(text.substring(start, end), positions.copyOfRange(start, end), ends.copyOfRange(start, end), sourceLength)
+    }
+
+    /** NFC can merge multiple UTF-16 units; preserve the entire original combining sequence. */
+    internal fun normalizeNfc(): SpokenText {
+        if (Normalizer.isNormalized(text, Normalizer.Form.NFC)) return this
+        val boundaries = BreakIterator.getCharacterInstance(Locale.ROOT).apply { setText(this@SpokenText.text) }
+        val edits = mutableListOf<Edit>()
+        var start = boundaries.first()
+        var end = boundaries.next()
+        while (end != BreakIterator.DONE) {
+            val cluster = text.substring(start, end)
+            val normalized = Normalizer.normalize(cluster, Normalizer.Form.NFC)
+            if (cluster != normalized) edits.add(Edit(start, end, normalized))
+            start = end
+            end = boundaries.next()
+        }
+        return edited(edits)
+    }
+
+    internal fun appendPause(): SpokenText = edited(listOf(Edit(text.length, text.length, ".")))
+
+    /** Join original mapped cells; generated separators have an empty source span. */
+    internal fun join(parts: List<SpokenText>): SpokenText {
+        val output = StringBuilder()
+        val offsets = ArrayList<Int>()
+        val endOffsets = ArrayList<Int>()
+        parts.forEachIndexed { index, part ->
+            if (index > 0) {
+                val boundary = parts[index - 1].sourceEndOffset(parts[index - 1].text.length)
+                output.append(' '); offsets.add(boundary); endOffsets.add(boundary)
+            }
+            output.append(part.text)
+            offsets.addAll(part.positions.toList()); endOffsets.addAll(part.ends.toList())
+        }
+        return SpokenText(output.toString(), offsets.toIntArray(), endOffsets.toIntArray(), sourceLength)
+    }
+
+    fun sanitize(): SpokenText = SpeechSanitizer.forSpeech(this)
 
     companion object {
-        fun identity(source: String) = SpokenText(source, IntArray(source.length) { it }, source.length)
+        fun identity(source: String) = SpokenText(source, IntArray(source.length) { it }, IntArray(source.length) { it + 1 }, source.length)
     }
 }
 
@@ -88,9 +142,9 @@ object ReadingSymbols {
 
     fun expand(input: SpokenText, english: Boolean = true): SpokenText {
         var spoken = input
-        // PDF ligatures are typographic variants, in any language.
-        val ligatures = mapOf("ﬁ" to "fi", "ﬂ" to "fl", "ﬀ" to "ff", "ﬃ" to "ffi", "ﬄ" to "ffl", "æ" to "ae", "œ" to "oe")
-        spoken = spoken.replace(Regex("[ﬁﬂﬀﬃﬄæœ]")) { ligatures.getValue(it.value) }
+        // Presentation ligatures are typographic variants. æ and œ are language letters.
+        val ligatures = mapOf("ﬁ" to "fi", "ﬂ" to "fl", "ﬀ" to "ff", "ﬃ" to "ffi", "ﬄ" to "ffl")
+        spoken = spoken.replace(Regex("[ﬁﬂﬀﬃﬄ]")) { ligatures.getValue(it.value) }
         if (!english) return spoken
         spoken = spoken.replace(Regex("\\b\\d{4}-\\d{2}-\\d{2}\\b")) { match ->
             runCatching { LocalDate.parse(match.value).format(DateTimeFormatter.ofPattern("MMMM d, uuuu", Locale.ENGLISH)) }.getOrDefault(match.value)
@@ -103,17 +157,19 @@ object ReadingSymbols {
             val numeral = match.groupValues[1]; val number = romanValue(numeral)
             if (number == null) match.value else match.value.dropLast(numeral.length) + "the " + ordinal(number)
         }
-        val chemistry = Regex("\\b(chemic\\w*|element\\w*|formula\\w*|molecul\\w*|reaction\\w*|atomic|compound\\w*|periodic table)\\b", RegexOption.IGNORE_CASE).containsMatchIn(input.text)
+        val elementIntroducer = Regex("\\b(?:element|(?:chemical |atomic )?symbol|formula)\\s+(?:is\\s+)?$", RegexOption.IGNORE_CASE)
         spoken = spoken.replace(Regex("(?<![\\p{L}\\p{N}_])(?:[A-Z][a-z]?[0-9₀-₉]*)+(?![\\p{L}\\p{N}_])")) { match ->
             val formula = match.value
             val tokens = Regex("([A-Z][a-z]?)([0-9₀-₉]*)").findAll(formula).toList()
-            val signal = chemistry || formula.any { it.isDigit() || it in subscripts } || (tokens.size > 1 && formula.any { it.isLowerCase() })
+            val explicitElement = elementIntroducer.containsMatchIn(spoken.text.substring(0, match.range.first))
+            val signal = explicitElement || formula.any { it.isDigit() || it in subscripts } || (tokens.size > 1 && formula.any { it.isLowerCase() })
             if (!signal || tokens.any { it.groupValues[1] !in elements }) formula else tokens.joinToString(" ") {
                 val count = it.groupValues[2].map { c -> subscripts.indexOf(c).takeIf { n -> n >= 0 }?.digitToChar() ?: c }.joinToString("")
                 elements.getValue(it.groupValues[1]) + if (count.isNotEmpty()) " $count" else ""
             }
         }
         spoken = spoken.replace(Regex("[⁰¹²³⁴⁵⁶⁷⁸⁹]+")) { match ->
+            if (!hasExponentBase(spoken.text, match.range.first)) return@replace match.value
             val power = match.value.map { superscripts.indexOf(it).digitToChar() }.joinToString("")
             when (power) { "2" -> " squared "; "3" -> " cubed "; else -> " to the power of $power " }
         }
@@ -146,6 +202,17 @@ object ReadingSymbols {
             when (match.value.lowercase(Locale.ROOT)) { "e.g." -> "for example"; "i.e." -> "that is"; else -> "and others" }
         }
         return spoken
+    }
+
+    private fun hasExponentBase(text: String, offset: Int): Boolean {
+        val before = text.substring(0, offset)
+        val base = before.takeLastWhile { it.isLetterOrDigit() || it == '.' }
+        if (base.matches(Regex("\\d+(?:\\.\\d+)?"))) return true
+        if (base.length == 1 && base[0].isLetter()) return true
+        if (base in setOf("m", "cm", "mm", "km", "ft", "in")) return true
+        // A short variable product directly after an operator, as in E=mc².
+        return base.length in 2..3 && base.all { it in 'a'..'z' } &&
+            before.dropLast(base.length).lastOrNull() in listOf('=', '+', '-', '×', '÷', '*', '/', '(')
     }
 
     private fun ordinal(number: Int): String = "$number" + when {

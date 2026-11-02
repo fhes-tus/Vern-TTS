@@ -217,14 +217,23 @@ fun DocumentRepository.loadPronunciationRules(): List<PronunciationRule> {
     return rules.sortedByDescending { it.createdAt }
 }
 
-fun DocumentRepository.addPronunciationRule(find: String, replaceWith: String): List<PronunciationRule> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
-    val cleanFind = find.trim().take(120)
+fun DocumentRepository.addPronunciationRule(find: String, replaceWith: String,
+    matchKind: SpeechRuleKind = SpeechRuleKind.LITERAL, caseSensitive: Boolean = false,
+    ruleId: String? = null): List<PronunciationRule> = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val cleanFind = if (matchKind == SpeechRuleKind.LITERAL) find.trim().take(120) else find.trim()
     if (cleanFind.isBlank()) return@synchronized loadPronunciationRules()
     val current = loadPronunciationRules()
-    val existing = current.firstOrNull { it.find.equals(cleanFind, ignoreCase = true) }
-    val rule = existing?.copy(replaceWith = replaceWith.trim().take(120), enabled = true)
-        ?: PronunciationRule(UUID.randomUUID().toString(), cleanFind, replaceWith.trim().take(120), true, System.currentTimeMillis())
-    savePronunciationRules(listOf(rule) + current.filterNot { it.find.equals(cleanFind, ignoreCase = true) })
+    val replacement = if (matchKind == SpeechRuleKind.LITERAL) replaceWith.trim().take(120) else replaceWith
+    val draft = PronunciationRule(ruleId.orEmpty(), cleanFind, replacement, matchKind = matchKind, caseSensitive = caseSensitive)
+    val error = SpeechPatternRules.error(draft)
+    require(error == null) { error.orEmpty() }
+    val existing = if (ruleId != null) current.firstOrNull { it.id == ruleId }
+        .also { require(it != null) { "This rule was removed. Create a new rule instead." } }
+        else current.firstOrNull { SpeechPatternRules.identity(it) == SpeechPatternRules.identity(draft) }
+    val rule = draft.copy(id = existing?.id ?: UUID.randomUUID().toString())
+    savePronunciationRules(listOf(rule) + current.filterNot {
+        it.id == rule.id || SpeechPatternRules.identity(it) == SpeechPatternRules.identity(rule)
+    })
     loadPronunciationRules()
 }
 

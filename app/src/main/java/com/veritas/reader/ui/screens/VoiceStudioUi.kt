@@ -58,6 +58,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -92,7 +95,8 @@ fun VoiceStudioDialog(
     onOpenSystemTtsSettings: () -> Unit,
     onOpenSpeechEdits: () -> Unit,
     onOpenNarrationStudio: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onVoiceShapingChange: (Boolean) -> Unit = {}
 ) {
     val currentLocale = LocalConfiguration.current.locales[0]
     var managerMenuExpanded by remember { mutableStateOf(false) }
@@ -232,6 +236,16 @@ fun VoiceStudioDialog(
         }
 
         // Voice Presets Gallery
+        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.weight(1f)) {
+                Text("Voice shaping", style = MaterialTheme.typography.titleSmall)
+                Text("Turn off the app's tone profile. Speed and pitch stay as selected. Android EQ support varies by engine and device.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            com.veritas.reader.ui.VeritasSwitch(checked = settings.voiceShaping, onCheckedChange = onVoiceShapingChange,
+                modifier = Modifier.testTag("voice-shaping-toggle").semantics { contentDescription = "Voice shaping" })
+        }
         SettingsHubSectionTitle("Voice presets")
         Row(
             modifier = Modifier
@@ -501,6 +515,8 @@ fun VoiceStudioDialog(
                 .firstOrNull { it.id == voice.name }
             val needsDownload = offlineVoice != null &&
                 !com.veritas.reader.tts.VoiceModelManager.isVoiceInstalled(voiceRowContext, voice.name)
+            val needsQualityUpgrade = offlineVoice != null &&
+                com.veritas.reader.tts.VoiceModelManager.needsQualityUpgrade(voiceRowContext, voice.name)
             val voiceDownload = voiceDownloadStates[voice.name]
             Card(
                 modifier = Modifier
@@ -540,7 +556,7 @@ fun VoiceStudioDialog(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    if (offlineVoice != null && needsDownload) {
+                    if (offlineVoice != null && (needsDownload || needsQualityUpgrade)) {
                         when (val state = voiceDownload) {
                             is com.veritas.reader.tts.DownloadState.Downloading ->
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -553,7 +569,7 @@ fun VoiceStudioDialog(
                                 }
                             }) {
                                 Text(
-                                    "Get · ${offlineVoice.downloadSizeMb.toInt()}MB",
+                                    if (needsQualityUpgrade) "Update · ~${offlineVoice.downloadSizeMb.toInt()}MB" else "Get · ~${offlineVoice.downloadSizeMb.toInt()}MB",
                                     style = MaterialTheme.typography.labelMedium)
                             }
                         }
@@ -591,7 +607,7 @@ fun VoiceStudioDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    "Download offline neural voice packages for studio-quality human cadence.",
+                    "Download voices for offline reading. Update older Piper voices using the Update button in the voice list for the quieter full-precision package. Buffered reading continues normally.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

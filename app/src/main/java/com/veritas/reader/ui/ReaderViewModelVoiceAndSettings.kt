@@ -36,7 +36,8 @@ fun ReaderViewModel.saveReaderSettings(update: ReaderSettings) {
     val normalized = update.copy(fontSizeSp = update.fontSizeSp.coerceIn(10, 28),
         sectionSpacingDp = update.sectionSpacingDp.coerceIn(6, 24),
         themeId = com.veritas.reader.VeritasThemeCatalog.normalizeThemeId(update.themeId),
-        themePackId = com.veritas.reader.VeritasThemePackCatalog.normalizePackId(update.themePackId))
+        themePackId = com.veritas.reader.VeritasThemePackCatalog.normalizePackId(update.themePackId),
+        customAccentColor = com.veritas.reader.normalizeCustomAccent(update.customAccentColor))
     _uiState.update { it.copy(readerSettings = normalized) }
     PlaybackStateStore.autoPlayQueue = normalized.autoPlayQueue
     viewModelScope.launch {
@@ -95,20 +96,36 @@ fun ReaderViewModel.refreshPronunciationRules() {
 }
 
 fun ReaderViewModel.addPronunciationRule() {
-    val find = uiState.value.newRuleFind.trim()
-    val replaceWith = uiState.value.newRuleReplaceWith.trim()
+    val draft = uiState.value
+    val find = draft.newRuleFind.trim()
+    val replaceWith = if (draft.newRuleSkip) "" else if (draft.newRuleKind == com.veritas.reader.SpeechRuleKind.LITERAL)
+        draft.newRuleReplaceWith.trim() else draft.newRuleReplaceWith
     if (find.isBlank()) return
+    val validation = com.veritas.reader.SpeechRuleDraft(draft.newRuleFind, draft.newRuleReplaceWith,
+        draft.newRuleKind, draft.newRuleCaseSensitive, draft.newRuleSkip, draft.editingRuleId).error()
+    if (validation != null) {
+        _uiState.update { it.copy(newRuleError = validation) }
+        return
+    }
     viewModelScope.launch(Dispatchers.IO) {
-        val rules = repository.addPronunciationRule(find, replaceWith)
-        withContext(Dispatchers.Main) {
-            _uiState.update {
-                it.copy(
-                    pronunciationRules = rules,
-                    newRuleFind = if (it.newRuleFind.trim() == find && it.newRuleReplaceWith.trim() == replaceWith) "" else it.newRuleFind,
-                    newRuleReplaceWith = if (it.newRuleFind.trim() == find && it.newRuleReplaceWith.trim() == replaceWith) "" else it.newRuleReplaceWith
-                )
+        try {
+            val rules = repository.addPronunciationRule(find, replaceWith, draft.newRuleKind,
+                draft.newRuleCaseSensitive, draft.editingRuleId)
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    val unchanged = it.newRuleFind == draft.newRuleFind && it.newRuleReplaceWith == draft.newRuleReplaceWith &&
+                        it.newRuleKind == draft.newRuleKind && it.newRuleSkip == draft.newRuleSkip &&
+                        it.newRuleCaseSensitive == draft.newRuleCaseSensitive && it.editingRuleId == draft.editingRuleId
+                    val updated = it.copy(pronunciationRules = rules, newRuleError = null)
+                    if (unchanged) updated.copy(newRuleFind = "", newRuleReplaceWith = "", editingRuleId = null,
+                        newRuleKind = com.veritas.reader.SpeechRuleKind.LITERAL, newRuleSkip = false, newRuleCaseSensitive = false)
+                    else updated
+                }
+                restartCurrentSectionIfPlaying()
             }
-            restartCurrentSectionIfPlaying()
+        } catch (error: Exception) {
+            if (error is kotlinx.coroutines.CancellationException) throw error
+            withContext(Dispatchers.Main) { _uiState.update { it.copy(newRuleError = error.message ?: "Could not save this rule. Try again.") } }
         }
     }
 }
@@ -117,7 +134,8 @@ fun ReaderViewModel.togglePronunciationRule(rule: PronunciationRule) {
     viewModelScope.launch(Dispatchers.IO) {
         val rules = repository.togglePronunciationRule(rule.id)
         withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(pronunciationRules = rules) }
+            _uiState.update { if (it.editingRuleId == rule.id) it.copy(pronunciationRules = rules,
+                editingRuleId = null, newRuleFind = "", newRuleReplaceWith = "", newRuleError = null) else it.copy(pronunciationRules = rules) }
             restartCurrentSectionIfPlaying()
         }
     }
@@ -127,7 +145,8 @@ fun ReaderViewModel.removePronunciationRule(rule: PronunciationRule) {
     viewModelScope.launch(Dispatchers.IO) {
         val rules = repository.removePronunciationRule(rule.id)
         withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(pronunciationRules = rules) }
+            _uiState.update { if (it.editingRuleId == rule.id) it.copy(pronunciationRules = rules,
+                editingRuleId = null, newRuleFind = "", newRuleReplaceWith = "", newRuleError = null) else it.copy(pronunciationRules = rules) }
             restartCurrentSectionIfPlaying()
         }
     }
@@ -298,6 +317,7 @@ fun ReaderViewModel.previewVoice(voice: TtsVoiceOption) {
         enginePackage = enginePackage,
         voiceName = voice.name,
         text = "There is surely a future for you, and your hope will not be cut off",
+        voiceShaping = uiState.value.voiceSettings.voiceShaping,
         rate = 1.0f,
         pitch = 1.0f
     )
@@ -320,6 +340,7 @@ fun ReaderViewModel.previewActiveVoiceWithPreset() {
         enginePackage = enginePackage,
         voiceName = voiceName,
         text = sampleText,
+        voiceShaping = settings.voiceShaping,
         rate = settings.preferredRate,
         pitch = settings.preferredPitch
     )

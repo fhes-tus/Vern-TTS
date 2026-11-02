@@ -28,10 +28,9 @@ object PlaybackAdvance {
 /**
  * Silences decorative glyphs (list bullets, arrows, dingbats, box-drawing, dot
  * leaders) before text reaches the TTS engine, so it never verbalizes "black
- * circle" or "rightwards arrow". CRITICAL invariant: every replacement is
- * length-preserving (glyph → space, ellipsis → period) because word-level
- * highlight sync maps engine character offsets back onto the DISPLAYED string —
- * deleting characters would drift the highlight out of sync with the audio.
+ * circle" or "rightwards arrow". Glyph substitutions retain their length;
+ * deletions and table formatting compose source spans through SpokenText so
+ * engine offsets still refer to the unchanged displayed book.
  */
 object SpeechSanitizer {
     private val extraSilentGlyphs = setOf(
@@ -118,7 +117,8 @@ object SpeechSanitizer {
 
     /**
      * Detects floating graph axis tick sequences (e.g. "0 10 20 30 40 50", "0% 25% 50% 75%", "Jan Feb Mar Apr")
-     * extracted from charts, returning true to mute them while letting figure captions be spoken.
+     * extracted from charts. This heuristic alone cannot distinguish a chart from a meaningful list;
+     * it must not be used to mute ordinary book text without structural evidence.
      */
     fun isGraphAxisNoise(text: String): Boolean {
         val trimmed = text.trim()
@@ -134,18 +134,17 @@ object SpeechSanitizer {
     }
 
     /**
-     * Formats an individual table cell for natural speech with full-stop pitch drops and empty-cell handling.
+     * Adds a pause to a table cell without assigning a meaning to missing or ambiguous values.
      */
     fun formatTableCellForSpeech(cell: String): String {
-        val cleaned = SpeechPunctuation.normalize(cell.trim())
-        return when {
-            cleaned.isEmpty() || cleaned == "-" || cleaned == "—" || cleaned == "–" ||
-                cleaned.equals("N/A", ignoreCase = true) || cleaned.equals("NA", ignoreCase = true) ||
-                cleaned.equals("None", ignoreCase = true) -> "None."
-            cleaned.trimEnd { it.isWhitespace() || SpeechPunctuation.isClosingDelimiter(it) }
-                .lastOrNull()?.let { it in ".!?:…" } == true -> cleaned
-            else -> "$cleaned."
-        }
+        return formatTableCell(SpokenText.identity(cell)).text
+    }
+
+    private fun formatTableCell(cell: SpokenText): SpokenText {
+        val cleaned = cell.trim().mapChars { _, char -> SpeechPunctuation.normalize(char) }
+        if (cleaned.text.isEmpty()) return cleaned
+        return if (cleaned.text.trimEnd { it.isWhitespace() || SpeechPunctuation.isClosingDelimiter(it) }
+            .lastOrNull()?.let { it in ".!?:…" } == true) cleaned else cleaned.appendPause()
     }
 
     /**
@@ -153,52 +152,61 @@ object SpeechSanitizer {
      * a natural vocal pitch drop and breathing pause between columns.
      */
     fun formatTableRowForSpeech(rowText: String): String {
-        val trimmed = rowText.trim()
-        val content = trimmed.removePrefix("|").removeSuffix("|")
-        val cells = content.split('|').map { it.trim() }
-        return cells.joinToString(" ") { formatTableCellForSpeech(it) }
+        return formatTableRow(SpokenText.identity(rowText)).text
     }
 
+    private fun tableCellRanges(row: String): List<IntRange> {
+        var start = row.indexOfFirst { !it.isWhitespace() }
+        if (start < 0) return emptyList()
+        var end = row.indexOfLast { !it.isWhitespace() } + 1
+        if (row[start] == '|') start++
+        if (end > start && row[end - 1] == '|') end--
+        val cells = mutableListOf<IntRange>()
+        for (index in start until end) if (row[index] == '|') {
+            cells.add(start until index)
+            start = index + 1
+        }
+        cells.add(start until end)
+        return cells
+    }
+
+    private fun formatTableRow(row: SpokenText): SpokenText = row.join(
+        tableCellRanges(row.text).map { formatTableCell(row.slice(it.first, it.last + 1)) }
+            .filter { it.text.isNotEmpty() }
+    )
+
     /**
-     * Maps spoken character offset within a table row back to the corresponding column index (0-based).
+     * Maps an original source offset within a table row to its column (0-based).
      */
-    fun tableColumnIndexAt(rowText: String, spokenCharOffset: Int): Int {
+    fun tableColumnIndexAt(rowText: String, sourceCharOffset: Int): Int {
         if (!isTableRow(rowText)) return -1
-        val content = rowText.trim().removePrefix("|").removeSuffix("|")
-        val cells = content.split('|').map { it.trim() }
+        val cells = tableCellRanges(rowText)
         if (cells.isEmpty()) return -1
-        var cumulative = 0
         cells.forEachIndexed { index, cell ->
-            val spokenCell = formatTableCellForSpeech(cell)
-            val cellLen = spokenCell.length
-            if (spokenCharOffset in cumulative..(cumulative + cellLen)) {
-                return index
-            }
-            cumulative += cellLen + 1
+            if (sourceCharOffset <= cell.last + 1) return index
         }
         return cells.lastIndex
     }
 
-    fun forSpeech(text: String): String {
-        if (text.isEmpty()) return text
-        val raw = if (text.contains("[[VERITAS_")) {
-            text.replace(Regex("""\[\[VERITAS_[^\]]+\]\]"""), "").trim()
+    fun forSpeech(text: String): String = forSpeech(SpokenText.identity(text)).text
+
+    internal fun forSpeech(input: SpokenText): SpokenText {
+        if (input.text.isEmpty()) return input
+        val raw = if (input.text.contains("[[VERITAS_")) {
+            input.replace(Regex("""\[\[VERITAS_[^\]]+\]\]""")) { "" }.trim()
         } else {
-            text
+            input
         }
-        if (raw.isEmpty()) return ""
+        if (raw.text.isEmpty()) return raw
 
         // Mute table separator lines (e.g. | --- | --- |)
-        if (isTableSeparatorLine(raw)) return ""
-
-        // Mute floating graph axis ticks (e.g. 0 10 20 30...)
-        if (isGraphAxisNoise(raw)) return ""
+        if (isTableSeparatorLine(raw.text)) return raw.replace(Regex("[\\s\\S]+")) { "" }
 
         // Table content row: speak column by column with punctuation cadence
-        if (isTableRow(raw)) return formatTableRowForSpeech(raw)
+        if (isTableRow(raw.text)) return formatTableRow(raw)
 
-        val chars = CharArray(raw.length) { index ->
-            val char = raw[index]
+        val chars = CharArray(raw.text.length) { index ->
+            val char = raw.text[index]
             when {
                 isSilent(char) -> ' '
                 char == '…' -> '.' // … one pause, not "dot dot dot"
@@ -207,7 +215,7 @@ object SpeechSanitizer {
         }
         // Older imports contain synthetic page labels in their saved prose.
         // Silence those without reindexing existing notes or progress offsets.
-        Regex("(?m)^Page \\d+[ \\t]*(?=\\n|$)").findAll(raw).forEach { match ->
+        Regex("(?m)^Page \\d+[ \\t]*(?=\\n|$)").findAll(raw.text).forEach { match ->
             for (i in match.range) chars[i] = ' '
         }
         // Dot leaders ("......" in tables of contents): keep the first dot for a
@@ -225,7 +233,7 @@ object SpeechSanitizer {
                 index++
             }
         }
-        return String(chars)
+        return raw.mapChars { index, _ -> chars[index] }
     }
 
     /** False when a chunk is pure decoration and should be skipped, not spoken. */

@@ -1,6 +1,8 @@
 package com.veritas.reader
 
+import com.veritas.reader.tts.NeuralSpeechText
 import java.security.MessageDigest
+import java.text.BreakIterator
 import java.util.Locale
 
 internal enum class SpeechEngineFamily { ANDROID, PIPER, KOKORO }
@@ -35,11 +37,11 @@ internal object SpeechPlan {
     fun voiceFor(original: String, base: VoiceSettings, narration: NarrationSettings, cue: NarrationCue? = null): VoiceSettings {
         val role = NarrationAnalyzer.getActiveCharacter(original, narration, cue)
         val name = role.voiceName?.takeIf { narration.enabled && narration.fullCastEnabled && it.isNotBlank() }
-            ?: return base.copy(enginePackage = VoiceManager.engineForVoice(base.voiceName) ?: base.enginePackage)
+            ?: return base.copy(enginePackage = SpeechEngineRouting.engineForVoice(base.voiceName) ?: base.enginePackage)
         // Legacy cast names retain their assignment. Neural IDs identify their engine;
         // old Android names inherit the Android reading engine, or system default.
-        val engine = role.enginePackage ?: VoiceManager.engineForVoice(name)
-            ?: base.enginePackage.takeUnless(VoiceManager::isVeritasEngine).orEmpty()
+        val engine = role.enginePackage ?: SpeechEngineRouting.engineForVoice(name)
+            ?: base.enginePackage.takeUnless(SpeechEngineRouting::isVeritasEngine).orEmpty()
         return base.copy(voiceName = name, voiceLabel = name, enginePackage = engine,
             localeTag = role.localeTag.ifBlank { base.localeTag })
     }
@@ -50,7 +52,7 @@ internal object SpeechPlan {
         resumeOffset: Int = 0, stripSpeakerLabel: Boolean = false, leadingPauseMs: Long = 0): SpeechSegment {
         val role = NarrationAnalyzer.getActiveCharacter(original, narration, cue)
         val voice = voiceFor(original, base, narration, cue)
-        val family = when (VoiceManager.engineForVoice(voice.voiceName) ?: voice.enginePackage) {
+        val family = when (SpeechEngineRouting.engineForVoice(voice.voiceName) ?: voice.enginePackage) {
             VoiceManager.VERITAS_LITE -> SpeechEngineFamily.PIPER
             VoiceManager.VERITAS_STUDIO, "com.veritas.voice" -> SpeechEngineFamily.KOKORO
             else -> SpeechEngineFamily.ANDROID
@@ -58,28 +60,32 @@ internal object SpeechPlan {
         val start = maxOf(resumeOffset, if (stripSpeakerLabel) cue?.labelEnd ?: 0 else 0).coerceIn(0, original.length)
         val source = original.substring(start)
         val english = (voice.localeTag.ifBlank { Locale.getDefault().toLanguageTag() }).startsWith("en", true)
-        val spoken = ReadingSymbols.expand(SpokenText.identity(source).applyRules(rules), english).sanitize()
+        val expanded = ReadingSymbols.expand(SpokenText.identity(source).applyRules(rules), english).sanitize()
+        val spoken = if (family == SpeechEngineFamily.ANDROID) expanded else NeuralSpeechText.prepare(expanded)
         return SpeechSegment(documentId, revision, index, start, original.length, original, spoken, role, voice, family,
             NarrationAnalyzer.effectiveRate(rate, narration, original, family == SpeechEngineFamily.ANDROID, cue),
             NarrationAnalyzer.effectivePitch(pitch, narration, original, family == SpeechEngineFamily.ANDROID, cue), leadingPauseMs)
     }
 
-    /** Bounded synthesis without reclassifying transformed text or splitting surrogate pairs. */
+    /** Bounded final text without reclassifying roles or damaging a grapheme. */
     fun split(segment: SpeechSegment, limit: Int = 800): List<SpeechSegment> {
         require(limit >= 2)
         val text = segment.spoken.text
+        val boundaries = BreakIterator.getCharacterInstance(Locale.ROOT)
+        boundaries.setText(text)
         val result = mutableListOf<SpeechSegment>()
         var start = 0
         while (start < text.length) {
             var end = minOf(start + limit, text.length)
             if (end < text.length) {
-                val space = text.lastIndexOf(' ', end - 1)
+                val space = (end - 1 downTo start).firstOrNull { text[it].isWhitespace() } ?: -1
                 if (space > start + limit / 2) end = space + 1
-                if (Character.isHighSurrogate(text[end - 1]) && Character.isLowSurrogate(text[end])) end--
+                if (!boundaries.isBoundary(end)) end = boundaries.preceding(end)
             }
+            require(end > start) { "A text character sequence exceeds the speech input budget" }
             val part = segment.spoken.slice(start, end)
             if (part.text.isNotBlank()) result.add(segment.copy(spoken = part,
-                leadingPauseMs = if (start == 0) segment.leadingPauseMs else 0))
+                leadingPauseMs = if (result.isEmpty()) segment.leadingPauseMs else 0))
             start = end
         }
         return result

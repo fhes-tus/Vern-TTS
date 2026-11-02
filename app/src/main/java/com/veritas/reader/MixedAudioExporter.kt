@@ -15,10 +15,7 @@ import kotlin.coroutines.coroutineContext
 
 /** Export owns independent engines and a single partial file; live voice settings stay unchanged. */
 internal class MixedAudioExporter(private val context: Context,
-    private val createNeural: (String) -> TtsEngine = { voice ->
-        require(VoiceModelManager.isVoiceInstalled(context, voice)) { "Download $voice in Voice Studio before exporting." }
-        if (VoiceManager.engineForVoice(voice) == VoiceManager.VERITAS_LITE) PiperEngine(context, voice) else KokoroTtsEngine(context, voice)
-    },
+    private val createNeural: ((String) -> TtsEngine)? = null,
     private val renderAndroid: (suspend (SpeechSegment, File) -> Unit)? = null
 ) {
     suspend fun export(title: String, segments: List<SpeechSegment>): AudioExportManager.ExportResult = withContext(Dispatchers.IO) {
@@ -28,16 +25,20 @@ internal class MixedAudioExporter(private val context: Context,
         val part = File(directory, ".$name.part.wav")
         val manager = AudioExportManager(context)
         var neural: TtsEngine? = null; var neuralVoice = ""
+        var neuralShaping: Boolean? = null
+        var graphPool: com.veritas.reader.tts.KokoroGraphPool? = null
         var android: TextToSpeech? = null; var androidPackage: String? = null
         var parts = 0
         try {
             PcmWavWriter(partial, 24000).use { writer ->
-                for (segment in segments) {
+                for (requested in segments) {
+                    val segment = requested.copy(rate = SpeechDelivery.rate(requested.rate), pitch = SpeechDelivery.pitch(requested.pitch))
                     coroutineContext.ensureActive()
                     if (segment.spoken.text.isBlank()) continue
                     if (segment.leadingPauseMs > 0) writer.append(ShortArray((segment.leadingPauseMs.coerceIn(0, 10000) * 24).toInt())) { coroutineContext.ensureActive() }
                     if (segment.family == SpeechEngineFamily.ANDROID) {
                         neural?.shutdown(); neural = null; neuralVoice = ""
+                        graphPool?.close(); graphPool = null
                         if (renderAndroid != null) renderAndroid.invoke(segment, part)
                         else {
                             if (android == null || androidPackage != segment.voice.enginePackage) {
@@ -48,7 +49,9 @@ internal class MixedAudioExporter(private val context: Context,
                             require(segment.voice.voiceName.isBlank() || engine.voices.orEmpty().any { it.name == segment.voice.voiceName }) { "${segment.voice.displayName} is unavailable. Choose another cast voice." }
                             val message = VoiceConfigurator.apply(engine, segment.voice)
                             require(!message.startsWith("Voice data is missing") && !message.contains("not supported")) { message }
-                            engine.setSpeechRate(segment.rate); engine.setPitch(segment.pitch)
+                            require(VoiceConfigurator.applyDelivery(engine, segment.rate, segment.pitch)) {
+                                "The speech engine could not apply the selected speed or pitch."
+                            }
                             withTimeout((30000L + segment.spoken.text.length * 200L).coerceAtMost(600000L)) {
                                 manager.synthesizePart(engine, segment.spoken.text, part, "export:${UUID.randomUUID()}")
                             }
@@ -58,16 +61,25 @@ internal class MixedAudioExporter(private val context: Context,
                         part.delete()
                     } else {
                         android?.stop(); android?.shutdown(); android = null
-                        if (neuralVoice != segment.voice.voiceName) {
+                        if (neuralVoice != segment.voice.voiceName || neuralShaping != segment.voice.voiceShaping) {
                             neural?.shutdown(); neural = null
-                            neural = createNeural(segment.voice.voiceName); neuralVoice = segment.voice.voiceName
+                            val voice = segment.voice.voiceName
+                            neural = if (createNeural != null) createNeural.invoke(voice) else {
+                                require(VoiceModelManager.isVoiceInstalled(context, voice)) { "Download $voice before exporting." }
+                                if (segment.family == SpeechEngineFamily.PIPER) {
+                                    graphPool?.close(); graphPool = null; PiperEngine(context, voice)
+                                } else (graphPool ?: com.veritas.reader.tts.KokoroGraphPool(context).also { graphPool = it })
+                                    .voice(voice, segment.voice.voiceShaping)
+                            }
+                            neuralVoice = voice; neuralShaping = segment.voice.voiceShaping
                         }
                         val engine = requireNotNull(neural)
                         require(engine.isReady()) { "${segment.voice.displayName} could not initialize." }
-                        val pcm = engine.synthesize(segment.spoken.text, segment.rate, segment.pitch)
+                        val audio = engine.synthesizeFloat(segment.spoken.text, segment.rate, segment.pitch)
                         coroutineContext.ensureActive()
-                        require(pcm != null && pcm.isNotEmpty()) { "${segment.voice.displayName} produced no audio for part ${parts + 1}." }
-                        writer.append(WavAudioNormalizer.resample(pcm, engine.sampleRate, 24000)) { coroutineContext.ensureActive() }
+                        require(audio != null && audio.samples.isNotEmpty()) { "${segment.voice.displayName} produced no audio for part ${parts + 1}." }
+                        val converted = com.veritas.reader.tts.BandLimitedResampler.convert(audio.samples, audio.sampleRate / 24000.0)
+                        writer.append(com.veritas.reader.tts.FloatPcmAudio(converted, 24000).pcm16()) { coroutineContext.ensureActive() }
                     }
                     parts++
                 }
@@ -77,6 +89,6 @@ internal class MixedAudioExporter(private val context: Context,
             Files.move(partial.toPath(), final.toPath(), StandardCopyOption.ATOMIC_MOVE)
             AudioExportManager.ExportResult(final, name, parts)
         } catch (error: Throwable) { final.delete(); throw error }
-        finally { partial.delete(); part.delete(); neural?.shutdown(); android?.stop(); android?.shutdown() }
+        finally { partial.delete(); part.delete(); neural?.shutdown(); graphPool?.close(); android?.stop(); android?.shutdown() }
     }
 }

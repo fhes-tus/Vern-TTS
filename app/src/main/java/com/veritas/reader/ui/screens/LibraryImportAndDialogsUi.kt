@@ -124,6 +124,7 @@ internal fun LibraryDialogsAndSheetsHost(
     onOpenSettingsHub: () -> Unit,
     onOpenReadingLists: () -> Unit,
     onOpenReadingHistory: () -> Unit,
+    onOpenSyncCenter: () -> Unit = {},
     documents: List<SavedDocument>,
     documentReadingTimes: Map<String, Long>,
     readerSettings: ReaderSettings,
@@ -418,7 +419,11 @@ internal fun LibraryDialogsAndSheetsHost(
             onOpenReadingHistory = {
                 onDismissHomeSidebar()
                 onOpenReadingHistory()
-            }
+            },
+            onOpenSyncCenter = {
+                onDismissHomeSidebar()
+                onOpenSyncCenter()
+            },
         )
     }
 

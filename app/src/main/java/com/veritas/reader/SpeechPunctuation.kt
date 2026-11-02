@@ -39,9 +39,9 @@ object SpeechPunctuation {
     // Preserve the voice's natural intonation. Global pitch cannot implement a
     // rising question boundary; gentle optional pacing is the only added cue.
     fun rateMultiplier(text: String, strength: Float): Float = when (ending(text)) {
-        Ending.QUESTION -> 1f - 0.08f * strength.coerceIn(0f, 1f)
-        Ending.EXCLAMATION -> 1f - 0.04f * strength.coerceIn(0f, 1f)
-        Ending.HESITATION -> 1f - 0.06f * strength.coerceIn(0f, 1f)
+        Ending.QUESTION -> 1f - 0.08f * SpeechDelivery.strength(strength)
+        Ending.EXCLAMATION -> 1f - 0.04f * SpeechDelivery.strength(strength)
+        Ending.HESITATION -> 1f - 0.06f * SpeechDelivery.strength(strength)
         Ending.STATEMENT -> 1f
     }
 

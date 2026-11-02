@@ -67,10 +67,12 @@ class SpeechSanitizerTest {
     }
 
     @Test
-    fun `empty and dash table cells speak None and avoid double periods`() {
+    fun `ambiguous table values retain their literal meaning and avoid double periods`() {
         val row = "| Product A | - | N/A | Done. |"
         val speech = SpeechSanitizer.forSpeech(row)
-        assertEquals("Product A. None. None. Done.", speech)
+        assertEquals("Product A. -. N/A. Done.", speech)
+        assertEquals("Product A. Done.", SpeechSanitizer.forSpeech("| Product A | | Done. |"))
+        assertEquals("NA. None.", SpeechSanitizer.forSpeech("| NA | None |"))
     }
 
     @Test
@@ -81,25 +83,25 @@ class SpeechSanitizerTest {
     }
 
     @Test
-    fun `graph numeric and percentage axis ticks are muted`() {
+    fun `numeric and percentage lists are retained without structural chart evidence`() {
         val numericTicks = "0 10 20 30 40 50 60 70 80 90 100"
-        assertEquals("", SpeechSanitizer.forSpeech(numericTicks))
-        assertFalse(SpeechSanitizer.isSpeakable(numericTicks))
+        assertEquals(numericTicks, SpeechSanitizer.forSpeech(numericTicks))
+        assertTrue(SpeechSanitizer.isSpeakable(numericTicks))
 
         val percentageTicks = "0% 25% 50% 75% 100%"
-        assertEquals("", SpeechSanitizer.forSpeech(percentageTicks))
-        assertFalse(SpeechSanitizer.isSpeakable(percentageTicks))
+        assertEquals(percentageTicks, SpeechSanitizer.forSpeech(percentageTicks))
+        assertTrue(SpeechSanitizer.isSpeakable(percentageTicks))
     }
 
     @Test
-    fun `graph month and quarter axis ticks are muted`() {
+    fun `month and quarter lists are retained without structural chart evidence`() {
         val monthTicks = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec"
-        assertEquals("", SpeechSanitizer.forSpeech(monthTicks))
-        assertFalse(SpeechSanitizer.isSpeakable(monthTicks))
+        assertEquals(monthTicks, SpeechSanitizer.forSpeech(monthTicks))
+        assertTrue(SpeechSanitizer.isSpeakable(monthTicks))
 
         val quarterTicks = "Q1 Q2 Q3 Q4"
-        assertEquals("", SpeechSanitizer.forSpeech(quarterTicks))
-        assertFalse(SpeechSanitizer.isSpeakable(quarterTicks))
+        assertEquals(quarterTicks, SpeechSanitizer.forSpeech(quarterTicks))
+        assertTrue(SpeechSanitizer.isSpeakable(quarterTicks))
     }
 
     @Test
@@ -113,11 +115,11 @@ class SpeechSanitizerTest {
     @Test
     fun `tableColumnIndexAt accurately maps character offsets to columns`() {
         val row = "| Name | Price | Stock |"
-        // Formatted speech: "Name. Price. Stock."
+        // Playback has already mapped the callback to the original row.
         assertEquals(0, SpeechSanitizer.tableColumnIndexAt(row, 0))
         assertEquals(0, SpeechSanitizer.tableColumnIndexAt(row, 4))
-        assertEquals(1, SpeechSanitizer.tableColumnIndexAt(row, 6))
+        assertEquals(1, SpeechSanitizer.tableColumnIndexAt(row, row.indexOf("Price")))
         assertEquals(1, SpeechSanitizer.tableColumnIndexAt(row, 10))
-        assertEquals(2, SpeechSanitizer.tableColumnIndexAt(row, 14))
+        assertEquals(2, SpeechSanitizer.tableColumnIndexAt(row, row.indexOf("Stock")))
     }
 }

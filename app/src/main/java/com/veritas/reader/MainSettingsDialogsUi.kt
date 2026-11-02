@@ -262,6 +262,7 @@ internal fun MainSettingsDialogsHost(
         if (uiState.showVoiceStudio) {
             VoiceStudioDialog(
                 settings = uiState.voiceSettings,
+                onVoiceShapingChange = { enabled -> viewModel.saveVoiceSettings(uiState.voiceSettings.copy(voiceShaping = enabled)) },
                 engines = uiState.ttsEngines,
                 voices = uiState.ttsVoices,
                 loadingVoices = uiState.voiceLoadInProgress,
@@ -521,25 +522,13 @@ internal fun MainSettingsDialogsHost(
             PronunciationRulesDialog(
                 rules = uiState.pronunciationRules,
                 voiceSettings = uiState.voiceSettings,
-                newFind = uiState.newRuleFind,
-                newReplaceWith = uiState.newRuleReplaceWith,
-                onNewFindChange = { value ->
-                    viewModel.updateState {
-                        it.copy(
-                            newRuleFind = value.take(
-                                120
-                            )
-                        )
-                    }
-                },
-                onNewReplaceChange = { value ->
-                    viewModel.updateState {
-                        it.copy(
-                            newRuleReplaceWith = value.take(
-                                120
-                            )
-                        )
-                    }
+                draft = SpeechRuleDraft(uiState.newRuleFind, uiState.newRuleReplaceWith, uiState.newRuleKind,
+                    uiState.newRuleCaseSensitive, uiState.newRuleSkip, uiState.editingRuleId),
+                saveError = uiState.newRuleError,
+                onDraftChange = { draft ->
+                    viewModel.updateState { it.copy(newRuleFind = draft.find, newRuleReplaceWith = draft.replaceWith,
+                        newRuleKind = draft.kind, newRuleCaseSensitive = draft.caseSensitive,
+                        newRuleSkip = draft.skip, editingRuleId = draft.id, newRuleError = null) }
                 },
                 onAddRule = { viewModel.addPronunciationRule() },
                 onToggleRule = { rule -> viewModel.togglePronunciationRule(rule) },

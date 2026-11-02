@@ -8,10 +8,11 @@ import androidx.compose.material3.ColorScheme
 internal fun veritasReaderColorScheme(settings: ReaderSettings, context: Context): ColorScheme {
     val systemDark = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
     val themeId = VeritasThemeCatalog.resolveConcreteThemeId(settings.themeId, systemDark)
-    return veritasPackColorScheme(
+    return veritasAppearanceColorScheme(
         base = veritasColorScheme(themeId, context),
         packId = settings.themePackId,
         themeId = themeId,
-        amoledMode = settings.amoledMode
+        amoledMode = settings.amoledMode,
+        customAccentColor = settings.customAccentColor
     )
 }

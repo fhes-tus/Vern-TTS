@@ -1,26 +1,29 @@
 package com.veritas.reader.tts
 
 import kotlin.math.*
+import com.veritas.reader.SpeechDelivery
 
 /** Mono speech pitch adjustment with waveform-aligned overlap/add; duration stays fixed. */
 internal object PcmPitchShift {
     fun apply(input: ShortArray, sampleRate: Int, pitch: Float): ShortArray {
+        if (input.isEmpty() || abs(SpeechDelivery.pitch(pitch) - 1f) < .0001f) {
+            require(sampleRate > 0); return input
+        }
+        return FloatPcmAudio(apply(FloatArray(input.size) { input[it] / 32768f }, sampleRate, pitch), sampleRate).pcm16()
+    }
+
+    fun apply(input: FloatArray, sampleRate: Int, pitch: Float): FloatArray {
         require(sampleRate > 0)
-        val factor = pitch.coerceIn(0.6f, 1.5f).toDouble()
+        require(input.all(Float::isFinite)) { "Non-finite pitch input." }
+        val factor = SpeechDelivery.pitch(pitch).toDouble()
         if (input.isEmpty() || abs(factor - 1.0) < 0.0001) return input
         val window = (sampleRate * 0.025).roundToInt().coerceAtLeast(32)
         val hop = window / 2
         val search = (sampleRate * 0.005).roundToInt().coerceAtLeast(1)
         // Resampling changes pitch. WSOLA below restores the original duration.
-        val resampledSize = ceil(input.size / factor).toInt()
-        val samples = FloatArray(resampledSize + window) { index ->
-            val source = index * factor
-            val at = source.toInt()
-            if (at >= input.size) 0f else {
-                val next = input[minOf(at + 1, input.lastIndex)].toFloat()
-                (input[at] + (next - input[at]) * (source - at)).toFloat()
-            }
-        }
+        val resampled = BandLimitedResampler.convert(input, factor)
+        val resampledSize = resampled.size
+        val samples = resampled.copyOf(resampledSize + window)
         val output = FloatArray(input.size + window)
         val weights = FloatArray(output.size)
         val envelope = FloatArray(window) { i -> (0.5 - 0.5 * cos(2 * PI * (i + 0.5) / window)).toFloat() }
@@ -39,7 +42,7 @@ internal object PcmPitchShift {
                         val b = samples[candidate + i]
                         cross += a * b; a2 += a * a; b2 += b * b
                     }
-                    val score = cross / sqrt((a2 * b2).coerceAtLeast(1.0))
+                    val score = cross / sqrt((a2 * b2).coerceAtLeast(1e-20))
                     if (score > best) { best = score; source = candidate }
                 }
             }
@@ -49,8 +52,6 @@ internal object PcmPitchShift {
             }
             destination += hop
         }
-        return ShortArray(input.size) { i ->
-            (output[i] / weights[i].coerceAtLeast(0.0001f)).roundToInt().coerceIn(-32768, 32767).toShort()
-        }
+        return FloatArray(input.size) { i -> output[i] / weights[i].coerceAtLeast(.0001f) }
     }
 }

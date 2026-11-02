@@ -48,7 +48,7 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
     // JSON, and recompiling every rule's Regex on each call was measurable TTS-start latency
     // once a user had several rules. Cache the compiled rules keyed by the raw stored string so
     // the expensive work happens only when the rules actually change.
-    internal class CompiledPronunciationRule(val regex: Regex, val replaceWith: String)
+    internal class CompiledPronunciationRule(val edits: (String) -> Sequence<PronunciationRulesEngine.Edit>)
     internal var pronunciationRulesRaw: String? = null
     internal var compiledPronunciationRules: List<CompiledPronunciationRule> = emptyList()
 
@@ -376,7 +376,8 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         synchronized(LIBRARY_WRITE_LOCK) {
             val raw = prefs.getString("doc_voice_memory", "{}") ?: "{}"
             val json = runCatching { JSONObject(raw) }.getOrDefault(JSONObject())
-            json.put(documentId, JSONObject().put("rate", rate.toDouble()).put("pitch", pitch.toDouble()))
+            json.put(documentId, JSONObject().put("rate", SpeechDelivery.userRate(rate).toDouble())
+                .put("pitch", SpeechDelivery.userPitch(pitch).toDouble()))
             prefs.edit().putString("doc_voice_memory", json.toString()).apply()
         }
     }
@@ -385,7 +386,8 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         val raw = prefs.getString("doc_voice_memory", "{}") ?: "{}"
         val json = runCatching { JSONObject(raw) }.getOrDefault(JSONObject())
         val entry = json.optJSONObject(documentId) ?: return null
-        return entry.optDouble("rate", 1.0).toFloat() to entry.optDouble("pitch", 1.0).toFloat()
+        return SpeechDelivery.userRate(entry.optDouble("rate", 1.0).toFloat()) to
+            SpeechDelivery.userPitch(entry.optDouble("pitch", 1.0).toFloat())
     }
 
     fun loadDocuments(): List<SavedDocument> {
@@ -1113,7 +1115,8 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
             fontSizeSp = settings.fontSizeSp.coerceIn(10, 28),
             sectionSpacingDp = settings.sectionSpacingDp.coerceIn(6, 24),
             themeId = VeritasThemeCatalog.normalizeThemeId(settings.themeId),
-            themePackId = VeritasThemePackCatalog.normalizePackId(settings.themePackId)
+            themePackId = VeritasThemePackCatalog.normalizePackId(settings.themePackId),
+            customAccentColor = normalizeCustomAccent(settings.customAccentColor)
         )
         prefs.edit { putString(KEY_READER_SETTINGS, normalized.toJson().toString()) }
         PlaybackStateStore.autoPlayQueue = normalized.autoPlayQueue
@@ -1152,8 +1155,8 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
             engineLabel = resolvedEngineLabel,
             voiceLabel = settings.voiceLabel.ifBlank { "System default voice" },
             profileName = settings.profileName.ifBlank { "Balanced" },
-            preferredRate = settings.preferredRate.coerceIn(0.5f, 2.0f),
-            preferredPitch = settings.preferredPitch.coerceIn(0.7f, 1.4f)
+            preferredRate = SpeechDelivery.userRate(settings.preferredRate),
+            preferredPitch = SpeechDelivery.userPitch(settings.preferredPitch)
         )
         prefs.edit { putString(KEY_VOICE_SETTINGS, normalized.toJson().toString()) }
         return normalized
@@ -1165,13 +1168,7 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
     }
 
     fun saveNarrationSettings(settings: NarrationSettings): NarrationSettings {
-        val normalized = settings.copy(
-            narratorRateMultiplier = settings.narratorRateMultiplier.coerceIn(0.75f, 1.25f),
-            narratorPitchMultiplier = settings.narratorPitchMultiplier.coerceIn(0.80f, 1.25f),
-            dialogueRateMultiplier = settings.dialogueRateMultiplier.coerceIn(0.75f, 1.25f),
-            dialoguePitchMultiplier = settings.dialoguePitchMultiplier.coerceIn(0.80f, 1.25f),
-            punctuationExpressionStrength = settings.punctuationExpressionStrength.coerceIn(0f, 1f)
-        )
+        val normalized = settings.normalizedDelivery()
         prefs.edit { putString(KEY_NARRATION_SETTINGS, normalized.toJson().toString()) }
         return normalized
     }

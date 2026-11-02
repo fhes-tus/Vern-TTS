@@ -1,0 +1,6 @@
+Fixed startup, import and Reading Tracker widget failures.
+Updated Piper voice downloads for clearer speech with less background hiss.
+Improved narration stability and voice controls.
+Finished books now stay below unfinished books in Library.
+Added a custom accent colour picker across theme packs.
+Refreshed pronunciation rules with clearer controls and previews.

@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.dp
 object VeritasThemeState {
     var themeId by mutableStateOf(VeritasThemeCatalog.DEFAULT_ID)
     var themePackId by mutableStateOf(VeritasThemePackCatalog.DEFAULT_ID)
+    var customAccentColor by mutableStateOf("")
     var activeDocumentId by mutableStateOf<String?>(null)
     var adaptiveCover by mutableStateOf(false)
     // Accessibility: composables consult this to skip decorative animation.

@@ -204,6 +204,7 @@ internal fun VeritasReaderApp(
         launcherSystemDark,
         uiState.readerSettings.themeId,
         uiState.readerSettings.themePackId,
+        uiState.readerSettings.customAccentColor,
         uiState.readerSettings.adaptiveCover,
         uiState.readerSettings.amoledMode,
         uiState.readerSettings.reduceMotion,
@@ -217,6 +218,7 @@ internal fun VeritasReaderApp(
     ) {
         VeritasThemeState.themeId = uiState.readerSettings.themeId
         VeritasThemeState.themePackId = uiState.readerSettings.themePackId
+        VeritasThemeState.customAccentColor = uiState.readerSettings.customAccentColor
         VeritasThemeState.adaptiveCover = uiState.readerSettings.adaptiveCover
         VeritasThemeState.uiFontId = uiState.readerSettings.uiFontId
         VeritasThemeState.reduceMotion = uiState.readerSettings.reduceMotion
@@ -792,7 +794,8 @@ internal fun VeritasReaderApp(
                                     showPronunciationRules = true,
                                     newRuleFind = selection.replace(Regex("\\s+"), " ").trim()
                                         .take(120),
-                                    newRuleReplaceWith = ""
+                                    newRuleReplaceWith = "", editingRuleId = null,
+                                    newRuleKind = SpeechRuleKind.LITERAL, newRuleCaseSensitive = false, newRuleSkip = false, newRuleError = null
                                 )
                             }
                         },

@@ -1,0 +1,18 @@
+// Validate the local AAB with the bundletool already supplied by this AGP.
+// Does not build, install or publish anything.
+gradle.rootProject { root ->
+    root.tasks.register('validateLocalReleaseBundle') {
+        doLast {
+            def bundle = new File(root.projectDir, 'app/build/outputs/bundle/release/app-release.aab')
+            def loader = root.project(':app').extensions.getByName('android').class.classLoader
+            def commandType = loader.loadClass('com.android.tools.build.bundletool.commands.ValidateBundleCommand')
+            def builderType = loader.loadClass('com.android.tools.build.bundletool.commands.ValidateBundleCommand$Builder')
+            def builder = commandType.getMethod('builder').invoke(null)
+            builderType.getMethod('setBundlePath', java.nio.file.Path).invoke(builder, bundle.toPath())
+            builderType.getMethod('setPrintOutput', Boolean.TYPE).invoke(builder, false)
+            def command = builderType.getMethod('build').invoke(builder)
+            commandType.getMethod('execute').invoke(command)
+            println('Bundletool structural validation passed: ' + bundle.name)
+        }
+    }
+}

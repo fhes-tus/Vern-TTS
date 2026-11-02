@@ -74,7 +74,7 @@ class MixedSpeechPlanInstrumentedTest {
     }
 
     @Test fun mixedExportAcceptsRealOfflineAndroidWavBetweenSyntheticNeuralParts() = runBlocking {
-        val system = VoiceManager.loadVoices(context, "").first { !VoiceManager.isVeritasVoice(it.name) && !it.requiresNetwork && it.localeTag.startsWith("en") }
+        val system = offlineEnglishTestVoice(context)
         val settings = cast.copy(characterProfiles = cast.characterProfiles.map { if (it.id == "alice")
             it.copy(voiceName = system.name, enginePackage = system.enginePackage, localeTag = system.localeTag) else it })
         val chunks = listOf("Narration.", "Alice: \"Hello, this is a quiz recording.\"", "Narration again.")

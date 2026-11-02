@@ -483,11 +483,12 @@ internal fun VeritasTheme(content: @Composable () -> Unit) {
         baseColorScheme
     }
 
-    val colorScheme = veritasPackColorScheme(
+    val colorScheme = veritasAppearanceColorScheme(
         base = blendedColorScheme,
         packId = selectedPack,
         themeId = resolvedTheme,
-        amoledMode = VeritasThemeState.amoledMode
+        amoledMode = VeritasThemeState.amoledMode,
+        customAccentColor = VeritasThemeState.customAccentColor
     )
 
     val isAmoled = !isLight && (VeritasThemeState.amoledMode || resolvedTheme == "amoled")

@@ -293,7 +293,8 @@ fun OpenSourceLicensesDialog(onDismiss: () -> Unit) {
                     "AndroidX Core & Lifecycle" to "Apache License 2.0",
                     "Material Components for Android" to "Apache License 2.0",
                     "KotlinX Coroutines" to "Apache License 2.0",
-                    "Google Gson" to "Apache License 2.0"
+                    "Google Gson" to "Apache License 2.0",
+                    "RE2/J" to "BSD 3-Clause · The Go Authors"
                 )
                 licenses.forEach { (lib, lic) ->
                     Column {

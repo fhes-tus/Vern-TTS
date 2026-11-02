@@ -156,7 +156,8 @@ internal fun MainIntentAndRoutingEffects(
             viewModel.updateState {
                 it.withVisibility(VeritasScreen.PRONUNCIATION_RULES, true).copy(
                     newRuleFind = pendingFixWord,
-                    newRuleReplaceWith = ""
+                    newRuleReplaceWith = "", editingRuleId = null,
+                    newRuleKind = SpeechRuleKind.LITERAL, newRuleCaseSensitive = false, newRuleSkip = false, newRuleError = null
                 )
             }
             PlaybackStateStore.pendingPronunciationFixWord = null

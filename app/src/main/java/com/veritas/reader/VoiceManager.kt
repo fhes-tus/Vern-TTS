@@ -144,9 +144,7 @@ object VoiceManager {
     const val VERITAS_LITE = "com.veritas.voice.lite"
 
     /** True for either offline engine, including the legacy combined id. */
-    fun isVeritasEngine(enginePackage: String?): Boolean =
-        enginePackage == VERITAS_STUDIO || enginePackage == VERITAS_LITE ||
-            enginePackage == "com.veritas.voice"
+    fun isVeritasEngine(enginePackage: String?): Boolean = SpeechEngineRouting.isVeritasEngine(enginePackage)
 
     /** True if the voice name belongs to a Veritas offline model (Piper or Kokoro). */
     fun isVeritasVoice(voiceName: String?): Boolean =
@@ -157,15 +155,7 @@ object VoiceManager {
         )
 
     /** Returns the Veritas engine identifier for a given voice name, or null if system TTS. */
-    fun engineForVoice(voiceName: String?): String? = when {
-        voiceName.isNullOrBlank() -> null
-        voiceName.startsWith("piper_", ignoreCase = true) -> VERITAS_LITE
-        voiceName.startsWith("kokoro_", ignoreCase = true) -> VERITAS_STUDIO
-        else -> com.veritas.reader.tts.VoiceModelManager.availableVoices
-            .firstOrNull { it.id.equals(voiceName, ignoreCase = true) }?.let {
-                if (it.engineType == com.veritas.reader.tts.OfflineEngineType.PIPER) VERITAS_LITE else VERITAS_STUDIO
-            }
-    }
+    fun engineForVoice(voiceName: String?): String? = SpeechEngineRouting.engineForVoice(voiceName)
 
     fun loadInstalledEngines(context: Context): List<TtsEngineOption> {
         val pm = context.packageManager
@@ -318,23 +308,29 @@ object VoiceManager {
     // engine at a time is plenty; it is released when the requested voice changes.
     private var previewEngine: com.veritas.reader.tts.TtsEngine? = null
     private var previewEngineVoiceId: String? = null
+    private var previewEngineShaping: Boolean? = null
+    private var previewKokoroPool: com.veritas.reader.tts.KokoroGraphPool? = null
+    private var previewEqualizer: android.media.audiofx.Equalizer? = null
     private var previewTrack: android.media.AudioTrack? = null
 
     private fun previewEngineFor(
         appContext: Context,
-        voiceName: String
+        voiceName: String,
+        shaping: Boolean
     ): com.veritas.reader.tts.TtsEngine {
-        previewEngine?.let { if (previewEngineVoiceId == voiceName) return it }
+        previewEngine?.let { if (previewEngineVoiceId == voiceName && previewEngineShaping == shaping) return it }
         previewEngine?.shutdown()
         previewEngine = null
         val isPiper = voiceName.contains("piper", ignoreCase = true)
         val engine: com.veritas.reader.tts.TtsEngine = if (isPiper) {
-            com.veritas.reader.tts.PiperEngine(appContext, voiceName)
+            previewKokoroPool?.close(); previewKokoroPool = null
+            com.veritas.reader.tts.PiperEngine(appContext, voiceName, com.veritas.reader.tts.SpeechModelRole.PREVIEW)
         } else {
-            com.veritas.reader.tts.KokoroTtsEngine(appContext, voiceName)
+            (previewKokoroPool ?: com.veritas.reader.tts.KokoroGraphPool(appContext, com.veritas.reader.tts.SpeechModelRole.PREVIEW).also { previewKokoroPool = it }).voice(voiceName, shaping)
         }
         previewEngine = engine
         previewEngineVoiceId = voiceName
+        previewEngineShaping = shaping
         return engine
     }
 
@@ -354,6 +350,7 @@ object VoiceManager {
     }
 
     private fun releaseSystemTts() {
+        runCatching { previewEqualizer?.release() }; previewEqualizer = null
         previewSystemTts?.let { tts ->
             runCatching { tts.stop() }
             runCatching { tts.shutdown() }
@@ -375,6 +372,7 @@ object VoiceManager {
                     previewEngine?.shutdown()
                     previewEngine = null
                     previewEngineVoiceId = null
+                    previewKokoroPool?.close(); previewKokoroPool = null
                 }
             }
         }
@@ -387,9 +385,13 @@ object VoiceManager {
         text: String = "This is a preview of the selected voice.",
         rate: Float = 1.0f,
         pitch: Float = 1.0f,
+        voiceShaping: Boolean? = null,
         onFinished: (String?) -> Unit = {}
     ) {
         val generation = ++previewGeneration
+        val resolvedRate = SpeechDelivery.rate(rate)
+        val resolvedPitch = SpeechDelivery.pitch(pitch)
+        val shaping = voiceShaping ?: DocumentRepository(context).loadVoiceSettings().voiceShaping
         fun finish(error: String? = null) {
             previewHandler.post { if (generation == previewGeneration) onFinished(error) }
         }
@@ -408,8 +410,8 @@ object VoiceManager {
                 try {
                 val synthesized = previewSynthesisMutex.withLock {
                     kotlinx.coroutines.currentCoroutineContext().ensureActive()
-                    val ttsEngine = previewEngineFor(context.applicationContext, voiceName)
-                    if (!ttsEngine.isReady()) null else ttsEngine.synthesize(text, rate, pitch)?.let { it to ttsEngine.sampleRate }
+                    val ttsEngine = previewEngineFor(context.applicationContext, voiceName, shaping)
+                    if (!ttsEngine.isReady()) null else ttsEngine.synthesize(text, resolvedRate, resolvedPitch)?.let { it to ttsEngine.sampleRate }
                 }
                 if (synthesized == null) {
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
@@ -472,6 +474,7 @@ object VoiceManager {
                     }
                 }
                 } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                catch (busy: com.veritas.reader.tts.SpeechModelBusyException) { finish(busy.message) }
                 catch (failure: Exception) { finish("Could not play this voice. Check the voice model and try again.") }
             }
             return
@@ -488,8 +491,9 @@ object VoiceManager {
                 engine?.voices?.firstOrNull { it.name == voiceName }?.let { voice ->
                     engine?.voice = voice
                 }
-                engine?.setSpeechRate(rate)
-                engine?.setPitch(pitch)
+                if (engine?.let { VoiceConfigurator.applyDelivery(it, resolvedRate, resolvedPitch) } != true) {
+                    releaseSystemTts(); finish("The speech engine could not apply the selected speed or pitch."); return@post
+                }
                 engine?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {}
                     override fun onDone(utteranceId: String?) {
@@ -510,8 +514,16 @@ object VoiceManager {
                         }
                     }
                 })
-                if (engine?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "preview") == TextToSpeech.ERROR)
-                    finish("The speech engine could not play this voice.")
+                val params = android.os.Bundle()
+                if (shaping) runCatching {
+                    val audio = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+                    val session = audio.generateAudioSessionId()
+                    previewEqualizer = SpeechEqualizer.create(session)
+                    params.putInt(TextToSpeech.Engine.KEY_PARAM_SESSION_ID, session)
+                }.onFailure { android.util.Log.w("VeritasSystemTts", "Preview EQ unavailable", it) }
+                if (engine?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "preview") == TextToSpeech.ERROR) {
+                    releaseSystemTts(); finish("The speech engine could not play this voice.")
+                }
             } else {
                 runCatching { engine?.shutdown() }
                 finish("The speech engine could not be started.")
@@ -528,6 +540,10 @@ object VoiceManager {
 }
 
 object VoiceConfigurator {
+    internal fun applyDelivery(tts: TextToSpeech, rate: Float, pitch: Float): Boolean =
+        SpeechDelivery.applyResolved(rate, pitch,
+            { tts.setSpeechRate(it) == TextToSpeech.SUCCESS }, { tts.setPitch(it) == TextToSpeech.SUCCESS })
+
     fun apply(tts: TextToSpeech, settings: VoiceSettings): String {
         val locale = settings.localeTag.takeIf { it.isNotBlank() }?.let { Locale.forLanguageTag(it) } ?: Locale.getDefault()
         val languageStatus = tts.setLanguage(locale)
@@ -590,19 +606,24 @@ object TutorialSpeaker {
     }
 
     fun speakWithTuning(text: String, speed: Float = 1.0f, pitch: Float = 1.0f) {
+        val safeSpeed = SpeechDelivery.tutorialRate(speed)
+        val safePitch = SpeechDelivery.tutorialPitch(pitch)
         if (text.isBlank()) return
         previewError = null
         previewActive = true
         utteranceId = java.util.UUID.randomUUID().toString()
         if (tts != null && isInitialized) {
-            tts?.setSpeechRate(speed.coerceIn(0.5f, 2.5f))
-            tts?.setPitch(pitch.coerceIn(0.5f, 2.0f))
+            if (tts?.setSpeechRate(safeSpeed) != TextToSpeech.SUCCESS || tts?.setPitch(safePitch) != TextToSpeech.SUCCESS) {
+                previewActive = false
+                previewError = "The speech engine could not apply the selected speed or pitch."
+                return
+            }
             if (tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId) == TextToSpeech.ERROR) {
                 previewActive = false
                 previewError = "This voice could not play the preview."
             }
         } else {
-            pendingText = Preview(text, speed, pitch)
+            pendingText = Preview(text, safeSpeed, safePitch)
         }
     }
 

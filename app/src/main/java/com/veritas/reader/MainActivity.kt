@@ -260,6 +260,7 @@ open class MainActivity : ComponentActivity() {
         PlaybackStateStore.restoreFromPersistence(this)
         VeritasThemeState.themeId = initialSettings.themeId
         VeritasThemeState.themePackId = initialSettings.themePackId
+        VeritasThemeState.customAccentColor = initialSettings.customAccentColor
         VeritasThemeState.adaptiveCover = initialSettings.adaptiveCover
         VeritasThemeState.uiFontId = initialSettings.uiFontId
         VeritasThemeState.reduceMotion = initialSettings.reduceMotion

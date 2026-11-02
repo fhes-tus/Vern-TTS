@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Spa
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -88,7 +89,8 @@ internal fun HomeSidebarDialog(
     onOpenStats: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenReadingLists: () -> Unit = {},
-    onOpenReadingHistory: () -> Unit = {}
+    onOpenReadingHistory: () -> Unit = {},
+    onOpenSyncCenter: () -> Unit = {}
 ) {
     val visibility = remember { MutableTransitionState(false).apply { targetState = true } }
     val latestDismiss = rememberUpdatedState(onDismiss)
@@ -285,17 +287,17 @@ internal fun HomeSidebarDialog(
                         )
 
                         SidebarAction(
-                            title = "Reading Lists",
-                            subtitle = "Curated collections and book queues",
-                            icon = Icons.AutoMirrored.Filled.List,
-                            onClick = onOpenReadingLists
-                        )
-
-                        SidebarAction(
                             title = "Reading History",
                             subtitle = "Recent sessions and timestamps",
                             icon = Icons.Outlined.History,
                             onClick = onOpenReadingHistory
+                        )
+
+                        SidebarAction(
+                            title = "Sync & Backup",
+                            subtitle = "Sync & backup library, notes, and progress",
+                            icon = Icons.Filled.Sync,
+                            onClick = onOpenSyncCenter
                         )
 
                         Spacer(modifier = Modifier.weight(1f))

@@ -1,47 +1,74 @@
 package com.veritas.reader.tts
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.AudioFormat
-import android.media.AudioTrack
 import android.util.Log
+import com.veritas.reader.SpeechDelivery
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.isActive
-import android.os.SystemClock
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 /**
- * Continuous 4-Sentence Pre-Buffering Pipeline (Producer-Consumer Sliding Window).
- * Pre-synthesizes up to 4 sentences ahead in background RAM for 0ms gapless narration.
+ * One serialized synthesis owner with demand priority and byte/duration-bounded future PCM.
+ * Current output is protected independently; budgets never crop a spoken clip.
+ * Actual playback gaps depend on synthesis throughput and the output route.
  */
 class VeritasAudioBuffer(
     private val context: Context,
-    private val engine: TtsEngine
+    private val engine: TtsEngine,
+    workDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val outputDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    cacheBudget: PcmCacheBudget = PcmCacheBudget(),
+    output: PcmAudioOutput? = null,
+    private val resourcePolicy: SpeechResourcePolicy = SpeechResourcePolicy(),
+    private val clock: SpeechClock = SpeechClock { android.os.SystemClock.elapsedRealtime() }
 ) {
-    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private data class CachedPcm(val text: String, val rate: Float, val pitch: Float, val generation: Long, val pcm: ShortArray)
-    private val pcmCache = ConcurrentHashMap<Int, CachedPcm>()
+    data class LookAhead(val chunkCount: Int, val windowSize: Int = 4, val textAt: (Int) -> String)
+
+    private val scope = CoroutineScope(workDispatcher + SupervisorJob())
+    private val pcmCache = PcmLookAheadCache(cacheBudget.copy(maxAgeMs = minOf(cacheBudget.maxAgeMs, resourcePolicy.futurePcmMs)), clock)
     private val generation = PlaybackGeneration()
     private val playbackMutex = Mutex()
     private var playbackJob: Job? = null
-    // Sherpa's native TTS object is not safe to generate audio from multiple coroutines.
-    private val synthesisMutex = Mutex()
+    private val synthesisGate = SynthesisPriorityGate()
+    private val activeDemand = AtomicReference<SynthesisPriorityGate.Demand?>(null)
+    private val aheadProducer = LookAheadProducer(scope, ::synthesizeAhead,
+        onFailure = { Log.w(TAG, "Ahead preparation failed", it) },
+        shouldContinue = { window, index -> !clock.expired(window.queuedAtMs, resourcePolicy.aheadQueueMs) && pcmCache.mayVisit(index) })
 
-    private var audioTrack: AudioTrack? = null
+    init {
+        // Expire retained references even during a long current clip. Keep this
+        // housekeeping independent of an injected synthesis/test dispatcher.
+        scope.launch(Dispatchers.Default) {
+            while (isActive) {
+                delay(1_000)
+                pcmCache.expireAhead()
+                aheadProducer.current?.takeIf { clock.expired(it.queuedAtMs, resourcePolicy.aheadQueueMs) }
+                    ?.let(aheadProducer::clearIf)
+            }
+        }
+    }
+
+    internal fun cacheSnapshot(): PcmLookAheadCache.Snapshot = pcmCache.snapshot()
+    internal fun releaseModelPin() { (engine as? PlaybackModelPin)?.setPlaybackActive(false) }
+
+    private val ownsOutput = output == null
+    private val audioOutput = output ?: PcmAudioOutput()
+    private val outputOwner = audioOutput.newOwner()
+
+    private fun isCurrent(token: Long) = outputOwner.active && generation.isCurrent(token)
 
     // Read by the playback wait loop on Dispatchers.IO and written by flush() on the
     // service's main thread. Without @Volatile that read can be hoisted out of the loop
@@ -49,25 +76,7 @@ class VeritasAudioBuffer(
     @Volatile
     private var isPlaying = false
 
-    // AudioTrack teardown races the writer. flush() and shutdown() arrive on the main
-    // thread (pause, stop, seek, voice change, onDestroy) while playSentencePcm may be
-    // parked inside a blocking write(). Releasing the track out from under that write is
-    // an IllegalStateException at best and a native abort at worst, and cancelling the
-    // coroutine cannot help: write() is a blocking call, not a suspension point.
-    //
-    // So teardown never releases a track a writer still holds. pause() + flush() are safe
-    // to call concurrently with write() and make it return promptly; the writer then does
-    // the release itself on its way out. trackLock is only held for this bookkeeping,
-    // never across a write, so the main thread cannot stall behind playback.
-    private val trackLock = Any()
-    private var writersInFlight = 0
-    private var releaseRequested = false
-
-    // Only one look-ahead pass may be in flight. speakChunk calls prebufferAhead for
-    // every sentence, which used to stack a fresh coroutine each time: four jobs were
-    // observed walking the same window, all queued on synthesisMutex ahead of the
-    // sentence the user was actually waiting to hear.
-    private var prebufferJob: Job? = null
+    private val deliveryLock = Any()
     private var lastBufferRate: Float = 1.0f
     private var lastBufferPitch: Float = 1.0f
 
@@ -85,30 +94,47 @@ class VeritasAudioBuffer(
         pitch: Float = 1.0f,
         textAt: (Int) -> String
     ) {
-        if (rate != lastBufferRate || pitch != lastBufferPitch) {
-            lastBufferRate = rate
-            lastBufferPitch = pitch
-            generation.advance { pcmCache.clear() }
-        }
-        prebufferJob?.cancel()
-        prebufferJob = scope.launch {
-            val (startIndex, targetEnd) = prebufferWindow(chunkCount, currentIndex, windowSize)
-            // This is a sliding window. Seeking could otherwise leave PCM from every
-            // abandoned position retained in memory for the rest of the service lifetime.
-            pcmCache.keys.removeIf { it !in startIndex until targetEnd }
-            for (i in startIndex until targetEnd) {
-                if (!pcmCache.containsKey(i)) {
-                    val rawText = textAt(i).trim()
-                    if (rawText.isNotBlank()) {
-                        val pcm = synthesizeAndCache(i, rawText, rate, pitch)
-                        if (pcm != null && pcm.isNotEmpty()) {
-                            Log.d(TAG, "Pre-buffered sentence $i (${pcm.size} samples, rate=$rate, pitch=$pitch)")
-                        }
-                    }
-                }
-            }
-        }
+        val safeRate = SpeechDelivery.rate(rate)
+        val safePitch = SpeechDelivery.pitch(pitch)
+        configureAhead(chunkCount, currentIndex, windowSize, safeRate, safePitch, textAt)
     }
+
+    private fun configureDelivery(rate: Float, pitch: Float): Long = synchronized(deliveryLock) {
+        if (rate != lastBufferRate || pitch != lastBufferPitch) {
+            lastBufferRate = rate; lastBufferPitch = pitch
+            generation.advance { pcmCache.clear() }
+            aheadProducer.clear()
+        }
+        generation.current()
+    }
+
+    private fun configureAhead(chunkCount: Int, currentIndex: Int, windowSize: Int, rate: Float, pitch: Float,
+        textAt: (Int) -> String): LookAheadProducer.Window {
+        val token = configureDelivery(rate, pitch)
+        val (start, end) = prebufferWindow(chunkCount, currentIndex, windowSize)
+        pcmCache.setWindow(start, end, token, rate, pitch)
+        return LookAheadProducer.Window(start, end, token, rate, pitch, clock.nowMs(), textAt).also(aheadProducer::update)
+    }
+
+    fun clearLookAhead() {
+        aheadProducer.clear()
+        pcmCache.clearAhead()
+    }
+
+    private suspend fun synthesizeAhead(window: LookAheadProducer.Window, index: Int) {
+        if (!aheadProducer.isLatest(window) || !isCurrent(window.generation)) return
+        val text = window.textAt(index).trim()
+        if (text.isBlank() || cached(index, text, window.rate, window.pitch, window.generation) != null) return
+        val pcm = synthesisGate.ahead({ aheadProducer.isLatest(window) && isCurrent(window.generation) &&
+            !clock.expired(window.queuedAtMs, resourcePolicy.aheadQueueMs) },
+            { resourcePolicy.aheadQueueMs - (clock.nowMs() - window.queuedAtMs) }) {
+            synthesizeAndCacheLocked(index, text, window.rate, window.pitch, window.generation, window.queuedAtMs)
+        }
+        if (pcm != null) Log.d(TAG, "Pre-buffered sentence $index (${pcm.pcm.size} samples, rate=${window.rate}, pitch=${window.pitch})")
+    }
+
+    private fun cached(index: Int, text: String, rate: Float, pitch: Float, token: Long): CachedSpeechPcm? =
+        pcmCache.find(PcmCacheKey(index, text, rate, pitch, token))
 
     fun playSentencePcm(
         index: Int,
@@ -119,133 +145,80 @@ class VeritasAudioBuffer(
         onStarted: () -> Unit = {},
         onProgress: (renderedFrames: Long, totalFrames: Int, sampleRate: Int) -> Unit = { _, _, _ -> },
         onAudioLevel: (Float) -> Unit = {},
+        lookAhead: LookAhead? = null,
         onComplete: (success: Boolean) -> Unit
     ) {
+        (engine as? PlaybackModelPin)?.setPlaybackActive(true)
+        val safeRate = SpeechDelivery.rate(rate)
+        val safePitch = SpeechDelivery.pitch(pitch)
+        val request = PcmCacheKey(index, text.trim(), safeRate, safePitch, configureDelivery(safeRate, safePitch))
+        // Reserve synchronously, before an ahead worker or output coroutine can enter synthesis.
+        val ticket = synthesisGate.reserveDemand()
+        activeDemand.getAndSet(ticket)?.cancel()
+        // Promotion frees future capacity; demand must already have priority when it does.
+        val current = pcmCache.selectCurrent(request)
         playbackJob?.cancel()
+        val requestWindow = lookAhead?.let {
+            configureAhead(it.chunkCount, index, it.windowSize, safeRate, safePitch, it.textAt)
+        } ?: aheadProducer.current?.copy()?.also(aheadProducer::update)
         // Wake a cancelled blocking writer before the replacement waits for ownership.
-        synchronized(trackLock) {
-            if (writersInFlight > 0) {
-                runCatching { audioTrack?.pause() }
-                runCatching { audioTrack?.flush() }
-            }
-        }
-        playbackJob = scope.launch(Dispatchers.IO) {
+        audioOutput.interruptWriter(outputOwner)
+        val job = scope.launch(outputDispatcher) {
             playbackMutex.withLock {
             isPlaying = true
-            if (rate != lastBufferRate || pitch != lastBufferPitch) {
-                lastBufferRate = rate
-                lastBufferPitch = pitch
-                generation.advance { pcmCache.clear() }
-            }
-            val token = generation.current()
-            var pcm = pcmCache[index]?.takeIf { it.text == text.trim() && it.rate == rate && it.pitch == pitch && it.generation == token }?.pcm
-            if (pcm == null) {
-                // kotlinx Mutex is FIFO-fair, so the sentence being waited on would
-                // otherwise sit behind every look-ahead item already queued — measured
-                // at 14s on a sentence whose own synthesis took 11s. Stand the queue
-                // down first; the window is rebuilt as soon as this one is playing.
-                prebufferJob?.cancelAndJoin()
-                val rawText = text.trim()
-                if (rawText.isNotBlank()) {
-                    pcm = synthesizeAndCache(index, rawText, rate, pitch)
+            val token = request.generation
+            val audio = try {
+                val ready = cached(index, request.text, safeRate, safePitch, token) ?: synthesisGate.demand(ticket) {
+                    val result = if (request.text.isBlank()) null else synthesizeAndCacheLocked(index, request.text, safeRate, safePitch, token)
+                    if (result == null) aheadProducer.clearIf(requestWindow)
+                    result
                 }
-            }
+                ready
+            } finally { ticket.cancel() }
 
-            if (pcm == null || pcm.isEmpty()) {
+            if (audio == null) {
                 Log.w(TAG, "No audio generated for sentence $index")
-                withContext(Dispatchers.Main) { if (generation.isCurrent(token)) onComplete(false) }
+                withContext(Dispatchers.Main) { if (isCurrent(token)) onComplete(false) }
                 return@withLock
             }
 
             currentCoroutineContext().ensureActive()
-            if (!generation.isCurrent(token)) return@withLock
+            if (!isCurrent(token)) return@withLock
             if (leadingSilenceMs > 0L) delay(leadingSilenceMs.coerceAtMost(5_000L))
-            if (!generation.isCurrent(token)) return@withLock
-            val sampleRate = engine.sampleRate
-            val track = try { acquireTrack(sampleRate) } catch (error: Exception) {
-                Log.w(TAG, "Could not initialize audio output", error)
-                null
-            }
-            if (track == null) {
-                // shutdown() ran while this sentence was still being synthesized.
-                withContext(Dispatchers.Main) { if (generation.isCurrent(token)) onComplete(false) }
-                return@withLock
-            }
-
-            var startMonitor: Job? = null
-            val played = try {
-                runCatching {
-                    val params = android.media.PlaybackParams().apply {
-                        // Pitch is applied to PCM at synthesis, including WAV export.
-                        // Explicit defaults avoid incomplete PlaybackParams on OEMs.
-                        allowDefaults()
-                        setSpeed(1f)
-                        setPitch(1f)
-                    }
-                    track.playbackParams = params
-                }
-                if (track.playState != AudioTrack.PLAYSTATE_PLAYING) {
-                    track.play()
-                }
-                val initialFrame = track.playbackHeadPosition.toLong() and 0xffffffffL
-                // The streaming write can block for most of a sentence. Observe the
-                // output head independently so startup feedback ends at actual output,
-                // not at synthesis completion or after the entire write returns.
-                val totalFrames = pcm.size
-                startMonitor = launch {
-                    var started = false
-                    while (currentCoroutineContext().isActive && isPlaying && generation.isCurrent(token)) {
-                        val frame = runCatching { track.playbackHeadPosition.toLong() and 0xffffffffL }.getOrNull() ?: break
-                        val rendered = ((frame - initialFrame) and 0xffffffffL).coerceAtMost(totalFrames.toLong())
-                        if (rendered > 0L) {
-                            withContext(Dispatchers.Main) {
-                                if (generation.isCurrent(token) && isPlaying) {
-                                    if (!started) { started = true; onStarted() }
-                                    onProgress(rendered, totalFrames, sampleRate)
-                                    onAudioLevel(com.veritas.reader.SpeechAmplitude.pcmLevel(pcm, rendered.toInt(), sampleRate))
-                                }
-                            }
-                        }
-                        delay(50)
-                    }
-                }
-                // write() is blocking in MODE_STREAM: it returns once the data is
-                // queued, not once it has been heard. Sleeping for the clip's full
-                // duration on top of that added a gap at every sentence boundary, so
-                // wait on the head position actually reaching the end instead.
-                val playbackContext = currentCoroutineContext()
-                val played = PcmCompletion.play(pcm, sampleRate, object : PcmOutput {
-                    override fun write(samples: ShortArray, offset: Int, count: Int) = track.write(samples, offset, count)
-                    override fun renderedFrames() = track.playbackHeadPosition.toLong() and 0xffffffffL
-                }, { playbackContext.isActive && isPlaying && generation.isCurrent(token) }, SystemClock::elapsedRealtime) { delay(15) }
-                if (played) pcmCache.remove(index)
-                played
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (t: Throwable) {
-                // The track can still die between acquire and write on paths this
-                // bookkeeping does not cover (engine death, audio focus loss).
-                Log.w(TAG, "Playback of sentence $index failed", t)
-                false
-            } finally {
-                startMonitor?.cancel()
-                releaseWriter()
-            }
+            if (!isCurrent(token)) return@withLock
+            val played = audioOutput.play(outputOwner, audio.pcm, audio.sampleRate,
+                { isPlaying && isCurrent(token) }, onStarted, onProgress, onAudioLevel)
+            if (played) pcmCache.releaseCurrent(current)
 
             withContext(Dispatchers.Main) {
-                if (generation.isCurrent(token)) { onAudioLevel(0f); onComplete(played) }
+                if (isCurrent(token)) { onAudioLevel(0f); onComplete(played) }
             }
             }
         }
+        playbackJob = job
+        job.invokeOnCompletion {
+            ticket.cancel() // Covers cancellation before the coroutine body starts, too.
+            activeDemand.compareAndSet(ticket, null)
+            pcmCache.releaseCurrent(current)
+        }
     }
 
-    private suspend fun synthesizeAndCache(index: Int, text: String, rate: Float = 1.0f, pitch: Float = 1.0f): ShortArray? = synthesisMutex.withLock {
-        val token = generation.current()
-        pcmCache[index]?.takeIf { it.text == text && it.rate == rate && it.pitch == pitch && it.generation == token }?.let { return@withLock it.pcm }
+    /** Caller owns synthesisGate; capture the request generation before waiting, never after. */
+    private suspend fun synthesizeAndCacheLocked(index: Int, text: String, rate: Float, pitch: Float, token: Long,
+        aheadQueuedAtMs: Long? = null): CachedSpeechPcm? {
+        if (!isCurrent(token)) return null
+        val key = PcmCacheKey(index, text, rate, pitch, token)
+        if (aheadQueuedAtMs != null && clock.expired(aheadQueuedAtMs, resourcePolicy.aheadQueueMs) && !pcmCache.isCurrent(key)) return null
+        cached(index, text, rate, pitch, token)?.let { return it }
         currentCoroutineContext().ensureActive()
-        if (!beginSynthesis()) return@withLock null
+        if (!beginSynthesis()) return null
         val pcm = try {
-            engine.synthesize(text, rate, pitch)?.takeIf { it.isNotEmpty() }
+            engine.synthesize(text, rate, pitch)?.takeIf { it.isNotEmpty() }?.let { samples ->
+                // JNI metadata belongs to the same guarded engine lifetime as generation.
+                val sampleRate = engine.sampleRate
+                require(sampleRate > 0) { "Voice returned an invalid sample rate" }
+                CachedSpeechPcm(PcmCacheKey(index, text, rate, pitch, token), samples, sampleRate)
+            }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
@@ -255,7 +228,11 @@ class VeritasAudioBuffer(
             endSynthesis()
         }
         currentCoroutineContext().ensureActive()
-        if (pcm != null && generation.publishIfCurrent(token) { pcmCache[index] = CachedPcm(text, rate, pitch, token, pcm) }) pcm else null
+        var retained = false
+        return if (pcm != null && generation.publishIfCurrent(token) {
+            if (outputOwner.active && (aheadQueuedAtMs == null ||
+                !clock.expired(aheadQueuedAtMs, resourcePolicy.aheadQueueMs) || pcmCache.isCurrent(key))) retained = pcmCache.publish(pcm)
+        } && retained) pcm else null
     }
 
     // engine.synthesize() is a blocking call into sherpa-onnx, and coroutine cancellation
@@ -263,13 +240,13 @@ class VeritasAudioBuffer(
     // it is a use-after-free that lands as SIGSEGV inside OfflineTts_generateImpl, on the
     // Dispatchers.Default thread, below the level the app's crash reporter can observe.
     // So shutdown only marks intent; whichever side finishes last performs the free —
-    // the same bargain acquireTrack/releaseWriter strike for the AudioTrack.
+    // the same lifetime rule the separate output controller applies to track writers.
     private val engineLock = Any()
     private var synthesisInFlight = 0
     private var engineShutdownRequested = false
     private val engineDisposed = kotlinx.coroutines.CompletableDeferred<Unit>()
 
-    suspend fun awaitShutdown() { engineDisposed.await() }
+    suspend fun awaitShutdown() { engineDisposed.await(); engine.awaitShutdown() }
 
     private fun beginSynthesis(): Boolean = synchronized(engineLock) {
         if (engineShutdownRequested) return@synchronized false
@@ -286,82 +263,12 @@ class VeritasAudioBuffer(
     }
 
     private fun requestEngineShutdown() = synchronized(engineLock) {
+        if (engineShutdownRequested) return@synchronized
         engineShutdownRequested = true
         if (synthesisInFlight == 0) {
             runCatching { engine.shutdown() }
             engineDisposed.complete(Unit)
         }
-    }
-
-    /** Sample rate the live [audioTrack] was built for; -1 when there is no track. */
-    private var trackSampleRate: Int = -1
-
-    /**
-     * Hands out the shared track and registers the caller as a writer so teardown knows
-     * not to release underneath it. Returns null once [shutdown] has run.
-     */
-    private fun acquireTrack(sampleRate: Int): AudioTrack? = synchronized(trackLock) {
-        if (releaseRequested) return@synchronized null
-
-        // The track is long-lived, but its sample rate is fixed at construction.
-        // Switching voice (Kokoro 24kHz <-> Piper 22.05kHz) without rebuilding
-        // it played every sample at the wrong rate — audible as a gritty,
-        // slightly-off-pitch rasp rather than an obvious failure.
-        if (audioTrack != null && trackSampleRate != sampleRate && writersInFlight == 0) {
-            Log.i(TAG, "Sample rate changed $trackSampleRate -> $sampleRate; rebuilding AudioTrack")
-            disposeTrackLocked()
-        }
-
-        if (audioTrack == null) {
-            val minBufferSize = AudioTrack.getMinBufferSize(
-                sampleRate,
-                AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT
-            )
-            trackSampleRate = sampleRate
-            audioTrack = AudioTrack.Builder()
-                .setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .build()
-                )
-                .setAudioFormat(
-                    AudioFormat.Builder()
-                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                        .setSampleRate(sampleRate)
-                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                        .build()
-                )
-                // Sized from the sample rate (about half a second) rather than
-                // from the first sentence's length, which is arbitrary.
-                .setBufferSizeInBytes(minBufferSize.coerceAtLeast(sampleRate))
-                .setTransferMode(AudioTrack.MODE_STREAM)
-                .build()
-        }
-
-        if (audioTrack?.state != AudioTrack.STATE_INITIALIZED) {
-            disposeTrackLocked()
-            return@synchronized null
-        }
-        writersInFlight++
-        audioTrack
-    }
-
-    private fun releaseWriter() = synchronized(trackLock) {
-        writersInFlight--
-        if (releaseRequested && writersInFlight == 0) {
-            disposeTrackLocked()
-        }
-    }
-
-    private fun disposeTrackLocked() {
-        audioTrack?.let { track ->
-            runCatching { track.stop() }
-            runCatching { track.release() }
-        }
-        audioTrack = null
-        trackSampleRate = -1
     }
 
     /**
@@ -373,38 +280,25 @@ class VeritasAudioBuffer(
     }
 
     /**
-     * Permanent teardown: releases the track once no writer is using it, then shuts the
-     * native engine down. The scope is cancelled here rather than only having its children
-     * cancelled — a rebuilt buffer (voice change) or a destroyed service otherwise leaves
-     * its SupervisorJob alive for the rest of the process.
+     * Permanent model-buffer teardown. A supplied service output survives this buffer;
+     * a standalone buffer closes its own output after its writer finishes.
      */
     fun shutdown() {
         stopPlayback(release = true)
+        if (ownsOutput) audioOutput.close()
+        aheadProducer.close()
         scope.cancel()
         requestEngineShutdown()
     }
 
     private fun stopPlayback(release: Boolean) {
+        (engine as? PlaybackModelPin)?.setPlaybackActive(false)
         generation.advance { pcmCache.clear() }
         isPlaying = false
-        prebufferJob?.cancel()
-        prebufferJob = null
-        scope.coroutineContext.cancelChildren()
-        pcmCache.clear()
-        synchronized(trackLock) {
-            // pause() + flush() are the documented way to make a blocked write() return.
-            // They are safe on a track another thread is writing to; release() is not.
-            audioTrack?.let { track ->
-                runCatching { track.pause() }
-                runCatching { track.flush() }
-            }
-            if (release) {
-                releaseRequested = true
-            }
-            if (releaseRequested && writersInFlight == 0) {
-                disposeTrackLocked()
-            }
-        }
+        aheadProducer.clear()
+        activeDemand.getAndSet(null)?.cancel()
+        playbackJob?.cancel()
+        if (release) audioOutput.retire(outputOwner) else audioOutput.interrupt(outputOwner)
     }
 
     companion object {

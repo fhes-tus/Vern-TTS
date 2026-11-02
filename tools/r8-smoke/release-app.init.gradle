@@ -1,0 +1,9 @@
+// Production R8 rules, isolated application ID and outputs. No test-runtime roots.
+gradle.beforeProject { project ->
+    project.layout.buildDirectory.set(new File(project.rootDir, '.artifacts/android-release-checks/build/' + project.name))
+    if (project.name == 'app') {
+        project.afterEvaluate {
+            project.extensions.getByName('android').buildTypes.release.applicationIdSuffix = '.r8.harness.checks'
+        }
+    }
+}

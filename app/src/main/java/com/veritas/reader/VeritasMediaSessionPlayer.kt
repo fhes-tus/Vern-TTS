@@ -136,8 +136,8 @@ internal class VeritasMediaSessionPlayer(
 
     override fun handleSetPlaybackParameters(playbackParameters: PlaybackParameters): ListenableFuture<Any> {
         controller.setPlaybackParameters(
-            playbackParameters.speed.coerceIn(0.5f, 2.0f),
-            playbackParameters.pitch.coerceIn(0.7f, 1.4f)
+            SpeechDelivery.userRate(playbackParameters.speed),
+            SpeechDelivery.userPitch(playbackParameters.pitch)
         )
         return Futures.immediateFuture(Any())
     }

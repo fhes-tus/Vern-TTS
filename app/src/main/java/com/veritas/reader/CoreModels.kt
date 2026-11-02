@@ -605,12 +605,16 @@ data class PronunciationRule(
     val find: String,
     val replaceWith: String,
     val enabled: Boolean = true,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val matchKind: SpeechRuleKind = SpeechRuleKind.LITERAL,
+    val caseSensitive: Boolean = false
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("id", id)
         .put("find", find)
         .put("replaceWith", replaceWith)
+        .put("matchKind", matchKind.name)
+        .put("caseSensitive", caseSensitive)
         .put("enabled", enabled)
         .put("createdAt", createdAt)
 
@@ -619,12 +623,16 @@ data class PronunciationRule(
             val id = obj.optString("id").ifBlank { UUID.randomUUID().toString() }
             val find = obj.optString("find")
             if (find.isBlank()) return null
+            val kind = if (!obj.has("matchKind")) SpeechRuleKind.LITERAL else
+                SpeechRuleKind.entries.firstOrNull { it.name == obj.optString("matchKind") } ?: return null
             return PronunciationRule(
                 id = id,
                 find = find,
                 replaceWith = obj.optString("replaceWith"),
                 enabled = obj.optBoolean("enabled", true),
-                createdAt = obj.optLong("createdAt", System.currentTimeMillis())
+                createdAt = obj.optLong("createdAt", System.currentTimeMillis()),
+                matchKind = kind,
+                caseSensitive = obj.optBoolean("caseSensitive", false)
             )
         }
     }

@@ -16,7 +16,7 @@ internal class NeuralAudioExporter(
     private val context: Context,
     private val createEngine: (String) -> TtsEngine = { voice ->
         require(VoiceModelManager.isVoiceInstalled(context, voice)) { "Download the selected voice before exporting." }
-        if (VoiceManager.engineForVoice(voice) == VoiceManager.VERITAS_LITE) PiperEngine(context, voice) else KokoroTtsEngine(context, voice)
+        if (VoiceManager.engineForVoice(voice) == VoiceManager.VERITAS_LITE) PiperEngine(context, voice) else ownedKokoroExportEngine(context, voice)
     }
 ) {
     suspend fun export(title: String, chunks: List<String>, voice: VoiceSettings, narration: NarrationSettings, rate: Float, pitch: Float): AudioExportManager.ExportResult = withContext(Dispatchers.IO) {
@@ -87,5 +87,18 @@ internal class NeuralAudioExporter(
             val index = at.toInt().coerceAtMost(samples.lastIndex)
             (samples[index] + (samples[minOf(index + 1, samples.lastIndex)] - samples[index]) * (at - index)).roundToInt().toShort()
         }
+    }
+}
+
+private fun ownedKokoroExportEngine(context: Context, voice: String): TtsEngine {
+    val pool = com.veritas.reader.tts.KokoroGraphPool(context)
+    val engine = pool.voice(voice, true)
+    return object : TtsEngine by engine {
+        private var retirement: Job? = null
+        override fun shutdown() {
+            engine.shutdown()
+            if (retirement == null) retirement = pool.closeAsync()
+        }
+        override suspend fun awaitShutdown() { retirement?.join() }
     }
 }

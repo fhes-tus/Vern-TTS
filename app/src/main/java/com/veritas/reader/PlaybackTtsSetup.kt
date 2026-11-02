@@ -17,23 +17,33 @@ internal fun PlaybackService.prepareSpeechEngine(settings: VoiceSettings, select
     }
     pendingSpeak = selection == null
     pendingSelectionText = selection
-    if (activeEnginePackage != requested || (neural && veritasAudioBuffer != null && veritasAudioVoiceId != settings.voiceName)) {
+    if (activeEnginePackage != requested || (neural && veritasAudioBuffer != null &&
+            (veritasAudioVoiceId != settings.voiceName || veritasVoiceShaping != settings.voiceShaping))) {
         ++engineSetupGeneration
         clearQueuedChunk()
         retireUtterance(activeChunkUtteranceId)
         activeChunkUtteranceId = null
         tts?.stop(); tts?.shutdown(); tts = null; ttsReady = false
+        releaseVoiceShaping()
         veritasAudioBuffer?.let { it.shutdown(); retiringAudioBuffer = it }
         veritasAudioBuffer = null; veritasAudioVoiceId = null
+        if (requested != VoiceManager.VERITAS_STUDIO && requested != "com.veritas.voice") {
+            kokoroGraphPool?.let { retiringKokoroGraphJob = it.closeAsync() }
+            kokoroGraphPool = null
+        }
         activeTtsRate = Float.NaN; activeTtsPitch = Float.NaN
         activeEnginePackage = requested
     }
-    retiringAudioBuffer?.let { old ->
+    val old = retiringAudioBuffer
+    val retiringGraph = retiringKokoroGraphJob
+    if (old != null || retiringGraph != null) {
         val generation = ++engineSetupGeneration
         serviceScope.launch {
-            old.awaitShutdown()
+            old?.awaitShutdown()
+            retiringGraph?.join()
             if (generation != engineSetupGeneration) return@launch
             retiringAudioBuffer = null
+            retiringKokoroGraphJob = null
             if (pendingSpeak && PlaybackStateStore.isPlaying) speakCurrent()
             else pendingSelectionText?.let(::speakSelectionText)
         }
@@ -44,6 +54,7 @@ internal fun PlaybackService.prepareSpeechEngine(settings: VoiceSettings, select
         return true
     }
     if (ttsReady && tts != null) {
+        if (settings.voiceShaping) attachVoiceShaping() else releaseVoiceShaping()
         val engine = requireNotNull(tts)
         if (settings.voiceName.isNotBlank() && engine.voices.orEmpty().none { it.name == settings.voiceName }) {
             handleTtsFailure("${settings.displayName} is unavailable in this engine. Choose a voice in Voice Studio.")
@@ -72,6 +83,7 @@ internal fun PlaybackService.handleTtsInit(status: Int) {
     if (status != TextToSpeech.SUCCESS) {
         ++engineSetupGeneration
         tts?.shutdown(); tts = null; ttsReady = false
+        releaseVoiceShaping()
         handleTtsFailure("The selected voice engine could not initialize. Open Voice Studio to choose another engine.")
         return
     }

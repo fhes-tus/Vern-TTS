@@ -54,6 +54,14 @@ internal object BackupRestoreSafety {
             }
         }
         val mediaNames = mutableSetOf<String>()
+        root.optJSONArray("pronunciationRules")?.let { rules ->
+            for (index in 0 until rules.length()) {
+                val rule = PronunciationRule.fromJson(rules.getJSONObject(index))
+                require(rule != null) { "A speech rule has an unknown matching mode or is missing its text." }
+                val error = SpeechPatternRules.error(rule)
+                require(error == null) { "Invalid speech rule: $error" }
+            }
+        }
         val mediaPaths = mutableSetOf<String>()
         root.optJSONArray("noteMedia")?.let { media ->
             for (i in 0 until media.length()) {

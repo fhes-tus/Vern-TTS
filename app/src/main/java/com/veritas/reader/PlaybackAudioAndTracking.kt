@@ -16,20 +16,25 @@ internal fun PlaybackService.veritasBufferFor(voiceSettings: VoiceSettings): Ver
     require(VoiceModelManager.isVoiceInstalled(applicationContext, voiceName)) { "Download the selected voice in Voice Studio." }
     // A change from Piper to Kokoro (or to a different local model) must rebuild the
     // native engine. The service otherwise keeps using the model selected before restart.
-    if (veritasAudioBuffer != null && veritasAudioVoiceId != voiceName) {
+    if (veritasAudioBuffer != null && (veritasAudioVoiceId != voiceName || veritasVoiceShaping != voiceSettings.voiceShaping)) {
         veritasAudioBuffer?.shutdown()
         veritasAudioBuffer = null
     }
     return veritasAudioBuffer ?: run {
         val isPiper = voiceName.startsWith("piper_", ignoreCase = true) ||
             VoiceManager.engineForVoice(voiceName) == VoiceManager.VERITAS_LITE
-        val engine = com.veritas.reader.tts.DeferredTtsEngine {
-            if (isPiper) PiperEngine(applicationContext, voiceName)
-            else KokoroTtsEngine(applicationContext, voiceName)
+        val graphPool = if (isPiper) null else kokoroGraphPool ?: com.veritas.reader.tts.KokoroGraphPool(applicationContext, com.veritas.reader.tts.SpeechModelRole.LIVE).also {
+            kokoroGraphPool = it
         }
-        VeritasAudioBuffer(applicationContext, engine).also {
+        val engine = com.veritas.reader.tts.DeferredTtsEngine {
+            if (isPiper) PiperEngine(applicationContext, voiceName, com.veritas.reader.tts.SpeechModelRole.LIVE)
+            else requireNotNull(graphPool).voice(voiceName, voiceSettings.voiceShaping)
+        }
+        val output = veritasAudioOutput ?: com.veritas.reader.tts.PcmAudioOutput().also { veritasAudioOutput = it }
+        VeritasAudioBuffer(applicationContext, engine, output = output).also {
             veritasAudioBuffer = it
             veritasAudioVoiceId = voiceName
+            veritasVoiceShaping = voiceSettings.voiceShaping
         }
     }
 }
@@ -38,37 +43,43 @@ internal fun PlaybackService.ttsParams(utteranceId: String?): Bundle {
     val params = Bundle()
     utteranceId?.let { params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, it) }
     params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, sleepFadeVolume)
-    if (ttsSessionId != android.media.AudioManager.ERROR) {
+    if (ttsSessionId > 0) {
         params.putInt(TextToSpeech.Engine.KEY_PARAM_SESSION_ID, ttsSessionId)
     }
     return params
 }
 
+/** Final service teardown; model switches retire their buffer while retaining this output. */
+internal fun PlaybackService.releaseLocalSpeech() {
+    veritasAudioBuffer?.shutdown()
+    retiringAudioBuffer?.shutdown()
+    veritasAudioBuffer = null
+    retiringAudioBuffer = null
+    veritasAudioVoiceId = null
+    veritasVoiceShaping = null
+    kokoroGraphPool?.let { retiringKokoroGraphJob = it.closeAsync() }
+    kokoroGraphPool = null
+    veritasAudioOutput?.close()
+    veritasAudioOutput = null
+}
+
 internal fun PlaybackService.attachVoiceShaping() {
+    if (!repository.loadVoiceSettings().voiceShaping) { releaseVoiceShaping(); return }
     if (ttsEqualizer != null) return
     runCatching {
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
-        if (ttsSessionId == android.media.AudioManager.ERROR) {
+        if (ttsSessionId <= 0) {
             ttsSessionId = audioManager.generateAudioSessionId()
         }
-        val eq = android.media.audiofx.Equalizer(0, ttsSessionId)
-        val minLevel = eq.bandLevelRange[0].toInt()
-        val maxLevel = eq.bandLevelRange[1].toInt()
-        for (band in 0 until eq.numberOfBands.toInt()) {
-            val centreHz = eq.getCenterFreq(band.toShort()) / 1000
-            val millibels = when {
-                centreHz < 120 -> -100     // rumble the voice never uses
-                centreHz < 500 -> 250      // chest warmth
-                centreHz < 1500 -> 0       // leave the vowels alone
-                centreHz < 5000 -> 300     // presence: consonant clarity
-                else -> -150               // take the edge off sibilance
-            }
-            eq.setBandLevel(band.toShort(), millibels.coerceIn(minLevel, maxLevel).toShort())
-        }
-        eq.enabled = true
-        ttsEqualizer = eq
-        Log.i(TAG_TTS, "Voice shaping attached to session $ttsSessionId")
+        ttsEqualizer = SpeechEqualizer.create(ttsSessionId)
     }.onFailure { Log.w(TAG_TTS, "Voice shaping unavailable", it) }
+}
+
+internal fun PlaybackService.releaseVoiceShaping() {
+    val effect = ttsEqualizer
+    ttsEqualizer = null
+    ttsSessionId = android.media.AudioManager.ERROR
+    runCatching { effect?.release() }.onFailure { Log.w(TAG_TTS, "Voice shaping release failed", it) }
 }
 
 internal fun PlaybackService.rememberPausePoint() {
@@ -144,6 +155,7 @@ internal fun PlaybackService.clearQueuedChunk() {
 }
 
 internal fun PlaybackService.clearResumePoint() {
+    cancelSpeechParts()
     PlaybackStateStore.speechPosition = null
     activeChunkUtteranceId = null
     activeChunkIndex = -1

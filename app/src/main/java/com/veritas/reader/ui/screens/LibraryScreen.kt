@@ -642,6 +642,7 @@ fun LibraryScreen(
         onOpenSettingsHub = onOpenSettingsHub,
         onOpenReadingLists = onOpenReadingLists,
         onOpenReadingHistory = onOpenReadingHistory,
+        onOpenSyncCenter = onOpenSyncCenter,
         documents = documents,
         documentReadingTimes = uiState.documentReadingTimes,
         readerSettings = uiState.readerSettings,

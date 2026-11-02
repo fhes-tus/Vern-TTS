@@ -174,8 +174,8 @@ fun PackPalettePreview(packId: String) {
     val normalized = VeritasThemePackCatalog.normalizePackId(packId)
     val context = LocalContext.current
     val resolved = VeritasThemeCatalog.resolveConcreteThemeId(com.veritas.reader.VeritasThemeState.themeId, isSystemInDarkTheme())
-    val scheme = com.veritas.reader.veritasPackColorScheme(veritasColorScheme(resolved, context), normalized, resolved,
-        com.veritas.reader.VeritasThemeState.amoledMode)
+    val scheme = com.veritas.reader.veritasAppearanceColorScheme(veritasColorScheme(resolved, context), normalized, resolved,
+        com.veritas.reader.VeritasThemeState.amoledMode, com.veritas.reader.VeritasThemeState.customAccentColor)
     androidx.compose.runtime.CompositionLocalProvider(LocalVeritasPackId provides normalized) {
         MaterialTheme(colorScheme = scheme, shapes = com.veritas.reader.veritasPackShapes(normalized),
             typography = com.veritas.reader.veritasPackTypography(com.veritas.reader.ui.veritasTypography(com.veritas.reader.ui.VeritasUiFont.fromId(com.veritas.reader.VeritasThemeState.uiFontId)), normalized)) {
@@ -207,13 +207,15 @@ fun PackChoiceContent(label: String, packId: String, selected: Boolean) {
  * background brush — so it looks exactly like the app will, not an approximation.
  */
 @Composable
-fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean = false) {
+fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean = false, customAccentColor: String = "") {
     val context = LocalContext.current
     val normalizedPack = VeritasThemePackCatalog.normalizePackId(themePackId)
     val resolvedTheme = VeritasThemeCatalog.resolveConcreteThemeId(themeId, isSystemInDarkTheme())
-    val scheme = com.veritas.reader.veritasPackColorScheme(veritasColorScheme(resolvedTheme, context), normalizedPack, resolvedTheme,
-        com.veritas.reader.VeritasThemeState.amoledMode)
-    val heroColors = com.veritas.reader.veritasHeroColors(scheme, vibrantHero)
+    val scheme = com.veritas.reader.veritasAppearanceColorScheme(veritasColorScheme(resolvedTheme, context), normalizedPack, resolvedTheme,
+        com.veritas.reader.VeritasThemeState.amoledMode, customAccentColor)
+    val heroColors = com.veritas.reader.veritasHeroColors(scheme, vibrantHero,
+        preserveAccent = com.veritas.reader.normalizeCustomAccent(customAccentColor).isNotEmpty() &&
+            !resolvedTheme.contains("high_contrast"))
     val heroOnColor = heroColors.content
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
@@ -621,10 +623,15 @@ fun ReaderSettingsDialog(
             }
         }
 
+        CustomAccentControl(settings.customAccentColor, settings.themeId) {
+            onReadingSettingsChange(settings.copy(customAccentColor = it))
+        }
+
         ThemePreviewCard(
             themePackId = settings.themePackId,
             themeId = settings.themeId,
-            vibrantHero = settings.vibrantHero
+            vibrantHero = settings.vibrantHero,
+            customAccentColor = settings.customAccentColor
         )
 
         ReaderNavigationSettings(settings, onReadingSettingsChange)

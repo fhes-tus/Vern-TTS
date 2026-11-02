@@ -82,7 +82,7 @@ import com.veritas.reader.VeritasFeatureSurface
 import com.veritas.reader.progressFraction
 import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.ReaderUiState
-import java.util.Locale
+import com.veritas.reader.canReorderLibraryDocuments
 
 
 @Composable
@@ -175,7 +175,7 @@ internal fun LibraryBooksTab(
                         "Queued" -> isQueued(doc)
                         "Unread" -> doc.currentIndex <= 0
                         "In progress" -> doc.chunkCount > 1 && doc.currentIndex in 1 until doc.chunkCount - 1
-                        "Completed" -> doc.chunkCount > 0 && doc.currentIndex >= doc.chunkCount - 1
+                        "Completed" -> com.veritas.reader.isLibraryDocumentCompleted(doc)
                         else -> true
                     }
                 }
@@ -197,19 +197,10 @@ internal fun LibraryBooksTab(
                 }
                 .toList()
                 .let { list ->
-                    if (statusFilter == "Queued") {
-                        // Play order, not the library's sort: sequence is the point of a queue.
-                        val position = queuedDocuments.withIndex().associate { (i, doc) -> doc.id to i }
-                        return@let list.sortedBy { position[it.id] ?: Int.MAX_VALUE }
-                    }
-                    when (sortMode) {
-                        "Title" -> list.sortedBy { it.title.lowercase(Locale.getDefault()) }
-                        "Progress" -> list.sortedByDescending { progressFraction(it) }
-                        "Type" -> list.sortedWith(compareBy<SavedDocument> { it.sourceLabel }.thenBy { it.title.lowercase(Locale.getDefault()) })
-                        "Newest" -> list.sortedByDescending { it.createdAt }
-                        "Custom" -> list
-                        else -> list
-                    }
+                    com.veritas.reader.sortLibraryDocuments(
+                        list, sortMode,
+                        queueOrder = if (statusFilter == "Queued") queuedDocuments.map { it.id } else null
+                    )
                 }
         }
     }
@@ -478,7 +469,7 @@ internal fun LibraryBooksTab(
                                                                 val currentIdx = localDocuments.indexOfFirst { it.id == draggingDocId }
                                                                 if (currentIdx != -1) {
                                                                     val col = currentIdx % columnCount
-                                                                    if (col < columnCount - 1 && dragAccumulatedOffset.x > gridColThresholdPx && currentIdx + 1 < localDocuments.size) {
+                                                                    if (col < columnCount - 1 && dragAccumulatedOffset.x > gridColThresholdPx && currentIdx + 1 < localDocuments.size && canReorderLibraryDocuments(doc, localDocuments[currentIdx + 1])) {
                                                                         val updated = localDocuments.toMutableList()
                                                                         val targetIdx = currentIdx + 1
                                                                         val item = updated.removeAt(currentIdx)
@@ -486,7 +477,7 @@ internal fun LibraryBooksTab(
                                                                         localDocuments = updated
                                                                         dragAccumulatedOffset = Offset(dragAccumulatedOffset.x - gridColThresholdPx, dragAccumulatedOffset.y)
                                                                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                                    } else if (col > 0 && dragAccumulatedOffset.x < -gridColThresholdPx && currentIdx - 1 >= 0) {
+                                                                    } else if (col > 0 && dragAccumulatedOffset.x < -gridColThresholdPx && currentIdx - 1 >= 0 && canReorderLibraryDocuments(doc, localDocuments[currentIdx - 1])) {
                                                                         val updated = localDocuments.toMutableList()
                                                                         val targetIdx = currentIdx - 1
                                                                         val item = updated.removeAt(currentIdx)
@@ -494,7 +485,7 @@ internal fun LibraryBooksTab(
                                                                         localDocuments = updated
                                                                         dragAccumulatedOffset = Offset(dragAccumulatedOffset.x + gridColThresholdPx, dragAccumulatedOffset.y)
                                                                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                                    } else if (dragAccumulatedOffset.y > gridRowThresholdPx && currentIdx + columnCount < localDocuments.size) {
+                                                                    } else if (dragAccumulatedOffset.y > gridRowThresholdPx && currentIdx + columnCount < localDocuments.size && canReorderLibraryDocuments(doc, localDocuments[currentIdx + columnCount])) {
                                                                         val updated = localDocuments.toMutableList()
                                                                         val targetIdx = currentIdx + columnCount
                                                                         val item = updated.removeAt(currentIdx)
@@ -502,7 +493,7 @@ internal fun LibraryBooksTab(
                                                                         localDocuments = updated
                                                                         dragAccumulatedOffset = Offset(dragAccumulatedOffset.x, dragAccumulatedOffset.y - gridRowThresholdPx)
                                                                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                                    } else if (dragAccumulatedOffset.y < -gridRowThresholdPx && currentIdx - columnCount >= 0) {
+                                                                    } else if (dragAccumulatedOffset.y < -gridRowThresholdPx && currentIdx - columnCount >= 0 && canReorderLibraryDocuments(doc, localDocuments[currentIdx - columnCount])) {
                                                                         val updated = localDocuments.toMutableList()
                                                                         val targetIdx = currentIdx - columnCount
                                                                         val item = updated.removeAt(currentIdx)
@@ -616,7 +607,7 @@ internal fun LibraryBooksTab(
                                                         dragAccumulatedOffset += dragAmount
                                                         val currentIdx = localDocuments.indexOfFirst { it.id == draggingDocId }
                                                         if (currentIdx != -1) {
-                                                            if (dragAccumulatedOffset.y > listThresholdPx && currentIdx < localDocuments.lastIndex) {
+                                                            if (dragAccumulatedOffset.y > listThresholdPx && currentIdx < localDocuments.lastIndex && canReorderLibraryDocuments(doc, localDocuments[currentIdx + 1])) {
                                                                 val updated = localDocuments.toMutableList()
                                                                 val targetIdx = currentIdx + 1
                                                                 val item = updated.removeAt(currentIdx)
@@ -624,7 +615,7 @@ internal fun LibraryBooksTab(
                                                                 localDocuments = updated
                                                                 dragAccumulatedOffset = Offset(dragAccumulatedOffset.x, dragAccumulatedOffset.y - listThresholdPx)
                                                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                            } else if (dragAccumulatedOffset.y < -listThresholdPx && currentIdx > 0) {
+                                                            } else if (dragAccumulatedOffset.y < -listThresholdPx && currentIdx > 0 && canReorderLibraryDocuments(doc, localDocuments[currentIdx - 1])) {
                                                                 val updated = localDocuments.toMutableList()
                                                                 val targetIdx = currentIdx - 1
                                                                 val item = updated.removeAt(currentIdx)

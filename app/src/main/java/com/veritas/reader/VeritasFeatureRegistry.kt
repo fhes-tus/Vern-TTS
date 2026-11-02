@@ -175,8 +175,8 @@ object VeritasFeatureRegistry {
         ),
         VeritasFeatureDefinition(
             id = VeritasFeatureId.PRONUNCIATION_RULES,
-            title = "Pronunciation rules",
-            description = "Apply local speech replacements before playback and audio export.",
+            title = "Pronunciation & patterns",
+            description = "Skip references and marked text, or choose how words and patterns are spoken.",
             category = VeritasFeatureCategory.READER_TOOLS,
             stage = VeritasFeatureStage.EXPANSION,
             surfaces = setOf(VeritasFeatureSurface.READER_OVERFLOW, VeritasFeatureSurface.SELECTION_OVERFLOW, VeritasFeatureSurface.SETTINGS_HUB),

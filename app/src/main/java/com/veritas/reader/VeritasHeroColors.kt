@@ -20,7 +20,7 @@ internal data class VeritasHeroColors(
 }
 
 /** One theme-colored reading surface, shared by Home and its appearance preview. */
-internal fun veritasHeroColors(scheme: ColorScheme, vibrant: Boolean): VeritasHeroColors {
+internal fun veritasHeroColors(scheme: ColorScheme, vibrant: Boolean, preserveAccent: Boolean = false): VeritasHeroColors {
     if (!vibrant) {
         val tint = if (scheme.background.luminance() < .3f) .12f else .10f
         val container = blendColors(scheme.surface, scheme.primary, tint)
@@ -29,6 +29,10 @@ internal fun veritasHeroColors(scheme: ColorScheme, vibrant: Boolean): VeritasHe
     }
 
     val primary = scheme.primary
+    if (preserveAccent) {
+        return VeritasHeroColors(primary, scheme.onPrimary, scheme.onPrimary,
+            scheme.onPrimary, primary, scheme.onPrimary, vibrant = true)
+    }
     val low = minOf(primary.red, primary.green, primary.blue)
     val spread = maxOf(primary.red, primary.green, primary.blue) - low
     // Recover some chroma from dark-mode pastels without rotating the theme's hue.

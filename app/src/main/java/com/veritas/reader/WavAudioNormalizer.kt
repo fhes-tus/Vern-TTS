@@ -3,10 +3,14 @@ package com.veritas.reader
 import java.io.File
 import java.io.RandomAccessFile
 import kotlin.math.roundToInt
+import com.veritas.reader.tts.BandLimitedResampler
+import com.veritas.reader.tts.FloatPcmAudio
+import com.veritas.reader.tts.PcmPeakLimiter
 
-/** Bounded PCM/float WAV decoding, channel downmix and linear sample-rate conversion. */
+/** Bounded PCM/float WAV decoding, channel downmix and band-limited sample-rate conversion. */
 internal object WavAudioNormalizer {
     fun append(file: File, writer: PcmWavWriter, outputRate: Int, checkActive: () -> Unit = {}) {
+        require(outputRate in 8000..192000)
         RandomAccessFile(file, "r").use { input ->
             fun tag() = ByteArray(4).also(input::readFully).toString(Charsets.US_ASCII)
             fun uint() = Integer.reverseBytes(input.readInt()).toLong() and 0xffffffffL
@@ -44,7 +48,7 @@ internal object WavAudioNormalizer {
                     var value = 0
                     for (byte in 0 until bits / 8) value = value or ((cache[at + byte].toInt() and 255) shl (byte * 8))
                     sum += when {
-                        encoding == 3 -> Float.fromBits(value).let { require(it.isFinite()) { "Invalid audio sample." }; it.coerceIn(-1f, 1f).toDouble() * 32767 }
+                        encoding == 3 -> Float.fromBits(value).let { require(it.isFinite()) { "Invalid audio sample." }; it.toDouble() * 32768 }
                         bits == 8 -> (value - 128) * 256.0
                         bits == 16 -> value.toShort().toDouble()
                         bits == 24 -> (value shl 8 shr 8) / 256.0
@@ -53,27 +57,27 @@ internal object WavAudioNormalizer {
                 }
                 return sum / channels
             }
-            val count = (frames.toDouble() * outputRate / rate).toLong().coerceAtLeast(1)
-            val buffer = ShortArray(8192); var written = 0L
+            val step = rate.toDouble() / outputRate
+            val count = BandLimitedResampler.frames(frames, step)
+            val filter = if (rate == outputRate) null else BandLimitedResampler.kernel(step)
+            val buffer = FloatArray(8192); var written = 0L
+            val limiter = PcmPeakLimiter(outputRate)
             while (written < count) {
                 checkActive(); val n = minOf(buffer.size.toLong(), count - written).toInt()
                 for (i in 0 until n) {
-                    val at = (written + i).toDouble() * rate / outputRate
-                    val frame = at.toLong(); val fraction = at - frame
-                    val a = sample(frame); val b = sample(frame + 1)
-                    buffer[i] = (a + (b - a) * fraction).roundToInt().coerceIn(-32768, 32767).toShort()
+                    val at = (written + i) * step
+                    val value = filter?.at(at, ::sample) ?: sample(written + i)
+                    buffer[i] = (value / 32768.0).toFloat()
                 }
-                writer.append(if (n == buffer.size) buffer else buffer.copyOf(n), checkActive); written += n
+                writer.append(limiter.process(if (n == buffer.size) buffer else buffer.copyOf(n)), checkActive); written += n
             }
+            writer.append(limiter.finish(), checkActive)
         }
     }
     fun resample(samples: ShortArray, from: Int, to: Int): ShortArray {
         require(from in 8000..192000 && to in 8000..192000 && samples.isNotEmpty())
         if (from == to) return samples
-        return ShortArray((samples.size.toDouble() * to / from).roundToInt().coerceAtLeast(1)) { i ->
-            val at = i.toDouble() * from / to; val index = at.toInt().coerceAtMost(samples.lastIndex)
-            (samples[index] + (samples[minOf(index + 1, samples.lastIndex)] - samples[index]) * (at - index))
-                .roundToInt().coerceIn(-32768, 32767).toShort()
-        }
+        val floating = FloatArray(samples.size) { samples[it] / 32768f }
+        return FloatPcmAudio(BandLimitedResampler.convert(floating, from.toDouble() / to), to).pcm16()
     }
 }
