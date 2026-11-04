@@ -54,7 +54,25 @@ class PiperEngine(private val context: Context, private val voiceId: String,
         val clean = NeuralSpeechText.prepare(sentence)
         if (clean.isBlank() || closed) return@withContext null
         try {
-            val generated = withNative { it.generate(clean, sid = 0, speed = SpeechDelivery.rate(rate)) to loadedIdentity.contains(".fp32.onnx:") }
+            val caller = currentCoroutineContext()
+            val generated = withNative { model ->
+                val chunks = PiperSpeechChunks.split(clean)
+                val clips = chunks.map { chunk ->
+                    caller.ensureActive()
+                    model.generate(chunk,sid = 0,speed = SpeechDelivery.rate(rate))
+                }
+                val rateHz = clips.first().sampleRate
+                require(clips.all { it.sampleRate == rateHz && it.samples.isNotEmpty() && it.samples.all(Float::isFinite) })
+                val total = clips.sumOf { it.samples.size.toLong() }
+                require(total in 1..(rateHz*300L)) { "Piper generated an invalid audio duration" }
+                val joined = if(clips.size == 1) clips.first() else {
+                    var offset = 0
+                    val samples = FloatArray(total.toInt())
+                    clips.forEach { clip -> clip.samples.copyInto(samples,offset); offset += clip.samples.size }
+                    GeneratedAudio(samples,rateHz)
+                }
+                joined to loadedIdentity.contains(".fp32.onnx:")
+            }
             val audio = generated.first
             currentCoroutineContext().ensureActive()
             if (closed || audio.samples.isEmpty()) return@withContext null

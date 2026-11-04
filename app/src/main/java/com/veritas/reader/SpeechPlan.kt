@@ -5,7 +5,7 @@ import java.security.MessageDigest
 import java.text.BreakIterator
 import java.util.Locale
 
-internal enum class SpeechEngineFamily { ANDROID, PIPER, KOKORO }
+internal enum class SpeechEngineFamily { ANDROID, PIPER, KOKORO, KITTEN }
 
 /** Immutable source decisions, shared by reading, preview and portable audio export. */
 internal data class SpeechSegment(
@@ -54,6 +54,7 @@ internal object SpeechPlan {
         val voice = voiceFor(original, base, narration, cue)
         val family = when (SpeechEngineRouting.engineForVoice(voice.voiceName) ?: voice.enginePackage) {
             VoiceManager.VERITAS_LITE -> SpeechEngineFamily.PIPER
+            VoiceManager.KITTEN -> SpeechEngineFamily.KITTEN
             VoiceManager.VERITAS_STUDIO, "com.veritas.voice" -> SpeechEngineFamily.KOKORO
             else -> SpeechEngineFamily.ANDROID
         }

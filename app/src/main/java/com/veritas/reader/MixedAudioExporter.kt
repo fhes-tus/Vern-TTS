@@ -68,6 +68,8 @@ internal class MixedAudioExporter(private val context: Context,
                                 require(VoiceModelManager.isVoiceInstalled(context, voice)) { "Download $voice before exporting." }
                                 if (segment.family == SpeechEngineFamily.PIPER) {
                                     graphPool?.close(); graphPool = null; PiperEngine(context, voice)
+                                } else if(segment.family == SpeechEngineFamily.KITTEN) {
+                                    graphPool?.close(); graphPool = null; com.veritas.reader.tts.KittenEngine(context,voice)
                                 } else (graphPool ?: com.veritas.reader.tts.KokoroGraphPool(context).also { graphPool = it })
                                     .voice(voice, segment.voice.voiceShaping)
                             }

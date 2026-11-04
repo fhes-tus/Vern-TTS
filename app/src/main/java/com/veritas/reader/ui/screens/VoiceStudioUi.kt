@@ -51,6 +51,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,6 +73,10 @@ import com.veritas.reader.VoiceManager
 import com.veritas.reader.VoiceNamingRegistry
 import com.veritas.reader.VoiceSettings
 import com.veritas.reader.voicePresets
+import com.veritas.reader.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.semantics.stateDescription
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -98,6 +103,27 @@ fun VoiceStudioDialog(
     onDismiss: () -> Unit,
     onVoiceShapingChange: (Boolean) -> Unit = {}
 ) {
+    val downloadContext = LocalContext.current
+    val downloadScope = rememberCoroutineScope()
+    var pendingDownload by remember { mutableStateOf<com.veritas.reader.tts.OfflineVoiceDescriptor?>(null) }
+    pendingDownload?.let { voice ->
+        AlertDialog(onDismissRequest = { pendingDownload = null },
+            title = { Text(stringResource(R.string.voice_download_title,voice.name)) },
+            text = { Text(stringResource(R.string.voice_download_notice,
+                java.text.NumberFormat.getNumberInstance(LocalConfiguration.current.locales[0]).apply { maximumFractionDigits = 1 }.format(voice.downloadSizeMb),
+                stringResource(when(voice.engineType) {
+                    com.veritas.reader.tts.OfflineEngineType.KOKORO -> R.string.voice_studio_help
+                    com.veritas.reader.tts.OfflineEngineType.KITTEN -> R.string.voice_kitten_help
+                    else -> R.string.voice_lite_help
+                }))) },
+            confirmButton = { TextButton(onClick = {
+                pendingDownload = null
+                downloadScope.launch {
+                    if(com.veritas.reader.tts.VoiceModelManager.downloadVoice(downloadContext,voice)) { onRefreshEngines(); onLoadVoices() }
+                }
+            }) { Text(stringResource(R.string.ui_download)) } },
+            dismissButton = { TextButton(onClick = { pendingDownload = null }) { Text(stringResource(R.string.ui_cancel)) } })
+    }
     val currentLocale = LocalConfiguration.current.locales[0]
     val voiceShapingLabel = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_shaping)
     var managerMenuExpanded by remember { mutableStateOf(false) }
@@ -200,7 +226,7 @@ fun VoiceStudioDialog(
     }
 
     FullScreenSettingsScaffold(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_voice_and_language), onBack = onDismiss) {
-        val cloudEditor = CloudVoiceSettingsPanel()
+        val cloudEditor = CloudVoiceSettingsPanel(onUsePhoneVoice = onUseSystemDefault)
         if (!cloudEditor) {
         // Active Voice Highlight Card
         SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_active_voice))
@@ -261,6 +287,7 @@ fun VoiceStudioDialog(
         val currentEngineLabel = when {
             settings.enginePackage == VoiceManager.VERITAS_STUDIO -> "Vern Studio"
             settings.enginePackage == VoiceManager.VERITAS_LITE -> "Vern Lite"
+            settings.enginePackage == VoiceManager.KITTEN -> "Kitten"
             settings.engineLabel.isNotBlank() && settings.engineLabel != "System default" -> settings.engineLabel
             settings.enginePackage.isNotBlank() -> settings.enginePackage
             else -> "System Default"
@@ -363,6 +390,10 @@ fun VoiceStudioDialog(
                             onLoadVoices()
                         }
                     )
+                    DropdownMenuItem(text = { Text("Kitten") },onClick = {
+                        managerMenuExpanded = false
+                        onEngineSelected(TtsEngineOption(VoiceManager.KITTEN,"Kitten")); onLoadVoices()
+                    })
                     val systemEngines = engines.filterNot { VoiceManager.isVeritasEngine(it.packageName) }
                     if (systemEngines.isNotEmpty()) {
                         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
@@ -411,7 +442,22 @@ fun VoiceStudioDialog(
         val voiceDownloadStates by com.veritas.reader.tts.VoiceModelManager.downloadState.collectAsState()
 
         // Voice List Cards
-        filteredLanguageVoices.forEach { voice ->
+        filteredLanguageVoices.groupBy { it.enginePackage }.forEach { (engine,group) ->
+        var expanded by rememberSaveable(engine,selectedLanguageTag) { mutableStateOf(false) }
+        val groupTitle = engines.firstOrNull { it.packageName == engine }?.label?.let { localizedSettingsOption(it) }
+            ?: stringResource(R.string.cloud_phone)
+        val expandedLabel = stringResource(if(expanded) R.string.voice_list_expanded else R.string.voice_list_collapsed)
+        Row(Modifier.fillMaxWidth().semantics { stateDescription = expandedLabel }.clickable { expanded = !expanded }
+            .padding(vertical = 12.dp),verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(groupTitle,style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.voice_list_count,group.size),style = MaterialTheme.typography.bodySmall)
+            }
+            Icon(Icons.Default.ArrowDropDown,null,Modifier.graphicsLayer { rotationZ = if(expanded) 180f else 0f })
+        }
+        group.filter { expanded || voiceSearchQuery.isNotBlank() ||
+            voiceDownloadStates[it.name] is com.veritas.reader.tts.DownloadState.Downloading ||
+            voiceDownloadStates[it.name] is com.veritas.reader.tts.DownloadState.Failed }.forEach { voice ->
             val isCurrent = voice.name == settings.voiceName
             val offlineVoice = com.veritas.reader.tts.VoiceModelManager.availableVoices
                 .firstOrNull { it.id == voice.name }
@@ -466,9 +512,7 @@ fun VoiceStudioDialog(
                                     Text(downloadStateLabel(state), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
                             else -> TextButton(onClick = {
-                                voiceRowScope.launch {
-                                    com.veritas.reader.tts.VoiceModelManager.downloadVoice(voiceRowContext, offlineVoice)
-                                }
+                                pendingDownload = offlineVoice
                             }) {
                                 Text(
                                     androidx.compose.ui.res.stringResource(if (needsQualityUpgrade) com.veritas.reader.R.string.settings_update_voice_size else com.veritas.reader.R.string.settings_get_voice_size, offlineVoice.downloadSizeMb.toInt()),
@@ -481,7 +525,11 @@ fun VoiceStudioDialog(
                         }
                     }
                 }
+                if(voiceDownload is com.veritas.reader.tts.DownloadState.Failed) Text(
+                    if(voiceDownload.messageId != 0) stringResource(voiceDownload.messageId) else voiceDownload.reason,
+                    style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.error,modifier = Modifier.padding(12.dp))
             }
+        }
         }
 
         if (filteredLanguageVoices.isEmpty() && !loadingVoices) {
@@ -493,6 +541,11 @@ fun VoiceStudioDialog(
         }
 
         SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern_voice_models))
+        var downloadsExpanded by rememberSaveable { mutableStateOf(false) }
+        TextButton(onClick = { downloadsExpanded = !downloadsExpanded },modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(if(downloadsExpanded) R.string.voice_hide_downloads else R.string.voice_show_downloads))
+        }
+        if(downloadsExpanded || voiceDownloadStates.values.any { it is com.veritas.reader.tts.DownloadState.Downloading || it is com.veritas.reader.tts.DownloadState.Failed }) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = VeritasPackStyle.cardShape(),
@@ -514,11 +567,13 @@ fun VoiceStudioDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 com.veritas.reader.tts.VoiceModelManager.availablePackages.forEach { pkg ->
-                    val isInstalled = remember(refreshTrigger) {
-                        com.veritas.reader.tts.VoiceModelManager.isVoiceInstalled(context, pkg.targetVoiceId)
-                    }
+                    val isInstalled = com.veritas.reader.tts.VoiceModelManager.isVoiceInstalled(context, pkg.targetVoiceId)
                     val targetVoice = com.veritas.reader.tts.VoiceModelManager.availableVoices.firstOrNull { it.id == pkg.targetVoiceId }
-                    val state = downloadStates[pkg.targetVoiceId] ?: com.veritas.reader.tts.DownloadState.Idle
+                    val relatedStates = com.veritas.reader.tts.VoiceModelManager.availableVoices.filter { it.engineType == pkg.engineType }
+                        .mapNotNull { downloadStates[it.id] }
+                    val state = relatedStates.firstOrNull { it is com.veritas.reader.tts.DownloadState.Downloading }
+                        ?: relatedStates.firstOrNull { it is com.veritas.reader.tts.DownloadState.Failed }
+                        ?: downloadStates[pkg.targetVoiceId] ?: com.veritas.reader.tts.DownloadState.Idle
                     val installedAlpha by androidx.compose.animation.core.animateFloatAsState(
                         targetValue = if (isInstalled) 1f else 0f,
                         animationSpec = com.veritas.reader.ui.VeritasMotion.effectsFast(), label = "voiceInstalledStatus")
@@ -531,7 +586,8 @@ fun VoiceStudioDialog(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(pkg.title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
-                                localizedSettingsOption(pkg.description),
+                                java.text.NumberFormat.getNumberInstance(currentLocale).apply { maximumFractionDigits = 1 }
+                                    .format(targetVoice?.downloadSizeMb ?: 0f) + " MB · " + voiceLanguageLabel("en",currentLocale),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -544,7 +600,7 @@ fun VoiceStudioDialog(
                                 Text(downloadStateLabel(state), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                             } else if (state is com.veritas.reader.tts.DownloadState.Failed) {
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(state.reason, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                                Text(if(state.messageId != 0) stringResource(state.messageId) else state.reason, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                             }
                         }
 
@@ -571,14 +627,7 @@ fun VoiceStudioDialog(
                             Button(
                                 onClick = {
                                     if (targetVoice != null) {
-                                        coroutineScope.launch {
-                                            val ok = com.veritas.reader.tts.VoiceModelManager.downloadVoice(context, targetVoice)
-                                            if (ok) {
-                                                refreshTrigger++
-                                                onRefreshEngines()
-                                                onLoadVoices()
-                                            }
-                                        }
+                                        pendingDownload = targetVoice
                                     }
                                 },
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -590,6 +639,7 @@ fun VoiceStudioDialog(
                     }
                 }
             }
+        }
         }
 
         // Voice Presets Gallery
@@ -736,12 +786,14 @@ private fun voiceLanguageLabel(localeTag: String, displayLocale: Locale): String
 private fun voiceProviderLabel(voice: TtsVoiceOption, displayLocale: Locale): String {
     val language = voiceLanguageLabel(voice.localeTag, displayLocale)
     val network = localizedSettingsOption(if (voice.requiresNetwork) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_network_voice) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_offline_voice))
+    if(VoiceManager.isVeritasVoice(voice.name)) return "$language · $network"
     return androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_voice_details, language, network, voice.quality, voice.latency)
 }
 
 @Composable
 private fun downloadStateLabel(state: com.veritas.reader.tts.DownloadState.Downloading): String =
     androidx.compose.ui.res.stringResource(when {
+        state.retrying -> com.veritas.reader.R.string.voice_download_retrying
         state.queued -> com.veritas.reader.R.string.settings_queued
         state.installing -> com.veritas.reader.R.string.settings_installing
         state.totalBytes <= 0 -> com.veritas.reader.R.string.settings_downloading

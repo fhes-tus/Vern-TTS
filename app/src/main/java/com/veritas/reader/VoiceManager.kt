@@ -142,6 +142,7 @@ object VoiceManager {
     /** The two offline engines. Both route to the neural playback path. */
     const val VERITAS_STUDIO = "com.veritas.voice.studio"
     const val VERITAS_LITE = "com.veritas.voice.lite"
+    const val KITTEN = "com.veritas.voice.kitten"
 
     /** True for either offline engine, including the legacy combined id. */
     fun isVeritasEngine(enginePackage: String?): Boolean = SpeechEngineRouting.isVeritasEngine(enginePackage)
@@ -188,7 +189,7 @@ object VoiceManager {
             label = if (installed(com.veritas.reader.tts.OfflineEngineType.PIPER)) "Vern Lite"
             else "Vern Lite (tap to download)"
         )
-        return listOf(studio, lite) + systemEngines
+        return listOf(studio, lite,TtsEngineOption(KITTEN,"Kitten")) + systemEngines
     }
 
     /**
@@ -203,6 +204,7 @@ object VoiceManager {
         val only = when (enginePackage) {
             VERITAS_STUDIO -> com.veritas.reader.tts.OfflineEngineType.KOKORO
             VERITAS_LITE -> com.veritas.reader.tts.OfflineEngineType.PIPER
+            KITTEN -> com.veritas.reader.tts.OfflineEngineType.KITTEN
             else -> null
         }
         return com.veritas.reader.tts.VoiceModelManager.availableVoices
@@ -218,7 +220,11 @@ object VoiceManager {
                     requiresNetwork = false,
                     quality = if (isStudio) 500 else 400,
                     latency = if (isStudio) 300 else 50,
-                    enginePackage = if (isStudio) VERITAS_STUDIO else VERITAS_LITE
+                    enginePackage = when(voice.engineType) {
+                        com.veritas.reader.tts.OfflineEngineType.PIPER -> VERITAS_LITE
+                        com.veritas.reader.tts.OfflineEngineType.KITTEN -> KITTEN
+                        else -> VERITAS_STUDIO
+                    }
                 )
             }
     }
@@ -325,6 +331,9 @@ object VoiceManager {
         val engine: com.veritas.reader.tts.TtsEngine = if (isPiper) {
             previewKokoroPool?.close(); previewKokoroPool = null
             com.veritas.reader.tts.PiperEngine(appContext, voiceName, com.veritas.reader.tts.SpeechModelRole.PREVIEW)
+        } else if(voiceName.startsWith("kitten_")) {
+            previewKokoroPool?.close(); previewKokoroPool = null
+            com.veritas.reader.tts.KittenEngine(appContext,voiceName,com.veritas.reader.tts.SpeechModelRole.PREVIEW)
         } else {
             (previewKokoroPool ?: com.veritas.reader.tts.KokoroGraphPool(appContext, com.veritas.reader.tts.SpeechModelRole.PREVIEW).also { previewKokoroPool = it }).voice(voiceName, shaping)
         }

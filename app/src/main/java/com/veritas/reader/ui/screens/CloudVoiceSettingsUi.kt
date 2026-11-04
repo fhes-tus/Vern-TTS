@@ -1,6 +1,8 @@
 package com.veritas.reader.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -24,7 +26,7 @@ import java.text.NumberFormat
 
 /** Source choice is explicit. Editing credentials never silently starts cloud reading. */
 @Composable
-internal fun CloudVoiceSettingsPanel(): Boolean {
+internal fun CloudVoiceSettingsPanel(onUsePhoneVoice: () -> Unit = {}): Boolean {
     val context = LocalContext.current
     val uri = LocalUriHandler.current
     val scope = rememberCoroutineScope()
@@ -38,6 +40,7 @@ internal fun CloudVoiceSettingsPanel(): Boolean {
     var previewActive by remember { mutableStateOf(false) }
     var status by remember { mutableIntStateOf(0) }
     var showAdvanced by remember { mutableStateOf(false) }
+    var connectionHelp by remember { mutableStateOf(false) }
     var timeoutText by remember(draft.provider) { mutableStateOf(draft.timeoutSeconds.toString()) }
     var retriesText by remember(draft.provider) { mutableStateOf(draft.retries.toString()) }
     var priceText by remember(draft.provider) { mutableStateOf(draft.pricePerMillion.toString()) }
@@ -51,11 +54,20 @@ internal fun CloudVoiceSettingsPanel(): Boolean {
     if (showNotice) AlertDialog(
         onDismissRequest = { showNotice = false; CloudVoiceStore.dismissNotice(context) },
         title = { Text(stringResource(R.string.cloud_default_title)) },
-        text = { Text(stringResource(R.string.cloud_default_notice)) },
-        confirmButton = { TextButton(onClick = { showNotice = false; CloudVoiceStore.dismissNotice(context) }) {
-            Text(stringResource(R.string.ui_got_it))
+        text = { Text(stringResource(R.string.cloud_default_notice),Modifier.verticalScroll(rememberScrollState())) },
+        confirmButton = { TextButton(onClick = {
+            showNotice = false; CloudVoiceStore.dismissNotice(context); preview.stop()
+            saved = saved.copy(enabled = false); CloudVoiceStore.save(context,saved); cloudEditor = false
+            onUsePhoneVoice()
+        }) { Text(stringResource(R.string.voice_use_phone)) } },
+        dismissButton = { TextButton(onClick = { showNotice = false; CloudVoiceStore.dismissNotice(context) }) {
+            Text(stringResource(R.string.voice_explore))
         } }
     )
+    if(connectionHelp) AlertDialog(onDismissRequest = { connectionHelp = false },
+        title = { Text(stringResource(R.string.cloud_connection)) },
+        text = { Text(stringResource(R.string.voice_connection_help),Modifier.verticalScroll(rememberScrollState())) },
+        confirmButton = { TextButton(onClick = { connectionHelp = false }) { Text(stringResource(R.string.ui_got_it)) } })
 
     SettingsHubSectionTitle(stringResource(R.string.cloud_source))
     Row(Modifier.fillMaxWidth().clickable(enabled = !busy) {
@@ -107,7 +119,8 @@ internal fun CloudVoiceSettingsPanel(): Boolean {
             CloudVoiceProvider.KITTEN -> R.string.cloud_about_kitten
             else -> R.string.cloud_about_custom
         }),style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
-        TextButton(onClick = { runCatching { uri.openUri(draft.provider.website) }.onFailure { status = R.string.cloud_error_connection } }) {
+        TextButton(onClick = { connectionHelp = true }) { Text(stringResource(R.string.voice_connection_help_button)) }
+        if(draft.provider != CloudVoiceProvider.CUSTOM) TextButton(onClick = { runCatching { uri.openUri(draft.provider.website) }.onFailure { status = R.string.cloud_error_connection } }) {
             Text(stringResource(R.string.cloud_provider_site))
         }
         if(draft.provider == CloudVoiceProvider.CUSTOM) CloudField(stringResource(R.string.cloud_endpoint),draft.endpoint,!busy) { draft = draft.copy(endpoint = it) }

@@ -7,8 +7,8 @@
     <string name="cloud_connected" formatted="false">"Lecture en ligne activée. Votre fournisseur facture votre compte."</string>
     <string name="cloud_not_connected" formatted="false">"Facultatif. Nécessite votre propre compte fournisseur."</string>
     <string name="cloud_voice_help" formatted="false">"Comment fonctionnent les voix"</string>
-    <string name="cloud_default_title" formatted="false">"Vern utilise d’abord la voix du téléphone"</string>
-    <string name="cloud_default_notice" formatted="false">"Vern utilise le moteur vocal choisi sur votre téléphone, sauf si vous sélectionnez une autre voix. Les voix installées déterminent les langues et la qualité. Les voix en ligne sont facultatives, nécessitent Internet et peuvent être facturées par votre fournisseur. Changer la langue de l’application ne traduit pas le livre et ne change pas son narrateur."</string>
+    <string name="cloud_default_title" formatted="false">"Choisissez la voix de Vern"</string>
+    <string name="cloud_default_notice" formatted="false">"Vern utilise d’abord le moteur vocal choisi sur votre téléphone. Ses voix, y compris les voix neuronales, peuvent fonctionner hors ligne ou nécessiter Internet. Le son et les langues dépendent du moteur. Explorez les téléchargements Lite, Studio et Kitten, ou connectez votre compte en ligne."</string>
     <string name="cloud_connection" formatted="false">"Connexion à votre compte vocal"</string>
     <string name="cloud_privacy" formatted="false">"Cette voix envoie les passages lus au fournisseur choisi. L’aperçu envoie aussi du texte et peut être facturé. Votre clé API reste chiffrée sur cet appareil et est exclue des sauvegardes."</string>
     <string name="cloud_compatible" formatted="false">"Serveur vocal compatible OpenAI"</string>
@@ -63,4 +63,25 @@
     <string name="cloud_error_audio" formatted="false">"L’audio reçu est illisible. Essayez une autre voix ou un autre modèle."</string>
     <string name="cloud_error_storage" formatted="false">"Vern n’a pas pu enregistrer l’audio sur cet appareil. Libérez de l’espace et réessayez."</string>
     <string name="cloud_current_model">"Utiliser le modèle recommandé : %1$s"</string>
+    <string name="voice_download_network" formatted="false">"La connexion a été interrompue. Réessayez pour reprendre un téléchargement partiel vérifié."</string>
+    <string name="voice_download_timeout" formatted="false">"Le serveur a mis trop de temps à répondre. Réessayez avec une connexion stable."</string>
+    <string name="voice_download_source" formatted="false">"Ce téléchargement est indisponible. Réessayez plus tard ou utilisez une autre voix."</string>
+    <string name="voice_download_busy" formatted="false">"Le serveur limite les demandes ou est occupé. Patientez puis réessayez."</string>
+    <string name="voice_download_storage" formatted="false">"Espace insuffisant pour télécharger et installer cette voix. Libérez de l’espace puis réessayez."</string>
+    <string name="voice_download_integrity" formatted="false">"Le téléchargement n’a pas pu être vérifié. Réessayez pour obtenir une nouvelle copie."</string>
+    <string name="voice_download_retrying" formatted="false">"Connexion interrompue. Nouvelle tentative…"</string>
+    <string name="voice_download_title">"Télécharger %1$s ?"</string>
+    <string name="voice_download_notice">"Environ %1$s Mo à télécharger. L’installation nécessite de l’espace supplémentaire pour la décompression. Ensuite, cette voix fonctionne hors ligne. %2$s"</string>
+    <string name="voice_studio_help" formatted="false">"Studio partage un seul pack entre ses voix anglaises. Narration expressive, mais les téléphones plus lents peuvent faire des pauses entre les passages."</string>
+    <string name="voice_lite_help" formatted="false">"Lite télécharge chaque voix anglaise séparément, environ 64–77 Mo chacune. Généralement moins exigeant que Studio ; la prononciation et le naturel varient."</string>
+    <string name="voice_kitten_help" formatted="false">"Kitten Nano 0.8 inclut huit voix anglaises dans un seul téléchargement. Ce modèle hors ligne diffère des voix en ligne de Kitten ; vitesse et clarté varient."</string>
+    <string name="voice_list_expanded" formatted="false">"Développé"</string>
+    <string name="voice_list_collapsed" formatted="false">"Réduit"</string>
+    <string name="voice_list_count">"%1$d voix · toucher pour afficher ou masquer"</string>
+    <string name="voice_hide_downloads" formatted="false">"Masquer les voix à télécharger"</string>
+    <string name="voice_show_downloads" formatted="false">"Explorer les voix à télécharger"</string>
+    <string name="voice_use_phone" formatted="false">"Utiliser la voix du téléphone"</string>
+    <string name="voice_explore" formatted="false">"Explorer les voix"</string>
+    <string name="voice_connection_help_button" formatted="false">"Aide à la connexion"</string>
+    <string name="voice_connection_help" formatted="false">"Utilisez une clé de votre compte autorisée à générer de la parole. Les aperçus et lectures envoient le texte au fournisseur et peuvent être facturés. Pour un serveur personnalisé, entrez son adresse HTTPS complète, son modèle et sa voix. Il doit accepter les requêtes vocales compatibles OpenAI et renvoyer du MP3 ou WAV. Les autres formats nécessitent un adaptateur. Faites confiance au serveur avant de lui confier texte et clé."</string>
 </resources>

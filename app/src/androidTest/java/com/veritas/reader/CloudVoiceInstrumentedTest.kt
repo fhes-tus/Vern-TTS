@@ -38,15 +38,28 @@ class CloudVoiceInstrumentedTest {
             CloudVoiceStore.save(context,config)
             instrumentation.runOnMainSync {
                 context.startActivity(Intent(context,MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                sendPlaybackIntent(context,PlaybackActions.ACTION_PLAY,doc.id,0)
             }
+            // Locale tests can recreate the activity immediately before this test. Wait until
+            // foreground launch has completed before asking Android 16 to start playback.
+            val foregroundDeadline = android.os.SystemClock.elapsedRealtime()+10_000
+            var resumed = false
+            while(!resumed && android.os.SystemClock.elapsedRealtime() < foregroundDeadline) {
+                instrumentation.runOnMainSync {
+                    resumed = androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry.getInstance()
+                        .getActivitiesInStage(androidx.test.runner.lifecycle.Stage.RESUMED).any { it is MainActivity }
+                }
+                if(!resumed) android.os.SystemClock.sleep(100)
+            }
+            assertTrue("Playback fixture activity did not resume",resumed)
+            instrumentation.runOnMainSync { sendPlaybackIntent(context,PlaybackActions.ACTION_PLAY,doc.id,0) }
             val deadline = android.os.SystemClock.elapsedRealtime()+25_000
             while(android.os.SystemClock.elapsedRealtime()<deadline &&
                 !(PlaybackStateStore.isPlaying && !PlaybackStateStore.isPreparing &&
                     PlaybackStateStore.statusMessage == context.getString(R.string.cloud_fallback_active))) {
                 android.os.SystemClock.sleep(100)
             }
-            assertTrue("Phone fallback never began",PlaybackStateStore.isPlaying && !PlaybackStateStore.isPreparing)
+            assertTrue("Phone fallback never began: playing=${PlaybackStateStore.isPlaying}, preparing=${PlaybackStateStore.isPreparing}, status=${PlaybackStateStore.statusMessage}",
+                PlaybackStateStore.isPlaying && !PlaybackStateStore.isPreparing)
             assertEquals(context.getString(R.string.cloud_fallback_active),PlaybackStateStore.statusMessage)
             assertEquals(config,CloudVoiceStore.load(context))
             instrumentation.runOnMainSync { sendPlaybackIntent(context,PlaybackActions.ACTION_STOP) }

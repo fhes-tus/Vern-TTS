@@ -90,8 +90,8 @@ internal object CloudVoiceStore {
         prefs(context).getString("profile_${provider.name}",null)?.let { CloudVoiceConfig.fromJson(JSONObject(it)) }
             ?.takeIf { it.provider == provider }
     }.getOrNull() ?: CloudVoiceConfig(provider = provider)
-    fun noticeSeen(context: Context): Boolean = prefs(context).getBoolean("notice_seen", false)
-    fun dismissNotice(context: Context) { prefs(context).edit().putBoolean("notice_seen", true).apply() }
+    fun noticeSeen(context: Context): Boolean = prefs(context).getBoolean("notice_seen_v2", false)
+    fun dismissNotice(context: Context) { prefs(context).edit().putBoolean("notice_seen_v2", true).apply() }
     @Synchronized fun recordSubmission(context: Context, provider: CloudVoiceProvider, chars: Int) {
         val p = prefs(context)
         p.edit().putLong("chars_${provider.name}", p.getLong("chars_${provider.name}",0)+chars)

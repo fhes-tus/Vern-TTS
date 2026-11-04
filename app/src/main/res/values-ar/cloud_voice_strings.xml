@@ -7,8 +7,8 @@
     <string name="cloud_connected" formatted="false">"القراءة السحابية مفعّلة. يفرض المزوّد الرسوم على حسابك."</string>
     <string name="cloud_not_connected" formatted="false">"اختياري. يتطلب حسابك الخاص لدى المزوّد."</string>
     <string name="cloud_voice_help" formatted="false">"كيف تعمل الأصوات"</string>
-    <string name="cloud_default_title" formatted="false">"يبدأ Vern بصوت هاتفك"</string>
-    <string name="cloud_default_notice" formatted="false">"يستخدم Vern محرّك النطق المحدد على هاتفك ما لم تختر صوتًا آخر. تحدد الأصوات المثبتة اللغات وجودة الصوت. الأصوات السحابية اختيارية وتتطلب الإنترنت وقد يفرض المزوّد رسومًا على حسابك. تغيير لغة التطبيق لا يترجم الكتاب ولا يغيّر الراوي."</string>
+    <string name="cloud_default_title" formatted="false">"اختر طريقة قراءة Vern"</string>
+    <string name="cloud_default_notice" formatted="false">"يبدأ Vern بمحرك تحويل النص إلى كلام المحدد على هاتفك. قد تعمل أصواته، بما فيها العصبية، دون اتصال أو تحتاج إلى الإنترنت. تعتمد الجودة واللغات على المحرك. استكشف تنزيلات Lite وStudio وKitten أو اربط حسابك السحابي."</string>
     <string name="cloud_connection" formatted="false">"اتصالك السحابي الشخصي"</string>
     <string name="cloud_privacy" formatted="false">"يرسل هذا الصوت المقاطع المقروءة إلى المزوّد المحدد. ترسل المعاينة نصًا أيضًا وقد تُحتسب رسوم. يبقى مفتاح API مشفّرًا على هذا الجهاز ويُستبعد من النسخ الاحتياطية."</string>
     <string name="cloud_compatible" formatted="false">"خادم نطق متوافق مع OpenAI"</string>
@@ -63,4 +63,25 @@
     <string name="cloud_error_audio" formatted="false">"تعذّر تشغيل الصوت المستلم. جرّب صوتًا أو نموذجًا آخر."</string>
     <string name="cloud_error_storage" formatted="false">"تعذّر على Vern حفظ الصوت على هذا الجهاز. أفرغ بعض المساحة وحاول مجددًا."</string>
     <string name="cloud_current_model">"استخدام النموذج الموصى به: %1$s"</string>
+    <string name="voice_download_network" formatted="false">"انقطع الاتصال. أعد المحاولة لمتابعة التنزيل الجزئي الذي تم التحقق منه."</string>
+    <string name="voice_download_timeout" formatted="false">"استغرق الخادم وقتًا طويلاً للرد. أعد المحاولة باتصال مستقر."</string>
+    <string name="voice_download_source" formatted="false">"تنزيل هذا الصوت غير متاح. حاول لاحقًا أو استخدم صوتًا آخر."</string>
+    <string name="voice_download_busy" formatted="false">"خادم التنزيل مشغول أو يحدّ الطلبات. انتظر وأعد المحاولة."</string>
+    <string name="voice_download_storage" formatted="false">"المساحة لا تكفي لتنزيل هذا الصوت وتثبيته. أفرغ بعض المساحة وأعد المحاولة."</string>
+    <string name="voice_download_integrity" formatted="false">"تعذّر التحقق من تنزيل الصوت. أعد المحاولة للحصول على نسخة جديدة."</string>
+    <string name="voice_download_retrying" formatted="false">"انقطع الاتصال. جارٍ إعادة المحاولة…"</string>
+    <string name="voice_download_title">"هل تريد تنزيل %1$s؟"</string>
+    <string name="voice_download_notice">"حجم التنزيل نحو %1$s م.ب. يحتاج التثبيت إلى مساحة إضافية لفك الملفات. يعمل الصوت دون اتصال بعد تثبيته. %2$s"</string>
+    <string name="voice_studio_help" formatted="false">"تشترك أصوات Studio الإنجليزية في حزمة واحدة. قراءة معبّرة، لكن الهواتف الأبطأ قد تتوقف قليلاً لتوليد المقطع التالي."</string>
+    <string name="voice_lite_help" formatted="false">"ينزّل Lite كل صوت إنجليزي على حدة بحجم نحو 64–77 م.ب. عادةً أخف من Studio؛ ويختلف النطق والطبيعية حسب الصوت والنص."</string>
+    <string name="voice_kitten_help" formatted="false">"يتضمن Kitten Nano 0.8 ثمانية أصوات إنجليزية في تنزيل مشترك. يختلف هذا النموذج المحلي عن أصوات Kitten السحابية؛ وتعتمد السرعة والوضوح على الهاتف والنص."</string>
+    <string name="voice_list_expanded" formatted="false">"موسّع"</string>
+    <string name="voice_list_collapsed" formatted="false">"مطوي"</string>
+    <string name="voice_list_count">"%1$d أصوات · اضغط للإظهار أو الإخفاء"</string>
+    <string name="voice_hide_downloads" formatted="false">"إخفاء الأصوات القابلة للتنزيل"</string>
+    <string name="voice_show_downloads" formatted="false">"استكشاف الأصوات القابلة للتنزيل"</string>
+    <string name="voice_use_phone" formatted="false">"استخدام صوت الهاتف"</string>
+    <string name="voice_explore" formatted="false">"استكشاف الأصوات"</string>
+    <string name="voice_connection_help_button" formatted="false">"مساعدة الاتصال"</string>
+    <string name="voice_connection_help" formatted="false">"استخدم مفتاح حسابك الذي يسمح بتوليد الكلام. ترسل المعاينة والقراءة نص المقطع إلى المزوّد وقد تُحتسب رسوم. للخادم المخصص، أدخل عنوان HTTPS الكامل ومعرّفَي النموذج والصوت. يجب أن يقبل طلبات صوت متوافقة مع OpenAI ويعيد MP3 أو WAV. تحتاج الصيغ الأخرى إلى موائم خاص. اتصل فقط بخادم تثق به لمعالجة نصك ومفتاحك."</string>
 </resources>

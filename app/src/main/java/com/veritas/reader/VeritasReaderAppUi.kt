@@ -543,6 +543,7 @@ internal fun VeritasReaderApp(
                             val targetEngineLabel = when (targetEngine) {
                                 VoiceManager.VERITAS_LITE -> "Vern Lite"
                                 VoiceManager.VERITAS_STUDIO -> "Vern Studio"
+                                VoiceManager.KITTEN -> "Kitten"
                                 "" -> "System default"
                                 else -> uiState.voiceSettings.engineLabel
                             }
@@ -818,6 +819,7 @@ internal fun VeritasReaderApp(
                             val targetEngineLabel = when (targetEngine) {
                                 VoiceManager.VERITAS_LITE -> "Vern Lite"
                                 VoiceManager.VERITAS_STUDIO -> "Vern Studio"
+                                VoiceManager.KITTEN -> "Kitten"
                                 "" -> "System default"
                                 else -> uiState.voiceSettings.engineLabel
                             }

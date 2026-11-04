@@ -33,7 +33,7 @@ sealed class DownloadState {
     object Idle : DownloadState()
     data class Downloading(
         val bytesDownloaded: Long, val totalBytes: Long, val percent: Int,
-        val installing: Boolean = false, val queued: Boolean = false
+        val installing: Boolean = false, val queued: Boolean = false, val retrying: Boolean = false
     ) : DownloadState() {
         val label: String get() = when {
             queued -> "Queued"
@@ -43,12 +43,13 @@ sealed class DownloadState {
         }
     }
     object Completed : DownloadState()
-    data class Failed(val reason: String) : DownloadState()
+    data class Failed(val reason: String, val messageId: Int = 0) : DownloadState()
 }
 
 enum class OfflineEngineType {
     KOKORO,
-    PIPER
+    PIPER,
+    KITTEN
 }
 
 data class OfflineVoiceDescriptor(
@@ -61,7 +62,7 @@ data class OfflineVoiceDescriptor(
     val isCoreRequired: Boolean,
     val modelUrl: String,
     val voiceUrl: String? = null,
-    val expectedChecksum: String? = null,
+    val expectedChecksum: String? = VoiceArchiveCatalog.asset(modelUrl)?.sha256,
     /** Piper only: the `<name>.onnx` inside the archive, e.g. `en_GB-alan-medium`. */
     val modelBaseName: String? = null
 )
@@ -129,17 +130,19 @@ object VoiceModelManager {
         NeuralPackageDescriptor(
             id = "veritas_lite_pack",
             title = "Vern Lite",
-            description = "12 UK and US voices, about 20MB each. Select several " +
+            description = "12 UK and US voices, about 64–77MB each. Select several " +
                 "to download together; additional downloads wait their turn.",
             engineType = OfflineEngineType.PIPER,
             targetVoiceId = "piper_en_us_amy"
-        )
+        ),
+        NeuralPackageDescriptor("kitten_nano_08", "Kitten", "Eight English voices in one offline package.",
+            OfflineEngineType.KITTEN,"kitten_0")
     )
 
     /**
      * Catalog of curated offline neural voices available for download.
      */
-    val availableVoices = listOf(
+    private val baseVoices = listOf(
         // Kokoro US Female
         OfflineVoiceDescriptor("kokoro_af_heart", "Heart (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 126.0f, true, KOKORO_MODEL_URL),
         OfflineVoiceDescriptor("kokoro_af_bella", "Bella (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
@@ -187,6 +190,14 @@ object VoiceModelManager {
         OfflineVoiceDescriptor("piper_en_us_hfc_fem", "Hana (US Female) • Lite", OfflineEngineType.PIPER, "English (US)", "en-US", 64.0f, false, "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-hfc_female-medium.tar.bz2", modelBaseName = "en_US-hfc_female-medium"),
     )
 
+    private val kittenVoices = (0..7).map { sid -> OfflineVoiceDescriptor("kitten_$sid","Voice ${sid+1} • Kitten",
+        OfflineEngineType.KITTEN,"English (US)","en-US",60.9f,sid == 0,
+        "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kitten-nano-en-v0_8-fp32.tar.bz2") }
+
+    val availableVoices: List<OfflineVoiceDescriptor> by lazy { (baseVoices + kittenVoices).map { voice ->
+        VoiceArchiveCatalog.asset(voice.modelUrl)?.let { voice.copy(downloadSizeMb = it.bytes / 1048576f) } ?: voice
+    } }
+
     fun hasAnyModelInstalled(context: Context): Boolean {
         return availableVoices.any { isVoiceInstalled(context, it.id) }
     }
@@ -206,6 +217,7 @@ object VoiceModelManager {
         when (engineType) {
             OfflineEngineType.KOKORO -> File(getTtsDirectory(context), "kokoro")
             OfflineEngineType.PIPER -> File(getTtsDirectory(context), voiceId ?: "piper")
+            OfflineEngineType.KITTEN -> File(getTtsDirectory(context), "kitten-nano-08")
         }
 
     /**
@@ -220,7 +232,7 @@ object VoiceModelManager {
         File(getTtsDirectory(context), "espeak-ng-data")
 
     fun isVoiceInstalled(context: Context, voiceId: String): Boolean {
-        val engine = if (voiceId.startsWith("piper_")) OfflineEngineType.PIPER else OfflineEngineType.KOKORO
+        val engine = availableVoices.firstOrNull { it.id == voiceId }?.engineType ?: return false
         val dir = getVoiceDirectory(context, engine, voiceId)
         return when (engine) {
             OfflineEngineType.KOKORO -> {
@@ -242,6 +254,8 @@ object VoiceModelManager {
                     File(dir, "tokens.txt").isFile &&
                     File(sharedEspeakDirectory(context), "phontab").isFile
             }
+            OfflineEngineType.KITTEN -> listOf("model.fp32.onnx","tokens.txt","espeak-ng-data/phontab").all { File(dir,it).let { f -> f.isFile && f.length() > 0 } } &&
+                File(dir,"voices.bin").length() == 3_276_800L
         }
     }
 
@@ -367,6 +381,8 @@ object VoiceModelManager {
                     File(dir, "tokens.txt").isFile &&
                     File(dir, "espeak-ng-data/phontab").isFile
             }
+            OfflineEngineType.KITTEN -> listOf("model.fp32.onnx","tokens.txt","espeak-ng-data/phontab").all { File(dir,it).let { f -> f.isFile && f.length() > 0 } } &&
+                File(dir,"voices.bin").length() == 3_276_800L
         }
 
     /**
@@ -414,7 +430,7 @@ object VoiceModelManager {
 
     private suspend fun runDownload(context: Context, voice: OfflineVoiceDescriptor): Boolean {
         // Kokoro catalog entries all install one shared package; Piper entries are independent.
-        val packageKey = if (voice.engineType == OfflineEngineType.KOKORO) "kokoro" else voice.id
+        val packageKey = if (voice.engineType == OfflineEngineType.PIPER) voice.id else voice.engineType.name
         updateState(voice.id, DownloadState.Downloading(0, 0, 0, queued = true))
         try {
             return packageLocks.computeIfAbsent(packageKey) { Mutex() }.withLock {
@@ -446,18 +462,17 @@ object VoiceModelManager {
             require(voice.modelUrl.endsWith(".tar.bz2")) { "Unsupported offline voice archive." }
             updateState(voice.id, DownloadState.Downloading(0, 0, 0))
             val downloadContext = coroutineContext
-            val success = downloadFile(voice.modelUrl, targetFile, checkActive = { downloadContext.ensureActive() }) { bytesRead, totalBytes ->
+            val partial = File(File(baseDir,"downloads").apply { mkdirs() },
+                (if(voice.engineType == OfflineEngineType.PIPER) voice.id else voice.engineType.name)+".part")
+            com.veritas.reader.VoiceArchiveDownload().download(voice.modelUrl,partial,
+                com.veritas.reader.ResourceLimits.MODEL_DOWNLOAD_BYTES,voice.expectedChecksum,
+                checkActive = { downloadContext.ensureActive() }) { bytesRead, totalBytes, retrying ->
                 downloadContext.ensureActive()
                 // Installation still has to succeed. Never report a ready voice at network EOF.
                 val pct = if (totalBytes > 0) ((bytesRead * 100) / totalBytes).toInt().coerceIn(0, 99) else 0
-                updateState(voice.id, DownloadState.Downloading(bytesRead, totalBytes, pct))
+                updateState(voice.id, DownloadState.Downloading(bytesRead, totalBytes, pct,retrying = retrying))
             }
-
-            if (!success) {
-                targetFile.delete()
-                updateState(voice.id, DownloadState.Failed("Network error or timeout"))
-                return false
-            }
+            check(partial.renameTo(targetFile)) { "Could not prepare the downloaded archive" }
 
             // Extract to a staging directory and only swap it in once it is verified
             // complete. Extracting straight over the live directory meant a failed or
@@ -468,13 +483,13 @@ object VoiceModelManager {
             targetFile.delete()
             if (!extracted) {
                 staging.deleteRecursively()
-                updateState(voice.id, DownloadState.Failed("Archive extraction failed"))
+                updateState(voice.id, DownloadState.Failed("",com.veritas.reader.R.string.voice_download_integrity))
                 return false
             }
 
             if (!isPackageComplete(staging, voice)) {
                 staging.deleteRecursively()
-                updateState(voice.id, DownloadState.Failed("Package is incomplete; required model data was not found"))
+                updateState(voice.id, DownloadState.Failed("",com.veritas.reader.R.string.voice_download_integrity))
                 return false
             }
 
@@ -488,19 +503,22 @@ object VoiceModelManager {
                 voiceDir.deleteRecursively()
                 if (!staging.renameTo(voiceDir)) {
                     staging.deleteRecursively()
-                    updateState(voice.id, DownloadState.Failed("Could not install the downloaded voice"))
+                    updateState(voice.id, DownloadState.Failed("",com.veritas.reader.R.string.voice_download_storage))
                     return false
                 }
             }
 
             if (!isVoiceInstalled(context, voice.id)) {
-                updateState(voice.id, DownloadState.Failed("Package is incomplete; required model data was not found"))
+                updateState(voice.id, DownloadState.Failed("",com.veritas.reader.R.string.voice_download_integrity))
                 return false
             }
             updateState(voice.id, DownloadState.Completed)
             return true
         } catch (cancelled: CancellationException) {
             throw cancelled
+        } catch (e: com.veritas.reader.VoiceDownloadException) {
+            updateState(voice.id, DownloadState.Failed("",e.messageId))
+            return false
         } catch (e: Exception) {
             Log.e(TAG, "Error downloading voice ${voice.id}", e)
             updateState(voice.id, DownloadState.Failed(e.localizedMessage ?: "Download failed"))
@@ -569,7 +587,7 @@ object VoiceModelManager {
     fun deleteVoice(context: Context, voiceId: String): Boolean {
         val voice = availableVoices.firstOrNull { it.id == voiceId } ?: return false
         val affected = availableVoices.filter {
-            it.id == voiceId || (voice.engineType == OfflineEngineType.KOKORO && it.engineType == OfflineEngineType.KOKORO)
+            it.id == voiceId || (voice.engineType != OfflineEngineType.PIPER && it.engineType == voice.engineType)
         }
         if (affected.any { _downloadState.value[it.id] is DownloadState.Downloading }) return false
         getVoiceDirectory(context, voice.engineType, voice.id).deleteRecursively()
@@ -585,22 +603,6 @@ object VoiceModelManager {
 
     private fun updateState(voiceId: String, state: DownloadState) {
         _downloadState.update { it + (voiceId to state) }
-    }
-
-    private fun downloadFile(
-        urlString: String,
-        targetFile: File,
-        checkActive: () -> Unit = {},
-        onProgress: (Long, Long) -> Unit
-    ): Boolean {
-        return try {
-            com.veritas.reader.SecureDownloads.download(urlString, targetFile,
-                com.veritas.reader.ResourceLimits.MODEL_DOWNLOAD_BYTES,
-                headers = { mapOf("User-Agent" to "VernReader") }, checkActive = checkActive, onProgress = onProgress)
-            true
-        } catch (cancelled: CancellationException) { throw cancelled }
-        catch (error: Exception) { Log.e(TAG, "Voice download failed", error); false }
-
     }
 
 }

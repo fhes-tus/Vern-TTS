@@ -7,8 +7,8 @@
     <string name="cloud_connected" formatted="false">"已启用云端朗读，由提供商向您的账户收费。"</string>
     <string name="cloud_not_connected" formatted="false">"可选，需要您自己的提供商账户。"</string>
     <string name="cloud_voice_help" formatted="false">"语音使用说明"</string>
-    <string name="cloud_default_title" formatted="false">"Vern 默认使用手机语音"</string>
-    <string name="cloud_default_notice" formatted="false">"除非您选择其他语音，否则 Vern 使用手机选定的文字转语音引擎。已安装语音决定可用语言和音质。云端语音为可选功能，需要网络，并可能由您的提供商收费。更改应用语言不会翻译书籍或更换朗读者。"</string>
+    <string name="cloud_default_title" formatted="false">"选择 Vern 的朗读方式"</string>
+    <string name="cloud_default_notice" formatted="false">"Vern 默认使用手机中选定的文字转语音引擎。其语音可包括神经语音，可能离线运行，也可能需要联网。音质和语言取决于该引擎。您可以比较 Lite、Studio 和 Kitten 下载选项，或连接自己的云端账户。"</string>
     <string name="cloud_connection" formatted="false">"个人云端连接"</string>
     <string name="cloud_privacy" formatted="false">"使用此语音会将朗读段落发送给所选提供商。试听也会发送文本，并可能产生费用。API 密钥仅加密保存在此设备上，不包含在备份中。"</string>
     <string name="cloud_compatible" formatted="false">"兼容 OpenAI 的 TTS 服务器"</string>
@@ -63,4 +63,25 @@
     <string name="cloud_error_audio" formatted="false">"无法播放返回的音频，请尝试其他语音或模型。"</string>
     <string name="cloud_error_storage" formatted="false">"Vern 无法在此设备上保存音频。请释放一些空间后重试。"</string>
     <string name="cloud_current_model">"使用推荐模型：%1$s"</string>
+    <string name="voice_download_network" formatted="false">"连接已中断。重试可继续经过验证的部分下载。"</string>
+    <string name="voice_download_timeout" formatted="false">"服务器响应超时。请在稳定的网络下重试。"</string>
+    <string name="voice_download_source" formatted="false">"此语音暂时无法下载。请稍后重试或选择其他语音。"</string>
+    <string name="voice_download_busy" formatted="false">"下载服务器繁忙或请求受限。请稍后重试。"</string>
+    <string name="voice_download_storage" formatted="false">"空间不足，无法下载并安装此语音。请释放空间后重试。"</string>
+    <string name="voice_download_integrity" formatted="false">"无法验证语音下载。请重试以获取新副本。"</string>
+    <string name="voice_download_retrying" formatted="false">"连接中断，正在重试…"</string>
+    <string name="voice_download_title">"下载 %1$s？"</string>
+    <string name="voice_download_notice">"下载约需 %1$s MB，解压安装还需要额外空间。安装后可离线使用。%2$s"</string>
+    <string name="voice_studio_help" formatted="false">"Studio 的英语语音共用一个模型包，朗读更富表现力，但较慢的手机生成下一段时可能会停顿。"</string>
+    <string name="voice_lite_help" formatted="false">"Lite 每次下载一个英语语音，每个约 64–77 MB。通常比 Studio 更省资源；发音和自然程度因语音和文本而异。"</string>
+    <string name="voice_kitten_help" formatted="false">"Kitten Nano 0.8 一次下载包含八个英语语音。它不同于 Kitten 云端语音；速度和清晰度取决于手机和文本。"</string>
+    <string name="voice_list_expanded" formatted="false">"已展开"</string>
+    <string name="voice_list_collapsed" formatted="false">"已收起"</string>
+    <string name="voice_list_count">"%1$d 个语音 · 点击展开或收起"</string>
+    <string name="voice_hide_downloads" formatted="false">"收起可下载语音"</string>
+    <string name="voice_show_downloads" formatted="false">"浏览可下载语音"</string>
+    <string name="voice_use_phone" formatted="false">"使用手机语音"</string>
+    <string name="voice_explore" formatted="false">"浏览语音"</string>
+    <string name="voice_connection_help_button" formatted="false">"连接帮助"</string>
+    <string name="voice_connection_help" formatted="false">"请使用自己账户中具有语音生成权限的密钥。试听和朗读会将文本发送给提供商，并可能产生费用。自定义服务器需填写完整的 HTTPS 语音接口、模型和语音 ID。服务器必须接受 OpenAI 兼容的语音请求，并返回 MP3 或 WAV。其他 API 格式需要专用适配器。请只连接您信任其处理文本和密钥的服务器。"</string>
 </resources>

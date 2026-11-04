@@ -16,7 +16,11 @@ internal class NeuralAudioExporter(
     private val context: Context,
     private val createEngine: (String) -> TtsEngine = { voice ->
         require(VoiceModelManager.isVoiceInstalled(context, voice)) { "Download the selected voice before exporting." }
-        if (VoiceManager.engineForVoice(voice) == VoiceManager.VERITAS_LITE) PiperEngine(context, voice) else ownedKokoroExportEngine(context, voice)
+        when(VoiceManager.engineForVoice(voice)) {
+            VoiceManager.VERITAS_LITE -> PiperEngine(context,voice)
+            VoiceManager.KITTEN -> com.veritas.reader.tts.KittenEngine(context,voice)
+            else -> ownedKokoroExportEngine(context,voice)
+        }
     }
 ) {
     suspend fun export(title: String, chunks: List<String>, voice: VoiceSettings, narration: NarrationSettings, rate: Float, pitch: Float): AudioExportManager.ExportResult = withContext(Dispatchers.IO) {

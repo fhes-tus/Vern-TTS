@@ -7,8 +7,8 @@
     <string name="cloud_connected" formatted="false">"Cloud reading enabled. Your provider bills your account."</string>
     <string name="cloud_not_connected" formatted="false">"Optional. Requires your own provider account."</string>
     <string name="cloud_voice_help" formatted="false">"How voices work"</string>
-    <string name="cloud_default_title" formatted="false">"Vern starts with your phone’s voice"</string>
-    <string name="cloud_default_notice" formatted="false">"Vern uses the text-to-speech engine selected on your phone unless you choose another voice. Installed voices determine the languages and sound quality. Cloud voices are optional, need internet, and may cost money through your own provider account. Changing the app language does not translate a book or change its narrator."</string>
+    <string name="cloud_default_title" formatted="false">"Choose how Vern reads"</string>
+    <string name="cloud_default_notice" formatted="false">"Vern starts with your phone’s selected text-to-speech engine. Its voices may work offline or need internet, and can include neural voices. Sound and languages depend on that engine. Explore voices to compare Lite, Studio and Kitten downloads, or connect your own cloud account."</string>
     <string name="cloud_connection" formatted="false">"Personal cloud connection"</string>
     <string name="cloud_privacy" formatted="false">"Using this voice sends the passages you read to the selected provider. Preview also sends text and may incur a charge. Your API key stays encrypted on this device; it is excluded from backups."</string>
     <string name="cloud_compatible" formatted="false">"OpenAI-compatible TTS server"</string>
@@ -63,4 +63,25 @@
     <string name="cloud_error_audio" formatted="false">"The returned audio could not be played. Try another voice or model."</string>
     <string name="cloud_error_storage" formatted="false">"Vern could not save the audio on this device. Free some space and try again."</string>
     <string name="cloud_current_model">"Use recommended model: %1$s"</string>
+    <string name="voice_download_network" formatted="false">"The connection stopped. Retry to continue a verified partial download."</string>
+    <string name="voice_download_timeout" formatted="false">"The server took too long to respond. Retry on a stable connection."</string>
+    <string name="voice_download_source" formatted="false">"This voice download is unavailable. Try again later or use another voice."</string>
+    <string name="voice_download_busy" formatted="false">"The download host is busy or limiting requests. Wait and retry."</string>
+    <string name="voice_download_storage" formatted="false">"Not enough free space to download and install this voice. Free some space and retry."</string>
+    <string name="voice_download_integrity" formatted="false">"The voice download could not be verified. Retry to get a fresh copy."</string>
+    <string name="voice_download_retrying" formatted="false">"Connection interrupted. Retrying…"</string>
+    <string name="voice_download_title">"Download %1$s?"</string>
+    <string name="voice_download_notice">"About %1$s MB to download. Installation needs extra space for unpacking. After installation, this voice works offline. %2$s"</string>
+    <string name="voice_studio_help" formatted="false">"Studio shares one package across its English voices. Expressive narration, but slower phones may pause while the next passage is generated."</string>
+    <string name="voice_lite_help" formatted="false">"Lite downloads one English voice at a time, about 64–77 MB each. Usually lighter to run than Studio; pronunciation and naturalness vary by voice and text."</string>
+    <string name="voice_kitten_help" formatted="false">"Kitten Nano 0.8 includes eight English voices in one shared download. This offline model differs from Kitten’s cloud voices; speed and clarity depend on your phone and the text."</string>
+    <string name="voice_list_expanded" formatted="false">"Expanded"</string>
+    <string name="voice_list_collapsed" formatted="false">"Collapsed"</string>
+    <string name="voice_list_count">"%1$d voices · tap to show or hide"</string>
+    <string name="voice_hide_downloads" formatted="false">"Hide downloadable voices"</string>
+    <string name="voice_show_downloads" formatted="false">"Explore downloadable voices"</string>
+    <string name="voice_use_phone" formatted="false">"Use phone voice"</string>
+    <string name="voice_explore" formatted="false">"Explore voices"</string>
+    <string name="voice_connection_help_button" formatted="false">"Connection help"</string>
+    <string name="voice_connection_help" formatted="false">"Use your own account key with permission to generate speech. Previews and reading send passage text to that provider and may incur charges. For a custom server, enter its full HTTPS speech endpoint, model and voice IDs. It must accept OpenAI-compatible speech requests and return MP3 or WAV. Other API formats need a dedicated adapter. Connect only to a server you trust with your text and key."</string>
 </resources>

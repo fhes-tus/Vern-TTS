@@ -1131,7 +1131,7 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         return if (detectedEngine != null && !VoiceManager.isVeritasEngine(loaded.enginePackage)) {
             loaded.copy(
                 enginePackage = detectedEngine,
-                engineLabel = if (detectedEngine == VoiceManager.VERITAS_LITE) "Vern Lite" else "Vern Studio"
+                engineLabel = when(detectedEngine) { VoiceManager.VERITAS_LITE -> "Vern Lite"; VoiceManager.KITTEN -> "Kitten"; else -> "Vern Studio" }
             )
         } else {
             loaded
@@ -1146,7 +1146,7 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
             settings.enginePackage
         }
         val resolvedEngineLabel = if (detectedEngine != null && !VoiceManager.isVeritasEngine(settings.enginePackage)) {
-            if (detectedEngine == VoiceManager.VERITAS_LITE) "Vern Lite" else "Vern Studio"
+            when(detectedEngine) { VoiceManager.VERITAS_LITE -> "Vern Lite"; VoiceManager.KITTEN -> "Kitten"; else -> "Vern Studio" }
         } else {
             settings.engineLabel.ifBlank { "System default" }
         }

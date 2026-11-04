@@ -23,11 +23,13 @@ internal fun PlaybackService.veritasBufferFor(voiceSettings: VoiceSettings): Ver
     return veritasAudioBuffer ?: run {
         val isPiper = voiceName.startsWith("piper_", ignoreCase = true) ||
             VoiceManager.engineForVoice(voiceName) == VoiceManager.VERITAS_LITE
-        val graphPool = if (isPiper) null else kokoroGraphPool ?: com.veritas.reader.tts.KokoroGraphPool(applicationContext, com.veritas.reader.tts.SpeechModelRole.LIVE).also {
+        val isKitten = voiceName.startsWith("kitten_")
+        val graphPool = if (isPiper || isKitten) null else kokoroGraphPool ?: com.veritas.reader.tts.KokoroGraphPool(applicationContext, com.veritas.reader.tts.SpeechModelRole.LIVE).also {
             kokoroGraphPool = it
         }
         val engine = com.veritas.reader.tts.DeferredTtsEngine {
             if (isPiper) PiperEngine(applicationContext, voiceName, com.veritas.reader.tts.SpeechModelRole.LIVE)
+            else if(isKitten) com.veritas.reader.tts.KittenEngine(applicationContext,voiceName,com.veritas.reader.tts.SpeechModelRole.LIVE)
             else requireNotNull(graphPool).voice(voiceName, voiceSettings.voiceShaping)
         }
         val output = veritasAudioOutput ?: com.veritas.reader.tts.PcmAudioOutput().also { veritasAudioOutput = it }

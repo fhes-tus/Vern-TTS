@@ -7,8 +7,8 @@
     <string name="cloud_connected" formatted="false">"क्लाउड पढ़ना चालू है। प्रदाता आपके खाते से शुल्क लेता है।"</string>
     <string name="cloud_not_connected" formatted="false">"वैकल्पिक। प्रदाता का अपना खाता चाहिए।"</string>
     <string name="cloud_voice_help" formatted="false">"आवाज़ें कैसे काम करती हैं"</string>
-    <string name="cloud_default_title" formatted="false">"Vern पहले आपके फ़ोन की आवाज़ उपयोग करता है"</string>
-    <string name="cloud_default_notice" formatted="false">"जब तक आप दूसरी आवाज़ न चुनें, Vern फ़ोन में चुना TTS इंजन उपयोग करता है। उपलब्ध भाषाएँ और आवाज़ की गुणवत्ता इंस्टॉल की गई आवाज़ों पर निर्भर हैं। क्लाउड आवाज़ें वैकल्पिक हैं, इंटरनेट चाहिए और प्रदाता शुल्क ले सकता है। ऐप की भाषा बदलने से किताब का अनुवाद या कथावाचक नहीं बदलता।"</string>
+    <string name="cloud_default_title" formatted="false">"Vern कैसे पढ़े, चुनें"</string>
+    <string name="cloud_default_notice" formatted="false">"Vern पहले फ़ोन के चुने हुए टेक्स्ट-टू-स्पीच इंजन का उपयोग करता है। उसकी आवाज़ें, न्यूरल आवाज़ों सहित, ऑफ़लाइन या इंटरनेट से काम कर सकती हैं। ध्वनि और भाषाएँ इंजन पर निर्भर हैं। Lite, Studio और Kitten डाउनलोड देखें या अपना क्लाउड खाता जोड़ें।"</string>
     <string name="cloud_connection" formatted="false">"निजी क्लाउड कनेक्शन"</string>
     <string name="cloud_privacy" formatted="false">"यह आवाज़ पढ़े जा रहे अंश चुने प्रदाता को भेजती है। नमूना भी पाठ भेजता है और शुल्क लग सकता है। API कुंजी इसी डिवाइस पर एन्क्रिप्ट रहती है और बैकअप में शामिल नहीं होती।"</string>
     <string name="cloud_compatible" formatted="false">"OpenAI-संगत TTS सर्वर"</string>
@@ -63,4 +63,25 @@
     <string name="cloud_error_audio" formatted="false">"मिला ऑडियो नहीं चल सका। दूसरी आवाज़ या मॉडल आज़माएँ।"</string>
     <string name="cloud_error_storage" formatted="false">"Vern इस डिवाइस पर ऑडियो सहेज नहीं सका। कुछ जगह खाली करके फिर प्रयास करें।"</string>
     <string name="cloud_current_model">"सुझाया गया मॉडल चुनें: %1$s"</string>
+    <string name="voice_download_network" formatted="false">"कनेक्शन रुक गया। सत्यापित अधूरा डाउनलोड जारी रखने के लिए फिर कोशिश करें।"</string>
+    <string name="voice_download_timeout" formatted="false">"सर्वर ने जवाब देने में बहुत समय लिया। स्थिर कनेक्शन पर फिर कोशिश करें।"</string>
+    <string name="voice_download_source" formatted="false">"यह आवाज़ अभी डाउनलोड नहीं हो सकती। बाद में कोशिश करें या दूसरी आवाज़ चुनें।"</string>
+    <string name="voice_download_busy" formatted="false">"डाउनलोड सर्वर व्यस्त है या अनुरोध सीमित कर रहा है। कुछ देर बाद फिर कोशिश करें।"</string>
+    <string name="voice_download_storage" formatted="false">"आवाज़ डाउनलोड और इंस्टॉल करने के लिए जगह कम है। जगह खाली करके फिर कोशिश करें।"</string>
+    <string name="voice_download_integrity" formatted="false">"आवाज़ का डाउनलोड सत्यापित नहीं हुआ। नई प्रति के लिए फिर कोशिश करें।"</string>
+    <string name="voice_download_retrying" formatted="false">"कनेक्शन टूट गया। फिर कोशिश हो रही है…"</string>
+    <string name="voice_download_title">"%1$s डाउनलोड करें?"</string>
+    <string name="voice_download_notice">"लगभग %1$s MB डाउनलोड होगा। फ़ाइल खोलने के लिए अतिरिक्त जगह चाहिए। इंस्टॉल होने के बाद आवाज़ ऑफ़लाइन काम करती है। %2$s"</string>
+    <string name="voice_studio_help" formatted="false">"Studio की अंग्रेज़ी आवाज़ें एक पैकेज साझा करती हैं। भावपूर्ण पढ़ना मिलता है, लेकिन धीमे फ़ोन अगले अंश के लिए रुक सकते हैं।"</string>
+    <string name="voice_lite_help" formatted="false">"Lite में हर अंग्रेज़ी आवाज़ अलग डाउनलोड होती है, लगभग 64–77 MB। आम तौर पर Studio से हल्का है; उच्चारण और स्वाभाविकता आवाज़ और पाठ पर निर्भर हैं।"</string>
+    <string name="voice_kitten_help" formatted="false">"Kitten Nano 0.8 के एक डाउनलोड में आठ अंग्रेज़ी आवाज़ें हैं। यह Kitten की क्लाउड आवाज़ों से अलग है; गति और स्पष्टता फ़ोन और पाठ पर निर्भर हैं।"</string>
+    <string name="voice_list_expanded" formatted="false">"खुला हुआ"</string>
+    <string name="voice_list_collapsed" formatted="false">"बंद किया हुआ"</string>
+    <string name="voice_list_count">"%1$d आवाज़ें · दिखाने या छिपाने के लिए टैप करें"</string>
+    <string name="voice_hide_downloads" formatted="false">"डाउनलोड वाली आवाज़ें छिपाएँ"</string>
+    <string name="voice_show_downloads" formatted="false">"डाउनलोड वाली आवाज़ें देखें"</string>
+    <string name="voice_use_phone" formatted="false">"फ़ोन की आवाज़ चुनें"</string>
+    <string name="voice_explore" formatted="false">"आवाज़ें देखें"</string>
+    <string name="voice_connection_help_button" formatted="false">"कनेक्शन सहायता"</string>
+    <string name="voice_connection_help" formatted="false">"अपने खाते की ऐसी कुंजी उपयोग करें जिसे आवाज़ बनाने की अनुमति हो। नमूने और पढ़ना पाठ को प्रदाता तक भेजते हैं और शुल्क लग सकता है। कस्टम सर्वर के लिए पूरा HTTPS पता, मॉडल और आवाज़ आईडी दें। उसे OpenAI-संगत अनुरोध स्वीकार करके MP3 या WAV लौटाना चाहिए। अन्य API के लिए अलग अडैप्टर चाहिए। केवल भरोसेमंद सर्वर को पाठ और कुंजी दें।"</string>
 </resources>
