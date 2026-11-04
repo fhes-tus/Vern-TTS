@@ -5,6 +5,14 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class AppLanguageCatalogTest {
+    @Test fun onlyAnEmptyOverrideRepresentsDeviceLanguage() {
+        assertEquals("",AppLanguageCatalog.selectionTag(""))
+        assertEquals("en",AppLanguageCatalog.selectionTag("en-GB"))
+        assertEquals("fr",AppLanguageCatalog.selectionTag("fr-CA"))
+        assertEquals("de-DE",AppLanguageCatalog.selectionTag("de-DE"))
+        assertEquals("zh-Hant-TW",AppLanguageCatalog.selectionTag("zh-Hant-TW"))
+        assertNotEquals("",AppLanguageCatalog.selectionTag("ha-GH"))
+    }
     @Test fun regionalChoicesResolveWithoutChangingDeviceLocale() {
         val before = Locale.getDefault()
         assertEquals("", AppLanguageCatalog.canonicalTag(""))

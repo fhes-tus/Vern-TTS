@@ -15,6 +15,9 @@ object AppLanguageCatalog {
         Choice("ar", "العربية")
     )
 
+    /** An unsupported explicit override is still an override, not the device-default choice. */
+    fun selectionTag(rawTag: String): String = canonicalTag(rawTag) ?: Locale.forLanguageTag(rawTag).toLanguageTag()
+
     /** Region variants share translations; Traditional Chinese is not advertised as Simplified. */
     fun canonicalTag(tag: String): String? {
         if (tag.isBlank()) return ""

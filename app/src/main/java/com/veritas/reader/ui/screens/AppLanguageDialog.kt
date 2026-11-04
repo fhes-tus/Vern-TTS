@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.AppLanguageCatalog
@@ -32,7 +33,8 @@ import com.veritas.reader.R
 
 @Composable
 fun AppLanguageDialog(onDismiss: () -> Unit) {
-    val current = AppLanguages.selectedTag()
+    val context = LocalContext.current
+    val current = rememberAppLanguageSelection()
     var selected by rememberSaveable(current) { mutableStateOf(current) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -40,9 +42,10 @@ fun AppLanguageDialog(onDismiss: () -> Unit) {
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.language_explanation))
+                Text(stringResource(R.string.language_device_behavior),style = MaterialTheme.typography.bodySmall)
                 Text(stringResource(R.string.language_preview_notice), style = MaterialTheme.typography.bodySmall)
                 Column(Modifier.selectableGroup()) {
-                    LanguageChoice("", stringResource(R.string.language_follow_device), selected) { selected = it }
+                    LanguageChoice("", deviceLanguageChoiceLabel(), selected) { selected = it }
                     AppLanguageCatalog.choices.forEach { choice ->
                         LanguageChoice(choice.tag, choice.nativeName, selected) { selected = it }
                     }
@@ -52,7 +55,7 @@ fun AppLanguageDialog(onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(onClick = {
                 onDismiss()
-                if (selected != current) AppLanguages.select(selected)
+                if(selected.isEmpty() || selected != current) AppLanguages.select(context, selected)
             }) { Text(stringResource(R.string.language_apply)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } }

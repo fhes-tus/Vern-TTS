@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_follow_device_named">"使用设备语言 · %1$s"</string>
+    <string name="language_device_behavior" formatted="false">"此选项会清除 Vern 的应用语言设置，并遵循手机上受支持的语言偏好。如果 Vern 不支持其中任何语言，则使用英语。之后手机语言更改时，应用会自动跟随。"</string>
+</resources>

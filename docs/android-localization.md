@@ -4,9 +4,10 @@ First preview implementation: 4 November 2026. The user selected French, Spanish
 
 ## Ownership and behavior
 
-- Android/AndroidX owns the app-language preference and its persistence. `AppLanguages` delegates to `AppCompatDelegate`, with `autoStoreLocales` for Android 9–12 and synchronization with Android 13+ per-app language settings. There is no second app-language value in the document/settings database.
+- Android/AndroidX owns the app-language preference and its persistence. `AppLanguages` reads and writes Android's `LocaleManager` on Android 13+, and uses `AppCompatDelegate` with `autoStoreLocales` on Android 9–12. There is no second app-language value in the document/settings database.
 - Settings → AI & Language → App language opens a radio picker. It lists “Use device language,” English, Français, Español, हिन्दी, 简体中文 and العربية. Apply commits a choice; Cancel leaves it unchanged. Resetting to device language supplies an empty locale list. Names use their own scripts, without country flags.
 - The picker warns that preview translations include English fallback. The framework recreates the activity on a language change. MainActivity and WidgetMenuActivity use AppCompatActivity; the existing PDF activity already does.
+- “Use device language” always clears the app override rather than pinning the phone's current language. The row shows the phone's actual primary language and explains supported-language/English fallback. Settings refresh on resume, configuration changes and in-app choices, including same-language changes that do not recreate the activity. Unsupported explicit overrides are preserved as explicit choices until reset; they are never labelled as the device default.
 - Document bytes/text, IDs, anchors, note content and voice preferences are not translated or rewritten. Speech defaults resolve independently of the interface locale, using the engine's default voice or the system resources locale. This avoids treating an Arabic/French menu preference as a new narration language.
 
 ## Resource layout
@@ -50,5 +51,7 @@ After the subsettings expansion, debug assembly, all 669 JVM tests and instrumen
 Next native acceptance should change a new and an existing profile through every language, relaunch the app, reset to device language, change the preference in Android Settings, and repeat on Android 12 and Android 13+. Check narrow screens and large fonts, long French/Spanish labels, Arabic navigation/focus order, saved reading position, note drafts, system/native speech, background playback and notifications/widgets. Run English XA and Arabic XB pseudolocales to find remaining literals and layout clipping. Human review remains deferred at the user's request.
 
 Extend the preview by migrating dynamic labels at their rendering boundaries and adding corresponding translations. Never translate comparison keys or persisted values merely because they are English. Keep format and locale-contract tests passing; record tested devices separately from compilation and JVM checks.
+
+The follow-device correction was verified on the same Android 16 phone: switching to French then choosing the device default cleared the platform override and reloaded resources for the phone's unchanged `en-GB,ha-GH` preferences. A platform-set German override remained distinguishable from the default and could be cleared. Both tests restored the previous app preference. The settings summary observes lifecycle resume as well as resource and in-app selection changes. Android 12 behavior remains untested on a physical device.
 
 Official references: [per-app languages](https://developer.android.com/guide/topics/resources/app-languages), [Compose resources](https://developer.android.com/develop/ui/compose/resources), [pseudolocales](https://developer.android.com/guide/topics/resources/pseudolocales).

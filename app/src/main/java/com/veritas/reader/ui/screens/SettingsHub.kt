@@ -117,6 +117,7 @@ fun SettingsHubDialog(
     onSaveCustomization: (com.veritas.reader.ReaderSettings) -> Unit = {}
 ) {
     val context = LocalContext.current
+    val selectedAppLanguage = rememberAppLanguageSelection()
     val documentCount = uiState.documents.size
     val hasActiveDocument = uiState.activeDocument != null
     val queueCount = uiState.queuedDocuments.size
@@ -216,9 +217,7 @@ fun SettingsHubDialog(
                 SettingsHubGroup(listOf(
                     SettingsRowSpec(
                         context.getString(com.veritas.reader.R.string.app_language),
-                        com.veritas.reader.AppLanguageCatalog.choices.firstOrNull {
-                            it.tag == com.veritas.reader.AppLanguages.selectedTag()
-                        }?.nativeName ?: context.getString(com.veritas.reader.R.string.language_follow_device),
+                        appLanguageSummary(selectedAppLanguage),
                         Icons.Outlined.Translate, { showAppLanguage = true }
                     ),
                     featureRowSpec(

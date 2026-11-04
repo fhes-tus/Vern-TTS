@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_follow_device_named">"Usar idioma del dispositivo · %1$s"</string>
+    <string name="language_device_behavior" formatted="false">"Esta opción elimina el idioma propio de Vern y sigue las preferencias compatibles del teléfono. Si Vern no dispone de ninguna, usa inglés. Los futuros cambios de idioma del teléfono se siguen automáticamente."</string>
+</resources>

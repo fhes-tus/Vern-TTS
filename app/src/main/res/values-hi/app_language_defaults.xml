@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_follow_device_named">"डिवाइस की भाषा उपयोग करें · %1$s"</string>
+    <string name="language_device_behavior" formatted="false">"यह Vern की अलग भाषा का चयन हटाकर फ़ोन की समर्थित भाषा प्राथमिकताओं का पालन करता है। कोई भाषा उपलब्ध न हो तो अंग्रेज़ी उपयोग होती है। आगे फ़ोन की भाषा बदलने पर ऐप अपने आप उसका पालन करता है।"</string>
+</resources>

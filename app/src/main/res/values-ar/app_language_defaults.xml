@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_follow_device_named">"استخدام لغة الجهاز · %1$s"</string>
+    <string name="language_device_behavior" formatted="false">"يمسح هذا الخيار لغة Vern الخاصة ويتبع تفضيلات لغات الهاتف المدعومة. إذا لم تتوفر أي منها في Vern، تُستخدم الإنجليزية. تُتبع تغييرات لغة الهاتف لاحقًا تلقائيًا."</string>
+</resources>
