@@ -249,7 +249,7 @@ internal fun HomeRecentBookGridItem(
                 if (coverBitmap != null) {
                     Image(
                         bitmap = coverBitmap.asImageBitmap(),
-                        contentDescription = "Cover of ${document.title}",
+                        contentDescription = localizedBookCoverDescription(document.title),
                         modifier = Modifier.width(96.dp).height(136.dp).clip(RoundedCornerShape(6.dp)),
                         contentScale = ContentScale.Fit
                     )

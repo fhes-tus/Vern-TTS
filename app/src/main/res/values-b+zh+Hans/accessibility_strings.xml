@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="a11y_book_cover">"%1$s 的封面"</string>
+    <string name="a11y_daily_progress">"每日阅读进度：百分之 %1$s"</string>
+    <string name="a11y_goal_progress">"每日目标进度：百分之 %1$s"</string>
+    <string name="a11y_reading_days">"周一至周日的阅读情况：%1$s"</string>
+    <string name="a11y_reading_minutes">"周一至周日的阅读分钟数：%1$s"</string>
+    <string name="a11y_day_read" formatted="false">"已阅读"</string>
+    <string name="a11y_day_unread" formatted="false">"未阅读"</string>
+</resources>

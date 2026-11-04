@@ -114,7 +114,7 @@ internal fun VeritasHomeHeroCard(
                             Box(Modifier.width(96.dp).height(144.dp).bookCoverMotion("hero-${doc.id}").clip(RoundedCornerShape(8.dp))
                                 .background(onCardColor.copy(alpha = 0.08f)).clickable { onOpen(doc) },
                                 contentAlignment = Alignment.Center) {
-                                if (cover != null) Image(cover.asImageBitmap(), "Cover of ${doc.title}",
+                                if (cover != null) Image(cover.asImageBitmap(), localizedBookCoverDescription(doc.title),
                                     modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
                                 else VeritasCoverPlaceholder(doc.id, doc.title, doc.sourceLabel,
                                     modifier = Modifier.fillMaxSize())

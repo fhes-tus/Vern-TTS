@@ -207,11 +207,14 @@ private fun ReadingStatIllustration(page: Int, fraction: Float, week: List<Long>
     val phase = rememberInsightsPhase("home-stat-$page")
     val reduced = LocalVeritasMotion.current.reduceMotion
     val values = List(7) { week.getOrElse(it) { 0L }.coerceAtLeast(0) }
+    val numbers = java.text.NumberFormat.getIntegerInstance(androidx.compose.ui.platform.LocalConfiguration.current.locales[0])
+    val read = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_day_read)
+    val unread = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_day_unread)
     val description = when (page) {
-        0 -> "Daily reading progress ${(fraction * 100).toInt()} percent"
-        1 -> "Reading days, Monday to Sunday: " + values.joinToString(", ") { if (it > 0) "read" else "no reading" }
-        2 -> "Daily goal progress ${(fraction * 100).toInt()} percent"
-        else -> "Reading minutes, Monday to Sunday: " + values.joinToString(", ") { "${it / 60_000L}" }
+        0 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_daily_progress,numbers.format((fraction * 100).toInt()))
+        1 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_reading_days,values.joinToString(", ") { if (it > 0) read else unread })
+        2 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_goal_progress,numbers.format((fraction * 100).toInt()))
+        else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_reading_minutes,values.joinToString(", ") { numbers.format(it / 60_000L) })
     }
     Canvas(Modifier.fillMaxWidth().requiredHeight(50.dp).testTag("reading-stat-graphic-$page").semantics { contentDescription = description }) {
         val ink = scheme.primary

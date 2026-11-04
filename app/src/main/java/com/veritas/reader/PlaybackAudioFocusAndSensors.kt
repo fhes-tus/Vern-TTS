@@ -170,6 +170,7 @@ internal fun PlaybackService.createSleepTimerTicker(): Runnable = object : Runna
             }
             mainHandler.postDelayed(this, 1000L)
         }
+        cloudVoicePlayer.setVolume(sleepFadeVolume)
     }
 }
 

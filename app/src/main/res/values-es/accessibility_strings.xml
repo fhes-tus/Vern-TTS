@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="a11y_book_cover">"Portada de %1$s"</string>
+    <string name="a11y_daily_progress">"Progreso de lectura diario: %1$s por ciento"</string>
+    <string name="a11y_goal_progress">"Progreso del objetivo diario: %1$s por ciento"</string>
+    <string name="a11y_reading_days">"Días de lectura, de lunes a domingo: %1$s"</string>
+    <string name="a11y_reading_minutes">"Minutos de lectura, de lunes a domingo: %1$s"</string>
+    <string name="a11y_day_read" formatted="false">"lectura"</string>
+    <string name="a11y_day_unread" formatted="false">"sin lectura"</string>
+</resources>

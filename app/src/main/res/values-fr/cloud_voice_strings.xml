@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cloud_source" formatted="false">"Source de narration"</string>
+    <string name="cloud_phone" formatted="false">"Voix du téléphone et téléchargées"</string>
+    <string name="cloud_phone_summary" formatted="false">"Utilise votre sélection actuelle. La synthèse du téléphone est utilisée par défaut."</string>
+    <string name="cloud_personal" formatted="false">"Connecter mon compte de voix en ligne"</string>
+    <string name="cloud_connected" formatted="false">"Lecture en ligne activée. Votre fournisseur facture votre compte."</string>
+    <string name="cloud_not_connected" formatted="false">"Facultatif. Nécessite votre propre compte fournisseur."</string>
+    <string name="cloud_voice_help" formatted="false">"Comment fonctionnent les voix"</string>
+    <string name="cloud_default_title" formatted="false">"Vern utilise d’abord la voix du téléphone"</string>
+    <string name="cloud_default_notice" formatted="false">"Vern utilise le moteur vocal choisi sur votre téléphone, sauf si vous sélectionnez une autre voix. Les voix installées déterminent les langues et la qualité. Les voix en ligne sont facultatives, nécessitent Internet et peuvent être facturées par votre fournisseur. Changer la langue de l’application ne traduit pas le livre et ne change pas son narrateur."</string>
+    <string name="cloud_connection" formatted="false">"Connexion à votre compte vocal"</string>
+    <string name="cloud_privacy" formatted="false">"Cette voix envoie les passages lus au fournisseur choisi. L’aperçu envoie aussi du texte et peut être facturé. Votre clé API reste chiffrée sur cet appareil et est exclue des sauvegardes."</string>
+    <string name="cloud_compatible" formatted="false">"Serveur vocal compatible OpenAI"</string>
+    <string name="cloud_about_eleven" formatted="false">"Voix expressives et modèles multilingues. Un compte API et une voix accessible à ce compte sont requis. Les abonnements du site et les quotas API peuvent différer."</string>
+    <string name="cloud_about_cartesia" formatted="false">"Narration naturelle avec les modèles Sonic. Choisissez un identifiant vocal et la langue du livre. L’accès API et les langues dépendent du compte et du modèle."</string>
+    <string name="cloud_about_minimax" formatted="false">"Narration multilingue expressive. Cette connexion utilise le point d’accès international MiniMax. Indiquez une voix accessible à votre compte API."</string>
+    <string name="cloud_about_kitten" formatted="false">"Les voix hébergées de KittenML nécessitent un compte API. Cette option utilise le service en ligne et n’installe pas de modèle hors ligne sur le téléphone."</string>
+    <string name="cloud_about_custom" formatted="false">"Pour un serveur de confiance acceptant le format vocal OpenAI et renvoyant du MP3. Saisissez l’adresse HTTPS complète, le modèle et la voix. La compatibilité dépend du serveur."</string>
+    <string name="cloud_provider_site" formatted="false">"Configuration, voix et tarifs ↗"</string>
+    <string name="cloud_endpoint" formatted="false">"Adresse HTTPS complète du service vocal"</string>
+    <string name="cloud_key" formatted="false">"Clé API"</string>
+    <string name="cloud_key_hint" formatted="false">"Laissez vide pour conserver la clé enregistrée. Certains serveurs n’en demandent pas."</string>
+    <string name="cloud_model" formatted="false">"Identifiant du modèle"</string>
+    <string name="cloud_voice_id" formatted="false">"Identifiant de la voix"</string>
+    <string name="cloud_language" formatted="false">"Code de langue du livre (facultatif, ex. fr)"</string>
+    <string name="cloud_wifi" formatted="false">"Utiliser le Wi-Fi pour les nouveaux extraits"</string>
+    <string name="cloud_fallback" formatted="false">"Utiliser la voix du téléphone en cas d’échec"</string>
+    <string name="cloud_cache" formatted="false">"Conserver l’audio pour les relectures"</string>
+    <string name="cloud_cache_hint" formatted="false">"Cache facultatif sur l’appareil, jusqu’à 64 Mo. Activez-le si le fournisseur autorise le stockage. Les extraits conservés évitent une nouvelle requête. Changer de voix ou de modèle génère un nouvel audio."</string>
+    <string name="cloud_advanced" formatted="false">"Paramètres avancés de connexion"</string>
+    <string name="cloud_timeout" formatted="false">"Délai réseau en secondes (5–120)"</string>
+    <string name="cloud_retries" formatted="false">"Nouvelles tentatives si quota temporaire (0–2)"</string>
+    <string name="cloud_retry_hint" formatted="false">"Seules les réponses de limitation déclenchent une nouvelle tentative. Les requêtes interrompues ou expirées ne sont pas renvoyées automatiquement : elles peuvent déjà être facturées."</string>
+    <string name="cloud_price" formatted="false">"Votre coût estimé par million de caractères (0 = désactivé)"</string>
+    <string name="cloud_test_preview" formatted="false">"Enregistrer et tester (peut être facturé)"</string>
+    <string name="cloud_use" formatted="false">"Utiliser cette voix pour lire"</string>
+    <string name="cloud_buffering_hint" formatted="false">"Vern charge un court passage avant lecture. Le surlignage suit les passages, pas les mots précis. Vitesse et hauteur sont réglées sur l’appareil. Arrêter annule les requêtes suivantes, mais le texte déjà envoyé peut être facturé."</string>
+    <string name="cloud_usage" formatted="false">"Utilisation sur cet appareil"</string>
+    <string name="cloud_usage_counts">"Caractères envoyés : %1$s · Requêtes : %2$s"</string>
+    <string name="cloud_estimate">"Estimation selon votre tarif : %1$s (dans sa devise)"</string>
+    <string name="cloud_usage_hint" formatted="false">"Les compteurs incluent les aperçus et tentatives pour ce fournisseur. Ce n’est ni sa facture ni le solde restant. Crédits, tarifs et frais d’échec peuvent varier. Consultez son tableau de bord."</string>
+    <string name="cloud_clear_cache">"Effacer l’audio conservé (%1$s Mo)"</string>
+    <string name="cloud_remove_key" formatted="false">"Supprimer la clé de cette connexion"</string>
+    <string name="cloud_key_removed" formatted="false">"Clé supprimée. Lecture en ligne désactivée pour cette connexion."</string>
+    <string name="cloud_more_phone_voices" formatted="false">"Autres voix pour le téléphone"</string>
+    <string name="cloud_directory_hint" formatted="false">"Ces liens ouvrent des applications ou sites externes. Installez un moteur et ses langues, puis actualisez la liste ci-dessous. La disponibilité dépend du pays et de l’appareil ; les voix en ligne nécessitent Internet."</string>
+    <string name="cloud_google" formatted="false">"Google Speech Services — nombreuses langues ; téléchargement dans les paramètres vocaux Android"</string>
+    <string name="cloud_rhvoice" formatted="false">"RHVoice — voix hors ligne pour certaines langues ; la plupart gratuites, certaines payantes"</string>
+    <string name="cloud_espeak" formatted="false">"eSpeak NG — léger, nombreuses langues, voix nettement synthétique"</string>
+    <string name="cloud_preview_text" formatted="false">"Bienvenue dans Vern. Voici un court aperçu de votre voix de lecture."</string>
+    <string name="cloud_preview_playing" formatted="false">"Lecture de l’aperçu vocal…"</string>
+    <string name="cloud_preview_done" formatted="false">"Aperçu terminé. Vous pouvez activer cette voix pour lire."</string>
+    <string name="cloud_saved" formatted="false">"Voix en ligne activée pour la lecture."</string>
+    <string name="cloud_stopped" formatted="false">"Aperçu arrêté. Le texte déjà envoyé peut être facturé."</string>
+    <string name="cloud_fallback_active" formatted="false">"Voix en ligne indisponible. Lecture avec le téléphone pour cette session."</string>
+    <string name="cloud_error_config" formatted="false">"Vérifiez l’adresse HTTPS, le modèle, la voix et les limites."</string>
+    <string name="cloud_error_wifi" formatted="false">"Votre réglage nécessite le Wi-Fi pour les nouveaux extraits. Connectez-vous ou changez cette option."</string>
+    <string name="cloud_error_key" formatted="false">"Clé absente, invalide ou sans accès à cette voix. Vérifiez votre compte fournisseur."</string>
+    <string name="cloud_error_quota" formatted="false">"Le fournisseur signale une limite de facturation ou de débit. Vérifiez votre quota et réessayez plus tard."</string>
+    <string name="cloud_error_provider" formatted="false">"Le fournisseur n’a pas pu générer cette voix. Vérifiez modèle, voix et accès du compte."</string>
+    <string name="cloud_error_connection" formatted="false">"Connexion vocale échouée ou expirée. Vérifiez le réseau et les paramètres. La requête n’a pas été renvoyée automatiquement."</string>
+    <string name="cloud_error_audio" formatted="false">"L’audio reçu est illisible. Essayez une autre voix ou un autre modèle."</string>
+</resources>

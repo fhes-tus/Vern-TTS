@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="a11y_book_cover">"%1$s का आवरण"</string>
+    <string name="a11y_daily_progress">"आज की पढ़ाई की प्रगति: %1$s प्रतिशत"</string>
+    <string name="a11y_goal_progress">"दैनिक लक्ष्य की प्रगति: %1$s प्रतिशत"</string>
+    <string name="a11y_reading_days">"पढ़ने के दिन, सोमवार से रविवार: %1$s"</string>
+    <string name="a11y_reading_minutes">"पढ़ने के मिनट, सोमवार से रविवार: %1$s"</string>
+    <string name="a11y_day_read" formatted="false">"पढ़ा"</string>
+    <string name="a11y_day_unread" formatted="false">"नहीं पढ़ा"</string>
+</resources>

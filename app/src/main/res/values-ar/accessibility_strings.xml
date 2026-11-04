@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="a11y_book_cover">"غلاف %1$s"</string>
+    <string name="a11y_daily_progress">"تقدم القراءة اليومي: %1$s بالمئة"</string>
+    <string name="a11y_goal_progress">"تقدم الهدف اليومي: %1$s بالمئة"</string>
+    <string name="a11y_reading_days">"أيام القراءة من الاثنين إلى الأحد: %1$s"</string>
+    <string name="a11y_reading_minutes">"دقائق القراءة من الاثنين إلى الأحد: %1$s"</string>
+    <string name="a11y_day_read" formatted="false">"تمت القراءة"</string>
+    <string name="a11y_day_unread" formatted="false">"لم تتم القراءة"</string>
+</resources>

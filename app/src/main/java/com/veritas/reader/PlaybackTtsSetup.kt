@@ -9,6 +9,13 @@ internal fun PlaybackService.ensureTtsReadyAndSpeakSelection(text: String) = spe
 
 /** One live output owner; cast changes happen only before the next source segment. */
 internal fun PlaybackService.prepareSpeechEngine(settings: VoiceSettings, selection: String? = null): Boolean {
+    if (usesCloudVoice()) {
+        ++engineSetupGeneration
+        tts?.stop(); tts?.shutdown(); tts = null; ttsReady = false
+        veritasAudioBuffer?.flush()
+        pendingSpeak = false; pendingSelectionText = null
+        return true
+    }
     val requested = settings.enginePackage.ifBlank { null }
     val neural = VoiceManager.isVeritasEngine(requested)
     if (neural && !VoiceModelManager.isVoiceInstalled(applicationContext, settings.voiceName)) {

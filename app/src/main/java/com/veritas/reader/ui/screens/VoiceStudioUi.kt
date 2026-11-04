@@ -200,29 +200,31 @@ fun VoiceStudioDialog(
     }
 
     FullScreenSettingsScaffold(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_voice_and_language), onBack = onDismiss) {
+        val cloudEditor = CloudVoiceSettingsPanel()
+        if (!cloudEditor) {
         // Active Voice Highlight Card
         SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_active_voice))
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = VeritasPackStyle.cardShape(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
         ) {
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_current_voice_model), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_current_voice_model), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             localizedSettingsOption(activeVoiceDisplayName),
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             voiceLanguageLabel(selectedLanguageTag, currentLocale),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
                         )
                     }
                     if (selectedVoice != null || settings.displayName.isNotBlank()) {
@@ -231,107 +233,6 @@ fun VoiceStudioDialog(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sample))
                         }
-                    }
-                }
-            }
-        }
-
-        // Voice Presets Gallery
-        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(Modifier.weight(1f)) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_shaping), style = MaterialTheme.typography.titleSmall)
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_turn_off_the_app_s_tone_profile_speed_and_pitch_stay_as_selected),
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            com.veritas.reader.ui.VeritasSwitch(checked = settings.voiceShaping, onCheckedChange = onVoiceShapingChange,
-                modifier = Modifier.testTag("voice-shaping-toggle").semantics { contentDescription = voiceShapingLabel })
-        }
-        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_presets))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            voicePresets().forEach { preset ->
-                val isSelected = settings.profileName.equals(preset.name, ignoreCase = true)
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { onPresetSelected(preset.name, preset.rate, preset.pitch) },
-                    label = {
-                        Column(modifier = Modifier.padding(vertical = 2.dp)) {
-                            Text(
-                                localizedSettingsOption(preset.name),
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                "${String.format(Locale.US, "%.2f", preset.rate)}x • ${String.format(Locale.US, "%.2f", preset.pitch)}p",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-            }
-        }
-
-        voicePresets().firstOrNull { settings.profileName.equals(it.name, ignoreCase = true) }?.let { selectedPreset ->
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                shape = com.veritas.reader.VeritasPackStyle.compactShape(),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                tonalElevation = 2.dp
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.GraphicEq,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text(
-                                text = localizedSettingsOption(selectedPreset.name),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Surface(
-                                shape = MaterialTheme.shapes.extraSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(start = 4.dp)
-                            ) {
-                                Text(
-                                    text = "${String.format(Locale.US, "%.2f", selectedPreset.rate)}x • ${String.format(Locale.US, "%.2f", selectedPreset.pitch)}p",
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                        Text(
-                            text = localizedSettingsOption(selectedPreset.summary),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
-                            modifier = Modifier.padding(top = 2.dp)
-                        )
                     }
                 }
             }
@@ -691,6 +592,107 @@ fun VoiceStudioDialog(
             }
         }
 
+        // Voice Presets Gallery
+        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.weight(1f)) {
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_shaping), style = MaterialTheme.typography.titleSmall)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_turn_off_the_app_s_tone_profile_speed_and_pitch_stay_as_selected),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            com.veritas.reader.ui.VeritasSwitch(checked = settings.voiceShaping, onCheckedChange = onVoiceShapingChange,
+                modifier = Modifier.testTag("voice-shaping-toggle").semantics { contentDescription = voiceShapingLabel })
+        }
+        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_presets))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            voicePresets().forEach { preset ->
+                val isSelected = settings.profileName.equals(preset.name, ignoreCase = true)
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onPresetSelected(preset.name, preset.rate, preset.pitch) },
+                    label = {
+                        Column(modifier = Modifier.padding(vertical = 2.dp)) {
+                            Text(
+                                localizedSettingsOption(preset.name),
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                "${String.format(Locale.US, "%.2f", preset.rate)}x • ${String.format(Locale.US, "%.2f", preset.pitch)}p",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+        }
+
+        voicePresets().firstOrNull { settings.profileName.equals(it.name, ignoreCase = true) }?.let { selectedPreset ->
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                shape = com.veritas.reader.VeritasPackStyle.compactShape(),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                tonalElevation = 2.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.GraphicEq,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = localizedSettingsOption(selectedPreset.name),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Surface(
+                                shape = MaterialTheme.shapes.extraSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 4.dp)
+                            ) {
+                                Text(
+                                    text = "${String.format(Locale.US, "%.2f", selectedPreset.rate)}x • ${String.format(Locale.US, "%.2f", selectedPreset.pitch)}p",
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        Text(
+                            text = localizedSettingsOption(selectedPreset.summary),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+                }
+            }
+        }
+
         // Quick Navigation Studio Shortcuts
         SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_narration_shortcuts))
 
@@ -715,8 +717,10 @@ fun VoiceStudioDialog(
         OutlinedButton(onClick = onAddLanguageVoice, modifier = Modifier.fillMaxWidth()) {
             Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_language_voice), color = MaterialTheme.colorScheme.onSurface)
         }
+        PhoneVoiceDirectory()
         OutlinedButton(onClick = onOpenSystemTtsSettings, modifier = Modifier.fillMaxWidth()) {
             Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_system_tts_settings), color = MaterialTheme.colorScheme.onSurface)
+        }
         }
     }
 }

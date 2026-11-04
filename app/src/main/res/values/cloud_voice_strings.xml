@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cloud_source" formatted="false">"Reading voice source"</string>
+    <string name="cloud_phone" formatted="false">"Phone and downloaded voices"</string>
+    <string name="cloud_phone_summary" formatted="false">"Uses your existing voice selection. Phone TTS is the default."</string>
+    <string name="cloud_personal" formatted="false">"Connect my cloud voice account"</string>
+    <string name="cloud_connected" formatted="false">"Cloud reading enabled. Your provider bills your account."</string>
+    <string name="cloud_not_connected" formatted="false">"Optional. Requires your own provider account."</string>
+    <string name="cloud_voice_help" formatted="false">"How voices work"</string>
+    <string name="cloud_default_title" formatted="false">"Vern starts with your phone’s voice"</string>
+    <string name="cloud_default_notice" formatted="false">"Vern uses the text-to-speech engine selected on your phone unless you choose another voice. Installed voices determine the languages and sound quality. Cloud voices are optional, need internet, and may cost money through your own provider account. Changing the app language does not translate a book or change its narrator."</string>
+    <string name="cloud_connection" formatted="false">"Personal cloud connection"</string>
+    <string name="cloud_privacy" formatted="false">"Using this voice sends the passages you read to the selected provider. Preview also sends text and may incur a charge. Your API key stays encrypted on this device; it is excluded from backups."</string>
+    <string name="cloud_compatible" formatted="false">"OpenAI-compatible TTS server"</string>
+    <string name="cloud_about_eleven" formatted="false">"Expressive voices with multilingual models. An API account and a voice available to your account are required. Website subscriptions and API allowances can differ."</string>
+    <string name="cloud_about_cartesia" formatted="false">"Natural cloud narration with Sonic models. Choose a voice ID and the language of your book. API access and supported languages depend on your account and model."</string>
+    <string name="cloud_about_minimax" formatted="false">"Expressive multilingual narration. This connection uses the international MiniMax endpoint. Enter a voice ID available to your API account."</string>
+    <string name="cloud_about_kitten" formatted="false">"Hosted KittenML voices require an API account. This option uses the online service; it does not install an offline model on your phone."</string>
+    <string name="cloud_about_custom" formatted="false">"For a server you trust that accepts the OpenAI speech request format and returns MP3 audio. Enter the full HTTPS speech endpoint, model and voice ID. Compatibility depends on the server."</string>
+    <string name="cloud_provider_site" formatted="false">"Provider setup, voices and pricing ↗"</string>
+    <string name="cloud_endpoint" formatted="false">"Full HTTPS speech endpoint"</string>
+    <string name="cloud_key" formatted="false">"API key"</string>
+    <string name="cloud_key_hint" formatted="false">"Leave blank to keep the saved key. Custom servers may not need one."</string>
+    <string name="cloud_model" formatted="false">"Model ID"</string>
+    <string name="cloud_voice_id" formatted="false">"Voice ID"</string>
+    <string name="cloud_language" formatted="false">"Book language code (optional, e.g. fr)"</string>
+    <string name="cloud_wifi" formatted="false">"Use Wi-Fi for new cloud audio"</string>
+    <string name="cloud_fallback" formatted="false">"Use phone TTS if cloud reading fails"</string>
+    <string name="cloud_cache" formatted="false">"Keep cloud audio for repeat reading"</string>
+    <string name="cloud_cache_hint" formatted="false">"Optional device cache, up to 64 MB. Enable only if your provider permits storage. Cached passages can play without a new request; changing the voice or model generates new audio."</string>
+    <string name="cloud_advanced" formatted="false">"Advanced connection settings"</string>
+    <string name="cloud_timeout" formatted="false">"Network timeout in seconds (5–120)"</string>
+    <string name="cloud_retries" formatted="false">"Retries for rate limits (0–2)"</string>
+    <string name="cloud_retry_hint" formatted="false">"Only explicit rate-limit responses are retried. Interrupted or timed-out speech requests are not automatically resent because the provider may already have charged for them."</string>
+    <string name="cloud_price" formatted="false">"Your estimated cost per 1M characters (0 = off)"</string>
+    <string name="cloud_test_preview" formatted="false">"Save and test voice (may incur a charge)"</string>
+    <string name="cloud_use" formatted="false">"Use this cloud voice for reading"</string>
+    <string name="cloud_buffering_hint" formatted="false">"Vern buffers one short passage before playback. Highlights follow passages, not exact words. Speed and pitch are adjusted on this device. Stop cancels further requests; audio already submitted may still be billed."</string>
+    <string name="cloud_usage" formatted="false">"Usage on this device"</string>
+    <string name="cloud_usage_counts">"Submitted characters: %1$s · Requests: %2$s"</string>
+    <string name="cloud_estimate">"Rough estimate using your rate: %1$s (in your rate’s currency)"</string>
+    <string name="cloud_usage_hint" formatted="false">"Counts include previews and attempted submissions for this provider. This is not the provider’s bill or remaining balance. Credits, model rates and failed-request charges may differ. Check your provider dashboard."</string>
+    <string name="cloud_clear_cache">"Clear saved cloud audio (%1$s MB)"</string>
+    <string name="cloud_remove_key" formatted="false">"Remove this connection’s API key"</string>
+    <string name="cloud_key_removed" formatted="false">"API key removed. Cloud reading is disabled for this connection."</string>
+    <string name="cloud_more_phone_voices" formatted="false">"More voices for your phone"</string>
+    <string name="cloud_directory_hint" formatted="false">"These links open external apps or sites. Install an engine, download its language data, then refresh the engine list below. Availability varies by country and device; internet voices may need a connection."</string>
+    <string name="cloud_google" formatted="false">"Google Speech Services — broad language choice; download voices in Android TTS settings"</string>
+    <string name="cloud_rhvoice" formatted="false">"RHVoice — offline voices for selected languages; most are free, some are paid"</string>
+    <string name="cloud_espeak" formatted="false">"eSpeak NG — compact, many languages, clearly synthetic sound"</string>
+    <string name="cloud_preview_text" formatted="false">"Welcome to Vern. This is a short preview of your reading voice."</string>
+    <string name="cloud_preview_playing" formatted="false">"Playing your cloud voice preview…"</string>
+    <string name="cloud_preview_done" formatted="false">"Preview finished. You can enable this voice for reading."</string>
+    <string name="cloud_saved" formatted="false">"Cloud voice enabled for reading."</string>
+    <string name="cloud_stopped" formatted="false">"Preview stopped. Already submitted text may still be billed."</string>
+    <string name="cloud_fallback_active" formatted="false">"Cloud voice unavailable. Continuing with phone TTS for this playback session."</string>
+    <string name="cloud_error_config" formatted="false">"Check the HTTPS endpoint, model, voice ID and connection limits."</string>
+    <string name="cloud_error_wifi" formatted="false">"New cloud audio needs Wi-Fi with your current setting. Connect to Wi-Fi or change the network option."</string>
+    <string name="cloud_error_key" formatted="false">"The API key is missing, invalid, or lacks access to this voice. Check your provider account."</string>
+    <string name="cloud_error_quota" formatted="false">"The provider reported a billing or rate limit. Check your allowance and try again later."</string>
+    <string name="cloud_error_provider" formatted="false">"The provider could not generate this voice. Check the model, voice ID and account access."</string>
+    <string name="cloud_error_connection" formatted="false">"The voice connection failed or timed out. Check your network and provider settings. It was not automatically resent."</string>
+    <string name="cloud_error_audio" formatted="false">"The returned audio could not be played. Try another voice or model."</string>
+</resources>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cloud_source" formatted="false">"पढ़ने की आवाज़ का स्रोत"</string>
+    <string name="cloud_phone" formatted="false">"फ़ोन और डाउनलोड की गई आवाज़ें"</string>
+    <string name="cloud_phone_summary" formatted="false">"आपकी चुनी आवाज़ का उपयोग होता है। फ़ोन का TTS डिफ़ॉल्ट है।"</string>
+    <string name="cloud_personal" formatted="false">"मेरा क्लाउड आवाज़ खाता जोड़ें"</string>
+    <string name="cloud_connected" formatted="false">"क्लाउड पढ़ना चालू है। प्रदाता आपके खाते से शुल्क लेता है।"</string>
+    <string name="cloud_not_connected" formatted="false">"वैकल्पिक। प्रदाता का अपना खाता चाहिए।"</string>
+    <string name="cloud_voice_help" formatted="false">"आवाज़ें कैसे काम करती हैं"</string>
+    <string name="cloud_default_title" formatted="false">"Vern पहले आपके फ़ोन की आवाज़ उपयोग करता है"</string>
+    <string name="cloud_default_notice" formatted="false">"जब तक आप दूसरी आवाज़ न चुनें, Vern फ़ोन में चुना TTS इंजन उपयोग करता है। उपलब्ध भाषाएँ और आवाज़ की गुणवत्ता इंस्टॉल की गई आवाज़ों पर निर्भर हैं। क्लाउड आवाज़ें वैकल्पिक हैं, इंटरनेट चाहिए और प्रदाता शुल्क ले सकता है। ऐप की भाषा बदलने से किताब का अनुवाद या कथावाचक नहीं बदलता।"</string>
+    <string name="cloud_connection" formatted="false">"निजी क्लाउड कनेक्शन"</string>
+    <string name="cloud_privacy" formatted="false">"यह आवाज़ पढ़े जा रहे अंश चुने प्रदाता को भेजती है। नमूना भी पाठ भेजता है और शुल्क लग सकता है। API कुंजी इसी डिवाइस पर एन्क्रिप्ट रहती है और बैकअप में शामिल नहीं होती।"</string>
+    <string name="cloud_compatible" formatted="false">"OpenAI-संगत TTS सर्वर"</string>
+    <string name="cloud_about_eleven" formatted="false">"भावपूर्ण आवाज़ें और बहुभाषी मॉडल। API खाता और उसमें उपलब्ध आवाज़ चाहिए। वेबसाइट सदस्यता और API सीमा अलग हो सकती हैं।"</string>
+    <string name="cloud_about_cartesia" formatted="false">"Sonic मॉडल से स्वाभाविक क्लाउड कथन। आवाज़ ID और किताब की भाषा चुनें। API पहुँच और भाषाएँ खाते और मॉडल पर निर्भर हैं।"</string>
+    <string name="cloud_about_minimax" formatted="false">"भावपूर्ण बहुभाषी कथन। यह कनेक्शन MiniMax का अंतरराष्ट्रीय एंडपॉइंट उपयोग करता है। अपने API खाते की उपलब्ध आवाज़ ID दें।"</string>
+    <string name="cloud_about_kitten" formatted="false">"होस्ट की गई KittenML आवाज़ों के लिए API खाता चाहिए। यह ऑनलाइन सेवा है; फ़ोन पर ऑफ़लाइन मॉडल इंस्टॉल नहीं होता।"</string>
+    <string name="cloud_about_custom" formatted="false">"ऐसे भरोसेमंद सर्वर के लिए जो OpenAI speech अनुरोध स्वीकार करके MP3 देता है। पूरा HTTPS speech एंडपॉइंट, मॉडल और आवाज़ ID दें। संगतता सर्वर पर निर्भर है।"</string>
+    <string name="cloud_provider_site" formatted="false">"प्रदाता सेटअप, आवाज़ें और कीमतें ↗"</string>
+    <string name="cloud_endpoint" formatted="false">"पूरा HTTPS speech एंडपॉइंट"</string>
+    <string name="cloud_key" formatted="false">"API कुंजी"</string>
+    <string name="cloud_key_hint" formatted="false">"सहेजी कुंजी रखने के लिए खाली छोड़ें। निजी सर्वर में कुंजी ज़रूरी नहीं हो सकती।"</string>
+    <string name="cloud_model" formatted="false">"मॉडल ID"</string>
+    <string name="cloud_voice_id" formatted="false">"आवाज़ ID"</string>
+    <string name="cloud_language" formatted="false">"किताब की भाषा का कोड (वैकल्पिक, जैसे hi)"</string>
+    <string name="cloud_wifi" formatted="false">"नए क्लाउड ऑडियो के लिए Wi-Fi"</string>
+    <string name="cloud_fallback" formatted="false">"क्लाउड विफल हो तो फ़ोन TTS उपयोग करें"</string>
+    <string name="cloud_cache" formatted="false">"दोबारा पढ़ने के लिए क्लाउड ऑडियो रखें"</string>
+    <string name="cloud_cache_hint" formatted="false">"वैकल्पिक डिवाइस कैश, अधिकतम 64 MB। प्रदाता अनुमति दे तभी चालू करें। सहेजे अंश बिना नए अनुरोध चल सकते हैं। आवाज़ या मॉडल बदलने पर नया ऑडियो बनता है।"</string>
+    <string name="cloud_advanced" formatted="false">"उन्नत कनेक्शन सेटिंग्स"</string>
+    <string name="cloud_timeout" formatted="false">"नेटवर्क समयसीमा, सेकंड (5–120)"</string>
+    <string name="cloud_retries" formatted="false">"दर सीमा पर दोबारा प्रयास (0–2)"</string>
+    <string name="cloud_retry_hint" formatted="false">"केवल स्पष्ट दर-सीमा जवाब पर दोबारा प्रयास होता है। बाधित या समयसीमा वाले अनुरोध अपने आप नहीं भेजे जाते क्योंकि शुल्क पहले ही लग सकता है।"</string>
+    <string name="cloud_price" formatted="false">"प्रति दस लाख अक्षर अनुमानित लागत (0 = बंद)"</string>
+    <string name="cloud_test_preview" formatted="false">"सहेजें और जाँचें (शुल्क लग सकता है)"</string>
+    <string name="cloud_use" formatted="false">"पढ़ने के लिए यह क्लाउड आवाज़ उपयोग करें"</string>
+    <string name="cloud_buffering_hint" formatted="false">"Vern चलाने से पहले एक छोटा अंश लोड करता है। हाइलाइट अंश के अनुसार है, ठीक शब्दों के अनुसार नहीं। गति और सुर डिवाइस पर बदलते हैं। रोकने से आगे के अनुरोध रुकते हैं; भेजे गए पाठ का शुल्क लग सकता है।"</string>
+    <string name="cloud_usage" formatted="false">"इस डिवाइस पर उपयोग"</string>
+    <string name="cloud_usage_counts">"भेजे अक्षर: %1$s · अनुरोध: %2$s"</string>
+    <string name="cloud_estimate">"आपकी दर से मोटा अनुमान: %1$s (उसी मुद्रा में)"</string>
+    <string name="cloud_usage_hint" formatted="false">"इस प्रदाता के नमूने और भेजने के प्रयास भी गिने जाते हैं। यह प्रदाता का बिल या बचा बैलेंस नहीं है। क्रेडिट, मॉडल दर और विफल अनुरोध शुल्क अलग हो सकते हैं। प्रदाता डैशबोर्ड देखें।"</string>
+    <string name="cloud_clear_cache">"सहेजा क्लाउड ऑडियो मिटाएँ (%1$s MB)"</string>
+    <string name="cloud_remove_key" formatted="false">"इस कनेक्शन की API कुंजी हटाएँ"</string>
+    <string name="cloud_key_removed" formatted="false">"कुंजी हटा दी गई। इस कनेक्शन से क्लाउड पढ़ना बंद है।"</string>
+    <string name="cloud_more_phone_voices" formatted="false">"फ़ोन के लिए और आवाज़ें"</string>
+    <string name="cloud_directory_hint" formatted="false">"ये लिंक बाहरी ऐप या साइट खोलते हैं। इंजन और उसकी भाषा डाउनलोड करके नीचे सूची ताज़ा करें। देश और डिवाइस के अनुसार उपलब्धता बदलती है; ऑनलाइन आवाज़ों को इंटरनेट चाहिए।"</string>
+    <string name="cloud_google" formatted="false">"Google Speech Services — कई भाषाएँ; Android TTS सेटिंग्स में आवाज़ें डाउनलोड करें"</string>
+    <string name="cloud_rhvoice" formatted="false">"RHVoice — चुनी भाषाओं की ऑफ़लाइन आवाज़ें; अधिकतर मुफ़्त, कुछ सशुल्क"</string>
+    <string name="cloud_espeak" formatted="false">"eSpeak NG — छोटा, कई भाषाएँ, स्पष्ट मशीन जैसी आवाज़"</string>
+    <string name="cloud_preview_text" formatted="false">"Vern में आपका स्वागत है। यह आपकी पढ़ने की आवाज़ का छोटा नमूना है।"</string>
+    <string name="cloud_preview_playing" formatted="false">"क्लाउड आवाज़ का नमूना चल रहा है…"</string>
+    <string name="cloud_preview_done" formatted="false">"नमूना पूरा हुआ। इसे पढ़ने के लिए चालू कर सकते हैं।"</string>
+    <string name="cloud_saved" formatted="false">"पढ़ने के लिए क्लाउड आवाज़ चालू है।"</string>
+    <string name="cloud_stopped" formatted="false">"नमूना रोक दिया। भेजे गए पाठ का शुल्क लग सकता है।"</string>
+    <string name="cloud_fallback_active" formatted="false">"क्लाउड आवाज़ उपलब्ध नहीं। इस सत्र में फ़ोन TTS से पढ़ना जारी है।"</string>
+    <string name="cloud_error_config" formatted="false">"HTTPS एंडपॉइंट, मॉडल, आवाज़ ID और सीमा जाँचें।"</string>
+    <string name="cloud_error_wifi" formatted="false">"वर्तमान सेटिंग में नए क्लाउड ऑडियो के लिए Wi-Fi चाहिए। Wi-Fi जोड़ें या विकल्प बदलें।"</string>
+    <string name="cloud_error_key" formatted="false">"API कुंजी नहीं है, गलत है या इस आवाज़ की अनुमति नहीं है। प्रदाता खाता जाँचें।"</string>
+    <string name="cloud_error_quota" formatted="false">"प्रदाता ने भुगतान या दर सीमा बताई है। कोटा जाँचें और बाद में प्रयास करें।"</string>
+    <string name="cloud_error_provider" formatted="false">"प्रदाता यह आवाज़ नहीं बना सका। मॉडल, आवाज़ ID और खाते की अनुमति जाँचें।"</string>
+    <string name="cloud_error_connection" formatted="false">"आवाज़ का कनेक्शन विफल या समय समाप्त हुआ। नेटवर्क और प्रदाता सेटिंग्स जाँचें। अनुरोध फिर अपने आप नहीं भेजा गया।"</string>
+    <string name="cloud_error_audio" formatted="false">"मिला ऑडियो नहीं चल सका। दूसरी आवाज़ या मॉडल आज़माएँ।"</string>
+</resources>

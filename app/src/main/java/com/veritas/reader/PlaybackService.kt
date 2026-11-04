@@ -24,6 +24,12 @@ class PlaybackService : MediaSessionService() {
 
     internal val serviceJob = SupervisorJob()
     internal val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
+    internal val cloudVoicePlayer by lazy { CloudVoicePlayer(applicationContext, serviceScope) }
+    internal var cloudFallbackForSession = false
+    internal fun usesCloudVoice(): Boolean = !cloudFallbackForSession && CloudVoiceStore.load(applicationContext).enabled
+    internal fun playbackVoiceSettings(): VoiceSettings = if (usesCloudVoice() ||
+        (cloudFallbackForSession && CloudVoiceStore.load(applicationContext).enabled))
+        VoiceSettings() else repository.loadVoiceSettings()
     private val speechMeter = SystemSpeechMeter(serviceScope) {
         PlaybackStateStore.voiceAmplitude = if (PlaybackStateStore.isPlaying) it else 0f
     }
@@ -109,6 +115,7 @@ class PlaybackService : MediaSessionService() {
     private var skippedSectionAdvance: Runnable? = null
 
     internal fun cancelSpeechParts() {
+        cloudVoicePlayer.stop()
         skippedSectionAdvance?.let(mainHandler::removeCallbacks)
         skippedSectionAdvance = null
         speechMeter.finish(speechParts?.utteranceId)
@@ -227,6 +234,7 @@ class PlaybackService : MediaSessionService() {
     }
 
     internal fun handlePlay(extras: Bundle?) {
+        cloudFallbackForSession = false
         transientPlaybackSettings = extras?.getBoolean(PlaybackActions.EXTRA_TRANSIENT_SETTINGS, false) ?: false
         val documentId = extras?.getString(PlaybackActions.EXTRA_DOCUMENT_ID)
             ?: PlaybackStateStore.activeDocumentId
@@ -426,7 +434,7 @@ class PlaybackService : MediaSessionService() {
     }
 
     private fun usesEnglishSymbolReadings(): Boolean {
-        val locale = repository.loadVoiceSettings().localeTag.takeIf { it.isNotBlank() }
+        val locale = playbackVoiceSettings().localeTag.takeIf { it.isNotBlank() }
             ?.let(java.util.Locale::forLanguageTag) ?: tts?.voice?.locale ?: AppLanguages.systemSpeechLocale()
         return locale.language == "en"
     }
@@ -452,11 +460,11 @@ class PlaybackService : MediaSessionService() {
         val nextRate = NarrationAnalyzer.effectiveRate(PlaybackStateStore.rate, narrationSettings, rawNextText, cue = narrationCues.getOrNull(nextIndex))
         val nextPitch = NarrationAnalyzer.effectivePitch(PlaybackStateStore.pitch, narrationSettings, rawNextText, cue = narrationCues.getOrNull(nextIndex))
 
-        val nextVoice = SpeechPlan.voiceFor(rawNextText, repository.loadVoiceSettings(), narrationSettings, narrationCues.getOrNull(nextIndex))
+        val nextVoice = SpeechPlan.voiceFor(rawNextText, playbackVoiceSettings(), narrationSettings, narrationCues.getOrNull(nextIndex))
         if (nextVoice.enginePackage.ifBlank { null } != activeEnginePackage) return
         val nextCharacter = NarrationAnalyzer.getActiveCharacter(rawNextText, narrationSettings, narrationCues.getOrNull(nextIndex))
         val requestedVoice = if (narrationSettings.enabled && narrationSettings.fullCastEnabled) nextCharacter.voiceName else null
-        val baseSettings = repository.loadVoiceSettings()
+        val baseSettings = playbackVoiceSettings()
         val baseVoice = baseSettings.voiceName.takeIf { it.isNotBlank() }
             ?: tts?.defaultVoice?.name
         if ((requestedVoice ?: baseVoice) != tts?.voice?.name) return
@@ -687,7 +695,7 @@ class PlaybackService : MediaSessionService() {
         val index = PlaybackStateStore.currentIndex.coerceIn(0, chunks.lastIndex)
         val rawChunkText = chunks.getOrNull(index).orEmpty()
 
-        val selectedVoice = SpeechPlan.voiceFor(rawChunkText, repository.loadVoiceSettings(),
+        val selectedVoice = SpeechPlan.voiceFor(rawChunkText, playbackVoiceSettings(),
             repository.loadNarrationSettings(), narrationCues.getOrNull(index))
         if (!prepareSpeechEngine(selectedVoice)) return
 
@@ -711,7 +719,7 @@ class PlaybackService : MediaSessionService() {
         }
         val narrationSettings = repository.loadNarrationSettings()
         val segment = SpeechPlan.segment(activeDocument?.id.orEmpty(), speechContentRevision,
-            index, rawChunkText, repository.loadVoiceSettings(), narrationSettings,
+            index, rawChunkText, playbackVoiceSettings(), narrationSettings,
             PlaybackStateStore.rate, PlaybackStateStore.pitch, repository.compiledPronunciationRules(),
             narrationCues.getOrNull(index), resumeOffset, curatedSpeakerLabels || (narrationSettings.enabled && narrationSettings.dialogueDetection),
             leadingSilenceMsFor(index))
@@ -719,7 +727,9 @@ class PlaybackService : MediaSessionService() {
         PlaybackStateStore.currentIndex = index
         PlaybackStateStore.isPlaying = true
         PlaybackStateStore.activeTableColumnIndex = if (SpeechSanitizer.isTableRow(text)) 0 else -1
-        PlaybackStateStore.statusMessage = if (narrationSettings.enabled) {
+        PlaybackStateStore.statusMessage = if (cloudFallbackForSession) {
+            getString(R.string.cloud_fallback_active)
+        } else if (narrationSettings.enabled) {
             "Reading ${activeChar.name.lowercase()} sentence."
         } else {
             "Reading in background."
@@ -745,7 +755,7 @@ class PlaybackService : MediaSessionService() {
     }
 
     private fun boundedSpeechParts(segment: SpeechSegment): List<SpeechSegment> = try {
-        SpeechPlan.split(segment, SpeechInputBudget.limit(segment.family, TextToSpeech.getMaxSpeechInputLength()))
+        SpeechPlan.split(segment, if (usesCloudVoice()) 800 else SpeechInputBudget.limit(segment.family, TextToSpeech.getMaxSpeechInputLength()))
     } catch (_: IllegalArgumentException) {
         handleTtsFailure("This voice cannot read an unusually long combined character in the text.")
         emptyList()
@@ -786,7 +796,7 @@ class PlaybackService : MediaSessionService() {
         val effectivePitch = segment.pitch
         val rawChunkText = segment.sourceText
         val resumeOffset = segment.sourceStart
-        if (segment.family == SpeechEngineFamily.ANDROID &&
+        if (!usesCloudVoice() && segment.family == SpeechEngineFamily.ANDROID &&
             (effectiveRate != activeTtsRate || effectivePitch != activeTtsPitch)) {
             if (tts?.let { VoiceConfigurator.applyDelivery(it, effectiveRate, effectivePitch) } != true) {
                 handleTtsFailure("The speech engine could not apply the selected speed or pitch.", utterance)
@@ -811,6 +821,53 @@ class PlaybackService : MediaSessionService() {
             spokenCharOffset = (resumeOffset + mappedSpeech.sourceOffset(0)).coerceIn(0, rawChunkText.length)
             spokenWordCount = wordCountBefore(rawChunkText, spokenCharOffset)
             updateCurrentSentenceBounds(spokenCharOffset)
+        }
+        if (usesCloudVoice()) {
+            val config = CloudVoiceStore.load(applicationContext)
+            val documentId = activeDocument?.id
+            fun stillCurrent() = if (selection) speechParts?.accepts(utterance) == true else
+                activeChunkUtteranceId == utterance && activeDocument?.id == documentId && PlaybackStateStore.isPlaying
+            cloudVoicePlayer.setVolume(sleepFadeVolume)
+            cloudVoicePlayer.play(config, speakText, effectiveRate, effectivePitch, onStarted = {
+                if (stillCurrent()) {
+                    if (!selection && documentId != null) {
+                        ReadingSessionTracker.get(applicationContext).audioStarted(documentId,index,utterance)
+                        val start = (resumeOffset + mappedSpeech.sourceOffset(0)).coerceIn(0,rawChunkText.length)
+                        val end = (resumeOffset + mappedSpeech.sourceEndOffset(speakText.length)).coerceIn(start,rawChunkText.length)
+                        PlaybackStateStore.speechPosition = SpeechPosition(documentId,index,start,end,SpeechPositionTiming.SENTENCE,utterance)
+                    }
+                    playbackAudioStarted()
+                }
+            }, onFinished = {
+                if (stillCurrent()) {
+                    if (!completeSpeechPart(utterance)) {
+                        recordListeningEnded(utterance)
+                        clearResumePoint()
+                        advanceAfterSection()
+                    }
+                }
+            }, onError = { messageId ->
+                if (stillCurrent()) {
+                    if (config.fallbackToPhone) {
+                        cloudFallbackForSession = true
+                        PlaybackStateStore.statusMessage = getString(R.string.cloud_fallback_active)
+                        val offset = (resumeOffset + mappedSpeech.sourceOffset(0)).coerceIn(0,rawChunkText.length)
+                        if (selection) speakSelectionText(rawChunkText.substring(offset)) else {
+                            pendingJumpCharOffset = offset
+                            speakCurrent()
+                        }
+                    } else {
+                        val offset = (resumeOffset + mappedSpeech.sourceOffset(0)).coerceIn(0,rawChunkText.length)
+                        handleTtsFailure(getString(messageId),utterance)
+                        if(!selection && documentId != null && offset > 0) {
+                            resumeDocumentId = documentId; resumeChunkIndex = index; resumeCharOffset = offset
+                            resumeWordCount = maxOf(RESUME_WORD_THRESHOLD,wordCountBefore(rawChunkText,offset))
+                            repository.savePersistedResumePoint(documentId,index,offset,resumeWordCount)
+                        }
+                    }
+                }
+            })
+            return
         }
         if (segment.family != SpeechEngineFamily.ANDROID) {
             val veritasBuffer = veritasBufferFor(segment.voice)
@@ -885,7 +942,7 @@ class PlaybackService : MediaSessionService() {
         cancelSpeechParts()
         val narrationSettings = repository.loadNarrationSettings()
         val segment = SpeechPlan.segment(activeDocument?.id.orEmpty(), SpeechPlan.revision(listOf(rawText)),
-            -1, rawText, repository.loadVoiceSettings(), narrationSettings, PlaybackStateStore.rate,
+            -1, rawText, playbackVoiceSettings(), narrationSettings, PlaybackStateStore.rate,
             PlaybackStateStore.pitch, repository.compiledPronunciationRules())
         if (!prepareSpeechEngine(segment.voice, rawText)) return
         val speakText = segment.spoken.text

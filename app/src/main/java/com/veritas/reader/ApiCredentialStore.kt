@@ -25,29 +25,31 @@ internal object ApiCredentialStore {
         }.generateKey()
     }
 
-    @Synchronized fun get(context: Context): String {
-        migrate(context)
-        val encoded = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("credential", null) ?: return ""
+    @Synchronized fun get(context: Context, name: String = "credential"): String {
+        if (name == "credential") migrate(context)
+        val encoded = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(name, null) ?: return ""
         return runCatching {
             val parts = encoded.split(':')
             require(parts.size == 2)
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
             cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, Base64.decode(parts[0], Base64.NO_WRAP)))
+            if (name != "credential") cipher.updateAAD(name.toByteArray(Charsets.UTF_8))
             String(cipher.doFinal(Base64.decode(parts[1], Base64.NO_WRAP)), Charsets.UTF_8)
         }.getOrDefault("") // A missing device key requires entering the credential again.
     }
 
-    @Synchronized fun save(context: Context, value: String) {
+    @Synchronized fun save(context: Context, value: String, name: String = "credential") {
         val secrets = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val editor = secrets.edit()
-        if (value.isBlank()) editor.remove("credential") else {
+        if (value.isBlank()) editor.remove(name) else {
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
             cipher.init(Cipher.ENCRYPT_MODE, key())
+            if (name != "credential") cipher.updateAAD(name.toByteArray(Charsets.UTF_8))
             val ciphertext = cipher.doFinal(value.trim().toByteArray(Charsets.UTF_8))
-            editor.putString("credential", Base64.encodeToString(cipher.iv, Base64.NO_WRAP) + ":" + Base64.encodeToString(ciphertext, Base64.NO_WRAP))
+            editor.putString(name, Base64.encodeToString(cipher.iv, Base64.NO_WRAP) + ":" + Base64.encodeToString(ciphertext, Base64.NO_WRAP))
         }
         check(editor.commit()) { "Could not save the API credential." }
-        removeLegacy(context)
+        if (name == "credential") removeLegacy(context)
     }
 
     @Synchronized fun migrate(context: Context) {

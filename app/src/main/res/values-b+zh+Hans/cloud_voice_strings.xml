@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cloud_source" formatted="false">"朗读语音来源"</string>
+    <string name="cloud_phone" formatted="false">"手机和已下载语音"</string>
+    <string name="cloud_phone_summary" formatted="false">"使用您现有的语音选择。默认使用手机文字转语音。"</string>
+    <string name="cloud_personal" formatted="false">"连接我的云端语音账户"</string>
+    <string name="cloud_connected" formatted="false">"已启用云端朗读，由提供商向您的账户收费。"</string>
+    <string name="cloud_not_connected" formatted="false">"可选，需要您自己的提供商账户。"</string>
+    <string name="cloud_voice_help" formatted="false">"语音使用说明"</string>
+    <string name="cloud_default_title" formatted="false">"Vern 默认使用手机语音"</string>
+    <string name="cloud_default_notice" formatted="false">"除非您选择其他语音，否则 Vern 使用手机选定的文字转语音引擎。已安装语音决定可用语言和音质。云端语音为可选功能，需要网络，并可能由您的提供商收费。更改应用语言不会翻译书籍或更换朗读者。"</string>
+    <string name="cloud_connection" formatted="false">"个人云端连接"</string>
+    <string name="cloud_privacy" formatted="false">"使用此语音会将朗读段落发送给所选提供商。试听也会发送文本，并可能产生费用。API 密钥仅加密保存在此设备上，不包含在备份中。"</string>
+    <string name="cloud_compatible" formatted="false">"兼容 OpenAI 的 TTS 服务器"</string>
+    <string name="cloud_about_eleven" formatted="false">"提供富有表现力的语音及多语言模型。需要 API 账户和该账户可用的语音。网站订阅与 API 额度可能不同。"</string>
+    <string name="cloud_about_cartesia" formatted="false">"使用 Sonic 模型进行自然云端朗读。请选择语音 ID 和书籍语言。API 权限与支持语言取决于账户和模型。"</string>
+    <string name="cloud_about_minimax" formatted="false">"富有表现力的多语言朗读。此连接使用 MiniMax 国际端点。请输入您的 API 账户可用的语音 ID。"</string>
+    <string name="cloud_about_kitten" formatted="false">"托管的 KittenML 语音需要 API 账户。此选项使用在线服务，不会在手机上安装离线模型。"</string>
+    <string name="cloud_about_custom" formatted="false">"适用于接受 OpenAI 语音请求格式并返回 MP3 的可信服务器。请输入完整的 HTTPS 语音端点、模型及语音 ID。兼容性取决于服务器。"</string>
+    <string name="cloud_provider_site" formatted="false">"提供商设置、语音与价格 ↗"</string>
+    <string name="cloud_endpoint" formatted="false">"完整 HTTPS 语音端点"</string>
+    <string name="cloud_key" formatted="false">"API 密钥"</string>
+    <string name="cloud_key_hint" formatted="false">"留空以保留已保存的密钥。自定义服务器可能无需密钥。"</string>
+    <string name="cloud_model" formatted="false">"模型 ID"</string>
+    <string name="cloud_voice_id" formatted="false">"语音 ID"</string>
+    <string name="cloud_language" formatted="false">"书籍语言代码（可选，如 zh）"</string>
+    <string name="cloud_wifi" formatted="false">"仅通过 Wi-Fi 生成新音频"</string>
+    <string name="cloud_fallback" formatted="false">"云端朗读失败时使用手机 TTS"</string>
+    <string name="cloud_cache" formatted="false">"保存云端音频以便重复朗读"</string>
+    <string name="cloud_cache_hint" formatted="false">"可选设备缓存，上限 64 MB。仅在提供商允许存储时启用。缓存段落无需重新请求即可播放，更改语音或模型会生成新音频。"</string>
+    <string name="cloud_advanced" formatted="false">"高级连接设置"</string>
+    <string name="cloud_timeout" formatted="false">"网络超时秒数（5–120）"</string>
+    <string name="cloud_retries" formatted="false">"触发速率限制后的重试次数（0–2）"</string>
+    <string name="cloud_retry_hint" formatted="false">"仅在收到明确的速率限制响应时重试。中断或超时的语音请求不会自动重发，因为提供商可能已收费。"</string>
+    <string name="cloud_price" formatted="false">"每百万字符的估算费用（0 = 关闭）"</string>
+    <string name="cloud_test_preview" formatted="false">"保存并试听（可能产生费用）"</string>
+    <string name="cloud_use" formatted="false">"使用此云端语音朗读"</string>
+    <string name="cloud_buffering_hint" formatted="false">"Vern 会先缓冲一个短段落再播放。高亮按段落显示，不对应精确单词。速度与音调在设备上调整。停止会取消后续请求，但已提交的内容仍可能收费。"</string>
+    <string name="cloud_usage" formatted="false">"此设备上的使用情况"</string>
+    <string name="cloud_usage_counts">"已提交字符：%1$s · 请求：%2$s"</string>
+    <string name="cloud_estimate">"按您费率的粗略估算：%1$s（使用该费率的货币）"</string>
+    <string name="cloud_usage_hint" formatted="false">"计数包括此提供商的试听和提交尝试，并非提供商账单或剩余额度。积分、模型费率及失败请求的收费可能不同，请查看提供商控制台。"</string>
+    <string name="cloud_clear_cache">"清除保存的云端音频（%1$s MB）"</string>
+    <string name="cloud_remove_key" formatted="false">"移除此连接的 API 密钥"</string>
+    <string name="cloud_key_removed" formatted="false">"密钥已移除，此连接的云端朗读已关闭。"</string>
+    <string name="cloud_more_phone_voices" formatted="false">"更多手机语音"</string>
+    <string name="cloud_directory_hint" formatted="false">"这些链接会打开外部应用或网站。安装引擎并下载语言数据，然后刷新下方引擎列表。可用性因国家和设备而异，在线语音可能需要网络。"</string>
+    <string name="cloud_google" formatted="false">"Google Speech Services — 多种语言，可在 Android TTS 设置中下载语音"</string>
+    <string name="cloud_rhvoice" formatted="false">"RHVoice — 部分语言的离线语音，大多免费，部分收费"</string>
+    <string name="cloud_espeak" formatted="false">"eSpeak NG — 体积小、语言多，声音带明显合成感"</string>
+    <string name="cloud_preview_text" formatted="false">"欢迎使用 Vern。这是您朗读语音的一段简短试听。"</string>
+    <string name="cloud_preview_playing" formatted="false">"正在播放云端语音试听…"</string>
+    <string name="cloud_preview_done" formatted="false">"试听结束，您可以启用此语音进行朗读。"</string>
+    <string name="cloud_saved" formatted="false">"已启用云端语音朗读。"</string>
+    <string name="cloud_stopped" formatted="false">"试听已停止，已提交的文本仍可能收费。"</string>
+    <string name="cloud_fallback_active" formatted="false">"云端语音不可用，本次播放将继续使用手机 TTS。"</string>
+    <string name="cloud_error_config" formatted="false">"请检查 HTTPS 端点、模型、语音 ID 和连接限制。"</string>
+    <string name="cloud_error_wifi" formatted="false">"当前设置下生成新音频需要 Wi-Fi。请连接 Wi-Fi 或更改网络选项。"</string>
+    <string name="cloud_error_key" formatted="false">"API 密钥缺失、无效或无权使用此语音。请检查提供商账户。"</string>
+    <string name="cloud_error_quota" formatted="false">"提供商报告了计费或速率限制。请检查额度并稍后重试。"</string>
+    <string name="cloud_error_provider" formatted="false">"提供商无法生成此语音。请检查模型、语音 ID 和账户权限。"</string>
+    <string name="cloud_error_connection" formatted="false">"语音连接失败或超时。请检查网络与提供商设置。请求未自动重发。"</string>
+    <string name="cloud_error_audio" formatted="false">"无法播放返回的音频，请尝试其他语音或模型。"</string>
+</resources>

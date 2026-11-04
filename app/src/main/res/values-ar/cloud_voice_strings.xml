@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cloud_source" formatted="false">"مصدر صوت القراءة"</string>
+    <string name="cloud_phone" formatted="false">"أصوات الهاتف والأصوات المنزّلة"</string>
+    <string name="cloud_phone_summary" formatted="false">"يستخدم اختيارك الحالي. نطق الهاتف هو الخيار الافتراضي."</string>
+    <string name="cloud_personal" formatted="false">"ربط حسابي للأصوات السحابية"</string>
+    <string name="cloud_connected" formatted="false">"القراءة السحابية مفعّلة. يفرض المزوّد الرسوم على حسابك."</string>
+    <string name="cloud_not_connected" formatted="false">"اختياري. يتطلب حسابك الخاص لدى المزوّد."</string>
+    <string name="cloud_voice_help" formatted="false">"كيف تعمل الأصوات"</string>
+    <string name="cloud_default_title" formatted="false">"يبدأ Vern بصوت هاتفك"</string>
+    <string name="cloud_default_notice" formatted="false">"يستخدم Vern محرّك النطق المحدد على هاتفك ما لم تختر صوتًا آخر. تحدد الأصوات المثبتة اللغات وجودة الصوت. الأصوات السحابية اختيارية وتتطلب الإنترنت وقد يفرض المزوّد رسومًا على حسابك. تغيير لغة التطبيق لا يترجم الكتاب ولا يغيّر الراوي."</string>
+    <string name="cloud_connection" formatted="false">"اتصالك السحابي الشخصي"</string>
+    <string name="cloud_privacy" formatted="false">"يرسل هذا الصوت المقاطع المقروءة إلى المزوّد المحدد. ترسل المعاينة نصًا أيضًا وقد تُحتسب رسوم. يبقى مفتاح API مشفّرًا على هذا الجهاز ويُستبعد من النسخ الاحتياطية."</string>
+    <string name="cloud_compatible" formatted="false">"خادم نطق متوافق مع OpenAI"</string>
+    <string name="cloud_about_eleven" formatted="false">"أصوات معبّرة ونماذج متعددة اللغات. يلزم حساب API وصوت متاح لحسابك. قد تختلف اشتراكات الموقع عن حصص API."</string>
+    <string name="cloud_about_cartesia" formatted="false">"سرد سحابي طبيعي بنماذج Sonic. اختر معرّف الصوت ولغة الكتاب. يعتمد الوصول إلى API واللغات على الحساب والنموذج."</string>
+    <string name="cloud_about_minimax" formatted="false">"سرد معبّر متعدد اللغات. يستخدم هذا الاتصال نقطة MiniMax الدولية. أدخل معرّف صوت متاحًا لحساب API لديك."</string>
+    <string name="cloud_about_kitten" formatted="false">"تتطلب أصوات KittenML المستضافة حساب API. يستخدم هذا الخيار الخدمة عبر الإنترنت ولا يثبت نموذجًا دون اتصال على هاتفك."</string>
+    <string name="cloud_about_custom" formatted="false">"لخادم تثق به يقبل صيغة طلبات نطق OpenAI ويعيد MP3. أدخل عنوان HTTPS الكامل للنطق والنموذج ومعرّف الصوت. يعتمد التوافق على الخادم."</string>
+    <string name="cloud_provider_site" formatted="false">"إعداد المزوّد والأصوات والأسعار ↖"</string>
+    <string name="cloud_endpoint" formatted="false">"عنوان HTTPS الكامل للنطق"</string>
+    <string name="cloud_key" formatted="false">"مفتاح API"</string>
+    <string name="cloud_key_hint" formatted="false">"اتركه فارغًا للاحتفاظ بالمفتاح المحفوظ. قد لا تحتاج الخوادم الخاصة إلى مفتاح."</string>
+    <string name="cloud_model" formatted="false">"معرّف النموذج"</string>
+    <string name="cloud_voice_id" formatted="false">"معرّف الصوت"</string>
+    <string name="cloud_language" formatted="false">"رمز لغة الكتاب (اختياري، مثل ar)"</string>
+    <string name="cloud_wifi" formatted="false">"استخدام Wi-Fi للصوت السحابي الجديد"</string>
+    <string name="cloud_fallback" formatted="false">"استخدام نطق الهاتف عند تعذّر السحابة"</string>
+    <string name="cloud_cache" formatted="false">"الاحتفاظ بالصوت لإعادة القراءة"</string>
+    <string name="cloud_cache_hint" formatted="false">"ذاكرة تخزين اختيارية حتى 64 ميغابايت. فعّلها فقط إذا سمح المزوّد بالتخزين. يمكن تشغيل المقاطع المحفوظة دون طلب جديد، ويؤدي تغيير الصوت أو النموذج إلى توليد صوت جديد."</string>
+    <string name="cloud_advanced" formatted="false">"إعدادات الاتصال المتقدمة"</string>
+    <string name="cloud_timeout" formatted="false">"مهلة الشبكة بالثواني (5–120)"</string>
+    <string name="cloud_retries" formatted="false">"إعادة المحاولة عند تقييد المعدّل (0–2)"</string>
+    <string name="cloud_retry_hint" formatted="false">"تُعاد المحاولة فقط عند رد صريح بتقييد المعدّل. لا تُرسل الطلبات المنقطعة أو المنتهية المهلة تلقائيًا لأن المزوّد ربما احتسب رسومها."</string>
+    <string name="cloud_price" formatted="false">"تكلفتك التقديرية لكل مليون حرف (0 = إيقاف)"</string>
+    <string name="cloud_test_preview" formatted="false">"حفظ الصوت وتجربته (قد تُحتسب رسوم)"</string>
+    <string name="cloud_use" formatted="false">"استخدام هذا الصوت السحابي للقراءة"</string>
+    <string name="cloud_buffering_hint" formatted="false">"يحمّل Vern مقطعًا قصيرًا قبل تشغيله. يتبع التظليل المقاطع دون توقيت دقيق للكلمات. تُضبط السرعة والطبقة على الجهاز. يوقف الإيقاف الطلبات اللاحقة، لكن قد تُحتسب رسوم النص المرسل."</string>
+    <string name="cloud_usage" formatted="false">"الاستخدام على هذا الجهاز"</string>
+    <string name="cloud_usage_counts">"الأحرف المرسلة: %1$s · الطلبات: %2$s"</string>
+    <string name="cloud_estimate">"تقدير تقريبي بسعرك: %1$s (بعملة سعرك)"</string>
+    <string name="cloud_usage_hint" formatted="false">"تشمل العدادات المعاينات ومحاولات الإرسال لهذا المزوّد. ليست فاتورة المزوّد أو الرصيد المتبقي. قد تختلف الأرصدة والأسعار ورسوم الطلبات الفاشلة. راجع لوحة المزوّد."</string>
+    <string name="cloud_clear_cache">"مسح الصوت السحابي المحفوظ (%1$s ميغابايت)"</string>
+    <string name="cloud_remove_key" formatted="false">"إزالة مفتاح API لهذا الاتصال"</string>
+    <string name="cloud_key_removed" formatted="false">"أُزيل المفتاح. عُطلت القراءة السحابية لهذا الاتصال."</string>
+    <string name="cloud_more_phone_voices" formatted="false">"المزيد من أصوات الهاتف"</string>
+    <string name="cloud_directory_hint" formatted="false">"تفتح هذه الروابط تطبيقات أو مواقع خارجية. ثبّت المحرّك ونزّل بيانات لغته ثم حدّث القائمة أدناه. يختلف التوفر حسب البلد والجهاز، وقد تتطلب الأصوات الإنترنت."</string>
+    <string name="cloud_google" formatted="false">"Google Speech Services — لغات كثيرة؛ نزّل الأصوات من إعدادات نطق Android"</string>
+    <string name="cloud_rhvoice" formatted="false">"RHVoice — أصوات دون اتصال للغات محددة؛ معظمها مجاني وبعضها مدفوع"</string>
+    <string name="cloud_espeak" formatted="false">"eSpeak NG — صغير وبلغات كثيرة، وصوته آلي بوضوح"</string>
+    <string name="cloud_preview_text" formatted="false">"مرحبًا بك في Vern. هذه معاينة قصيرة لصوت القراءة الذي اخترته."</string>
+    <string name="cloud_preview_playing" formatted="false">"جارٍ تشغيل معاينة الصوت السحابي…"</string>
+    <string name="cloud_preview_done" formatted="false">"انتهت المعاينة. يمكنك تفعيل هذا الصوت للقراءة."</string>
+    <string name="cloud_saved" formatted="false">"فُعّل الصوت السحابي للقراءة."</string>
+    <string name="cloud_stopped" formatted="false">"توقفت المعاينة. قد تُحتسب رسوم النص المرسل."</string>
+    <string name="cloud_fallback_active" formatted="false">"الصوت السحابي غير متاح. تُستكمل هذه الجلسة بنطق الهاتف."</string>
+    <string name="cloud_error_config" formatted="false">"تحقق من عنوان HTTPS والنموذج ومعرّف الصوت وحدود الاتصال."</string>
+    <string name="cloud_error_wifi" formatted="false">"يتطلب الصوت الجديد Wi-Fi وفق إعدادك الحالي. اتصل به أو غيّر خيار الشبكة."</string>
+    <string name="cloud_error_key" formatted="false">"مفتاح API مفقود أو غير صالح أو لا يتيح هذا الصوت. راجع حساب المزوّد."</string>
+    <string name="cloud_error_quota" formatted="false">"أبلغ المزوّد عن حد للفوترة أو المعدّل. تحقق من حصتك وحاول لاحقًا."</string>
+    <string name="cloud_error_provider" formatted="false">"تعذّر على المزوّد توليد هذا الصوت. تحقق من النموذج ومعرّف الصوت وصلاحيات الحساب."</string>
+    <string name="cloud_error_connection" formatted="false">"فشل الاتصال الصوتي أو انتهت مهلته. تحقق من الشبكة وإعدادات المزوّد. لم يُعد إرساله تلقائيًا."</string>
+    <string name="cloud_error_audio" formatted="false">"تعذّر تشغيل الصوت المستلم. جرّب صوتًا أو نموذجًا آخر."</string>
+</resources>

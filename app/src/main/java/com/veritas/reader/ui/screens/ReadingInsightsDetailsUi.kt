@@ -96,7 +96,7 @@ internal fun InsightsBookCard(document: SavedDocument, sessions: List<ReadingSes
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Box(Modifier.size(76.dp, 110.dp), contentAlignment = Alignment.Center) {
                 DocumentArtwork(document, Modifier.size(68.dp, 100.dp).testTag("insights-book-cover-${document.id}")
-                    .semantics { contentDescription = "Cover of ${document.title}" }
+                    .localizedBookCover(document.title)
                     .bookCoverMotion("insights-${document.id}").graphicsLayer {
                         alpha = .6f + reveal.value * .4f
                     }, compact = true)
@@ -212,7 +212,7 @@ internal fun InsightsSessionCard(session: ReadingSession, document: SavedDocumen
     InsightsDetailCard {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (document != null) DocumentArtwork(document, Modifier.size(44.dp, 62.dp)
-                .semantics { contentDescription = "Cover of ${document.title}" }, compact = true)
+                .localizedBookCover(document.title), compact = true)
             else Box(Modifier.size(44.dp, 62.dp).background(tint.copy(alpha = .12f), VeritasPackStyle.chipShape()), contentAlignment = Alignment.Center) {
                 Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = tint)
             }
