@@ -33,7 +33,7 @@
     <string name="cloud_retries" formatted="false">"Retries for rate limits (0–2)"</string>
     <string name="cloud_retry_hint" formatted="false">"Only explicit rate-limit responses are retried. Interrupted or timed-out speech requests are not automatically resent because the provider may already have charged for them."</string>
     <string name="cloud_price" formatted="false">"Your estimated cost per 1M characters (0 = off)"</string>
-    <string name="cloud_test_preview" formatted="false">"Save and test voice (may incur a charge)"</string>
+    <string name="cloud_test_preview" formatted="false">"Test voice (may incur a charge)"</string>
     <string name="cloud_use" formatted="false">"Use this cloud voice for reading"</string>
     <string name="cloud_buffering_hint" formatted="false">"Vern buffers one short passage before playback. Highlights follow passages, not exact words. Speed and pitch are adjusted on this device. Stop cancels further requests; audio already submitted may still be billed."</string>
     <string name="cloud_usage" formatted="false">"Usage on this device"</string>
@@ -61,4 +61,6 @@
     <string name="cloud_error_provider" formatted="false">"The provider could not generate this voice. Check the model, voice ID and account access."</string>
     <string name="cloud_error_connection" formatted="false">"The voice connection failed or timed out. Check your network and provider settings. It was not automatically resent."</string>
     <string name="cloud_error_audio" formatted="false">"The returned audio could not be played. Try another voice or model."</string>
+    <string name="cloud_error_storage" formatted="false">"Vern could not save the audio on this device. Free some space and try again."</string>
+    <string name="cloud_current_model">"Use recommended model: %1$s"</string>
 </resources>

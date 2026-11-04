@@ -33,7 +33,7 @@
     <string name="cloud_retries" formatted="false">"Reintentos por límite de solicitudes (0–2)"</string>
     <string name="cloud_retry_hint" formatted="false">"Solo se reintentan respuestas de límite de solicitudes. Las solicitudes interrumpidas o agotadas no se reenvían automáticamente, pues podrían haberse cobrado."</string>
     <string name="cloud_price" formatted="false">"Tu coste estimado por millón de caracteres (0 = desactivado)"</string>
-    <string name="cloud_test_preview" formatted="false">"Guardar y probar (puede tener coste)"</string>
+    <string name="cloud_test_preview" formatted="false">"Probar voz (puede tener coste)"</string>
     <string name="cloud_use" formatted="false">"Usar esta voz para leer"</string>
     <string name="cloud_buffering_hint" formatted="false">"Vern carga un pasaje corto antes de reproducirlo. El resaltado sigue pasajes, no palabras exactas. La velocidad y el tono se ajustan en el dispositivo. Detener cancela futuras solicitudes; las enviadas pueden cobrarse."</string>
     <string name="cloud_usage" formatted="false">"Uso en este dispositivo"</string>
@@ -61,4 +61,6 @@
     <string name="cloud_error_provider" formatted="false">"El proveedor no pudo generar esta voz. Revisa modelo, ID de voz y permisos."</string>
     <string name="cloud_error_connection" formatted="false">"La conexión falló o agotó el tiempo. Revisa la red y la configuración. No se reenvió automáticamente."</string>
     <string name="cloud_error_audio" formatted="false">"No se pudo reproducir el audio. Prueba otra voz o modelo."</string>
+    <string name="cloud_error_storage" formatted="false">"Vern no pudo guardar el audio en este dispositivo. Libera espacio e inténtalo de nuevo."</string>
+    <string name="cloud_current_model">"Usar modelo recomendado: %1$s"</string>
 </resources>

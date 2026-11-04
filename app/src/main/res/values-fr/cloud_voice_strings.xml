@@ -33,7 +33,7 @@
     <string name="cloud_retries" formatted="false">"Nouvelles tentatives si quota temporaire (0–2)"</string>
     <string name="cloud_retry_hint" formatted="false">"Seules les réponses de limitation déclenchent une nouvelle tentative. Les requêtes interrompues ou expirées ne sont pas renvoyées automatiquement : elles peuvent déjà être facturées."</string>
     <string name="cloud_price" formatted="false">"Votre coût estimé par million de caractères (0 = désactivé)"</string>
-    <string name="cloud_test_preview" formatted="false">"Enregistrer et tester (peut être facturé)"</string>
+    <string name="cloud_test_preview" formatted="false">"Tester la voix (peut être facturé)"</string>
     <string name="cloud_use" formatted="false">"Utiliser cette voix pour lire"</string>
     <string name="cloud_buffering_hint" formatted="false">"Vern charge un court passage avant lecture. Le surlignage suit les passages, pas les mots précis. Vitesse et hauteur sont réglées sur l’appareil. Arrêter annule les requêtes suivantes, mais le texte déjà envoyé peut être facturé."</string>
     <string name="cloud_usage" formatted="false">"Utilisation sur cet appareil"</string>
@@ -61,4 +61,6 @@
     <string name="cloud_error_provider" formatted="false">"Le fournisseur n’a pas pu générer cette voix. Vérifiez modèle, voix et accès du compte."</string>
     <string name="cloud_error_connection" formatted="false">"Connexion vocale échouée ou expirée. Vérifiez le réseau et les paramètres. La requête n’a pas été renvoyée automatiquement."</string>
     <string name="cloud_error_audio" formatted="false">"L’audio reçu est illisible. Essayez une autre voix ou un autre modèle."</string>
+    <string name="cloud_error_storage" formatted="false">"Vern n’a pas pu enregistrer l’audio sur cet appareil. Libérez de l’espace et réessayez."</string>
+    <string name="cloud_current_model">"Utiliser le modèle recommandé : %1$s"</string>
 </resources>

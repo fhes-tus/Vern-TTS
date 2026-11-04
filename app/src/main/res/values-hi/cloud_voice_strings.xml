@@ -33,7 +33,7 @@
     <string name="cloud_retries" formatted="false">"दर सीमा पर दोबारा प्रयास (0–2)"</string>
     <string name="cloud_retry_hint" formatted="false">"केवल स्पष्ट दर-सीमा जवाब पर दोबारा प्रयास होता है। बाधित या समयसीमा वाले अनुरोध अपने आप नहीं भेजे जाते क्योंकि शुल्क पहले ही लग सकता है।"</string>
     <string name="cloud_price" formatted="false">"प्रति दस लाख अक्षर अनुमानित लागत (0 = बंद)"</string>
-    <string name="cloud_test_preview" formatted="false">"सहेजें और जाँचें (शुल्क लग सकता है)"</string>
+    <string name="cloud_test_preview" formatted="false">"आवाज़ जाँचें (शुल्क लग सकता है)"</string>
     <string name="cloud_use" formatted="false">"पढ़ने के लिए यह क्लाउड आवाज़ उपयोग करें"</string>
     <string name="cloud_buffering_hint" formatted="false">"Vern चलाने से पहले एक छोटा अंश लोड करता है। हाइलाइट अंश के अनुसार है, ठीक शब्दों के अनुसार नहीं। गति और सुर डिवाइस पर बदलते हैं। रोकने से आगे के अनुरोध रुकते हैं; भेजे गए पाठ का शुल्क लग सकता है।"</string>
     <string name="cloud_usage" formatted="false">"इस डिवाइस पर उपयोग"</string>
@@ -61,4 +61,6 @@
     <string name="cloud_error_provider" formatted="false">"प्रदाता यह आवाज़ नहीं बना सका। मॉडल, आवाज़ ID और खाते की अनुमति जाँचें।"</string>
     <string name="cloud_error_connection" formatted="false">"आवाज़ का कनेक्शन विफल या समय समाप्त हुआ। नेटवर्क और प्रदाता सेटिंग्स जाँचें। अनुरोध फिर अपने आप नहीं भेजा गया।"</string>
     <string name="cloud_error_audio" formatted="false">"मिला ऑडियो नहीं चल सका। दूसरी आवाज़ या मॉडल आज़माएँ।"</string>
+    <string name="cloud_error_storage" formatted="false">"Vern इस डिवाइस पर ऑडियो सहेज नहीं सका। कुछ जगह खाली करके फिर प्रयास करें।"</string>
+    <string name="cloud_current_model">"सुझाया गया मॉडल चुनें: %1$s"</string>
 </resources>

@@ -11,7 +11,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class CloudSpeechTransportTest {
-    private class Reply(val status: Int = 200,val bytes: ByteArray = byteArrayOf(73,68,51)) : HttpURLConnection(URL("https://test.invalid/speech")) {
+    private class Reply(val status: Int = 200,val bytes: ByteArray = byteArrayOf(73,68,51,4,0,0,0,0,0,0),
+        val mime: String? = null,val advertisedLength: Long = -1) : HttpURLConnection(URL("https://test.invalid/speech")) {
         val sent = ByteArrayOutputStream()
         var closed = false
         var responseRead = false
@@ -21,6 +22,8 @@ class CloudSpeechTransportTest {
         override fun disconnect() { closed = true }
         override fun usingProxy() = false
         override fun getResponseCode() = status
+        override fun getContentType() = mime
+        override fun getContentLengthLong() = advertisedLength
         override fun getOutputStream(): ByteArrayOutputStream {
             if(failWrite) throw IOException("ambiguous write")
             onOutput()
@@ -33,10 +36,12 @@ class CloudSpeechTransportTest {
         val reply = Reply()
         var submissions = 0
         val transport = CloudSpeechTransport(open = { reply },onSubmission = { _,chars -> submissions += chars })
-        assertArrayEquals(byteArrayOf(73,68,51),transport.fetch(CloudVoiceConfig(),"你好","fake-test-key"))
+        assertArrayEquals(reply.bytes,transport.fetch(CloudVoiceConfig(),"你好","fake-test-key"))
         assertEquals("fake-test-key",reply.getRequestProperty("xi-api-key"))
         assertNull(reply.getRequestProperty("Authorization"))
         assertFalse(reply.instanceFollowRedirects)
+        assertFalse(reply.useCaches)
+        assertEquals("no-store",reply.getRequestProperty("Cache-Control"))
         assertEquals("POST",reply.requestMethod)
         assertEquals(2,submissions)
         assertTrue(reply.sent.toString("UTF-8").contains("你好"))
@@ -61,7 +66,10 @@ class CloudSpeechTransportTest {
         var opens = 0
         val reply = Reply().apply { failWrite = true }
         val transport = CloudSpeechTransport(open = { opens++; reply })
-        assertTrue(runCatching { transport.fetch(CloudVoiceConfig(retries = 2),"Hello","key") }.exceptionOrNull() is IOException)
+        val error = runCatching { transport.fetch(CloudVoiceConfig(retries = 2),"Hello","key") }.exceptionOrNull()
+        assertEquals(R.string.cloud_error_connection,(error as CloudSpeechException).messageId)
+        assertNull(error.message)
+        assertNull(error.cause)
         assertEquals(1,opens)
         assertTrue(reply.closed)
     }
@@ -94,5 +102,56 @@ class CloudSpeechTransportTest {
         assertEquals(0,reply.sent.size())
         assertEquals(0,submissions)
         assertTrue(reply.closed)
+    }
+
+    @Test fun invalidCredentialsCannotOpenAConnectionOrInjectHeaders() = runTest {
+        var opens = 0
+        val transport = CloudSpeechTransport(open = { opens++; Reply() })
+        for(key in listOf("key\r\nX-Injected: yes","bad key","bad\u0000key","")) {
+            val error = runCatching { transport.fetch(CloudVoiceConfig(),"private",key) }.exceptionOrNull()
+            assertEquals(R.string.cloud_error_key,(error as CloudSpeechException).messageId)
+        }
+        assertEquals(0,opens)
+    }
+
+    @Test fun successStatusWithProxyJsonHtmlOrOversizedBodyIsRejected() = runTest {
+        for(reply in listOf(Reply(bytes = "private echo".toByteArray(),mime = "application/problem+json"),
+            Reply(mime = "text/html; charset=utf-8"),Reply(advertisedLength = CloudSpeechTransport.MAX_AUDIO_BYTES.toLong()+1))) {
+            val error = runCatching { CloudSpeechTransport(open = { reply }).fetch(CloudVoiceConfig(),"Hello","key") }.exceptionOrNull()
+            assertEquals(R.string.cloud_error_audio,(error as CloudSpeechException).messageId)
+            assertFalse(reply.responseRead)
+            assertTrue(reply.closed)
+        }
+        for(bytes in listOf("{\"error\":\"private echo\"}".toByteArray(),ByteArray(CloudSpeechTransport.MAX_AUDIO_BYTES+1))) {
+            val error = runCatching { CloudSpeechTransport(open = { Reply(bytes = bytes) }).fetch(CloudVoiceConfig(),"Hello","key") }.exceptionOrNull()
+            assertEquals(R.string.cloud_error_audio,(error as CloudSpeechException).messageId)
+            assertNull(error.message)
+        }
+    }
+
+    @Test fun minimaxSemanticFailuresAreSafeEvenWithHttp200() = runTest {
+        for((code,message) in listOf(1004 to R.string.cloud_error_key,2049 to R.string.cloud_error_key,
+            1008 to R.string.cloud_error_quota,2053 to R.string.cloud_error_quota,2069 to R.string.cloud_error_provider)) {
+            val reply = Reply(bytes = """{"base_resp":{"status_code":$code,"status_msg":"private-key-echo"}}""".toByteArray(),mime = "application/json")
+            val error = runCatching { CloudSpeechTransport(open = { reply }).fetch(CloudVoiceConfig(provider = CloudVoiceProvider.MINIMAX),"Hello","key") }.exceptionOrNull()
+            assertEquals(message,(error as CloudSpeechException).messageId)
+            assertNull(error.message); assertNull(error.cause)
+        }
+    }
+
+    @Test fun totalDeadlineDisconnectsAndPreventsLateSubmission() = runTest {
+        lateinit var expire: () -> Unit
+        var deadlineClosed = false
+        var submissions = 0
+        val reply = Reply()
+        val transport = CloudSpeechTransport(open = { reply },onSubmission = { _, _ -> submissions++ },
+            scheduleTimeout = { millis,callback ->
+                assertEquals(5000L,millis); expire = callback; AutoCloseable { deadlineClosed = true }
+            })
+        reply.onOutput = { expire() }
+        val error = runCatching { transport.fetch(CloudVoiceConfig(timeoutSeconds = 5),"private","key") }.exceptionOrNull()
+        assertEquals(R.string.cloud_error_connection,(error as CloudSpeechException).messageId)
+        assertEquals(0,reply.sent.size()); assertEquals(0,submissions)
+        assertTrue(reply.closed); assertTrue(deadlineClosed)
     }
 }

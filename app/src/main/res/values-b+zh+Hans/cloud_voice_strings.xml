@@ -33,7 +33,7 @@
     <string name="cloud_retries" formatted="false">"触发速率限制后的重试次数（0–2）"</string>
     <string name="cloud_retry_hint" formatted="false">"仅在收到明确的速率限制响应时重试。中断或超时的语音请求不会自动重发，因为提供商可能已收费。"</string>
     <string name="cloud_price" formatted="false">"每百万字符的估算费用（0 = 关闭）"</string>
-    <string name="cloud_test_preview" formatted="false">"保存并试听（可能产生费用）"</string>
+    <string name="cloud_test_preview" formatted="false">"试听语音（可能产生费用）"</string>
     <string name="cloud_use" formatted="false">"使用此云端语音朗读"</string>
     <string name="cloud_buffering_hint" formatted="false">"Vern 会先缓冲一个短段落再播放。高亮按段落显示，不对应精确单词。速度与音调在设备上调整。停止会取消后续请求，但已提交的内容仍可能收费。"</string>
     <string name="cloud_usage" formatted="false">"此设备上的使用情况"</string>
@@ -61,4 +61,6 @@
     <string name="cloud_error_provider" formatted="false">"提供商无法生成此语音。请检查模型、语音 ID 和账户权限。"</string>
     <string name="cloud_error_connection" formatted="false">"语音连接失败或超时。请检查网络与提供商设置。请求未自动重发。"</string>
     <string name="cloud_error_audio" formatted="false">"无法播放返回的音频，请尝试其他语音或模型。"</string>
+    <string name="cloud_error_storage" formatted="false">"Vern 无法在此设备上保存音频。请释放一些空间后重试。"</string>
+    <string name="cloud_current_model">"使用推荐模型：%1$s"</string>
 </resources>

@@ -33,7 +33,7 @@
     <string name="cloud_retries" formatted="false">"إعادة المحاولة عند تقييد المعدّل (0–2)"</string>
     <string name="cloud_retry_hint" formatted="false">"تُعاد المحاولة فقط عند رد صريح بتقييد المعدّل. لا تُرسل الطلبات المنقطعة أو المنتهية المهلة تلقائيًا لأن المزوّد ربما احتسب رسومها."</string>
     <string name="cloud_price" formatted="false">"تكلفتك التقديرية لكل مليون حرف (0 = إيقاف)"</string>
-    <string name="cloud_test_preview" formatted="false">"حفظ الصوت وتجربته (قد تُحتسب رسوم)"</string>
+    <string name="cloud_test_preview" formatted="false">"تجربة الصوت (قد تُحتسب رسوم)"</string>
     <string name="cloud_use" formatted="false">"استخدام هذا الصوت السحابي للقراءة"</string>
     <string name="cloud_buffering_hint" formatted="false">"يحمّل Vern مقطعًا قصيرًا قبل تشغيله. يتبع التظليل المقاطع دون توقيت دقيق للكلمات. تُضبط السرعة والطبقة على الجهاز. يوقف الإيقاف الطلبات اللاحقة، لكن قد تُحتسب رسوم النص المرسل."</string>
     <string name="cloud_usage" formatted="false">"الاستخدام على هذا الجهاز"</string>
@@ -61,4 +61,6 @@
     <string name="cloud_error_provider" formatted="false">"تعذّر على المزوّد توليد هذا الصوت. تحقق من النموذج ومعرّف الصوت وصلاحيات الحساب."</string>
     <string name="cloud_error_connection" formatted="false">"فشل الاتصال الصوتي أو انتهت مهلته. تحقق من الشبكة وإعدادات المزوّد. لم يُعد إرساله تلقائيًا."</string>
     <string name="cloud_error_audio" formatted="false">"تعذّر تشغيل الصوت المستلم. جرّب صوتًا أو نموذجًا آخر."</string>
+    <string name="cloud_error_storage" formatted="false">"تعذّر على Vern حفظ الصوت على هذا الجهاز. أفرغ بعض المساحة وحاول مجددًا."</string>
+    <string name="cloud_current_model">"استخدام النموذج الموصى به: %1$s"</string>
 </resources>

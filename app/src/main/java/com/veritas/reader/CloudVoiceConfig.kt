@@ -6,10 +6,10 @@ import java.net.URI
 import java.security.MessageDigest
 
 internal enum class CloudVoiceProvider(val title: String, val endpoint: String, val model: String, val voice: String, val website: String) {
-    ELEVENLABS("ElevenLabs", "https://api.elevenlabs.io/v1/text-to-speech", "eleven_multilingual_v2", "JBFqnCBsd6RMkjVDRZzb", "https://elevenlabs.io/docs/overview"),
+    ELEVENLABS("ElevenLabs", "https://api.elevenlabs.io/v1/text-to-speech", "eleven_v4", "JBFqnCBsd6RMkjVDRZzb", "https://elevenlabs.io/docs/overview/models"),
     CARTESIA("Cartesia", "https://api.cartesia.ai/tts/bytes", "sonic-3.6", "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4", "https://docs.cartesia.ai/api-reference/tts/bytes"),
     MINIMAX("MiniMax", "https://api.minimax.io/v1/t2a_v2", "speech-2.8-hd", "English_expressive_narrator", "https://platform.minimax.io/docs/api-reference/speech-t2a-http"),
-    KITTEN("KittenML", "https://api.kittenml.com/v1/audio/speech", "kitten-tts-2-latest", "eleanor_en", "https://docs.kittenml.com/getting-started"),
+    KITTEN("KittenML", "https://api.kittenml.com/v1/audio/speech", "kitten-tts-2-latest", "07 — Saoirse — Joyful Irish Female", "https://kittenml.com/"),
     CUSTOM("OpenAI-compatible server", "", "", "", "https://github.com/debpalash/VoiceStudio")
 }
 
@@ -30,15 +30,24 @@ internal data class CloudVoiceConfig(
     fun checked(): CloudVoiceConfig {
         val uri = runCatching { URI(endpoint) }.getOrNull()
         require(uri != null && uri.scheme == "https" && !uri.host.isNullOrBlank() &&
-            uri.userInfo == null && uri.fragment == null && uri.rawQuery == null) { "endpoint" }
+            uri.userInfo == null && uri.fragment == null && uri.rawQuery == null &&
+            (uri.port == -1 || uri.port in 1..65535) && endpoint.length <= 2048 &&
+            !uri.rawAuthority.endsWith(':') && uri.rawPath.isNotBlank() && uri.rawPath != "/" &&
+            endpoint.none { it.isISOControl() }) { "endpoint" }
         require(provider == CloudVoiceProvider.CUSTOM || endpoint == provider.endpoint) { "endpoint" }
-        require(model.isNotBlank() && model.length <= 200 && voice.isNotBlank() && voice.length <= 200) { "voice" }
+        require(model.isNotBlank() && model.length <= 200 && model.none { it.isISOControl() } &&
+            voice.isNotBlank() && voice.length <= 200 && voice.none { it.isISOControl() }) { "voice" }
+        require(provider != CloudVoiceProvider.ELEVENLABS || voice !in setOf(".","..")) { "voice" }
+        // These require the provider's realtime WebSocket protocol, not either HTTP route.
+        require(provider != CloudVoiceProvider.ELEVENLABS || model !in setOf("eleven_v4_turbo","eleven_v3_conversational")) { "model" }
         require(language.length <= 35 && language.all { it.isLetterOrDigit() || it == '-' }) { "language" }
         require(timeoutSeconds in 5..120 && retries in 0..2 && pricePerMillion.isFinite() && pricePerMillion >= 0) { "limits" }
         return this
     }
 
     val credentialName: String get() = "tts_" + provider.name + if (provider == CloudVoiceProvider.CUSTOM) "_" + cloudDigest(endpoint) else ""
+
+    override fun toString(): String = "CloudVoiceConfig(provider=$provider, enabled=$enabled, connection=redacted)"
 
     fun toJson(): JSONObject = JSONObject().put("enabled", enabled).put("provider", provider.name)
         .put("endpoint", endpoint).put("model", model).put("voice", voice).put("language", language)
@@ -47,7 +56,9 @@ internal data class CloudVoiceConfig(
 
     companion object {
         fun fromJson(obj: JSONObject): CloudVoiceConfig {
-            val provider = runCatching { CloudVoiceProvider.valueOf(obj.optString("provider")) }.getOrDefault(CloudVoiceProvider.ELEVENLABS)
+            val rawProvider = obj.optString("provider")
+            val provider = runCatching { CloudVoiceProvider.valueOf(rawProvider) }.getOrNull()
+                ?: return CloudVoiceConfig()
             return CloudVoiceConfig(obj.optBoolean("enabled"), provider,
                 obj.optString("endpoint", provider.endpoint), obj.optString("model", provider.model), obj.optString("voice", provider.voice),
                 obj.optString("language"), obj.optBoolean("wifiOnly", true), obj.optBoolean("fallback"), obj.optBoolean("cache"),
@@ -62,7 +73,9 @@ internal fun cloudDigest(value: String): String = MessageDigest.getInstance("SHA
 internal object CloudVoiceStore {
     private fun prefs(context: Context) = context.getSharedPreferences("vern_cloud_voice", Context.MODE_PRIVATE)
     fun load(context: Context): CloudVoiceConfig = runCatching {
-        CloudVoiceConfig.fromJson(JSONObject(prefs(context).getString("config", "{}").orEmpty()))
+        CloudVoiceConfig.fromJson(JSONObject(prefs(context).getString("config", "{}").orEmpty())).also {
+            if(it.enabled) it.checked()
+        }
     }.getOrDefault(CloudVoiceConfig())
     fun save(context: Context, config: CloudVoiceConfig) {
         if (config.enabled) config.checked()
@@ -75,6 +88,7 @@ internal object CloudVoiceStore {
     }
     fun profile(context: Context, provider: CloudVoiceProvider): CloudVoiceConfig = runCatching {
         prefs(context).getString("profile_${provider.name}",null)?.let { CloudVoiceConfig.fromJson(JSONObject(it)) }
+            ?.takeIf { it.provider == provider }
     }.getOrNull() ?: CloudVoiceConfig(provider = provider)
     fun noticeSeen(context: Context): Boolean = prefs(context).getBoolean("notice_seen", false)
     fun dismissNotice(context: Context) { prefs(context).edit().putBoolean("notice_seen", true).apply() }

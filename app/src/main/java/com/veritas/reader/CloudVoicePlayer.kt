@@ -19,6 +19,7 @@ internal class CloudVoicePlayer(private val context: Context, private val scope:
     private var downloader: Download? = null
     private var generation = 0
     private var temporary: File? = null
+    private var playbackFile: File? = null
     private var volume = 1f
 
     fun setVolume(value: Float) {
@@ -32,10 +33,12 @@ internal class CloudVoicePlayer(private val context: Context, private val scope:
         job?.cancel(); job = null
         player?.let { runCatching { it.reset() }; it.release() }; player = null
         temporary?.delete(); temporary = null
+        playbackFile = null
     }
 
     fun play(config: CloudVoiceConfig, text: String, rate: Float, pitch: Float,
-        onStarted: () -> Unit, onFinished: () -> Unit, onError: (Int) -> Unit) {
+        onStarted: () -> Unit, onFinished: () -> Unit, onError: (Int) -> Unit,
+        credentialOverride: String? = null) {
         stop()
         val token = generation
         val download = Download(context)
@@ -43,11 +46,13 @@ internal class CloudVoicePlayer(private val context: Context, private val scope:
         job = scope.launch {
             try {
                 val file = withContext(Dispatchers.IO) {
-                    fetchAudio?.invoke(config,text) ?: download.fetch(config,text,ApiCredentialStore.get(context,config.credentialName))
+                    fetchAudio?.invoke(config,text) ?: download.fetch(config,text,
+                        credentialOverride ?: ApiCredentialStore.get(context,config.credentialName))
                 }
                 ensureActive()
                 if (token != generation) { if (!config.cacheAudio) file.delete(); return@launch }
                 if (!config.cacheAudio) temporary = file
+                playbackFile = file
                 val media = MediaPlayer()
                 player = media
                 media.setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
@@ -61,14 +66,26 @@ internal class CloudVoicePlayer(private val context: Context, private val scope:
                     }.onFailure { stop(); onError(R.string.cloud_error_audio) }
                 }
                 media.setOnCompletionListener { if (token == generation) { stop(); onFinished() } }
-                media.setOnErrorListener { _, _, _ -> if (token == generation) { stop(); onError(R.string.cloud_error_audio) }; true }
+                media.setOnErrorListener { _, what, _ ->
+                    if (token == generation) {
+                        if(what == MediaPlayer.MEDIA_ERROR_SERVER_DIED) stop() else rejectAudio()
+                        onError(R.string.cloud_error_audio)
+                    }
+                    true
+                }
                 media.setDataSource(file.absolutePath)
                 media.prepareAsync()
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (error: Exception) {
-                if (token == generation) { stop(); onError((error as? CloudSpeechException)?.messageId ?: R.string.cloud_error_connection) }
+                if (token == generation) { rejectAudio(); onError((error as? CloudSpeechException)?.messageId ?: R.string.cloud_error_connection) }
             }
         }
+    }
+
+    private fun rejectAudio() {
+        val rejected = playbackFile
+        stop()
+        rejected?.delete()
     }
 
     private class Download(private val context: Context) {
@@ -86,8 +103,12 @@ internal class CloudVoicePlayer(private val context: Context, private val scope:
             val cache = cacheDirectory(context)
             val key = CloudSpeechProtocol.cacheKey(config,text,credential)
             val target = File(cache,"$key.audio")
-            if (config.cacheAudio && target.isFile && target.length() in 1..MAX_AUDIO_BYTES.toLong()) {
-                target.setLastModified(System.currentTimeMillis()); return target
+            if (config.cacheAudio && target.isFile) {
+                val cached = if(target.length() in 1..MAX_AUDIO_BYTES.toLong()) runCatching { target.readBytes() }.getOrNull() else null
+                if(cached != null && CloudSpeechProtocol.isAudio(config.provider,cached)) {
+                    target.setLastModified(System.currentTimeMillis()); return target
+                }
+                target.delete()
             }
             val network = context.getSystemService(ConnectivityManager::class.java)
             val capabilities = network.getNetworkCapabilities(network.activeNetwork)
@@ -96,7 +117,9 @@ internal class CloudVoicePlayer(private val context: Context, private val scope:
             if (config.provider != CloudVoiceProvider.CUSTOM && credential.isBlank()) throw CloudSpeechException(R.string.cloud_error_key)
             val audio = transport.fetch(config,text,credential)
             checkActive()
-            val result = files.publish(cache,key,audio,config.cacheAudio)
+            val result = try { files.publish(cache,key,audio,config.cacheAudio) }
+                catch(cancelled: CancellationException) { throw cancelled }
+                catch(_: Exception) { throw CloudSpeechException(R.string.cloud_error_storage) }
             trimCache(context,result)
             return result
         }
@@ -104,7 +127,7 @@ internal class CloudVoicePlayer(private val context: Context, private val scope:
 
     companion object {
         private const val MAX_AUDIO_BYTES = 16 * 1024 * 1024
-        private fun cacheDirectory(context: Context) = File(context.cacheDir,"cloud_voice").apply { mkdirs() }
+        private fun cacheDirectory(context: Context) = CloudAudioCache.directory(context.cacheDir)
         fun cacheBytes(context: Context): Long = cacheDirectory(context).listFiles().orEmpty().sumOf { it.length() }
         fun clearCache(context: Context) { cacheDirectory(context).listFiles().orEmpty().forEach { it.delete() } }
         @Synchronized private fun trimCache(context: Context, keep: File) {

@@ -4,6 +4,7 @@
     <exclude domain="sharedpref" path="veritas_reader_secrets.xml" />
     <include domain="database" path="." />
     <include domain="file" path="." />
+    <exclude domain="file" path="last_crash_report.txt" />
     <exclude domain="file" path="original_documents" />
     <exclude domain="file" path="covers" />
     <exclude domain="file" path="restore_transactions" />

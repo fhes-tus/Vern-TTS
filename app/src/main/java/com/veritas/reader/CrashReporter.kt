@@ -35,7 +35,7 @@ object CrashReporter {
                     appendLine()
                     appendLine(android.util.Log.getStackTraceString(throwable))
                 }
-                File(appContext.filesDir, FILE_NAME).writeText(report)
+                File(appContext.filesDir, FILE_NAME).writeText(DiagnosticRedactor.redact(report))
             }
             previous?.uncaughtException(thread, throwable)
         }
@@ -45,7 +45,7 @@ object CrashReporter {
     fun offerPendingReport(activity: Activity) {
         val file = File(activity.filesDir, FILE_NAME)
         if (!file.exists()) return
-        val report = runCatching { file.readText() }.getOrNull().orEmpty()
+        val report = DiagnosticRedactor.redact(runCatching { file.readText() }.getOrNull().orEmpty())
         if (report.isBlank()) {
             file.delete()
             return

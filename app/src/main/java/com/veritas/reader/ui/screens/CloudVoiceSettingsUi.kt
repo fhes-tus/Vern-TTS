@@ -38,6 +38,9 @@ internal fun CloudVoiceSettingsPanel(): Boolean {
     var previewActive by remember { mutableStateOf(false) }
     var status by remember { mutableIntStateOf(0) }
     var showAdvanced by remember { mutableStateOf(false) }
+    var timeoutText by remember(draft.provider) { mutableStateOf(draft.timeoutSeconds.toString()) }
+    var retriesText by remember(draft.provider) { mutableStateOf(draft.retries.toString()) }
+    var priceText by remember(draft.provider) { mutableStateOf(draft.pricePerMillion.toString()) }
     var cacheBytes by remember { mutableLongStateOf(CloudVoicePlayer.cacheBytes(context)) }
     var usage by remember { mutableStateOf(CloudVoiceStore.usage(context,draft.provider)) }
     val preview = remember { CloudVoicePlayer(context,scope) }
@@ -91,6 +94,7 @@ internal fun CloudVoiceSettingsPanel(): Boolean {
                     DropdownMenuItem(text = { Text(if(provider == CloudVoiceProvider.CUSTOM) stringResource(R.string.cloud_compatible) else provider.title) },onClick = {
                         preview.stop(); providerMenu = false; key = ""; status = 0
                         draft = CloudVoiceStore.profile(context,provider)
+                        timeoutText = draft.timeoutSeconds.toString(); retriesText = draft.retries.toString(); priceText = draft.pricePerMillion.toString()
                         usage = CloudVoiceStore.usage(context,provider)
                     })
                 }
@@ -113,6 +117,9 @@ internal fun CloudVoiceSettingsPanel(): Boolean {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password,autoCorrectEnabled = false),
             visualTransformation = PasswordVisualTransformation(),singleLine = true,modifier = Modifier.fillMaxWidth())
         CloudField(stringResource(R.string.cloud_model),draft.model,!busy) { draft = draft.copy(model = it) }
+        if(draft.provider != CloudVoiceProvider.CUSTOM) TextButton(enabled = !busy,onClick = {
+            draft = draft.copy(model = draft.provider.model); status = 0
+        }) { Text(stringResource(R.string.cloud_current_model,draft.provider.model)) }
         CloudField(stringResource(R.string.cloud_voice_id),draft.voice,!busy) { draft = draft.copy(voice = it) }
         if(draft.provider == CloudVoiceProvider.CARTESIA) CloudField(stringResource(R.string.cloud_language),draft.language,!busy) { draft = draft.copy(language = it) }
 
@@ -122,33 +129,35 @@ internal fun CloudVoiceSettingsPanel(): Boolean {
         Text(stringResource(R.string.cloud_cache_hint),style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
         TextButton(onClick = { showAdvanced = !showAdvanced }) { Text(stringResource(R.string.cloud_advanced)) }
         if(showAdvanced) {
-            CloudField(stringResource(R.string.cloud_timeout),draft.timeoutSeconds.toString(),!busy) { it.toIntOrNull()?.let { n -> draft = draft.copy(timeoutSeconds = n) } }
-            CloudField(stringResource(R.string.cloud_retries),draft.retries.toString(),!busy) { it.toIntOrNull()?.let { n -> draft = draft.copy(retries = n) } }
+            CloudField(stringResource(R.string.cloud_timeout),timeoutText,!busy,KeyboardType.Number) { timeoutText = it }
+            CloudField(stringResource(R.string.cloud_retries),retriesText,!busy,KeyboardType.Number) { retriesText = it }
             Text(stringResource(R.string.cloud_retry_hint),style = MaterialTheme.typography.bodySmall)
-            CloudField(stringResource(R.string.cloud_price),draft.pricePerMillion.toString(),!busy) { it.toDoubleOrNull()?.let { n -> draft = draft.copy(pricePerMillion = n) } }
+            CloudField(stringResource(R.string.cloud_price),priceText,!busy,KeyboardType.Decimal) { priceText = it }
         }
         if(status != 0) Text(stringResource(status),color = MaterialTheme.colorScheme.onSurfaceVariant)
         if(busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
 
         fun persist(enable: Boolean, previewAfter: Boolean) {
             if(busy) return
-            val config = draft.copy(enabled = enable)
+            val config = draft.copy(enabled = enable,endpoint = draft.endpoint.trim(),model = draft.model.trim(),voice = draft.voice.trim(),
+                language = draft.language.trim(),timeoutSeconds = timeoutText.toIntOrNull() ?: -1,
+                retries = retriesText.toIntOrNull() ?: -1,pricePerMillion = priceText.replace(',','.').toDoubleOrNull() ?: -1.0)
             if(runCatching { config.checked() }.isFailure) { status = R.string.cloud_error_config; return }
             busy = true; status = 0
+            val enteredKey = key
             scope.launch {
                 val result = withContext(Dispatchers.IO) { runCatching {
-                    if(key.isNotBlank()) ApiCredentialStore.save(context,key,config.credentialName)
-                    if(config.provider != CloudVoiceProvider.CUSTOM && ApiCredentialStore.get(context,config.credentialName).isBlank()) throw CloudSpeechException(R.string.cloud_error_key)
-                    if(previewAfter) CloudVoiceStore.saveProfile(context,config) else CloudVoiceStore.save(context,config)
+                    CloudVoiceConnection.prepare(context,config,enteredKey,activate = !previewAfter)
                 } }
                 if(result.isFailure) { busy = false; status = (result.exceptionOrNull() as? CloudSpeechException)?.messageId ?: R.string.cloud_error_config; return@launch }
-                key = ""; if(!previewAfter) saved = config; draft = config
+                if(!previewAfter) { key = ""; saved = config }; draft = config
                 if(previewAfter) {
                     if(PlaybackStateStore.isPlaying) sendPlaybackIntent(context,PlaybackActions.ACTION_PAUSE)
                     previewActive = true
                     preview.play(config,sample,1f,1f,onStarted = { status = R.string.cloud_preview_playing },onFinished = {
                     busy = false; previewActive = false; status = R.string.cloud_preview_done; usage = CloudVoiceStore.usage(context,config.provider); cacheBytes = CloudVoicePlayer.cacheBytes(context)
-                },onError = { busy = false; previewActive = false; status = it; usage = CloudVoiceStore.usage(context,config.provider) })
+                },onError = { busy = false; previewActive = false; status = it; usage = CloudVoiceStore.usage(context,config.provider); cacheBytes = CloudVoicePlayer.cacheBytes(context) },
+                    credentialOverride = result.getOrThrow().credential)
                 }
                 else { busy = false; status = R.string.cloud_saved; refreshReadingVoice(context) }
             }
@@ -196,10 +205,11 @@ private fun refreshReadingVoice(context: android.content.Context) {
 }
 
 @Composable
-private fun CloudField(title: String,value: String,enabled: Boolean,onChange: (String) -> Unit) {
+private fun CloudField(title: String,value: String,enabled: Boolean,keyboardType: KeyboardType = KeyboardType.Text,onChange: (String) -> Unit) {
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp),verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(title,style = MaterialTheme.typography.labelLarge)
-        OutlinedTextField(value = value,onValueChange = onChange,enabled = enabled,singleLine = true,modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = value,onValueChange = onChange,enabled = enabled,singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType,autoCorrectEnabled = false),modifier = Modifier.fillMaxWidth())
     }
 }
 

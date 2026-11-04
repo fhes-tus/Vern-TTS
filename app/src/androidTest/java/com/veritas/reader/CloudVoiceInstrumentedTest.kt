@@ -73,8 +73,66 @@ class CloudVoiceInstrumentedTest {
             assertTrue(ciphertext.isNotBlank())
             assertFalse(ciphertext.contains(fakeKey))
             assertEquals("",ApiCredentialStore.get(context,name+"_other"))
-        } finally { ApiCredentialStore.save(context,"",name) }
+            context.getSharedPreferences("veritas_reader_secrets",0).edit().putString(name+"_other",ciphertext).commit()
+            assertEquals("Copied ciphertext must not authenticate in a different namespace","",ApiCredentialStore.get(context,name+"_other"))
+        } finally { ApiCredentialStore.save(context,"",name); ApiCredentialStore.save(context,"",name+"_other") }
         assertEquals("",ApiCredentialStore.get(context,name))
+    }
+
+    @Test fun previewCredentialsCannotReplaceTheAccountUsedByReading() {
+        org.junit.Assume.assumeFalse(PlaybackStateStore.isPlaying)
+        val prefs = context.getSharedPreferences("vern_cloud_voice",0)
+        val oldConfig = prefs.getString("config",null)
+        val oldProfile = prefs.getString("profile_CUSTOM",null)
+        val active = CloudVoiceConfig(enabled = true,provider = CloudVoiceProvider.CUSTOM,
+            endpoint = "https://preview-${System.nanoTime()}.example.invalid/v1/audio/speech",model = "fixture-model",voice = "original")
+        try {
+            ApiCredentialStore.save(context,"fake-original-key",active.credentialName)
+            CloudVoiceStore.save(context,active)
+            val previewConfig = active.copy(voice = "preview")
+            val preview = CloudVoiceConnection.prepare(context,previewConfig," fake-preview-key ",activate = false)
+            assertEquals("fake-preview-key",preview.credential)
+            assertFalse(preview.toString().contains("fake-preview-key"))
+            assertEquals("fake-original-key",ApiCredentialStore.get(context,active.credentialName))
+            assertEquals(active,CloudVoiceStore.load(context))
+            assertThrows(CloudSpeechException::class.java) {
+                CloudVoiceConnection.prepare(context,previewConfig,"invalid\r\nheader",activate = true)
+            }
+            assertEquals("fake-original-key",ApiCredentialStore.get(context,active.credentialName))
+            assertEquals(active,CloudVoiceStore.load(context))
+            CloudVoiceConnection.prepare(context,previewConfig,"fake-preview-key",activate = true)
+            assertEquals("fake-preview-key",ApiCredentialStore.get(context,active.credentialName))
+            assertEquals(previewConfig,CloudVoiceStore.load(context))
+        } finally {
+            ApiCredentialStore.save(context,"",active.credentialName)
+            prefs.edit().apply {
+                if(oldConfig == null) remove("config") else putString("config",oldConfig)
+                if(oldProfile == null) remove("profile_CUSTOM") else putString("profile_CUSTOM",oldProfile)
+            }.commit()
+        }
+    }
+
+    @Test fun decoderRejectedAudioCannotPoisonTheSavedCache() {
+        val scope = CoroutineScope(SupervisorJob()+Dispatchers.Main)
+        val finished = CountDownLatch(1)
+        val errors = AtomicInteger(0)
+        val bad = File(CloudAudioCache.directory(context.cacheDir),"native-invalid-${System.nanoTime()}.audio").apply {
+            writeText("This is a test error body, not playable audio.")
+        }
+        lateinit var player: CloudVoicePlayer
+        try {
+            instrumentation.runOnMainSync {
+                player = CloudVoicePlayer(context,scope) { _, _ -> bad }
+                player.play(CloudVoiceConfig(cacheAudio = true),"Test only",1f,1f,
+                    { finished.countDown() },{ finished.countDown() },{ errors.incrementAndGet(); finished.countDown() })
+            }
+            assertTrue("Decoder did not finish",finished.await(10,TimeUnit.SECONDS))
+            assertEquals(1,errors.get())
+            assertFalse("Rejected audio was retained",bad.exists())
+        } finally {
+            instrumentation.runOnMainSync { player.stop() }
+            scope.cancel(); bad.delete()
+        }
     }
 
     @Test fun bufferedAudioPlaysOnceAndStopSuppressesLateCallbacks() {
