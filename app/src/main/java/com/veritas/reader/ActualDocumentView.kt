@@ -569,7 +569,7 @@ internal fun ActualDocumentView(
                     image != null -> {
                         Image(
                             bitmap = image.asImageBitmap(),
-                            contentDescription = "Rendered original document",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_rendered_original_document),
                             colorFilter = darkThemeColorFilter,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Fit

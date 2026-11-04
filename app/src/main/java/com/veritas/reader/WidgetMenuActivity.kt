@@ -2,7 +2,7 @@ package com.veritas.reader
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-class WidgetMenuActivity : ComponentActivity() {
+class WidgetMenuActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -83,7 +83,7 @@ fun WidgetMenuDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Quick Action",
+                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_quick_action),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -91,37 +91,37 @@ fun WidgetMenuDialog(
 
                 WidgetMenuItem(
                     icon = Icons.AutoMirrored.Filled.NoteAdd,
-                    label = "Text Notes",
+                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_text_notes),
                     onClick = { onActionSelected(MainActivity.ACTION_SHOW_NOTES) }
                 )
 
                 WidgetMenuItem(
                     icon = Icons.AutoMirrored.Filled.ListAlt,
-                    label = "List",
+                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_list),
                     onClick = { onActionSelected(MainActivity.ACTION_NEW_CHECKLIST_NOTE) }
                 )
 
                 WidgetMenuItem(
                     icon = Icons.Filled.NotificationsActive,
-                    label = "Reminder",
+                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reminder),
                     onClick = { onActionSelected(MainActivity.ACTION_NEW_REMINDER_NOTE) }
                 )
 
                 WidgetMenuItem(
                     icon = Icons.AutoMirrored.Filled.MenuBook,
-                    label = "Library",
+                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_library),
                     onClick = { onActionSelected(MainActivity.ACTION_OPEN_LIBRARY) }
                 )
 
                 WidgetMenuItem(
                     icon = Icons.Filled.UploadFile,
-                    label = "Import Documents",
+                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_import_documents),
                     onClick = { onActionSelected(MainActivity.ACTION_IMPORT_DOCUMENTS) }
                 )
 
                 WidgetMenuItem(
                     icon = Icons.Filled.AutoStories,
-                    label = "Active Reading",
+                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_active_reading),
                     onClick = { onActionSelected(MainActivity.ACTION_ACTIVE_READING) }
                 )
             }

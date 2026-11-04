@@ -136,6 +136,7 @@ fun SettingsHubDialog(
 
     var showAboutDialog by remember { mutableStateOf(false) }
     var showCustomization by remember { mutableStateOf(false) }
+    var showAppLanguage by remember { mutableStateOf(false) }
     val batteryExempt = rememberBatteryOptimizationIgnored()
 
     Dialog(
@@ -153,133 +154,140 @@ fun SettingsHubDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Settings", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
-                    TextButton(onClick = onDismiss) { Text("Close") }
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_settings), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
+                    TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) }
                 }
                 Column(
                     modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
 
-                SettingsHubSectionTitle("Voice & Audio")
+                SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_audio))
                 SettingsHubGroup(listOf(
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.VOICE_STUDIO),
-                        "Voice Studio", "TTS engine, installed voices & pitch presets",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_studio), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tts_engine_installed_voices_pitch_presets),
                         Icons.Outlined.RecordVoiceOver, onOpenVoiceStudio
                     ),
                     SettingsRowSpec(
-                        "Narration Studio", "Narrator & dialogue delivery controls",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_narration_studio), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_narrator_dialogue_delivery_controls),
                         Icons.Outlined.TheaterComedy, onOpenNarrationStudio
                     ),
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.PRONUNCIATION_RULES),
-                        "Pronunciation", "Word replacements before playback",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pronunciation), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_word_replacements_before_playback),
                         Icons.Outlined.Translate, onOpenPronunciationRules
                     ),
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.SLEEP_TIMER),
-                        "Sleep timer", "Pause or stop reading after chosen time",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sleep_timer), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pause_or_stop_reading_after_chosen_time),
                         Icons.Outlined.Timer, onOpenSleepTimer
                     ),
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.QUEUE_AUDIO_EXPORT),
-                        "Record sound file", "Render current reading into audio file",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_record_sound_file), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_render_current_reading_into_audio_file),
                         Icons.Outlined.GraphicEq, onStartRecord
                     )
                 ))
 
-                SettingsHubSectionTitle("Appearance")
+                SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_appearance))
                 SettingsHubGroup(listOf(
                     SettingsRowSpec(
-                        "Display theme", "Theme packs, colours & page navigation",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_display_theme), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_theme_packs_colours_page_navigation),
                         Icons.Outlined.Palette, onOpenReaderSettings
                     ),
                     SettingsRowSpec(
-                        "Customization", "Icon colours, startup motion & Funky cards",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_customization), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_icon_colours_startup_motion_funky_cards),
                         Icons.Outlined.AutoAwesome, { showCustomization = true }
                     ),
                     SettingsRowSpec(
-                        "Accessibility", "Reading goal, reduce motion & contrast",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_accessibility), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_goal_reduce_motion_contrast),
                         Icons.Outlined.Accessibility, onOpenAccessibility
                     ),
                     SettingsRowSpec(
-                        "Background playback",
-                        if (batteryExempt) "Battery exemption enabled · Tap to manage" else "Battery optimized · Tap to manage",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_background_playback),
+                        if (batteryExempt) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_battery_exemption_enabled_tap_to_manage) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_battery_optimized_tap_to_manage),
                         Icons.Outlined.PowerSettingsNew,
                         { openAppBatterySettings(context) }
                     )
                 ))
 
-                SettingsHubSectionTitle("AI & Language")
+                SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_language))
                 SettingsHubGroup(listOf(
+                    SettingsRowSpec(
+                        context.getString(com.veritas.reader.R.string.app_language),
+                        com.veritas.reader.AppLanguageCatalog.choices.firstOrNull {
+                            it.tag == com.veritas.reader.AppLanguages.selectedTag()
+                        }?.nativeName ?: context.getString(com.veritas.reader.R.string.language_follow_device),
+                        Icons.Outlined.Translate, { showAppLanguage = true }
+                    ),
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.OFFLINE_STUDY_TOOLS),
-                        "AI & study mode", "AI app handoff, flashcards & quizzes",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_study_mode), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_app_handoff_flashcards_quizzes),
                         Icons.Outlined.AutoAwesome, onOpenAiCenter
                     ),
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.AI_APP_HANDOFF),
-                        "Ask AI", "Choose assistant & selected-text prompt",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ask_ai), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_assistant_selected_text_prompt),
                         Icons.Outlined.Psychology, onOpenAskAiSettings
                     )
                 ))
 
-                SettingsHubSectionTitle("Import Defaults")
+                SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_defaults))
                 SettingsHubGroup(listOf(
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.PDF_IMPORT_CONTROLS),
-                        "PDF and import tools", "Defaults, OCR fallback & page cleanup",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pdf_and_import_tools), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_defaults_ocr_fallback_page_cleanup),
                         Icons.Outlined.PictureAsPdf, onOpenPdfTools
                     ),
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.FILE_BROWSER),
-                        "File browser", "Scan approved folders & import local files",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_file_browser), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_scan_approved_folders_import_local_files),
                         Icons.Outlined.Folder, onOpenFileBrowser
                     ),
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.EXTRACTED_TEXT_EDITOR),
-                        "Edit extracted text", "Open text editor to correct text",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_edit_extracted_text), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_text_editor_to_correct_text),
                         Icons.Outlined.EditNote, onOpenTextEditor
                     )
                 ))
 
-                SettingsHubSectionTitle("Data & Backup")
+                SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_data_backup))
                 SettingsHubGroup(listOf(
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.LOCAL_SYNC_PACK),
-                        "Sync & Backup Center", "Sync & backup library, flashcards, notes, and progress",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sync_backup_center), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sync_backup_library_flashcards_notes_and_progress),
                         Icons.Filled.Sync, onOpenSyncCenter
                     ),
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.READING_LISTS),
-                        "Reading lists", "Create local lists & add saved readings",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_lists), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create_local_lists_add_saved_readings),
                         Icons.AutoMirrored.Filled.List, onOpenReadingLists
                     ),
                     SettingsRowSpec(
-                        "Storage", "See what Vern is using & free up space",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_storage), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_see_what_vern_is_using_free_up_space),
                         Icons.Outlined.Storage, onOpenStorage
                     )
                 ))
 
-                SettingsHubSectionTitle("Help")
+                SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_help))
                 SettingsHubGroup(listOf(
                     SettingsRowSpec(
-                        "Check for updates",
-                        uiState.updateStatusMessage ?: "Check for the latest Vern version",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_check_for_updates),
+                        uiState.updateStatusMessage ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_check_for_the_latest_vern_version),
                         Icons.Filled.Sync,
                         onCheckForUpdates
                     ),
                     SettingsRowSpec(
-                        "User manual", "Interactive guide to Vern features",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_user_manual), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_interactive_guide_to_vern_features),
                         Icons.AutoMirrored.Outlined.HelpOutline, onOpenUserManual
                     ),
                     SettingsRowSpec(
-                        "Tutorial", "Learn about Vern through guided actions",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tutorial), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_learn_about_vern_through_guided_actions),
                         Icons.Outlined.School, onOpenTutorial
                     ),
                     SettingsRowSpec(
-                        "About", "Version, developer contact, social links & feedback",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_about), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_version_developer_contact_social_links_feedback),
                         Icons.Outlined.Info, { showAboutDialog = true }
                     )
                 ))
@@ -327,7 +335,7 @@ fun SettingsHubDialog(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Dismiss Tour",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_dismiss_tour),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -350,11 +358,11 @@ fun SettingsHubDialog(
                             }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back),
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Back", style = MaterialTheme.typography.labelMedium)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back), style = MaterialTheme.typography.labelMedium)
                             }
 
                             Button(
@@ -364,11 +372,11 @@ fun SettingsHubDialog(
                                 },
                                 shape = RoundedCornerShape(50)
                             ) {
-                                Text("Next", style = MaterialTheme.typography.labelMedium)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next), style = MaterialTheme.typography.labelMedium)
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDescription = "Next",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next),
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -379,6 +387,9 @@ fun SettingsHubDialog(
         }
     }
 
+    if (showAppLanguage) {
+        AppLanguageDialog(onDismiss = { showAppLanguage = false })
+    }
     if (showCustomization) {
         CustomizationSettingsDialog(uiState.readerSettings, onSaveCustomization, { showCustomization = false })
     }
@@ -396,9 +407,9 @@ fun SettingsHubDialog(
 fun formatVeritasBytes(bytes: Long): String {
     val mb = bytes / (1024.0 * 1024.0)
     return when {
-        mb >= 1024 -> String.format(Locale.US, "%.2f GB", mb / 1024.0)
-        mb >= 1.0 -> String.format(Locale.US, "%.1f MB", mb)
-        else -> String.format(Locale.US, "%.0f KB", bytes / 1024.0)
+        mb >= 1024 -> String.format(Locale.getDefault(), "%.2f GB", mb / 1024.0)
+        mb >= 1.0 -> String.format(Locale.getDefault(), "%.1f MB", mb)
+        else -> String.format(Locale.getDefault(), "%.0f KB", bytes / 1024.0)
     }
 }
 
@@ -413,21 +424,21 @@ fun StorageDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
-        title = { Text("Storage") },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) } },
+        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_storage)) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (breakdown == null) {
-                    Text("Measuring…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_measuring), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
                     Text(
-                        "Vern is using ${formatVeritasBytes(breakdown.totalBytes)} across ${breakdown.documentCount} document${if (breakdown.documentCount == 1) "" else "s"}",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_storage_summary, formatVeritasBytes(breakdown.totalBytes), breakdown.documentCount),
                         style = MaterialTheme.typography.bodyLarge)
-                    Text("Original books & files: ${formatVeritasBytes(breakdown.originalsBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Extracted text: ${formatVeritasBytes(breakdown.textBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Covers & thumbnails: ${formatVeritasBytes(breakdown.coversBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Database & storage index: ${formatVeritasBytes(breakdown.databaseBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Temporary cache & audio: ${formatVeritasBytes(breakdown.cacheBytes)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_originals_size, formatVeritasBytes(breakdown.originalsBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_text_size, formatVeritasBytes(breakdown.textBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_covers_size, formatVeritasBytes(breakdown.coversBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_database_size, formatVeritasBytes(breakdown.databaseBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_cache_size, formatVeritasBytes(breakdown.cacheBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     NoteMediaCleanupControl()
 
                     if (onClearCache != null) {
@@ -438,8 +449,8 @@ fun StorageDialog(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                if (cacheBytes <= 0L) "Temporary cache is clean"
-                                else "Clear Temporary Cache — free ${formatVeritasBytes(cacheBytes)}"
+                                if (cacheBytes <= 0L) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_temporary_cache_is_clean)
+                                else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_clear_cache, formatVeritasBytes(cacheBytes))
                             )
                         }
                     }
@@ -451,15 +462,15 @@ fun StorageDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            if (candidates.isEmpty()) "Nothing to clean up"
-                            else "Smart Cleanup — free ${formatVeritasBytes(reclaimable)}"
+                            if (candidates.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_nothing_to_clean_up)
+                            else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_smart_cleanup, formatVeritasBytes(reclaimable))
                         )
                     }
                     Text(
                         if (candidates.isEmpty())
-                            "Smart Cleanup removes original files of fully-read or 90+ day dormant, non-favorite documents. Text, progress, notes, and highlights always stay."
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_smart_cleanup_removes_original_files_of_fully_read_or_90_day_dorm)
                         else
-                            "Removes the original files of ${candidates.size} fully-read or dormant document${if (candidates.size == 1) "" else "s"} (favorites are never touched). Reading text, progress, notes, highlights and cover art stay — only Original View is lost until a re-import.",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_cleanup_explanation, candidates.size),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -576,7 +587,7 @@ fun SettingsHubRow(row: SettingsRowSpec) {
                 color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = row.disabledReason ?: row.subtitle,
+                text = row.disabledReason?.let { localizedSettingsOption(it) } ?: row.subtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -621,7 +632,7 @@ internal fun FullScreenSettingsScaffold(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back), tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_theme_pack">"थीम पैक: %1$s"</string>
+    <string name="settings_colour_theme">"रंग थीम: %1$s"</string>
+    <string name="settings_selected_font">"चुना हुआ फ़ॉन्ट: %1$s"</string>
+    <string name="settings_page_position">"पेज %1$d / %2$d"</string>
+    <string name="settings_playing_style">"%1$s चल रहा है"</string>
+    <string name="settings_style_preview">"%1$s पूर्वावलोकन"</string>
+    <string name="settings_use_reading_voice">"पढ़ने की आवाज़ उपयोग करें: %1$s"</string>
+    <string name="settings_pace_multiplier">"गति: आपकी पढ़ने की गति का %1$s गुना"</string>
+    <string name="settings_pitch_multiplier">"पिच: %1$s गुना"</string>
+    <string name="settings_strength">"तीव्रता: %1$d%%"</string>
+    <string name="settings_narration_summary">"%1$s · गति %2$s गुना · पिच %3$s गुना"</string>
+    <string name="settings_voice_details">"%1$s, %2$s, गुणवत्ता %3$d, विलंब %4$d"</string>
+    <string name="settings_update_voice_size">"अपडेट करें · लगभग %1$d MB"</string>
+    <string name="settings_get_voice_size">"लें · लगभग %1$d MB"</string>
+    <string name="settings_downloading_percent">"डाउनलोड हो रहा है: %1$d%%"</string>
+    <string name="settings_queued" formatted="false">"कतार में"</string>
+    <string name="settings_installing" formatted="false">"इंस्टॉल हो रहा है…"</string>
+    <string name="settings_downloading" formatted="false">"डाउनलोड हो रहा है…"</string>
+    <string name="settings_voice_preview_failed" formatted="false">"आवाज़ यह वाक्य पूरा नहीं कर सकी। इंस्टॉलेशन या कनेक्शन जाँचें।"</string>
+    <string name="settings_voice_load_error">"इंजन की कुछ आवाज़ें लोड नहीं हो सकीं: %1$s"</string>
+    <string name="settings_colour_state">"संतृप्ति %1$d%%, चमक %2$d%%"</string>
+    <string name="settings_hue_degrees">"%1$d डिग्री"</string>
+    <string name="settings_storage_summary">"Vern संग्रहण: %1$s · दस्तावेज़: %2$d"</string>
+    <string name="settings_originals_size">"मूल किताबें और फ़ाइलें: %1$s"</string>
+    <string name="settings_text_size">"निकाला गया टेक्स्ट: %1$s"</string>
+    <string name="settings_covers_size">"कवर और थंबनेल: %1$s"</string>
+    <string name="settings_database_size">"डेटाबेस और संग्रहण सूचकांक: %1$s"</string>
+    <string name="settings_cache_size">"अस्थायी कैश और ऑडियो: %1$s"</string>
+    <string name="settings_clear_cache">"अस्थायी कैश साफ़ करें — %1$s खाली करें"</string>
+    <string name="settings_smart_cleanup">"स्मार्ट सफ़ाई — %1$s खाली करें"</string>
+    <string name="settings_cleanup_explanation">"चुनी हुई मूल फ़ाइलें: %1$d। पसंदीदा सुरक्षित रहते हैं। टेक्स्ट, प्रगति, नोट्स, हाइलाइट और कवर रहते हैं। मूल दृश्य दोबारा आयात करने तक उपलब्ध नहीं रहेगा।"</string>
+    <string name="settings_storage_freed">"खाली हुआ: %1$s · दस्तावेज़: %2$d"</string>
+    <string name="settings_cache_cleared">"%1$s अस्थायी कैश साफ़ हुआ।"</string>
+    <string name="settings_export_zip_size">"मीडिया सहित बैकअप निर्यात करें (.zip लगभग %1$s MB)"</string>
+    <string name="settings_version_build">"संस्करण %1$s · बिल्ड %2$d"</string>
+    <string name="settings_version">"संस्करण %1$s"</string>
+    <string name="settings_swatch_colour">"%1$s रंग"</string>
+    <string name="settings_choose_swatch">"%1$s चुनें"</string>
+</resources>

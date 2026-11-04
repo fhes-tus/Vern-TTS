@@ -157,7 +157,7 @@ internal fun BatchImportFloater(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "importing",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_importing),
                             fontSize = 7.5.sp,
                             fontWeight = FontWeight.SemiBold,
                             lineHeight = 8.5.sp,

@@ -6,7 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import com.veritas.reader.ui.ReaderViewModel
 import com.veritas.reader.ui.reloadReaderSettings
 
-open class MainActivity : ComponentActivity() {
+open class MainActivity : AppCompatActivity() {
 
     internal val viewModel: ReaderViewModel by viewModels()
 

@@ -68,7 +68,7 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
             Row(Modifier.fillMaxWidth().height(playerHeight - 2.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onToggleCollapsed, Modifier.width(32.dp).height(48.dp).testTag("floater_collapse"), enabled = !collapsed) {
                     val chevronTint = if (VeritasPackStyle.currentPackId() == "material_you") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
-                    Icon(Icons.Default.ChevronLeft, "Collapse player", Modifier.size(20.dp), tint = chevronTint)
+                    Icon(Icons.Default.ChevronLeft, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse_player), Modifier.size(20.dp), tint = chevronTint)
                 }
                 Row(Modifier.weight(1f).testTag("floater_open_book").clickable(role = Role.Button, onClickLabel = "Open ${document.title}", onClick = onOpen)
                     .padding(vertical = 8.dp),
@@ -76,7 +76,7 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
                     DocumentArtwork(document, Modifier.size(46.dp).clearAndSetSemantics {}, compact = true)
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         Text(document.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(if (count > 0 && !needsStatus) "${if (playing) "Listening" else "Paused"} · Sentence ${index + 1} of $count" else status,
+                        Text(if (count > 0 && !needsStatus) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_214, com.veritas.reader.ui.screens.localizedUiValue(if (playing) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_listening) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_paused)), com.veritas.reader.ui.screens.localizedUiValue(index + 1), com.veritas.reader.ui.screens.localizedUiValue(count)) else status,
                             style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
@@ -85,7 +85,7 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
                     val isMaterialYou = VeritasPackStyle.currentPackId() == "material_you"
                     val btnBg = if (isMaterialYou) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.16f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .65f)
                     val iconTint = if (isMaterialYou) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
-                    Icon(Icons.Default.SkipPrevious, "Previous sentence", Modifier.background(btnBg, CircleShape).padding(6.dp).size(20.dp), tint = iconTint)
+                    Icon(Icons.Default.SkipPrevious, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_sentence), Modifier.background(btnBg, CircleShape).padding(6.dp).size(20.dp), tint = iconTint)
                 }
                 FilledIconButton(onPlayPause, Modifier.size(if (VeritasPackStyle.currentPackId() == "one_ui") 50.dp else 44.dp).testTag("floater_play_pause"), shape = CircleShape,
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)) {
@@ -96,7 +96,7 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
                     val isMaterialYou = VeritasPackStyle.currentPackId() == "material_you"
                     val btnBg = if (isMaterialYou) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.16f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .65f)
                     val iconTint = if (isMaterialYou) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
-                    Icon(Icons.Default.SkipNext, "Next sentence", Modifier.background(btnBg, CircleShape).padding(6.dp).size(20.dp), tint = iconTint)
+                    Icon(Icons.Default.SkipNext, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_sentence), Modifier.background(btnBg, CircleShape).padding(6.dp).size(20.dp), tint = iconTint)
                 }
             }
             if (count > 0) {

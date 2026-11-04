@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" formatted="false">"Vern"</string>
+    <string name="settings_a_small_target_to_help_make_reading_a_habit" formatted="false">"Un petit objectif pour prendre l’habitude de lire."</string>
+    <string name="settings_adaptive_cover_theme" formatted="false">"Thème adapté à la couverture"</string>
+    <string name="settings_add_new_items_at_the_top" formatted="false">"Nouveaux éléments en haut"</string>
+    <string name="settings_amoled" formatted="false">"AMOLED"</string>
+    <string name="settings_an_evening_nudge_when_your_goal_is_at_risk" formatted="false">"Un rappel le soir si vous risquez de manquer votre objectif."</string>
+    <string name="settings_attachment_badges" formatted="false">"Repères de pièces jointes"</string>
+    <string name="settings_attachment_thumbnails" formatted="false">"Miniatures des pièces jointes"</string>
+    <string name="settings_bionic_reading" formatted="false">"Lecture bionique"</string>
+    <string name="settings_bloom" formatted="false">"Éclosion"</string>
+    <string name="settings_book_sources" formatted="false">"Livres sources"</string>
+    <string name="settings_bookmarks_notes" formatted="false">"Signets et notes"</string>
+    <string name="settings_character_voices" formatted="false">"Voix des personnages"</string>
+    <string name="settings_checklists" formatted="false">"Listes de tâches"</string>
+    <string name="settings_clean_repeated_headers_and_footers" formatted="false">"Nettoyer les en-têtes et pieds de page répétés"</string>
+    <string name="settings_collapsible_reader_bars" formatted="false">"Barres de lecture repliables"</string>
+    <string name="settings_completed_items_at_the_bottom" formatted="false">"Éléments terminés en bas"</string>
+    <string name="settings_daily_rhythm" formatted="false">"Rythme quotidien"</string>
+    <string name="settings_detect_dialogue" formatted="false">"Détecter les dialogues"</string>
+    <string name="settings_dialogue_badges" formatted="false">"Repères de dialogue"</string>
+    <string name="settings_display_rich_link_previews" formatted="false">"Afficher les aperçus de liens"</string>
+    <string name="settings_display_theme" formatted="false">"Affichage et thème"</string>
+    <string name="settings_emphasise_the_first_letters_of_each_word" formatted="false">"Mettre en évidence le début de chaque mot."</string>
+    <string name="settings_express_punctuation" formatted="false">"Exprimer la ponctuation"</string>
+    <string name="settings_fade" formatted="false">"Fondu"</string>
+    <string name="settings_flashcards_decks_progress" formatted="false">"Fiches, paquets et progression"</string>
+    <string name="settings_force_fresh_extraction" formatted="false">"Forcer une nouvelle extraction"</string>
+    <string name="settings_force_ocr_for_pdf_import" formatted="false">"Toujours utiliser l’OCR pour les PDF"</string>
+    <string name="settings_gentle_pacing_cues_natural_voice_intonation" formatted="false">"Rythme léger et intonation naturelle"</string>
+    <string name="settings_grid" formatted="false">"Grille"</string>
+    <string name="settings_hidden" formatted="false">"Masqué"</string>
+    <string name="settings_identify_the_current_role_in_the_reader" formatted="false">"Indiquer le rôle en cours dans le lecteur"</string>
+    <string name="settings_include_page_markers" formatted="false">"Inclure les repères de page"</string>
+    <string name="settings_included" formatted="false">"Inclus"</string>
+    <string name="settings_keep_decorative_animations_still" formatted="false">"Désactiver les animations décoratives."</string>
+    <string name="settings_large" formatted="false">"Grand"</string>
+    <string name="settings_larger" formatted="false">"Plus grand"</string>
+    <string name="settings_last_edited" formatted="false">"Dernière modification"</string>
+    <string name="settings_layout" formatted="false">"Disposition"</string>
+    <string name="settings_let_your_current_book_colour_the_reading_space" formatted="false">"Utiliser les couleurs du livre en cours pour l’espace de lecture."</string>
+    <string name="settings_light_flip" formatted="false">"Retournement léger"</string>
+    <string name="settings_list" formatted="false">"Liste"</string>
+    <string name="settings_long" formatted="false">"Long"</string>
+    <string name="settings_manual_crop_before_extract" formatted="false">"Recadrer avant l’extraction"</string>
+    <string name="settings_match_original_layout_where_possible" formatted="false">"Conserver la disposition d’origine si possible"</string>
+    <string name="settings_mix_installed_system_lite_and_studio_voices_in_one_cast" formatted="false">"Mélanger les voix système, Lite et Studio installées"</string>
+    <string name="settings_motion_clarity" formatted="false">"Animation et lisibilité"</string>
+    <string name="settings_move_an_item_down_when_you_check_it" formatted="false">"Déplacer l’élément en bas une fois coché"</string>
+    <string name="settings_narration_studio" formatted="false">"Studio de narration"</string>
+    <string name="settings_navigation_labels" formatted="false">"Libellés de navigation"</string>
+    <string name="settings_neural_voices_already_interpret_punctuation_naturally" formatted="false">"Les voix neuronales interprètent déjà la ponctuation naturellement"</string>
+    <string name="settings_new_notes" formatted="false">"Nouvelles notes"</string>
+    <string name="settings_newest" formatted="false">"Plus récent"</string>
+    <string name="settings_notes_page" formatted="false">"Page des notes"</string>
+    <string name="settings_option_12_uk_and_us_voices_about_20mb_each_select_several_to_download_to" formatted="false">"12 voix britanniques et américaines, environ 20 Mo chacune. Sélectionnez-en plusieurs ; les téléchargements supplémentaires attendent leur tour."</string>
+    <string name="settings_option_add_books_to_the_queue_first" formatted="false">"Ajoutez d’abord des livres à la file."</string>
+    <string name="settings_option_auto_detect" formatted="false">"Détecter automatiquement"</string>
+    <string name="settings_option_balanced" formatted="false">"Équilibré"</string>
+    <string name="settings_option_bedtime_calm" formatted="false">"Calme du soir"</string>
+    <string name="settings_option_black" formatted="false">"Noir"</string>
+    <string name="settings_option_blank" formatted="false">"Vierge"</string>
+    <string name="settings_option_blue" formatted="false">"Bleu"</string>
+    <string name="settings_option_brighter" formatted="false">"Plus lumineux"</string>
+    <string name="settings_option_colour_shade" formatted="false">"Nuance de couleur"</string>
+    <string name="settings_option_confident_articulate_delivery_for_academic_and_business_text" formatted="false">"Lecture assurée et articulée pour les textes scolaires et professionnels."</string>
+    <string name="settings_option_cyan" formatted="false">"Cyan"</string>
+    <string name="settings_option_darker" formatted="false">"Plus sombre"</string>
+    <string name="settings_option_declared_in_html" formatted="false">"Déclaré dans le HTML"</string>
+    <string name="settings_option_default_language" formatted="false">"Langue par défaut"</string>
+    <string name="settings_option_deliberate_pacing_with_grounded_tone_for_deep_comprehension" formatted="false">"Rythme posé et ton stable pour mieux comprendre."</string>
+    <string name="settings_option_dialogue" formatted="false">"Dialogue"</string>
+    <string name="settings_option_dot_matrix" formatted="false">"Pointillé"</string>
+    <string name="settings_option_fast_energetic_review_with_crisp_consonant_clarity" formatted="false">"Révision rapide et dynamique avec une articulation nette."</string>
+    <string name="settings_option_force_ocr" formatted="false">"Forcer l’OCR"</string>
+    <string name="settings_option_green" formatted="false">"Vert"</string>
+    <string name="settings_option_grey" formatted="false">"Gris"</string>
+    <string name="settings_option_hue" formatted="false">"Teinte"</string>
+    <string name="settings_option_keep_marked_words" formatted="false">"Conserver les mots marqués"</string>
+    <string name="settings_option_lecture_bright" formatted="false">"Cours dynamique"</string>
+    <string name="settings_option_less_saturated" formatted="false">"Moins saturé"</string>
+    <string name="settings_option_literal" formatted="false">"Littéral"</string>
+    <string name="settings_option_more_saturated" formatted="false">"Plus saturé"</string>
+    <string name="settings_option_narrator" formatted="false">"Narrateur"</string>
+    <string name="settings_option_natural_everyday_audio_reading_with_standard_timing" formatted="false">"Lecture naturelle au quotidien avec un rythme habituel."</string>
+    <string name="settings_option_network_voice" formatted="false">"Voix en ligne"</string>
+    <string name="settings_option_offline_voice" formatted="false">"Voix hors ligne"</string>
+    <string name="settings_option_on" formatted="false">"Activé"</string>
+    <string name="settings_option_open_a_reading_first" formatted="false">"Ouvrez d’abord une lecture."</string>
+    <string name="settings_option_orange" formatted="false">"Orange"</string>
+    <string name="settings_option_pattern" formatted="false">"Motif"</string>
+    <string name="settings_option_plain_text" formatted="false">"Texte brut"</string>
+    <string name="settings_option_prefer_ocr_when_text_is_poor" formatted="false">"Préférer l’OCR si le texte est insuffisant"</string>
+    <string name="settings_option_purple" formatted="false">"Violet"</string>
+    <string name="settings_option_quick_scan" formatted="false">"Survol rapide"</string>
+    <string name="settings_option_red" formatted="false">"Rouge"</string>
+    <string name="settings_option_references_n" formatted="false">"Références [n]"</string>
+    <string name="settings_option_regex" formatted="false">"Expression régulière"</string>
+    <string name="settings_option_richest_most_expressive_voices_28_english_speakers_in_one_126mb_d" formatted="false">"Les voix les plus expressives : 28 voix anglaises dans un téléchargement de 126 Mo. Exigeant : des pauses entre phrases sont possibles sur les téléphones de milieu de gamme."</string>
+    <string name="settings_option_ruled_lines" formatted="false">"Ligné"</string>
+    <string name="settings_option_save_a_reading_first" formatted="false">"Enregistrez d’abord une lecture."</string>
+    <string name="settings_option_slow_soothing_mellow_tone_for_quiet_night_time_listening" formatted="false">"Ton lent, doux et apaisant pour écouter le soir."</string>
+    <string name="settings_option_starred_text" formatted="false">"Texte entre astérisques"</string>
+    <string name="settings_option_startup_preview" formatted="false">"Aperçu du démarrage"</string>
+    <string name="settings_option_storyteller" formatted="false">"Conteur"</string>
+    <string name="settings_option_study_focus" formatted="false">"Concentration"</string>
+    <string name="settings_option_system_default" formatted="false">"Par défaut du système"</string>
+    <string name="settings_option_underscore_text" formatted="false">"Texte entre tirets bas"</string>
+    <string name="settings_option_warm_chest_resonant_narration_for_fiction_and_novels" formatted="false">"Narration chaleureuse et résonnante pour les romans."</string>
+    <string name="settings_option_white" formatted="false">"Blanc"</string>
+    <string name="settings_option_yellow" formatted="false">"Jaune"</string>
+    <string name="settings_page_curl" formatted="false">"Page courbée"</string>
+    <string name="settings_page_swipe" formatted="false">"Balayage des pages"</string>
+    <string name="settings_prefer_ocr_when_pdf_text_is_weak" formatted="false">"Préférer l’OCR si le texte PDF est insuffisant"</string>
+    <string name="settings_pronunciation_rules" formatted="false">"Règles de prononciation"</string>
+    <string name="settings_pronunciation_rules_bf2c874" formatted="false">"Règles de prononciation"</string>
+    <string name="settings_reading_focus" formatted="false">"Lecture et concentration"</string>
+    <string name="settings_reading_queue" formatted="false">"File de lecture"</string>
+    <string name="settings_reading_streaks_history" formatted="false">"Séries de lecture et historique"</string>
+    <string name="settings_recognize_quoted_speech_and_speech_tags" formatted="false">"Reconnaître les citations et indications de locuteur"</string>
+    <string name="settings_reduce_motion" formatted="false">"Réduire les animations"</string>
+    <string name="settings_reduce_transparency" formatted="false">"Réduire la transparence"</string>
+    <string name="settings_relaxed" formatted="false">"Aéré"</string>
+    <string name="settings_remove_bottom_page_noise" formatted="false">"Nettoyer le bas des pages"</string>
+    <string name="settings_remove_page_numbers" formatted="false">"Supprimer les numéros de page"</string>
+    <string name="settings_remove_top_page_noise" formatted="false">"Nettoyer le haut des pages"</string>
+    <string name="settings_repair_hyphenated_line_breaks" formatted="false">"Réparer les mots coupés en fin de ligne"</string>
+    <string name="settings_rise" formatted="false">"Montée"</string>
+    <string name="settings_saved_readings" formatted="false">"Lectures enregistrées"</string>
+    <string name="settings_saving_backup" formatted="false">"Enregistrement et sauvegarde"</string>
+    <string name="settings_scroll" formatted="false">"Défiler"</string>
+    <string name="settings_section_labels" formatted="false">"Repères de section"</string>
+    <string name="settings_separate_words_when_font_changes" formatted="false">"Séparer les mots aux changements de police"</string>
+    <string name="settings_shake_in_the_final_minute_to_add_ten_minutes" formatted="false">"Secouez pendant la dernière minute pour ajouter dix minutes."</string>
+    <string name="settings_shake_to_extend_timer" formatted="false">"Secouer pour prolonger"</string>
+    <string name="settings_short" formatted="false">"Court"</string>
+    <string name="settings_show_images_and_video_previews_on_note_cards" formatted="false">"Afficher les images et aperçus vidéo sur les cartes de notes"</string>
+    <string name="settings_show_names_beneath_navigation_icons" formatted="false">"Afficher le nom sous les icônes de navigation."</string>
+    <string name="settings_show_section_numbers_for_easier_study_and_search" formatted="false">"Afficher les numéros de section pour étudier et chercher plus facilement."</string>
+    <string name="settings_show_the_book_linked_to_a_reading_note" formatted="false">"Afficher le livre lié à la note de lecture"</string>
+    <string name="settings_show_the_kinds_of_media_in_each_note" formatted="false">"Indiquer les types de médias de chaque note"</string>
+    <string name="settings_show_the_waveform_beside_a_voice_memo" formatted="false">"Afficher l’onde à côté du mémo vocal"</string>
+    <string name="settings_show_website_cards_in_notes_and_on_the_notes_page" formatted="false">"Afficher les cartes web dans les notes et leur liste"</string>
+    <string name="settings_slide" formatted="false">"Glissement"</string>
+    <string name="settings_small" formatted="false">"Petit"</string>
+    <string name="settings_standard" formatted="false">"Standard"</string>
+    <string name="settings_start_a_new_item_above_the_existing_list" formatted="false">"Ajouter le nouvel élément avant la liste existante"</string>
+    <string name="settings_streak_reminder" formatted="false">"Rappel de série"</string>
+    <string name="settings_swipe" formatted="false">"Balayer"</string>
+    <string name="settings_tap_the_page_to_hide_or_show_reader_controls" formatted="false">"Touchez la page pour afficher ou masquer les commandes."</string>
+    <string name="settings_text_previews" formatted="false">"Aperçus de texte"</string>
+    <string name="settings_use_role_specific_pacing_and_pitch" formatted="false">"Adapter le rythme et la hauteur à chaque rôle"</string>
+    <string name="settings_use_solid_panels_for_clearer_text_and_controls" formatted="false">"Utiliser des panneaux opaques pour mieux lire les textes et commandes."</string>
+    <string name="settings_vertical_scroll" formatted="false">"Défilement vertical"</string>
+    <string name="settings_voice_and_language" formatted="false">"Voix et langue"</string>
+    <string name="settings_voice_reader_settings" formatted="false">"Réglages vocaux et du lecteur"</string>
+    <string name="settings_voice_waveforms" formatted="false">"Formes d’onde audio"</string>
+    <string name="settings_wide" formatted="false">"Large"</string>
+    <string name="settings_writing" formatted="false">"Écriture"</string>
+    <string name="ui_a_little_space_for_big_ideas" formatted="false">"Un petit espace pour de grandes idées."</string>
+    <string name="ui_a_speech_tag_such_as_alice_said_identifies_this_character" formatted="false">"Une indication comme « Alice dit » identifie ce personnage."</string>
+    <string name="ui_a_thought_worth_keeping" formatted="false">"Une idée à conserver"</string>
+    <string name="ui_aa" formatted="false">"Aa"</string>
+    <string name="ui_aa_2c419ec" formatted="false">"Aa"</string>
+    <string name="ui_access_hundreds_of_models_at_openrouter_ai" formatted="false">"Accédez à des centaines de modèles sur openrouter.ai."</string>
+    <string name="ui_active" formatted="false">"Actif"</string>
+    <string name="ui_active_voice" formatted="false">"Voix active"</string>
+    <string name="ui_add_api_key" formatted="false">"Ajouter une clé API"</string>
+    <string name="ui_add_character" formatted="false">"Ajouter un personnage"</string>
+    <string name="ui_add_language_voice" formatted="false">"Ajouter une langue ou une voix"</string>
+    <string name="ui_ai_assistant_preference" formatted="false">"Assistant IA préféré"</string>
+    <string name="ui_ai_provider_key_setup" formatted="false">"Fournisseur IA et clé"</string>
+    <string name="ui_always_growing" formatted="false">"Toujours en évolution"</string>
+    <string name="ui_amoled_mode" formatted="false">"Mode AMOLED"</string>
+    <string name="ui_android_battery_optimizations_will_pause_or_kill_vern_speech_play" formatted="false">"L’optimisation de la batterie Android peut interrompre la lecture vocale de Vern après le verrouillage ou l’extinction de l’écran."</string>
+    <string name="ui_any_standard_openai_compatible_api_base_url" formatted="false">"Toute adresse API standard compatible avec OpenAI."</string>
+    <string name="ui_api_endpoint_url" formatted="false">"Adresse du point d’accès API"</string>
+    <string name="ui_app_backups_include_notes_and_these_preferences_zip_backups_also" formatted="false">"Les sauvegardes incluent les notes et ces réglages. ZIP contient aussi les pièces jointes locales prises en charge. Utilisez Sauvegarde et restauration dans les réglages."</string>
+    <string name="ui_app_icon_colours" formatted="false">"Couleurs de l’icône"</string>
+    <string name="ui_appearance_mode" formatted="false">"Mode d’affichage"</string>
+    <string name="ui_apply_narration_settings" formatted="false">"Appliquer les réglages de narration"</string>
+    <string name="ui_auto_play_queue" formatted="false">"Lecture automatique de la file"</string>
+    <string name="ui_automatic_weekly_backups" formatted="false">"Sauvegardes hebdomadaires automatiques"</string>
+    <string name="ui_automatically_play_next_queued_book" formatted="false">"Lire automatiquement le livre suivant"</string>
+    <string name="ui_automatically_save_local_backup_archives_every_7_days" formatted="false">"Enregistrer une sauvegarde locale tous les 7 jours"</string>
+    <string name="ui_book" formatted="false">"Livre"</string>
+    <string name="ui_books_notes_and_dashboard_cards_drop_into_varied_tilts_and_offset" formatted="false">"Les cartes des livres, notes et tableaux de bord prennent des inclinaisons variées tout en gardant leur place."</string>
+    <string name="ui_change_colour" formatted="false">"Changer la couleur"</string>
+    <string name="ui_change_what_vern_says_without_changing_the_book" formatted="false">"Changez la prononciation de Vern sans modifier le livre."</string>
+    <string name="ui_character_voice" formatted="false">"Voix du personnage"</string>
+    <string name="ui_checking_for_updates" formatted="false">"Recherche de mises à jour…"</string>
+    <string name="ui_choose_a_palette_for_your_launcher_icon_the_launcher_updates_when" formatted="false">"Choisissez une palette pour l’icône. Elle sera mise à jour à la sortie de Vern pour garder vos réglages ouverts."</string>
+    <string name="ui_choose_accent_colour" formatted="false">"Choisir la couleur d’accent"</string>
+    <string name="ui_choose_any_colour_for_buttons_highlights_and_matching_tints_it_fo" formatted="false">"Choisissez la couleur des boutons, surlignages et teintes associées. Elle suit votre thème et le mode clair, sombre ou système."</string>
+    <string name="ui_choose_colour" formatted="false">"Choisir une couleur"</string>
+    <string name="ui_choose_the_assistant_veritas_should_launch_when_you_select_text_i" formatted="false">"Choisissez l’assistant à ouvrir après une sélection de texte. Si l’application n’est pas installée, Veritas peut ouvrir sa page sur le Play Store."</string>
+    <string name="ui_close_notes_settings" formatted="false">"Fermer les réglages des notes"</string>
+    <string name="ui_collapse" formatted="false">"Réduire"</string>
+    <string name="ui_color_palette_and_document_canvas_tone" formatted="false">"Palette et teinte du document"</string>
+    <string name="ui_colour_themes" formatted="false">"Thèmes de couleurs"</string>
+    <string name="ui_colours_card_character_and_page_motion" formatted="false">"Couleurs, style des cartes et mouvement des pages."</string>
+    <string name="ui_comfort_comes_first" formatted="false">"Le confort avant tout"</string>
+    <string name="ui_connect_any_ai_model_to_generate_flashcards_quizzes_and_study_sum" formatted="false">"Connectez un modèle IA pour créer des fiches, quiz et résumés directement dans Veritas Reader."</string>
+    <string name="ui_control_how_pdfs_and_text_files_are_imported_before_they_enter_th" formatted="false">"Choisissez comment importer les PDF et fichiers texte avant leur ouverture dans le lecteur."</string>
+    <string name="ui_current_voice_model" formatted="false">"MODÈLE VOCAL ACTUEL"</string>
+    <string name="ui_custom_accent" formatted="false">"Couleur d’accent personnalisée"</string>
+    <string name="ui_custom_prompt_template" formatted="false">"Modèle de consigne personnalisé"</string>
+    <string name="ui_data_included_in_backup_sync" formatted="false">"Données sauvegardées et synchronisées"</string>
+    <string name="ui_definition_wiktionary" formatted="false">"Définition : Wiktionary"</string>
+    <string name="ui_delete_vocabulary_word" formatted="false">"Supprimer ce mot du vocabulaire ?"</string>
+    <string name="ui_delete_voice_model" formatted="false">"Supprimer le modèle vocal"</string>
+    <string name="ui_device_animations_are_off_startup_stays_still" formatted="false">"Les animations du système sont désactivées. Le démarrage reste fixe."</string>
+    <string name="ui_discard_narration_changes" formatted="false">"Abandonner les changements de narration ?"</string>
+    <string name="ui_display_preferences" formatted="false">"Préférences d’affichage"</string>
+    <string name="ui_don_t_ask_again" formatted="false">"Ne plus demander"</string>
+    <string name="ui_download_in_voice_studio" formatted="false">" · À télécharger dans le studio vocal"</string>
+    <string name="ui_download_voices_for_offline_reading_update_older_piper_voices_usi" formatted="false">"Téléchargez des voix pour lire hors ligne. Mettez à jour les anciennes voix Piper depuis la liste pour obtenir le modèle pleine précision moins bruyant. La lecture en mémoire tampon continue normalement."</string>
+    <string name="ui_edit_rule" formatted="false">"Modifier la règle"</string>
+    <string name="ui_effects_apply_to_text_pages_in_page_swipe_mode_reduce_motion_turn" formatted="false">"Les effets s’appliquent aux pages de texte en mode balayage. Réduire les animations désactive les transitions."</string>
+    <string name="ui_end_page" formatted="false">"Dernière page"</string>
+    <string name="ui_entry_actions" formatted="false">"Actions sur l’entrée"</string>
+    <string name="ui_expand" formatted="false">"Développer"</string>
+    <string name="ui_export_portable_backup_with_media_zip" formatted="false">"Exporter une sauvegarde avec médias (.zip)"</string>
+    <string name="ui_export_text_settings_json" formatted="false">"Exporter le texte et les réglages (.json)"</string>
+    <string name="ui_extraction_mode" formatted="false">"Mode d’extraction"</string>
+    <string name="ui_fewer_examples" formatted="false">"Moins d’exemples"</string>
+    <string name="ui_find_meaning" formatted="false">"Chercher le sens"</string>
+    <string name="ui_find_vern_online" formatted="false">"Retrouvez Vern en ligne"</string>
+    <string name="ui_find_word_or_phrase" formatted="false">"Mot ou expression à chercher"</string>
+    <string name="ui_follow_my_colour_theme" formatted="false">"Suivre mon thème de couleurs"</string>
+    <string name="ui_for_example_sequel_instead_of_sql" formatted="false">"Par exemple, dire « sequel » au lieu de SQL."</string>
+    <string name="ui_free_tier_available_at_aistudio_google_com" formatted="false">"Offre gratuite sur aistudio.google.com."</string>
+    <string name="ui_funky_cards" formatted="false">"Cartes décalées"</string>
+    <string name="ui_glass_in_other_theme_packs" formatted="false">"Verre dans les autres thèmes"</string>
+    <string name="ui_go" formatted="false">"Aller"</string>
+    <string name="ui_got_it" formatted="false">"Compris"</string>
+    <string name="ui_hide_matching_details" formatted="false">"Masquer les détails de correspondance"</string>
+    <string name="ui_hide_syntax_guide" formatted="false">"Masquer le guide de syntaxe"</string>
+    <string name="ui_high_contrast" formatted="false">"Contraste élevé"</string>
+    <string name="ui_high_contrast_keeps_its_accessibility_colours_your_custom_accent" formatted="false">"Le contraste élevé conserve ses couleurs accessibles. Votre couleur revient quand vous quittez ce mode."</string>
+    <string name="ui_how_rules_are_matched" formatted="false">"Fonctionnement des correspondances"</string>
+    <string name="ui_how_to_enable_uninterrupted_audio" formatted="false">"Pour écouter sans interruption :"</string>
+    <string name="ui_html_with_images" formatted="false">"HTML avec images"</string>
+    <string name="ui_import_sync_backup_pack" formatted="false">"Importer une sauvegarde"</string>
+    <string name="ui_include_online_network_voices" formatted="false">"Inclure les voix en ligne"</string>
+    <string name="ui_includes_unsaved_rule" formatted="false">"Inclut la règle non enregistrée"</string>
+    <string name="ui_install" formatted="false">"Installer"</string>
+    <string name="ui_install_from_play_store" formatted="false">"Installer depuis le Play Store"</string>
+    <string name="ui_jump_to_page" formatted="false">"Aller à la page"</string>
+    <string name="ui_jump_to_page_8a8ded9" formatted="false">"Aller à la page"</string>
+    <string name="ui_keep_editing" formatted="false">"Continuer à modifier"</string>
+    <string name="ui_keep_your_reading_space_up_to_date" formatted="false">"Gardez votre espace de lecture à jour."</string>
+    <string name="ui_keys_are_saved_locally_on_your_device_only" formatted="false">" Les clés sont enregistrées uniquement sur votre appareil."</string>
+    <string name="ui_language_voice_library" formatted="false">"Bibliothèque de langues et voix"</string>
+    <string name="ui_library_sync_backup_engine" formatted="false">"Synchronisation et sauvegarde de la bibliothèque"</string>
+    <string name="ui_listen_to_preview" formatted="false">"Écouter l’essai"</string>
+    <string name="ui_lite" formatted="false">"Lite"</string>
+    <string name="ui_live_preview" formatted="false">"Aperçu en direct"</string>
+    <string name="ui_loading_voice_models" formatted="false">"Chargement des modèles vocaux…"</string>
+    <string name="ui_made_better_together" formatted="false">"Améliorons-le ensemble"</string>
+    <string name="ui_make_vern_yours" formatted="false">"Personnalisez Vern"</string>
+    <string name="ui_match" formatted="false">"Correspondance"</string>
+    <string name="ui_match_case" formatted="false">"Respecter la casse"</string>
+    <string name="ui_match_case_2e62945" formatted="false">" · Respecter la casse"</string>
+    <string name="ui_match_changing_text_with_markers_such_as_n_or_text" formatted="false">"Recherchez du texte variable avec [n] ou {text}."</string>
+    <string name="ui_match_pattern" formatted="false">"Motif à rechercher"</string>
+    <string name="ui_matches_complete_words_and_phrases" formatted="false">"Recherche des mots et expressions entiers."</string>
+    <string name="ui_minimum_word_gap" formatted="false">"Espace minimal entre les mots"</string>
+    <string name="ui_model" formatted="false">"Modèle"</string>
+    <string name="ui_model_name_id" formatted="false">"Nom ou identifiant du modèle"</string>
+    <string name="ui_more_examples" formatted="false">"Plus d’exemples"</string>
+    <string name="ui_n_matches_1_12_use_number_word_or_text_for_example_text_matches_a" formatted="false">"[n] correspond à [1], [12]… Utilisez {number}, {word} ou {text}. Par exemple, _{text}_ recherche une expression entourée de tirets bas. Les mots restent séparés quand les marqueurs sont remplacés."</string>
+    <string name="ui_name_as_it_appears_in_the_book" formatted="false">"Nom tel qu’il apparaît dans le livre"</string>
+    <string name="ui_narration_mode" formatted="false">"Mode narration"</string>
+    <string name="ui_narration_shortcuts" formatted="false">"Raccourcis de narration"</string>
+    <string name="ui_new_rule" formatted="false">"Nouvelle règle"</string>
+    <string name="ui_no_rules_yet" formatted="false">"Aucune règle"</string>
+    <string name="ui_no_voices_found_matching_search_filter" formatted="false">"Aucune voix ne correspond à la recherche."</string>
+    <string name="ui_not_now" formatted="false">"Plus tard"</string>
+    <string name="ui_notes_save_automatically_as_you_write_the_editor_shows_when_your" formatted="false">"Les notes s’enregistrent automatiquement pendant l’écriture. L’éditeur indique quand les changements sont enregistrés."</string>
+    <string name="ui_notes_settings" formatted="false">"Réglages des notes"</string>
+    <string name="ui_notes_settings_cc5a665" formatted="false">"Réglages des notes"</string>
+    <string name="ui_nothing_to_clean_up" formatted="false">"Rien à nettoyer"</string>
+    <string name="ui_nothing_will_be_spoken" formatted="false">"Rien ne sera prononcé."</string>
+    <string name="ui_obtain_keys_from_console_anthropic_com" formatted="false">"Obtenez une clé sur console.anthropic.com."</string>
+    <string name="ui_obtain_keys_from_platform_openai_com" formatted="false">"Obtenez une clé sur platform.openai.com."</string>
+    <string name="ui_off" formatted="false">"Désactivé"</string>
+    <string name="ui_on_device" formatted="false">" · Sur l’appareil"</string>
+    <string name="ui_online" formatted="false">" · En ligne"</string>
+    <string name="ui_open_file_browser" formatted="false">"Ouvrir l’explorateur de fichiers"</string>
+    <string name="ui_open_quotes_carry_across_sentences_speaker_tags_and_labels_identi" formatted="false">"Les citations peuvent s’étendre sur plusieurs phrases. Les indications de locuteur identifient les personnages ; les paroles incertaines utilisent le profil Dialogue par défaut."</string>
+    <string name="ui_open_source_licenses" formatted="false">"Licences des logiciels libres"</string>
+    <string name="ui_original_passage" formatted="false">"Passage original"</string>
+    <string name="ui_original_pdf_navigation" formatted="false">"Navigation du PDF original"</string>
+    <string name="ui_page_navigation" formatted="false">"Navigation des pages"</string>
+    <string name="ui_page_number" formatted="false">"Numéro de page"</string>
+    <string name="ui_paper" formatted="false">"Papier"</string>
+    <string name="ui_pdf_import_tools" formatted="false">"Outils PDF et importation"</string>
+    <string name="ui_play_sample" formatted="false">"Écouter un extrait"</string>
+    <string name="ui_plays_the_passage_sentence_by_sentence_with_the_same_role_detecti" formatted="false">"Lit le passage phrase par phrase avec la même détection de rôles, les mêmes voix et règles de prononciation."</string>
+    <string name="ui_portable_backup_actions" formatted="false">"Actions de sauvegarde transférable"</string>
+    <string name="ui_preparing_preview" formatted="false">"Préparation de l’essai…"</string>
+    <string name="ui_preview_finished" formatted="false">"Aperçu terminé"</string>
+    <string name="ui_preview_startup_motion" formatted="false">"Aperçu de l’animation"</string>
+    <string name="ui_preview_text" formatted="false">"Texte d’essai"</string>
+    <string name="ui_preview_voice" formatted="false">"Écouter la voix"</string>
+    <string name="ui_prompt_template" formatted="false">"Modèle de consigne"</string>
+    <string name="ui_provider" formatted="false">"Fournisseur"</string>
+    <string name="ui_punctuation" formatted="false">"Ponctuation"</string>
+    <string name="ui_pure_black_background_for_dark_themes_and_battery_saving" formatted="false">"Fond noir pur pour les thèmes sombres et l’économie de batterie"</string>
+    <string name="ui_quick_colours" formatted="false">"Couleurs rapides"</string>
+    <string name="ui_re2_regex_example_0_9_look_around_and_pattern_backreferences_are" formatted="false">"Exemple RE2 : \[([0-9]+)\]. Les assertions et références arrière du motif ne sont pas prises en charge. Les correspondances vides sont ignorées."</string>
+    <string name="ui_read_listen_make_it_yours" formatted="false">"Lisez. Écoutez.\nÀ votre façon."</string>
+    <string name="ui_reader_typography_font_family" formatted="false">"Typographie et police du lecteur"</string>
+    <string name="ui_reading_layout" formatted="false">"Disposition de lecture"</string>
+    <string name="ui_ready_to_launch" formatted="false">"Prêt à ouvrir"</string>
+    <string name="ui_reduce_motion_is_on_startup_stays_still" formatted="false">"Les animations sont réduites. Le démarrage reste fixe."</string>
+    <string name="ui_reduce_transparency_currently_keeps_controls_opaque" formatted="false">"La réduction de transparence garde les commandes opaques."</string>
+    <string name="ui_refresh_meaning" formatted="false">"Actualiser le sens"</string>
+    <string name="ui_remove_character" formatted="false">"Supprimer le personnage"</string>
+    <string name="ui_reset_delivery" formatted="false">"Réinitialiser l’interprétation"</string>
+    <string name="ui_reset_notes_preferences" formatted="false">"Réinitialiser les préférences des notes"</string>
+    <string name="ui_reset_notes_preferences_c9adb9e" formatted="false">"Réinitialiser les préférences des notes ?"</string>
+    <string name="ui_reset_preferences" formatted="false">"Réinitialiser les préférences"</string>
+    <string name="ui_restore_the_default_layout_and_writing_preferences_your_notes_and" formatted="false">"Rétablir la disposition et l’écriture par défaut. Vos notes et pièces jointes seront conservées."</string>
+    <string name="ui_rich_colors_from_your_selected_theme" formatted="false">"Couleurs riches du thème choisi"</string>
+    <string name="ui_rules_apply_to_all_readings_and_audio_exports_within_each_spoken" formatted="false">"Les règles s’appliquent à chaque passage lu et export audio. La première correspondance prime, puis la plus longue ; en cas d’égalité, la règle enregistrée le plus récemment. Le livre reste intact."</string>
+    <string name="ui_sample" formatted="false">"Extrait"</string>
+    <string name="ui_save_ai_settings" formatted="false">"Enregistrer les réglages IA"</string>
+    <string name="ui_save_an_example_or_create_your_own_above" formatted="false">"Enregistrez un exemple ou créez une règle ci-dessus."</string>
+    <string name="ui_save_rule" formatted="false">"Enregistrer la règle"</string>
+    <string name="ui_saved_rules" formatted="false">"Règles enregistrées"</string>
+    <string name="ui_say_instead" formatted="false">"Dire à la place"</string>
+    <string name="ui_search_voices" formatted="false">"Rechercher des voix"</string>
+    <string name="ui_search_voices_or_languages" formatted="false">"Rechercher des voix ou langues…"</string>
+    <string name="ui_select_preferred_ai_app" formatted="false">"Choisir l’application IA"</string>
+    <string name="ui_selected_colour" formatted="false">"Couleur choisie"</string>
+    <string name="ui_shape_the_narrator_and_dialogue_voices_then_listen_before_applyin" formatted="false">"Réglez les voix du narrateur et des dialogues, puis écoutez avant d’appliquer. Votre vitesse de lecture sert de base."</string>
+    <string name="ui_shape_your_reading_space_around_what_feels_good_to_you" formatted="false">"Adaptez votre espace de lecture à vos besoins."</string>
+    <string name="ui_share_as_image" formatted="false">"Partager comme image"</string>
+    <string name="ui_share_as_text" formatted="false">"Partager comme texte"</string>
+    <string name="ui_share_text_settings_json" formatted="false">"Partager le texte et les réglages (.json)"</string>
+    <string name="ui_shown_on_a_fresh_launch_from_your_icon_returning_from_recents_doe" formatted="false">"Visible à l’ouverture depuis l’icône, pas au retour depuis les applications récentes. Les changements s’appliquent après avoir quitté Vern."</string>
+    <string name="ui_skip" formatted="false">"Ignorer"</string>
+    <string name="ui_smart_cleanup_removes_original_files_of_fully_read_or_90_day_dorm" formatted="false">"Le nettoyage intelligent supprime les originaux des documents terminés ou inactifs depuis plus de 90 jours, hors favoris. Texte, progression, notes et surlignages sont conservés."</string>
+    <string name="ui_speech_edits" formatted="false">"Modifications vocales"</string>
+    <string name="ui_spoken_result" formatted="false">"Résultat prononcé"</string>
+    <string name="ui_start_page" formatted="false">"Première page"</string>
+    <string name="ui_start_with_an_example" formatted="false">"Commencer par un exemple"</string>
+    <string name="ui_startup_animation" formatted="false">"Animation au démarrage"</string>
+    <string name="ui_stop_preview" formatted="false">"Arrêter l’essai"</string>
+    <string name="ui_stop_preview_e984397" formatted="false">"Arrêter l’essai"</string>
+    <string name="ui_studio" formatted="false">"Studio"</string>
+    <string name="ui_study_focus" formatted="false">"Concentration"</string>
+    <string name="ui_swipe_effect" formatted="false">"Effet de balayage"</string>
+    <string name="ui_syntax_guide" formatted="false">"Guide de syntaxe"</string>
+    <string name="ui_system_tts_settings" formatted="false">"Réglages de synthèse vocale du système"</string>
+    <string name="ui_tap_the_selected_preset_again_to_restore_your_previous_theme" formatted="false">"Touchez à nouveau le préréglage actif pour retrouver le thème précédent."</string>
+    <string name="ui_tap_turn_on_unrestricted_and_choose_allow_on_the_prompt_or_select" formatted="false">"Touchez « Activer sans restriction », puis « Autoriser », ou choisissez Batterie → Sans restriction dans les informations de l’application."</string>
+    <string name="ui_temporary_cache_is_clean" formatted="false">"Le cache temporaire est vide"</string>
+    <string name="ui_text_adjusts_to_contrast_with_your_colour" formatted="false">"Le texte s’adapte pour rester lisible sur votre couleur."</string>
+    <string name="ui_text_encoding" formatted="false">"Encodage du texte"</string>
+    <string name="ui_text_illustrations_and_tables_use_the_selected_reading_layout" formatted="false">"Le texte, les images et les tableaux suivent la disposition choisie."</string>
+    <string name="ui_text_size_and_spacing_apply_only_while_writing_notes" formatted="false">"La taille et l’espacement du texte s’appliquent seulement à l’écriture des notes."</string>
+    <string name="ui_the_quick_brown_fox_jumps_over" formatted="false">"Portez ce vieux whisky au juge blond"</string>
+    <string name="ui_theme_packs" formatted="false">"Packs de thèmes"</string>
+    <string name="ui_theme_palette_sets" formatted="false">"Palettes de thèmes"</string>
+    <string name="ui_then" formatted="false">"Puis"</string>
+    <string name="ui_this_name_already_has_a_profile" formatted="false">"Ce nom a déjà un profil."</string>
+    <string name="ui_translucent_glass_with_curved_edges_for_navigation_player_and_flo" formatted="false">"Verre translucide aux bords arrondis pour la navigation, le lecteur et les boutons flottants Ajouter, Note et Importer. Inclus dans Liquid glass."</string>
+    <string name="ui_try_a_passage" formatted="false">"Essayer un passage"</string>
+    <string name="ui_try_your_rules" formatted="false">"Tester vos règles"</string>
+    <string name="ui_turn_off_the_app_s_tone_profile_speed_and_pitch_stay_as_selected" formatted="false">"Désactivez le profil de tonalité de l’application. Vitesse et hauteur restent inchangées. L’égalisation Android dépend du moteur et de l’appareil."</string>
+    <string name="ui_turn_on_unrestricted" formatted="false">"Activer sans restriction"</string>
+    <string name="ui_typeface" formatted="false">"Police"</string>
+    <string name="ui_ui_styling_shapes_and_surface_finish" formatted="false">"Style, formes et finition de l’interface"</string>
+    <string name="ui_ultra_fast_inference_at_console_groq_com" formatted="false">"Inférence rapide sur console.groq.com."</string>
+    <string name="ui_unrestricted_battery_playback" formatted="false">"Lecture sans restriction de batterie"</string>
+    <string name="ui_update_rule" formatted="false">"Mettre à jour la règle"</string>
+    <string name="ui_use_a_regular_expression_for_advanced_matching" formatted="false">"Utilisez une expression régulière pour une recherche avancée."</string>
+    <string name="ui_use_selected_voice" formatted="false">"Utiliser la voix sélectionnée"</string>
+    <string name="ui_use_selection_where_the_selected_text_should_appear" formatted="false">"Placez {selection} à l’endroit du texte sélectionné"</string>
+    <string name="ui_use_system_default" formatted="false">"Utiliser la voix système par défaut"</string>
+    <string name="ui_use_the_zip_backup_to_carry_notes_recordings_images_and_quiz_medi" formatted="false">"Utilisez ZIP pour transférer les enregistrements, images des notes et médias des quiz. JSON contient uniquement le texte et les réglages. L’importation fusionne les données existantes."</string>
+    <string name="ui_use_theme_colours" formatted="false">"Utiliser les couleurs du thème"</string>
+    <string name="ui_use_vern_lite" formatted="false">"Utiliser Vern Lite"</string>
+    <string name="ui_use_vern_studio" formatted="false">"Utiliser Vern Studio"</string>
+    <string name="ui_vern" formatted="false">"Vern"</string>
+    <string name="ui_vern_is_built_using_the_following_open_source_libraries_and_tools" formatted="false">"Vern utilise les bibliothèques et outils libres suivants :"</string>
+    <string name="ui_vern_is_ready" formatted="false">"Vern est prêt"</string>
+    <string name="ui_vern_sync_backup_creates_portable_backup_files_containing_your_en" formatted="false">"Vern crée des sauvegardes transférables de votre bibliothèque, progression, fiches, notes, signets et règles vocales. L’importation fusionne les données sans supprimer les lectures locales."</string>
+    <string name="ui_vern_voice_models" formatted="false">"Modèles vocaux Vern"</string>
+    <string name="ui_vibrant_hero_card" formatted="false">"Carte principale vive"</string>
+    <string name="ui_voice_presets" formatted="false">"Préréglages vocaux"</string>
+    <string name="ui_voice_shaping" formatted="false">"Profil de tonalité"</string>
+    <string name="ui_voices_and_delivery" formatted="false">"Voix et interprétation"</string>
+    <string name="ui_working_on_backup_file" formatted="false">"Traitement du fichier de sauvegarde…"</string>
+    <string name="ui_your_books_your_notes_your_pace_a_quieter_place_to_read_listen_an" formatted="false">"Vos livres, vos notes, votre rythme. Un espace calme pour lire, écouter et suivre votre curiosité."</string>
+    <string name="ui_your_library_stays_on_your_device_online_features_are_optional" formatted="false">"Votre bibliothèque reste sur votre appareil. Les fonctions en ligne sont facultatives."</string>
+    <string name="ui_your_saved_narration_settings_will_stay_as_they_are" formatted="false">"Vos réglages de narration enregistrés seront conservés."</string>
+</resources>

@@ -545,7 +545,8 @@ object VoiceConfigurator {
             { tts.setSpeechRate(it) == TextToSpeech.SUCCESS }, { tts.setPitch(it) == TextToSpeech.SUCCESS })
 
     fun apply(tts: TextToSpeech, settings: VoiceSettings): String {
-        val locale = settings.localeTag.takeIf { it.isNotBlank() }?.let { Locale.forLanguageTag(it) } ?: Locale.getDefault()
+        val locale = settings.localeTag.takeIf { it.isNotBlank() }?.let { Locale.forLanguageTag(it) }
+            ?: tts.defaultVoice?.locale ?: AppLanguages.systemSpeechLocale()
         val languageStatus = tts.setLanguage(locale)
         val selectedVoice = settings.voiceName.takeIf { it.isNotBlank() }
             ?.let { name -> tts.voices?.firstOrNull { it.name == name } }

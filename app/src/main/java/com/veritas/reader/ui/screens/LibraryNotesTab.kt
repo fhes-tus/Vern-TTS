@@ -209,13 +209,13 @@ internal fun LibraryNotesTab(
                                 Column(modifier = modifier.fillMaxSize()) {
                                     Spacer(Modifier.height(8.dp))
                                     if (createNotebookDialog && collectionActions != null) {
-                                        NotebookNameDialog("New notebook", notebookName, { notebookName = it }, uiState.noteNotebooks,
+                                        NotebookNameDialog(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_new_notebook), notebookName, { notebookName = it }, uiState.noteNotebooks,
                                             onDismiss = { onCreateNotebookDialogChange(false) },
                                             onSave = { collectionActions.createNotebook(notebookName.trim()); notebookName = ""; onCreateNotebookDialogChange(false) })
                                     }
                                     if (manageNotebooksDialog && collectionActions != null) {
                                         AlertDialog(
-                                            onDismissRequest = { onManageNotebooksDialogChange(false) }, title = { Text("Manage notebooks") },
+                                            onDismissRequest = { onManageNotebooksDialogChange(false) }, title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_manage_notebooks)) },
                                             text = { Column(modifier = Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState())) {
                                                 uiState.noteNotebooks.forEach { notebook ->
                                                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
@@ -225,19 +225,19 @@ internal fun LibraryNotesTab(
                                                     }
                                                 }
                                             } },
-                                            confirmButton = { TextButton(onClick = { onManageNotebooksDialogChange(false) }) { Text("Done") } }
+                                            confirmButton = { TextButton(onClick = { onManageNotebooksDialogChange(false) }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done)) } }
                                         )
                                     }
                                     notebookToDelete?.let { notebook ->
                                         AlertDialog(
-                                            onDismissRequest = { notebookToDelete = null }, title = { Text("Delete label?") },
-                                            text = { Text("Notes in ${notebook.name} will keep their content and other notebooks. Trashed notes stay in Trash.") },
-                                            confirmButton = { TextButton(onClick = { collectionActions?.deleteNotebook?.invoke(notebook.id); notebookToDelete = null }) { Text("Delete") } },
-                                            dismissButton = { TextButton(onClick = { notebookToDelete = null }) { Text("Cancel") } }
+                                            onDismissRequest = { notebookToDelete = null }, title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_label)) },
+                                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_111, com.veritas.reader.ui.screens.localizedUiValue(notebook.name))) },
+                                            confirmButton = { TextButton(onClick = { collectionActions?.deleteNotebook?.invoke(notebook.id); notebookToDelete = null }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) } },
+                                            dismissButton = { TextButton(onClick = { notebookToDelete = null }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } }
                                         )
                                     }
                                     notebookToRename?.let { notebook ->
-                                        NotebookNameDialog("Rename label", renamedNotebook, { renamedNotebook = it }, uiState.noteNotebooks,
+                                        NotebookNameDialog(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_rename_label), renamedNotebook, { renamedNotebook = it }, uiState.noteNotebooks,
                                             editingId = notebook.id, onDismiss = { notebookToRename = null },
                                             onSave = { collectionActions?.renameNotebook?.invoke(notebook.id, renamedNotebook.trim()); notebookToRename = null })
                                     }
@@ -294,12 +294,12 @@ internal fun LibraryNotesTab(
                                                             modifier = Modifier.size(48.dp)
                                                         )
                                                         Text(
-                                                            text = if (noteSearchQuery.isNotBlank()) "No matching notes" else if (showTrash) "Trash is empty" else "No notes found",
+                                                            text = if (noteSearchQuery.isNotBlank()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_matching_notes) else if (showTrash) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_trash_is_empty) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_notes_found),
                                                             style = MaterialTheme.typography.titleMedium,
                                                             color = MaterialTheme.colorScheme.onSurface
                                                         )
                                                         Text(
-                                                            text = if (noteSearchQuery.isNotBlank()) "Try searching for a different keyword." else if (showTrash) "Deleted notes appear here until you restore or permanently delete them." else "Try another filter or create a note.",
+                                                            text = if (noteSearchQuery.isNotBlank()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_try_searching_for_a_different_keyword) else if (showTrash) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_deleted_notes_appear_here_until_you_restore_or_permanently_delete) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_try_another_filter_or_create_a_note),
                                                             style = MaterialTheme.typography.bodyMedium,
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -319,7 +319,7 @@ internal fun LibraryNotesTab(
                                                                 modifier = Modifier.size(18.dp)
                                                             )
                                                             Spacer(modifier = Modifier.width(6.dp))
-                                                            Text("Write Note")
+                                                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_write_note))
                                                         }
                                                     }
                                                 }
@@ -344,14 +344,14 @@ internal fun LibraryNotesTab(
                                                 if (confirmNoteDelete) {
                                                     AlertDialog(
                                                         onDismissRequest = { confirmNoteDelete = false },
-                                                        title = { Text(if (showTrash) "Delete permanently?" else "Move to trash?") },
-                                                        text = { Text(if (showTrash) "This note will be permanently deleted. Its attachment files are kept to avoid removing media shared by another note." else "You can restore this note from Trash.") },
+                                                        title = { Text(if (showTrash) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_permanently) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_to_trash)) },
+                                                        text = { Text(if (showTrash) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_this_note_will_be_permanently_deleted_its_attachment_files_are_ke) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_you_can_restore_this_note_from_trash)) },
                                                         confirmButton = {
                                                             TextButton(onClick = {
                                                                 confirmNoteDelete = false
                                                                 if (showTrash) collectionActions?.permanentlyDeleteNote?.invoke(generalNote.id)
                                                                 else onDeleteGeneralNote(generalNote.id)
-                                                            }) { Text(if (showTrash) "Delete permanently" else "Move to trash", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                                                            }) { Text(if (showTrash) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_permanently_e63b515) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_to_trash_572a73d), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                                                         },
                                                         dismissButton = {
                                                             TextButton(onClick = { confirmNoteDelete = false }) {
@@ -414,7 +414,7 @@ internal fun LibraryNotesTab(
                                                                                     modifier = Modifier.size(11.dp)
                                                                                 )
                                                                                 Text(
-                                                                                    text = "Pinned",
+                                                                                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pinned),
                                                                                     style = MaterialTheme.typography.labelSmall,
                                                                                     color = MaterialTheme.colorScheme.primary
                                                                                 )
@@ -477,7 +477,7 @@ internal fun LibraryNotesTab(
                                                                 ) {
                                                                     Icon(
                                                                         imageVector = if (generalNote.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                                                                        contentDescription = if (generalNote.pinned) "Unpin note" else "Pin note",
+                                                                        contentDescription = if (generalNote.pinned) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unpin_note) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pin_note),
                                                                         tint = if (generalNote.pinned) MaterialTheme.colorScheme.primary else onCardColor.copy(alpha = 0.5f),
                                                                         modifier = Modifier.size(16.dp)
                                                                     )
@@ -548,7 +548,7 @@ internal fun LibraryNotesTab(
                                                                         }
                                                                         if (allLines.size > maxItems) {
                                                                             Text(
-                                                                                text = "+ ${allLines.size - maxItems} more items",
+                                                                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_112, com.veritas.reader.ui.screens.localizedUiValue(allLines.size - maxItems)),
                                                                                 style = MaterialTheme.typography.labelSmall,
                                                                                 color = onCardColor.copy(alpha = 0.5f),
                                                                                 modifier = Modifier.padding(start = 20.dp)
@@ -678,12 +678,12 @@ internal fun LibraryNotesTab(
                                                                                 ) {
                                                                                     Icon(
                                                                                         imageVector = Icons.Default.Videocam,
-                                                                                        contentDescription = "Video",
+                                                                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_video),
                                                                                         tint = MaterialTheme.colorScheme.primary,
                                                                                         modifier = Modifier.size(12.dp)
                                                                                     )
                                                                                     Text(
-                                                                                        text = "Video",
+                                                                                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_video),
                                                                                         style = MaterialTheme.typography.labelSmall,
                                                                                         color = onCardColor.copy(alpha = 0.75f)
                                                                                     )
@@ -702,12 +702,12 @@ internal fun LibraryNotesTab(
                                                                                 ) {
                                                                                     Icon(
                                                                                         imageVector = Icons.Default.Image,
-                                                                                        contentDescription = "Image",
+                                                                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_image),
                                                                                         tint = MaterialTheme.colorScheme.primary,
                                                                                         modifier = Modifier.size(12.dp)
                                                                                     )
                                                                                     Text(
-                                                                                        text = "Image",
+                                                                                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_image),
                                                                                         style = MaterialTheme.typography.labelSmall,
                                                                                         color = onCardColor.copy(alpha = 0.75f)
                                                                                     )
@@ -726,7 +726,7 @@ internal fun LibraryNotesTab(
                                                                                 ) {
                                                                                     Icon(
                                                                                         imageVector = Icons.Default.AttachFile,
-                                                                                        contentDescription = "File",
+                                                                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_file),
                                                                                         tint = MaterialTheme.colorScheme.primary,
                                                                                         modifier = Modifier.size(12.dp)
                                                                                     )
@@ -752,12 +752,12 @@ internal fun LibraryNotesTab(
                                                                                 ) {
                                                                                     Icon(
                                                                                         imageVector = Icons.Default.Mic,
-                                                                                        contentDescription = "Audio",
+                                                                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_audio),
                                                                                         tint = MaterialTheme.colorScheme.primary,
                                                                                         modifier = Modifier.size(12.dp)
                                                                                     )
                                                                                     Text(
-                                                                                        text = if (audioDur.isNotBlank()) audioDur else "Audio",
+                                                                                        text = if (audioDur.isNotBlank()) audioDur else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_audio),
                                                                                         style = MaterialTheme.typography.labelSmall,
                                                                                         color = onCardColor.copy(alpha = 0.75f)
                                                                                     )
@@ -770,7 +770,7 @@ internal fun LibraryNotesTab(
                                                                         if (hasImage) {
                                                                             Icon(
                                                                                 imageVector = Icons.Default.Image,
-                                                                                contentDescription = "Image attachment",
+                                                                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_image_attachment),
                                                                                 tint = onCardColor.copy(alpha = 0.5f),
                                                                                 modifier = Modifier.size(13.dp)
                                                                             )
@@ -778,7 +778,7 @@ internal fun LibraryNotesTab(
                                                                         if (hasAudio) {
                                                                             Icon(
                                                                                 imageVector = Icons.Default.Mic,
-                                                                                contentDescription = "Audio attachment",
+                                                                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_audio_attachment),
                                                                                 tint = onCardColor.copy(alpha = 0.5f),
                                                                                 modifier = Modifier.size(13.dp)
                                                                             )
@@ -786,7 +786,7 @@ internal fun LibraryNotesTab(
                                                                         if (hasVideo) {
                                                                             Icon(
                                                                                 imageVector = Icons.Default.Videocam,
-                                                                                contentDescription = "Video attachment",
+                                                                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_video_attachment),
                                                                                 tint = onCardColor.copy(alpha = 0.5f),
                                                                                 modifier = Modifier.size(13.dp)
                                                                             )
@@ -794,7 +794,7 @@ internal fun LibraryNotesTab(
                                                                         if (hasFile) {
                                                                             Icon(
                                                                                 imageVector = Icons.Default.AttachFile,
-                                                                                contentDescription = "File attachment",
+                                                                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_file_attachment),
                                                                                 tint = onCardColor.copy(alpha = 0.5f),
                                                                                 modifier = Modifier.size(13.dp)
                                                                             )
@@ -831,25 +831,25 @@ internal fun LibraryNotesTab(
                                                             }
                                                         }
                                                         if (showTrash) {
-                                                            DropdownMenuItem(text = { Text("Restore") }, leadingIcon = { Icon(Icons.Outlined.Restore, null) }, onClick = { showNoteMenu = false; collectionActions?.restoreNote?.invoke(generalNote.id) })
+                                                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_restore)) }, leadingIcon = { Icon(Icons.Outlined.Restore, null) }, onClick = { showNoteMenu = false; collectionActions?.restoreNote?.invoke(generalNote.id) })
                                                         } else {
                                                             DropdownMenuItem(
-                                                                text = { Text(if (generalNote.pinned) "Unpin" else "Pin") },
+                                                                text = { Text(if (generalNote.pinned) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unpin) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pin)) },
                                                                 leadingIcon = { Icon(if (generalNote.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, contentDescription = null) },
                                                                 onClick = { showNoteMenu = false; onToggleGeneralNotePin(generalNote.id) }
                                                             )
                                                             if (collectionActions != null) {
-                                                                DropdownMenuItem(text = { Text("Notebooks") }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.MenuBook, null) }, onClick = { showNoteMenu = false; showNotebookPicker = true })
-                                                                DropdownMenuItem(text = { Text("Revision history") }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { showNoteMenu = false; showRevisionHistory = true })
+                                                                DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notebooks)) }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.MenuBook, null) }, onClick = { showNoteMenu = false; showNotebookPicker = true })
+                                                                DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_revision_history)) }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { showNoteMenu = false; showRevisionHistory = true })
                                                             }
                                                             DropdownMenuItem(
-                                                                text = { Text("Share") },
+                                                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share)) },
                                                                 leadingIcon = { Icon(Icons.Filled.Share, contentDescription = null) },
                                                                 onClick = { showNoteMenu = false; shareGeneralNote(noteShareContext, generalNote) }
                                                             )
                                                         }
                                                         DropdownMenuItem(
-                                                            text = { Text(if (showTrash) "Delete permanently" else "Move to trash") },
+                                                            text = { Text(if (showTrash) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_permanently_e63b515) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_to_trash_572a73d)) },
                                                             leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null) },
                                                             onClick = { showNoteMenu = false; confirmNoteDelete = true }
                                                         )
@@ -870,7 +870,7 @@ internal fun LibraryNotesTab(
                                             if (pinnedNotes.isNotEmpty()) {
                                                 item {
                                                     Text(
-                                                        text = "PINNED",
+                                                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pinned_1779864),
                                                         style = MaterialTheme.typography.labelMedium,
                                                         color = MaterialTheme.colorScheme.primary,
                                                         modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
@@ -915,7 +915,7 @@ internal fun LibraryNotesTab(
                                                 if (pinnedNotes.isNotEmpty()) {
                                                     item {
                                                         Text(
-                                                            text = "OTHERS",
+                                                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_others),
                                                             style = MaterialTheme.typography.labelMedium,
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                             modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)

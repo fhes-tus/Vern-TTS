@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="l10n_widget_0" formatted="false">"फ़्लैशकार्ड सेट"</string>
+    <string name="l10n_widget_1" formatted="false">"अभी फ़्लैशकार्ड नहीं हैं 📚"</string>
+    <string name="l10n_widget_2" formatted="false">"अध्ययन में कार्ड बनाएं या आयात करें"</string>
+    <string name="l10n_widget_3" formatted="false">"फ़्लैशकार्ड सेट चुनें 📚"</string>
+    <string name="l10n_widget_4" formatted="false">"दोहराएं ›"</string>
+    <string name="l10n_widget_5" formatted="false">"‹ सेट"</string>
+    <string name="l10n_widget_6" formatted="false">"दोहराव बाकी नहीं"</string>
+    <string name="l10n_widget_7" formatted="false">"कार्ड दोहराना बाकी नहीं है। अभ्यास के लिए दबाएं।"</string>
+    <string name="l10n_widget_8" formatted="false">"उत्तर"</string>
+    <string name="l10n_widget_9" formatted="false">"प्रश्न"</string>
+    <string name="l10n_widget_10" formatted="false">"वापस पलटने के लिए दबाएं"</string>
+    <string name="l10n_widget_11" formatted="false">"‹ पिछला"</string>
+    <string name="l10n_widget_12" formatted="false">"उत्तर दिखाएं"</string>
+    <string name="l10n_widget_13" formatted="false">"अगला ›"</string>
+    <string name="l10n_widget_14" formatted="false">"अच्छा ✓"</string>
+    <string name="l10n_widget_15" formatted="false">"छोड़ें ›"</string>
+    <string name="l10n_widget_16" formatted="false">"विचार लिखें"</string>
+    <string name="l10n_widget_17" formatted="false">"नई चेकलिस्ट"</string>
+    <string name="l10n_widget_18" formatted="false">"त्वरित रिकॉर्ड"</string>
+    <string name="l10n_widget_19" formatted="false">"टेक्स्ट नोट"</string>
+    <string name="l10n_widget_20" formatted="false">"अभी पढ़ें"</string>
+    <string name="l10n_widget_21" formatted="false">"नोट्स और कार्य"</string>
+    <string name="l10n_widget_22" formatted="false">"+ नया"</string>
+    <string name="l10n_widget_23" formatted="false">"नोट्स नहीं · बनाने के लिए दबाएं"</string>
+    <string name="l10n_widget_24" formatted="false">"पठन रिकॉर्ड"</string>
+    <string name="l10n_widget_25" formatted="false">"सक्रिय किताब नहीं · लाइब्रेरी खोलें"</string>
+    <string name="l10n_widget_26" formatted="false">"किताब आइकन"</string>
+    <string name="l10n_widget_27" formatted="false">"इस सप्ताह का पठन"</string>
+    <string name="l10n_widget_28" formatted="false">"रोज़ का लक्ष्य"</string>
+    <string name="l10n_widget_29" formatted="false">"दोहराना बाकी"</string>
+    <string name="l10n_widget_30" formatted="false">"याद"</string>
+    <string name="l10n_widget_31" formatted="false">"डेक"</string>
+    <string name="l10n_widget_32" formatted="false">"अगला कार्ड"</string>
+    <string name="l10n_widget_33" formatted="false">"सब पूरा हो गया!"</string>
+    <string name="l10n_widget_34" formatted="false">"अध्ययन तैयार"</string>
+    <string name="l10n_widget_35" formatted="false">"नोट्स या AI प्रॉम्प्ट से कार्ड आयात करें"</string>
+    <string name="l10n_widget_36" formatted="false">"सक्रिय डेक"</string>
+    <string name="l10n_widget_37" formatted="false">"पठन तैयार हो रहा है। रद्द करने के लिए दबाएं"</string>
+    <string name="l10n_widget_dynamic_0">"सेट: %1$s"</string>
+    <string name="l10n_widget_dynamic_1">"कार्ड: %1$s · बाकी: %2$s"</string>
+    <string name="l10n_widget_dynamic_2">"+ %1$s और अध्ययन में ›"</string>
+    <string name="l10n_widget_dynamic_3">"🔥 लगातार %1$s दिन"</string>
+    <string name="l10n_widget_dynamic_4">"%1$s%% पूरा · %2$s/%3$s मिनट"</string>
+    <string name="l10n_widget_dynamic_5">"%1$s%% पूरा · आज %2$s मिनट"</string>
+    <string name="l10n_widget_dynamic_6">"रोज़ का लक्ष्य: %1$s मिनट"</string>
+    <string name="l10n_widget_dynamic_7">"%1$s%% (%2$s मिनट)"</string>
+    <string name="l10n_widget_dynamic_8">"आज: %1$s मिनट"</string>
+    <string name="l10n_widget_dynamic_9">"औसत: %1$s मिनट/दिन"</string>
+    <string name="l10n_widget_dynamic_10">"लक्ष्य: %1$s मिनट/दिन"</string>
+    <string name="l10n_widget_dynamic_11">"इस सप्ताह %1$s मिनट"</string>
+    <string name="l10n_widget_dynamic_12">"%1$s / %2$s मिनट (%3$s%%)"</string>
+    <string name="l10n_widget_dynamic_13">"🔥 लगातार %1$s दिन"</string>
+    <string name="l10n_widget_dynamic_14">"दोहराने के लिए कार्ड: %1$s"</string>
+    <string name="l10n_widget_dynamic_15">"पिछली सही याद: %1$s%% · सक्रिय डेक: %2$s"</string>
+    <string name="l10n_widget_dynamic_16">"सहेजे अध्ययन नोट्स: %1$s"</string>
+    <string name="l10n_widget_dynamic_17">"सभी %1$s कार्ड दोहराए · जारी रखें!"</string>
+    <string name="l10n_widget_dynamic_18">"कार्ड: %1$s · बाकी: %2$s"</string>
+    <string name="l10n_widget_dynamic_19">"रोज़ का लक्ष्य: %1$s मिनट"</string>
+    <string name="l10n_widget_dynamic_20">"%1$s खोलें"</string>
+</resources>

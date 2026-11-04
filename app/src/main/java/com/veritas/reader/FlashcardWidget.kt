@@ -164,7 +164,7 @@ class FlashcardWidget : GlanceAppWidget() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Flashcard Sets",
+                            text = widgetString(R.string.l10n_widget_0),
                             style = TextStyle(
                                 fontSize = if (isWide) 15.sp else 13.sp,
                                 fontWeight = FontWeight.Bold,
@@ -186,7 +186,7 @@ class FlashcardWidget : GlanceAppWidget() {
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = "No flashcards yet 📚",
+                                text = widgetString(R.string.l10n_widget_1),
                                 style = TextStyle(
                                     fontSize = if (isWide) 15.sp else 13.sp,
                                     fontWeight = FontWeight.Bold,
@@ -195,7 +195,7 @@ class FlashcardWidget : GlanceAppWidget() {
                             )
                             Spacer(modifier = GlanceModifier.height(4.dp))
                             Text(
-                                text = "Create or import cards in Study Hub",
+                                text = widgetString(R.string.l10n_widget_2),
                                 style = TextStyle(
                                     fontSize = if (isWide) 12.sp else 10.sp,
                                     color = VeritasWidgetColors.textMuted
@@ -210,7 +210,7 @@ class FlashcardWidget : GlanceAppWidget() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Select Flashcard Set 📚",
+                            text = widgetString(R.string.l10n_widget_3),
                             style = TextStyle(
                                 fontSize = if (isWide) 15.sp else 13.sp,
                                 fontWeight = FontWeight.Bold,
@@ -227,7 +227,7 @@ class FlashcardWidget : GlanceAppWidget() {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "${decks.size} sets",
+                                text = widgetString(R.string.l10n_widget_dynamic_0, widgetValue(decks.size)),
                                 style = TextStyle(
                                     fontSize = if (isWide) 12.sp else 10.sp,
                                     fontWeight = FontWeight.Bold,
@@ -282,7 +282,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                         )
                                         Spacer(modifier = GlanceModifier.height(1.dp))
                                         Text(
-                                            text = "${deck.totalCount} cards${if (deck.dueCount > 0) " • ${deck.dueCount} due" else ""}",
+                                            text = widgetString(R.string.l10n_widget_dynamic_1, widgetValue(deck.totalCount), widgetValue(deck.dueCount)),
                                             style = TextStyle(
                                                 fontSize = if (isWide) 10.sp else 9.sp,
                                                 color = if (deck.dueCount > 0) VeritasWidgetColors.streakAccent else VeritasWidgetColors.textMuted
@@ -299,7 +299,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            text = "Review ›",
+                                            text = widgetString(R.string.l10n_widget_4),
                                             style = TextStyle(
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.Bold,
@@ -323,7 +323,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "+${decks.size - maxDecksToShow} more in Study Hub ›",
+                                    text = widgetString(R.string.l10n_widget_dynamic_2, widgetValue(decks.size - maxDecksToShow)),
                                     style = TextStyle(
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Medium,
@@ -349,7 +349,7 @@ class FlashcardWidget : GlanceAppWidget() {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "‹ Sets",
+                                text = widgetString(R.string.l10n_widget_5),
                                 style = TextStyle(
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
@@ -380,7 +380,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = if (activeDeck.isEmpty()) "No reviews due" else "${currentIndex + 1}/${activeDeck.size}${if (dueCards.isNotEmpty()) " due" else " · practice"}",
+                                    text = if (activeDeck.isEmpty()) widgetString(R.string.l10n_widget_6) else "${currentIndex + 1}/${activeDeck.size}${if (dueCards.isNotEmpty()) " due" else " · practice"}",
                                     style = TextStyle(
                                         fontSize = if (isWide) 12.sp else 10.sp,
                                         fontWeight = FontWeight.Bold,
@@ -405,7 +405,7 @@ class FlashcardWidget : GlanceAppWidget() {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No cards due. Tap to practise this deck.",
+                                text = widgetString(R.string.l10n_widget_7),
                                 style = TextStyle(
                                     fontSize = 12.sp,
                                     color = VeritasWidgetColors.textPrimary
@@ -438,7 +438,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                             .padding(horizontal = 7.dp, vertical = 2.dp)
                                     ) {
                                         Text(
-                                            text = if (showAnswer) "ANSWER" else "QUESTION",
+                                            text = if (showAnswer) widgetString(R.string.l10n_widget_8) else widgetString(R.string.l10n_widget_9),
                                             style = TextStyle(
                                                 fontSize = 9.sp,
                                                 fontWeight = FontWeight.Bold,
@@ -448,7 +448,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                     }
                                     Spacer(modifier = GlanceModifier.defaultWeight())
                                     Text(
-                                        text = if (showAnswer) "Tap to flip back" else "Tap card to flip",
+                                        text = if (showAnswer) widgetString(R.string.l10n_widget_10) else widgetString(R.string.ui_tap_card_to_flip),
                                         style = TextStyle(
                                             fontSize = 10.sp,
                                             color = VeritasWidgetColors.textMuted
@@ -495,7 +495,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "‹ Prev",
+                                        text = widgetString(R.string.l10n_widget_11),
                                         style = TextStyle(
                                             fontSize = buttonFontSize,
                                             fontWeight = FontWeight.Bold,
@@ -516,7 +516,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "Flip to Answer",
+                                        text = widgetString(R.string.l10n_widget_12),
                                         style = TextStyle(
                                             fontSize = buttonFontSize,
                                             fontWeight = FontWeight.Bold,
@@ -536,7 +536,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "Next ›",
+                                        text = widgetString(R.string.l10n_widget_13),
                                         style = TextStyle(
                                             fontSize = buttonFontSize,
                                             fontWeight = FontWeight.Bold,
@@ -565,7 +565,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "Again",
+                                        text = widgetString(R.string.ui_again),
                                         style = TextStyle(
                                             fontSize = buttonFontSize,
                                             fontWeight = FontWeight.Bold,
@@ -586,7 +586,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "Good ✓",
+                                        text = widgetString(R.string.l10n_widget_14),
                                         style = TextStyle(
                                             fontSize = buttonFontSize,
                                             fontWeight = FontWeight.Bold,
@@ -606,7 +606,7 @@ class FlashcardWidget : GlanceAppWidget() {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "Skip ›",
+                                        text = widgetString(R.string.l10n_widget_15),
                                         style = TextStyle(
                                             fontSize = buttonFontSize,
                                             fontWeight = FontWeight.Bold,

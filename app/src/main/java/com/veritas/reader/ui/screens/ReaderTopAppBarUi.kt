@@ -135,7 +135,7 @@ internal fun ReaderTopAppBar(
                     IconButton(onClick = onBackToLibrary) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -158,14 +158,14 @@ internal fun ReaderTopAppBar(
                     val context = LocalContext.current
                     IconButton(
                         onClick = { onToggleSearch(!showSearch) }
-                    ) { Icon(Icons.Outlined.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurface) }
+                    ) { Icon(Icons.Outlined.Search, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search), tint = MaterialTheme.colorScheme.onSurface) }
                     IconButton(
                         onClick = onOpenOutline,
                         modifier = Modifier.outlineRevealAnchor(onOutlinePositioned)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_m3_toc),
-                            contentDescription = "Outline",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_outline),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -190,14 +190,14 @@ internal fun ReaderTopAppBar(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.InvertColors,
-                            contentDescription = "Paper tone",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paper_tone_21c43d7),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Box {
                         IconButton(
                             onClick = { internalShowTools = true; onShowToolsChange(true) }
-                        ) { Icon(Icons.Filled.MoreVert, contentDescription = "More", tint = MaterialTheme.colorScheme.onSurface) }
+                        ) { Icon(Icons.Filled.MoreVert, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_more), tint = MaterialTheme.colorScheme.onSurface) }
                         ReaderToolsMenu(
                             readerSettings = state.readerSettings,
                             onReadingSettingsChange = onReadingSettingsChange,

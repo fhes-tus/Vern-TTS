@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="l10n_widget_0" formatted="false">"Conjuntos de tarjetas"</string>
+    <string name="l10n_widget_1" formatted="false">"Aún no hay tarjetas 📚"</string>
+    <string name="l10n_widget_2" formatted="false">"Crea o importa tarjetas en Estudio"</string>
+    <string name="l10n_widget_3" formatted="false">"Elegir conjunto de tarjetas 📚"</string>
+    <string name="l10n_widget_4" formatted="false">"Repasar ›"</string>
+    <string name="l10n_widget_5" formatted="false">"‹ Conjuntos"</string>
+    <string name="l10n_widget_6" formatted="false">"No hay repasos pendientes"</string>
+    <string name="l10n_widget_7" formatted="false">"No hay tarjetas pendientes. Toca para practicar."</string>
+    <string name="l10n_widget_8" formatted="false">"RESPUESTA"</string>
+    <string name="l10n_widget_9" formatted="false">"PREGUNTA"</string>
+    <string name="l10n_widget_10" formatted="false">"Toca para volver a girar"</string>
+    <string name="l10n_widget_11" formatted="false">"‹ Anterior"</string>
+    <string name="l10n_widget_12" formatted="false">"Ver respuesta"</string>
+    <string name="l10n_widget_13" formatted="false">"Siguiente ›"</string>
+    <string name="l10n_widget_14" formatted="false">"Bien ✓"</string>
+    <string name="l10n_widget_15" formatted="false">"Omitir ›"</string>
+    <string name="l10n_widget_16" formatted="false">"Captura una idea"</string>
+    <string name="l10n_widget_17" formatted="false">"Nueva lista de tareas"</string>
+    <string name="l10n_widget_18" formatted="false">"Captura rápida"</string>
+    <string name="l10n_widget_19" formatted="false">"Nota de texto"</string>
+    <string name="l10n_widget_20" formatted="false">"Leer ahora"</string>
+    <string name="l10n_widget_21" formatted="false">"Notas y tareas"</string>
+    <string name="l10n_widget_22" formatted="false">"+ Nuevo"</string>
+    <string name="l10n_widget_23" formatted="false">"Sin notas · Toca para crear"</string>
+    <string name="l10n_widget_24" formatted="false">"Registro de lectura"</string>
+    <string name="l10n_widget_25" formatted="false">"Sin libro activo · Abre la biblioteca"</string>
+    <string name="l10n_widget_26" formatted="false">"Icono del libro"</string>
+    <string name="l10n_widget_27" formatted="false">"Lectura esta semana"</string>
+    <string name="l10n_widget_28" formatted="false">"Meta diaria"</string>
+    <string name="l10n_widget_29" formatted="false">"Pendientes"</string>
+    <string name="l10n_widget_30" formatted="false">"Recuerdo"</string>
+    <string name="l10n_widget_31" formatted="false">"Mazos"</string>
+    <string name="l10n_widget_32" formatted="false">"SIGUIENTE TARJETA"</string>
+    <string name="l10n_widget_33" formatted="false">"¡Todo al día!"</string>
+    <string name="l10n_widget_34" formatted="false">"Estudio listo"</string>
+    <string name="l10n_widget_35" formatted="false">"Importa tarjetas de notas o instrucciones de IA"</string>
+    <string name="l10n_widget_36" formatted="false">"Mazos activos"</string>
+    <string name="l10n_widget_37" formatted="false">"Preparando lectura. Toca para cancelar"</string>
+    <string name="l10n_widget_dynamic_0">"Conjuntos: %1$s"</string>
+    <string name="l10n_widget_dynamic_1">"Tarjetas: %1$s · Pendientes: %2$s"</string>
+    <string name="l10n_widget_dynamic_2">"+ %1$s más en Estudio ›"</string>
+    <string name="l10n_widget_dynamic_3">"🔥 Racha: %1$s días"</string>
+    <string name="l10n_widget_dynamic_4">"%1$s%% completo · %2$s/%3$s min"</string>
+    <string name="l10n_widget_dynamic_5">"%1$s%% completo · %2$s min hoy"</string>
+    <string name="l10n_widget_dynamic_6">"Meta diaria: %1$s min"</string>
+    <string name="l10n_widget_dynamic_7">"%1$s%% (%2$s min)"</string>
+    <string name="l10n_widget_dynamic_8">"Hoy: %1$s min"</string>
+    <string name="l10n_widget_dynamic_9">"Promedio: %1$s min/día"</string>
+    <string name="l10n_widget_dynamic_10">"Meta: %1$s min/día"</string>
+    <string name="l10n_widget_dynamic_11">"%1$s min esta semana"</string>
+    <string name="l10n_widget_dynamic_12">"%1$s / %2$s min (%3$s%%)"</string>
+    <string name="l10n_widget_dynamic_13">"🔥 Racha: %1$s días"</string>
+    <string name="l10n_widget_dynamic_14">"Tarjetas pendientes: %1$s"</string>
+    <string name="l10n_widget_dynamic_15">"Último recuerdo correcto: %1$s%% · Mazos activos: %2$s"</string>
+    <string name="l10n_widget_dynamic_16">"Notas de estudio guardadas: %1$s"</string>
+    <string name="l10n_widget_dynamic_17">"Todas las tarjetas (%1$s) repasadas · ¡Sigue así!"</string>
+    <string name="l10n_widget_dynamic_18">"Tarjetas: %1$s · Pendientes: %2$s"</string>
+    <string name="l10n_widget_dynamic_19">"Meta diaria: %1$s min"</string>
+    <string name="l10n_widget_dynamic_20">"Abrir %1$s"</string>
+</resources>

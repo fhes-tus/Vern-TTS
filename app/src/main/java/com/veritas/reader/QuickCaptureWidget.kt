@@ -60,14 +60,14 @@ class QuickCaptureWidget : GlanceAppWidget() {
             ) {
                 if (isCompact) {
                     Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        if (size.width >= 300.dp) Text("Capture a thought", style = TextStyle(fontSize = 14.sp, color = VeritasWidgetColors.textPrimary),
+                        if (size.width >= 300.dp) Text(widgetString(R.string.l10n_widget_16), style = TextStyle(fontSize = 14.sp, color = VeritasWidgetColors.textPrimary),
                             modifier = GlanceModifier.defaultWeight().clickable(actionStartActivity(widgetActivityIntent(context, MainActivity.ACTION_NEW_NOTE))), maxLines = 1)
-                        CaptureIcon(context, MainActivity.ACTION_NEW_NOTE, R.drawable.ic_widget_notes, "New note")
+                        CaptureIcon(context, MainActivity.ACTION_NEW_NOTE, R.drawable.ic_widget_notes, widgetString(R.string.ui_new_note))
                         Spacer(GlanceModifier.width(8.dp))
-                        CaptureIcon(context, MainActivity.ACTION_NEW_CHECKLIST_NOTE, R.drawable.ic_widget_checklist, "New checklist")
+                        CaptureIcon(context, MainActivity.ACTION_NEW_CHECKLIST_NOTE, R.drawable.ic_widget_checklist, widgetString(R.string.l10n_widget_17))
                         if (size.width >= 200.dp) {
                             Spacer(GlanceModifier.width(8.dp))
-                            CaptureIcon(context, MainActivity.ACTION_ACTIVE_READING, R.drawable.ic_widget_reading, "Resume reading")
+                            CaptureIcon(context, MainActivity.ACTION_ACTIVE_READING, R.drawable.ic_widget_reading, widgetString(R.string.ui_resume_reading))
                         }
                     }
                 } else {
@@ -82,7 +82,7 @@ class QuickCaptureWidget : GlanceAppWidget() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Quick Capture",
+                                text = widgetString(R.string.l10n_widget_18),
                                 style = TextStyle(
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
@@ -100,14 +100,14 @@ class QuickCaptureWidget : GlanceAppWidget() {
                         ) {
                             ActionCard(
                                 iconRes = R.drawable.ic_widget_notes,
-                                label = "Text Note",
+                                label = widgetString(R.string.l10n_widget_19),
                                 action = MainActivity.ACTION_NEW_NOTE,
                                 modifier = GlanceModifier.defaultWeight()
                             )
                             Spacer(modifier = GlanceModifier.width(8.dp))
                             ActionCard(
                                 iconRes = R.drawable.ic_widget_checklist,
-                                label = "Checklist",
+                                label = widgetString(R.string.ui_checklist),
                                 action = MainActivity.ACTION_NEW_CHECKLIST_NOTE,
                                 modifier = GlanceModifier.defaultWeight()
                             )
@@ -119,14 +119,14 @@ class QuickCaptureWidget : GlanceAppWidget() {
                         ) {
                             ActionCard(
                                 iconRes = R.drawable.ic_widget_reading,
-                                label = "Read Now",
+                                label = widgetString(R.string.l10n_widget_20),
                                 action = MainActivity.ACTION_ACTIVE_READING,
                                 modifier = GlanceModifier.defaultWeight()
                             )
                             Spacer(modifier = GlanceModifier.width(8.dp))
                             ActionCard(
                                 iconRes = R.drawable.ic_widget_library,
-                                label = "Library",
+                                label = widgetString(R.string.ui_library),
                                 action = MainActivity.ACTION_OPEN_LIBRARY,
                                 modifier = GlanceModifier.defaultWeight()
                             )

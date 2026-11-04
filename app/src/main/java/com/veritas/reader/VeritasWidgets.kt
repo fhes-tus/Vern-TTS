@@ -97,7 +97,7 @@ class VeritasPlayerWidget : GlanceAppWidget() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (!compact || size.width >= 210.dp) {
-                        Image(provider = ImageProvider(cover ?: widgetCoverPlaceholder()), contentDescription = "Open $title",
+                        Image(provider = ImageProvider(cover ?: widgetCoverPlaceholder()), contentDescription = widgetString(R.string.l10n_widget_dynamic_20, widgetValue(title)),
                             modifier = GlanceModifier.size(if (short) 40.dp else 48.dp).cornerRadius(12.dp).clickable(open))
                         Spacer(GlanceModifier.width(10.dp))
                     }
@@ -145,7 +145,7 @@ private fun PlayerControl(context: Context, state: WidgetReadingState, action: S
                 modifier = GlanceModifier.size(24.dp), color = VeritasWidgetColors.playIconColor)
         } else {
             Image(ImageProvider(if (prominent && state.isPreparing) R.drawable.ic_widget_loading else icon),
-                if (prominent && state.isPreparing) "Preparing reading. Tap to cancel" else description, modifier = GlanceModifier.size(24.dp),
+                if (prominent && state.isPreparing) widgetString(R.string.l10n_widget_37) else description, modifier = GlanceModifier.size(24.dp),
                 colorFilter = ColorFilter.tint(if (prominent) VeritasWidgetColors.playIconColor else VeritasWidgetColors.textPrimary))
         }
     }

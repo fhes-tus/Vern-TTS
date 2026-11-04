@@ -34,7 +34,7 @@ internal fun NotesFilterRow(options: List<Pair<String, String>>, selected: Strin
 @Composable
 internal fun NotesCollectionLabel(label: String, onClear: () -> Unit) {
     InputChip(selected = true, onClick = onClear, label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        trailingIcon = { Icon(Icons.Default.Close, "Show all notes", Modifier.size(18.dp)) }, modifier = Modifier.padding(horizontal = 6.dp))
+        trailingIcon = { Icon(Icons.Default.Close, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_show_all_notes), Modifier.size(18.dp)) }, modifier = Modifier.padding(horizontal = 6.dp))
 }
 
 @Composable
@@ -42,18 +42,18 @@ internal fun NotebookPickerDialog(
     notebooks: List<NoteNotebook>, selected: String?, onSelect: (String?) -> Unit, onDismiss: () -> Unit,
     movingNote: Boolean = false, onCreate: (() -> Unit)? = null, onManage: (() -> Unit)? = null
 ) {
-    AlertDialog(onDismissRequest = onDismiss, title = { Text(if (movingNote) "Notebooks" else "Notebooks") },
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(if (movingNote) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notebooks) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notebooks)) },
         text = { Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
             (listOf(null to if (movingNote) "No notebook" else "All notes") + notebooks.map { it.id to it.name }).forEach { (id, name) ->
                 TextButton({ onSelect(id) }, Modifier.fillMaxWidth()) {
                     Text(name, Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    if (selected == id) Icon(Icons.Default.Check, "Selected")
+                    if (selected == id) Icon(Icons.Default.Check, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected))
                 }
             }
             if (onCreate != null || onManage != null) HorizontalDivider()
-            onCreate?.let { TextButton(it) { Text("New notebook") } }
-            onManage?.let { TextButton(it) { Text("Manage notebooks") } }
-        } }, confirmButton = { TextButton(onDismiss) { Text("Close") } })
+            onCreate?.let { TextButton(it) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_new_notebook)) } }
+            onManage?.let { TextButton(it) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_manage_notebooks)) } }
+        } }, confirmButton = { TextButton(onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) } })
 }
 
 @Composable
@@ -64,10 +64,10 @@ internal fun NotebookNameDialog(
     val duplicate = notebooks.any { it.id != editingId && it.name.equals(value.trim(), ignoreCase = true) }
     AlertDialog(onDismissRequest = onDismiss, title = { Text(title) },
         text = { OutlinedTextField(value, { onValue(it.take(60)) }, singleLine = true,
-            label = { Text("Notebook name") }, isError = duplicate,
-            supportingText = { if (duplicate) Text("A notebook with this name already exists.") }, modifier = Modifier.fillMaxWidth()) },
-        confirmButton = { TextButton(onSave, enabled = value.isNotBlank() && !duplicate) { Text(if (editingId == null) "Create" else "Save") } },
-        dismissButton = { TextButton(onDismiss) { Text("Cancel") } })
+            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notebook_name)) }, isError = duplicate,
+            supportingText = { if (duplicate) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_a_notebook_with_this_name_already_exists)) }, modifier = Modifier.fillMaxWidth()) },
+        confirmButton = { TextButton(onSave, enabled = value.isNotBlank() && !duplicate) { Text(if (editingId == null) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save)) } },
+        dismissButton = { TextButton(onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } })
 }
 
 @Composable
@@ -88,25 +88,25 @@ internal fun NoteRevisionHistoryDialog(noteId: String, actions: NoteCollectionAc
     }
     val selected = restore
     if (selected != null) {
-        AlertDialog(onDismissRequest = { restore = null }, title = { Text("Restore this version?") },
-            text = { Text("Your current version will be kept in history. The note keeps its current notebooks.") },
-            confirmButton = { TextButton({ actions.restoreRevision(selected); onDismiss() }) { Text("Restore") } },
-            dismissButton = { TextButton({ restore = null }) { Text("Cancel") } })
+        AlertDialog(onDismissRequest = { restore = null }, title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_restore_this_version)) },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_current_version_will_be_kept_in_history_the_note_keeps_its_c)) },
+            confirmButton = { TextButton({ actions.restoreRevision(selected); onDismiss() }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_restore)) } },
+            dismissButton = { TextButton({ restore = null }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } })
         return
     }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Revision history") },
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_revision_history)) },
         text = {
             Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 when {
-                    failed -> { Text("Could not load history."); TextButton({ attempt++ }) { Text("Retry") } }
+                    failed -> { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_could_not_load_history)); TextButton({ attempt++ }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_retry)) } }
                     revisions == null -> CircularProgressIndicator()
-                    revisions!!.isEmpty() -> Text("No earlier versions yet. History is kept when you edit this note.")
+                    revisions!!.isEmpty() -> Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_earlier_versions_yet_history_is_kept_when_you_edit_this_note))
                     else -> revisions!!.forEach { revision ->
                         Surface(shape = VeritasPackStyle.compactShape(), color = MaterialTheme.colorScheme.surfaceVariant) {
                             Column(Modifier.fillMaxWidth().padding(12.dp)) {
                                 Text(java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT)
                                     .format(java.util.Date(revision.savedAt)), style = MaterialTheme.typography.labelMedium)
-                                Text(revision.snapshot.title.ifBlank { "Untitled note" }, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                Text(revision.snapshot.title.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_untitled_note) }, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                 val preview = remember(revision) {
                                     VeritasNoteEditing.parseNoteBlocks(NoteLinks.strip(revision.snapshot.content))
                                         .filterIsInstance<NoteBlock.Text>().joinToString("\n") { it.value.text }
@@ -116,12 +116,12 @@ internal fun NoteRevisionHistoryDialog(noteId: String, actions: NoteCollectionAc
                                 TextButton({ restore = revision }) {
                                     Icon(Icons.Outlined.Restore, null, Modifier.size(18.dp))
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Restore this version")
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_restore_this_version_86a8990))
                                 }
                             }
                         }
                     }
                 }
             }
-        }, confirmButton = { TextButton(onDismiss) { Text("Done") } })
+        }, confirmButton = { TextButton(onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done)) } })
 }

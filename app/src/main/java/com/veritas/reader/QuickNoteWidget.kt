@@ -65,7 +65,7 @@ class QuickNoteWidget : GlanceAppWidget() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Notes & Tasks",
+                            text = widgetString(R.string.l10n_widget_21),
                             style = TextStyle(
                                 fontSize = if (size.width >= 240.dp) 16.sp else 14.sp,
                                 fontWeight = FontWeight.Bold,
@@ -83,7 +83,7 @@ class QuickNoteWidget : GlanceAppWidget() {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "+ New",
+                                text = widgetString(R.string.l10n_widget_22),
                                 style = TextStyle(
                                     fontSize = if (size.width >= 240.dp) 12.sp else 10.sp,
                                     fontWeight = FontWeight.Bold,
@@ -101,7 +101,7 @@ class QuickNoteWidget : GlanceAppWidget() {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No notes yet • Tap to create",
+                                text = widgetString(R.string.l10n_widget_23),
                                 style = TextStyle(
                                     fontSize = if (size.width >= 240.dp) 14.sp else 12.sp,
                                     color = VeritasWidgetColors.textMuted

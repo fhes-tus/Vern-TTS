@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="l10n_catalog_0" formatted="false">"current sentence"</string>
+    <string name="l10n_catalog_1" formatted="false">"current page"</string>
+    <string name="l10n_catalog_2" formatted="false">"current section"</string>
+    <string name="l10n_catalog_3" formatted="false">"whole document"</string>
+    <string name="l10n_catalog_4" formatted="false">"Summary"</string>
+    <string name="l10n_catalog_5" formatted="false">"Key points"</string>
+    <string name="l10n_catalog_6" formatted="false">"Explain current section"</string>
+    <string name="l10n_catalog_7" formatted="false">"Study notes"</string>
+    <string name="l10n_catalog_8" formatted="false">"Simplify"</string>
+    <string name="l10n_catalog_9" formatted="false">"Section-by-section"</string>
+    <string name="l10n_catalog_10" formatted="false">"Quiz"</string>
+    <string name="l10n_catalog_11" formatted="false">"Custom prompt"</string>
+    <string name="l10n_catalog_12" formatted="false">"Translate current section"</string>
+    <string name="l10n_catalog_13" formatted="false">"Bilingual current section"</string>
+    <string name="l10n_catalog_14" formatted="false">"PPTX"</string>
+    <string name="l10n_catalog_15" formatted="false">"WEB"</string>
+    <string name="l10n_catalog_16" formatted="false">"TXT"</string>
+    <string name="l10n_catalog_17" formatted="false">"OCR"</string>
+    <string name="l10n_catalog_18" formatted="false">"File name"</string>
+    <string name="l10n_catalog_19" formatted="false">"Date/time"</string>
+    <string name="l10n_catalog_20" formatted="false">"Size"</string>
+    <string name="l10n_catalog_21" formatted="false">"Path"</string>
+    <string name="l10n_catalog_22" formatted="false">"Pause playback"</string>
+    <string name="l10n_catalog_23" formatted="false">"Stop playback"</string>
+    <string name="l10n_catalog_24" formatted="false">"Medium-sized icons"</string>
+    <string name="l10n_catalog_25" formatted="false">"Small icons"</string>
+    <string name="l10n_catalog_26" formatted="false">"Tiles"</string>
+    <string name="l10n_catalog_27" formatted="false">"Choose each time"</string>
+    <string name="l10n_catalog_28" formatted="false">"Choose when I share"</string>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="l10n_catalog_0" formatted="false">"मौजूदा वाक्य"</string>
+    <string name="l10n_catalog_1" formatted="false">"मौजूदा पेज"</string>
+    <string name="l10n_catalog_2" formatted="false">"मौजूदा अनुभाग"</string>
+    <string name="l10n_catalog_3" formatted="false">"पूरा दस्तावेज़"</string>
+    <string name="l10n_catalog_4" formatted="false">"सारांश"</string>
+    <string name="l10n_catalog_5" formatted="false">"मुख्य बिंदु"</string>
+    <string name="l10n_catalog_6" formatted="false">"मौजूदा अनुभाग समझाएं"</string>
+    <string name="l10n_catalog_7" formatted="false">"अध्ययन नोट्स"</string>
+    <string name="l10n_catalog_8" formatted="false">"सरल करें"</string>
+    <string name="l10n_catalog_9" formatted="false">"अनुभाग दर अनुभाग"</string>
+    <string name="l10n_catalog_10" formatted="false">"क्विज़"</string>
+    <string name="l10n_catalog_11" formatted="false">"कस्टम प्रॉम्प्ट"</string>
+    <string name="l10n_catalog_12" formatted="false">"मौजूदा अनुभाग का अनुवाद"</string>
+    <string name="l10n_catalog_13" formatted="false">"मौजूदा अनुभाग दो भाषाओं में"</string>
+    <string name="l10n_catalog_14" formatted="false">"PPTX"</string>
+    <string name="l10n_catalog_15" formatted="false">"वेब"</string>
+    <string name="l10n_catalog_16" formatted="false">"TXT"</string>
+    <string name="l10n_catalog_17" formatted="false">"OCR"</string>
+    <string name="l10n_catalog_18" formatted="false">"फ़ाइल का नाम"</string>
+    <string name="l10n_catalog_19" formatted="false">"तारीख और समय"</string>
+    <string name="l10n_catalog_20" formatted="false">"आकार"</string>
+    <string name="l10n_catalog_21" formatted="false">"पथ"</string>
+    <string name="l10n_catalog_22" formatted="false">"प्लेबैक रोकें"</string>
+    <string name="l10n_catalog_23" formatted="false">"प्लेबैक बंद करें"</string>
+    <string name="l10n_catalog_24" formatted="false">"मध्यम आइकन"</string>
+    <string name="l10n_catalog_25" formatted="false">"छोटे आइकन"</string>
+    <string name="l10n_catalog_26" formatted="false">"टाइल"</string>
+    <string name="l10n_catalog_27" formatted="false">"हर बार चुनें"</string>
+    <string name="l10n_catalog_28" formatted="false">"साझा करते समय चुनें"</string>
+</resources>

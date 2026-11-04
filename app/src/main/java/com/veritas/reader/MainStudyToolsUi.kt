@@ -73,8 +73,8 @@ internal fun AiFreeModeDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
-        title = { Text("AI & study mode") },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) } },
+        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_study_mode)) },
         text = {
             Column(
                 modifier = Modifier
@@ -92,26 +92,26 @@ internal fun AiFreeModeDialog(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            "Free AI approach",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_free_ai_approach),
                             style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Vern does not bundle a large offline model and does not require an API key. It prepares prompts for the AI apps already installed on this phone.",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern_does_not_bundle_a_large_offline_model_and_does_not_require_a),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
-                InfoStepCard(title = "1. AI app handoff") {
-                    Text("Open a document, tap Reader tools → AI, choose a task, then send the prepared prompt to ChatGPT, Gemini, Claude, Copilot, Perplexity, or another installed app. The prompt is also copied to your clipboard.")
+                InfoStepCard(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_1_ai_app_handoff)) {
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_a_document_tap_reader_tools_ai_choose_a_task_then_send_the_p))
                 }
-                InfoStepCard(title = "2. Paste the reply back") {
-                    Text("Flashcard and quiz replies can be pasted straight back into Vern — cards join your spaced-repetition deck and quizzes become an in-app scored test.")
+                InfoStepCard(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_2_paste_the_reply_back)) {
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_flashcard_and_quiz_replies_can_be_pasted_straight_back_into_vern))
                 }
-                InfoStepCard(title = "3. Base app stays lighter") {
-                    Text("No heavy local AI model is bundled in the base app. A real offline model can be optional later as a separate downloadable pack.")
+                InfoStepCard(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_3_base_app_stays_lighter)) {
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_heavy_local_ai_model_is_bundled_in_the_base_app_a_real_offline))
                 }
                 Text(
-                    "Current library: $documentCount saved reading${if (documentCount == 1) "" else "s"}.",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_198, com.veritas.reader.ui.screens.localizedUiValue(documentCount)),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -131,34 +131,34 @@ internal fun AiCenterDialog(
     val context = androidx.compose.ui.platform.LocalContext.current
     val provider = remember { GeminiStudyService.getProvider(context) }
     val configured = remember { GeminiStudyService.hasApiKey(context) }
-    com.veritas.reader.ui.screens.FullScreenSettingsScaffold(title = "AI tools", onBack = onDismiss) {
-        Text("Work with a passage from your reading, or send it to an assistant you already use.",
+    com.veritas.reader.ui.screens.FullScreenSettingsScaffold(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_ai_tools), onBack = onDismiss) {
+        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_work_with_a_passage_from_your_reading_or_send_it_to_an_assistant),
             style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Card(shape = VeritasPackStyle.cardShape(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
             border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Study a reading", style = MaterialTheme.typography.titleLarge)
-                Text("Create flashcards, quizzes, summaries and explanations. Review the results alongside the source text.")
-                Text(if (configured) "${provider.label} · API key saved" else "In-app generation needs your provider's API key. External assistant apps can be used without adding one here.",
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_a_reading), style = MaterialTheme.typography.titleLarge)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create_flashcards_quizzes_summaries_and_explanations_review_the_r))
+                Text(if (configured) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_039, com.veritas.reader.ui.screens.localizedUiValue(provider.label)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_in_app_generation_needs_your_provider_s_api_key_external_assistan),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Button(onClick = onOpenStudyTools, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text("Open study tools") }
-                if (documentCount == 0) Text("Add a reading to choose a passage.", style = MaterialTheme.typography.bodySmall)
+                Button(onClick = onOpenStudyTools, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_study_tools)) }
+                if (documentCount == 0) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_a_reading_to_choose_a_passage), style = MaterialTheme.typography.bodySmall)
             }
         }
         Card(shape = VeritasPackStyle.cardShape(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
             border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Ask another assistant", style = MaterialTheme.typography.titleLarge)
-                Text("${installedAiCount} compatible app${if (installedAiCount == 1) "" else "s"} detected. Choose your assistant and the instructions to send with selected text.")
-                Text("A handoff opens the other app; its response is not automatically read or imported by Vern.", style = MaterialTheme.typography.bodySmall,
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ask_another_assistant), style = MaterialTheme.typography.titleLarge)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_199, com.veritas.reader.ui.screens.localizedUiValue(installedAiCount)))
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_a_handoff_opens_the_other_app_its_response_is_not_automatically_r), style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                OutlinedButton(onClick = onOpenAskAiSettings, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text("Assistant and prompt settings") }
+                OutlinedButton(onClick = onOpenAskAiSettings, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_assistant_and_prompt_settings)) }
             }
         }
         CustomAiHandoffCard(includeContextField = true) { instructions, passage ->
             AiPromptLauncher.launchCustomPrompt(context, instructions, passage, askAiSettings)
         }
-        Text("AI output can contain mistakes. Keep the original passage available when using generated study material.",
+        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_output_can_contain_mistakes_keep_the_original_passage_availabl),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -174,7 +174,7 @@ internal fun ExportAudioStatusDialog(
 ) {
     AlertDialog(
         onDismissRequest = { if (!inProgress) onDismiss() },
-        title = { Text("Export audio") },
+        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_export_audio)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (inProgress) {
@@ -183,11 +183,11 @@ internal fun ExportAudioStatusDialog(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                        Text("Creating audio from this reading...")
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_creating_audio_from_this_reading))
                     }
                 }
                 Text(
-                    message ?: "Preparing export...",
+                    message ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preparing_export),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (file != null) {
@@ -197,14 +197,14 @@ internal fun ExportAudioStatusDialog(
         },
         confirmButton = {
             if (file != null) {
-                Button(onClick = { onShare(file) }) { Text("Share") }
+                Button(onClick = { onShare(file) }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share)) }
             }
         },
         dismissButton = {
             if (inProgress && onCancel != null) {
-                TextButton(onClick = onCancel) { Text("Cancel") }
+                TextButton(onClick = onCancel) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
             } else {
-                TextButton(onClick = onDismiss, enabled = !inProgress) { Text("Close") }
+                TextButton(onClick = onDismiss, enabled = !inProgress) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) }
             }
         }
     )
@@ -450,18 +450,18 @@ internal fun AiAppStudyDialog(
                             IconButton(onClick = onDismiss, modifier = Modifier.size(40.dp)) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back),
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Column {
                                 Text(
-                                    "AI Study Studio",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_study_studio),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    "${document.title} • Page $currentPage of ${document.pageCount.coerceAtLeast(1)}",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_040, com.veritas.reader.ui.screens.localizedUiValue(document.title), com.veritas.reader.ui.screens.localizedUiValue(currentPage), com.veritas.reader.ui.screens.localizedUiValue(document.pageCount.coerceAtLeast(1))),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
@@ -495,7 +495,7 @@ internal fun AiAppStudyDialog(
                                             tint = MaterialTheme.colorScheme.onSecondaryContainer
                                         )
                                         Text(
-                                            "Study Hub",
+                                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_hub),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSecondaryContainer
                                         )
@@ -512,7 +512,7 @@ internal fun AiAppStudyDialog(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Refresh,
-                                    contentDescription = "Refresh Clipboard",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_refresh_clipboard),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -543,7 +543,7 @@ internal fun AiAppStudyDialog(
                                         modifier = Modifier.size(15.dp)
                                     )
                                     Text(
-                                        if (hasGeminiKey) "${activeProvider.label} In-App" else defaultAiName,
+                                        if (hasGeminiKey) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_041, com.veritas.reader.ui.screens.localizedUiValue(activeProvider.label)) else defaultAiName,
                                         style = MaterialTheme.typography.labelSmall,
                                         color = if (hasGeminiKey) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -582,12 +582,12 @@ internal fun AiAppStudyDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "STUDY FOCUS",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_focus),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    "${scopeSentences.size} sentences • ~$scopeWordCount words",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_042, com.veritas.reader.ui.screens.localizedUiValue(scopeSentences.size), com.veritas.reader.ui.screens.localizedUiValue(scopeWordCount)),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -626,7 +626,7 @@ internal fun AiAppStudyDialog(
                                     OutlinedTextField(
                                         value = customStartPage,
                                         onValueChange = { customStartPage = it.filter { ch -> ch.isDigit() } },
-                                        label = { Text("From Page", fontSize = 11.sp) },
+                                        label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_from_page), fontSize = 11.sp) },
                                         modifier = Modifier.weight(1f),
                                         singleLine = true,
                                         shape = RoundedCornerShape(12.dp)
@@ -634,7 +634,7 @@ internal fun AiAppStudyDialog(
                                     OutlinedTextField(
                                         value = customEndPage,
                                         onValueChange = { customEndPage = it.filter { ch -> ch.isDigit() } },
-                                        label = { Text("To Page", fontSize = 11.sp) },
+                                        label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_to_page), fontSize = 11.sp) },
                                         modifier = Modifier.weight(1f),
                                         singleLine = true,
                                         shape = RoundedCornerShape(12.dp)
@@ -692,13 +692,13 @@ internal fun AiAppStudyDialog(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        "Waiting for ${GeminiStudyService.getProvider(context).label}…",
+                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_043, com.veritas.reader.ui.screens.localizedUiValue(GeminiStudyService.getProvider(context).label)),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 TextButton(onClick = { onCancelGeneration(); isGenerating = false }) {
-                                    Text("Cancel")
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
                                 }
                             }
                         }
@@ -807,12 +807,12 @@ private fun QuickExternalAiChips(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "Quick External AI Hand-off",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_quick_external_ai_hand_off),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    "Auto-copies prompt",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_auto_copies_prompt),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

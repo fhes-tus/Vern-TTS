@@ -41,7 +41,7 @@ internal fun LibrarySearchField(value: String, onChange: (String) -> Unit, place
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
                     innerField()
                 }
-                if (value.isNotEmpty()) IconButton({ onChange("") }, Modifier.size(40.dp)) { Icon(Icons.Default.Close, "Clear search", tint = scheme.onSurfaceVariant) }
+                if (value.isNotEmpty()) IconButton({ onChange("") }, Modifier.size(40.dp)) { Icon(Icons.Default.Close, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear_search), tint = scheme.onSurfaceVariant) }
             }
         })
 }

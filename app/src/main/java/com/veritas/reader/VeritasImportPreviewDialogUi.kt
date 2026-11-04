@@ -76,7 +76,7 @@ fun VeritasImportPreviewDialog(
 
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text("Import settings") },
+        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_settings)) },
         text = {
             LazyColumn(
                 modifier = Modifier
@@ -86,7 +86,7 @@ fun VeritasImportPreviewDialog(
             ) {
                 item {
                     Text(
-                        text = "File size: $sizeText" + if (pendingImport.isPdf && pageCount > 0) " â€¢ Total pages: $pageCount" else "",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_061, com.veritas.reader.ui.screens.localizedUiValue(sizeText)) + if (pendingImport.isPdf && pageCount > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_062, com.veritas.reader.ui.screens.localizedUiValue(pageCount)) else "",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -96,7 +96,7 @@ fun VeritasImportPreviewDialog(
                     OutlinedTextField(
                         value = title,
                         onValueChange = { title = it },
-                        label = { Text("Document title") },
+                        label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_title)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -104,13 +104,13 @@ fun VeritasImportPreviewDialog(
 
                 if (pendingImport.isPptx) {
                     item {
-                        Text("Slides options", style = MaterialTheme.typography.titleSmall)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_slides_options), style = MaterialTheme.typography.titleSmall)
                     }
                     item {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Speaker notes", fontWeight = FontWeight.SemiBold)
-                                Text("Read presenter notes after each slide.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_speaker_notes_3d6e76c), fontWeight = FontWeight.SemiBold)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read_presenter_notes_after_each_slide), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             VeritasSwitch(
                                 checked = pptxOptions.includeSpeakerNotes,
@@ -121,8 +121,8 @@ fun VeritasImportPreviewDialog(
                     item {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Auto-punctuate", fontWeight = FontWeight.SemiBold)
-                                Text("Add end punctuation to unpunctuated lines for smoother listening.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_auto_punctuate), fontWeight = FontWeight.SemiBold)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_end_punctuation_to_unpunctuated_lines_for_smoother_listening), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             VeritasSwitch(
                                 checked = pptxOptions.autoPunctuate,
@@ -133,8 +133,8 @@ fun VeritasImportPreviewDialog(
                     item {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Read text in slide images", fontWeight = FontWeight.SemiBold)
-                                Text("OCR screenshots and figures. Large decks import slower.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read_text_in_slide_images), fontWeight = FontWeight.SemiBold)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ocr_screenshots_and_figures_large_decks_import_slower), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             VeritasSwitch(
                                 checked = pptxOptions.ocrSlideImages,
@@ -146,7 +146,7 @@ fun VeritasImportPreviewDialog(
 
                 if (pendingImport.isPdf) {
                     item {
-                        Text("PDF options", style = MaterialTheme.typography.titleSmall)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pdf_options), style = MaterialTheme.typography.titleSmall)
                     }
 
                     item {
@@ -158,7 +158,7 @@ fun VeritasImportPreviewDialog(
                                     val startVal = startPageDraft.toIntOrNull()
                                     pdfOptions = pdfOptions.copy(startPage = startVal)
                                 },
-                                label = { Text("Start page") },
+                                label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_page)) },
                                 singleLine = true,
                                 modifier = Modifier.weight(1f)
                             )
@@ -169,7 +169,7 @@ fun VeritasImportPreviewDialog(
                                     val endVal = endPageDraft.toIntOrNull()
                                     pdfOptions = pdfOptions.copy(endPage = endVal)
                                 },
-                                label = { Text("End page") },
+                                label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_end_page)) },
                                 singleLine = true,
                                 modifier = Modifier.weight(1f)
                             )
@@ -179,7 +179,7 @@ fun VeritasImportPreviewDialog(
                     if (isPageRangeInvalid && pageCount > 0) {
                         item {
                             Text(
-                                text = "Warning: Page range must be between 1 and $pageCount.",
+                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_063, com.veritas.reader.ui.screens.localizedUiValue(pageCount)),
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -188,14 +188,14 @@ fun VeritasImportPreviewDialog(
 
                     item {
                         Column {
-                            Text("Extraction mode", fontWeight = FontWeight.Bold)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_extraction_mode), fontWeight = FontWeight.Bold)
                             Box {
                                 OutlinedButton(
                                     onClick = { modeExpanded = true },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(
-                                        pdfOptions.extractionMode.ifBlank { "HTML with images" },
+                                        pdfOptions.extractionMode.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_html_with_images) },
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -224,7 +224,7 @@ fun VeritasImportPreviewDialog(
 
                     item {
                         PdfImportToggleRow(
-                            title = "Clean repeated headers and footers",
+                            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_clean_repeated_headers_and_footers),
                             checked = pdfOptions.cleanupRepeatedLines,
                             onCheckedChange = { pdfOptions = pdfOptions.copy(cleanupRepeatedLines = it) }
                         )
@@ -232,7 +232,7 @@ fun VeritasImportPreviewDialog(
 
                     item {
                         PdfImportToggleRow(
-                            title = "Remove page numbers",
+                            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_remove_page_numbers),
                             checked = pdfOptions.removePageNumbers,
                             onCheckedChange = { pdfOptions = pdfOptions.copy(removePageNumbers = it) }
                         )
@@ -240,7 +240,7 @@ fun VeritasImportPreviewDialog(
 
                     item {
                         PdfImportToggleRow(
-                            title = "Repair hyphenated line breaks",
+                            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_repair_hyphenated_line_breaks),
                             checked = pdfOptions.repairHyphenation,
                             onCheckedChange = { pdfOptions = pdfOptions.copy(repairHyphenation = it) }
                         )
@@ -248,7 +248,7 @@ fun VeritasImportPreviewDialog(
 
                     item {
                         PdfImportToggleRow(
-                            title = "Include page markers",
+                            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_include_page_markers),
                             checked = pdfOptions.includePageMarkers,
                             onCheckedChange = { pdfOptions = pdfOptions.copy(includePageMarkers = it) }
                         )
@@ -256,7 +256,7 @@ fun VeritasImportPreviewDialog(
 
                     item {
                         PdfImportToggleRow(
-                            title = "Remove top page noise",
+                            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_remove_top_page_noise),
                             checked = pdfOptions.removeTopPageNoise,
                             onCheckedChange = { pdfOptions = pdfOptions.copy(removeTopPageNoise = it) }
                         )
@@ -264,19 +264,19 @@ fun VeritasImportPreviewDialog(
 
                     item {
                         PdfImportToggleRow(
-                            title = "Remove bottom page noise",
+                            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_remove_bottom_page_noise),
                             checked = pdfOptions.removeBottomPageNoise,
                             onCheckedChange = { pdfOptions = pdfOptions.copy(removeBottomPageNoise = it) }
                         )
                     }
                 } else if (pendingImport.mimeType.contains("text") || pendingImport.mimeType.contains("html") || pendingImport.name.endsWith(".txt") || pendingImport.name.endsWith(".html") || pendingImport.name.endsWith(".htm")) {
                     item {
-                        Text("Text Options", style = MaterialTheme.typography.titleSmall)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text_options), style = MaterialTheme.typography.titleSmall)
                     }
 
                     item {
                         Column {
-                            Text("Text encoding", fontWeight = FontWeight.Bold)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text_encoding), fontWeight = FontWeight.Bold)
                             Box {
                                 OutlinedButton(
                                     onClick = { encodingExpanded = true },
@@ -315,12 +315,12 @@ fun VeritasImportPreviewDialog(
                 },
                 enabled = !isPageRangeInvalid
             ) {
-                Text("Import")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import))
             }
         },
         dismissButton = {
             TextButton(onClick = onCancel) {
-                Text("Cancel")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
             }
         }
     )

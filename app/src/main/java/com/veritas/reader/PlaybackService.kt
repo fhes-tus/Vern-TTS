@@ -427,7 +427,7 @@ class PlaybackService : MediaSessionService() {
 
     private fun usesEnglishSymbolReadings(): Boolean {
         val locale = repository.loadVoiceSettings().localeTag.takeIf { it.isNotBlank() }
-            ?.let(java.util.Locale::forLanguageTag) ?: tts?.voice?.locale ?: java.util.Locale.getDefault()
+            ?.let(java.util.Locale::forLanguageTag) ?: tts?.voice?.locale ?: AppLanguages.systemSpeechLocale()
         return locale.language == "en"
     }
 
@@ -820,7 +820,7 @@ class PlaybackService : MediaSessionService() {
             val ahead = if (!selection && speechParts == null && !aheadSettings.enabled) {
                 val sourceChunks = chunks
                 val rules = repository.compiledPronunciationRules()
-                val voice = segment.voice.copy(localeTag = segment.voice.localeTag.ifBlank { java.util.Locale.getDefault().toLanguageTag() })
+                val voice = segment.voice.copy(localeTag = segment.voice.localeTag.ifBlank { tts?.voice?.locale?.toLanguageTag() ?: AppLanguages.systemSpeechLocale().toLanguageTag() })
                 com.veritas.reader.tts.VeritasAudioBuffer.LookAhead(sourceChunks.size, 4) { chunkIndex ->
                     SpeechPlan.segment(segment.documentId, segment.contentRevision, chunkIndex, sourceChunks[chunkIndex],
                         voice, aheadSettings, effectiveRate, effectivePitch, rules).spoken.text

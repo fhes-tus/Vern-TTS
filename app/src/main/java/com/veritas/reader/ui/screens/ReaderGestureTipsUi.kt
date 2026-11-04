@@ -92,7 +92,7 @@ internal fun ReaderGestureTipsBanner(
                             )
                         }
                         Text(
-                            text = "Reader Gestures",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reader_gestures),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -104,7 +104,7 @@ internal fun ReaderGestureTipsBanner(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "Dismiss tip",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_dismiss_tip),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             modifier = Modifier.size(18.dp)
                         )
@@ -115,20 +115,20 @@ internal fun ReaderGestureTipsBanner(
 
                 GestureTipRow(
                     icon = Icons.Outlined.ZoomIn,
-                    title = "Pinch in / out",
-                    description = "Quickly resize reading text"
+                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_pinch_in_out),
+                    description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_quickly_resize_reading_text)
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 GestureTipRow(
                     icon = Icons.Outlined.TouchApp,
-                    title = "Double-tap sentence",
-                    description = "Start voice reading from that exact line"
+                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_double_tap_sentence),
+                    description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_start_voice_reading_from_that_exact_line)
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 GestureTipRow(
                     icon = Icons.Outlined.TouchApp,
-                    title = "Long-press text",
-                    description = "Select words for translation, notes, or search"
+                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_long_press_text),
+                    description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_select_words_for_translation_notes_or_search)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -142,7 +142,7 @@ internal fun ReaderGestureTipsBanner(
                         onClick = onDismissPermanently
                     ) {
                         Text(
-                            text = "Don't show again",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_don_t_show_again),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary)
                     }
@@ -151,7 +151,7 @@ internal fun ReaderGestureTipsBanner(
                         onClick = onDismissCurrent
                     ) {
                         Text(
-                            text = "Got it",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_got_it),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="reading_minutes">
+        <item quantity="one">"%1$d minute"</item>
+        <item quantity="other">"%1$d minutes"</item>
+    </plurals>
+    <plurals name="reading_minutes_daily">
+        <item quantity="one">"%1$d minute par jour"</item>
+        <item quantity="other">"%1$d minutes par jour"</item>
+    </plurals>
+    <plurals name="reading_minutes_to_goal">
+        <item quantity="one">"%1$d minute avant votre objectif"</item>
+        <item quantity="other">"%1$d minutes avant votre objectif"</item>
+    </plurals>
+    <plurals name="reading_days">
+        <item quantity="one">"%1$d jour"</item>
+        <item quantity="other">"%1$d jours"</item>
+    </plurals>
+    <plurals name="reading_days_this_week">
+        <item quantity="one">"%1$d jour de lecture cette semaine"</item>
+        <item quantity="other">"%1$d jours de lecture cette semaine"</item>
+    </plurals>
+</resources>

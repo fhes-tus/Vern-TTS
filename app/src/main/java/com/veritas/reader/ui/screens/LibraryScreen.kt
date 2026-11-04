@@ -709,11 +709,11 @@ fun LibraryScreen(
                     ) { currentTab ->
                         if (currentTab == VeritasHomeTab.NOTES) {
                             ExtendedFloatingActionButton(
-                                text = { Text("Note") },
+                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_note)) },
                                 icon = {
                                     Icon(
                                         imageVector = Icons.Outlined.EditNote,
-                                        contentDescription = "Write note",
+                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_write_note_96dcbf1),
                                         modifier = Modifier.size(22.dp)
                                     )
                                 },
@@ -732,7 +732,7 @@ fun LibraryScreen(
                                 label = "fabPlusRotation"
                             )
                             ExtendedFloatingActionButton(
-                                text = { Text("Add") },
+                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add)) },
                                 icon = {
                                     Text(
                                         "+",

@@ -69,9 +69,9 @@ internal fun QuoteShareDialog(visible: Boolean, quote: String, title: String, do
                 verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onDismiss, enabled = !sharing) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to sentence selection")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back_to_sentence_selection))
                     }
-                    Text("Share quote", style = MaterialTheme.typography.titleLarge)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_quote), style = MaterialTheme.typography.titleLarge)
                 }
                 Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     if (current?.image != null) Image(current.image.asImageBitmap(),
@@ -93,8 +93,8 @@ internal fun QuoteShareDialog(visible: Boolean, quote: String, title: String, do
                 }
                 OutlinedTextField(value = credit, onValueChange = {
                     creditEdited = true; credit = it.replace('\n', ' ').take(140); shareError = null
-                }, label = { Text("Quote source") }, placeholder = { Text("Author or character name") },
-                    supportingText = { Text("Credit the author, narrator or character who said it.") },
+                }, label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_quote_source)) }, placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_author_or_character_name)) },
+                    supportingText = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_credit_the_author_narrator_or_character_who_said_it)) },
                     singleLine = true, enabled = !sharing, modifier = Modifier.fillMaxWidth().testTag("quote-source"))
                 shareError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 Button(onClick = {
@@ -114,7 +114,7 @@ internal fun QuoteShareDialog(visible: Boolean, quote: String, title: String, do
                 }, enabled = book != null && current?.image != null && !sharing, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                     Icon(Icons.Filled.Share, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text(if (sharing) "Preparing image…" else "Share image")
+                    Text(if (sharing) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preparing_image) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_image))
                 }
             }
         }

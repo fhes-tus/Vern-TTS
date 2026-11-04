@@ -28,6 +28,7 @@ android {
 
     buildTypes {
         debug {
+            isPseudoLocalesEnabled = true
             // Instrumentation can use a separate package without uninstalling the
             // preview library that the user is currently testing.
             applicationIdSuffix = providers.gradleProperty("debugApplicationIdSuffix").getOrElse(".preview")

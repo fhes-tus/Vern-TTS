@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" formatted="false">"Vern"</string>
+    <string name="settings_a_small_target_to_help_make_reading_a_habit" formatted="false">"用一个小目标培养阅读习惯。"</string>
+    <string name="settings_adaptive_cover_theme" formatted="false">"自适应封面主题"</string>
+    <string name="settings_add_new_items_at_the_top" formatted="false">"在顶部添加新项目"</string>
+    <string name="settings_amoled" formatted="false">"AMOLED"</string>
+    <string name="settings_an_evening_nudge_when_your_goal_is_at_risk" formatted="false">"可能错过目标时，在晚间提醒。"</string>
+    <string name="settings_attachment_badges" formatted="false">"附件标识"</string>
+    <string name="settings_attachment_thumbnails" formatted="false">"附件缩略图"</string>
+    <string name="settings_bionic_reading" formatted="false">"仿生阅读"</string>
+    <string name="settings_bloom" formatted="false">"绽放"</string>
+    <string name="settings_book_sources" formatted="false">"书籍来源"</string>
+    <string name="settings_bookmarks_notes" formatted="false">"书签与笔记"</string>
+    <string name="settings_character_voices" formatted="false">"角色声音"</string>
+    <string name="settings_checklists" formatted="false">"清单"</string>
+    <string name="settings_clean_repeated_headers_and_footers" formatted="false">"清理重复页眉和页脚"</string>
+    <string name="settings_collapsible_reader_bars" formatted="false">"可收起的阅读工具栏"</string>
+    <string name="settings_completed_items_at_the_bottom" formatted="false">"已完成项目置底"</string>
+    <string name="settings_daily_rhythm" formatted="false">"每日节奏"</string>
+    <string name="settings_detect_dialogue" formatted="false">"检测对话"</string>
+    <string name="settings_dialogue_badges" formatted="false">"对话标识"</string>
+    <string name="settings_display_rich_link_previews" formatted="false">"显示丰富链接预览"</string>
+    <string name="settings_display_theme" formatted="false">"显示与主题"</string>
+    <string name="settings_emphasise_the_first_letters_of_each_word" formatted="false">"突出每个单词的首字母。"</string>
+    <string name="settings_express_punctuation" formatted="false">"表现标点语气"</string>
+    <string name="settings_fade" formatted="false">"淡入"</string>
+    <string name="settings_flashcards_decks_progress" formatted="false">"抽认卡、卡组和进度"</string>
+    <string name="settings_force_fresh_extraction" formatted="false">"强制重新提取"</string>
+    <string name="settings_force_ocr_for_pdf_import" formatted="false">"导入 PDF 时强制使用 OCR"</string>
+    <string name="settings_gentle_pacing_cues_natural_voice_intonation" formatted="false">"轻柔的节奏提示与自然语调"</string>
+    <string name="settings_grid" formatted="false">"网格"</string>
+    <string name="settings_hidden" formatted="false">"隐藏"</string>
+    <string name="settings_identify_the_current_role_in_the_reader" formatted="false">"在阅读器中标识当前角色"</string>
+    <string name="settings_include_page_markers" formatted="false">"包含页面标记"</string>
+    <string name="settings_included" formatted="false">"已包含"</string>
+    <string name="settings_keep_decorative_animations_still" formatted="false">"让装饰动画保持静止。"</string>
+    <string name="settings_large" formatted="false">"大"</string>
+    <string name="settings_larger" formatted="false">"较大"</string>
+    <string name="settings_last_edited" formatted="false">"最近编辑"</string>
+    <string name="settings_layout" formatted="false">"布局"</string>
+    <string name="settings_let_your_current_book_colour_the_reading_space" formatted="false">"让当前书籍为阅读空间配色。"</string>
+    <string name="settings_light_flip" formatted="false">"轻翻"</string>
+    <string name="settings_list" formatted="false">"列表"</string>
+    <string name="settings_long" formatted="false">"长"</string>
+    <string name="settings_manual_crop_before_extract" formatted="false">"提取前手动裁剪"</string>
+    <string name="settings_match_original_layout_where_possible" formatted="false">"尽可能匹配原始布局"</string>
+    <string name="settings_mix_installed_system_lite_and_studio_voices_in_one_cast" formatted="false">"在同一组角色中混用已安装的系统、Lite 和 Studio 声音"</string>
+    <string name="settings_motion_clarity" formatted="false">"动态效果与清晰度"</string>
+    <string name="settings_move_an_item_down_when_you_check_it" formatted="false">"勾选后将项目移到底部"</string>
+    <string name="settings_narration_studio" formatted="false">"旁白工作室"</string>
+    <string name="settings_navigation_labels" formatted="false">"导航标签"</string>
+    <string name="settings_neural_voices_already_interpret_punctuation_naturally" formatted="false">"神经网络声音已能自然处理标点"</string>
+    <string name="settings_new_notes" formatted="false">"新笔记"</string>
+    <string name="settings_newest" formatted="false">"最新"</string>
+    <string name="settings_notes_page" formatted="false">"笔记页面"</string>
+    <string name="settings_option_12_uk_and_us_voices_about_20mb_each_select_several_to_download_to" formatted="false">"12 种英式和美式声音，每种约 20 MB。可同时选择多种声音，其余下载会排队等待。"</string>
+    <string name="settings_option_add_books_to_the_queue_first" formatted="false">"请先将书籍加入队列。"</string>
+    <string name="settings_option_auto_detect" formatted="false">"自动检测"</string>
+    <string name="settings_option_balanced" formatted="false">"均衡"</string>
+    <string name="settings_option_bedtime_calm" formatted="false">"睡前平静"</string>
+    <string name="settings_option_black" formatted="false">"黑色"</string>
+    <string name="settings_option_blank" formatted="false">"空白"</string>
+    <string name="settings_option_blue" formatted="false">"蓝色"</string>
+    <string name="settings_option_brighter" formatted="false">"更亮"</string>
+    <string name="settings_option_colour_shade" formatted="false">"颜色明暗"</string>
+    <string name="settings_option_confident_articulate_delivery_for_academic_and_business_text" formatted="false">"自信清晰的表达，适合学术和商务文本。"</string>
+    <string name="settings_option_cyan" formatted="false">"青色"</string>
+    <string name="settings_option_darker" formatted="false">"更暗"</string>
+    <string name="settings_option_declared_in_html" formatted="false">"HTML 中声明的编码"</string>
+    <string name="settings_option_default_language" formatted="false">"默认语言"</string>
+    <string name="settings_option_deliberate_pacing_with_grounded_tone_for_deep_comprehension" formatted="false">"沉稳语调与从容节奏，帮助深入理解。"</string>
+    <string name="settings_option_dialogue" formatted="false">"对话"</string>
+    <string name="settings_option_dot_matrix" formatted="false">"点阵"</string>
+    <string name="settings_option_fast_energetic_review_with_crisp_consonant_clarity" formatted="false">"快速、有活力的复习，辅音清晰。"</string>
+    <string name="settings_option_force_ocr" formatted="false">"强制 OCR"</string>
+    <string name="settings_option_green" formatted="false">"绿色"</string>
+    <string name="settings_option_grey" formatted="false">"灰色"</string>
+    <string name="settings_option_hue" formatted="false">"色相"</string>
+    <string name="settings_option_keep_marked_words" formatted="false">"保留标记内的词"</string>
+    <string name="settings_option_lecture_bright" formatted="false">"清晰讲授"</string>
+    <string name="settings_option_less_saturated" formatted="false">"降低饱和度"</string>
+    <string name="settings_option_literal" formatted="false">"字面"</string>
+    <string name="settings_option_more_saturated" formatted="false">"提高饱和度"</string>
+    <string name="settings_option_narrator" formatted="false">"旁白"</string>
+    <string name="settings_option_natural_everyday_audio_reading_with_standard_timing" formatted="false">"适合日常的自然朗读，采用标准节奏。"</string>
+    <string name="settings_option_network_voice" formatted="false">"在线声音"</string>
+    <string name="settings_option_offline_voice" formatted="false">"离线声音"</string>
+    <string name="settings_option_on" formatted="false">"开"</string>
+    <string name="settings_option_open_a_reading_first" formatted="false">"请先打开读物。"</string>
+    <string name="settings_option_orange" formatted="false">"橙色"</string>
+    <string name="settings_option_pattern" formatted="false">"模式"</string>
+    <string name="settings_option_plain_text" formatted="false">"纯文本"</string>
+    <string name="settings_option_prefer_ocr_when_text_is_poor" formatted="false">"文本质量差时优先使用 OCR"</string>
+    <string name="settings_option_purple" formatted="false">"紫色"</string>
+    <string name="settings_option_quick_scan" formatted="false">"快速浏览"</string>
+    <string name="settings_option_red" formatted="false">"红色"</string>
+    <string name="settings_option_references_n" formatted="false">"引用 [n]"</string>
+    <string name="settings_option_regex" formatted="false">"正则表达式"</string>
+    <string name="settings_option_richest_most_expressive_voices_28_english_speakers_in_one_126mb_d" formatted="false">"表现力最丰富的声音：一次 126 MB 下载包含 28 位英语说话人。模型较重，在中端手机上可能会在句间停顿。"</string>
+    <string name="settings_option_ruled_lines" formatted="false">"横线"</string>
+    <string name="settings_option_save_a_reading_first" formatted="false">"请先保存读物。"</string>
+    <string name="settings_option_slow_soothing_mellow_tone_for_quiet_night_time_listening" formatted="false">"缓慢、柔和、舒缓的语调，适合夜间安静聆听。"</string>
+    <string name="settings_option_starred_text" formatted="false">"星号包围的文本"</string>
+    <string name="settings_option_startup_preview" formatted="false">"启动预览"</string>
+    <string name="settings_option_storyteller" formatted="false">"讲故事"</string>
+    <string name="settings_option_study_focus" formatted="false">"专注学习"</string>
+    <string name="settings_option_system_default" formatted="false">"系统默认"</string>
+    <string name="settings_option_underscore_text" formatted="false">"下划线包围的文本"</string>
+    <string name="settings_option_warm_chest_resonant_narration_for_fiction_and_novels" formatted="false">"温暖浑厚的旁白，适合小说与故事。"</string>
+    <string name="settings_option_white" formatted="false">"白色"</string>
+    <string name="settings_option_yellow" formatted="false">"黄色"</string>
+    <string name="settings_page_curl" formatted="false">"卷页"</string>
+    <string name="settings_page_swipe" formatted="false">"滑动翻页"</string>
+    <string name="settings_prefer_ocr_when_pdf_text_is_weak" formatted="false">"PDF 文本质量较差时优先使用 OCR"</string>
+    <string name="settings_pronunciation_rules" formatted="false">"发音规则"</string>
+    <string name="settings_pronunciation_rules_bf2c874" formatted="false">"发音规则"</string>
+    <string name="settings_reading_focus" formatted="false">"阅读与专注"</string>
+    <string name="settings_reading_queue" formatted="false">"阅读队列"</string>
+    <string name="settings_reading_streaks_history" formatted="false">"连续阅读与历史记录"</string>
+    <string name="settings_recognize_quoted_speech_and_speech_tags" formatted="false">"识别引号内对话和说话人提示"</string>
+    <string name="settings_reduce_motion" formatted="false">"减弱动态效果"</string>
+    <string name="settings_reduce_transparency" formatted="false">"减弱透明度"</string>
+    <string name="settings_relaxed" formatted="false">"宽松"</string>
+    <string name="settings_remove_bottom_page_noise" formatted="false">"移除页面底部杂项"</string>
+    <string name="settings_remove_page_numbers" formatted="false">"移除页码"</string>
+    <string name="settings_remove_top_page_noise" formatted="false">"移除页面顶部杂项"</string>
+    <string name="settings_repair_hyphenated_line_breaks" formatted="false">"修复换行断词"</string>
+    <string name="settings_rise" formatted="false">"上升"</string>
+    <string name="settings_saved_readings" formatted="false">"已保存读物"</string>
+    <string name="settings_saving_backup" formatted="false">"保存与备份"</string>
+    <string name="settings_scroll" formatted="false">"滚动"</string>
+    <string name="settings_section_labels" formatted="false">"章节标签"</string>
+    <string name="settings_separate_words_when_font_changes" formatted="false">"字体变化时分隔单词"</string>
+    <string name="settings_shake_in_the_final_minute_to_add_ten_minutes" formatted="false">"在最后一分钟摇动设备可增加十分钟。"</string>
+    <string name="settings_shake_to_extend_timer" formatted="false">"摇动延长定时器"</string>
+    <string name="settings_short" formatted="false">"短"</string>
+    <string name="settings_show_images_and_video_previews_on_note_cards" formatted="false">"在笔记卡片显示图片和视频预览"</string>
+    <string name="settings_show_names_beneath_navigation_icons" formatted="false">"在导航图标下显示名称。"</string>
+    <string name="settings_show_section_numbers_for_easier_study_and_search" formatted="false">"显示章节编号，方便学习和搜索。"</string>
+    <string name="settings_show_the_book_linked_to_a_reading_note" formatted="false">"显示阅读笔记关联的书籍"</string>
+    <string name="settings_show_the_kinds_of_media_in_each_note" formatted="false">"显示每条笔记的媒体类型"</string>
+    <string name="settings_show_the_waveform_beside_a_voice_memo" formatted="false">"在语音备忘旁显示波形"</string>
+    <string name="settings_show_website_cards_in_notes_and_on_the_notes_page" formatted="false">"在笔记及笔记页面显示网站卡片"</string>
+    <string name="settings_slide" formatted="false">"平移"</string>
+    <string name="settings_small" formatted="false">"小"</string>
+    <string name="settings_standard" formatted="false">"标准"</string>
+    <string name="settings_start_a_new_item_above_the_existing_list" formatted="false">"在现有列表上方新增项目"</string>
+    <string name="settings_streak_reminder" formatted="false">"连续阅读提醒"</string>
+    <string name="settings_swipe" formatted="false">"滑动"</string>
+    <string name="settings_tap_the_page_to_hide_or_show_reader_controls" formatted="false">"点按页面可显示或隐藏阅读控件。"</string>
+    <string name="settings_text_previews" formatted="false">"文本预览"</string>
+    <string name="settings_use_role_specific_pacing_and_pitch" formatted="false">"按角色调整语速和音高"</string>
+    <string name="settings_use_solid_panels_for_clearer_text_and_controls" formatted="false">"使用不透明面板，让文字和控件更清晰。"</string>
+    <string name="settings_vertical_scroll" formatted="false">"垂直滚动"</string>
+    <string name="settings_voice_and_language" formatted="false">"声音与语言"</string>
+    <string name="settings_voice_reader_settings" formatted="false">"声音与阅读器设置"</string>
+    <string name="settings_voice_waveforms" formatted="false">"语音波形"</string>
+    <string name="settings_wide" formatted="false">"宽"</string>
+    <string name="settings_writing" formatted="false">"书写"</string>
+    <string name="ui_a_little_space_for_big_ideas" formatted="false">"为大想法留一方小天地。"</string>
+    <string name="ui_a_speech_tag_such_as_alice_said_identifies_this_character" formatted="false">"“爱丽丝说”等提示语用于识别该角色。"</string>
+    <string name="ui_a_thought_worth_keeping" formatted="false">"值得记录的想法"</string>
+    <string name="ui_aa" formatted="false">"字样"</string>
+    <string name="ui_aa_2c419ec" formatted="false">"字样"</string>
+    <string name="ui_access_hundreds_of_models_at_openrouter_ai" formatted="false">"在 openrouter.ai 访问数百种模型。"</string>
+    <string name="ui_active" formatted="false">"使用中"</string>
+    <string name="ui_active_voice" formatted="false">"当前声音"</string>
+    <string name="ui_add_api_key" formatted="false">"添加 API 密钥"</string>
+    <string name="ui_add_character" formatted="false">"添加角色"</string>
+    <string name="ui_add_language_voice" formatted="false">"添加语言或声音"</string>
+    <string name="ui_ai_assistant_preference" formatted="false">"AI 助手偏好"</string>
+    <string name="ui_ai_provider_key_setup" formatted="false">"AI 服务商与密钥设置"</string>
+    <string name="ui_always_growing" formatted="false">"不断成长"</string>
+    <string name="ui_amoled_mode" formatted="false">"AMOLED 模式"</string>
+    <string name="ui_android_battery_optimizations_will_pause_or_kill_vern_speech_play" formatted="false">"Android 电池优化可能在屏幕锁定或关闭后不久暂停或停止 Vern 的朗读。"</string>
+    <string name="ui_any_standard_openai_compatible_api_base_url" formatted="false">"任何标准的 OpenAI 兼容 API 基础地址。"</string>
+    <string name="ui_api_endpoint_url" formatted="false">"API 端点地址"</string>
+    <string name="ui_app_backups_include_notes_and_these_preferences_zip_backups_also" formatted="false">"应用备份包含笔记及这些偏好设置。ZIP 备份还包含支持的本地笔记附件。请使用应用设置中的备份与恢复。"</string>
+    <string name="ui_app_icon_colours" formatted="false">"应用图标颜色"</string>
+    <string name="ui_appearance_mode" formatted="false">"外观模式"</string>
+    <string name="ui_apply_narration_settings" formatted="false">"应用旁白设置"</string>
+    <string name="ui_auto_play_queue" formatted="false">"自动播放队列"</string>
+    <string name="ui_automatic_weekly_backups" formatted="false">"每周自动备份"</string>
+    <string name="ui_automatically_play_next_queued_book" formatted="false">"自动播放队列中的下一本书"</string>
+    <string name="ui_automatically_save_local_backup_archives_every_7_days" formatted="false">"每 7 天自动保存本地备份"</string>
+    <string name="ui_book" formatted="false">"书籍"</string>
+    <string name="ui_books_notes_and_dashboard_cards_drop_into_varied_tilts_and_offset" formatted="false">"书籍、笔记和概览卡片以不同倾斜和偏移显示，每张卡片的位置保持不变。"</string>
+    <string name="ui_change_colour" formatted="false">"更改颜色"</string>
+    <string name="ui_change_what_vern_says_without_changing_the_book" formatted="false">"更改 Vern 的朗读内容，无需修改书籍。"</string>
+    <string name="ui_character_voice" formatted="false">"角色声音"</string>
+    <string name="ui_checking_for_updates" formatted="false">"正在检查更新…"</string>
+    <string name="ui_choose_a_palette_for_your_launcher_icon_the_launcher_updates_when" formatted="false">"为桌面图标选择配色。图标会在退出 Vern 后更新，让设置页面保持打开。"</string>
+    <string name="ui_choose_accent_colour" formatted="false">"选择强调色"</string>
+    <string name="ui_choose_any_colour_for_buttons_highlights_and_matching_tints_it_fo" formatted="false">"为按钮、高亮和相关色调选择颜色。它会适配主题包以及浅色、深色或跟随系统模式。"</string>
+    <string name="ui_choose_colour" formatted="false">"选择颜色"</string>
+    <string name="ui_choose_the_assistant_veritas_should_launch_when_you_select_text_i" formatted="false">"选择在阅读器中选中文本时打开的助手。若未安装该应用，Veritas 可跳转到 Play 商店。"</string>
+    <string name="ui_close_notes_settings" formatted="false">"关闭笔记设置"</string>
+    <string name="ui_collapse" formatted="false">"收起"</string>
+    <string name="ui_color_palette_and_document_canvas_tone" formatted="false">"配色和文档底色"</string>
+    <string name="ui_colour_themes" formatted="false">"配色主题"</string>
+    <string name="ui_colours_card_character_and_page_motion" formatted="false">"颜色、卡片风格与翻页动画。"</string>
+    <string name="ui_comfort_comes_first" formatted="false">"舒适最重要"</string>
+    <string name="ui_connect_any_ai_model_to_generate_flashcards_quizzes_and_study_sum" formatted="false">"连接 AI 模型，即可在 Veritas Reader 中生成抽认卡、测验和学习摘要。"</string>
+    <string name="ui_control_how_pdfs_and_text_files_are_imported_before_they_enter_th" formatted="false">"设置 PDF 和文本文件导入阅读器的方式。"</string>
+    <string name="ui_current_voice_model" formatted="false">"当前语音模型"</string>
+    <string name="ui_custom_accent" formatted="false">"自定义强调色"</string>
+    <string name="ui_custom_prompt_template" formatted="false">"自定义提示词模板"</string>
+    <string name="ui_data_included_in_backup_sync" formatted="false">"备份与同步包含的数据"</string>
+    <string name="ui_definition_wiktionary" formatted="false">"释义：维基词典"</string>
+    <string name="ui_delete_vocabulary_word" formatted="false">"删除此词汇？"</string>
+    <string name="ui_delete_voice_model" formatted="false">"删除语音模型"</string>
+    <string name="ui_device_animations_are_off_startup_stays_still" formatted="false">"设备动画已关闭。启动画面保持静止。"</string>
+    <string name="ui_discard_narration_changes" formatted="false">"放弃旁白更改？"</string>
+    <string name="ui_display_preferences" formatted="false">"显示偏好"</string>
+    <string name="ui_don_t_ask_again" formatted="false">"不再询问"</string>
+    <string name="ui_download_in_voice_studio" formatted="false">" · 在语音工作室下载"</string>
+    <string name="ui_download_voices_for_offline_reading_update_older_piper_voices_usi" formatted="false">"下载声音以离线朗读。在声音列表中使用更新按钮，将旧版 Piper 声音更新为噪声更少的全精度包。已缓冲的阅读会正常继续。"</string>
+    <string name="ui_edit_rule" formatted="false">"编辑规则"</string>
+    <string name="ui_effects_apply_to_text_pages_in_page_swipe_mode_reduce_motion_turn" formatted="false">"效果适用于滑动翻页模式下的文本页面。减弱动态效果会关闭翻页动画。"</string>
+    <string name="ui_end_page" formatted="false">"结束页"</string>
+    <string name="ui_entry_actions" formatted="false">"条目操作"</string>
+    <string name="ui_expand" formatted="false">"展开"</string>
+    <string name="ui_export_portable_backup_with_media_zip" formatted="false">"导出含媒体的便携备份（.zip）"</string>
+    <string name="ui_export_text_settings_json" formatted="false">"导出文本和设置（.json）"</string>
+    <string name="ui_extraction_mode" formatted="false">"提取模式"</string>
+    <string name="ui_fewer_examples" formatted="false">"更少示例"</string>
+    <string name="ui_find_meaning" formatted="false">"查找释义"</string>
+    <string name="ui_find_vern_online" formatted="false">"在线了解 Vern"</string>
+    <string name="ui_find_word_or_phrase" formatted="false">"查找单词或短语"</string>
+    <string name="ui_follow_my_colour_theme" formatted="false">"跟随我的配色主题"</string>
+    <string name="ui_for_example_sequel_instead_of_sql" formatted="false">"例如，将 SQL 读成 sequel。"</string>
+    <string name="ui_free_tier_available_at_aistudio_google_com" formatted="false">"aistudio.google.com 提供免费额度。"</string>
+    <string name="ui_funky_cards" formatted="false">"趣味卡片"</string>
+    <string name="ui_glass_in_other_theme_packs" formatted="false">"在其他主题包中使用玻璃效果"</string>
+    <string name="ui_go" formatted="false">"跳转"</string>
+    <string name="ui_got_it" formatted="false">"知道了"</string>
+    <string name="ui_hide_matching_details" formatted="false">"隐藏匹配详情"</string>
+    <string name="ui_hide_syntax_guide" formatted="false">"隐藏语法指南"</string>
+    <string name="ui_high_contrast" formatted="false">"高对比度"</string>
+    <string name="ui_high_contrast_keeps_its_accessibility_colours_your_custom_accent" formatted="false">"高对比度模式保留其无障碍配色。退出该模式后会恢复自定义强调色。"</string>
+    <string name="ui_how_rules_are_matched" formatted="false">"规则如何匹配"</string>
+    <string name="ui_how_to_enable_uninterrupted_audio" formatted="false">"如何启用不间断播放："</string>
+    <string name="ui_html_with_images" formatted="false">"包含图片的 HTML"</string>
+    <string name="ui_import_sync_backup_pack" formatted="false">"导入同步或备份包"</string>
+    <string name="ui_include_online_network_voices" formatted="false">"包含在线声音"</string>
+    <string name="ui_includes_unsaved_rule" formatted="false">"包含未保存的规则"</string>
+    <string name="ui_install" formatted="false">"安装"</string>
+    <string name="ui_install_from_play_store" formatted="false">"从 Play 商店安装"</string>
+    <string name="ui_jump_to_page" formatted="false">"跳转到页面"</string>
+    <string name="ui_jump_to_page_8a8ded9" formatted="false">"跳转到页面"</string>
+    <string name="ui_keep_editing" formatted="false">"继续编辑"</string>
+    <string name="ui_keep_your_reading_space_up_to_date" formatted="false">"让你的阅读空间保持更新。"</string>
+    <string name="ui_keys_are_saved_locally_on_your_device_only" formatted="false">" 密钥仅保存在你的设备上。"</string>
+    <string name="ui_language_voice_library" formatted="false">"语言与声音库"</string>
+    <string name="ui_library_sync_backup_engine" formatted="false">"书库同步与备份"</string>
+    <string name="ui_listen_to_preview" formatted="false">"聆听试听"</string>
+    <string name="ui_lite" formatted="false">"Lite"</string>
+    <string name="ui_live_preview" formatted="false">"实时预览"</string>
+    <string name="ui_loading_voice_models" formatted="false">"正在加载语音模型…"</string>
+    <string name="ui_made_better_together" formatted="false">"一起让它更好"</string>
+    <string name="ui_make_vern_yours" formatted="false">"打造专属 Vern"</string>
+    <string name="ui_match" formatted="false">"匹配"</string>
+    <string name="ui_match_case" formatted="false">"区分大小写"</string>
+    <string name="ui_match_case_2e62945" formatted="false">" · 区分大小写"</string>
+    <string name="ui_match_changing_text_with_markers_such_as_n_or_text" formatted="false">"使用 [n] 或 {text} 等标记匹配变化的文本。"</string>
+    <string name="ui_match_pattern" formatted="false">"匹配模式"</string>
+    <string name="ui_matches_complete_words_and_phrases" formatted="false">"匹配完整单词和短语。"</string>
+    <string name="ui_minimum_word_gap" formatted="false">"最小词间距"</string>
+    <string name="ui_model" formatted="false">"模型"</string>
+    <string name="ui_model_name_id" formatted="false">"模型名称或 ID"</string>
+    <string name="ui_more_examples" formatted="false">"更多示例"</string>
+    <string name="ui_n_matches_1_12_use_number_word_or_text_for_example_text_matches_a" formatted="false">"[n] 匹配 [1]、[12] 等。可使用 {number}、{word} 或 {text}。例如 _{text}_ 匹配下划线包围的短语。替换包围标记后，插入的词仍保持分隔。"</string>
+    <string name="ui_name_as_it_appears_in_the_book" formatted="false">"书中出现的姓名"</string>
+    <string name="ui_narration_mode" formatted="false">"旁白模式"</string>
+    <string name="ui_narration_shortcuts" formatted="false">"旁白快捷入口"</string>
+    <string name="ui_new_rule" formatted="false">"新规则"</string>
+    <string name="ui_no_rules_yet" formatted="false">"暂无规则"</string>
+    <string name="ui_no_voices_found_matching_search_filter" formatted="false">"未找到符合搜索条件的声音。"</string>
+    <string name="ui_not_now" formatted="false">"暂不"</string>
+    <string name="ui_notes_save_automatically_as_you_write_the_editor_shows_when_your" formatted="false">"笔记会在输入时自动保存，编辑器会显示更改的保存状态。"</string>
+    <string name="ui_notes_settings" formatted="false">"笔记设置"</string>
+    <string name="ui_notes_settings_cc5a665" formatted="false">"笔记设置"</string>
+    <string name="ui_nothing_to_clean_up" formatted="false">"没有需要清理的内容"</string>
+    <string name="ui_nothing_will_be_spoken" formatted="false">"不会朗读任何内容。"</string>
+    <string name="ui_obtain_keys_from_console_anthropic_com" formatted="false">"在 console.anthropic.com 获取密钥。"</string>
+    <string name="ui_obtain_keys_from_platform_openai_com" formatted="false">"在 platform.openai.com 获取密钥。"</string>
+    <string name="ui_off" formatted="false">"关"</string>
+    <string name="ui_on_device" formatted="false">" · 本地"</string>
+    <string name="ui_online" formatted="false">" · 在线"</string>
+    <string name="ui_open_file_browser" formatted="false">"打开文件浏览器"</string>
+    <string name="ui_open_quotes_carry_across_sentences_speaker_tags_and_labels_identi" formatted="false">"未闭合的引号会延续到后续句子。说话人提示和标签用于识别角色；无法确定的对话使用默认对话配置。"</string>
+    <string name="ui_open_source_licenses" formatted="false">"开源许可证"</string>
+    <string name="ui_original_passage" formatted="false">"原始段落"</string>
+    <string name="ui_original_pdf_navigation" formatted="false">"原始 PDF 导航"</string>
+    <string name="ui_page_navigation" formatted="false">"页面导航"</string>
+    <string name="ui_page_number" formatted="false">"页码"</string>
+    <string name="ui_paper" formatted="false">"纸张"</string>
+    <string name="ui_pdf_import_tools" formatted="false">"PDF 与导入工具"</string>
+    <string name="ui_play_sample" formatted="false">"播放示例"</string>
+    <string name="ui_plays_the_passage_sentence_by_sentence_with_the_same_role_detecti" formatted="false">"逐句播放该段落，使用与阅读时相同的角色识别、声音和发音规则。"</string>
+    <string name="ui_portable_backup_actions" formatted="false">"便携备份操作"</string>
+    <string name="ui_preparing_preview" formatted="false">"正在准备试听…"</string>
+    <string name="ui_preview_finished" formatted="false">"预览已结束"</string>
+    <string name="ui_preview_startup_motion" formatted="false">"预览启动动画"</string>
+    <string name="ui_preview_text" formatted="false">"试听文本"</string>
+    <string name="ui_preview_voice" formatted="false">"试听声音"</string>
+    <string name="ui_prompt_template" formatted="false">"提示词模板"</string>
+    <string name="ui_provider" formatted="false">"服务商"</string>
+    <string name="ui_punctuation" formatted="false">"标点"</string>
+    <string name="ui_pure_black_background_for_dark_themes_and_battery_saving" formatted="false">"深色主题使用纯黑背景以节省电量"</string>
+    <string name="ui_quick_colours" formatted="false">"快捷颜色"</string>
+    <string name="ui_re2_regex_example_0_9_look_around_and_pattern_backreferences_are" formatted="false">"RE2 示例：\[([0-9]+)\]。不支持环视和模式反向引用。空位置匹配会被忽略。"</string>
+    <string name="ui_read_listen_make_it_yours" formatted="false">"阅读。聆听。\n打造你的专属空间。"</string>
+    <string name="ui_reader_typography_font_family" formatted="false">"阅读字体与排版"</string>
+    <string name="ui_reading_layout" formatted="false">"阅读布局"</string>
+    <string name="ui_ready_to_launch" formatted="false">"可以打开"</string>
+    <string name="ui_reduce_motion_is_on_startup_stays_still" formatted="false">"已启用减弱动态效果。启动画面保持静止。"</string>
+    <string name="ui_reduce_transparency_currently_keeps_controls_opaque" formatted="false">"减弱透明度设置当前使控件保持不透明。"</string>
+    <string name="ui_refresh_meaning" formatted="false">"刷新释义"</string>
+    <string name="ui_remove_character" formatted="false">"移除角色"</string>
+    <string name="ui_reset_delivery" formatted="false">"重置表达方式"</string>
+    <string name="ui_reset_notes_preferences" formatted="false">"重置笔记偏好"</string>
+    <string name="ui_reset_notes_preferences_c9adb9e" formatted="false">"重置笔记偏好？"</string>
+    <string name="ui_reset_preferences" formatted="false">"重置偏好"</string>
+    <string name="ui_restore_the_default_layout_and_writing_preferences_your_notes_and" formatted="false">"恢复默认布局和书写偏好。笔记和附件将保持不变。"</string>
+    <string name="ui_rich_colors_from_your_selected_theme" formatted="false">"使用所选主题的浓郁色彩"</string>
+    <string name="ui_rules_apply_to_all_readings_and_audio_exports_within_each_spoken" formatted="false">"规则适用于所有阅读和音频导出中的每个朗读段落。优先采用最早匹配，其次是最长匹配；若仍相同，则采用最近保存的规则。书籍文本保持不变。"</string>
+    <string name="ui_sample" formatted="false">"示例"</string>
+    <string name="ui_save_ai_settings" formatted="false">"保存 AI 设置"</string>
+    <string name="ui_save_an_example_or_create_your_own_above" formatted="false">"保存一个示例，或在上方创建自己的规则。"</string>
+    <string name="ui_save_rule" formatted="false">"保存规则"</string>
+    <string name="ui_saved_rules" formatted="false">"已保存的规则"</string>
+    <string name="ui_say_instead" formatted="false">"替换朗读为"</string>
+    <string name="ui_search_voices" formatted="false">"搜索声音"</string>
+    <string name="ui_search_voices_or_languages" formatted="false">"搜索声音或语言…"</string>
+    <string name="ui_select_preferred_ai_app" formatted="false">"选择首选 AI 应用"</string>
+    <string name="ui_selected_colour" formatted="false">"已选颜色"</string>
+    <string name="ui_shape_the_narrator_and_dialogue_voices_then_listen_before_applyin" formatted="false">"调整旁白和对话声音，应用前先试听。阅读速度仍以你的设置为基准。"</string>
+    <string name="ui_shape_your_reading_space_around_what_feels_good_to_you" formatted="false">"按自己的舒适偏好调整阅读空间。"</string>
+    <string name="ui_share_as_image" formatted="false">"以图片分享"</string>
+    <string name="ui_share_as_text" formatted="false">"以文本分享"</string>
+    <string name="ui_share_text_settings_json" formatted="false">"分享文本和设置（.json）"</string>
+    <string name="ui_shown_on_a_fresh_launch_from_your_icon_returning_from_recents_doe" formatted="false">"从图标全新启动时显示。从最近任务返回不会重播启动画面。更改将在退出 Vern 后生效。"</string>
+    <string name="ui_skip" formatted="false">"跳过"</string>
+    <string name="ui_smart_cleanup_removes_original_files_of_fully_read_or_90_day_dorm" formatted="false">"智能清理会移除已读完或闲置超过 90 天且非收藏文档的原始文件。文本、进度、笔记和高亮始终保留。"</string>
+    <string name="ui_speech_edits" formatted="false">"朗读编辑"</string>
+    <string name="ui_spoken_result" formatted="false">"朗读结果"</string>
+    <string name="ui_start_page" formatted="false">"起始页"</string>
+    <string name="ui_start_with_an_example" formatted="false">"从示例开始"</string>
+    <string name="ui_startup_animation" formatted="false">"启动动画"</string>
+    <string name="ui_stop_preview" formatted="false">"停止试听"</string>
+    <string name="ui_stop_preview_e984397" formatted="false">"停止试听"</string>
+    <string name="ui_studio" formatted="false">"Studio"</string>
+    <string name="ui_study_focus" formatted="false">"专注学习"</string>
+    <string name="ui_swipe_effect" formatted="false">"滑动效果"</string>
+    <string name="ui_syntax_guide" formatted="false">"语法指南"</string>
+    <string name="ui_system_tts_settings" formatted="false">"系统文字转语音设置"</string>
+    <string name="ui_tap_the_selected_preset_again_to_restore_your_previous_theme" formatted="false">"再次点按已选预设可恢复先前主题。"</string>
+    <string name="ui_tap_turn_on_unrestricted_and_choose_allow_on_the_prompt_or_select" formatted="false">"点按“启用不受限制”，在提示中选择“允许”，或在应用信息中选择“电池”→“不受限制”。"</string>
+    <string name="ui_temporary_cache_is_clean" formatted="false">"临时缓存已清空"</string>
+    <string name="ui_text_adjusts_to_contrast_with_your_colour" formatted="false">"文字会自动调整以与所选颜色形成对比。"</string>
+    <string name="ui_text_encoding" formatted="false">"文本编码"</string>
+    <string name="ui_text_illustrations_and_tables_use_the_selected_reading_layout" formatted="false">"文本、插图和表格使用所选阅读布局。"</string>
+    <string name="ui_text_size_and_spacing_apply_only_while_writing_notes" formatted="false">"字号和间距仅在编辑笔记时生效。"</string>
+    <string name="ui_the_quick_brown_fox_jumps_over" formatted="false">"敏捷的棕色狐狸跳了过去"</string>
+    <string name="ui_theme_packs" formatted="false">"主题包"</string>
+    <string name="ui_theme_palette_sets" formatted="false">"主题配色组"</string>
+    <string name="ui_then" formatted="false">"然后"</string>
+    <string name="ui_this_name_already_has_a_profile" formatted="false">"该姓名已有配置。"</string>
+    <string name="ui_translucent_glass_with_curved_edges_for_navigation_player_and_flo" formatted="false">"为导航、播放器以及悬浮的添加、笔记和导入控件提供曲边半透明玻璃效果。Liquid glass 主题已包含此效果。"</string>
+    <string name="ui_try_a_passage" formatted="false">"试读一段"</string>
+    <string name="ui_try_your_rules" formatted="false">"测试规则"</string>
+    <string name="ui_turn_off_the_app_s_tone_profile_speed_and_pitch_stay_as_selected" formatted="false">"关闭应用的音色配置。速度和音高保持所选值。Android 均衡器支持情况因引擎和设备而异。"</string>
+    <string name="ui_turn_on_unrestricted" formatted="false">"启用不受限制"</string>
+    <string name="ui_typeface" formatted="false">"字体"</string>
+    <string name="ui_ui_styling_shapes_and_surface_finish" formatted="false">"界面风格、形状与表面效果"</string>
+    <string name="ui_ultra_fast_inference_at_console_groq_com" formatted="false">"在 console.groq.com 使用高速推理服务。"</string>
+    <string name="ui_unrestricted_battery_playback" formatted="false">"不受电池限制的播放"</string>
+    <string name="ui_update_rule" formatted="false">"更新规则"</string>
+    <string name="ui_use_a_regular_expression_for_advanced_matching" formatted="false">"使用正则表达式进行高级匹配。"</string>
+    <string name="ui_use_selected_voice" formatted="false">"使用所选声音"</string>
+    <string name="ui_use_selection_where_the_selected_text_should_appear" formatted="false">"在需插入所选文本的位置使用 {selection}"</string>
+    <string name="ui_use_system_default" formatted="false">"使用系统默认声音"</string>
+    <string name="ui_use_the_zip_backup_to_carry_notes_recordings_images_and_quiz_medi" formatted="false">"使用 ZIP 备份可将笔记录音、图片和测验媒体转移到另一台设备。JSON 仅包含文本和设置。导入内容会与现有数据合并。"</string>
+    <string name="ui_use_theme_colours" formatted="false">"使用主题颜色"</string>
+    <string name="ui_use_vern_lite" formatted="false">"使用 Vern Lite"</string>
+    <string name="ui_use_vern_studio" formatted="false">"使用 Vern Studio"</string>
+    <string name="ui_vern" formatted="false">"Vern"</string>
+    <string name="ui_vern_is_built_using_the_following_open_source_libraries_and_tools" formatted="false">"Vern 使用以下开源库和工具构建："</string>
+    <string name="ui_vern_is_ready" formatted="false">"Vern 已就绪"</string>
+    <string name="ui_vern_sync_backup_creates_portable_backup_files_containing_your_en" formatted="false">"Vern 可创建包含整个书库、阅读进度、抽认卡、笔记、书签和自定义语音规则的便携备份。导入时会合并数据，不会删除本地读物。"</string>
+    <string name="ui_vern_voice_models" formatted="false">"Vern 语音模型"</string>
+    <string name="ui_vibrant_hero_card" formatted="false">"鲜明的主卡片"</string>
+    <string name="ui_voice_presets" formatted="false">"声音预设"</string>
+    <string name="ui_voice_shaping" formatted="false">"音色塑形"</string>
+    <string name="ui_voices_and_delivery" formatted="false">"声音与表达"</string>
+    <string name="ui_working_on_backup_file" formatted="false">"正在处理备份文件…"</string>
+    <string name="ui_your_books_your_notes_your_pace_a_quieter_place_to_read_listen_an" formatted="false">"你的书籍，你的笔记，你的节奏。在这里安静阅读、聆听，追随好奇心。"</string>
+    <string name="ui_your_library_stays_on_your_device_online_features_are_optional" formatted="false">"书库保存在你的设备上。联网功能可自行选择使用。"</string>
+    <string name="ui_your_saved_narration_settings_will_stay_as_they_are" formatted="false">"已保存的旁白设置将保持不变。"</string>
+</resources>

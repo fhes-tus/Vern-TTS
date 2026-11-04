@@ -362,7 +362,7 @@ fun OnboardingInfoCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Dismiss Tour",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_dismiss_tour),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -381,8 +381,8 @@ fun OnboardingInfoCard(
                 OutlinedTextField(
                     value = userName,
                     onValueChange = onUserNameChanged,
-                    label = { Text("Your Name") },
-                    placeholder = { Text("Enter your name") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_name)) },
+                    placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_enter_your_name)) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -411,12 +411,12 @@ fun OnboardingInfoCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Info,
-                        contentDescription = "Tip",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tip),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = "Tip: Open a reading to see this live in the reader!",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tip_open_a_reading_to_see_this_live_in_the_reader),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
@@ -437,11 +437,11 @@ fun OnboardingInfoCard(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back),
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Back", style = MaterialTheme.typography.labelMedium)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back), style = MaterialTheme.typography.labelMedium)
                     }
                 } else {
                     Spacer(modifier = Modifier.width(1.dp))
@@ -459,7 +459,7 @@ fun OnboardingInfoCard(
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Next",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next),
                             modifier = Modifier.size(16.dp)
                         )
                     }

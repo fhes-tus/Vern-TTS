@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="l10n_widget_0" formatted="false">"Jeux de fiches"</string>
+    <string name="l10n_widget_1" formatted="false">"Aucune fiche pour l’instant 📚"</string>
+    <string name="l10n_widget_2" formatted="false">"Créez ou importez des fiches dans Étude"</string>
+    <string name="l10n_widget_3" formatted="false">"Choisir un jeu de fiches 📚"</string>
+    <string name="l10n_widget_4" formatted="false">"Réviser ›"</string>
+    <string name="l10n_widget_5" formatted="false">"‹ Jeux"</string>
+    <string name="l10n_widget_6" formatted="false">"Aucune révision prévue"</string>
+    <string name="l10n_widget_7" formatted="false">"Aucune fiche à réviser. Touchez pour vous entraîner."</string>
+    <string name="l10n_widget_8" formatted="false">"RÉPONSE"</string>
+    <string name="l10n_widget_9" formatted="false">"QUESTION"</string>
+    <string name="l10n_widget_10" formatted="false">"Toucher pour retourner"</string>
+    <string name="l10n_widget_11" formatted="false">"‹ Précédent"</string>
+    <string name="l10n_widget_12" formatted="false">"Voir la réponse"</string>
+    <string name="l10n_widget_13" formatted="false">"Suivant ›"</string>
+    <string name="l10n_widget_14" formatted="false">"Bien ✓"</string>
+    <string name="l10n_widget_15" formatted="false">"Passer ›"</string>
+    <string name="l10n_widget_16" formatted="false">"Noter une pensée"</string>
+    <string name="l10n_widget_17" formatted="false">"Nouvelle liste de tâches"</string>
+    <string name="l10n_widget_18" formatted="false">"Capture rapide"</string>
+    <string name="l10n_widget_19" formatted="false">"Note textuelle"</string>
+    <string name="l10n_widget_20" formatted="false">"Lire maintenant"</string>
+    <string name="l10n_widget_21" formatted="false">"Notes et tâches"</string>
+    <string name="l10n_widget_22" formatted="false">"+ Nouveau"</string>
+    <string name="l10n_widget_23" formatted="false">"Aucune note · Toucher pour créer"</string>
+    <string name="l10n_widget_24" formatted="false">"Suivi de lecture"</string>
+    <string name="l10n_widget_25" formatted="false">"Aucun livre actif · Ouvrir la bibliothèque"</string>
+    <string name="l10n_widget_26" formatted="false">"Icône du livre"</string>
+    <string name="l10n_widget_27" formatted="false">"Lecture cette semaine"</string>
+    <string name="l10n_widget_28" formatted="false">"Objectif quotidien"</string>
+    <string name="l10n_widget_29" formatted="false">"À réviser"</string>
+    <string name="l10n_widget_30" formatted="false">"Rappel"</string>
+    <string name="l10n_widget_31" formatted="false">"Paquets"</string>
+    <string name="l10n_widget_32" formatted="false">"FICHE SUIVANTE"</string>
+    <string name="l10n_widget_33" formatted="false">"Tout est à jour !"</string>
+    <string name="l10n_widget_34" formatted="false">"Espace Étude prêt"</string>
+    <string name="l10n_widget_35" formatted="false">"Importez des fiches depuis des notes ou consignes IA"</string>
+    <string name="l10n_widget_36" formatted="false">"Paquets actifs"</string>
+    <string name="l10n_widget_37" formatted="false">"Préparation de la lecture. Toucher pour annuler"</string>
+    <string name="l10n_widget_dynamic_0">"Jeux : %1$s"</string>
+    <string name="l10n_widget_dynamic_1">"Fiches : %1$s · À réviser : %2$s"</string>
+    <string name="l10n_widget_dynamic_2">"+ %1$s autres dans Étude ›"</string>
+    <string name="l10n_widget_dynamic_3">"🔥 Série : %1$s j"</string>
+    <string name="l10n_widget_dynamic_4">"%1$s%% terminé · %2$s/%3$s min"</string>
+    <string name="l10n_widget_dynamic_5">"%1$s%% terminé · %2$s min aujourd’hui"</string>
+    <string name="l10n_widget_dynamic_6">"Objectif quotidien : %1$s min"</string>
+    <string name="l10n_widget_dynamic_7">"%1$s%% (%2$s min)"</string>
+    <string name="l10n_widget_dynamic_8">"Aujourd’hui : %1$s min"</string>
+    <string name="l10n_widget_dynamic_9">"Moyenne : %1$s min/j"</string>
+    <string name="l10n_widget_dynamic_10">"Objectif : %1$s min/j"</string>
+    <string name="l10n_widget_dynamic_11">"%1$s min cette semaine"</string>
+    <string name="l10n_widget_dynamic_12">"%1$s / %2$s min (%3$s%%)"</string>
+    <string name="l10n_widget_dynamic_13">"🔥 Série : %1$s j"</string>
+    <string name="l10n_widget_dynamic_14">"Fiches à réviser : %1$s"</string>
+    <string name="l10n_widget_dynamic_15">"Dernier rappel réussi : %1$s%% · Paquets actifs : %2$s"</string>
+    <string name="l10n_widget_dynamic_16">"Notes d’étude enregistrées : %1$s"</string>
+    <string name="l10n_widget_dynamic_17">"Toutes les fiches (%1$s) révisées · Continuez !"</string>
+    <string name="l10n_widget_dynamic_18">"Fiches : %1$s · À réviser : %2$s"</string>
+    <string name="l10n_widget_dynamic_19">"Objectif quotidien : %1$s min"</string>
+    <string name="l10n_widget_dynamic_20">"Ouvrir %1$s"</string>
+</resources>

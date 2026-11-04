@@ -599,7 +599,7 @@ fun ReaderScreen(
                         .fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No readable text found.")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_readable_text_found))
                 }
             } else {
                 Box(

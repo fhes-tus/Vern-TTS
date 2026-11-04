@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_cancel" formatted="false">"Annuler"</string>
+    <string name="action_clear" formatted="false">"Effacer"</string>
+    <string name="action_delete" formatted="false">"Supprimer"</string>
+    <string name="app_language" formatted="false">"Langue de l’application"</string>
+    <string name="crash_dialog_dismiss" formatted="false">"Fermer"</string>
+    <string name="greeting_afternoon" formatted="false">"Bon après-midi"</string>
+    <string name="greeting_evening" formatted="false">"Bonsoir"</string>
+    <string name="greeting_morning" formatted="false">"Bonjour"</string>
+    <string name="greeting_named">"%1$s, %2$s"</string>
+    <string name="greeting_new_day" formatted="false">"Bienvenue dans une nouvelle journée"</string>
+    <string name="greeting_night" formatted="false">"Bonne nuit"</string>
+    <string name="greeting_rise" formatted="false">"Debout et en forme"</string>
+    <string name="greeting_see_you" formatted="false">"Ravi de vous revoir"</string>
+    <string name="greeting_welcome" formatted="false">"Bon retour"</string>
+    <string name="language_apply" formatted="false">"Appliquer"</string>
+    <string name="language_explanation" formatted="false">"Choisissez la langue des menus et des commandes."</string>
+    <string name="language_follow_device" formatted="false">"Utiliser la langue du téléphone"</string>
+    <string name="language_preview" formatted="false">"Traduction préliminaire"</string>
+    <string name="language_preview_notice" formatted="false">"Ces traductions préliminaires peuvent contenir de l’anglais. La langue des livres et des voix reste indépendante."</string>
+    <string name="library_resume_progress">"Phrase %1$d sur %2$d · %3$d%% lu"</string>
+    <string name="reading_goal_target">"Objectif : %1$s"</string>
+    <string name="reading_less_than_minute" formatted="false">"Moins d’une minute"</string>
+    <string name="reading_next_statistic" formatted="false">"Statistique de lecture suivante"</string>
+    <string name="reading_previous_statistic" formatted="false">"Statistique de lecture précédente"</string>
+    <string name="reading_statistic_position">"Statistique %1$d sur %2$d"</string>
+    <string name="reminder_exact_allow" formatted="false">"Ouvrir les paramètres"</string>
+    <string name="reminder_exact_later" formatted="false">"Plus tard"</string>
+    <string name="ui_0_day_streak" formatted="false">"0 jour consécutif"</string>
+    <string name="ui_a_new_classic_every_monday" formatted="false">"Un nouveau classique chaque lundi"</string>
+    <string name="ui_about" formatted="false">"À propos"</string>
+    <string name="ui_accessibility" formatted="false">"Accessibilité"</string>
+    <string name="ui_add" formatted="false">"Ajouter"</string>
+    <string name="ui_add_a_book_document_or_article_to_read_and_listen_at_your_own_pac" formatted="false">"Ajoutez un livre, un document ou un article à lire et à écouter à votre rythme."</string>
+    <string name="ui_add_a_book_or_document" formatted="false">"Ajouter un livre ou document"</string>
+    <string name="ui_add_bookmark" formatted="false">"Ajouter un signet"</string>
+    <string name="ui_add_content" formatted="false">"Ajouter du contenu"</string>
+    <string name="ui_add_note" formatted="false">"Ajouter une note"</string>
+    <string name="ui_add_to_list" formatted="false">"Ajouter à une liste"</string>
+    <string name="ui_add_to_queue_69b498d" formatted="false">"Ajouter à la file"</string>
+    <string name="ui_add_to_vocabulary" formatted="false">"Ajouter au vocabulaire"</string>
+    <string name="ui_add_your_first_read" formatted="false">"Ajouter votre première lecture"</string>
+    <string name="ui_added" formatted="false">"Ajoutés"</string>
+    <string name="ui_again" formatted="false">"À revoir"</string>
+    <string name="ui_ai_app_handoff_flashcards_quizzes" formatted="false">"Applications IA, fiches et quiz"</string>
+    <string name="ui_ai_language" formatted="false">"IA et langue"</string>
+    <string name="ui_ai_study_mode" formatted="false">"IA et mode étude"</string>
+    <string name="ui_all" formatted="false">"Tout"</string>
+    <string name="ui_all_books" formatted="false">"Tous les livres"</string>
+    <string name="ui_all_documents" formatted="false">"Tous les documents"</string>
+    <string name="ui_answer" formatted="false">"Réponse"</string>
+    <string name="ui_appearance" formatted="false">"Apparence"</string>
+    <string name="ui_apply" formatted="false">"Appliquer"</string>
+    <string name="ui_ask_ai" formatted="false">"Demander à l’IA"</string>
+    <string name="ui_author" formatted="false">"Auteur"</string>
+    <string name="ui_back" formatted="false">"Retour"</string>
+    <string name="ui_background_playback" formatted="false">"Lecture en arrière-plan"</string>
+    <string name="ui_backup" formatted="false">"Sauvegarde"</string>
+    <string name="ui_battery_exemption_enabled_tap_to_manage" formatted="false">"Exemption de batterie activée · Gérer"</string>
+    <string name="ui_battery_optimized_tap_to_manage" formatted="false">"Batterie optimisée · Gérer"</string>
+    <string name="ui_book_of_the_week" formatted="false">"Livre de la semaine"</string>
+    <string name="ui_bookmark" formatted="false">"Signet"</string>
+    <string name="ui_bookmarks" formatted="false">"Signets"</string>
+    <string name="ui_cancel" formatted="false">"Annuler"</string>
+    <string name="ui_check_for_the_latest_vern_version" formatted="false">"Rechercher la dernière version de Vern"</string>
+    <string name="ui_check_for_updates" formatted="false">"Rechercher des mises à jour"</string>
+    <string name="ui_checklist" formatted="false">"Liste de tâches"</string>
+    <string name="ui_choose_a_target_or_track_your_reading_without_one" formatted="false">"Choisissez un objectif ou suivez votre lecture sans objectif."</string>
+    <string name="ui_choose_assistant_selected_text_prompt" formatted="false">"Choisir l’assistant et la consigne du texte sélectionné"</string>
+    <string name="ui_choose_voice" formatted="false">"Choisir une voix"</string>
+    <string name="ui_classics" formatted="false">"Classiques"</string>
+    <string name="ui_clear" formatted="false">"Effacer"</string>
+    <string name="ui_clear_cache" formatted="false">"Vider le cache"</string>
+    <string name="ui_close" formatted="false">"Fermer"</string>
+    <string name="ui_collection" formatted="false">"Collection"</string>
+    <string name="ui_collections" formatted="false">"Collections"</string>
+    <string name="ui_confirm" formatted="false">"Confirmer"</string>
+    <string name="ui_contents" formatted="false">"Sommaire"</string>
+    <string name="ui_continue" formatted="false">"Continuer"</string>
+    <string name="ui_continue_reading" formatted="false">"Reprendre la lecture"</string>
+    <string name="ui_copy" formatted="false">"Copier"</string>
+    <string name="ui_copy_text" formatted="false">"Copier le texte"</string>
+    <string name="ui_create_backup" formatted="false">"Créer une sauvegarde"</string>
+    <string name="ui_create_flashcard" formatted="false">"Créer une fiche"</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"Créer des listes et ajouter des lectures"</string>
+    <string name="ui_customization" formatted="false">"Personnalisation"</string>
+    <string name="ui_daily_goal" formatted="false">"Objectif quotidien"</string>
+    <string name="ui_daily_goal_reached" formatted="false">"Objectif quotidien atteint"</string>
+    <string name="ui_daily_reading_goal" formatted="false">"Objectif quotidien de lecture"</string>
+    <string name="ui_dark" formatted="false">"Sombre"</string>
+    <string name="ui_data_backup" formatted="false">"Données et sauvegarde"</string>
+    <string name="ui_days_with_reading" formatted="false">"Jours de lecture"</string>
+    <string name="ui_default" formatted="false">"Par défaut"</string>
+    <string name="ui_defaults_ocr_fallback_page_cleanup" formatted="false">"Réglages, reconnaissance de texte et nettoyage"</string>
+    <string name="ui_definition" formatted="false">"Définition"</string>
+    <string name="ui_delete" formatted="false">"Supprimer"</string>
+    <string name="ui_delete_note" formatted="false">"Supprimer la note"</string>
+    <string name="ui_delete_permanently_e63b515" formatted="false">"Supprimer définitivement"</string>
+    <string name="ui_description" formatted="false">"Description"</string>
+    <string name="ui_deselect_all" formatted="false">"Tout désélectionner"</string>
+    <string name="ui_details" formatted="false">"Détails"</string>
+    <string name="ui_dictionary" formatted="false">"Dictionnaire"</string>
+    <string name="ui_discard" formatted="false">"Abandonner"</string>
+    <string name="ui_discard_changes" formatted="false">"Abandonner les modifications"</string>
+    <string name="ui_dismiss" formatted="false">"Fermer"</string>
+    <string name="ui_dismiss_continue_reading" formatted="false">"Masquer la reprise de lecture"</string>
+    <string name="ui_dismiss_tour" formatted="false">"Fermer la visite"</string>
+    <string name="ui_display_theme" formatted="false">"Thème d’affichage"</string>
+    <string name="ui_done" formatted="false">"Terminé"</string>
+    <string name="ui_download" formatted="false">"Télécharger"</string>
+    <string name="ui_downloaded" formatted="false">"Téléchargé"</string>
+    <string name="ui_easy" formatted="false">"Facile"</string>
+    <string name="ui_edit" formatted="false">"Modifier"</string>
+    <string name="ui_edit_extracted_text" formatted="false">"Modifier le texte extrait"</string>
+    <string name="ui_edit_goal" formatted="false">"Modifier l’objectif"</string>
+    <string name="ui_edit_note" formatted="false">"Modifier la note"</string>
+    <string name="ui_error" formatted="false">"Erreur"</string>
+    <string name="ui_exit_full_screen" formatted="false">"Quitter le plein écran"</string>
+    <string name="ui_export" formatted="false">"Exporter"</string>
+    <string name="ui_export_audio" formatted="false">"Exporter l’audio"</string>
+    <string name="ui_favorites" formatted="false">"Favoris"</string>
+    <string name="ui_favourites" formatted="false">"Favoris"</string>
+    <string name="ui_file_browser" formatted="false">"Explorateur de fichiers"</string>
+    <string name="ui_filter" formatted="false">"Filtrer"</string>
+    <string name="ui_filters" formatted="false">"Filtres"</string>
+    <string name="ui_finish" formatted="false">"Terminer"</string>
+    <string name="ui_finished" formatted="false">"Terminés"</string>
+    <string name="ui_first_day_of_reading" formatted="false">"Premier jour de lecture"</string>
+    <string name="ui_flashcards" formatted="false">"Fiches de révision"</string>
+    <string name="ui_font" formatted="false">"Police"</string>
+    <string name="ui_font_size" formatted="false">"Taille de police"</string>
+    <string name="ui_free_up_space" formatted="false">"Libérer de l’espace"</string>
+    <string name="ui_full_screen" formatted="false">"Plein écran"</string>
+    <string name="ui_go_to_page" formatted="false">"Aller à la page"</string>
+    <string name="ui_good" formatted="false">"Bien"</string>
+    <string name="ui_hard" formatted="false">"Difficile"</string>
+    <string name="ui_help" formatted="false">"Aide"</string>
+    <string name="ui_highlight" formatted="false">"Surligner"</string>
+    <string name="ui_highlights" formatted="false">"Surlignages"</string>
+    <string name="ui_home" formatted="false">"Accueil"</string>
+    <string name="ui_icon_colours_startup_motion_funky_cards" formatted="false">"Couleurs des icônes, animation et cartes Funky"</string>
+    <string name="ui_import" formatted="false">"Importer"</string>
+    <string name="ui_import_defaults" formatted="false">"Préférences d’importation"</string>
+    <string name="ui_import_settings" formatted="false">"Réglages d’importation"</string>
+    <string name="ui_installed" formatted="false">"Installé"</string>
+    <string name="ui_interactive_guide_to_vern_features" formatted="false">"Guide interactif des fonctions de Vern"</string>
+    <string name="ui_language" formatted="false">"Langue"</string>
+    <string name="ui_learn_about_vern_through_guided_actions" formatted="false">"Découvrir Vern étape par étape"</string>
+    <string name="ui_learn_more" formatted="false">"En savoir plus"</string>
+    <string name="ui_library" formatted="false">"Bibliothèque"</string>
+    <string name="ui_light" formatted="false">"Clair"</string>
+    <string name="ui_line_spacing" formatted="false">"Interligne"</string>
+    <string name="ui_listen" formatted="false">"Écouter"</string>
+    <string name="ui_listening" formatted="false">"Écoute"</string>
+    <string name="ui_listening_time" formatted="false">"Temps d’écoute"</string>
+    <string name="ui_loading" formatted="false">"Chargement…"</string>
+    <string name="ui_loading_8f26c65" formatted="false">"Chargement"</string>
+    <string name="ui_manage_voices" formatted="false">"Gérer les voix"</string>
+    <string name="ui_measuring" formatted="false">"Calcul en cours…"</string>
+    <string name="ui_menu" formatted="false">"Menu"</string>
+    <string name="ui_minutes" formatted="false">"Minutes"</string>
+    <string name="ui_minutes_by_day" formatted="false">"Minutes par jour"</string>
+    <string name="ui_more" formatted="false">"Plus"</string>
+    <string name="ui_more_options_86c0a35" formatted="false">"Plus d’options"</string>
+    <string name="ui_move_down_260ff8a" formatted="false">"Descendre"</string>
+    <string name="ui_move_up_b4f57cd" formatted="false">"Monter"</string>
+    <string name="ui_my_library" formatted="false">"Ma bibliothèque"</string>
+    <string name="ui_name" formatted="false">"Nom"</string>
+    <string name="ui_narration_studio" formatted="false">"Studio de narration"</string>
+    <string name="ui_narrator_dialogue_delivery_controls" formatted="false">"Réglages du narrateur et des dialogues"</string>
+    <string name="ui_new_list" formatted="false">"Nouvelle liste"</string>
+    <string name="ui_new_note" formatted="false">"Nouvelle note"</string>
+    <string name="ui_newest_first" formatted="false">"Plus récents"</string>
+    <string name="ui_next" formatted="false">"Suivant"</string>
+    <string name="ui_next_page_4bfc194" formatted="false">"Page suivante"</string>
+    <string name="ui_next_sentence" formatted="false">"Phrase suivante"</string>
+    <string name="ui_no" formatted="false">"Non"</string>
+    <string name="ui_no_bookmarks_yet" formatted="false">"Aucun signet pour le moment"</string>
+    <string name="ui_no_books_yet" formatted="false">"Aucun livre pour le moment"</string>
+    <string name="ui_no_daily_target" formatted="false">"Aucun objectif quotidien"</string>
+    <string name="ui_no_goal" formatted="false">"Sans objectif"</string>
+    <string name="ui_no_highlights_yet" formatted="false">"Aucun surlignage pour le moment"</string>
+    <string name="ui_no_notes_yet" formatted="false">"Aucune note pour le moment"</string>
+    <string name="ui_no_results" formatted="false">"Aucun résultat"</string>
+    <string name="ui_no_results_found" formatted="false">"Aucun résultat"</string>
+    <string name="ui_none" formatted="false">"Aucun"</string>
+    <string name="ui_not_now_e457149" formatted="false">"Plus tard"</string>
+    <string name="ui_note" formatted="false">"Note"</string>
+    <string name="ui_notebook" formatted="false">"Carnet"</string>
+    <string name="ui_notebooks" formatted="false">"Carnets"</string>
+    <string name="ui_notes" formatted="false">"Notes"</string>
+    <string name="ui_notes_annotations" formatted="false">"Notes et annotations"</string>
+    <string name="ui_offline" formatted="false">"Hors connexion"</string>
+    <string name="ui_ok" formatted="false">"OK"</string>
+    <string name="ui_oldest_first" formatted="false">"Plus anciens"</string>
+    <string name="ui_online_c3e839d" formatted="false">"En ligne"</string>
+    <string name="ui_open" formatted="false">"Ouvrir"</string>
+    <string name="ui_open_a_file_to_start_reading" formatted="false">"Ouvrez un fichier pour commencer à lire"</string>
+    <string name="ui_open_book" formatted="false">"Ouvrir le livre"</string>
+    <string name="ui_open_file" formatted="false">"Ouvrir un fichier"</string>
+    <string name="ui_open_settings" formatted="false">"Ouvrir les paramètres"</string>
+    <string name="ui_open_text_editor_to_correct_text" formatted="false">"Ouvrir l’éditeur pour corriger le texte"</string>
+    <string name="ui_original" formatted="false">"Original"</string>
+    <string name="ui_page" formatted="false">"Page"</string>
+    <string name="ui_paste" formatted="false">"Coller"</string>
+    <string name="ui_paste_text_or_url" formatted="false">"Coller du texte ou un lien"</string>
+    <string name="ui_pause" formatted="false">"Pause"</string>
+    <string name="ui_pause_or_stop_reading_after_chosen_time" formatted="false">"Mettre en pause ou arrêter après un délai"</string>
+    <string name="ui_pause_reading" formatted="false">"Mettre en pause"</string>
+    <string name="ui_pdf_and_import_tools" formatted="false">"Outils PDF et importation"</string>
+    <string name="ui_pick_a_document_from_your_library_to_begin" formatted="false">"Choisissez un document de votre bibliothèque pour commencer."</string>
+    <string name="ui_pick_up_where_you_left_off" formatted="false">"Reprenez là où vous en étiez"</string>
+    <string name="ui_pin" formatted="false">"Épingler"</string>
+    <string name="ui_pitch" formatted="false">"Tonalité"</string>
+    <string name="ui_play" formatted="false">"Lire"</string>
+    <string name="ui_play_preview" formatted="false">"Écouter l’aperçu"</string>
+    <string name="ui_playback" formatted="false">"Lecture audio"</string>
+    <string name="ui_preview" formatted="false">"Aperçu"</string>
+    <string name="ui_preview_book" formatted="false">"Aperçu du livre"</string>
+    <string name="ui_previous" formatted="false">"Précédent"</string>
+    <string name="ui_previous_page_81f5471" formatted="false">"Page précédente"</string>
+    <string name="ui_previous_sentence" formatted="false">"Phrase précédente"</string>
+    <string name="ui_print" formatted="false">"Imprimer"</string>
+    <string name="ui_progress" formatted="false">"Progression"</string>
+    <string name="ui_pronunciation" formatted="false">"Prononciation"</string>
+    <string name="ui_question" formatted="false">"Question"</string>
+    <string name="ui_queue" formatted="false">"File d’attente"</string>
+    <string name="ui_quizzes" formatted="false">"Quiz"</string>
+    <string name="ui_read" formatted="false">"Lire"</string>
+    <string name="ui_read_at_your_own_pace" formatted="false">"Lisez à votre rythme"</string>
+    <string name="ui_reading" formatted="false">"Lecture"</string>
+    <string name="ui_reading_goal" formatted="false">"Objectif de lecture"</string>
+    <string name="ui_reading_goal_reduce_motion_contrast" formatted="false">"Objectif de lecture, animations et contraste"</string>
+    <string name="ui_reading_insights_32f8941" formatted="false">"Statistiques de lecture"</string>
+    <string name="ui_reading_list" formatted="false">"Liste de lecture"</string>
+    <string name="ui_reading_lists" formatted="false">"Listes de lecture"</string>
+    <string name="ui_reading_overview" formatted="false">"Aperçu de lecture"</string>
+    <string name="ui_reading_time" formatted="false">"Temps de lecture"</string>
+    <string name="ui_ready" formatted="false">"Prêt"</string>
+    <string name="ui_ready_to_begin" formatted="false">"Prêt à commencer"</string>
+    <string name="ui_recent_books" formatted="false">"Livres récents"</string>
+    <string name="ui_recently_read" formatted="false">"Lus récemment"</string>
+    <string name="ui_record_sound_file" formatted="false">"Créer un fichier audio"</string>
+    <string name="ui_recorded_reading_time" formatted="false">"Temps de lecture enregistré"</string>
+    <string name="ui_refresh" formatted="false">"Actualiser"</string>
+    <string name="ui_remove" formatted="false">"Retirer"</string>
+    <string name="ui_remove_from_queue_3d2dc52" formatted="false">"Retirer de la file"</string>
+    <string name="ui_rename" formatted="false">"Renommer"</string>
+    <string name="ui_render_current_reading_into_audio_file" formatted="false">"Convertir la lecture en fichier audio"</string>
+    <string name="ui_reset" formatted="false">"Réinitialiser"</string>
+    <string name="ui_reset_to_defaults" formatted="false">"Rétablir les valeurs par défaut"</string>
+    <string name="ui_restore" formatted="false">"Restaurer"</string>
+    <string name="ui_restore_backup" formatted="false">"Restaurer une sauvegarde"</string>
+    <string name="ui_resume_reading" formatted="false">"Reprendre la lecture"</string>
+    <string name="ui_retry" formatted="false">"Réessayer"</string>
+    <string name="ui_review" formatted="false">"Réviser"</string>
+    <string name="ui_save" formatted="false">"Enregistrer"</string>
+    <string name="ui_save_changes" formatted="false">"Enregistrer les modifications"</string>
+    <string name="ui_scan_approved_folders_import_local_files" formatted="false">"Parcourir les dossiers autorisés et importer"</string>
+    <string name="ui_search" formatted="false">"Rechercher"</string>
+    <string name="ui_search_books" formatted="false">"Rechercher des livres"</string>
+    <string name="ui_search_f54fbca" formatted="false">"Rechercher…"</string>
+    <string name="ui_search_in_book" formatted="false">"Rechercher dans le livre"</string>
+    <string name="ui_search_notes" formatted="false">"Rechercher des notes"</string>
+    <string name="ui_see_all" formatted="false">"Tout voir →"</string>
+    <string name="ui_see_what_vern_is_using_free_up_space" formatted="false">"Voir l’espace utilisé et en libérer"</string>
+    <string name="ui_select" formatted="false">"Sélectionner"</string>
+    <string name="ui_select_all" formatted="false">"Tout sélectionner"</string>
+    <string name="ui_select_text" formatted="false">"Sélectionner du texte"</string>
+    <string name="ui_select_voice" formatted="false">"Choisir une voix"</string>
+    <string name="ui_selected" formatted="false">"Sélectionné"</string>
+    <string name="ui_set_a_daily_reading_goal" formatted="false">"Définir un objectif quotidien"</string>
+    <string name="ui_set_a_goal" formatted="false">"Définir un objectif"</string>
+    <string name="ui_settings" formatted="false">"Paramètres"</string>
+    <string name="ui_share" formatted="false">"Partager"</string>
+    <string name="ui_show_answer" formatted="false">"Afficher la réponse"</string>
+    <string name="ui_sleep_timer" formatted="false">"Minuterie de veille"</string>
+    <string name="ui_sort_by" formatted="false">"Trier par"</string>
+    <string name="ui_speed" formatted="false">"Vitesse"</string>
+    <string name="ui_start_reading" formatted="false">"Commencer à lire"</string>
+    <string name="ui_start_review" formatted="false">"Commencer la révision"</string>
+    <string name="ui_stop" formatted="false">"Arrêter"</string>
+    <string name="ui_stop_reading" formatted="false">"Arrêter la lecture"</string>
+    <string name="ui_storage" formatted="false">"Stockage"</string>
+    <string name="ui_study" formatted="false">"Étude"</string>
+    <string name="ui_study_hub" formatted="false">"Espace d’étude"</string>
+    <string name="ui_switch_to_grid_view" formatted="false">"Afficher en grille"</string>
+    <string name="ui_switch_to_list_view" formatted="false">"Afficher en liste"</string>
+    <string name="ui_sync_backup_center" formatted="false">"Synchronisation et sauvegarde"</string>
+    <string name="ui_sync_backup_library_flashcards_notes_and_progress" formatted="false">"Synchroniser et sauvegarder livres, fiches, notes et progression"</string>
+    <string name="ui_system" formatted="false">"Système"</string>
+    <string name="ui_system_default" formatted="false">"Par défaut du système"</string>
+    <string name="ui_system_default_voice" formatted="false">"Voix par défaut du système"</string>
+    <string name="ui_table_of_contents_1a42898" formatted="false">"Table des matières"</string>
+    <string name="ui_text" formatted="false">"Texte"</string>
+    <string name="ui_text_size" formatted="false">"Taille du texte"</string>
+    <string name="ui_theme_packs_colours_page_navigation" formatted="false">"Thèmes, couleurs et navigation des pages"</string>
+    <string name="ui_this_month" formatted="false">"Ce mois-ci"</string>
+    <string name="ui_this_week" formatted="false">"Cette semaine"</string>
+    <string name="ui_title" formatted="false">"Titre"</string>
+    <string name="ui_to_your_target" formatted="false">"Avant votre objectif"</string>
+    <string name="ui_today" formatted="false">"Aujourd’hui"</string>
+    <string name="ui_today_s_reading" formatted="false">"Lecture du jour"</string>
+    <string name="ui_today_s_target_complete" formatted="false">"Objectif du jour atteint"</string>
+    <string name="ui_total_since_monday" formatted="false">"Total depuis lundi"</string>
+    <string name="ui_translate" formatted="false">"Traduire"</string>
+    <string name="ui_trash" formatted="false">"Corbeille"</string>
+    <string name="ui_try_again" formatted="false">"Réessayer"</string>
+    <string name="ui_tts_engine_installed_voices_pitch_presets" formatted="false">"Moteur vocal, voix installées et tonalité"</string>
+    <string name="ui_tutorial" formatted="false">"Tutoriel"</string>
+    <string name="ui_unfinished" formatted="false">"En cours"</string>
+    <string name="ui_unpin" formatted="false">"Désépingler"</string>
+    <string name="ui_use_selected_voice_95565c4" formatted="false">"Utiliser cette voix"</string>
+    <string name="ui_user_manual" formatted="false">"Manuel d’utilisation"</string>
+    <string name="ui_version_developer_contact_social_links_feedback" formatted="false">"Version, contact, liens et commentaires"</string>
+    <string name="ui_view_all" formatted="false">"Tout voir"</string>
+    <string name="ui_view_insights" formatted="false">"Voir les statistiques →"</string>
+    <string name="ui_vocabulary" formatted="false">"Vocabulaire"</string>
+    <string name="ui_voice_3091c84" formatted="false">"Voix"</string>
+    <string name="ui_voice_audio" formatted="false">"Voix et audio"</string>
+    <string name="ui_voice_studio" formatted="false">"Studio vocal"</string>
+    <string name="ui_voices" formatted="false">"Voix"</string>
+    <string name="ui_volume" formatted="false">"Volume"</string>
+    <string name="ui_weekly_reading" formatted="false">"Lecture de la semaine"</string>
+    <string name="ui_with_recorded_reading" formatted="false">"Avec une lecture enregistrée"</string>
+    <string name="ui_word_replacements_before_playback" formatted="false">"Remplacer des mots avant la lecture"</string>
+    <string name="ui_write_note_96dcbf1" formatted="false">"Écrire une note"</string>
+    <string name="ui_yes" formatted="false">"Oui"</string>
+    <string name="ui_yesterday" formatted="false">"Hier"</string>
+    <string name="ui_your_next_read_starts_here" formatted="false">"Votre prochaine lecture commence ici"</string>
+    <string name="ui_your_reading_today" formatted="false">"Votre lecture aujourd’hui"</string>
+    <string name="widget_ready" formatted="false">"Prêt"</string>
+</resources>

@@ -99,6 +99,7 @@ fun VoiceStudioDialog(
     onVoiceShapingChange: (Boolean) -> Unit = {}
 ) {
     val currentLocale = LocalConfiguration.current.locales[0]
+    val voiceShapingLabel = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_shaping)
     var managerMenuExpanded by remember { mutableStateOf(false) }
     var languageMenuExpanded by remember { mutableStateOf(false) }
     val visibleVoices = remember(voices, settings.showNetworkVoices, currentLocale) {
@@ -198,9 +199,9 @@ fun VoiceStudioDialog(
         onLoadVoices()
     }
 
-    FullScreenSettingsScaffold(title = "Voice and language", onBack = onDismiss) {
+    FullScreenSettingsScaffold(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_voice_and_language), onBack = onDismiss) {
         // Active Voice Highlight Card
-        SettingsHubSectionTitle("Active voice")
+        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_active_voice))
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = VeritasPackStyle.cardShape(),
@@ -208,11 +209,11 @@ fun VoiceStudioDialog(
             border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
         ) {
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("CURRENT VOICE MODEL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_current_voice_model), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            activeVoiceDisplayName,
+                            localizedSettingsOption(activeVoiceDisplayName),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             maxLines = 1,
@@ -226,9 +227,9 @@ fun VoiceStudioDialog(
                     }
                     if (selectedVoice != null || settings.displayName.isNotBlank()) {
                         FilledTonalButton(onClick = { onPreviewActiveVoiceWithPreset() }) {
-                            Icon(Icons.Outlined.GraphicEq, contentDescription = "Play Sample", modifier = Modifier.size(18.dp))
+                            Icon(Icons.Outlined.GraphicEq, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play_sample), modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Sample")
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sample))
                         }
                     }
                 }
@@ -239,14 +240,14 @@ fun VoiceStudioDialog(
         Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(Modifier.weight(1f)) {
-                Text("Voice shaping", style = MaterialTheme.typography.titleSmall)
-                Text("Turn off the app's tone profile. Speed and pitch stay as selected. Android EQ support varies by engine and device.",
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_shaping), style = MaterialTheme.typography.titleSmall)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_turn_off_the_app_s_tone_profile_speed_and_pitch_stay_as_selected),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             com.veritas.reader.ui.VeritasSwitch(checked = settings.voiceShaping, onCheckedChange = onVoiceShapingChange,
-                modifier = Modifier.testTag("voice-shaping-toggle").semantics { contentDescription = "Voice shaping" })
+                modifier = Modifier.testTag("voice-shaping-toggle").semantics { contentDescription = voiceShapingLabel })
         }
-        SettingsHubSectionTitle("Voice presets")
+        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_presets))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -261,7 +262,7 @@ fun VoiceStudioDialog(
                     label = {
                         Column(modifier = Modifier.padding(vertical = 2.dp)) {
                             Text(
-                                preset.name,
+                                localizedSettingsOption(preset.name),
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                             )
@@ -308,7 +309,7 @@ fun VoiceStudioDialog(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                text = selectedPreset.name,
+                                text = localizedSettingsOption(selectedPreset.name),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -326,7 +327,7 @@ fun VoiceStudioDialog(
                             }
                         }
                         Text(
-                            text = selectedPreset.summary,
+                            text = localizedSettingsOption(selectedPreset.summary),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
                             modifier = Modifier.padding(top = 2.dp)
@@ -339,14 +340,14 @@ fun VoiceStudioDialog(
         HorizontalDivider()
 
         // Search & Language Controls
-        SettingsHubSectionTitle("Language & voice library")
+        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_language_voice_library))
 
         OutlinedTextField(
             value = voiceSearchQuery,
             onValueChange = { voiceSearchQuery = it },
-            placeholder = { Text("Search voices or languages...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+            placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search_voices_or_languages), color = MaterialTheme.colorScheme.onSurfaceVariant) },
             trailingIcon = if (voiceSearchQuery.isNotBlank()) {
-                { TextButton(onClick = { voiceSearchQuery = "" }) { Text("Clear", color = MaterialTheme.colorScheme.primary) } }
+                { TextButton(onClick = { voiceSearchQuery = "" }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear), color = MaterialTheme.colorScheme.primary) } }
             } else null,
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
@@ -404,7 +405,7 @@ fun VoiceStudioDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        currentEngineLabel,
+                        localizedSettingsOption(currentEngineLabel),
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -420,9 +421,9 @@ fun VoiceStudioDialog(
                     DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text("Use System Default", color = MaterialTheme.colorScheme.onSurface)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_use_system_default), color = MaterialTheme.colorScheme.onSurface)
                                 if (settings.enginePackage.isBlank()) {
-                                    Icon(Icons.Filled.Check, contentDescription = "Selected", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                                    Icon(Icons.Filled.Check, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                                 }
                             }
                         },
@@ -434,9 +435,9 @@ fun VoiceStudioDialog(
                     DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text("Use Vern Studio", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_use_vern_studio), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                                 if (settings.enginePackage == VoiceManager.VERITAS_STUDIO) {
-                                    Icon(Icons.Filled.Check, contentDescription = "Selected", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                                    Icon(Icons.Filled.Check, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                                 }
                             }
                         },
@@ -449,9 +450,9 @@ fun VoiceStudioDialog(
                     DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text("Use Vern Lite", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_use_vern_lite), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                                 if (settings.enginePackage == VoiceManager.VERITAS_LITE) {
-                                    Icon(Icons.Filled.Check, contentDescription = "Selected", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                                    Icon(Icons.Filled.Check, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                                 }
                             }
                         },
@@ -471,7 +472,7 @@ fun VoiceStudioDialog(
                                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                         Text(engine.label, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface)
                                         if (isSelected) {
-                                            Icon(Icons.Filled.Check, contentDescription = "Selected", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Filled.Check, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                                         }
                                     }
                                 },
@@ -492,13 +493,13 @@ fun VoiceStudioDialog(
                 checked = settings.showNetworkVoices,
                 onCheckedChange = onShowNetworkVoicesChange
             )
-            Text("Include online/network voices", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_include_online_network_voices), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
         }
 
         if (loadingVoices) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                Text("Loading voice models...", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_loading_voice_models), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
             }
         }
 
@@ -545,8 +546,8 @@ fun VoiceStudioDialog(
                             )
                             if (isCurrent) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Icon(Icons.Filled.CheckCircle, contentDescription = "Active", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
-                                    Text("Active", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                    Icon(Icons.Filled.CheckCircle, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_active), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_active), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         }
@@ -561,7 +562,7 @@ fun VoiceStudioDialog(
                             is com.veritas.reader.tts.DownloadState.Downloading ->
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                                    Text(state.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                    Text(downloadStateLabel(state), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
                             else -> TextButton(onClick = {
                                 voiceRowScope.launch {
@@ -569,13 +570,13 @@ fun VoiceStudioDialog(
                                 }
                             }) {
                                 Text(
-                                    if (needsQualityUpgrade) "Update · ~${offlineVoice.downloadSizeMb.toInt()}MB" else "Get · ~${offlineVoice.downloadSizeMb.toInt()}MB",
+                                    androidx.compose.ui.res.stringResource(if (needsQualityUpgrade) com.veritas.reader.R.string.settings_update_voice_size else com.veritas.reader.R.string.settings_get_voice_size, offlineVoice.downloadSizeMb.toInt()),
                                     style = MaterialTheme.typography.labelMedium)
                             }
                         }
                     } else {
                         IconButton(onClick = { onPreviewVoice(voice) }) {
-                            Icon(Icons.Outlined.GraphicEq, contentDescription = "Preview voice", tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Outlined.GraphicEq, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preview_voice), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -584,13 +585,13 @@ fun VoiceStudioDialog(
 
         if (filteredLanguageVoices.isEmpty() && !loadingVoices) {
             Text(
-                "No voices found matching search filter.",
+                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_voices_found_matching_search_filter),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
-        SettingsHubSectionTitle("Vern voice models")
+        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern_voice_models))
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = VeritasPackStyle.cardShape(),
@@ -607,7 +608,7 @@ fun VoiceStudioDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    "Download voices for offline reading. Update older Piper voices using the Update button in the voice list for the quieter full-precision package. Buffered reading continues normally.",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_download_voices_for_offline_reading_update_older_piper_voices_usi),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -629,7 +630,7 @@ fun VoiceStudioDialog(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(pkg.title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
-                                pkg.description,
+                                localizedSettingsOption(pkg.description),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -639,7 +640,7 @@ fun VoiceStudioDialog(
                                     progress = { state.percent / 100f },
                                     modifier = Modifier.fillMaxWidth()
                                 )
-                                Text(state.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                Text(downloadStateLabel(state), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                             } else if (state is com.veritas.reader.tts.DownloadState.Failed) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(state.reason, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
@@ -652,15 +653,15 @@ fun VoiceStudioDialog(
                         if (isInstalled) {
                             Row(modifier = Modifier.graphicsLayer { alpha = installedAlpha },
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Icon(Icons.Filled.CheckCircle, contentDescription = "Installed", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
-                                Text("Installed", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
+                                Icon(Icons.Filled.CheckCircle, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_installed), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_installed), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
                                 IconButton(onClick = {
                                     com.veritas.reader.tts.VoiceModelManager.deleteVoice(context, pkg.targetVoiceId)
                                     refreshTrigger++
                                     onRefreshEngines()
                                     onLoadVoices()
                                 }) {
-                                    Icon(Icons.Outlined.Delete, contentDescription = "Delete voice model", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                                    Icon(Icons.Outlined.Delete, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_voice_model), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                                 }
                             }
                         } else if (state is com.veritas.reader.tts.DownloadState.Downloading) {
@@ -681,7 +682,7 @@ fun VoiceStudioDialog(
                                 },
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                             ) {
-                                Text("Download", style = MaterialTheme.typography.labelMedium)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_download), style = MaterialTheme.typography.labelMedium)
                             }
                         }
                         }
@@ -691,43 +692,54 @@ fun VoiceStudioDialog(
         }
 
         // Quick Navigation Studio Shortcuts
-        SettingsHubSectionTitle("Narration shortcuts")
+        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_narration_shortcuts))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(
                 onClick = onOpenNarrationStudio,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Narration Studio", color = MaterialTheme.colorScheme.onSurface)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_narration_studio), color = MaterialTheme.colorScheme.onSurface)
             }
             OutlinedButton(
                 onClick = onOpenSpeechEdits,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Speech Edits", color = MaterialTheme.colorScheme.onSurface)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_speech_edits), color = MaterialTheme.colorScheme.onSurface)
             }
         }
 
         Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-            Text("Use Selected Voice")
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_use_selected_voice))
         }
         OutlinedButton(onClick = onAddLanguageVoice, modifier = Modifier.fillMaxWidth()) {
-            Text("Add Language / Voice", color = MaterialTheme.colorScheme.onSurface)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_language_voice), color = MaterialTheme.colorScheme.onSurface)
         }
         OutlinedButton(onClick = onOpenSystemTtsSettings, modifier = Modifier.fillMaxWidth()) {
-            Text("System TTS Settings", color = MaterialTheme.colorScheme.onSurface)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_system_tts_settings), color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
 
+@Composable
 private fun voiceLanguageLabel(localeTag: String, displayLocale: Locale): String {
-    if (localeTag.isBlank()) return "Default language"
+    if (localeTag.isBlank()) return localizedSettingsOption(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_default_language))
     val locale = Locale.forLanguageTag(localeTag)
     return locale.getDisplayName(displayLocale).ifBlank { localeTag }
 }
 
+@Composable
 private fun voiceProviderLabel(voice: TtsVoiceOption, displayLocale: Locale): String {
     val language = voiceLanguageLabel(voice.localeTag, displayLocale)
-    val network = if (voice.requiresNetwork) "Network voice" else "Offline voice"
-    return "$language, $network, quality ${voice.quality}, latency ${voice.latency}"
+    val network = localizedSettingsOption(if (voice.requiresNetwork) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_network_voice) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_offline_voice))
+    return androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_voice_details, language, network, voice.quality, voice.latency)
 }
+
+@Composable
+private fun downloadStateLabel(state: com.veritas.reader.tts.DownloadState.Downloading): String =
+    androidx.compose.ui.res.stringResource(when {
+        state.queued -> com.veritas.reader.R.string.settings_queued
+        state.installing -> com.veritas.reader.R.string.settings_installing
+        state.totalBytes <= 0 -> com.veritas.reader.R.string.settings_downloading
+        else -> com.veritas.reader.R.string.settings_downloading_percent
+    }, state.percent)

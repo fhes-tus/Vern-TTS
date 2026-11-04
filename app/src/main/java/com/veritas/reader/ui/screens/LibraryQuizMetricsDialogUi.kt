@@ -139,7 +139,7 @@ internal fun QuizLabMetricsDialog(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             IconButton(onClick = onDismiss) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back))
                             }
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -150,11 +150,11 @@ internal fun QuizLabMetricsDialog(
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Text(
-                                        "Quiz Lab & Performance",
+                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_quiz_lab_performance),
                                         style = MaterialTheme.typography.titleMedium)
                                 }
                                 Text(
-                                    "Retention, mastery & score calibration",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_retention_mastery_score_calibration),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -170,7 +170,7 @@ internal fun QuizLabMetricsDialog(
                         ) {
                             Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("New Quiz", style = MaterialTheme.typography.labelMedium)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_new_quiz), style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
@@ -197,7 +197,7 @@ internal fun QuizLabMetricsDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "Overall Learning Metrics",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_overall_learning_metrics),
                                     style = MaterialTheme.typography.labelLarge,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -206,7 +206,7 @@ internal fun QuizLabMetricsDialog(
                                     color = if (overallAccuracy >= 80) Color(0xFF10B981).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer
                                 ) {
                                     Text(
-                                        text = if (playedCount > 0) "$overallAccuracy% Accuracy" else "No Data Yet",
+                                        text = if (playedCount > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_113, com.veritas.reader.ui.screens.localizedUiValue(overallAccuracy)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_data_yet),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = if (overallAccuracy >= 80) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -224,7 +224,7 @@ internal fun QuizLabMetricsDialog(
                                         style = MaterialTheme.typography.titleLarge,
                                         color = MaterialTheme.colorScheme.primary
                                     )
-                                    Text("Completed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_completed), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
@@ -232,7 +232,7 @@ internal fun QuizLabMetricsDialog(
                                         style = MaterialTheme.typography.titleLarge,
                                         color = Color(0xFF10B981)
                                     )
-                                    Text("Mastered 🏆", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_mastered), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
@@ -240,7 +240,7 @@ internal fun QuizLabMetricsDialog(
                                         style = MaterialTheme.typography.titleLarge,
                                         color = MaterialTheme.colorScheme.secondary
                                     )
-                                    Text("Questions Right", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_questions_right), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
 
@@ -250,7 +250,7 @@ internal fun QuizLabMetricsDialog(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text("Retention Gauge", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_retention_gauge), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Text("$overallAccuracy%", style = MaterialTheme.typography.labelSmall)
                                 }
                                 androidx.compose.material3.LinearProgressIndicator(
@@ -281,12 +281,12 @@ internal fun QuizLabMetricsDialog(
                     ) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(
-                                "Score & Mastery Distribution",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_score_mastery_distribution),
                                 style = MaterialTheme.typography.titleSmall)
 
                             if (masterySlices.isNotEmpty()) {
                                 DashboardDonutChart(
-                                    title = "Mastery Breakdown",
+                                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_mastery_breakdown),
                                     slices = masterySlices,
                                     totalLabel = "Quizzes",
                                     modifier = Modifier.fillMaxWidth()
@@ -294,7 +294,7 @@ internal fun QuizLabMetricsDialog(
 
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Text(
-                                        "Progress Composition",
+                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_progress_composition),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -351,7 +351,7 @@ internal fun QuizLabMetricsDialog(
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text("$masteredCount", style = MaterialTheme.typography.titleMedium, color = Color(0xFF10B981))
-                                        Text("100% Perfect", style = MaterialTheme.typography.labelSmall, color = Color(0xFF10B981))
+                                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_100_perfect), style = MaterialTheme.typography.labelSmall, color = Color(0xFF10B981))
                                     }
                                 }
                                 Surface(
@@ -361,7 +361,7 @@ internal fun QuizLabMetricsDialog(
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text("$proficientCount", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-                                        Text("70-99% Passing", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_70_99_passing), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                     }
                                 }
                                 Surface(
@@ -371,7 +371,7 @@ internal fun QuizLabMetricsDialog(
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text("$reviewCount", style = MaterialTheme.typography.titleMedium, color = Color(0xFFEF4444))
-                                        Text("<70% Review", style = MaterialTheme.typography.labelSmall, color = Color(0xFFEF4444))
+                                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_70_review), style = MaterialTheme.typography.labelSmall, color = Color(0xFFEF4444))
                                     }
                                 }
                                 Surface(
@@ -381,7 +381,7 @@ internal fun QuizLabMetricsDialog(
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text("$unplayedCount", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        Text("Unplayed", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unplayed), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 }
                             }
@@ -392,7 +392,7 @@ internal fun QuizLabMetricsDialog(
                     if (quizzesByBook.isNotEmpty()) {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
-                                "Performance Per Book / Document",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_performance_per_book_document),
                                 style = MaterialTheme.typography.titleSmall)
                             for ((bookTitle, bookQuizzes) in quizzesByBook) {
                                 val bookPlayed = bookQuizzes.filter { it.bestScore >= 0 }
@@ -421,7 +421,7 @@ internal fun QuizLabMetricsDialog(
                                                 overflow = TextOverflow.Ellipsis
                                             )
                                             Text(
-                                                "$totalQuizCount quiz${if (totalQuizCount == 1) "" else "zes"} • $completedCount completed",
+                                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_212, com.veritas.reader.ui.screens.localizedUiValue(totalQuizCount), com.veritas.reader.ui.screens.localizedUiValue(completedCount)),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -431,7 +431,7 @@ internal fun QuizLabMetricsDialog(
                                             color = if (bookAvg >= 80) Color(0xFF10B981).copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
                                         ) {
                                             Text(
-                                                text = if (bookPlayed.isNotEmpty()) "$bookAvg% Avg" else "Unplayed",
+                                                text = if (bookPlayed.isNotEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_114, com.veritas.reader.ui.screens.localizedUiValue(bookAvg)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unplayed),
                                                 style = MaterialTheme.typography.labelSmall,
                                                 color = if (bookAvg >= 80) Color(0xFF10B981) else MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -451,14 +451,14 @@ internal fun QuizLabMetricsDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "All Quizzes (${filteredQuizzes.size})",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_115, com.veritas.reader.ui.screens.localizedUiValue(filteredQuizzes.size)),
                                 style = MaterialTheme.typography.titleSmall)
                         }
 
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { searchQuery = it },
-                            placeholder = { Text("Search quizzes by title or book…") },
+                            placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search_quizzes_by_title_or_book)) },
                             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -471,8 +471,8 @@ internal fun QuizLabMetricsDialog(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text("No quizzes found", style = MaterialTheme.typography.bodyMedium)
-                                    Text("Create quizzes using AI Study Studio to practice here.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_quizzes_found), style = MaterialTheme.typography.bodyMedium)
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create_quizzes_using_ai_study_studio_to_practice_here), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
                                 }
                             }
                         } else {
@@ -525,14 +525,14 @@ internal fun QuizLabMetricsDialog(
                                                 )
                                             }
                                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                                Text("${quiz.totalQuestions} Questions", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_116, com.veritas.reader.ui.screens.localizedUiValue(quiz.totalQuestions)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
                                                 if (hasPlayed) {
                                                     Surface(
                                                         shape = RoundedCornerShape(6.dp),
                                                         color = if (isMastered) Color(0xFF10B981).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                                                     ) {
                                                         Text(
-                                                            text = if (isMastered) "Mastered 100%" else "Best: $score/${quiz.totalQuestions} ($pct%)",
+                                                            text = if (isMastered) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_mastered_100) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_117, com.veritas.reader.ui.screens.localizedUiValue(score), com.veritas.reader.ui.screens.localizedUiValue(quiz.totalQuestions), com.veritas.reader.ui.screens.localizedUiValue(pct)),
                                                             style = MaterialTheme.typography.labelSmall,
                                                             color = if (isMastered) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
                                                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -550,7 +550,7 @@ internal fun QuizLabMetricsDialog(
                                             shape = RoundedCornerShape(50),
                                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                                         ) {
-                                            Text(if (hasPlayed) "Retake" else "Play", style = MaterialTheme.typography.labelSmall)
+                                            Text(if (hasPlayed) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_retake) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play), style = MaterialTheme.typography.labelSmall)
                                         }
                                     }
                                 }

@@ -96,15 +96,15 @@ fun QueueSection(
         Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Queue", style = MaterialTheme.typography.titleMedium)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_queue), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        if (queuedDocuments.isEmpty()) "Build a playlist from your library." else "${queuedDocuments.size} queued item${if (queuedDocuments.size == 1) "" else "s"} ready for continuous playback.",
+                        if (queuedDocuments.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_build_a_playlist_from_your_library) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_211, com.veritas.reader.ui.screens.localizedUiValue(queuedDocuments.size)),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                OutlinedButton(onClick = onClearQueue, enabled = queuedDocuments.isNotEmpty()) { Text("Clear") }
+                OutlinedButton(onClick = onClearQueue, enabled = queuedDocuments.isNotEmpty()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear)) }
                 Spacer(modifier = Modifier.width(8.dp))
-                Button(onClick = onPlayQueue, enabled = queuedDocuments.isNotEmpty()) { Text("Play") }
+                Button(onClick = onPlayQueue, enabled = queuedDocuments.isNotEmpty()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play)) }
             }
 
             if (queuedDocuments.isEmpty()) {
@@ -113,7 +113,7 @@ fun QueueSection(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Text(
-                        "Use Queue on any document card to add it here. Queue order controls what plays next in the background service.",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_use_queue_on_any_document_card_to_add_it_here_queue_order_control),
                         modifier = Modifier.padding(14.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -166,15 +166,15 @@ fun QueueItemRow(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f).clickable { onOpen() }) {
                     Text(document.title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
-                    Text("${document.sourceLabel} • ${progressPercent(document)}% • sentence ${document.currentIndex + 1}/${document.chunkCount.coerceAtLeast(1)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_109, com.veritas.reader.ui.screens.localizedUiValue(document.sourceLabel), com.veritas.reader.ui.screens.localizedUiValue(progressPercent(document)), com.veritas.reader.ui.screens.localizedUiValue(document.currentIndex + 1), com.veritas.reader.ui.screens.localizedUiValue(document.chunkCount.coerceAtLeast(1))), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 SourceBadge(document.sourceLabel)
             }
             LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onMoveUp, enabled = canMoveUp) { Text("Up") }
-                OutlinedButton(onClick = onMoveDown, enabled = canMoveDown) { Text("Down") }
-                TextButton(onClick = onRemove) { Text("Remove") }
+                OutlinedButton(onClick = onMoveUp, enabled = canMoveUp) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_up)) }
+                OutlinedButton(onClick = onMoveDown, enabled = canMoveDown) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_down)) }
+                TextButton(onClick = onRemove) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove)) }
             }
         }
     }
@@ -206,13 +206,13 @@ internal fun EmbeddedOnboardingBlock(
                 Text("🎧", fontSize = 40.sp)
             }
             Text(
-                "Listen to anything, eyes-free.",
+                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_listen_to_anything_eyes_free),
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                "Import PDFs, EPUBs, documents, or paste web articles to get started.",
+                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_pdfs_epubs_documents_or_paste_web_articles_to_get_started),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -227,14 +227,14 @@ internal fun EmbeddedOnboardingBlock(
                     modifier = Modifier.weight(1f),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Text("Browse Files")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_browse_files))
                 }
                 FilledTonalButton(
                     onClick = onPasteText,
                     modifier = Modifier.weight(1f),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Text("Paste Text")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_text))
                 }
             }
         }
@@ -411,47 +411,47 @@ internal fun ImportSheetMenu(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Add something", style = MaterialTheme.typography.titleLarge)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_something), style = MaterialTheme.typography.titleLarge)
             IconButton(onClick = onDismiss) {
-                Icon(imageVector = Icons.Filled.Close, contentDescription = "Close")
+                Icon(imageVector = Icons.Filled.Close, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close))
             }
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             ImportSheetOptionCard(
                 icon = Icons.Filled.FolderOpen,
-                title = "File browser",
-                subtitle = "Browse and batch import local files",
+                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_file_browser),
+                subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_browse_and_batch_import_local_files),
                 onClick = { onSelectOption(ImportOption.BROWSE) }
             )
             ImportSheetOptionCard(
                 icon = Icons.Filled.ContentPaste,
-                title = "Paste text",
-                subtitle = "Copy and paste any content",
+                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_text_e6f8612),
+                subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_copy_and_paste_any_content),
                 onClick = { onSelectOption(ImportOption.PASTE) }
             )
             ImportSheetOptionCard(
                 icon = Icons.Filled.Language,
-                title = "From web",
-                subtitle = "Paste a link to an article",
+                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_from_web),
+                subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_paste_a_link_to_an_article),
                 onClick = { onSelectOption(ImportOption.WEB) }
             )
             ImportSheetOptionCard(
                 icon = Icons.Filled.PhotoCamera,
-                title = "Scan / OCR",
-                subtitle = "Capture or choose a photo to extract text",
+                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_scan_ocr),
+                subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_capture_or_choose_a_photo_to_extract_text),
                 onClick = { onSelectOption(ImportOption.SCAN) }
             )
             ImportSheetOptionCard(
                 icon = Icons.Filled.Description,
-                title = "Browse phone folders",
-                subtitle = "Open system file chooser",
+                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_browse_phone_folders),
+                subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_open_system_file_chooser),
                 onClick = { onSelectOption(ImportOption.FILE) }
             )
             ImportSheetOptionCard(
                 icon = Icons.Filled.EditNote,
-                title = "Write note",
-                subtitle = "Create a freeform reading note",
+                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_write_note_96dcbf1),
+                subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_create_a_freeform_reading_note),
                 onClick = { onSelectOption(ImportOption.WRITE_NOTE) }
             )
         }
@@ -518,16 +518,16 @@ internal fun ImportSheetWeb(
             IconButton(onClick = onBack) {
                 Text("←", fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Text("Import link", style = MaterialTheme.typography.titleLarge)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_link), style = MaterialTheme.typography.titleLarge)
         }
 
-        Text("Paste a link to any web article, report, or blog post below:", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_a_link_to_any_web_article_report_or_blog_post_below), color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         OutlinedTextField(
             value = urlText,
             onValueChange = onUrlChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Article Link") },
+            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_article_link)) },
             placeholder = { Text("https://example.com/article...") },
             singleLine = true
         )
@@ -537,7 +537,7 @@ internal fun ImportSheetWeb(
             modifier = Modifier.fillMaxWidth(),
             enabled = urlText.isNotBlank() && WebArticleExtractor.looksLikeUrl(urlText)
         ) {
-            Text("Import web article")
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_web_article))
         }
     }
 }
@@ -563,17 +563,17 @@ internal fun ImportSheetPaste(
             IconButton(onClick = onBack) {
                 Text("←", fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Text("Paste text", style = MaterialTheme.typography.titleLarge)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_text_e6f8612), style = MaterialTheme.typography.titleLarge)
         }
 
-        Text("Paste loose text, a document snippet, or email contents below:", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_loose_text_a_document_snippet_or_email_contents_below), color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         OutlinedTextField(
             value = pastedText,
             onValueChange = onTextChange,
             modifier = Modifier.fillMaxWidth().height(180.dp),
-            label = { Text("Content") },
-            placeholder = { Text("Paste text here...") }
+            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_content)) },
+            placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_text_here)) }
         )
 
         Button(
@@ -581,7 +581,7 @@ internal fun ImportSheetPaste(
             modifier = Modifier.fillMaxWidth(),
             enabled = pastedText.isNotBlank()
         ) {
-            Text("Save reading")
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_reading))
         }
     }
 }

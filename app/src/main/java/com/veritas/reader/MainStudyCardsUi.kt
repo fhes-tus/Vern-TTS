@@ -62,7 +62,7 @@ internal fun ScopeSelector(
     onScopeSelected: (AiPromptScope) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Scope", style = MaterialTheme.typography.bodySmall)
+        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_scope), style = MaterialTheme.typography.bodySmall)
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -113,7 +113,7 @@ internal fun PageRangeInputs(
         OutlinedTextField(
             value = startVal,
             onValueChange = { onStartChange(it.filter { char -> char.isDigit() }) },
-            label = { Text("From Page", fontSize = 12.sp) },
+            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_from_page), fontSize = 12.sp) },
             modifier = Modifier.weight(1f),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium
@@ -121,7 +121,7 @@ internal fun PageRangeInputs(
         OutlinedTextField(
             value = endVal,
             onValueChange = { onEndChange(it.filter { char -> char.isDigit() }) },
-            label = { Text("To Page", fontSize = 12.sp) },
+            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_to_page), fontSize = 12.sp) },
             modifier = Modifier.weight(1f),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium
@@ -209,7 +209,7 @@ internal fun TaskExpandableCard(
                 }
                 Icon(
                     imageVector = if (isExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                    contentDescription = if (isExpanded) "Collapse" else "Expand",
+                    contentDescription = if (isExpanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -234,7 +234,7 @@ internal fun TaskExpandableCard(
                 OutlinedTextField(
                     value = prompt,
                     onValueChange = onPromptChange,
-                    label = { Text("Prompt instructions") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_prompt_instructions)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2,
                     maxLines = 6,
@@ -254,7 +254,7 @@ internal fun TaskExpandableCard(
                         ) {
                             Icon(Icons.Filled.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Copy Prompt")
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy_prompt))
                         }
                     }
                     Button(
@@ -264,7 +264,7 @@ internal fun TaskExpandableCard(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Send to AI")
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_send_to_ai))
                     }
                 }
             }
@@ -344,7 +344,7 @@ internal fun ModernToolActionCard(
                 }
 
                 IconButton(onClick = onCopyPrompt, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Filled.ContentCopy, contentDescription = "Copy Prompt", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(Icons.Filled.ContentCopy, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy_prompt), modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -395,7 +395,7 @@ internal fun ModernToolActionCard(
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Text(
-                                "Open",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
@@ -445,15 +445,15 @@ internal fun ModernStudyResultPreviewCard(
                     )
                     Text(
                         when (preview) {
-                            is ModernStudyResultPreview.Flashcards -> "✨ Generated ${preview.cards.size} Flashcards"
-                            is ModernStudyResultPreview.Quiz -> "🎯 Created ${preview.quizSet.questions.size} Exam Questions"
+                            is ModernStudyResultPreview.Flashcards -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_035, com.veritas.reader.ui.screens.localizedUiValue(preview.cards.size))
+                            is ModernStudyResultPreview.Quiz -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_036, com.veritas.reader.ui.screens.localizedUiValue(preview.quizSet.questions.size))
                             is ModernStudyResultPreview.NoteText -> "📝 ${preview.title}"
                         },
                         style = MaterialTheme.typography.titleSmall
                     )
                 }
                 IconButton(onClick = onClose, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Filled.Close, contentDescription = "Close", modifier = Modifier.size(18.dp))
+                    Icon(Icons.Filled.Close, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close), modifier = Modifier.size(18.dp))
                 }
             }
 
@@ -481,10 +481,10 @@ internal fun ModernStudyResultPreviewCard(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        if (showBack) "ANSWER (Tap to flip)" else "QUESTION (Tap to flip)",
+                                        if (showBack) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_answer_tap_to_flip) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_question_tap_to_flip),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary)
-                                    Text("Sample 1 of ${preview.cards.size}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_037, com.veritas.reader.ui.screens.localizedUiValue(preview.cards.size)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Text(
                                     if (showBack) sampleCard.back else sampleCard.front,
@@ -504,7 +504,7 @@ internal fun ModernStudyResultPreviewCard(
                         ) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Study Deck Now", fontWeight = FontWeight.Bold)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_deck_now), fontWeight = FontWeight.Bold)
                         }
                         OutlinedButton(
                             onClick = {
@@ -515,7 +515,7 @@ internal fun ModernStudyResultPreviewCard(
                         ) {
                             Icon(Icons.Filled.ContentCopy, contentDescription = null, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Copy")
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy))
                         }
                     }
                 }
@@ -533,13 +533,13 @@ internal fun ModernStudyResultPreviewCard(
                                 modifier = Modifier.padding(14.dp),
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Text("Sample Question 1", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sample_question_1), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 Text(sampleQ.question, style = MaterialTheme.typography.bodyMedium)
                                 sampleQ.options.take(2).forEachIndexed { i, opt ->
                                     Text("${('A' + i)}) $opt", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 if (sampleQ.options.size > 2) {
-                                    Text("... (+${sampleQ.options.size - 2} more options)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_038, com.veritas.reader.ui.screens.localizedUiValue(sampleQ.options.size - 2)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -556,7 +556,7 @@ internal fun ModernStudyResultPreviewCard(
                         ) {
                             Icon(Icons.Outlined.Quiz, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Start Interactive Quiz", fontWeight = FontWeight.Bold)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_interactive_quiz), fontWeight = FontWeight.Bold)
                         }
                         OutlinedButton(
                             onClick = {
@@ -569,7 +569,7 @@ internal fun ModernStudyResultPreviewCard(
                         ) {
                             Icon(Icons.Filled.ContentCopy, contentDescription = null, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Copy")
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy))
                         }
                     }
                 }
@@ -608,7 +608,7 @@ internal fun ModernStudyResultPreviewCard(
                         ) {
                             Icon(Icons.Outlined.EditNote, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Save to Sentence Note", fontWeight = FontWeight.Bold)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_to_sentence_note), fontWeight = FontWeight.Bold)
                         }
                         OutlinedButton(
                             onClick = { onCopy(preview.title, preview.text) },
@@ -616,7 +616,7 @@ internal fun ModernStudyResultPreviewCard(
                         ) {
                             Icon(Icons.Filled.ContentCopy, contentDescription = null, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Copy")
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy))
                         }
                     }
                 }

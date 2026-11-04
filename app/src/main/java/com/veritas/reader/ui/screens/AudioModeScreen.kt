@@ -148,19 +148,19 @@ fun AudioModeScreen(
                 if (!fullScreenRead) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ListenControl(Icons.AutoMirrored.Filled.ArrowBack, "Back", glass, Modifier.size(48.dp), onClick = onDismiss)
+                    ListenControl(Icons.AutoMirrored.Filled.ArrowBack, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back), glass, Modifier.size(48.dp), onClick = onDismiss)
                     ReaderModeToggle(readerMode, onReaderModeChange, hasCanvas, Modifier.weight(1f))
                     Box {
-                        ListenControl(Icons.Default.MoreVert, "More options", glass, Modifier.size(48.dp), onClick = { toolsExpanded = true })
+                        ListenControl(Icons.Default.MoreVert, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_more_options_86c0a35), glass, Modifier.size(48.dp), onClick = { toolsExpanded = true })
                         DropdownMenu(toolsExpanded, { toolsExpanded = false }) {
-                            DropdownMenuItem(text = { Text("Share quote") }, leadingIcon = { Icon(Icons.Outlined.FormatQuote, null) },
+                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_quote)) }, leadingIcon = { Icon(Icons.Outlined.FormatQuote, null) },
                                 enabled = quoteChunks.getOrNull(index)?.isNotBlank() == true,
                                 onClick = {
                                     toolsExpanded = false
                                     showRead = true
                                     if (quoteSelection.isEmpty()) selectQuoteSentence(index)
                                 })
-                            DropdownMenuItem(text = { Text("Full screen reading") }, leadingIcon = { Icon(Icons.Default.Fullscreen, null) },
+                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_full_screen_reading)) }, leadingIcon = { Icon(Icons.Default.Fullscreen, null) },
                                 onClick = { toolsExpanded = false; showRead = true; fullScreenRead = true })
                             listOf(
                                 Triple("Sleep timer", Icons.Outlined.Timer, onOpenSleepTimer),
@@ -175,8 +175,8 @@ fun AudioModeScreen(
                     }
                 }
                 Row(Modifier.align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = !showRead, onClick = { showRead = false; quoteSelection = emptyList(); showQuotePreview = false }, label = { Text("Player") })
-                    FilterChip(selected = showRead, onClick = { showRead = true }, label = { Text("Read") })
+                    FilterChip(selected = !showRead, onClick = { showRead = false; quoteSelection = emptyList(); showQuotePreview = false }, label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_player)) })
+                    FilterChip(selected = showRead, onClick = { showRead = true }, label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read)) })
 
                 }
                 }
@@ -190,11 +190,11 @@ fun AudioModeScreen(
                             { sentence -> if (quoteSelection.isEmpty()) onSentenceClick(sentence) else selectQuoteSentence(sentence) }, fontSizeSp,
                             quoteSelection, { sentence -> haptics.select(); selectQuoteSentence(sentence) })
                         if (fullScreenRead && quoteSelection.isEmpty()) Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            ListenControl(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, if (isPlaying) "Pause" else "Play", glass,
+                            ListenControl(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, if (isPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pause) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play), glass,
                                 Modifier.size(52.dp), playback = true, preparing = preparing, onClick = onPlayPause)
-                            ListenControl(Icons.Default.FormatSize, "Text size", glass, Modifier.size(52.dp),
+                            ListenControl(Icons.Default.FormatSize, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text_size), glass, Modifier.size(52.dp),
                                 onClick = { showTextSize = true })
-                            ListenControl(Icons.Default.FullscreenExit, "Exit full screen reading", glass, Modifier.size(52.dp).testTag("listen-exit-fullscreen"),
+                            ListenControl(Icons.Default.FullscreenExit, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_exit_full_screen_reading), glass, Modifier.size(52.dp).testTag("listen-exit-fullscreen"),
                                 onClick = { fullScreenRead = false })
                         }
                     }
@@ -203,9 +203,9 @@ fun AudioModeScreen(
                 }
                 if (quoteSelection.isNotEmpty()) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("${quoteSelection.size} of 5 selected", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                    TextButton(onClick = { quoteSelection = emptyList(); showQuotePreview = false }) { Text("Cancel") }
-                    Button(onClick = { showQuotePreview = true }, enabled = quoteText.isNotBlank()) { Text("Preview") }
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_064, com.veritas.reader.ui.screens.localizedUiValue(quoteSelection.size)), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                    TextButton(onClick = { quoteSelection = emptyList(); showQuotePreview = false }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
+                    Button(onClick = { showQuotePreview = true }, enabled = quoteText.isNotBlank()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preview)) }
                 }
                 AnimatedVisibility(visible = !fullScreenRead && quoteSelection.isEmpty(),
                     enter = if (VeritasMotion.scheme.reduceMotion) EnterTransition.None else fadeIn(effects) + expandVertically(),
@@ -216,15 +216,15 @@ fun AudioModeScreen(
                         color = scheme.onBackground, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (totalChunks > 0) "Sentence ${index + 1} of $totalChunks" else "Ready to listen",
+                        Text(if (totalChunks > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_065, com.veritas.reader.ui.screens.localizedUiValue(index + 1), com.veritas.reader.ui.screens.localizedUiValue(totalChunks)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ready_to_listen),
                             modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ListenControl(if (isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkAdd,
-                            if (isBookmarked) "Remove bookmark" else "Add bookmark", glass, Modifier.size(48.dp), onClick = onToggleBookmark)
-                        ListenControl(Icons.Default.Fullscreen, "Full screen reading", glass, Modifier.size(48.dp).testTag("listen-fullscreen"),
+                            if (isBookmarked) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_remove_bookmark) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_bookmark), glass, Modifier.size(48.dp), onClick = onToggleBookmark)
+                        ListenControl(Icons.Default.Fullscreen, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_full_screen_reading), glass, Modifier.size(48.dp).testTag("listen-fullscreen"),
                             onClick = { showRead = true; fullScreenRead = true })
-                        ListenControl(Icons.Default.FormatSize, "Text size", glass, Modifier.size(48.dp).testTag("listen-text-size"),
+                        ListenControl(Icons.Default.FormatSize, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text_size), glass, Modifier.size(48.dp).testTag("listen-text-size"),
                             onClick = { showTextSize = true })
                         }
                     }
@@ -243,33 +243,33 @@ fun AudioModeScreen(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(if (totalChunks > 0) "${position.roundToInt() + 1} / $totalChunks" else "0 / 0",
                             style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
-                        Text("${(totalChunks - position.roundToInt() - 1).coerceAtLeast(0)} remaining",
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_066, com.veritas.reader.ui.screens.localizedUiValue((totalChunks - position.roundToInt() - 1).coerceAtLeast(0))),
                             style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    ListenControl(Icons.Default.SkipPrevious, "Previous sentence", glass, Modifier.size(60.dp), onClick = { haptics.select(); onPrevious() })
+                    ListenControl(Icons.Default.SkipPrevious, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_sentence), glass, Modifier.size(60.dp), onClick = { haptics.select(); onPrevious() })
                     ListenControl(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        if (preparing) "Cancel starting playback" else if (isPlaying) "Pause" else "Play", glass,
-                        Modifier.weight(1f).height(64.dp), label = if (preparing) "Starting" else if (isPlaying) "Pause" else "Play",
+                        if (preparing) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_cancel_starting_playback) else if (isPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pause) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play), glass,
+                        Modifier.weight(1f).height(64.dp), label = if (preparing) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_starting) else if (isPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pause) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play),
                         playback = true, preparing = preparing, emphasized = true, onClick = { haptics.toggle(!isPlaying); onPlayPause() })
-                    ListenControl(Icons.Default.SkipNext, "Next sentence", glass, Modifier.size(60.dp), onClick = { haptics.select(); onNext() })
+                    ListenControl(Icons.Default.SkipNext, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_sentence), glass, Modifier.size(60.dp), onClick = { haptics.select(); onNext() })
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Box(Modifier.weight(1f)) {
-                        ListenControl(Icons.Outlined.Speed, "Playback speed", glass, Modifier.fillMaxWidth().height(48.dp),
+                        ListenControl(Icons.Outlined.Speed, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_playback_speed), glass, Modifier.fillMaxWidth().height(48.dp),
                             label = String.format(Locale.US, "%.2f", rate).trimEnd('0').trimEnd('.') + "×", onClick = { ratesExpanded = true })
                         DropdownMenu(ratesExpanded, { ratesExpanded = false }) {
                             listOf(.8f, 1f, 1.25f, 1.5f, 2f).forEach { speed ->
                                 DropdownMenuItem(text = { Text("${speed}×") }, onClick = { onRateChange(speed); ratesExpanded = false })
                             }
                             HorizontalDivider()
-                            DropdownMenuItem(text = { Text("Slower −0.05×") }, onClick = { onRateChange((rate - .05f).coerceAtLeast(.5f)) })
-                            DropdownMenuItem(text = { Text("Faster +0.05×") }, onClick = { onRateChange((rate + .05f).coerceAtMost(3f)) })
+                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_slower_0_05)) }, onClick = { onRateChange((rate - .05f).coerceAtLeast(.5f)) })
+                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_faster_0_05)) }, onClick = { onRateChange((rate + .05f).coerceAtMost(3f)) })
                         }
                     }
-                    ListenControl(Icons.Outlined.RecordVoiceOver, "Voice & language", glass, Modifier.weight(1f).height(48.dp), label = "Voice", onClick = onOpenVoiceStudio)
-                    ListenControl(Icons.Outlined.Timer, "Sleep timer", glass, Modifier.weight(1f).height(48.dp), label = "Timer", onClick = onOpenSleepTimer)
+                    ListenControl(Icons.Outlined.RecordVoiceOver, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_voice_language), glass, Modifier.weight(1f).height(48.dp), label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_3091c84), onClick = onOpenVoiceStudio)
+                    ListenControl(Icons.Outlined.Timer, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sleep_timer), glass, Modifier.weight(1f).height(48.dp), label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_timer), onClick = onOpenSleepTimer)
                 }
                 }
                 }
@@ -277,8 +277,8 @@ fun AudioModeScreen(
         }
     }
     if (showTextSize) AlertDialog(onDismissRequest = { showTextSize = false },
-        title = { Text("Reading text size") },
-        text = { Column { Text("$fontSizeSp sp")
+        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_text_size)) },
+        text = { Column { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_067, com.veritas.reader.ui.screens.localizedUiValue(fontSizeSp)))
             VeritasSleekSlider(value = fontSizeSp.toFloat(), onValueChange = { onFontSizeChange(it.roundToInt().coerceIn(10, 28)) },
                 valueRange = 10f..28f, stepIncrement = 1f, sliderHeight = 48.dp,
                 modifier = Modifier.semantics {
@@ -286,7 +286,7 @@ fun AudioModeScreen(
                     progressBarRangeInfo = ProgressBarRangeInfo(fontSizeSp.toFloat(), 10f..28f, 17)
                     setProgress { onFontSizeChange(it.roundToInt().coerceIn(10, 28)); true }
                 })
-        } }, confirmButton = { TextButton({ showTextSize = false }) { Text("Done") } })
+        } }, confirmButton = { TextButton({ showTextSize = false }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done)) } })
 
 }
 
@@ -334,7 +334,7 @@ private fun ListenArtwork(title: String, documentId: String?, coverFile: File?, 
                     val ratio = bitmap.width.toFloat() / bitmap.height.coerceAtLeast(1)
                     val width = if (ratio < 1f) available * ratio else available
                     val height = if (ratio < 1f) available else available / ratio
-                    Image(bitmap.asImageBitmap(), "Book cover", Modifier.size(width, height).clip(RoundedCornerShape(24.dp)), contentScale = ContentScale.Fit)
+                    Image(bitmap.asImageBitmap(), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_book_cover), Modifier.size(width, height).clip(RoundedCornerShape(24.dp)), contentScale = ContentScale.Fit)
                 } else {
                     VeritasCoverPlaceholder(documentId ?: title, title, "", Modifier.width((side - 28.dp) * 2f / 3f).height(side - 28.dp))
                 }

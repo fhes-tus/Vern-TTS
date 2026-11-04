@@ -36,7 +36,7 @@ internal fun NotesHighlights(
     var deleteKeys by remember { mutableStateOf<Set<String>?>(null) }
     LazyColumn(Modifier.fillMaxSize().padding(horizontal = 18.dp),
         contentPadding = PaddingValues(bottom = LocalHomeBottomPadding.current + 92.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (groups.isEmpty()) item { Text(if (query.isBlank()) "No saved highlights yet." else "No matching highlights.", Modifier.padding(vertical = 24.dp)) }
+        if (groups.isEmpty()) item { Text(if (query.isBlank()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_saved_highlights_yet) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_matching_highlights), Modifier.padding(vertical = 24.dp)) }
         items(groups, key = { "${it.document.id}:${it.id}" }) { group ->
             var sentences by remember(group.document.id) { mutableStateOf<Map<Int, String>>(emptyMap()) }
             LaunchedEffect(group.document.id, group.document.updatedAt, selectedIndexes) {
@@ -53,9 +53,9 @@ internal fun NotesHighlights(
         }
     }
     deleteKeys?.let { keys ->
-        AlertDialog(onDismissRequest = { deleteKeys = null }, title = { Text("Delete highlight?") },
-            text = { Text("This removes the selected annotation from the book and Study too.") },
-            confirmButton = { TextButton({ onDelete(keys); deleteKeys = null }) { Text("Delete") } },
-            dismissButton = { TextButton({ deleteKeys = null }) { Text("Cancel") } })
+        AlertDialog(onDismissRequest = { deleteKeys = null }, title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_highlight)) },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_this_removes_the_selected_annotation_from_the_book_and_study_too)) },
+            confirmButton = { TextButton({ onDelete(keys); deleteKeys = null }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) } },
+            dismissButton = { TextButton({ deleteKeys = null }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } })
     }
 }

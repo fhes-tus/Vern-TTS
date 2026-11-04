@@ -72,7 +72,7 @@ internal fun BackupStatusBlock(
         ) {
             if (inProgress) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                Text("Working on backup file...", style = MaterialTheme.typography.bodySmall)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_working_on_backup_file), style = MaterialTheme.typography.bodySmall)
             }
             if (!message.isNullOrBlank()) {
                 Text(message, color = MaterialTheme.colorScheme.onSurfaceVariant)

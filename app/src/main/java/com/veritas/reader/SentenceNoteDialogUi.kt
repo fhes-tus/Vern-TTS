@@ -133,14 +133,14 @@ internal fun SentenceNoteDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp),
-                    label = { Text("Sentence note") },
-                    placeholder = { Text("Write the note to attach to this sentence") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sentence_note)) },
+                    placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_write_the_note_to_attach_to_this_sentence)) },
                     minLines = 4,
                     maxLines = 8,
                     shape = RoundedCornerShape(16.dp)
                 )
                 Text(
-                    "$wordCount / 300 words",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_048, com.veritas.reader.ui.screens.localizedUiValue(wordCount)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -162,8 +162,8 @@ internal fun SentenceNoteDialog(
                             ) {
                                 val isThisPlaying = recordingState == VoiceRecordingState.PLAYING && activeAudioPath == memo.first
                                 Text(
-                                    if (isThisPlaying) "▶️ Playing memo ${idx + 1} (${memo.second}s)"
-                                    else "🎙️ Voice memo ${idx + 1} (${memo.second}s)",
+                                    if (isThisPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_049, com.veritas.reader.ui.screens.localizedUiValue(idx + 1), com.veritas.reader.ui.screens.localizedUiValue(memo.second))
+                                    else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_050, com.veritas.reader.ui.screens.localizedUiValue(idx + 1), com.veritas.reader.ui.screens.localizedUiValue(memo.second)),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = if (isThisPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f)
@@ -179,7 +179,7 @@ internal fun SentenceNoteDialog(
                                 ) {
                                     Icon(
                                         if (isThisPlaying) Icons.Filled.Close else Icons.Filled.PlayArrow,
-                                        contentDescription = if (isThisPlaying) "Stop" else "Play",
+                                        contentDescription = if (isThisPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play),
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
@@ -198,7 +198,7 @@ internal fun SentenceNoteDialog(
                                 ) {
                                     Icon(
                                         Icons.Outlined.Delete,
-                                        contentDescription = "Delete voice memo",
+                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_voice_memo),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -221,7 +221,7 @@ internal fun SentenceNoteDialog(
                         ) {
                             if (recordingState == VoiceRecordingState.RECORDING) {
                                 Text(
-                                    "🔴 Recording memo... (${recordingDuration}s)",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_051, com.veritas.reader.ui.screens.localizedUiValue(recordingDuration)),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.weight(1f)
@@ -239,11 +239,11 @@ internal fun SentenceNoteDialog(
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                                 ) {
-                                    Text("Stop")
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop))
                                 }
                             } else {
                                 Text(
-                                    if (audioMemos.isEmpty()) "Attach voice memo" else "Add another voice memo",
+                                    if (audioMemos.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_attach_voice_memo) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_another_voice_memo),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.weight(1f)
@@ -262,7 +262,7 @@ internal fun SentenceNoteDialog(
                                 ) {
                                     Icon(Icons.Outlined.Mic, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text(if (audioMemos.isEmpty()) "Record" else "Add memo")
+                                    Text(if (audioMemos.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_record) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_memo))
                                 }
                             }
                         }
@@ -275,7 +275,7 @@ internal fun SentenceNoteDialog(
                             .trim()
                     if (excerpt.isNotBlank()) {
                         Text(
-                            "Sentence ${index + 1}: $excerpt",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_052, com.veritas.reader.ui.screens.localizedUiValue(index + 1), com.veritas.reader.ui.screens.localizedUiValue(excerpt)),
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -284,7 +284,7 @@ internal fun SentenceNoteDialog(
                 }
                 if (indexes.size > 5) {
                     Text(
-                        "+ ${indexes.size - 5} more selected sentences",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_053, com.veritas.reader.ui.screens.localizedUiValue(indexes.size - 5)),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -302,7 +302,7 @@ internal fun SentenceNoteDialog(
                 enabled = noteDraft.trim().isNotBlank() || audioMemos.isNotEmpty(),
                 shape = RoundedCornerShape(50)
             ) {
-                Text("Save")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save))
             }
         },
         dismissButton = {
@@ -316,7 +316,7 @@ internal fun SentenceNoteDialog(
                     },
                     shape = RoundedCornerShape(50)
                 ) {
-                    Text("Delete")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete))
                 }
                 TextButton(
                     onClick = {
@@ -325,7 +325,7 @@ internal fun SentenceNoteDialog(
                     },
                     shape = RoundedCornerShape(50)
                 ) {
-                    Text("Cancel")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
                 }
             }
         }

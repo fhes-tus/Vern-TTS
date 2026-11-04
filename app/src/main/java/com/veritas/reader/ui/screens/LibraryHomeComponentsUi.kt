@@ -88,7 +88,8 @@ internal fun HomeQuickActions(
         }
 
         val isFirstDay = longestStreak <= 1
-        val headerTitle = if (continueDocument != null && isFirstDay) "First day of reading" else "Continue reading"
+        val headerTitle = androidx.compose.ui.res.stringResource(if (continueDocument != null && isFirstDay)
+            com.veritas.reader.R.string.ui_first_day_of_reading else com.veritas.reader.R.string.ui_continue_reading)
 
         Text(
             text = headerTitle,
@@ -173,12 +174,12 @@ internal fun HomeQuickActions(
                 ) {
                     if (continueDocument == null) {
                         Text(
-                            text = "Resume reading",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_resume_reading),
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text = if (documentCount == 0) "Open a file to start reading" else "Pick a document from your library to begin.",
+                            text = if (documentCount == 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_a_file_to_start_reading) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pick_a_document_from_your_library_to_begin),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -194,7 +195,8 @@ internal fun HomeQuickActions(
                         val progressPercentVal = progressPercent(continueDocument)
 
                         Text(
-                            text = "Sentence ${continueDocument.currentIndex + 1} of ${continueDocument.chunkCount} • $progressPercentVal% read",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.library_resume_progress,
+                                continueDocument.currentIndex + 1, continueDocument.chunkCount, progressPercentVal),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -236,7 +238,7 @@ internal fun HomeQuickActions(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
-                                contentDescription = "Clear",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp)
                             )
@@ -247,7 +249,7 @@ internal fun HomeQuickActions(
         }
 
         Text(
-            text = "Add content",
+            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_content),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(top = 4.dp)
@@ -265,17 +267,17 @@ internal fun HomeQuickActions(
             Box {
                 HomeActionRow(
                     icon = Icons.Filled.Add,
-                    title = "Import file",
-                    body = "Upload PDF, EPUB, DOCX, PPTX, TXT, or HTML",
+                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_import_file),
+                    body = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_upload_pdf_epub_docx_pptx_txt_or_html),
                     iconBackground = Color(0xFFF0F3FF),
                     iconForeground = Color(0xFF7C6FFF),
                     onClick = onImportClick
                 )
                 DropdownMenu(expanded = importMenuExpanded, onDismissRequest = onDismissImportMenu) {
-                    DropdownMenuItem(text = { Text("Open file") }, onClick = onOpenFile)
-                    DropdownMenuItem(text = { Text("File browser") }, onClick = onOpenFileBrowser)
-                    DropdownMenuItem(text = { Text("Import settings") }, onClick = onOpenImportSettings)
-                    DropdownMenuItem(text = { Text("Paste text or URL") }, onClick = onPasteText)
+                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_file)) }, onClick = onOpenFile)
+                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_file_browser)) }, onClick = onOpenFileBrowser)
+                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_settings)) }, onClick = onOpenImportSettings)
+                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_text_or_url)) }, onClick = onPasteText)
                 }
             }
         }
@@ -385,7 +387,7 @@ fun HomePanel(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "Reading Overview",
+                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_overview),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -394,13 +396,13 @@ fun HomePanel(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatTile(value = "$totalCount", label = "Saved", modifier = Modifier.width(84.dp))
-            StatTile(value = "$unreadCount", label = "Unread", modifier = Modifier.width(84.dp))
-            StatTile(value = "$inProgressCount", label = "Reading", modifier = Modifier.width(84.dp))
-            StatTile(value = "$completedCount", label = "Done", modifier = Modifier.width(72.dp))
-            StatTile(value = "$favoriteCount", label = "Starred", modifier = Modifier.width(72.dp))
-            StatTile(value = "$collectionCount", label = "Collections", modifier = Modifier.width(80.dp))
-            StatTile(value = "$sourceCount", label = "Formats", modifier = Modifier.width(72.dp))
+            StatTile(value = "$totalCount", label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_saved), modifier = Modifier.width(84.dp))
+            StatTile(value = "$unreadCount", label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_unread), modifier = Modifier.width(84.dp))
+            StatTile(value = "$inProgressCount", label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading), modifier = Modifier.width(84.dp))
+            StatTile(value = "$completedCount", label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done), modifier = Modifier.width(72.dp))
+            StatTile(value = "$favoriteCount", label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_starred), modifier = Modifier.width(72.dp))
+            StatTile(value = "$collectionCount", label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collections), modifier = Modifier.width(80.dp))
+            StatTile(value = "$sourceCount", label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_formats), modifier = Modifier.width(72.dp))
         }
     }
 }

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_option_system_default" formatted="false">"System Default"</string>
+    <string name="settings_option_default_language" formatted="false">"Default language"</string>
+    <string name="settings_option_network_voice" formatted="false">"Network voice"</string>
+    <string name="settings_option_offline_voice" formatted="false">"Offline voice"</string>
+    <string name="settings_option_balanced" formatted="false">"Balanced"</string>
+    <string name="settings_option_study_focus" formatted="false">"Study focus"</string>
+    <string name="settings_option_quick_scan" formatted="false">"Quick scan"</string>
+    <string name="settings_option_storyteller" formatted="false">"Storyteller"</string>
+    <string name="settings_option_lecture_bright" formatted="false">"Lecture bright"</string>
+    <string name="settings_option_bedtime_calm" formatted="false">"Bedtime calm"</string>
+    <string name="settings_option_natural_everyday_audio_reading_with_standard_timing" formatted="false">"Natural everyday audio reading with standard timing."</string>
+    <string name="settings_option_deliberate_pacing_with_grounded_tone_for_deep_comprehension" formatted="false">"Deliberate pacing with grounded tone for deep comprehension."</string>
+    <string name="settings_option_fast_energetic_review_with_crisp_consonant_clarity" formatted="false">"Fast energetic review with crisp consonant clarity."</string>
+    <string name="settings_option_warm_chest_resonant_narration_for_fiction_and_novels" formatted="false">"Warm, chest-resonant narration for fiction and novels."</string>
+    <string name="settings_option_confident_articulate_delivery_for_academic_and_business_text" formatted="false">"Confident, articulate delivery for academic and business text."</string>
+    <string name="settings_option_slow_soothing_mellow_tone_for_quiet_night_time_listening" formatted="false">"Slow, soothing, mellow tone for quiet night-time listening."</string>
+    <string name="settings_option_blank" formatted="false">"Blank"</string>
+    <string name="settings_option_ruled_lines" formatted="false">"Ruled Lines"</string>
+    <string name="settings_option_dot_matrix" formatted="false">"Dot Matrix"</string>
+    <string name="settings_option_narrator" formatted="false">"Narrator"</string>
+    <string name="settings_option_dialogue" formatted="false">"Dialogue"</string>
+    <string name="settings_option_literal" formatted="false">"Literal"</string>
+    <string name="settings_option_pattern" formatted="false">"Pattern"</string>
+    <string name="settings_option_regex" formatted="false">"Regex"</string>
+    <string name="settings_option_on" formatted="false">"On"</string>
+    <string name="settings_option_open_a_reading_first" formatted="false">"Open a reading first."</string>
+    <string name="settings_option_save_a_reading_first" formatted="false">"Save a reading first."</string>
+    <string name="settings_option_add_books_to_the_queue_first" formatted="false">"Add books to the queue first."</string>
+    <string name="settings_option_black" formatted="false">"Black"</string>
+    <string name="settings_option_grey" formatted="false">"Grey"</string>
+    <string name="settings_option_white" formatted="false">"White"</string>
+    <string name="settings_option_red" formatted="false">"Red"</string>
+    <string name="settings_option_orange" formatted="false">"Orange"</string>
+    <string name="settings_option_yellow" formatted="false">"Yellow"</string>
+    <string name="settings_option_green" formatted="false">"Green"</string>
+    <string name="settings_option_cyan" formatted="false">"Cyan"</string>
+    <string name="settings_option_blue" formatted="false">"Blue"</string>
+    <string name="settings_option_purple" formatted="false">"Purple"</string>
+    <string name="settings_option_colour_shade" formatted="false">"Colour shade"</string>
+    <string name="settings_option_hue" formatted="false">"Hue"</string>
+    <string name="settings_option_more_saturated" formatted="false">"More saturated"</string>
+    <string name="settings_option_less_saturated" formatted="false">"Less saturated"</string>
+    <string name="settings_option_brighter" formatted="false">"Brighter"</string>
+    <string name="settings_option_darker" formatted="false">"Darker"</string>
+    <string name="settings_option_startup_preview" formatted="false">"Startup preview"</string>
+    <string name="settings_option_plain_text" formatted="false">"Plain text"</string>
+    <string name="settings_option_prefer_ocr_when_text_is_poor" formatted="false">"Prefer OCR when text is poor"</string>
+    <string name="settings_option_force_ocr" formatted="false">"Force OCR"</string>
+    <string name="settings_option_auto_detect" formatted="false">"Auto-detect"</string>
+    <string name="settings_option_declared_in_html" formatted="false">"Declared in HTML"</string>
+    <string name="settings_option_references_n" formatted="false">"References [n]"</string>
+    <string name="settings_option_underscore_text" formatted="false">"Underscore text"</string>
+    <string name="settings_option_starred_text" formatted="false">"Starred text"</string>
+    <string name="settings_option_keep_marked_words" formatted="false">"Keep marked words"</string>
+    <string name="settings_option_richest_most_expressive_voices_28_english_speakers_in_one_126mb_d" formatted="false">"Richest, most expressive voices — 28 English speakers in one 126MB download. Heavy: on mid-range phones it pauses between sentences."</string>
+    <string name="settings_option_12_uk_and_us_voices_about_20mb_each_select_several_to_download_to" formatted="false">"12 UK and US voices, about 20MB each. Select several to download together; additional downloads wait their turn."</string>
+</resources>

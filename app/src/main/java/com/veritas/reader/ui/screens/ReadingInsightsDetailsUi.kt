@@ -106,9 +106,9 @@ internal fun InsightsBookCard(document: SavedDocument, sessions: List<ReadingSes
                     maxLines = 3, overflow = TextOverflow.Ellipsis)
                 if (finishedAt != null) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp), tint = scheme.primary)
-                    Text("Finished ${insightsDate(finishedAt)}", style = MaterialTheme.typography.labelMedium, color = scheme.primary)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_159, com.veritas.reader.ui.screens.localizedUiValue(insightsDate(finishedAt))), style = MaterialTheme.typography.labelMedium, color = scheme.primary)
                 }
-                Text("$percent% · location ${document.currentIndex + 1} of ${document.chunkCount}",
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_160, com.veritas.reader.ui.screens.localizedUiValue(percent), com.veritas.reader.ui.screens.localizedUiValue(document.currentIndex + 1), com.veritas.reader.ui.screens.localizedUiValue(document.chunkCount)),
                     style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
                 Canvas(Modifier.fillMaxWidth().height(7.dp).semantics {
                     progressBarRangeInfo = ProgressBarRangeInfo(percent / 100f, 0f..1f)
@@ -124,15 +124,15 @@ internal fun InsightsBookCard(document: SavedDocument, sessions: List<ReadingSes
         }
         InsightsModeBars(read, listen, "book-${document.id}")
         locationSummary?.let { InsightsLocationBars(it) }
-        Text("${sessions.size} " + (if (sessions.size == 1) "session" else "sessions") + (sessions.maxByOrNull { it.startedAt }?.let { " · last ${insightsDate(it.startedAt)}" } ?: ""),
+        Text("${sessions.size} " + (if (sessions.size == 1) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_session) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sessions)) + (sessions.maxByOrNull { it.startedAt }?.let { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_161, com.veritas.reader.ui.screens.localizedUiValue(insightsDate(it.startedAt))) } ?: ""),
             style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
         sessions.maxByOrNull { it.startedAt }?.endPage?.let {
-            Text("Last recorded source page $it", style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_162, com.veritas.reader.ui.screens.localizedUiValue(it)), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilledTonalButton(onClick = onContinue) { Text("Continue") }
-            TextButton(onClick = onTimer) { Text("Start timer") }
-            TextButton(onClick = onFinish) { Text("Mark finished") }
+            FilledTonalButton(onClick = onContinue) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_continue)) }
+            TextButton(onClick = onTimer) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_timer)) }
+            TextButton(onClick = onFinish) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_mark_finished)) }
         }
     }
 }
@@ -195,10 +195,10 @@ internal fun InsightsGoalRing(totalMillis: Long, goalMinutes: Int) {
             Icon(if (progress >= 1f) Icons.Default.Check else Icons.Default.Flag, null, Modifier.size(26.dp), tint = scheme.primary)
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Today total ${formatTrackerDuration(totalMillis)}", style = MaterialTheme.typography.titleMedium)
-            Text(if (goalMinutes > 0) "${formatTrackerDuration(totalMillis)} of ${goalMinutes}m" else "Choose your daily target",
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_163, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(totalMillis))), style = MaterialTheme.typography.titleMedium)
+            Text(if (goalMinutes > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_164, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(totalMillis)), com.veritas.reader.ui.screens.localizedUiValue(goalMinutes)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_your_daily_target),
                 style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
-            if (progress >= 1f && goalMinutes > 0) Text("Goal reached", style = MaterialTheme.typography.labelMedium, color = scheme.primary)
+            if (progress >= 1f && goalMinutes > 0) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_goal_reached), style = MaterialTheme.typography.labelMedium, color = scheme.primary)
         }
     }
 }
@@ -226,18 +226,18 @@ internal fun InsightsSessionCard(session: ReadingSession, document: SavedDocumen
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Icon(Icons.Default.Route, null, Modifier.size(18.dp), tint = scheme.onSurfaceVariant)
-            Text(if (session.startPage != null && session.endPage != null) "Source pages ${session.startPage} → ${session.endPage}"
-                else "Locations ${session.startLocation + 1} → ${session.endLocation + 1}", style = MaterialTheme.typography.bodySmall)
+            Text(if (session.startPage != null && session.endPage != null) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_165, com.veritas.reader.ui.screens.localizedUiValue(session.startPage), com.veritas.reader.ui.screens.localizedUiValue(session.endPage))
+                else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_166, com.veritas.reader.ui.screens.localizedUiValue(session.startLocation + 1), com.veritas.reader.ui.screens.localizedUiValue(session.endLocation + 1)), style = MaterialTheme.typography.bodySmall)
         }
         if (session.closedReason == null || session.manual || session.excluded || session.correctedMillis != null) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (session.closedReason == null) SessionStatus("In progress", tint)
-                if (session.manual) SessionStatus("Manual entry", scheme.onSurfaceVariant)
-                if (session.excluded) SessionStatus("Excluded from totals", scheme.error)
+                if (session.closedReason == null) SessionStatus(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_in_progress), tint)
+                if (session.manual) SessionStatus(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_manual_entry), scheme.onSurfaceVariant)
+                if (session.excluded) SessionStatus(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_excluded_from_totals), scheme.error)
                 if (session.correctedMillis != null) SessionStatus("Corrected · original ${formatTrackerDuration(session.measuredMillis)}", scheme.onSurfaceVariant)
             }
         }
-        TextButton(onClick = onEdit) { Text("Correct session") }
+        TextButton(onClick = onEdit) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_correct_session)) }
     }
 }
 
@@ -258,7 +258,7 @@ internal fun InsightsLocationBars(summary: com.veritas.reader.ReadingLocationSum
     if (total <= 0) return
     val phase = rememberInsightsPhase("location-visits")
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("Time at reading locations", style = MaterialTheme.typography.labelLarge)
+        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_time_at_reading_locations), style = MaterialTheme.typography.labelLarge)
         Canvas(Modifier.fillMaxWidth().height(9.dp).semantics {
             contentDescription = "First visits ${formatTrackerDuration(summary.firstVisitMillis)}, revisits ${formatTrackerDuration(summary.revisitMillis)}, unknown ${formatTrackerDuration(summary.unknownMillis)}"
         }) {
@@ -274,9 +274,9 @@ internal fun InsightsLocationBars(summary: com.veritas.reader.ReadingLocationSum
             drawCircle(scheme.onPrimary.copy(alpha = .2f), 1.dp.toPx(), Offset(dot, size.height / 2))
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("First visits ${formatTrackerDuration(summary.firstVisitMillis)}", style = MaterialTheme.typography.labelSmall, color = scheme.primary)
-            Text("Revisits ${formatTrackerDuration(summary.revisitMillis)}", style = MaterialTheme.typography.labelSmall, color = scheme.tertiary)
-            if (summary.unknownMillis > 0) Text("Unknown ${formatTrackerDuration(summary.unknownMillis)}", style = MaterialTheme.typography.labelSmall)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_167, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(summary.firstVisitMillis))), style = MaterialTheme.typography.labelSmall, color = scheme.primary)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_168, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(summary.revisitMillis))), style = MaterialTheme.typography.labelSmall, color = scheme.tertiary)
+            if (summary.unknownMillis > 0) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_169, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(summary.unknownMillis))), style = MaterialTheme.typography.labelSmall)
         }
     }
 }

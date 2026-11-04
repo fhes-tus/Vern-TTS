@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="reading_minutes">
+        <item quantity="other">"%1$d 分钟"</item>
+    </plurals>
+    <plurals name="reading_minutes_daily">
+        <item quantity="other">"每天 %1$d 分钟"</item>
+    </plurals>
+    <plurals name="reading_minutes_to_goal">
+        <item quantity="other">"距离目标还有 %1$d 分钟"</item>
+    </plurals>
+    <plurals name="reading_days">
+        <item quantity="other">"%1$d 天"</item>
+    </plurals>
+    <plurals name="reading_days_this_week">
+        <item quantity="other">"本周阅读了 %1$d 天"</item>
+    </plurals>
+</resources>

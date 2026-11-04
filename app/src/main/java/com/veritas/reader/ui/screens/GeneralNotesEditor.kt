@@ -661,7 +661,7 @@ fun GeneralNotesEditor(
         ) {
             NoteLabelsRow(notebooks, notebookIds, onLabel = { showNotebooks = true })
             Text(
-                if (mediaManager.isImporting) "Adding attachment…" else if (hasUnsavedChanges) "Unsaved changes" else saveStatus.ifBlank { "Saved" },
+                if (mediaManager.isImporting) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_adding_attachment) else if (hasUnsavedChanges) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unsaved_changes) else saveStatus.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_saved) },
                 style = MaterialTheme.typography.labelSmall,
                 color = if (saveStatus.startsWith("Could not")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -671,12 +671,12 @@ fun GeneralNotesEditor(
                 }
                 AssistChip(
                     onClick = { showReminderMenu = true },
-                    label = { Text("Reminder: $label") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_079, com.veritas.reader.ui.screens.localizedUiValue(label))) },
                     leadingIcon = { Icon(Icons.Filled.NotificationsActive, contentDescription = null, modifier = Modifier.size(18.dp)) },
                     trailingIcon = {
                         Icon(
                             Icons.Filled.Close,
-                            contentDescription = "Remove reminder",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_reminder),
                             modifier = Modifier
                                 .size(18.dp)
                                 .clickable { reminderAt = null }
@@ -704,7 +704,7 @@ fun GeneralNotesEditor(
                 },
                 placeholder = {
                     Text(
-                        "Title",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_title),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = onCardColor.copy(alpha = 0.4f)
                     )

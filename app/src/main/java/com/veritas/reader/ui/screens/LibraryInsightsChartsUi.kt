@@ -205,7 +205,7 @@ internal fun InteractiveDonutChart(
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = if (totalVal >= 1000f) "%.1fk".format(totalVal / 1000f) else "${totalVal.toInt()}",
+                            text = if (totalVal >= 1000f) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_1fk).format(totalVal / 1000f) else "${totalVal.toInt()}",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -296,7 +296,7 @@ internal fun InteractiveDonutChart(
                                 color = slice.color.copy(alpha = 0.2f)
                             ) {
                                 Text(
-                                    text = "${slice.value.toInt()} docs ($percentage%)",
+                                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_102, com.veritas.reader.ui.screens.localizedUiValue(slice.value.toInt()), com.veritas.reader.ui.screens.localizedUiValue(percentage)),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = slice.color,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
@@ -332,7 +332,7 @@ internal fun InteractiveDonutChart(
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Text(
-                                        text = "Active filter: ${slice.label.split(" ").firstOrNull() ?: slice.label}",
+                                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_103, com.veritas.reader.ui.screens.localizedUiValue(slice.label.split(" ").firstOrNull() ?: slice.label)),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = slice.color
                                     )
@@ -343,7 +343,7 @@ internal fun InteractiveDonutChart(
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
                             ) {
                                 Text(
-                                    "Dismiss",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_dismiss),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -392,7 +392,7 @@ internal fun ReadingVelocityAndPaceCard(
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
-                        text = "Reading Velocity & Daily Goal",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_velocity_daily_goal),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -407,9 +407,9 @@ internal fun ReadingVelocityAndPaceCard(
                 ) {
                     Text(
                         text = when {
-                            !isGoalEnabled -> "Target Off"
-                            goalReached -> "🎉 Goal Met!"
-                            else -> "${(progress * 100).toInt()}% today"
+                            !isGoalEnabled -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_target_off)
+                            goalReached -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_goal_met)
+                            else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_104, com.veritas.reader.ui.screens.localizedUiValue((progress * 100).toInt()))
                         },
                         style = MaterialTheme.typography.labelSmall,
                         color = if (isGoalEnabled && goalReached) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -432,7 +432,7 @@ internal fun ReadingVelocityAndPaceCard(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Avg WPM",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_avg_wpm),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -450,7 +450,7 @@ internal fun ReadingVelocityAndPaceCard(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Daily Pace",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_daily_pace),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -468,7 +468,7 @@ internal fun ReadingVelocityAndPaceCard(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Active Docs",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_active_docs),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -484,13 +484,13 @@ internal fun ReadingVelocityAndPaceCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Daily Reading Target",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_daily_reading_target),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (isGoalEnabled) {
                         Text(
-                            text = "${dailyGoalMinutes} min/day",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_105, com.veritas.reader.ui.screens.localizedUiValue(dailyGoalMinutes)),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -536,12 +536,12 @@ internal fun ReadingVelocityAndPaceCard(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Today: ${formatTrackerDuration(todayMillis)}",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_106, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(todayMillis))),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "Target: ${dailyGoalMinutes}m/day",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_107, com.veritas.reader.ui.screens.localizedUiValue(dailyGoalMinutes)),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )

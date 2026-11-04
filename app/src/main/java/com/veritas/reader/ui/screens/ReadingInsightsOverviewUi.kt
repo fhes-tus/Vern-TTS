@@ -53,17 +53,17 @@ internal fun InsightsStreaksCard(snapshot: ReaderTrackerSnapshot, weekKeys: List
             .insightsCardGraphic(scheme.primary, scheme.tertiary, phase)
             .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Streaks", style = MaterialTheme.typography.titleMedium)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_streaks), style = MaterialTheme.typography.titleMedium)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 InsightsStreakEmblem(trophy = false)
                 Column(Modifier.weight(1f)) {
                     Text("$current", style = MaterialTheme.typography.headlineLarge)
-                    Text("Current streak", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_current_streak), style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     InsightsStreakEmblem(trophy = true)
-                    Text("$best days", style = MaterialTheme.typography.titleMedium)
-                    Text("Best", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_170, com.veritas.reader.ui.screens.localizedUiValue(best)), style = MaterialTheme.typography.titleMedium)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_best), style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
                 }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -161,11 +161,11 @@ internal fun InsightsWeeklyAppCard(snapshot: ReaderTrackerSnapshot, weekStart: L
         Column(Modifier.background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primaryContainer.copy(alpha = .20f), MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .28f)))).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Default.Schedule, null, tint = MaterialTheme.colorScheme.primary)
-                Text("Weekly App Activity", style = MaterialTheme.typography.titleMedium)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_weekly_app_activity), style = MaterialTheme.typography.titleMedium)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
                 Text(formatTrackerDuration(shown.totalMillis), style = MaterialTheme.typography.headlineMedium)
-                Text("${formatTrackerDuration(shown.totalMillis / 7)} / day", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_171, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(shown.totalMillis / 7))), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             WeeklyReadingBarsPager(history, barHeight = 82.dp, chartLabel = "Weekly app activity", accented = true, onWeekChanged = { shown = it })
         }

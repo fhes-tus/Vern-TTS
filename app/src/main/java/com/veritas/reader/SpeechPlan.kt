@@ -59,7 +59,7 @@ internal object SpeechPlan {
         }
         val start = maxOf(resumeOffset, if (stripSpeakerLabel) cue?.labelEnd ?: 0 else 0).coerceIn(0, original.length)
         val source = original.substring(start)
-        val english = (voice.localeTag.ifBlank { Locale.getDefault().toLanguageTag() }).startsWith("en", true)
+        val english = (voice.localeTag.ifBlank { AppLanguages.systemSpeechLocale().toLanguageTag() }).startsWith("en", true)
         val expanded = ReadingSymbols.expand(SpokenText.identity(source).applyRules(rules), english).sanitize()
         val spoken = if (family == SpeechEngineFamily.ANDROID) expanded else NeuralSpeechText.prepare(expanded)
         return SpeechSegment(documentId, revision, index, start, original.length, original, spoken, role, voice, family,

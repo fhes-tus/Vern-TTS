@@ -48,73 +48,73 @@ fun NotesSettingsSheet(notesSettings: NotesSettings, onSaveNotesSettings: (Notes
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Notes settings", style = MaterialTheme.typography.headlineSmall,
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes_settings), style = MaterialTheme.typography.headlineSmall,
                     fontWeight = MaterialTheme.typography.titleLarge.fontWeight, color = scheme.onBackground, modifier = Modifier.weight(1f))
-                IconButton(onDismiss) { Icon(Icons.Default.Close, "Close Notes settings") }
+                IconButton(onDismiss) { Icon(Icons.Default.Close, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close_notes_settings)) }
             }
-            NotesSettingsGroup("Notes page") {
-                NotesToggle("Display rich link previews", "Show website cards in notes and on the Notes page", notesSettings.showRichLinkPreviews, icon = Icons.Outlined.Link) {
+            NotesSettingsGroup(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_notes_page)) {
+                NotesToggle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_display_rich_link_previews), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_show_website_cards_in_notes_and_on_the_notes_page), notesSettings.showRichLinkPreviews, icon = Icons.Outlined.Link) {
                     onSaveNotesSettings(notesSettings.copy(showRichLinkPreviews = it))
                 }
-                NotesChoices("Layout", listOf(true to "Grid", false to "List"), notesSettings.isGridView) {
+                NotesChoices(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_layout), listOf(true to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_grid), false to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_list)), notesSettings.isGridView) {
                     onSaveNotesSettings(notesSettings.copy(isGridView = it))
                 }
-                NotesChoices("Sort by", listOf("date" to "Last edited", "created" to "Newest", "title" to "Title"), notesSettings.defaultSortOrder) {
+                NotesChoices(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sort_by), listOf("date" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_last_edited), "created" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_newest), "title" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_title)), notesSettings.defaultSortOrder) {
                     onSaveNotesSettings(notesSettings.copy(defaultSortOrder = it))
                 }
-                NotesChoices("Text previews", listOf(0 to "Hidden", 2 to "Short", 5 to "Standard", 8 to "Long"), notesSettings.previewLines) {
+                NotesChoices(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_text_previews), listOf(0 to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_hidden), 2 to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_short), 5 to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_standard), 8 to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_long)), notesSettings.previewLines) {
                     onSaveNotesSettings(notesSettings.copy(previewLines = it))
                 }
-                NotesToggle("Attachment thumbnails", "Show images and video previews on note cards", notesSettings.richAttachmentPreviews, icon = Icons.Outlined.Image) {
+                NotesToggle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_attachment_thumbnails), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_show_images_and_video_previews_on_note_cards), notesSettings.richAttachmentPreviews, icon = Icons.Outlined.Image) {
                     onSaveNotesSettings(notesSettings.copy(richAttachmentPreviews = it))
                 }
-                NotesToggle("Attachment badges", "Show the kinds of media in each note", notesSettings.showAttachmentBadges, icon = Icons.Outlined.AttachFile) {
+                NotesToggle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_attachment_badges), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_show_the_kinds_of_media_in_each_note), notesSettings.showAttachmentBadges, icon = Icons.Outlined.AttachFile) {
                     onSaveNotesSettings(notesSettings.copy(showAttachmentBadges = it))
                 }
-                NotesToggle("Book sources", "Show the book linked to a reading note", notesSettings.showBookSourceBadges, icon = Icons.Outlined.MenuBook) {
+                NotesToggle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_book_sources), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_show_the_book_linked_to_a_reading_note), notesSettings.showBookSourceBadges, icon = Icons.Outlined.MenuBook) {
                     onSaveNotesSettings(notesSettings.copy(showBookSourceBadges = it))
                 }
-                NotesToggle("Voice waveforms", "Show the waveform beside a voice memo", notesSettings.voiceMemoWaveformPreview, icon = Icons.Outlined.GraphicEq) {
+                NotesToggle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_voice_waveforms), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_show_the_waveform_beside_a_voice_memo), notesSettings.voiceMemoWaveformPreview, icon = Icons.Outlined.GraphicEq) {
                     onSaveNotesSettings(notesSettings.copy(voiceMemoWaveformPreview = it))
                 }
             }
-            NotesSettingsGroup("Writing") {
-                NotesChoices("New notes", listOf(false to "Text", true to "Checklist"), notesSettings.newNoteIsChecklist) {
+            NotesSettingsGroup(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_writing)) {
+                NotesChoices(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_new_notes), listOf(false to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text), true to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_checklist)), notesSettings.newNoteIsChecklist) {
                     onSaveNotesSettings(notesSettings.copy(newNoteIsChecklist = it))
                 }
                 NotesPaperChoices(notesSettings.paperTemplate) {
                     onSaveNotesSettings(notesSettings.copy(paperTemplate = it))
                 }
-                NotesChoices("Text size", listOf(0.85f to "Small", 1f to "Default", 1.15f to "Large", 1.25f to "Larger"), notesSettings.editorFontScale) {
+                NotesChoices(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text_size), listOf(0.85f to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_small), 1f to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_default), 1.15f to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_large), 1.25f to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_larger)), notesSettings.editorFontScale) {
                     onSaveNotesSettings(notesSettings.copy(editorFontScale = it))
                 }
-                NotesChoices("Line spacing", listOf(1f to "Default", 1.25f to "Relaxed", 1.5f to "Wide"), notesSettings.editorLineSpacing) {
+                NotesChoices(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_line_spacing), listOf(1f to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_default), 1.25f to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_relaxed), 1.5f to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_wide)), notesSettings.editorLineSpacing) {
                     onSaveNotesSettings(notesSettings.copy(editorLineSpacing = it))
                 }
                 NotesWritingPreview(notesSettings)
-                Text("Text size and spacing apply only while writing notes.", style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text_size_and_spacing_apply_only_while_writing_notes), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
             }
-            NotesSettingsGroup("Checklists") {
-                NotesToggle("Completed items at the bottom", "Move an item down when you check it", notesSettings.moveCheckedToBottom, icon = Icons.Outlined.VerticalAlignBottom) {
+            NotesSettingsGroup(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_checklists)) {
+                NotesToggle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_completed_items_at_the_bottom), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_move_an_item_down_when_you_check_it), notesSettings.moveCheckedToBottom, icon = Icons.Outlined.VerticalAlignBottom) {
                     onSaveNotesSettings(notesSettings.copy(moveCheckedToBottom = it))
                 }
-                NotesToggle("Add new items at the top", "Start a new item above the existing list", notesSettings.addNewItemsToTop, icon = Icons.Outlined.VerticalAlignTop) {
+                NotesToggle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_add_new_items_at_the_top), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_start_a_new_item_above_the_existing_list), notesSettings.addNewItemsToTop, icon = Icons.Outlined.VerticalAlignTop) {
                     onSaveNotesSettings(notesSettings.copy(addNewItemsToTop = it))
                 }
             }
-            NotesSettingsGroup("Saving & backup") {
-                Text("Notes save automatically as you write. The editor shows when your changes are saved.", style = MaterialTheme.typography.bodyMedium)
-                Text("App backups include notes and these preferences. ZIP backups also carry supported local note attachments. Use Backup & restore in app settings.", style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
-                TextButton({ confirmReset = true }) { Text("Reset Notes preferences") }
+            NotesSettingsGroup(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_saving_backup)) {
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes_save_automatically_as_you_write_the_editor_shows_when_your), style = MaterialTheme.typography.bodyMedium)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_app_backups_include_notes_and_these_preferences_zip_backups_also), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+                TextButton({ confirmReset = true }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reset_notes_preferences)) }
             }
             Spacer(Modifier.height(12.dp))
         }
     }
     if (confirmReset) AlertDialog(onDismissRequest = { confirmReset = false },
-        title = { Text("Reset Notes preferences?") },
-        text = { Text("Restore the default layout and writing preferences. Your notes and attachments will stay as they are.") },
-        confirmButton = { TextButton({ onSaveNotesSettings(NotesSettings()); confirmReset = false }) { Text("Reset preferences") } },
-        dismissButton = { TextButton({ confirmReset = false }) { Text("Cancel") } })
+        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reset_notes_preferences_c9adb9e)) },
+        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_restore_the_default_layout_and_writing_preferences_your_notes_and)) },
+        confirmButton = { TextButton({ onSaveNotesSettings(NotesSettings()); confirmReset = false }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reset_preferences)) } },
+        dismissButton = { TextButton({ confirmReset = false }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } })
 }
 
 @Composable
@@ -144,7 +144,7 @@ private fun NotesAccentIcon(icon: ImageVector, accent: Color, size: Int = 36) {
 private fun NotesPaperChoices(selectedTemplate: NotesPaperTemplate, onSelect: (NotesPaperTemplate) -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Paper", style = MaterialTheme.typography.titleSmall)
+        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paper), style = MaterialTheme.typography.titleSmall)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             NotesPaperTemplate.entries.forEach { template ->
                 val active = template == selectedTemplate
@@ -159,7 +159,7 @@ private fun NotesPaperChoices(selectedTemplate: NotesPaperTemplate, onSelect: (N
                             .notesPaperSwatch(template, scheme.primary.copy(alpha = .28f))) {
                             if (active) Icon(Icons.Default.Check, null, Modifier.size(16.dp).align(Alignment.TopEnd), tint = scheme.primary)
                         }
-                        Text(template.label, style = MaterialTheme.typography.labelSmall,
+                        Text(localizedSettingsOption(template.label), style = MaterialTheme.typography.labelSmall,
                             textAlign = TextAlign.Center, minLines = 2, maxLines = 2,
                             color = if (active) scheme.primary else scheme.onSurfaceVariant)
                     }
@@ -179,22 +179,22 @@ private fun NotesWritingPreview(settings: NotesSettings) {
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Icons.Outlined.Palette, null, Modifier.size(16.dp), tint = scheme.tertiary)
-                Text("Live preview", style = MaterialTheme.typography.labelSmall, color = scheme.tertiary)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_live_preview), style = MaterialTheme.typography.labelSmall, color = scheme.tertiary)
             }
-            Text("A thought worth keeping", style = MaterialTheme.typography.titleSmall)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_a_thought_worth_keeping), style = MaterialTheme.typography.titleSmall)
             val bodyStyle = MaterialTheme.typography.bodyLarge.copy(
                 fontSize = MaterialTheme.typography.bodyLarge.fontSize * settings.editorFontScale,
                 lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * settings.editorFontScale * settings.editorLineSpacing)
             if (settings.newNoteIsChecklist) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Outlined.CheckBoxOutlineBlank, null, Modifier.size(18.dp), tint = scheme.tertiary)
-                    NotesPreviewText("Capture one good idea", bodyStyle, settings.paperTemplate, scheme.tertiary)
+                    NotesPreviewText(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_capture_one_good_idea), bodyStyle, settings.paperTemplate, scheme.tertiary)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Default.Check, null, Modifier.size(18.dp), tint = scheme.tertiary)
-                    NotesPreviewText("Make a little space to begin", bodyStyle.copy(textDecoration = TextDecoration.LineThrough, color = scheme.onSurfaceVariant), settings.paperTemplate, scheme.tertiary)
+                    NotesPreviewText(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_make_a_little_space_to_begin), bodyStyle.copy(textDecoration = TextDecoration.LineThrough, color = scheme.onSurfaceVariant), settings.paperTemplate, scheme.tertiary)
                 }
-            } else NotesPreviewText("Ideas become clearer when you give them a little room.\nKeep the words that matter to you.\n\nLeave space for the next thought.",
+            } else NotesPreviewText(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_ideas_become_clearer_when_you_give_them_a_little_room_keep_the_wo),
                 bodyStyle, settings.paperTemplate, scheme.tertiary, Modifier.weight(1f))
         }
     }

@@ -65,8 +65,8 @@ internal fun QuizQuestionMedia(question: QuizQuestion, ownerId: String, onChange
                 val file = record.resolve(context)
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(if (record.kind == AttachmentKind.IMAGE) "Question image" else "Question recording", style = MaterialTheme.typography.labelLarge)
-                        if (file == null) Text("Attachment unavailable. Re-add it or restore the portable ZIP backup.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(if (record.kind == AttachmentKind.IMAGE) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_question_image) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_question_recording), style = MaterialTheme.typography.labelLarge)
+                        if (file == null) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_attachment_unavailable_re_add_it_or_restore_the_portable_zip_back), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         else if (record.kind == AttachmentKind.IMAGE) {
                             val bitmap by produceState<android.graphics.Bitmap?>(null, file.path) {
                                 value = withContext(Dispatchers.IO) {
@@ -77,26 +77,26 @@ internal fun QuizQuestionMedia(question: QuizQuestion, ownerId: String, onChange
                                     BitmapFactory.decodeFile(file.path, BitmapFactory.Options().apply { inSampleSize = scale })
                                 }
                             }
-                            bitmap?.let { Image(it.asImageBitmap(), record.displayName.ifBlank { "Image for this quiz question" }, Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit) }
-                                ?: Text("Image could not be displayed.")
+                            bitmap?.let { Image(it.asImageBitmap(), record.displayName.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_image_for_this_quiz_question) }, Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit) }
+                                ?: Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_image_could_not_be_displayed))
                         } else {
                             val playing = media.isPlaying && media.activePlayingAudioPath == file.path
-                            OutlinedButton(onClick = { media.onTogglePlayAudio(file.path) }) { Text(if (playing) "Stop question recording" else "Play question recording") }
+                            OutlinedButton(onClick = { media.onTogglePlayAudio(file.path) }) { Text(if (playing) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop_question_recording) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play_question_recording)) }
                         }
                         if (onChange != null) TextButton(onClick = {
                             file?.path?.takeIf { media.activePlayingAudioPath == it && media.isPlaying }?.let(media.onTogglePlayAudio)
                             onChange(question.attachments.filterNot { it.id == record.id })
-                        }) { Text("Remove attachment") }
+                        }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_attachment)) }
                     }
                 }
             }
         }
         if (onChange != null) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = media.onPickImage, enabled = !media.isImporting && !importing && !media.isRecording) { Text("Add image") }
-                OutlinedButton(onClick = { importAudio.launch(arrayOf("audio/*")) }, enabled = !importing && !media.isRecording) { Text("Add recording") }
-                OutlinedButton(onClick = media.onToggleRecording, enabled = !importing) { Text(if (media.isRecording) "Stop & save recording (${media.recordingDurationSec}s)" else "Record audio") }
-                if (media.isRecording) TextButton(onClick = media.onCancelRecording) { Text("Discard recording") }
+                OutlinedButton(onClick = media.onPickImage, enabled = !media.isImporting && !importing && !media.isRecording) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_image)) }
+                OutlinedButton(onClick = { importAudio.launch(arrayOf("audio/*")) }, enabled = !importing && !media.isRecording) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_recording)) }
+                OutlinedButton(onClick = media.onToggleRecording, enabled = !importing) { Text(if (media.isRecording) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_045, com.veritas.reader.ui.screens.localizedUiValue(media.recordingDurationSec)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_record_audio)) }
+                if (media.isRecording) TextButton(onClick = media.onCancelRecording) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_discard_recording)) }
             }
         }
         if (importing || media.isImporting) LinearProgressIndicator(Modifier.fillMaxWidth())

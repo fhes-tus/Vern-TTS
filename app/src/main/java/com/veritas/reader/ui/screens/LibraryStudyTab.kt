@@ -147,7 +147,7 @@ internal fun LibraryStudyTab(
             onSelect = { document -> showStudyGuideBookPicker = false; onExportStudyGuidePdf(document) },
             onGoToLibrary = { showStudyGuideBookPicker = false; onNavigateToTab(VeritasHomeTab.LIBRARY) },
             onDismiss = { showStudyGuideBookPicker = false },
-            title = "Choose a book for your study guide",
+            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_choose_a_book_for_your_study_guide),
             emptyDescription = "Add a book to your library, then export its booknotes and highlights as a study guide."
         )
     }
@@ -314,12 +314,12 @@ internal fun LibraryStudyTab(
                                                 ) {
                                                     CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.5.dp)
                                                     Text(
-                                                        text = uiState.aiStudyStatusMessage ?: "AI is preparing study materials…",
+                                                        text = uiState.aiStudyStatusMessage ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_is_preparing_study_materials),
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                                                         modifier = Modifier.weight(1f)
                                                     )
-                                                    androidx.compose.material3.TextButton(onClick = onCancelAiStudyGeneration) { Text("Cancel") }
+                                                    androidx.compose.material3.TextButton(onClick = onCancelAiStudyGeneration) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
                                                 }
                                             }
                                         }
@@ -348,13 +348,13 @@ internal fun LibraryStudyTab(
                                                     )
                                                     Column(modifier = Modifier.weight(1f)) {
                                                         Text(
-                                                            text = "Study Content on Clipboard",
+                                                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_content_on_clipboard),
                                                             style = MaterialTheme.typography.titleSmall)
                                                         Text(
                                                             text = if (detectedClipboardFlashcards.isNotEmpty())
-                                                                "${detectedClipboardFlashcards.size} flashcards ready to import"
+                                                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_119, com.veritas.reader.ui.screens.localizedUiValue(detectedClipboardFlashcards.size))
                                                             else
-                                                                "${detectedClipboardQuiz.size} quiz questions ready to import",
+                                                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_120, com.veritas.reader.ui.screens.localizedUiValue(detectedClipboardQuiz.size)),
                                                             style = MaterialTheme.typography.bodySmall,
                                                             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.85f)
                                                         )
@@ -373,7 +373,7 @@ internal fun LibraryStudyTab(
                                                         shape = com.veritas.reader.VeritasPackStyle.chipShape(),
                                                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                     ) {
-                                                        Text("1-Tap Import", style = MaterialTheme.typography.labelSmall)
+                                                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_1_tap_import), style = MaterialTheme.typography.labelSmall)
                                                     }
                                                     IconButton(
                                                         onClick = {
@@ -383,7 +383,7 @@ internal fun LibraryStudyTab(
                                                         },
                                                         modifier = Modifier.size(28.dp)
                                                     ) {
-                                                        Icon(Icons.Filled.Close, contentDescription = "Dismiss", modifier = Modifier.size(16.dp))
+                                                        Icon(Icons.Filled.Close, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_dismiss), modifier = Modifier.size(16.dp))
                                                     }
                                                 }
                                             }
@@ -442,8 +442,8 @@ internal fun LibraryStudyTab(
                         item {
                             StudyEmptyState(
                                 icon = Icons.Outlined.Bookmark,
-                                title = "No bookmarks yet",
-                                description = "Bookmark key passages while reading. Your bookmarked sentences will show up here.",
+                                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_bookmarks_yet),
+                                description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_bookmark_key_passages_while_reading_your_bookmarked_sentences_wil),
                                 onGoToLibrary = { onNavigateToTab(VeritasHomeTab.LIBRARY) },
                                 onImportFile = onImportFile
                             )
@@ -474,8 +474,8 @@ internal fun LibraryStudyTab(
                         item {
                             StudyEmptyState(
                                 icon = Icons.Outlined.EditNote,
-                                title = "No booknotes yet",
-                                description = "Add notes to sentences or write general document notes while reading.",
+                                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_no_booknotes_yet),
+                                description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_add_notes_to_sentences_or_write_general_document_notes_while_read),
                                 onGoToLibrary = { onNavigateToTab(VeritasHomeTab.LIBRARY) },
                                 onImportFile = onImportFile
                             )
@@ -517,8 +517,8 @@ internal fun LibraryStudyTab(
                         item {
                             StudyEmptyState(
                                 icon = Icons.Outlined.Book,
-                                title = "No vocabulary words yet",
-                                description = "Select words in the reader and click Ask AI, Google Search, or Translate to automatically accumulate lookups here.",
+                                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_no_vocabulary_words_yet),
+                                description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_select_words_in_the_reader_and_click_ask_ai_google_search_or_tran),
                                 onGoToLibrary = { onNavigateToTab(VeritasHomeTab.LIBRARY) },
                                 onImportFile = onImportFile
                             )
@@ -562,7 +562,7 @@ internal fun LibraryStudyTab(
                                                     )
                                                     Column(modifier = Modifier.weight(1f)) {
                                                         Text(doc.title, style = MaterialTheme.typography.bodyMedium)
-                                                        Text("Vocabulary (${entries.size} word${if (entries.size == 1) "" else "s"})", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_213, com.veritas.reader.ui.screens.localizedUiValue(entries.size)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                                     }
                                                 }
 
@@ -571,7 +571,7 @@ internal fun LibraryStudyTab(
                                                     IconButton(onClick = { showBatchMenu = true }) {
                                                         Icon(
                                                             imageVector = Icons.Filled.MoreVert,
-                                                            contentDescription = "Batch Actions",
+                                                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_batch_actions),
                                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
                                                     }
@@ -580,7 +580,7 @@ internal fun LibraryStudyTab(
                                                         onDismissRequest = { showBatchMenu = false }
                                                     ) {
                                                         DropdownMenuItem(
-                                                            text = { Text("Share as PDF") },
+                                                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_as_pdf)) },
                                                             onClick = {
                                                                 showBatchMenu = false
                                                                 val pdf = StudyGuidePdfExporter.generateVocabularyBatchPdf(context, doc.title, entries)
@@ -591,7 +591,7 @@ internal fun LibraryStudyTab(
                                                             leadingIcon = { Icon(Icons.Outlined.Book, contentDescription = null) }
                                                         )
                                                         DropdownMenuItem(
-                                                            text = { Text("Copy all") },
+                                                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy_all)) },
                                                             onClick = {
                                                                 showBatchMenu = false
                                                                 val allText = entries.joinToString("\n\n") { e ->
@@ -607,7 +607,7 @@ internal fun LibraryStudyTab(
                                                             leadingIcon = { Icon(Icons.Filled.ContentPaste, contentDescription = null) }
                                                         )
                                                         DropdownMenuItem(
-                                                            text = { Text("Delete all", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_all_0817058), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                                             onClick = {
                                                                 showBatchMenu = false
                                                                 onConfirmDeleteVocabDocId(doc.id)
@@ -626,7 +626,7 @@ internal fun LibraryStudyTab(
                                                 }) {
                                                     Icon(
                                                         imageVector = if (isExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                                        contentDescription = if (isExpanded) "Collapse" else "Expand",
+                                                        contentDescription = if (isExpanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
                                                         tint = MaterialTheme.colorScheme.primary
                                                     )
                                                 }
@@ -680,8 +680,8 @@ internal fun LibraryStudyTab(
                         item {
                             StudyEmptyState(
                                 icon = Icons.Outlined.Book,
-                                title = "No flashcards yet",
-                                description = "Open a document → Study Tools → 'Create flashcards' to send a prompt to your AI app, or create flashcard sets directly with AI.",
+                                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_no_flashcards_yet),
+                                description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_open_a_document_study_tools_create_flashcards_to_send_a_prompt_to),
                                 onGoToLibrary = { onNavigateToTab(VeritasHomeTab.LIBRARY) },
                                 primaryActionLabel = "Open AI Hub",
                                 onPrimaryAction = onOpenAiStudyTools
@@ -693,7 +693,7 @@ internal fun LibraryStudyTab(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = com.veritas.reader.VeritasPackStyle.chipShape()
                             ) {
-                                Text("Paste AI reply → add cards")
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_ai_reply_add_cards))
                             }
                         }
                     } else {
@@ -703,7 +703,7 @@ internal fun LibraryStudyTab(
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                                 shape = VeritasPackStyle.chipShape()
                             ) {
-                                Text("Paste AI reply → add cards")
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_ai_reply_add_cards))
                             }
                         }
                         // Two set tiles per row, styled like the old deck card.

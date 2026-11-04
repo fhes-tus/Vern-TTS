@@ -202,7 +202,7 @@ internal fun DocPlayerPanel(
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.veritas_reader_icon),
-                            contentDescription = "Switch to Text Mode",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_switch_to_text_mode),
                             modifier = Modifier
                                 .size(30.dp)
                                 .clip(RoundedCornerShape(8.dp)),
@@ -222,7 +222,7 @@ internal fun DocPlayerPanel(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.NavigateBefore,
-                            contentDescription = "Previous",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous),
                             tint = if (canGoPrevious) MaterialTheme.colorScheme.onSurface
                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                         )
@@ -236,7 +236,7 @@ internal fun DocPlayerPanel(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.NavigateNext,
-                            contentDescription = "Next",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next),
                             tint = if (canGoNext) MaterialTheme.colorScheme.onSurface
                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                         )
@@ -248,7 +248,7 @@ internal fun DocPlayerPanel(
                     onClick = onOpenVoiceStudio,
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                 ) {
-                    Text("Voice ›", style = MaterialTheme.typography.labelMedium)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice), style = MaterialTheme.typography.labelMedium)
                 }
             }
 
@@ -264,7 +264,7 @@ internal fun DocPlayerPanel(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        statusMessage.ifBlank { if (isPlaying) "Now reading" else "Original View" },
+                        statusMessage.ifBlank { if (isPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_now_reading) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_original_view) },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -280,7 +280,7 @@ internal fun DocPlayerPanel(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            "Speed ${"%.2f".format(rate)}x",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_006, com.veritas.reader.ui.screens.localizedUiValue("%.2f".format(rate))),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface)
                         Row(
@@ -338,7 +338,7 @@ internal fun DocPlayerPanel(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    "Pitch ${"%.2f".format(pitch)}",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_007, com.veritas.reader.ui.screens.localizedUiValue("%.2f".format(pitch))),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface)
                                 Row(
@@ -388,7 +388,7 @@ internal fun DocPlayerPanel(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    "Text size ${fontSizeSp}sp",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_008, com.veritas.reader.ui.screens.localizedUiValue(fontSizeSp)),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface)
                                 Row(
@@ -442,7 +442,7 @@ internal fun DocPlayerPanel(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                "Line Spacing ${sectionSpacingDp}dp",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_009, com.veritas.reader.ui.screens.localizedUiValue(sectionSpacingDp)),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface)
                             Row(
@@ -484,7 +484,7 @@ internal fun DocPlayerPanel(
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        "${spacingPreset}dp",
+                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_010, com.veritas.reader.ui.screens.localizedUiValue(spacingPreset)),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
@@ -510,7 +510,7 @@ internal fun DocPlayerPanel(
                     if (availableVoices.isNotEmpty()) {
                         HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
                         Text(
-                            "Voice",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_3091c84),
                             modifier = Modifier.padding(horizontal = 8.dp),
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -555,7 +555,7 @@ internal fun DocPlayerPanel(
                             onClick = onOpenVoiceStudio,
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                         ) {
-                            Text("Voice Studio ›", style = MaterialTheme.typography.labelMedium)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_studio_4758e58), style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }

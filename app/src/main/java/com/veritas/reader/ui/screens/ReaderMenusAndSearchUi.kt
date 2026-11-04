@@ -170,7 +170,7 @@ internal fun ReaderToolsMenu(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                "Reader tools",
+                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reader_tools),
                 style = MaterialTheme.typography.titleSmall)
             IconButton(
                 onClick = { choose(onOpenDocumentDetails) },
@@ -178,7 +178,7 @@ internal fun ReaderToolsMenu(
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Info,
-                    contentDescription = "Document details",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_details_1ae2b40),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                     modifier = Modifier.size(20.dp)
                 )
@@ -194,12 +194,12 @@ internal fun ReaderToolsMenu(
         }
         HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
         Text(
-            "Read",
+            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelLarge)
         ReaderNavigationOverflowItems(readerSettings, onReadingSettingsChange)
         DropdownMenuItem(
-            text = { Text("Jump to page...") },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_jump_to_page_c8b54ed)) },
             leadingIcon = {
                 Icon(
                     painter = androidx.compose.ui.res.painterResource(id = R.drawable.ic_m3_jump_page),
@@ -211,35 +211,35 @@ internal fun ReaderToolsMenu(
             onClick = { choose(onOpenJumpToPage) }
         )
         DropdownMenuItem(
-            text = { Text("RSVP Speed Reader") },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rsvp_speed_reader)) },
             leadingIcon = { Icon(Icons.Outlined.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
             onClick = { choose(onOpenRsvpSpeedReader) }
         )
         FeatureDropdownMenuItem(
             feature = readerFeature(VeritasFeatureId.SLEEP_TIMER),
-            label = if (sleepTimerLabel.isBlank()) "Sleep timer" else sleepTimerLabel,
+            label = if (sleepTimerLabel.isBlank()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sleep_timer) else sleepTimerLabel,
             onClick = { choose(onOpenSleepTimer) },
             leadingIcon = Icons.Filled.Timer
         )
         DropdownMenuItem(
-            text = { Text("Play Queue ($queueCount)") },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_133, com.veritas.reader.ui.screens.localizedUiValue(queueCount))) },
             leadingIcon = { Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null) },
             enabled = queueCount > 0,
             onClick = { choose(onPlayQueue) }
         )
         FeatureDropdownMenuItem(
             feature = readerFeature(VeritasFeatureId.READING_HISTORY),
-            label = "Reading history",
+            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_history),
             onClick = { choose(onOpenReadingHistory) },
             leadingIcon = Icons.Filled.History
         )
         HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
         Text(
-            "Notes and bookmarks",
+            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes_and_bookmarks),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelLarge)
         DropdownMenuItem(
-            text = { Text("Bookmarks") },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_bookmarks)) },
             leadingIcon = { Icon(Icons.Filled.Bookmark, contentDescription = null) },
             onClick = { choose(onOpenBookmarks) }
         )
@@ -251,11 +251,11 @@ internal fun ReaderToolsMenu(
         )
         HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
         Text(
-            "Study",
+            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelLarge)
         DropdownMenuItem(
-            text = { Text("AI Assistant: ${askAiSettings.assistantLabel}") },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_134, com.veritas.reader.ui.screens.localizedUiValue(askAiSettings.assistantLabel))) },
             leadingIcon = { Icon(aiAssistantIcon(askAiSettings.assistantId), contentDescription = null, modifier = Modifier.size(20.dp)) },
             onClick = { showAiChooser = !showAiChooser }
         )
@@ -273,7 +273,7 @@ internal fun ReaderToolsMenu(
             ) {
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
                     Text(
-                        text = "Default Assistant App",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_default_assistant_app),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp)
@@ -305,7 +305,7 @@ internal fun ReaderToolsMenu(
         }
         FeatureDropdownMenuItem(
             feature = readerFeature(VeritasFeatureId.AI_APP_HANDOFF),
-            label = "Ask AI",
+            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ask_ai),
             leadingIcon = Icons.Outlined.AutoAwesome,
             onClick = {
                 choose {
@@ -315,7 +315,7 @@ internal fun ReaderToolsMenu(
         )
         FeatureDropdownMenuItem(
             feature = readerFeature(VeritasFeatureId.OFFLINE_STUDY_TOOLS),
-            label = "AI Study tools",
+            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_ai_study_tools),
             leadingIcon = Icons.Outlined.School,
             onClick = {
                 choose {
@@ -325,46 +325,46 @@ internal fun ReaderToolsMenu(
         )
         FeatureDropdownMenuItem(
             feature = readerFeature(VeritasFeatureId.TRANSLATION_HANDOFF),
-            label = "Translation handoff",
+            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_translation_handoff),
             leadingIcon = Icons.Outlined.Translate,
             onClick = { choose(onOpenTranslationTools) }
         )
         FeatureDropdownMenuItem(
             feature = readerFeature(VeritasFeatureId.EXTRACTED_TEXT_EDITOR),
-            label = "Edit extracted text",
+            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_edit_extracted_text),
             leadingIcon = Icons.Outlined.EditNote,
             onClick = { choose(onOpenTextEditor) }
         )
         HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
         Text(
-            "Voice and settings",
+            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_and_settings),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelLarge)
         FeatureDropdownMenuItem(
             feature = readerFeature(VeritasFeatureId.VOICE_STUDIO),
-            label = "Voice and language",
+            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_voice_and_language),
             leadingIcon = Icons.Outlined.RecordVoiceOver,
             onClick = { choose(onOpenVoiceStudio) }
         )
         DropdownMenuItem(
-            text = { Text(if (narrationEnabled) "Narration mode on" else "Narration mode") },
+            text = { Text(if (narrationEnabled) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_narration_mode_on) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_narration_mode)) },
             leadingIcon = { Icon(Icons.Outlined.TheaterComedy, contentDescription = null) },
             onClick = { choose(onOpenNarrationStudio) }
         )
         FeatureDropdownMenuItem(
             feature = readerFeature(VeritasFeatureId.PRONUNCIATION_RULES),
-            label = "Pronunciation rules",
+            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_pronunciation_rules_bf2c874),
             leadingIcon = Icons.Outlined.Spellcheck,
             onClick = { choose(onOpenPronunciationRules) }
         )
         DropdownMenuItem(
-            text = { Text("Reader appearance") },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reader_appearance)) },
             leadingIcon = { Icon(Icons.Outlined.Palette, contentDescription = null) },
             onClick = { choose(onOpenReaderSettings) }
         )
         FeatureDropdownMenuItem(
             feature = readerFeature(VeritasFeatureId.QUEUE_AUDIO_EXPORT),
-            label = "Export audio",
+            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_export_audio),
             leadingIcon = Icons.Outlined.FileDownload,
             onClick = { choose(onExportAudio) }
         )
@@ -379,7 +379,7 @@ internal fun ReaderNavigationOverflowItems(settings: com.veritas.reader.ReaderSe
     val layouts = listOf("pages" to "Page swipe", "scroll" to "Vertical scroll")
     val effects = listOf("slide" to "Slide", "flip" to "Page curl", "hinge" to "Light flip", "none" to "None")
     androidx.compose.material3.DropdownMenuItem(
-        text = { Text("Reading layout: ${layouts.firstOrNull { it.first == settings.readingLayout }?.second.orEmpty()}") },
+        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_135, com.veritas.reader.ui.screens.localizedUiValue(layouts.firstOrNull { it.first == settings.readingLayout }?.second.orEmpty()))) },
         leadingIcon = { Icon(Icons.Outlined.ViewCarousel, contentDescription = null) },
         trailingIcon = { Icon(if (layoutsOpen) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null) },
         onClick = { layoutsOpen = !layoutsOpen; effectsOpen = false })
@@ -389,7 +389,7 @@ internal fun ReaderNavigationOverflowItems(settings: com.veritas.reader.ReaderSe
             onClick = { onSave(settings.copy(readingLayout = id)); layoutsOpen = false })
     }
     androidx.compose.material3.DropdownMenuItem(
-        text = { Text("Swipe effect: ${effects.firstOrNull { it.first == settings.pageTurnStyle }?.second.orEmpty()}") },
+        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_136, com.veritas.reader.ui.screens.localizedUiValue(effects.firstOrNull { it.first == settings.pageTurnStyle }?.second.orEmpty()))) },
         leadingIcon = { Icon(Icons.Outlined.Swipe, contentDescription = null) },
         trailingIcon = { Icon(if (effectsOpen) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null) },
         onClick = { effectsOpen = !effectsOpen; layoutsOpen = false })
@@ -488,7 +488,7 @@ internal fun SelectedTextToolbar(
             TextButton(onClick = { onReadFromHere() }) {
                 Icon(
                     imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = "Read from here",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read_from_here),
                     tint = MaterialTheme.colorScheme.inverseOnSurface,
                     modifier = Modifier.size(20.dp)
                 )
@@ -496,7 +496,7 @@ internal fun SelectedTextToolbar(
             TextButton(onClick = { onTranslate(); onDismiss() }) {
                 Icon(
                     imageVector = Icons.Outlined.Translate,
-                    contentDescription = "Translate",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_translate),
                     tint = MaterialTheme.colorScheme.inverseOnSurface,
                     modifier = Modifier.size(20.dp)
                 )
@@ -504,7 +504,7 @@ internal fun SelectedTextToolbar(
             TextButton(onClick = { onCopy(); onDismiss() }) {
                 Icon(
                     imageVector = Icons.Filled.ContentCopy,
-                    contentDescription = "Copy",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy),
                     tint = MaterialTheme.colorScheme.inverseOnSurface,
                     modifier = Modifier.size(20.dp)
                 )
@@ -512,7 +512,7 @@ internal fun SelectedTextToolbar(
             TextButton(onClick = { onSelectAll() }) {
                 Icon(
                     imageVector = Icons.Filled.SelectAll,
-                    contentDescription = "Select all",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_select_all),
                     tint = MaterialTheme.colorScheme.inverseOnSurface,
                     modifier = Modifier.size(20.dp)
                 )
@@ -520,7 +520,7 @@ internal fun SelectedTextToolbar(
             TextButton(onClick = { onSearch(); onDismiss() }) {
                 Icon(
                     imageVector = Icons.Filled.Search,
-                    contentDescription = "Search",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search),
                     tint = MaterialTheme.colorScheme.inverseOnSurface,
                     modifier = Modifier.size(20.dp)
                 )
@@ -528,7 +528,7 @@ internal fun SelectedTextToolbar(
             TextButton(onClick = { onBookmark(); onDismiss() }) {
                 Icon(
                     imageVector = Icons.Filled.BookmarkAdd,
-                    contentDescription = "Bookmark",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_bookmark),
                     tint = MaterialTheme.colorScheme.inverseOnSurface,
                     modifier = Modifier.size(20.dp)
                 )
@@ -536,7 +536,7 @@ internal fun SelectedTextToolbar(
             TextButton(onClick = { onNote(); onDismiss() }) {
                 Icon(
                     imageVector = Icons.Filled.EditNote,
-                    contentDescription = "Add note",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_note),
                     tint = MaterialTheme.colorScheme.inverseOnSurface,
                     modifier = Modifier.size(22.dp)
                 )
@@ -545,7 +545,7 @@ internal fun SelectedTextToolbar(
                 TextButton(onClick = { showMore = true }) {
                     Icon(
                         imageVector = Icons.Filled.MoreVert,
-                        contentDescription = "More",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_more),
                         tint = MaterialTheme.colorScheme.inverseOnSurface,
                         modifier = Modifier.size(20.dp)
                     )
@@ -564,25 +564,25 @@ internal fun SelectedTextToolbar(
                     )
                     HorizontalDivider()
                     DropdownMenuItem(
-                        text = { Text("Read from here") },
+                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read_from_here)) },
                         onClick = { showMore = false; onReadFromHere() })
                     DropdownMenuItem(
-                        text = { Text("Web lookup") },
+                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_web_lookup)) },
                         onClick = { showMore = false; onGoogle(); onDismiss() })
                     DropdownMenuItem(
-                        text = { Text("Share") },
+                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share)) },
                         onClick = { showMore = false; onShare(); onDismiss() })
                     DropdownMenuItem(
-                        text = { Text("Edit selected text") },
+                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_edit_selected_text)) },
                         onClick = { showMore = false; onEditExtracted(); onDismiss() })
                     DropdownMenuItem(
-                        text = { Text("Edit speech / pronunciation") },
+                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_edit_speech_pronunciation)) },
                         onClick = { showMore = false; onEditSpeech(); onDismiss() })
                     DropdownMenuItem(
-                        text = { Text("Read aloud selection") },
+                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read_aloud_selection)) },
                         onClick = { showMore = false; onReadAloud() })
                     DropdownMenuItem(
-                        text = { Text("Ask AI") },
+                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ask_ai)) },
                         onClick = { showMore = false; onAskAi(); onDismiss() })
                 }
             }
@@ -637,7 +637,7 @@ internal fun SearchPanel(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Close search",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close_search),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -650,7 +650,7 @@ internal fun SearchPanel(
                     .focusRequester(focusRequester),
                 placeholder = {
                     Text(
-                        "Search in document...",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search_in_document),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
@@ -667,7 +667,7 @@ internal fun SearchPanel(
                         IconButton(onClick = { onQueryChange("") }) {
                             Icon(
                                 Icons.Outlined.Close,
-                                contentDescription = "Clear search",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear_search),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -693,7 +693,7 @@ internal fun SearchPanel(
                     modifier = Modifier.padding(horizontal = 2.dp)
                 ) {
                     Text(
-                        text = "$currentMatch of $matchCount",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_137, com.veritas.reader.ui.screens.localizedUiValue(currentMatch), com.veritas.reader.ui.screens.localizedUiValue(matchCount)),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -706,7 +706,7 @@ internal fun SearchPanel(
                     modifier = Modifier.padding(horizontal = 2.dp)
                 ) {
                     Text(
-                        text = "0 found",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_0_found),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
@@ -724,7 +724,7 @@ internal fun SearchPanel(
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = "Previous match",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_match),
                         tint = if (matchCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                     )
                 }
@@ -735,7 +735,7 @@ internal fun SearchPanel(
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Next match",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_match),
                         tint = if (matchCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                     )
                 }

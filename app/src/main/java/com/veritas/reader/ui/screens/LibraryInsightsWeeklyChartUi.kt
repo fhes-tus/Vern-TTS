@@ -356,7 +356,7 @@ internal fun WeeklyReadingBarsPager(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Previous week",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_week),
                             tint = if (pagerState.currentPage > 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                             modifier = Modifier.size(16.dp)
                         )
@@ -383,7 +383,7 @@ internal fun WeeklyReadingBarsPager(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Next week",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_week),
                             tint = if (pagerState.currentPage < history.lastIndex) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                             modifier = Modifier.size(16.dp)
                         )
@@ -395,7 +395,7 @@ internal fun WeeklyReadingBarsPager(
                     color = MaterialTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Text(
-                        text = "Total: ${formatTrackerDuration(visibleWeek.totalMillis)}",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_108, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(visibleWeek.totalMillis))),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)

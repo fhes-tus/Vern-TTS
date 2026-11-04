@@ -84,11 +84,11 @@ internal fun JumpToPageDialog(
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         titleContentColor = MaterialTheme.colorScheme.onSurface,
         textContentColor = MaterialTheme.colorScheme.onSurface,
-        title = { Text("Jump to Page", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
+        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_jump_to_page), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Enter ${if (isPresentation) "slide" else "page"} number between 1 and $pageCount:",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_189, com.veritas.reader.ui.screens.localizedUiValue(if (isPresentation) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_slide_lower) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_page_lower)), com.veritas.reader.ui.screens.localizedUiValue(pageCount)),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 OutlinedTextField(
@@ -110,12 +110,12 @@ internal fun JumpToPageDialog(
                     onDismiss()
                 }
             ) {
-                Text("Go")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_go))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
             }
         }
     )
@@ -142,24 +142,24 @@ internal fun DocumentInfoDialog(
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         titleContentColor = MaterialTheme.colorScheme.onSurface,
         textContentColor = MaterialTheme.colorScheme.onSurface,
-        title = { Text("Document Info", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
+        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_info), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Title: ${document.title}", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                Text("Format: ${if (isPdf) "PDF Document" else if (isPresentation) "PowerPoint Presentation" else if (isImage) "Image" else document.sourceLabel}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_001, com.veritas.reader.ui.screens.localizedUiValue(document.title)), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_190, com.veritas.reader.ui.screens.localizedUiValue(if (isPdf) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_pdf) else if (isPresentation) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_ppt) else if (isImage) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_image) else document.sourceLabel)), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (isPdf || isPresentation) {
-                    Text("Total ${if (isPresentation) "Slides" else "Pages"}: $pageCount", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Current ${if (isPresentation) "Slide" else "Page"}: ${pageIndex + 1} (${((pageIndex + 1) * 100 / pageCount.coerceAtLeast(1))}%)", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_191, com.veritas.reader.ui.screens.localizedUiValue(if (isPresentation) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_slides) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_pages)), com.veritas.reader.ui.screens.localizedUiValue(pageCount)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_192, com.veritas.reader.ui.screens.localizedUiValue(if (isPresentation) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_slide) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_page)), com.veritas.reader.ui.screens.localizedUiValue(pageIndex + 1), com.veritas.reader.ui.screens.localizedUiValue(((pageIndex + 1) * 100 / pageCount.coerceAtLeast(1)))), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Text("Chunks / Sentences: ${document.chunkCount}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_002, com.veritas.reader.ui.screens.localizedUiValue(document.chunkCount)), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (document.originalFileName.isNotBlank()) {
-                    Text("File: ${document.originalFileName.substringAfterLast('/')}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_003, com.veritas.reader.ui.screens.localizedUiValue(document.originalFileName.substringAfterLast('/'))), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         },
         confirmButton = {
             Button(onClick = onDismiss) {
-                Text("Done")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done))
             }
         }
     )
@@ -211,7 +211,7 @@ internal fun SelectedTextActionCard(
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
-                        text = "Selected Text Actions",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected_text_actions),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -222,7 +222,7 @@ internal fun SelectedTextActionCard(
                 ) {
                     Icon(
                         Icons.Filled.Close,
-                        contentDescription = "Dismiss",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_dismiss),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
@@ -249,7 +249,7 @@ internal fun SelectedTextActionCard(
                 ) {
                     Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Continue reading from here", style = MaterialTheme.typography.labelMedium)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_continue_reading_from_here), style = MaterialTheme.typography.labelMedium)
                 }
                 OutlinedButton(
                     onClick = {
@@ -261,7 +261,7 @@ internal fun SelectedTextActionCard(
                     },
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                 ) {
-                    Icon(Icons.Filled.ContentCopy, contentDescription = "Copy", modifier = Modifier.size(18.dp))
+                    Icon(Icons.Filled.ContentCopy, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy), modifier = Modifier.size(18.dp))
                 }
                 OutlinedButton(
                     onClick = {
@@ -273,7 +273,7 @@ internal fun SelectedTextActionCard(
                     },
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                 ) {
-                    Icon(Icons.Filled.Search, contentDescription = "Search", modifier = Modifier.size(18.dp))
+                    Icon(Icons.Filled.Search, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search), modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -304,18 +304,18 @@ internal fun ActualDocumentUnavailableNotice(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "⚠️ original document view is unavailable",
+                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_original_document_view_is_unavailable),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.error
             )
             Text(
-                text = message ?: "Unrecognized document format.",
+                text = message ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unrecognized_document_format),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = onOpenExternal, enabled = hasOriginal) { Text("Open original") }
-                TextButton(onClick = onClose) { Text("Extracted text") }
+                Button(onClick = onOpenExternal, enabled = hasOriginal) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_original)) }
+                TextButton(onClick = onClose) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_extracted_text)) }
             }
         }
     }

@@ -78,17 +78,17 @@ internal fun NoteLinkCard(link: NoteLink, onRemove: (() -> Unit)? = null, footer
             }
             if (onRemove != null) Box {
                 IconButton({ menuOpen = true }) {
-                    Icon(Icons.Default.MoreVert, "Link preview options", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(Icons.Default.MoreVert, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_link_preview_options), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 DropdownMenu(menuOpen, { menuOpen = false }) {
-                    DropdownMenuItem(text = { Text("Remove") }, onClick = { menuOpen = false; onRemove() })
-                    DropdownMenuItem(text = { Text("Copy URL") }, onClick = {
+                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove)) }, onClick = { menuOpen = false; onRemove() })
+                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy_url)) }, onClick = {
                         menuOpen = false
                         com.veritas.reader.copyTextToClipboard(context, "Link", link.url)
                     })
                 }
             }
-            else Icon(Icons.Default.OpenInNew, "Open link", Modifier.padding(end = 10.dp).size(18.dp))
+            else Icon(Icons.Default.OpenInNew, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_link), Modifier.padding(end = 10.dp).size(18.dp))
         }
     }
 }

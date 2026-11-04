@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" formatted="false">"Vern"</string>
+    <string name="settings_a_small_target_to_help_make_reading_a_habit" formatted="false">"هدف صغير لجعل القراءة عادة."</string>
+    <string name="settings_adaptive_cover_theme" formatted="false">"مظهر متكيف مع الغلاف"</string>
+    <string name="settings_add_new_items_at_the_top" formatted="false">"إضافة العناصر الجديدة في الأعلى"</string>
+    <string name="settings_amoled" formatted="false">"AMOLED"</string>
+    <string name="settings_an_evening_nudge_when_your_goal_is_at_risk" formatted="false">"تذكير مسائي عندما يكون هدفك معرضًا للفوات."</string>
+    <string name="settings_attachment_badges" formatted="false">"شارات المرفقات"</string>
+    <string name="settings_attachment_thumbnails" formatted="false">"صور المرفقات المصغرة"</string>
+    <string name="settings_bionic_reading" formatted="false">"القراءة البيونية"</string>
+    <string name="settings_bloom" formatted="false">"تفتح"</string>
+    <string name="settings_book_sources" formatted="false">"مصادر الكتب"</string>
+    <string name="settings_bookmarks_notes" formatted="false">"الإشارات المرجعية والملاحظات"</string>
+    <string name="settings_character_voices" formatted="false">"أصوات الشخصيات"</string>
+    <string name="settings_checklists" formatted="false">"قوائم التحقق"</string>
+    <string name="settings_clean_repeated_headers_and_footers" formatted="false">"تنظيف الرؤوس والتذييلات المتكررة"</string>
+    <string name="settings_collapsible_reader_bars" formatted="false">"أشرطة قارئ قابلة للطي"</string>
+    <string name="settings_completed_items_at_the_bottom" formatted="false">"العناصر المكتملة في الأسفل"</string>
+    <string name="settings_daily_rhythm" formatted="false">"الإيقاع اليومي"</string>
+    <string name="settings_detect_dialogue" formatted="false">"اكتشاف الحوار"</string>
+    <string name="settings_dialogue_badges" formatted="false">"شارات الحوار"</string>
+    <string name="settings_display_rich_link_previews" formatted="false">"عرض معاينات الروابط الغنية"</string>
+    <string name="settings_display_theme" formatted="false">"العرض والمظهر"</string>
+    <string name="settings_emphasise_the_first_letters_of_each_word" formatted="false">"إبراز الحروف الأولى من كل كلمة."</string>
+    <string name="settings_express_punctuation" formatted="false">"التعبير عن علامات الترقيم"</string>
+    <string name="settings_fade" formatted="false">"تلاشي"</string>
+    <string name="settings_flashcards_decks_progress" formatted="false">"البطاقات والمجموعات والتقدم"</string>
+    <string name="settings_force_fresh_extraction" formatted="false">"فرض استخراج جديد"</string>
+    <string name="settings_force_ocr_for_pdf_import" formatted="false">"فرض OCR عند استيراد PDF"</string>
+    <string name="settings_gentle_pacing_cues_natural_voice_intonation" formatted="false">"إشارات وتيرة خفيفة وتنغيم طبيعي"</string>
+    <string name="settings_grid" formatted="false">"شبكة"</string>
+    <string name="settings_hidden" formatted="false">"مخفي"</string>
+    <string name="settings_identify_the_current_role_in_the_reader" formatted="false">"تحديد الدور الحالي في القارئ"</string>
+    <string name="settings_include_page_markers" formatted="false">"تضمين علامات الصفحات"</string>
+    <string name="settings_included" formatted="false">"مضمّن"</string>
+    <string name="settings_keep_decorative_animations_still" formatted="false">"إبقاء الحركات الزخرفية ثابتة."</string>
+    <string name="settings_large" formatted="false">"كبير"</string>
+    <string name="settings_larger" formatted="false">"أكبر"</string>
+    <string name="settings_last_edited" formatted="false">"آخر تعديل"</string>
+    <string name="settings_layout" formatted="false">"التخطيط"</string>
+    <string name="settings_let_your_current_book_colour_the_reading_space" formatted="false">"اجعل كتابك الحالي يلون مساحة القراءة."</string>
+    <string name="settings_light_flip" formatted="false">"تقليب خفيف"</string>
+    <string name="settings_list" formatted="false">"قائمة"</string>
+    <string name="settings_long" formatted="false">"طويل"</string>
+    <string name="settings_manual_crop_before_extract" formatted="false">"القص يدويًا قبل الاستخراج"</string>
+    <string name="settings_match_original_layout_where_possible" formatted="false">"مطابقة التخطيط الأصلي قدر الإمكان"</string>
+    <string name="settings_mix_installed_system_lite_and_studio_voices_in_one_cast" formatted="false">"دمج أصوات النظام وLite وStudio المثبتة في طاقم واحد"</string>
+    <string name="settings_motion_clarity" formatted="false">"الحركة والوضوح"</string>
+    <string name="settings_move_an_item_down_when_you_check_it" formatted="false">"نقل العنصر للأسفل عند تحديده"</string>
+    <string name="settings_narration_studio" formatted="false">"استوديو السرد"</string>
+    <string name="settings_navigation_labels" formatted="false">"تسميات التنقل"</string>
+    <string name="settings_neural_voices_already_interpret_punctuation_naturally" formatted="false">"تفسر الأصوات العصبية الترقيم طبيعيًا بالفعل"</string>
+    <string name="settings_new_notes" formatted="false">"ملاحظات جديدة"</string>
+    <string name="settings_newest" formatted="false">"الأحدث"</string>
+    <string name="settings_notes_page" formatted="false">"صفحة الملاحظات"</string>
+    <string name="settings_option_12_uk_and_us_voices_about_20mb_each_select_several_to_download_to" formatted="false">"12 صوتًا بريطانيًا وأمريكيًا، نحو 20 MB لكل صوت. اختر عدة أصوات؛ تنتظر التنزيلات الإضافية دورها."</string>
+    <string name="settings_option_add_books_to_the_queue_first" formatted="false">"أضف كتبًا إلى القائمة أولًا."</string>
+    <string name="settings_option_auto_detect" formatted="false">"اكتشاف تلقائي"</string>
+    <string name="settings_option_balanced" formatted="false">"متوازن"</string>
+    <string name="settings_option_bedtime_calm" formatted="false">"هدوء قبل النوم"</string>
+    <string name="settings_option_black" formatted="false">"أسود"</string>
+    <string name="settings_option_blank" formatted="false">"فارغ"</string>
+    <string name="settings_option_blue" formatted="false">"أزرق"</string>
+    <string name="settings_option_brighter" formatted="false">"أكثر سطوعًا"</string>
+    <string name="settings_option_colour_shade" formatted="false">"درجة اللون"</string>
+    <string name="settings_option_confident_articulate_delivery_for_academic_and_business_text" formatted="false">"إلقاء واثق وواضح للنصوص الأكاديمية والمهنية."</string>
+    <string name="settings_option_cyan" formatted="false">"سماوي"</string>
+    <string name="settings_option_darker" formatted="false">"أغمق"</string>
+    <string name="settings_option_declared_in_html" formatted="false">"المعلن في HTML"</string>
+    <string name="settings_option_default_language" formatted="false">"اللغة الافتراضية"</string>
+    <string name="settings_option_deliberate_pacing_with_grounded_tone_for_deep_comprehension" formatted="false">"وتيرة متأنية ونبرة ثابتة لفهم أعمق."</string>
+    <string name="settings_option_dialogue" formatted="false">"الحوار"</string>
+    <string name="settings_option_dot_matrix" formatted="false">"نقاط"</string>
+    <string name="settings_option_fast_energetic_review_with_crisp_consonant_clarity" formatted="false">"مراجعة سريعة ونشيطة بوضوح في نطق الحروف."</string>
+    <string name="settings_option_force_ocr" formatted="false">"فرض OCR"</string>
+    <string name="settings_option_green" formatted="false">"أخضر"</string>
+    <string name="settings_option_grey" formatted="false">"رمادي"</string>
+    <string name="settings_option_hue" formatted="false">"تدرج اللون"</string>
+    <string name="settings_option_keep_marked_words" formatted="false">"الاحتفاظ بالكلمات المحددة"</string>
+    <string name="settings_option_lecture_bright" formatted="false">"إلقاء واضح"</string>
+    <string name="settings_option_less_saturated" formatted="false">"تشبع أقل"</string>
+    <string name="settings_option_literal" formatted="false">"حرفي"</string>
+    <string name="settings_option_more_saturated" formatted="false">"تشبع أكثر"</string>
+    <string name="settings_option_narrator" formatted="false">"الراوي"</string>
+    <string name="settings_option_natural_everyday_audio_reading_with_standard_timing" formatted="false">"قراءة يومية طبيعية بتوقيت معتاد."</string>
+    <string name="settings_option_network_voice" formatted="false">"صوت عبر الإنترنت"</string>
+    <string name="settings_option_offline_voice" formatted="false">"صوت دون اتصال"</string>
+    <string name="settings_option_on" formatted="false">"مفعّل"</string>
+    <string name="settings_option_open_a_reading_first" formatted="false">"افتح قراءة أولًا."</string>
+    <string name="settings_option_orange" formatted="false">"برتقالي"</string>
+    <string name="settings_option_pattern" formatted="false">"نمط"</string>
+    <string name="settings_option_plain_text" formatted="false">"نص عادي"</string>
+    <string name="settings_option_prefer_ocr_when_text_is_poor" formatted="false">"تفضيل OCR عند ضعف النص"</string>
+    <string name="settings_option_purple" formatted="false">"بنفسجي"</string>
+    <string name="settings_option_quick_scan" formatted="false">"مراجعة سريعة"</string>
+    <string name="settings_option_red" formatted="false">"أحمر"</string>
+    <string name="settings_option_references_n" formatted="false">"المراجع [n]"</string>
+    <string name="settings_option_regex" formatted="false">"تعبير نمطي"</string>
+    <string name="settings_option_richest_most_expressive_voices_28_english_speakers_in_one_126mb_d" formatted="false">"أكثر الأصوات تعبيرًا: 28 متحدثًا بالإنجليزية في تنزيل واحد بحجم 126 MB. نموذج ثقيل؛ قد يتوقف بين الجمل على الهواتف المتوسطة."</string>
+    <string name="settings_option_ruled_lines" formatted="false">"مسطّر"</string>
+    <string name="settings_option_save_a_reading_first" formatted="false">"احفظ قراءة أولًا."</string>
+    <string name="settings_option_slow_soothing_mellow_tone_for_quiet_night_time_listening" formatted="false">"نبرة بطيئة وهادئة ومريحة للاستماع الليلي."</string>
+    <string name="settings_option_starred_text" formatted="false">"نص بين نجمتين"</string>
+    <string name="settings_option_startup_preview" formatted="false">"معاينة البدء"</string>
+    <string name="settings_option_storyteller" formatted="false">"راوي القصص"</string>
+    <string name="settings_option_study_focus" formatted="false">"تركيز الدراسة"</string>
+    <string name="settings_option_system_default" formatted="false">"افتراضي النظام"</string>
+    <string name="settings_option_underscore_text" formatted="false">"نص بين شرطتين سفليتين"</string>
+    <string name="settings_option_warm_chest_resonant_narration_for_fiction_and_novels" formatted="false">"سرد دافئ ورنان للقصص والروايات."</string>
+    <string name="settings_option_white" formatted="false">"أبيض"</string>
+    <string name="settings_option_yellow" formatted="false">"أصفر"</string>
+    <string name="settings_page_curl" formatted="false">"طي الصفحة"</string>
+    <string name="settings_page_swipe" formatted="false">"سحب الصفحات"</string>
+    <string name="settings_prefer_ocr_when_pdf_text_is_weak" formatted="false">"تفضيل OCR عند ضعف نص PDF"</string>
+    <string name="settings_pronunciation_rules" formatted="false">"قواعد النطق"</string>
+    <string name="settings_pronunciation_rules_bf2c874" formatted="false">"قواعد النطق"</string>
+    <string name="settings_reading_focus" formatted="false">"القراءة والتركيز"</string>
+    <string name="settings_reading_queue" formatted="false">"قائمة انتظار القراءة"</string>
+    <string name="settings_reading_streaks_history" formatted="false">"سلاسل القراءة والسجل"</string>
+    <string name="settings_recognize_quoted_speech_and_speech_tags" formatted="false">"التعرف على الكلام المقتبس وعلامات المتحدث"</string>
+    <string name="settings_reduce_motion" formatted="false">"تقليل الحركة"</string>
+    <string name="settings_reduce_transparency" formatted="false">"تقليل الشفافية"</string>
+    <string name="settings_relaxed" formatted="false">"مريح"</string>
+    <string name="settings_remove_bottom_page_noise" formatted="false">"إزالة التشويش أسفل الصفحة"</string>
+    <string name="settings_remove_page_numbers" formatted="false">"إزالة أرقام الصفحات"</string>
+    <string name="settings_remove_top_page_noise" formatted="false">"إزالة التشويش أعلى الصفحة"</string>
+    <string name="settings_repair_hyphenated_line_breaks" formatted="false">"إصلاح الكلمات المقسومة عند نهاية السطر"</string>
+    <string name="settings_rise" formatted="false">"صعود"</string>
+    <string name="settings_saved_readings" formatted="false">"القراءات المحفوظة"</string>
+    <string name="settings_saving_backup" formatted="false">"الحفظ والنسخ الاحتياطي"</string>
+    <string name="settings_scroll" formatted="false">"تمرير"</string>
+    <string name="settings_section_labels" formatted="false">"تسميات الأقسام"</string>
+    <string name="settings_separate_words_when_font_changes" formatted="false">"فصل الكلمات عند تغير الخط"</string>
+    <string name="settings_shake_in_the_final_minute_to_add_ten_minutes" formatted="false">"هز الجهاز في الدقيقة الأخيرة لإضافة عشر دقائق."</string>
+    <string name="settings_shake_to_extend_timer" formatted="false">"الهز لتمديد المؤقت"</string>
+    <string name="settings_short" formatted="false">"قصير"</string>
+    <string name="settings_show_images_and_video_previews_on_note_cards" formatted="false">"إظهار الصور ومعاينات الفيديو على بطاقات الملاحظات"</string>
+    <string name="settings_show_names_beneath_navigation_icons" formatted="false">"إظهار الأسماء أسفل أيقونات التنقل."</string>
+    <string name="settings_show_section_numbers_for_easier_study_and_search" formatted="false">"إظهار أرقام الأقسام لتسهيل الدراسة والبحث."</string>
+    <string name="settings_show_the_book_linked_to_a_reading_note" formatted="false">"إظهار الكتاب المرتبط بملاحظة القراءة"</string>
+    <string name="settings_show_the_kinds_of_media_in_each_note" formatted="false">"إظهار أنواع الوسائط في كل ملاحظة"</string>
+    <string name="settings_show_the_waveform_beside_a_voice_memo" formatted="false">"إظهار الموجة بجوار المذكرة الصوتية"</string>
+    <string name="settings_show_website_cards_in_notes_and_on_the_notes_page" formatted="false">"إظهار بطاقات المواقع في الملاحظات وصفحتها"</string>
+    <string name="settings_slide" formatted="false">"انزلاق"</string>
+    <string name="settings_small" formatted="false">"صغير"</string>
+    <string name="settings_standard" formatted="false">"قياسي"</string>
+    <string name="settings_start_a_new_item_above_the_existing_list" formatted="false">"بدء عنصر جديد فوق القائمة الحالية"</string>
+    <string name="settings_streak_reminder" formatted="false">"تذكير سلسلة القراءة"</string>
+    <string name="settings_swipe" formatted="false">"سحب"</string>
+    <string name="settings_tap_the_page_to_hide_or_show_reader_controls" formatted="false">"اضغط الصفحة لإظهار عناصر القراءة أو إخفائها."</string>
+    <string name="settings_text_previews" formatted="false">"معاينات النص"</string>
+    <string name="settings_use_role_specific_pacing_and_pitch" formatted="false">"استخدام وتيرة ودرجة صوت خاصة بكل دور"</string>
+    <string name="settings_use_solid_panels_for_clearer_text_and_controls" formatted="false">"استخدام لوحات معتمة لنص وعناصر تحكم أوضح."</string>
+    <string name="settings_vertical_scroll" formatted="false">"تمرير عمودي"</string>
+    <string name="settings_voice_and_language" formatted="false">"الصوت واللغة"</string>
+    <string name="settings_voice_reader_settings" formatted="false">"إعدادات الصوت والقارئ"</string>
+    <string name="settings_voice_waveforms" formatted="false">"موجات الصوت"</string>
+    <string name="settings_wide" formatted="false">"واسع"</string>
+    <string name="settings_writing" formatted="false">"الكتابة"</string>
+    <string name="ui_a_little_space_for_big_ideas" formatted="false">"مساحة صغيرة لأفكار كبيرة."</string>
+    <string name="ui_a_speech_tag_such_as_alice_said_identifies_this_character" formatted="false">"تحدد عبارة مثل «قالت أليس» هذه الشخصية."</string>
+    <string name="ui_a_thought_worth_keeping" formatted="false">"فكرة تستحق الاحتفاظ بها"</string>
+    <string name="ui_aa" formatted="false">"أب"</string>
+    <string name="ui_aa_2c419ec" formatted="false">"أب"</string>
+    <string name="ui_access_hundreds_of_models_at_openrouter_ai" formatted="false">"استخدم مئات النماذج على openrouter.ai."</string>
+    <string name="ui_active" formatted="false">"نشط"</string>
+    <string name="ui_active_voice" formatted="false">"الصوت النشط"</string>
+    <string name="ui_add_api_key" formatted="false">"إضافة مفتاح API"</string>
+    <string name="ui_add_character" formatted="false">"إضافة شخصية"</string>
+    <string name="ui_add_language_voice" formatted="false">"إضافة لغة أو صوت"</string>
+    <string name="ui_ai_assistant_preference" formatted="false">"تفضيل مساعد الذكاء الاصطناعي"</string>
+    <string name="ui_ai_provider_key_setup" formatted="false">"إعداد مزود الذكاء الاصطناعي والمفتاح"</string>
+    <string name="ui_always_growing" formatted="false">"في تطور مستمر"</string>
+    <string name="ui_amoled_mode" formatted="false">"وضع AMOLED"</string>
+    <string name="ui_android_battery_optimizations_will_pause_or_kill_vern_speech_play" formatted="false">"قد توقف تحسينات بطارية Android قراءة Vern بعد قفل الشاشة أو إطفائها بوقت قصير."</string>
+    <string name="ui_any_standard_openai_compatible_api_base_url" formatted="false">"أي عنوان أساسي قياسي لواجهة API متوافقة مع OpenAI."</string>
+    <string name="ui_api_endpoint_url" formatted="false">"عنوان نقطة اتصال API"</string>
+    <string name="ui_app_backups_include_notes_and_these_preferences_zip_backups_also" formatted="false">"تتضمن النسخ الاحتياطية الملاحظات وهذه التفضيلات. تشمل نسخ ZIP أيضًا مرفقات الملاحظات المحلية المدعومة. استخدم النسخ والاستعادة في إعدادات التطبيق."</string>
+    <string name="ui_app_icon_colours" formatted="false">"ألوان أيقونة التطبيق"</string>
+    <string name="ui_appearance_mode" formatted="false">"وضع المظهر"</string>
+    <string name="ui_apply_narration_settings" formatted="false">"تطبيق إعدادات السرد"</string>
+    <string name="ui_auto_play_queue" formatted="false">"تشغيل قائمة الانتظار تلقائيًا"</string>
+    <string name="ui_automatic_weekly_backups" formatted="false">"نسخ احتياطي أسبوعي تلقائي"</string>
+    <string name="ui_automatically_play_next_queued_book" formatted="false">"تشغيل الكتاب التالي في القائمة تلقائيًا"</string>
+    <string name="ui_automatically_save_local_backup_archives_every_7_days" formatted="false">"حفظ نسخة احتياطية محلية تلقائيًا كل 7 أيام"</string>
+    <string name="ui_book" formatted="false">"كتاب"</string>
+    <string name="ui_books_notes_and_dashboard_cards_drop_into_varied_tilts_and_offset" formatted="false">"تظهر بطاقات الكتب والملاحظات ولوحة المعلومات بميل وإزاحة متنوعة. تبقى كل بطاقة في مكانها."</string>
+    <string name="ui_change_colour" formatted="false">"تغيير اللون"</string>
+    <string name="ui_change_what_vern_says_without_changing_the_book" formatted="false">"غيّر ما ينطقه Vern دون تغيير الكتاب."</string>
+    <string name="ui_character_voice" formatted="false">"صوت الشخصية"</string>
+    <string name="ui_checking_for_updates" formatted="false">"جارٍ البحث عن تحديثات…"</string>
+    <string name="ui_choose_a_palette_for_your_launcher_icon_the_launcher_updates_when" formatted="false">"اختر لوحة ألوان لأيقونة التطبيق. تتحدث الأيقونة عند مغادرة Vern لتبقى الإعدادات مفتوحة."</string>
+    <string name="ui_choose_accent_colour" formatted="false">"اختيار لون التمييز"</string>
+    <string name="ui_choose_any_colour_for_buttons_highlights_and_matching_tints_it_fo" formatted="false">"اختر لونًا للأزرار والتظليل والدرجات المتناسقة. يتبع حزمة المظهر والوضع الفاتح أو الداكن أو النظام."</string>
+    <string name="ui_choose_colour" formatted="false">"اختيار لون"</string>
+    <string name="ui_choose_the_assistant_veritas_should_launch_when_you_select_text_i" formatted="false">"اختر المساعد الذي يفتحه Veritas عند تحديد نص في القارئ. إذا لم يكن التطبيق مثبتًا، يمكن فتح صفحته في متجر Play."</string>
+    <string name="ui_close_notes_settings" formatted="false">"إغلاق إعدادات الملاحظات"</string>
+    <string name="ui_collapse" formatted="false">"طي"</string>
+    <string name="ui_color_palette_and_document_canvas_tone" formatted="false">"لوحة الألوان ودرجة خلفية المستند"</string>
+    <string name="ui_colour_themes" formatted="false">"سمات الألوان"</string>
+    <string name="ui_colours_card_character_and_page_motion" formatted="false">"الألوان وطابع البطاقات وحركة الصفحات."</string>
+    <string name="ui_comfort_comes_first" formatted="false">"الراحة أولًا"</string>
+    <string name="ui_connect_any_ai_model_to_generate_flashcards_quizzes_and_study_sum" formatted="false">"اربط نموذج ذكاء اصطناعي لإنشاء بطاقات واختبارات وملخصات دراسية داخل Veritas Reader."</string>
+    <string name="ui_control_how_pdfs_and_text_files_are_imported_before_they_enter_th" formatted="false">"تحكّم في طريقة استيراد ملفات PDF والنصوص قبل فتحها في القارئ."</string>
+    <string name="ui_current_voice_model" formatted="false">"نموذج الصوت الحالي"</string>
+    <string name="ui_custom_accent" formatted="false">"لون تمييز مخصص"</string>
+    <string name="ui_custom_prompt_template" formatted="false">"قالب تعليمات مخصص"</string>
+    <string name="ui_data_included_in_backup_sync" formatted="false">"البيانات المشمولة في النسخ والمزامنة"</string>
+    <string name="ui_definition_wiktionary" formatted="false">"التعريف: ويكاموس"</string>
+    <string name="ui_delete_vocabulary_word" formatted="false">"حذف كلمة المفردات؟"</string>
+    <string name="ui_delete_voice_model" formatted="false">"حذف نموذج الصوت"</string>
+    <string name="ui_device_animations_are_off_startup_stays_still" formatted="false">"حركات الجهاز معطلة. تبقى شاشة البدء ثابتة."</string>
+    <string name="ui_discard_narration_changes" formatted="false">"تجاهل تغييرات السرد؟"</string>
+    <string name="ui_display_preferences" formatted="false">"تفضيلات العرض"</string>
+    <string name="ui_don_t_ask_again" formatted="false">"عدم السؤال مجددًا"</string>
+    <string name="ui_download_in_voice_studio" formatted="false">" · التنزيل من استوديو الصوت"</string>
+    <string name="ui_download_voices_for_offline_reading_update_older_piper_voices_usi" formatted="false">"نزّل أصواتًا للقراءة دون اتصال. حدّث أصوات Piper القديمة من زر التحديث في القائمة للحصول على الحزمة كاملة الدقة ذات الضوضاء الأقل. تستمر القراءة المخزنة مؤقتًا بصورة طبيعية."</string>
+    <string name="ui_edit_rule" formatted="false">"تعديل القاعدة"</string>
+    <string name="ui_effects_apply_to_text_pages_in_page_swipe_mode_reduce_motion_turn" formatted="false">"تطبق التأثيرات على صفحات النص في وضع السحب. يؤدي تقليل الحركة إلى إيقاف حركات الصفحات."</string>
+    <string name="ui_end_page" formatted="false">"صفحة النهاية"</string>
+    <string name="ui_entry_actions" formatted="false">"إجراءات المدخل"</string>
+    <string name="ui_expand" formatted="false">"توسيع"</string>
+    <string name="ui_export_portable_backup_with_media_zip" formatted="false">"تصدير نسخة احتياطية مع الوسائط (.zip)"</string>
+    <string name="ui_export_text_settings_json" formatted="false">"تصدير النص والإعدادات (.json)"</string>
+    <string name="ui_extraction_mode" formatted="false">"وضع الاستخراج"</string>
+    <string name="ui_fewer_examples" formatted="false">"أمثلة أقل"</string>
+    <string name="ui_find_meaning" formatted="false">"البحث عن المعنى"</string>
+    <string name="ui_find_vern_online" formatted="false">"اعثر على Vern عبر الإنترنت"</string>
+    <string name="ui_find_word_or_phrase" formatted="false">"البحث عن كلمة أو عبارة"</string>
+    <string name="ui_follow_my_colour_theme" formatted="false">"اتباع ألوان المظهر"</string>
+    <string name="ui_for_example_sequel_instead_of_sql" formatted="false">"مثلًا انطق sequel بدلًا من SQL."</string>
+    <string name="ui_free_tier_available_at_aistudio_google_com" formatted="false">"تتوفر فئة مجانية على aistudio.google.com."</string>
+    <string name="ui_funky_cards" formatted="false">"بطاقات مرحة"</string>
+    <string name="ui_glass_in_other_theme_packs" formatted="false">"تأثير الزجاج في حزم المظهر الأخرى"</string>
+    <string name="ui_go" formatted="false">"انتقال"</string>
+    <string name="ui_got_it" formatted="false">"فهمت"</string>
+    <string name="ui_hide_matching_details" formatted="false">"إخفاء تفاصيل المطابقة"</string>
+    <string name="ui_hide_syntax_guide" formatted="false">"إخفاء دليل الصياغة"</string>
+    <string name="ui_high_contrast" formatted="false">"تباين عالٍ"</string>
+    <string name="ui_high_contrast_keeps_its_accessibility_colours_your_custom_accent" formatted="false">"يحتفظ وضع التباين العالي بألوان تسهيل الاستخدام. يعود لونك المخصص عند الخروج منه."</string>
+    <string name="ui_how_rules_are_matched" formatted="false">"كيفية مطابقة القواعد"</string>
+    <string name="ui_how_to_enable_uninterrupted_audio" formatted="false">"لتفعيل الصوت دون انقطاع:"</string>
+    <string name="ui_html_with_images" formatted="false">"HTML مع الصور"</string>
+    <string name="ui_import_sync_backup_pack" formatted="false">"استيراد حزمة مزامنة أو نسخ احتياطي"</string>
+    <string name="ui_include_online_network_voices" formatted="false">"تضمين الأصوات عبر الإنترنت"</string>
+    <string name="ui_includes_unsaved_rule" formatted="false">"يتضمن القاعدة غير المحفوظة"</string>
+    <string name="ui_install" formatted="false">"تثبيت"</string>
+    <string name="ui_install_from_play_store" formatted="false">"التثبيت من متجر Play"</string>
+    <string name="ui_jump_to_page" formatted="false">"الانتقال إلى صفحة"</string>
+    <string name="ui_jump_to_page_8a8ded9" formatted="false">"الانتقال إلى صفحة"</string>
+    <string name="ui_keep_editing" formatted="false">"متابعة التحرير"</string>
+    <string name="ui_keep_your_reading_space_up_to_date" formatted="false">"حافظ على تحديث مساحة قراءتك."</string>
+    <string name="ui_keys_are_saved_locally_on_your_device_only" formatted="false">" تُحفظ المفاتيح محليًا على جهازك فقط."</string>
+    <string name="ui_language_voice_library" formatted="false">"مكتبة اللغات والأصوات"</string>
+    <string name="ui_library_sync_backup_engine" formatted="false">"مزامنة المكتبة ونسخها احتياطيًا"</string>
+    <string name="ui_listen_to_preview" formatted="false">"الاستماع إلى المعاينة"</string>
+    <string name="ui_lite" formatted="false">"Lite"</string>
+    <string name="ui_live_preview" formatted="false">"معاينة مباشرة"</string>
+    <string name="ui_loading_voice_models" formatted="false">"جارٍ تحميل نماذج الصوت…"</string>
+    <string name="ui_made_better_together" formatted="false">"نتحسن معًا"</string>
+    <string name="ui_make_vern_yours" formatted="false">"اجعل Vern على طريقتك"</string>
+    <string name="ui_match" formatted="false">"المطابقة"</string>
+    <string name="ui_match_case" formatted="false">"مطابقة حالة الأحرف"</string>
+    <string name="ui_match_case_2e62945" formatted="false">" · مطابقة حالة الأحرف"</string>
+    <string name="ui_match_changing_text_with_markers_such_as_n_or_text" formatted="false">"طابق النص المتغير بعلامات مثل [n] أو {text}."</string>
+    <string name="ui_match_pattern" formatted="false">"نمط المطابقة"</string>
+    <string name="ui_matches_complete_words_and_phrases" formatted="false">"يطابق الكلمات والعبارات الكاملة."</string>
+    <string name="ui_minimum_word_gap" formatted="false">"الحد الأدنى للمسافة بين الكلمات"</string>
+    <string name="ui_model" formatted="false">"النموذج"</string>
+    <string name="ui_model_name_id" formatted="false">"اسم النموذج أو معرّفه"</string>
+    <string name="ui_more_examples" formatted="false">"أمثلة أكثر"</string>
+    <string name="ui_n_matches_1_12_use_number_word_or_text_for_example_text_matches_a" formatted="false">"يطابق [n] القيم [1] و[12]… استخدم {number} أو {word} أو {text}. مثلًا يطابق _{text}_ عبارة بين شرطتين سفليتين. تبقى الكلمات منفصلة عند استبدال العلامات المحيطة."</string>
+    <string name="ui_name_as_it_appears_in_the_book" formatted="false">"الاسم كما يظهر في الكتاب"</string>
+    <string name="ui_narration_mode" formatted="false">"وضع السرد"</string>
+    <string name="ui_narration_shortcuts" formatted="false">"اختصارات السرد"</string>
+    <string name="ui_new_rule" formatted="false">"قاعدة جديدة"</string>
+    <string name="ui_no_rules_yet" formatted="false">"لا توجد قواعد بعد"</string>
+    <string name="ui_no_voices_found_matching_search_filter" formatted="false">"لم تُعثر على أصوات تطابق البحث."</string>
+    <string name="ui_not_now" formatted="false">"ليس الآن"</string>
+    <string name="ui_notes_save_automatically_as_you_write_the_editor_shows_when_your" formatted="false">"تُحفظ الملاحظات تلقائيًا أثناء الكتابة. يوضح المحرر وقت حفظ تغييراتك."</string>
+    <string name="ui_notes_settings" formatted="false">"إعدادات الملاحظات"</string>
+    <string name="ui_notes_settings_cc5a665" formatted="false">"إعدادات الملاحظات"</string>
+    <string name="ui_nothing_to_clean_up" formatted="false">"لا يوجد ما يحتاج إلى تنظيف"</string>
+    <string name="ui_nothing_will_be_spoken" formatted="false">"لن يُنطق شيء."</string>
+    <string name="ui_obtain_keys_from_console_anthropic_com" formatted="false">"احصل على المفاتيح من console.anthropic.com."</string>
+    <string name="ui_obtain_keys_from_platform_openai_com" formatted="false">"احصل على المفاتيح من platform.openai.com."</string>
+    <string name="ui_off" formatted="false">"معطل"</string>
+    <string name="ui_on_device" formatted="false">" · على الجهاز"</string>
+    <string name="ui_online" formatted="false">" · عبر الإنترنت"</string>
+    <string name="ui_open_file_browser" formatted="false">"فتح متصفح الملفات"</string>
+    <string name="ui_open_quotes_carry_across_sentences_speaker_tags_and_labels_identi" formatted="false">"قد تمتد الاقتباسات عبر عدة جمل. تحدد علامات المتحدث الشخصيات المسماة، ويستخدم الكلام غير المحدد ملف الحوار الافتراضي."</string>
+    <string name="ui_open_source_licenses" formatted="false">"تراخيص المصادر المفتوحة"</string>
+    <string name="ui_original_passage" formatted="false">"المقطع الأصلي"</string>
+    <string name="ui_original_pdf_navigation" formatted="false">"التنقل في ملف PDF الأصلي"</string>
+    <string name="ui_page_navigation" formatted="false">"التنقل بين الصفحات"</string>
+    <string name="ui_page_number" formatted="false">"رقم الصفحة"</string>
+    <string name="ui_paper" formatted="false">"الورق"</string>
+    <string name="ui_pdf_import_tools" formatted="false">"أدوات PDF والاستيراد"</string>
+    <string name="ui_play_sample" formatted="false">"تشغيل عينة"</string>
+    <string name="ui_plays_the_passage_sentence_by_sentence_with_the_same_role_detecti" formatted="false">"يشغّل المقطع جملة بجملة بنفس اكتشاف الأدوار والأصوات وقواعد النطق المستخدمة في القراءة."</string>
+    <string name="ui_portable_backup_actions" formatted="false">"إجراءات النسخ الاحتياطي القابل للنقل"</string>
+    <string name="ui_preparing_preview" formatted="false">"جارٍ إعداد المعاينة…"</string>
+    <string name="ui_preview_finished" formatted="false">"انتهت المعاينة"</string>
+    <string name="ui_preview_startup_motion" formatted="false">"معاينة حركة البدء"</string>
+    <string name="ui_preview_text" formatted="false">"نص المعاينة"</string>
+    <string name="ui_preview_voice" formatted="false">"معاينة الصوت"</string>
+    <string name="ui_prompt_template" formatted="false">"قالب التعليمات"</string>
+    <string name="ui_provider" formatted="false">"المزود"</string>
+    <string name="ui_punctuation" formatted="false">"علامات الترقيم"</string>
+    <string name="ui_pure_black_background_for_dark_themes_and_battery_saving" formatted="false">"خلفية سوداء خالصة للمظهر الداكن وتوفير البطارية"</string>
+    <string name="ui_quick_colours" formatted="false">"ألوان سريعة"</string>
+    <string name="ui_re2_regex_example_0_9_look_around_and_pattern_backreferences_are" formatted="false">"مثال RE2: \[([0-9]+)\]. لا تدعم المطابقة الاستباقية أو المراجع الخلفية في النمط. تُتجاهل المطابقات الفارغة."</string>
+    <string name="ui_read_listen_make_it_yours" formatted="false">"اقرأ. استمع.\nواجعله على طريقتك."</string>
+    <string name="ui_reader_typography_font_family" formatted="false">"تنسيق النص وعائلة الخط في القارئ"</string>
+    <string name="ui_reading_layout" formatted="false">"تخطيط القراءة"</string>
+    <string name="ui_ready_to_launch" formatted="false">"جاهز للفتح"</string>
+    <string name="ui_reduce_motion_is_on_startup_stays_still" formatted="false">"تقليل الحركة مفعّل. تبقى شاشة البدء ثابتة."</string>
+    <string name="ui_reduce_transparency_currently_keeps_controls_opaque" formatted="false">"يبقي تقليل الشفافية عناصر التحكم معتمة حاليًا."</string>
+    <string name="ui_refresh_meaning" formatted="false">"تحديث المعنى"</string>
+    <string name="ui_remove_character" formatted="false">"إزالة الشخصية"</string>
+    <string name="ui_reset_delivery" formatted="false">"إعادة ضبط الأداء"</string>
+    <string name="ui_reset_notes_preferences" formatted="false">"إعادة ضبط تفضيلات الملاحظات"</string>
+    <string name="ui_reset_notes_preferences_c9adb9e" formatted="false">"إعادة ضبط تفضيلات الملاحظات؟"</string>
+    <string name="ui_reset_preferences" formatted="false">"إعادة ضبط التفضيلات"</string>
+    <string name="ui_restore_the_default_layout_and_writing_preferences_your_notes_and" formatted="false">"استعد التخطيط وتفضيلات الكتابة الافتراضية. ستبقى ملاحظاتك ومرفقاتك كما هي."</string>
+    <string name="ui_rich_colors_from_your_selected_theme" formatted="false">"ألوان غنية من المظهر المحدد"</string>
+    <string name="ui_rules_apply_to_all_readings_and_audio_exports_within_each_spoken" formatted="false">"تطبق القواعد على كل مقطع في القراءة وتصدير الصوت. تفوز المطابقة الأسبق ثم الأطول، وعند التعادل تُختار القاعدة الأحدث حفظًا. يبقى نص الكتاب كما هو."</string>
+    <string name="ui_sample" formatted="false">"عينة"</string>
+    <string name="ui_save_ai_settings" formatted="false">"حفظ إعدادات الذكاء الاصطناعي"</string>
+    <string name="ui_save_an_example_or_create_your_own_above" formatted="false">"احفظ مثالًا أو أنشئ قاعدتك أعلاه."</string>
+    <string name="ui_save_rule" formatted="false">"حفظ القاعدة"</string>
+    <string name="ui_saved_rules" formatted="false">"القواعد المحفوظة"</string>
+    <string name="ui_say_instead" formatted="false">"النطق بدلًا منه"</string>
+    <string name="ui_search_voices" formatted="false">"البحث عن أصوات"</string>
+    <string name="ui_search_voices_or_languages" formatted="false">"البحث عن أصوات أو لغات…"</string>
+    <string name="ui_select_preferred_ai_app" formatted="false">"اختيار تطبيق الذكاء الاصطناعي المفضل"</string>
+    <string name="ui_selected_colour" formatted="false">"اللون المحدد"</string>
+    <string name="ui_shape_the_narrator_and_dialogue_voices_then_listen_before_applyin" formatted="false">"اضبط صوت الراوي والحوار، ثم استمع قبل التطبيق. تبقى سرعة قراءتك هي الأساس."</string>
+    <string name="ui_shape_your_reading_space_around_what_feels_good_to_you" formatted="false">"اضبط مساحة القراءة بما يناسب راحتك."</string>
+    <string name="ui_share_as_image" formatted="false">"المشاركة كصورة"</string>
+    <string name="ui_share_as_text" formatted="false">"المشاركة كنص"</string>
+    <string name="ui_share_text_settings_json" formatted="false">"مشاركة النص والإعدادات (.json)"</string>
+    <string name="ui_shown_on_a_fresh_launch_from_your_icon_returning_from_recents_doe" formatted="false">"تظهر عند فتح التطبيق من الأيقونة، ولا تتكرر عند العودة من التطبيقات الحديثة. تسري التغييرات بعد مغادرة Vern."</string>
+    <string name="ui_skip" formatted="false">"تخطي"</string>
+    <string name="ui_smart_cleanup_removes_original_files_of_fully_read_or_90_day_dorm" formatted="false">"يحذف التنظيف الذكي الملفات الأصلية للمستندات المقروءة بالكامل أو غير النشطة منذ أكثر من 90 يومًا، باستثناء المفضلة. يبقى النص والتقدم والملاحظات والتظليل محفوظًا."</string>
+    <string name="ui_speech_edits" formatted="false">"تعديلات النطق"</string>
+    <string name="ui_spoken_result" formatted="false">"النتيجة المنطوقة"</string>
+    <string name="ui_start_page" formatted="false">"صفحة البداية"</string>
+    <string name="ui_start_with_an_example" formatted="false">"البدء بمثال"</string>
+    <string name="ui_startup_animation" formatted="false">"حركة بدء التشغيل"</string>
+    <string name="ui_stop_preview" formatted="false">"إيقاف المعاينة"</string>
+    <string name="ui_stop_preview_e984397" formatted="false">"إيقاف المعاينة"</string>
+    <string name="ui_studio" formatted="false">"Studio"</string>
+    <string name="ui_study_focus" formatted="false">"تركيز الدراسة"</string>
+    <string name="ui_swipe_effect" formatted="false">"تأثير السحب"</string>
+    <string name="ui_syntax_guide" formatted="false">"دليل الصياغة"</string>
+    <string name="ui_system_tts_settings" formatted="false">"إعدادات تحويل النص إلى كلام للنظام"</string>
+    <string name="ui_tap_the_selected_preset_again_to_restore_your_previous_theme" formatted="false">"اضغط الإعداد المحدد مجددًا لاستعادة المظهر السابق."</string>
+    <string name="ui_tap_turn_on_unrestricted_and_choose_allow_on_the_prompt_or_select" formatted="false">"اضغط «تفعيل دون قيود» ثم «سماح»، أو اختر «البطارية» ثم «غير مقيد» في معلومات التطبيق."</string>
+    <string name="ui_temporary_cache_is_clean" formatted="false">"ذاكرة التخزين المؤقت نظيفة"</string>
+    <string name="ui_text_adjusts_to_contrast_with_your_colour" formatted="false">"يتكيف النص ليتباين مع لونك."</string>
+    <string name="ui_text_encoding" formatted="false">"ترميز النص"</string>
+    <string name="ui_text_illustrations_and_tables_use_the_selected_reading_layout" formatted="false">"تستخدم النصوص والرسوم والجداول تخطيط القراءة المحدد."</string>
+    <string name="ui_text_size_and_spacing_apply_only_while_writing_notes" formatted="false">"يطبق حجم النص وتباعده أثناء كتابة الملاحظات فقط."</string>
+    <string name="ui_the_quick_brown_fox_jumps_over" formatted="false">"يقفز الثعلب البني السريع"</string>
+    <string name="ui_theme_packs" formatted="false">"حزم المظهر"</string>
+    <string name="ui_theme_palette_sets" formatted="false">"مجموعات ألوان المظهر"</string>
+    <string name="ui_then" formatted="false">"ثم"</string>
+    <string name="ui_this_name_already_has_a_profile" formatted="false">"هذا الاسم له ملف بالفعل."</string>
+    <string name="ui_translucent_glass_with_curved_edges_for_navigation_player_and_flo" formatted="false">"زجاج شبه شفاف بحواف منحنية للتنقل والمشغل وأزرار الإضافة والملاحظة والاستيراد العائمة. يتضمن Liquid glass هذا المظهر."</string>
+    <string name="ui_try_a_passage" formatted="false">"تجربة مقطع"</string>
+    <string name="ui_try_your_rules" formatted="false">"تجربة قواعدك"</string>
+    <string name="ui_turn_off_the_app_s_tone_profile_speed_and_pitch_stay_as_selected" formatted="false">"أوقف ملف نبرة التطبيق. تبقى السرعة ودرجة الصوت كما حددتهما. يختلف دعم معادل Android حسب المحرك والجهاز."</string>
+    <string name="ui_turn_on_unrestricted" formatted="false">"تفعيل دون قيود"</string>
+    <string name="ui_typeface" formatted="false">"الخط"</string>
+    <string name="ui_ui_styling_shapes_and_surface_finish" formatted="false">"تنسيق الواجهة والأشكال ومظهر الأسطح"</string>
+    <string name="ui_ultra_fast_inference_at_console_groq_com" formatted="false">"استدلال فائق السرعة على console.groq.com."</string>
+    <string name="ui_unrestricted_battery_playback" formatted="false">"تشغيل دون قيود البطارية"</string>
+    <string name="ui_update_rule" formatted="false">"تحديث القاعدة"</string>
+    <string name="ui_use_a_regular_expression_for_advanced_matching" formatted="false">"استخدم تعبيرًا نمطيًا للمطابقة المتقدمة."</string>
+    <string name="ui_use_selected_voice" formatted="false">"استخدام الصوت المحدد"</string>
+    <string name="ui_use_selection_where_the_selected_text_should_appear" formatted="false">"استخدم {selection} حيث يجب أن يظهر النص المحدد"</string>
+    <string name="ui_use_system_default" formatted="false">"استخدام صوت النظام الافتراضي"</string>
+    <string name="ui_use_the_zip_backup_to_carry_notes_recordings_images_and_quiz_medi" formatted="false">"استخدم نسخة ZIP لنقل تسجيلات الملاحظات والصور ووسائط الاختبارات إلى جهاز آخر. يحتوي JSON على النص والإعدادات فقط. يدمج الاستيراد البيانات مع بياناتك الحالية."</string>
+    <string name="ui_use_theme_colours" formatted="false">"استخدام ألوان المظهر"</string>
+    <string name="ui_use_vern_lite" formatted="false">"استخدام Vern Lite"</string>
+    <string name="ui_use_vern_studio" formatted="false">"استخدام Vern Studio"</string>
+    <string name="ui_vern" formatted="false">"Vern"</string>
+    <string name="ui_vern_is_built_using_the_following_open_source_libraries_and_tools" formatted="false">"بُني Vern باستخدام المكتبات والأدوات المفتوحة المصدر التالية:"</string>
+    <string name="ui_vern_is_ready" formatted="false">"Vern جاهز"</string>
+    <string name="ui_vern_sync_backup_creates_portable_backup_files_containing_your_en" formatted="false">"ينشئ Vern نسخًا احتياطية قابلة للنقل تشمل مكتبتك وتقدم القراءة والبطاقات والملاحظات والإشارات المرجعية وقواعد النطق. يدمج الاستيراد البيانات دون حذف القراءات المحلية."</string>
+    <string name="ui_vern_voice_models" formatted="false">"نماذج أصوات Vern"</string>
+    <string name="ui_vibrant_hero_card" formatted="false">"بطاقة رئيسية زاهية"</string>
+    <string name="ui_voice_presets" formatted="false">"إعدادات صوت مسبقة"</string>
+    <string name="ui_voice_shaping" formatted="false">"تشكيل الصوت"</string>
+    <string name="ui_voices_and_delivery" formatted="false">"الأصوات والأداء"</string>
+    <string name="ui_working_on_backup_file" formatted="false">"جارٍ معالجة ملف النسخ الاحتياطي…"</string>
+    <string name="ui_your_books_your_notes_your_pace_a_quieter_place_to_read_listen_an" formatted="false">"كتبك وملاحظاتك ووتيرتك. مكان أهدأ للقراءة والاستماع واتباع فضولك."</string>
+    <string name="ui_your_library_stays_on_your_device_online_features_are_optional" formatted="false">"تبقى مكتبتك على جهازك. الميزات المتصلة بالإنترنت اختيارية."</string>
+    <string name="ui_your_saved_narration_settings_will_stay_as_they_are" formatted="false">"ستبقى إعدادات السرد المحفوظة كما هي."</string>
+</resources>

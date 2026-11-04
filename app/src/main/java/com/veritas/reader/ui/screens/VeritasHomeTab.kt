@@ -7,6 +7,13 @@ enum class VeritasHomeTab(val label: String) {
     NOTES("Notes"),
     STUDY("Study");
 
+    val labelResource: Int get() = when (this) {
+        HOME -> com.veritas.reader.R.string.ui_home
+        LIBRARY -> com.veritas.reader.R.string.ui_library
+        STUDY -> com.veritas.reader.R.string.ui_study
+        NOTES -> com.veritas.reader.R.string.ui_notes
+    }
+
     val pagerIndex: Int get() = orderedDestinations.indexOf(this)
 
     companion object {

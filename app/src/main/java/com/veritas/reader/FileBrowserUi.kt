@@ -237,12 +237,12 @@ internal fun FileBrowserDialog(
                         Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(onClick = { selectedFiles.clear() }) {
-                                    Icon(Icons.Filled.Close, "Clear selection", tint = MaterialTheme.colorScheme.primary)
+                                    Icon(Icons.Filled.Close, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear_selection), tint = MaterialTheme.colorScheme.primary)
                                 }
                                 Column(Modifier.weight(1f)) {
-                                    Text("${selectedFiles.size} selected", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                                    Text(if (allVisibleSelected) "All ${selectedTab.label} selected" else
-                                        "${files.count { vf -> selectedFiles.any { it.uri == vf.uri } }} of ${files.size} in ${selectedTab.label}",
+                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_020, com.veritas.reader.ui.screens.localizedUiValue(selectedFiles.size)), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                    Text(if (allVisibleSelected) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_021, com.veritas.reader.ui.screens.localizedUiValue(com.veritas.reader.ui.screens.localizedCatalogLabel(selectedTab.label))) else
+                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_022, com.veritas.reader.ui.screens.localizedUiValue(files.count { vf -> selectedFiles.any { it.uri == vf.uri } }), com.veritas.reader.ui.screens.localizedUiValue(files.size), com.veritas.reader.ui.screens.localizedUiValue(com.veritas.reader.ui.screens.localizedCatalogLabel(selectedTab.label))),
                                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 }
@@ -253,19 +253,19 @@ internal fun FileBrowserDialog(
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 TextButton(onClick = toggleSelectAllForActiveFilter, modifier = Modifier.weight(1f), enabled = !importing) {
-                                    Text(if (allVisibleSelected) "Deselect tab" else "Select tab (${files.size})",
+                                    Text(if (allVisibleSelected) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_deselect_tab) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_023, com.veritas.reader.ui.screens.localizedUiValue(files.size)),
                                         maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 }
                                 Button(onClick = {
                                     onImportMultipleFiles(VeritasFileBrowserScanner.deduplicateBrowserFiles(selectedFiles.toList()), false)
                                     selectedFiles.clear()
-                                }, enabled = !importing, shape = VeritasPackStyle.chipShape()) { Text("Import") }
+                                }, enabled = !importing, shape = VeritasPackStyle.chipShape()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import)) }
                                 Button(onClick = {
                                     onImportMultipleFiles(VeritasFileBrowserScanner.deduplicateBrowserFiles(selectedFiles.toList()), true)
                                     selectedFiles.clear()
                                 }, enabled = !importing, shape = VeritasPackStyle.chipShape(),
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary,
-                                        contentColor = MaterialTheme.colorScheme.onSecondary)) { Text("Queue") }
+                                        contentColor = MaterialTheme.colorScheme.onSecondary)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_queue)) }
                             }
                         }
                     } else {
@@ -292,23 +292,23 @@ internal fun FileBrowserDialog(
                                 ) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Back",
+                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back),
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Column {
                                     Text(
-                                        "File browser",
+                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_file_browser),
                                         style = MaterialTheme.typography.titleMedium,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         when {
-                                            allFilesAccessGranted -> "All Files access • ${location?.label ?: "Phone storage"}"
-                                            roots.isEmpty() -> "No folders approved"
+                                            allFilesAccessGranted -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_194, com.veritas.reader.ui.screens.localizedUiValue(location?.label ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_phone_storage)))
+                                            roots.isEmpty() -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_folders_approved)
                                             else -> location?.label
-                                                ?: "${roots.size} approved folder${if (roots.size == 1) "" else "s"}"
+                                                ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_195, com.veritas.reader.ui.screens.localizedUiValue(roots.size))
                                         },
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -324,7 +324,7 @@ internal fun FileBrowserDialog(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Filled.MoreVert,
-                                        contentDescription = "More options",
+                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_more_options_86c0a35),
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
@@ -332,7 +332,7 @@ internal fun FileBrowserDialog(
                                     expanded = showMoreMenu,
                                     onDismissRequest = { showMoreMenu = false }) {
                                     DropdownMenuItem(
-                                        text = { Text("Import with file picker") },
+                                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_with_file_picker)) },
                                         enabled = !importing,
                                         onClick = {
                                             showMoreMenu = false
@@ -340,7 +340,7 @@ internal fun FileBrowserDialog(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Go up") },
+                                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_go_up_25874ec)) },
                                         enabled = canGoUp,
                                         onClick = {
                                             showMoreMenu = false
@@ -348,7 +348,7 @@ internal fun FileBrowserDialog(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Refresh files") },
+                                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_refresh_files)) },
                                         enabled = (roots.isNotEmpty() || allFilesAccessGranted) && !scanning,
                                         onClick = {
                                             showMoreMenu = false
@@ -356,7 +356,7 @@ internal fun FileBrowserDialog(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text(if (allFilesAccessGranted) "All files access granted" else "Grant all files access") },
+                                        text = { Text(if (allFilesAccessGranted) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_all_files_access_granted) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_grant_all_files_access)) },
                                         enabled = !allFilesAccessGranted,
                                         onClick = {
                                             showMoreMenu = false
@@ -364,7 +364,7 @@ internal fun FileBrowserDialog(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Folders to scan") },
+                                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_folders_to_scan)) },
                                         onClick = {
                                             showMoreMenu = false
                                             onPickFolder()
@@ -374,14 +374,14 @@ internal fun FileBrowserDialog(
                                         feature = browserFeatures.requireResolvedFeature(
                                             VeritasFeatureId.FILE_BROWSER_SORTING
                                         ),
-                                        label = "Sort files",
+                                        label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_sort_files),
                                         onClick = {
                                             showMoreMenu = false
                                             showSortDialog = true
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Remove all files access") },
+                                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_all_files_access)) },
                                         enabled = roots.isNotEmpty(),
                                         onClick = {
                                             showMoreMenu = false
@@ -424,7 +424,7 @@ internal fun FileBrowserDialog(
                                 ) {
                                     if (query.isEmpty()) {
                                         Text(
-                                            text = "Search files...",
+                                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search_files),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                         )
@@ -494,7 +494,7 @@ internal fun FileBrowserDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "${visibleEntries.count { !it.isDirectory }} files, ${visibleEntries.count { it.isDirectory }} folders",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_024, com.veritas.reader.ui.screens.localizedUiValue(visibleEntries.count { !it.isDirectory }), com.veritas.reader.ui.screens.localizedUiValue(visibleEntries.count { it.isDirectory })),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.weight(1f)
@@ -521,7 +521,7 @@ internal fun FileBrowserDialog(
                             DropdownMenu(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
                                 VeritasBrowserSort.entries.forEach { mode ->
                                     DropdownMenuItem(
-                                        text = { Text("Sort by ${mode.label}") },
+                                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_025, com.veritas.reader.ui.screens.localizedUiValue(com.veritas.reader.ui.screens.localizedCatalogLabel(mode.label)))) },
                                         onClick = {
                                             sortMode = mode
                                             showSortMenu = false
@@ -529,7 +529,7 @@ internal fun FileBrowserDialog(
                                     )
                                 }
                                 DropdownMenuItem(
-                                    text = { Text(if (sortAscending) "Descending order" else "Ascending order") },
+                                    text = { Text(if (sortAscending) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_descending_order) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ascending_order)) },
                                     onClick = {
                                         sortAscending = !sortAscending
                                         showSortMenu = false
@@ -562,7 +562,7 @@ internal fun FileBrowserDialog(
                                 }
                                 HorizontalDivider()
                                 DropdownMenuItem(
-                                    text = { Text("Refresh files") },
+                                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_refresh_files)) },
                                     onClick = {
                                         onRefresh()
                                         showViewMenu = false
@@ -594,7 +594,7 @@ internal fun FileBrowserDialog(
                                 strokeWidth = 2.dp
                             )
                             Text(
-                                "Importing ${importingName.ifBlank { "selected file" }}",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_196, com.veritas.reader.ui.screens.localizedUiValue(importingName.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_selected_file) })),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -618,7 +618,7 @@ internal fun FileBrowserDialog(
                             ) {
                                 CircularProgressIndicator()
                                 Text(
-                                    "Opening folder.",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_opening_folder),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -629,7 +629,7 @@ internal fun FileBrowserDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "No files or folders match this view.",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_files_or_folders_match_this_view),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -643,7 +643,7 @@ internal fun FileBrowserDialog(
                         ) {
 
                             if (scanning) {
-                                item("scan-progress") { Text("Finding more files…", style = MaterialTheme.typography.labelSmall) }
+                                item("scan-progress") { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_finding_more_files), style = MaterialTheme.typography.labelSmall) }
                             }
 
                             if (files.isNotEmpty()) {
@@ -657,16 +657,16 @@ internal fun FileBrowserDialog(
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(
                                                 text = when (selectedTab) {
-                                                    VeritasBrowserTab.ALL -> "Files & Documents"
-                                                    VeritasBrowserTab.OCR -> "Photos & Images"
-                                                    else -> "${selectedTab.label} Documents"
+                                                    VeritasBrowserTab.ALL -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_files_documents)
+                                                    VeritasBrowserTab.OCR -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_photos_images)
+                                                    else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_026, com.veritas.reader.ui.screens.localizedUiValue(com.veritas.reader.ui.screens.localizedCatalogLabel(selectedTab.label)))
                                                 },
                                                 style = MaterialTheme.typography.titleMedium)
                                             Text(
                                                 text = when (selectedTab) {
-                                                    VeritasBrowserTab.ALL -> "Documents prioritized • Images at end"
-                                                    VeritasBrowserTab.OCR -> "Select images for text extraction (OCR)"
-                                                    else -> "${files.size} ${selectedTab.label} file${if (files.size == 1) "" else "s"}"
+                                                    VeritasBrowserTab.ALL -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_documents_prioritized_images_at_end)
+                                                    VeritasBrowserTab.OCR -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_select_images_for_text_extraction_ocr)
+                                                    else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_197, com.veritas.reader.ui.screens.localizedUiValue(com.veritas.reader.ui.screens.localizedCatalogLabel(selectedTab.label)), com.veritas.reader.ui.screens.localizedUiValue(files.size))
                                                 },
                                                 style = MaterialTheme.typography.labelSmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -693,7 +693,7 @@ internal fun FileBrowserDialog(
                                             )
                                             Spacer(modifier = Modifier.width(4.dp))
                                             Text(
-                                                text = if (allVisibleSelected) "Deselect ${selectedTab.label}" else "Select all ${selectedTab.label} (${files.size})",
+                                                text = if (allVisibleSelected) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_027, com.veritas.reader.ui.screens.localizedUiValue(com.veritas.reader.ui.screens.localizedCatalogLabel(selectedTab.label))) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_028, com.veritas.reader.ui.screens.localizedUiValue(com.veritas.reader.ui.screens.localizedCatalogLabel(selectedTab.label)), com.veritas.reader.ui.screens.localizedUiValue(files.size)),
                                                 style = MaterialTheme.typography.labelMedium)
                                         }
                                     }
@@ -756,7 +756,7 @@ internal fun FileBrowserDialog(
                             if (folders.isNotEmpty()) {
                                 item("folders-header") {
                                     Text(
-                                        "Folders",
+                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_folders),
                                         style = MaterialTheme.typography.titleMedium,
                                         modifier = Modifier.padding(top = 12.dp)
                                     )
@@ -827,7 +827,7 @@ internal fun FileBrowserDialog(
                 ) {
                     Icon(Icons.Outlined.Folder, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Browse storage")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_browse_storage))
                 }
                 if (showSortDialog) {
                     FileBrowserSortDialog(

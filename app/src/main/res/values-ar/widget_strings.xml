@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="l10n_widget_0" formatted="false">"مجموعات البطاقات"</string>
+    <string name="l10n_widget_1" formatted="false">"لا توجد بطاقات بعد 📚"</string>
+    <string name="l10n_widget_2" formatted="false">"أنشئ بطاقات أو استوردها في الدراسة"</string>
+    <string name="l10n_widget_3" formatted="false">"اختيار مجموعة بطاقات 📚"</string>
+    <string name="l10n_widget_4" formatted="false">"مراجعة ‹"</string>
+    <string name="l10n_widget_5" formatted="false">"مجموعات ›"</string>
+    <string name="l10n_widget_6" formatted="false">"لا توجد مراجعات مستحقة"</string>
+    <string name="l10n_widget_7" formatted="false">"لا توجد بطاقات مستحقة. اضغط للتدرب."</string>
+    <string name="l10n_widget_8" formatted="false">"الإجابة"</string>
+    <string name="l10n_widget_9" formatted="false">"السؤال"</string>
+    <string name="l10n_widget_10" formatted="false">"اضغط للقلب للخلف"</string>
+    <string name="l10n_widget_11" formatted="false">"السابق ›"</string>
+    <string name="l10n_widget_12" formatted="false">"عرض الإجابة"</string>
+    <string name="l10n_widget_13" formatted="false">"التالي ‹"</string>
+    <string name="l10n_widget_14" formatted="false">"جيد ✓"</string>
+    <string name="l10n_widget_15" formatted="false">"تخطي ‹"</string>
+    <string name="l10n_widget_16" formatted="false">"دوّن فكرة"</string>
+    <string name="l10n_widget_17" formatted="false">"قائمة تحقق جديدة"</string>
+    <string name="l10n_widget_18" formatted="false">"التقاط سريع"</string>
+    <string name="l10n_widget_19" formatted="false">"ملاحظة نصية"</string>
+    <string name="l10n_widget_20" formatted="false">"اقرأ الآن"</string>
+    <string name="l10n_widget_21" formatted="false">"الملاحظات والمهام"</string>
+    <string name="l10n_widget_22" formatted="false">"+ جديد"</string>
+    <string name="l10n_widget_23" formatted="false">"لا توجد ملاحظات · اضغط للإنشاء"</string>
+    <string name="l10n_widget_24" formatted="false">"متتبع القراءة"</string>
+    <string name="l10n_widget_25" formatted="false">"لا يوجد كتاب نشط · اضغط لفتح المكتبة"</string>
+    <string name="l10n_widget_26" formatted="false">"أيقونة الكتاب"</string>
+    <string name="l10n_widget_27" formatted="false">"القراءة هذا الأسبوع"</string>
+    <string name="l10n_widget_28" formatted="false">"الهدف اليومي"</string>
+    <string name="l10n_widget_29" formatted="false">"مستحق"</string>
+    <string name="l10n_widget_30" formatted="false">"التذكر"</string>
+    <string name="l10n_widget_31" formatted="false">"المجموعات"</string>
+    <string name="l10n_widget_32" formatted="false">"البطاقة التالية"</string>
+    <string name="l10n_widget_33" formatted="false">"أنجزت كل شيء!"</string>
+    <string name="l10n_widget_34" formatted="false">"الدراسة جاهزة"</string>
+    <string name="l10n_widget_35" formatted="false">"استورد بطاقات من الملاحظات أو طلبات الذكاء الاصطناعي"</string>
+    <string name="l10n_widget_36" formatted="false">"المجموعات النشطة"</string>
+    <string name="l10n_widget_37" formatted="false">"جارٍ إعداد القراءة. اضغط للإلغاء"</string>
+    <string name="l10n_widget_dynamic_0">"المجموعات: %1$s"</string>
+    <string name="l10n_widget_dynamic_1">"البطاقات: %1$s · المستحقة: %2$s"</string>
+    <string name="l10n_widget_dynamic_2">"+ %1$s أخرى في الدراسة ‹"</string>
+    <string name="l10n_widget_dynamic_3">"🔥 سلسلة %1$s يوم"</string>
+    <string name="l10n_widget_dynamic_4">"اكتمل %1$s%% · %2$s/%3$s د"</string>
+    <string name="l10n_widget_dynamic_5">"اكتمل %1$s%% · %2$s د اليوم"</string>
+    <string name="l10n_widget_dynamic_6">"الهدف اليومي: %1$s د"</string>
+    <string name="l10n_widget_dynamic_7">"%1$s%% (%2$s د)"</string>
+    <string name="l10n_widget_dynamic_8">"اليوم: %1$s د"</string>
+    <string name="l10n_widget_dynamic_9">"المتوسط: %1$s د/يوم"</string>
+    <string name="l10n_widget_dynamic_10">"الهدف: %1$s د/يوم"</string>
+    <string name="l10n_widget_dynamic_11">"%1$s د هذا الأسبوع"</string>
+    <string name="l10n_widget_dynamic_12">"%1$s / %2$s د (%3$s%%)"</string>
+    <string name="l10n_widget_dynamic_13">"🔥 سلسلة %1$s يوم"</string>
+    <string name="l10n_widget_dynamic_14">"البطاقات المستحقة: %1$s"</string>
+    <string name="l10n_widget_dynamic_15">"آخر تذكر ناجح: %1$s%% · المجموعات النشطة: %2$s"</string>
+    <string name="l10n_widget_dynamic_16">"ملاحظات الدراسة المحفوظة: %1$s"</string>
+    <string name="l10n_widget_dynamic_17">"رُوجعت كل البطاقات (%1$s) · واصل!"</string>
+    <string name="l10n_widget_dynamic_18">"البطاقات: %1$s · المستحقة: %2$s"</string>
+    <string name="l10n_widget_dynamic_19">"الهدف اليومي: %1$s د"</string>
+    <string name="l10n_widget_dynamic_20">"فتح %1$s"</string>
+</resources>

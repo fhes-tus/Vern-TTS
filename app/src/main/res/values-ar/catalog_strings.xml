@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="l10n_catalog_0" formatted="false">"الجملة الحالية"</string>
+    <string name="l10n_catalog_1" formatted="false">"الصفحة الحالية"</string>
+    <string name="l10n_catalog_2" formatted="false">"القسم الحالي"</string>
+    <string name="l10n_catalog_3" formatted="false">"المستند كله"</string>
+    <string name="l10n_catalog_4" formatted="false">"ملخص"</string>
+    <string name="l10n_catalog_5" formatted="false">"النقاط الأساسية"</string>
+    <string name="l10n_catalog_6" formatted="false">"شرح القسم الحالي"</string>
+    <string name="l10n_catalog_7" formatted="false">"ملاحظات الدراسة"</string>
+    <string name="l10n_catalog_8" formatted="false">"تبسيط"</string>
+    <string name="l10n_catalog_9" formatted="false">"قسمًا بقسم"</string>
+    <string name="l10n_catalog_10" formatted="false">"اختبار"</string>
+    <string name="l10n_catalog_11" formatted="false">"تعليمات مخصصة"</string>
+    <string name="l10n_catalog_12" formatted="false">"ترجمة القسم الحالي"</string>
+    <string name="l10n_catalog_13" formatted="false">"القسم الحالي بلغتين"</string>
+    <string name="l10n_catalog_14" formatted="false">"PPTX"</string>
+    <string name="l10n_catalog_15" formatted="false">"ويب"</string>
+    <string name="l10n_catalog_16" formatted="false">"TXT"</string>
+    <string name="l10n_catalog_17" formatted="false">"OCR"</string>
+    <string name="l10n_catalog_18" formatted="false">"اسم الملف"</string>
+    <string name="l10n_catalog_19" formatted="false">"التاريخ والوقت"</string>
+    <string name="l10n_catalog_20" formatted="false">"الحجم"</string>
+    <string name="l10n_catalog_21" formatted="false">"المسار"</string>
+    <string name="l10n_catalog_22" formatted="false">"إيقاف التشغيل مؤقتًا"</string>
+    <string name="l10n_catalog_23" formatted="false">"إيقاف التشغيل"</string>
+    <string name="l10n_catalog_24" formatted="false">"أيقونات متوسطة"</string>
+    <string name="l10n_catalog_25" formatted="false">"أيقونات صغيرة"</string>
+    <string name="l10n_catalog_26" formatted="false">"مربعات"</string>
+    <string name="l10n_catalog_27" formatted="false">"الاختيار كل مرة"</string>
+    <string name="l10n_catalog_28" formatted="false">"الاختيار عند المشاركة"</string>
+</resources>

@@ -93,7 +93,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Reading Tracker",
+                        text = widgetString(R.string.l10n_widget_24),
                         style = TextStyle(
                             fontSize = if (isWide) 16.sp else 14.sp,
                             fontWeight = FontWeight.Bold,
@@ -110,7 +110,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "🔥 ${tracker.currentStreak}d Streak",
+                            text = widgetString(R.string.l10n_widget_dynamic_3, widgetValue(tracker.currentStreak)),
                             style = TextStyle(
                                 fontSize = if (isWide) 12.sp else 10.sp,
                                 fontWeight = FontWeight.Bold,
@@ -134,7 +134,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No active book • Tap to open library",
+                            text = widgetString(R.string.l10n_widget_25),
                             style = TextStyle(
                                 fontSize = if (isWide) 13.sp else 11.sp,
                                 color = VeritasWidgetColors.textMuted
@@ -173,7 +173,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                             if (bitmap != null) {
                                 Image(
                                     provider = ImageProvider(bitmap),
-                                    contentDescription = "Cover",
+                                    contentDescription = widgetString(R.string.l10n_cover),
                                     modifier = GlanceModifier.size(coverWidth, coverHeight).cornerRadius(10.dp)
                                 )
                             } else {
@@ -186,7 +186,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                 ) {
                                     Image(
                                         provider = ImageProvider(R.drawable.ic_widget_library),
-                                        contentDescription = "Book icon",
+                                        contentDescription = widgetString(R.string.l10n_widget_26),
                                         modifier = GlanceModifier.size(if (isCompact) 20.dp else 24.dp),
                                         colorFilter = ColorFilter.tint(ColorProvider(Color.White))
                                     )
@@ -208,9 +208,9 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                 Spacer(modifier = GlanceModifier.height(2.dp))
                                 Text(
                                     text = if (hasGoal) {
-                                        "$progressPercent% complete • $todayMinutes/${dailyGoalMinutes}m goal"
+                                        widgetString(R.string.l10n_widget_dynamic_4, widgetValue(progressPercent), widgetValue(todayMinutes), widgetValue(dailyGoalMinutes))
                                     } else {
-                                        "$progressPercent% complete • $todayMinutes min today"
+                                        widgetString(R.string.l10n_widget_dynamic_5, widgetValue(progressPercent), widgetValue(todayMinutes))
                                     },
                                     style = TextStyle(
                                         fontSize = if (isWide) 12.sp else 11.sp,
@@ -238,7 +238,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Resume",
+                                    text = widgetString(R.string.ui_resume),
                                     style = TextStyle(
                                         fontSize = if (isWide) 13.sp else 11.sp,
                                         fontWeight = FontWeight.Bold,
@@ -259,7 +259,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "Daily Goal: ${dailyGoalMinutes} min",
+                                        text = widgetString(R.string.l10n_widget_dynamic_6, widgetValue(dailyGoalMinutes)),
                                         style = TextStyle(
                                             fontSize = 11.sp,
                                             color = VeritasWidgetColors.textMuted
@@ -267,7 +267,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                         modifier = GlanceModifier.defaultWeight()
                                     )
                                     Text(
-                                        text = "${(goalProgress * 100).toInt()}% ($todayMinutes min)",
+                                        text = widgetString(R.string.l10n_widget_dynamic_7, widgetValue((goalProgress * 100).toInt()), widgetValue(todayMinutes)),
                                         style = TextStyle(
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
@@ -296,7 +296,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                         .padding(horizontal = 8.dp, vertical = 6.dp)
                                 ) {
                                     Text(
-                                        text = "Today: $todayMinutes min",
+                                        text = widgetString(R.string.l10n_widget_dynamic_8, widgetValue(todayMinutes)),
                                         style = TextStyle(
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Medium,
@@ -314,7 +314,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                 ) {
                                     val weeklyAvgMin = (tracker.weeklyReadingMillis / 7L / 60000L).coerceAtLeast(0L)
                                     Text(
-                                        text = "Avg: $weeklyAvgMin min/d",
+                                        text = widgetString(R.string.l10n_widget_dynamic_9, widgetValue(weeklyAvgMin)),
                                         style = TextStyle(
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Medium,
@@ -335,7 +335,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Reading this week",
+                                text = widgetString(R.string.l10n_widget_27),
                                 style = TextStyle(
                                     fontSize = if (isWide) 13.sp else 11.sp,
                                     fontWeight = FontWeight.Bold,
@@ -345,7 +345,7 @@ class ReadingProgressWidget : GlanceAppWidget() {
                             )
                             val totalWeeklyMin = weeklyReadingByDay.sum() / 60000L
                             Text(
-                                text = if (hasGoal) "Goal: ${dailyGoalMinutes}m/d" else "$totalWeeklyMin min this week",
+                                text = if (hasGoal) widgetString(R.string.l10n_widget_dynamic_10, widgetValue(dailyGoalMinutes)) else widgetString(R.string.l10n_widget_dynamic_11, widgetValue(totalWeeklyMin)),
                                 style = TextStyle(
                                     fontSize = 11.sp,
                                     color = if (hasGoal) VeritasWidgetColors.primaryAccent else VeritasWidgetColors.secondaryAccent,
@@ -417,12 +417,12 @@ class ReadingProgressWidget : GlanceAppWidget() {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Daily Goal",
+                                    text = widgetString(R.string.l10n_widget_28),
                                     style = TextStyle(fontSize = 11.sp, color = VeritasWidgetColors.textMuted),
                                     modifier = GlanceModifier.defaultWeight()
                                 )
                                 Text(
-                                    text = "$todayMinutes / ${dailyGoalMinutes} min (${(goalProgress * 100).toInt()}%)",
+                                    text = widgetString(R.string.l10n_widget_dynamic_12, widgetValue(todayMinutes), widgetValue(dailyGoalMinutes), widgetValue((goalProgress * 100).toInt())),
                                     style = TextStyle(
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="reading_minutes">
+        <item quantity="zero">"%1$d دقيقة"</item>
+        <item quantity="one">"دقيقة واحدة"</item>
+        <item quantity="two">"دقيقتان"</item>
+        <item quantity="few">"%1$d دقائق"</item>
+        <item quantity="many">"%1$d دقيقة"</item>
+        <item quantity="other">"%1$d دقيقة"</item>
+    </plurals>
+    <plurals name="reading_minutes_daily">
+        <item quantity="zero">"دون هدف يومي"</item>
+        <item quantity="one">"دقيقة واحدة يوميًا"</item>
+        <item quantity="two">"دقيقتان يوميًا"</item>
+        <item quantity="few">"%1$d دقائق يوميًا"</item>
+        <item quantity="many">"%1$d دقيقة يوميًا"</item>
+        <item quantity="other">"%1$d دقيقة يوميًا"</item>
+    </plurals>
+    <plurals name="reading_minutes_to_goal">
+        <item quantity="zero">"تم تحقيق الهدف"</item>
+        <item quantity="one">"دقيقة واحدة حتى هدفك"</item>
+        <item quantity="two">"دقيقتان حتى هدفك"</item>
+        <item quantity="few">"%1$d دقائق حتى هدفك"</item>
+        <item quantity="many">"%1$d دقيقة حتى هدفك"</item>
+        <item quantity="other">"%1$d دقيقة حتى هدفك"</item>
+    </plurals>
+    <plurals name="reading_days">
+        <item quantity="zero">"%1$d أيام"</item>
+        <item quantity="one">"يوم واحد"</item>
+        <item quantity="two">"يومان"</item>
+        <item quantity="few">"%1$d أيام"</item>
+        <item quantity="many">"%1$d يومًا"</item>
+        <item quantity="other">"%1$d يوم"</item>
+    </plurals>
+    <plurals name="reading_days_this_week">
+        <item quantity="zero">"لا قراءة هذا الأسبوع"</item>
+        <item quantity="one">"يوم قراءة واحد هذا الأسبوع"</item>
+        <item quantity="two">"يوما قراءة هذا الأسبوع"</item>
+        <item quantity="few">"%1$d أيام قراءة هذا الأسبوع"</item>
+        <item quantity="many">"%1$d يوم قراءة هذا الأسبوع"</item>
+        <item quantity="other">"%1$d يوم قراءة هذا الأسبوع"</item>
+    </plurals>
+</resources>

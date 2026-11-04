@@ -105,18 +105,18 @@ fun OnboardingQuestChecklist(
                 ) {
                     Icon(
                         imageVector = Icons.Default.EmojiEvents,
-                        contentDescription = "Quests",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_quests),
                         tint = if (progress == 1f) Color(0xFFFFD700) else MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                     Column {
                         Text(
-                            text = if (progress == 1f) "All Quests Complete! 🎉" else "Onboarding Quests",
+                            text = if (progress == 1f) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_all_quests_complete) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_onboarding_quests),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "$completedCount of 4 missions completed",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_126, com.veritas.reader.ui.screens.localizedUiValue(completedCount)),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -134,7 +134,7 @@ fun OnboardingQuestChecklist(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Cancel Quests",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel_quests),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -150,7 +150,7 @@ fun OnboardingQuestChecklist(
                     ) {
                         Icon(
                             imageVector = if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                            contentDescription = if (isExpanded) "Collapse" else "Expand",
+                            contentDescription = if (isExpanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -176,22 +176,22 @@ fun OnboardingQuestChecklist(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 QuestItemRow(
-                    title = "Take the guided tour",
+                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_take_the_guided_tour),
                     desc = "Learn the layout of the app with our quick guide.",
                     done = questTourDone
                 )
                 QuestItemRow(
-                    title = "Import your first reading",
+                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_import_your_first_reading),
                     desc = "Add any PDF, EPUB, docx, or link using the + button.",
                     done = questImportDone
                 )
                 QuestItemRow(
-                    title = "Tune voice speed or pitch",
+                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_tune_voice_speed_or_pitch),
                     desc = "Adjust playback parameters in the playback studio.",
                     done = questSpeedDone
                 )
                 QuestItemRow(
-                    title = "Bookmark a sentence",
+                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_bookmark_a_sentence),
                     desc = "Long press text in the reader to save a bookmark.",
                     done = questBookmarkDone
                 )
@@ -208,12 +208,12 @@ fun OnboardingQuestChecklist(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Explore,
-                        contentDescription = "Guided Tour",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_guided_tour),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (questTourDone) "Restart Guided Tour" else "Start Guided Tour",
+                        text = if (questTourDone) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_restart_guided_tour) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_guided_tour),
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
@@ -237,7 +237,7 @@ fun QuestItemRow(
     ) {
         Icon(
             imageVector = if (done) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-            contentDescription = if (done) "Completed" else "Incomplete",
+            contentDescription = if (done) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_completed) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_incomplete),
             tint = if (done) Color(0xFF2196F3) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier
                 .padding(top = 2.dp)

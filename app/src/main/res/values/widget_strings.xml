@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="l10n_widget_0" formatted="false">"Flashcard Sets"</string>
+    <string name="l10n_widget_1" formatted="false">"No flashcards yet 📚"</string>
+    <string name="l10n_widget_2" formatted="false">"Create or import cards in Study Hub"</string>
+    <string name="l10n_widget_3" formatted="false">"Select Flashcard Set 📚"</string>
+    <string name="l10n_widget_4" formatted="false">"Review ›"</string>
+    <string name="l10n_widget_5" formatted="false">"‹ Sets"</string>
+    <string name="l10n_widget_6" formatted="false">"No reviews due"</string>
+    <string name="l10n_widget_7" formatted="false">"No cards due. Tap to practise this deck."</string>
+    <string name="l10n_widget_8" formatted="false">"ANSWER"</string>
+    <string name="l10n_widget_9" formatted="false">"QUESTION"</string>
+    <string name="l10n_widget_10" formatted="false">"Tap to flip back"</string>
+    <string name="l10n_widget_11" formatted="false">"‹ Prev"</string>
+    <string name="l10n_widget_12" formatted="false">"Flip to Answer"</string>
+    <string name="l10n_widget_13" formatted="false">"Next ›"</string>
+    <string name="l10n_widget_14" formatted="false">"Good ✓"</string>
+    <string name="l10n_widget_15" formatted="false">"Skip ›"</string>
+    <string name="l10n_widget_16" formatted="false">"Capture a thought"</string>
+    <string name="l10n_widget_17" formatted="false">"New checklist"</string>
+    <string name="l10n_widget_18" formatted="false">"Quick Capture"</string>
+    <string name="l10n_widget_19" formatted="false">"Text Note"</string>
+    <string name="l10n_widget_20" formatted="false">"Read Now"</string>
+    <string name="l10n_widget_21" formatted="false">"Notes &amp; Tasks"</string>
+    <string name="l10n_widget_22" formatted="false">"+ New"</string>
+    <string name="l10n_widget_23" formatted="false">"No notes yet • Tap to create"</string>
+    <string name="l10n_widget_24" formatted="false">"Reading Tracker"</string>
+    <string name="l10n_widget_25" formatted="false">"No active book • Tap to open library"</string>
+    <string name="l10n_widget_26" formatted="false">"Book icon"</string>
+    <string name="l10n_widget_27" formatted="false">"Reading this week"</string>
+    <string name="l10n_widget_28" formatted="false">"Daily Goal"</string>
+    <string name="l10n_widget_29" formatted="false">"Due"</string>
+    <string name="l10n_widget_30" formatted="false">"Recall"</string>
+    <string name="l10n_widget_31" formatted="false">"Decks"</string>
+    <string name="l10n_widget_32" formatted="false">"NEXT CARD"</string>
+    <string name="l10n_widget_33" formatted="false">"All Caught Up!"</string>
+    <string name="l10n_widget_34" formatted="false">"Study Hub Ready"</string>
+    <string name="l10n_widget_35" formatted="false">"Import cards from reading notes or AI prompts"</string>
+    <string name="l10n_widget_36" formatted="false">"Active Decks"</string>
+    <string name="l10n_widget_37" formatted="false">"Preparing reading. Tap to cancel"</string>
+    <string name="l10n_widget_dynamic_0">"%1$s sets"</string>
+    <string name="l10n_widget_dynamic_1">"Cards: %1$s · Due: %2$s"</string>
+    <string name="l10n_widget_dynamic_2">"+%1$s more in Study Hub ›"</string>
+    <string name="l10n_widget_dynamic_3">"🔥 %1$sd Streak"</string>
+    <string name="l10n_widget_dynamic_4">"%1$s%% complete • %2$s/%3$sm goal"</string>
+    <string name="l10n_widget_dynamic_5">"%1$s%% complete • %2$s min today"</string>
+    <string name="l10n_widget_dynamic_6">"Daily Goal: %1$s min"</string>
+    <string name="l10n_widget_dynamic_7">"%1$s%% (%2$s min)"</string>
+    <string name="l10n_widget_dynamic_8">"Today: %1$s min"</string>
+    <string name="l10n_widget_dynamic_9">"Avg: %1$s min/d"</string>
+    <string name="l10n_widget_dynamic_10">"Goal: %1$sm/d"</string>
+    <string name="l10n_widget_dynamic_11">"%1$s min this week"</string>
+    <string name="l10n_widget_dynamic_12">"%1$s / %2$s min (%3$s%%)"</string>
+    <string name="l10n_widget_dynamic_13">"🔥 %1$sd Streak"</string>
+    <string name="l10n_widget_dynamic_14">"%1$s Cards Due"</string>
+    <string name="l10n_widget_dynamic_15">"Last successful recall: %1$s%% · Active decks: %2$s"</string>
+    <string name="l10n_widget_dynamic_16">"%1$s study notes saved"</string>
+    <string name="l10n_widget_dynamic_17">"All %1$s cards reviewed • Keep it up!"</string>
+    <string name="l10n_widget_dynamic_18">"Cards: %1$s · Due: %2$s"</string>
+    <string name="l10n_widget_dynamic_19">"Daily Goal: %1$s min"</string>
+    <string name="l10n_widget_dynamic_20">"Open %1$s"</string>
+</resources>

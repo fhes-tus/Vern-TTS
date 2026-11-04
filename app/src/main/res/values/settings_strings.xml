@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_clean_repeated_headers_and_footers" formatted="false">"Clean repeated headers and footers"</string>
+    <string name="settings_remove_page_numbers" formatted="false">"Remove page numbers"</string>
+    <string name="settings_repair_hyphenated_line_breaks" formatted="false">"Repair hyphenated line breaks"</string>
+    <string name="settings_include_page_markers" formatted="false">"Include page markers"</string>
+    <string name="settings_match_original_layout_where_possible" formatted="false">"Match original layout where possible"</string>
+    <string name="settings_remove_top_page_noise" formatted="false">"Remove top page noise"</string>
+    <string name="settings_remove_bottom_page_noise" formatted="false">"Remove bottom page noise"</string>
+    <string name="settings_manual_crop_before_extract" formatted="false">"Manual crop before extract"</string>
+    <string name="settings_separate_words_when_font_changes" formatted="false">"Separate words when font changes"</string>
+    <string name="settings_prefer_ocr_when_pdf_text_is_weak" formatted="false">"Prefer OCR when PDF text is weak"</string>
+    <string name="settings_force_ocr_for_pdf_import" formatted="false">"Force OCR for PDF import"</string>
+    <string name="settings_force_fresh_extraction" formatted="false">"Force fresh extraction"</string>
+    <string name="settings_saved_readings" formatted="false">"Saved Readings"</string>
+    <string name="settings_bookmarks_notes" formatted="false">"Bookmarks &amp; Notes"</string>
+    <string name="settings_reading_queue" formatted="false">"Reading Queue"</string>
+    <string name="settings_pronunciation_rules" formatted="false">"Pronunciation Rules"</string>
+    <string name="settings_flashcards_decks_progress" formatted="false">"Flashcards, Decks &amp; Progress"</string>
+    <string name="settings_included" formatted="false">"Included"</string>
+    <string name="settings_reading_streaks_history" formatted="false">"Reading Streaks &amp; History"</string>
+    <string name="settings_voice_reader_settings" formatted="false">"Voice &amp; Reader Settings"</string>
+    <string name="settings_reading_focus" formatted="false">"Reading &amp; focus"</string>
+    <string name="settings_collapsible_reader_bars" formatted="false">"Collapsible reader bars"</string>
+    <string name="settings_tap_the_page_to_hide_or_show_reader_controls" formatted="false">"Tap the page to hide or show reader controls."</string>
+    <string name="settings_bionic_reading" formatted="false">"Bionic reading"</string>
+    <string name="settings_emphasise_the_first_letters_of_each_word" formatted="false">"Emphasise the first letters of each word."</string>
+    <string name="settings_section_labels" formatted="false">"Section labels"</string>
+    <string name="settings_show_section_numbers_for_easier_study_and_search" formatted="false">"Show section numbers for easier study and search."</string>
+    <string name="settings_motion_clarity" formatted="false">"Motion &amp; clarity"</string>
+    <string name="settings_reduce_motion" formatted="false">"Reduce motion"</string>
+    <string name="settings_keep_decorative_animations_still" formatted="false">"Keep decorative animations still."</string>
+    <string name="settings_reduce_transparency" formatted="false">"Reduce transparency"</string>
+    <string name="settings_use_solid_panels_for_clearer_text_and_controls" formatted="false">"Use solid panels for clearer text and controls."</string>
+    <string name="settings_amoled" formatted="false">"AMOLED"</string>
+    <string name="settings_daily_rhythm" formatted="false">"Daily rhythm"</string>
+    <string name="settings_a_small_target_to_help_make_reading_a_habit" formatted="false">"A small target to help make reading a habit."</string>
+    <string name="settings_streak_reminder" formatted="false">"Streak reminder"</string>
+    <string name="settings_an_evening_nudge_when_your_goal_is_at_risk" formatted="false">"An evening nudge when your goal is at risk."</string>
+    <string name="settings_shake_to_extend_timer" formatted="false">"Shake to extend timer"</string>
+    <string name="settings_shake_in_the_final_minute_to_add_ten_minutes" formatted="false">"Shake in the final minute to add ten minutes."</string>
+    <string name="settings_adaptive_cover_theme" formatted="false">"Adaptive cover theme"</string>
+    <string name="settings_let_your_current_book_colour_the_reading_space" formatted="false">"Let your current book colour the reading space."</string>
+    <string name="settings_navigation_labels" formatted="false">"Navigation labels"</string>
+    <string name="settings_show_names_beneath_navigation_icons" formatted="false">"Show names beneath navigation icons."</string>
+    <string name="settings_bloom" formatted="false">"Bloom"</string>
+    <string name="settings_fade" formatted="false">"Fade"</string>
+    <string name="settings_rise" formatted="false">"Rise"</string>
+    <string name="settings_narration_studio" formatted="false">"Narration studio"</string>
+    <string name="settings_use_role_specific_pacing_and_pitch" formatted="false">"Use role-specific pacing and pitch"</string>
+    <string name="settings_detect_dialogue" formatted="false">"Detect dialogue"</string>
+    <string name="settings_recognize_quoted_speech_and_speech_tags" formatted="false">"Recognize quoted speech and speech tags"</string>
+    <string name="settings_character_voices" formatted="false">"Character voices"</string>
+    <string name="settings_mix_installed_system_lite_and_studio_voices_in_one_cast" formatted="false">"Mix installed system, Lite and Studio voices in one cast"</string>
+    <string name="settings_dialogue_badges" formatted="false">"Dialogue badges"</string>
+    <string name="settings_identify_the_current_role_in_the_reader" formatted="false">"Identify the current role in the reader"</string>
+    <string name="settings_express_punctuation" formatted="false">"Express punctuation"</string>
+    <string name="settings_neural_voices_already_interpret_punctuation_naturally" formatted="false">"Neural voices already interpret punctuation naturally"</string>
+    <string name="settings_gentle_pacing_cues_natural_voice_intonation" formatted="false">"Gentle pacing cues; natural voice intonation"</string>
+    <string name="settings_notes_page" formatted="false">"Notes page"</string>
+    <string name="settings_display_rich_link_previews" formatted="false">"Display rich link previews"</string>
+    <string name="settings_show_website_cards_in_notes_and_on_the_notes_page" formatted="false">"Show website cards in notes and on the Notes page"</string>
+    <string name="settings_layout" formatted="false">"Layout"</string>
+    <string name="settings_grid" formatted="false">"Grid"</string>
+    <string name="settings_list" formatted="false">"List"</string>
+    <string name="settings_last_edited" formatted="false">"Last edited"</string>
+    <string name="settings_newest" formatted="false">"Newest"</string>
+    <string name="settings_text_previews" formatted="false">"Text previews"</string>
+    <string name="settings_hidden" formatted="false">"Hidden"</string>
+    <string name="settings_short" formatted="false">"Short"</string>
+    <string name="settings_standard" formatted="false">"Standard"</string>
+    <string name="settings_long" formatted="false">"Long"</string>
+    <string name="settings_attachment_thumbnails" formatted="false">"Attachment thumbnails"</string>
+    <string name="settings_show_images_and_video_previews_on_note_cards" formatted="false">"Show images and video previews on note cards"</string>
+    <string name="settings_attachment_badges" formatted="false">"Attachment badges"</string>
+    <string name="settings_show_the_kinds_of_media_in_each_note" formatted="false">"Show the kinds of media in each note"</string>
+    <string name="settings_book_sources" formatted="false">"Book sources"</string>
+    <string name="settings_show_the_book_linked_to_a_reading_note" formatted="false">"Show the book linked to a reading note"</string>
+    <string name="settings_voice_waveforms" formatted="false">"Voice waveforms"</string>
+    <string name="settings_show_the_waveform_beside_a_voice_memo" formatted="false">"Show the waveform beside a voice memo"</string>
+    <string name="settings_writing" formatted="false">"Writing"</string>
+    <string name="settings_new_notes" formatted="false">"New notes"</string>
+    <string name="settings_small" formatted="false">"Small"</string>
+    <string name="settings_large" formatted="false">"Large"</string>
+    <string name="settings_larger" formatted="false">"Larger"</string>
+    <string name="settings_relaxed" formatted="false">"Relaxed"</string>
+    <string name="settings_wide" formatted="false">"Wide"</string>
+    <string name="settings_checklists" formatted="false">"Checklists"</string>
+    <string name="settings_completed_items_at_the_bottom" formatted="false">"Completed items at the bottom"</string>
+    <string name="settings_move_an_item_down_when_you_check_it" formatted="false">"Move an item down when you check it"</string>
+    <string name="settings_add_new_items_at_the_top" formatted="false">"Add new items at the top"</string>
+    <string name="settings_start_a_new_item_above_the_existing_list" formatted="false">"Start a new item above the existing list"</string>
+    <string name="settings_saving_backup" formatted="false">"Saving &amp; backup"</string>
+    <string name="settings_display_theme" formatted="false">"Display &amp; theme"</string>
+    <string name="settings_page_swipe" formatted="false">"Page swipe"</string>
+    <string name="settings_vertical_scroll" formatted="false">"Vertical scroll"</string>
+    <string name="settings_slide" formatted="false">"Slide"</string>
+    <string name="settings_page_curl" formatted="false">"Page curl"</string>
+    <string name="settings_light_flip" formatted="false">"Light flip"</string>
+    <string name="settings_swipe" formatted="false">"Swipe"</string>
+    <string name="settings_scroll" formatted="false">"Scroll"</string>
+    <string name="settings_pronunciation_rules_bf2c874" formatted="false">"Pronunciation rules"</string>
+    <string name="settings_voice_and_language" formatted="false">"Voice and language"</string>
+</resources>

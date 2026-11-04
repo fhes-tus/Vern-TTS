@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_cancel" formatted="false">"रद्द करें"</string>
+    <string name="action_clear" formatted="false">"साफ़ करें"</string>
+    <string name="action_delete" formatted="false">"हटाएँ"</string>
+    <string name="app_language" formatted="false">"ऐप की भाषा"</string>
+    <string name="crash_dialog_dismiss" formatted="false">"बंद करें"</string>
+    <string name="greeting_afternoon" formatted="false">"नमस्कार"</string>
+    <string name="greeting_evening" formatted="false">"शुभ संध्या"</string>
+    <string name="greeting_morning" formatted="false">"सुप्रभात"</string>
+    <string name="greeting_named">"%1$s, %2$s"</string>
+    <string name="greeting_new_day" formatted="false">"नए दिन में आपका स्वागत है"</string>
+    <string name="greeting_night" formatted="false">"शुभ रात्रि"</string>
+    <string name="greeting_rise" formatted="false">"उठें और नई शुरुआत करें"</string>
+    <string name="greeting_see_you" formatted="false">"आपसे मिलकर अच्छा लगा"</string>
+    <string name="greeting_welcome" formatted="false">"फिर स्वागत है"</string>
+    <string name="language_apply" formatted="false">"लागू करें"</string>
+    <string name="language_explanation" formatted="false">"मेन्यू और नियंत्रणों की भाषा चुनें।"</string>
+    <string name="language_follow_device" formatted="false">"डिवाइस की भाषा उपयोग करें"</string>
+    <string name="language_preview" formatted="false">"पूर्वावलोकन अनुवाद"</string>
+    <string name="language_preview_notice" formatted="false">"पूर्वावलोकन अनुवादों में अंग्रेज़ी पाठ हो सकता है। पुस्तकों और वाचन की आवाज़ों की भाषा अलग रहती है।"</string>
+    <string name="library_resume_progress">"वाक्य %1$d / %2$d · %3$d%% पढ़ा"</string>
+    <string name="reading_goal_target">"लक्ष्य: %1$s"</string>
+    <string name="reading_less_than_minute" formatted="false">"एक मिनट से कम"</string>
+    <string name="reading_next_statistic" formatted="false">"अगला पठन आँकड़ा"</string>
+    <string name="reading_previous_statistic" formatted="false">"पिछला पठन आँकड़ा"</string>
+    <string name="reading_statistic_position">"आँकड़ा %1$d / %2$d"</string>
+    <string name="reminder_exact_allow" formatted="false">"सेटिंग खोलें"</string>
+    <string name="reminder_exact_later" formatted="false">"अभी नहीं"</string>
+    <string name="ui_0_day_streak" formatted="false">"0 दिनों का सिलसिला"</string>
+    <string name="ui_a_new_classic_every_monday" formatted="false">"हर सोमवार नई क्लासिक पुस्तक"</string>
+    <string name="ui_about" formatted="false">"परिचय"</string>
+    <string name="ui_accessibility" formatted="false">"सुलभता"</string>
+    <string name="ui_add" formatted="false">"जोड़ें"</string>
+    <string name="ui_add_a_book_document_or_article_to_read_and_listen_at_your_own_pac" formatted="false">"अपनी गति से पढ़ने और सुनने के लिए पुस्तक, दस्तावेज़ या लेख जोड़ें।"</string>
+    <string name="ui_add_a_book_or_document" formatted="false">"पुस्तक या दस्तावेज़ जोड़ें"</string>
+    <string name="ui_add_bookmark" formatted="false">"बुकमार्क जोड़ें"</string>
+    <string name="ui_add_content" formatted="false">"सामग्री जोड़ें"</string>
+    <string name="ui_add_note" formatted="false">"नोट जोड़ें"</string>
+    <string name="ui_add_to_list" formatted="false">"सूची में जोड़ें"</string>
+    <string name="ui_add_to_queue_69b498d" formatted="false">"कतार में जोड़ें"</string>
+    <string name="ui_add_to_vocabulary" formatted="false">"शब्दावली में जोड़ें"</string>
+    <string name="ui_add_your_first_read" formatted="false">"अपना पहला पाठ जोड़ें"</string>
+    <string name="ui_added" formatted="false">"जोड़ी गई"</string>
+    <string name="ui_again" formatted="false">"दोबारा"</string>
+    <string name="ui_ai_app_handoff_flashcards_quizzes" formatted="false">"एआई ऐप, फ़्लैशकार्ड और क्विज़"</string>
+    <string name="ui_ai_language" formatted="false">"एआई और भाषा"</string>
+    <string name="ui_ai_study_mode" formatted="false">"एआई और अध्ययन मोड"</string>
+    <string name="ui_all" formatted="false">"सभी"</string>
+    <string name="ui_all_books" formatted="false">"सभी पुस्तकें"</string>
+    <string name="ui_all_documents" formatted="false">"सभी दस्तावेज़"</string>
+    <string name="ui_answer" formatted="false">"उत्तर"</string>
+    <string name="ui_appearance" formatted="false">"दिखावट"</string>
+    <string name="ui_apply" formatted="false">"लागू करें"</string>
+    <string name="ui_ask_ai" formatted="false">"एआई से पूछें"</string>
+    <string name="ui_author" formatted="false">"लेखक"</string>
+    <string name="ui_back" formatted="false">"वापस"</string>
+    <string name="ui_background_playback" formatted="false">"बैकग्राउंड में वाचन"</string>
+    <string name="ui_backup" formatted="false">"बैकअप"</string>
+    <string name="ui_battery_exemption_enabled_tap_to_manage" formatted="false">"बैटरी छूट चालू · प्रबंधित करें"</string>
+    <string name="ui_battery_optimized_tap_to_manage" formatted="false">"बैटरी अनुकूलित · प्रबंधित करें"</string>
+    <string name="ui_book_of_the_week" formatted="false">"सप्ताह की पुस्तक"</string>
+    <string name="ui_bookmark" formatted="false">"बुकमार्क"</string>
+    <string name="ui_bookmarks" formatted="false">"बुकमार्क"</string>
+    <string name="ui_cancel" formatted="false">"रद्द करें"</string>
+    <string name="ui_check_for_the_latest_vern_version" formatted="false">"Vern का नवीनतम संस्करण देखें"</string>
+    <string name="ui_check_for_updates" formatted="false">"अपडेट देखें"</string>
+    <string name="ui_checklist" formatted="false">"चेकलिस्ट"</string>
+    <string name="ui_choose_a_target_or_track_your_reading_without_one" formatted="false">"लक्ष्य चुनें या बिना लक्ष्य अपना पठन दर्ज करें।"</string>
+    <string name="ui_choose_assistant_selected_text_prompt" formatted="false">"सहायक और चुने पाठ का निर्देश चुनें"</string>
+    <string name="ui_choose_voice" formatted="false">"आवाज़ चुनें"</string>
+    <string name="ui_classics" formatted="false">"क्लासिक पुस्तकें"</string>
+    <string name="ui_clear" formatted="false">"साफ़ करें"</string>
+    <string name="ui_clear_cache" formatted="false">"कैश साफ़ करें"</string>
+    <string name="ui_close" formatted="false">"बंद करें"</string>
+    <string name="ui_collection" formatted="false">"संग्रह"</string>
+    <string name="ui_collections" formatted="false">"संग्रह"</string>
+    <string name="ui_confirm" formatted="false">"पुष्टि करें"</string>
+    <string name="ui_contents" formatted="false">"विषय सूची"</string>
+    <string name="ui_continue" formatted="false">"जारी रखें"</string>
+    <string name="ui_continue_reading" formatted="false">"पढ़ना जारी रखें"</string>
+    <string name="ui_copy" formatted="false">"कॉपी करें"</string>
+    <string name="ui_copy_text" formatted="false">"पाठ कॉपी करें"</string>
+    <string name="ui_create_backup" formatted="false">"बैकअप बनाएँ"</string>
+    <string name="ui_create_flashcard" formatted="false">"फ़्लैशकार्ड बनाएँ"</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"सूचियाँ बनाएँ और सहेजे पाठ जोड़ें"</string>
+    <string name="ui_customization" formatted="false">"अनुकूलन"</string>
+    <string name="ui_daily_goal" formatted="false">"रोज़ का लक्ष्य"</string>
+    <string name="ui_daily_goal_reached" formatted="false">"रोज़ का लक्ष्य पूरा हुआ"</string>
+    <string name="ui_daily_reading_goal" formatted="false">"रोज़ का पठन लक्ष्य"</string>
+    <string name="ui_dark" formatted="false">"गहरा"</string>
+    <string name="ui_data_backup" formatted="false">"डेटा और बैकअप"</string>
+    <string name="ui_days_with_reading" formatted="false">"पढ़ने वाले दिन"</string>
+    <string name="ui_default" formatted="false">"डिफ़ॉल्ट"</string>
+    <string name="ui_defaults_ocr_fallback_page_cleanup" formatted="false">"डिफ़ॉल्ट, पाठ पहचान और पृष्ठ सफ़ाई"</string>
+    <string name="ui_definition" formatted="false">"परिभाषा"</string>
+    <string name="ui_delete" formatted="false">"हटाएँ"</string>
+    <string name="ui_delete_note" formatted="false">"नोट हटाएँ"</string>
+    <string name="ui_delete_permanently_e63b515" formatted="false">"स्थायी रूप से हटाएँ"</string>
+    <string name="ui_description" formatted="false">"विवरण"</string>
+    <string name="ui_deselect_all" formatted="false">"सभी चयन हटाएँ"</string>
+    <string name="ui_details" formatted="false">"विवरण"</string>
+    <string name="ui_dictionary" formatted="false">"शब्दकोश"</string>
+    <string name="ui_discard" formatted="false">"छोड़ दें"</string>
+    <string name="ui_discard_changes" formatted="false">"बदलाव छोड़ दें"</string>
+    <string name="ui_dismiss" formatted="false">"बंद करें"</string>
+    <string name="ui_dismiss_continue_reading" formatted="false">"जारी पठन हटाएँ"</string>
+    <string name="ui_dismiss_tour" formatted="false">"टूर बंद करें"</string>
+    <string name="ui_display_theme" formatted="false">"डिस्प्ले थीम"</string>
+    <string name="ui_done" formatted="false">"हो गया"</string>
+    <string name="ui_download" formatted="false">"डाउनलोड करें"</string>
+    <string name="ui_downloaded" formatted="false">"डाउनलोड की गई"</string>
+    <string name="ui_easy" formatted="false">"आसान"</string>
+    <string name="ui_edit" formatted="false">"बदलें"</string>
+    <string name="ui_edit_extracted_text" formatted="false">"निकाला गया पाठ बदलें"</string>
+    <string name="ui_edit_goal" formatted="false">"लक्ष्य बदलें"</string>
+    <string name="ui_edit_note" formatted="false">"नोट बदलें"</string>
+    <string name="ui_error" formatted="false">"त्रुटि"</string>
+    <string name="ui_exit_full_screen" formatted="false">"पूर्ण स्क्रीन से बाहर आएँ"</string>
+    <string name="ui_export" formatted="false">"निर्यात करें"</string>
+    <string name="ui_export_audio" formatted="false">"ऑडियो निर्यात करें"</string>
+    <string name="ui_favorites" formatted="false">"पसंदीदा"</string>
+    <string name="ui_favourites" formatted="false">"पसंदीदा"</string>
+    <string name="ui_file_browser" formatted="false">"फ़ाइल ब्राउज़र"</string>
+    <string name="ui_filter" formatted="false">"फ़िल्टर"</string>
+    <string name="ui_filters" formatted="false">"फ़िल्टर"</string>
+    <string name="ui_finish" formatted="false">"पूरा करें"</string>
+    <string name="ui_finished" formatted="false">"पूरी हुई"</string>
+    <string name="ui_first_day_of_reading" formatted="false">"पढ़ने का पहला दिन"</string>
+    <string name="ui_flashcards" formatted="false">"फ़्लैशकार्ड"</string>
+    <string name="ui_font" formatted="false">"फ़ॉन्ट"</string>
+    <string name="ui_font_size" formatted="false">"फ़ॉन्ट का आकार"</string>
+    <string name="ui_free_up_space" formatted="false">"जगह खाली करें"</string>
+    <string name="ui_full_screen" formatted="false">"पूर्ण स्क्रीन"</string>
+    <string name="ui_go_to_page" formatted="false">"पृष्ठ पर जाएँ"</string>
+    <string name="ui_good" formatted="false">"अच्छा"</string>
+    <string name="ui_hard" formatted="false">"कठिन"</string>
+    <string name="ui_help" formatted="false">"मदद"</string>
+    <string name="ui_highlight" formatted="false">"हाइलाइट करें"</string>
+    <string name="ui_highlights" formatted="false">"हाइलाइट"</string>
+    <string name="ui_home" formatted="false">"होम"</string>
+    <string name="ui_icon_colours_startup_motion_funky_cards" formatted="false">"आइकन के रंग, आरंभिक एनिमेशन और Funky कार्ड"</string>
+    <string name="ui_import" formatted="false">"आयात करें"</string>
+    <string name="ui_import_defaults" formatted="false">"आयात के डिफ़ॉल्ट"</string>
+    <string name="ui_import_settings" formatted="false">"आयात सेटिंग"</string>
+    <string name="ui_installed" formatted="false">"स्थापित"</string>
+    <string name="ui_interactive_guide_to_vern_features" formatted="false">"Vern की सुविधाओं की इंटरैक्टिव मार्गदर्शिका"</string>
+    <string name="ui_language" formatted="false">"भाषा"</string>
+    <string name="ui_learn_about_vern_through_guided_actions" formatted="false">"निर्देशित चरणों से Vern सीखें"</string>
+    <string name="ui_learn_more" formatted="false">"और जानें"</string>
+    <string name="ui_library" formatted="false">"लाइब्रेरी"</string>
+    <string name="ui_light" formatted="false">"हल्का"</string>
+    <string name="ui_line_spacing" formatted="false">"पंक्ति अंतर"</string>
+    <string name="ui_listen" formatted="false">"सुनें"</string>
+    <string name="ui_listening" formatted="false">"श्रवण"</string>
+    <string name="ui_listening_time" formatted="false">"सुनने का समय"</string>
+    <string name="ui_loading" formatted="false">"लोड हो रहा है…"</string>
+    <string name="ui_loading_8f26c65" formatted="false">"लोड हो रहा है"</string>
+    <string name="ui_manage_voices" formatted="false">"आवाज़ें प्रबंधित करें"</string>
+    <string name="ui_measuring" formatted="false">"मापा जा रहा है…"</string>
+    <string name="ui_menu" formatted="false">"मेन्यू"</string>
+    <string name="ui_minutes" formatted="false">"मिनट"</string>
+    <string name="ui_minutes_by_day" formatted="false">"प्रतिदिन मिनट"</string>
+    <string name="ui_more" formatted="false">"और"</string>
+    <string name="ui_more_options_86c0a35" formatted="false">"और विकल्प"</string>
+    <string name="ui_move_down_260ff8a" formatted="false">"नीचे ले जाएँ"</string>
+    <string name="ui_move_up_b4f57cd" formatted="false">"ऊपर ले जाएँ"</string>
+    <string name="ui_my_library" formatted="false">"मेरी लाइब्रेरी"</string>
+    <string name="ui_name" formatted="false">"नाम"</string>
+    <string name="ui_narration_studio" formatted="false">"वाचन स्टूडियो"</string>
+    <string name="ui_narrator_dialogue_delivery_controls" formatted="false">"वाचक और संवाद की प्रस्तुति"</string>
+    <string name="ui_new_list" formatted="false">"नई सूची"</string>
+    <string name="ui_new_note" formatted="false">"नया नोट"</string>
+    <string name="ui_newest_first" formatted="false">"सबसे नई पहले"</string>
+    <string name="ui_next" formatted="false">"अगला"</string>
+    <string name="ui_next_page_4bfc194" formatted="false">"अगला पृष्ठ"</string>
+    <string name="ui_next_sentence" formatted="false">"अगला वाक्य"</string>
+    <string name="ui_no" formatted="false">"नहीं"</string>
+    <string name="ui_no_bookmarks_yet" formatted="false">"अभी कोई बुकमार्क नहीं"</string>
+    <string name="ui_no_books_yet" formatted="false">"अभी कोई पुस्तक नहीं"</string>
+    <string name="ui_no_daily_target" formatted="false">"रोज़ का लक्ष्य नहीं"</string>
+    <string name="ui_no_goal" formatted="false">"कोई लक्ष्य नहीं"</string>
+    <string name="ui_no_highlights_yet" formatted="false">"अभी कोई हाइलाइट नहीं"</string>
+    <string name="ui_no_notes_yet" formatted="false">"अभी कोई नोट नहीं"</string>
+    <string name="ui_no_results" formatted="false">"कोई परिणाम नहीं"</string>
+    <string name="ui_no_results_found" formatted="false">"कोई परिणाम नहीं मिला"</string>
+    <string name="ui_none" formatted="false">"कोई नहीं"</string>
+    <string name="ui_not_now_e457149" formatted="false">"अभी नहीं"</string>
+    <string name="ui_note" formatted="false">"नोट"</string>
+    <string name="ui_notebook" formatted="false">"नोटबुक"</string>
+    <string name="ui_notebooks" formatted="false">"नोटबुक"</string>
+    <string name="ui_notes" formatted="false">"नोट्स"</string>
+    <string name="ui_notes_annotations" formatted="false">"नोट्स और टिप्पणियाँ"</string>
+    <string name="ui_offline" formatted="false">"ऑफ़लाइन"</string>
+    <string name="ui_ok" formatted="false">"ठीक है"</string>
+    <string name="ui_oldest_first" formatted="false">"सबसे पुरानी पहले"</string>
+    <string name="ui_online_c3e839d" formatted="false">"ऑनलाइन"</string>
+    <string name="ui_open" formatted="false">"खोलें"</string>
+    <string name="ui_open_a_file_to_start_reading" formatted="false">"पढ़ना शुरू करने के लिए फ़ाइल खोलें"</string>
+    <string name="ui_open_book" formatted="false">"पुस्तक खोलें"</string>
+    <string name="ui_open_file" formatted="false">"फ़ाइल खोलें"</string>
+    <string name="ui_open_settings" formatted="false">"सेटिंग खोलें"</string>
+    <string name="ui_open_text_editor_to_correct_text" formatted="false">"पाठ सुधारने के लिए संपादक खोलें"</string>
+    <string name="ui_original" formatted="false">"मूल"</string>
+    <string name="ui_page" formatted="false">"पृष्ठ"</string>
+    <string name="ui_paste" formatted="false">"पेस्ट करें"</string>
+    <string name="ui_paste_text_or_url" formatted="false">"पाठ या URL पेस्ट करें"</string>
+    <string name="ui_pause" formatted="false">"रोकें"</string>
+    <string name="ui_pause_or_stop_reading_after_chosen_time" formatted="false">"चुने समय के बाद वाचन रोकें"</string>
+    <string name="ui_pause_reading" formatted="false">"पढ़ना विराम दें"</string>
+    <string name="ui_pdf_and_import_tools" formatted="false">"PDF और आयात उपकरण"</string>
+    <string name="ui_pick_a_document_from_your_library_to_begin" formatted="false">"शुरू करने के लिए लाइब्रेरी से दस्तावेज़ चुनें।"</string>
+    <string name="ui_pick_up_where_you_left_off" formatted="false">"जहाँ छोड़ा था वहीं से जारी रखें"</string>
+    <string name="ui_pin" formatted="false">"पिन करें"</string>
+    <string name="ui_pitch" formatted="false">"पिच"</string>
+    <string name="ui_play" formatted="false">"चलाएँ"</string>
+    <string name="ui_play_preview" formatted="false">"नमूना सुनें"</string>
+    <string name="ui_playback" formatted="false">"वाचन"</string>
+    <string name="ui_preview" formatted="false">"पूर्वावलोकन"</string>
+    <string name="ui_preview_book" formatted="false">"पुस्तक का पूर्वावलोकन"</string>
+    <string name="ui_previous" formatted="false">"पिछला"</string>
+    <string name="ui_previous_page_81f5471" formatted="false">"पिछला पृष्ठ"</string>
+    <string name="ui_previous_sentence" formatted="false">"पिछला वाक्य"</string>
+    <string name="ui_print" formatted="false">"प्रिंट करें"</string>
+    <string name="ui_progress" formatted="false">"प्रगति"</string>
+    <string name="ui_pronunciation" formatted="false">"उच्चारण"</string>
+    <string name="ui_question" formatted="false">"प्रश्न"</string>
+    <string name="ui_queue" formatted="false">"कतार"</string>
+    <string name="ui_quizzes" formatted="false">"क्विज़"</string>
+    <string name="ui_read" formatted="false">"पढ़ें"</string>
+    <string name="ui_read_at_your_own_pace" formatted="false">"अपनी गति से पढ़ें"</string>
+    <string name="ui_reading" formatted="false">"पठन"</string>
+    <string name="ui_reading_goal" formatted="false">"पठन लक्ष्य"</string>
+    <string name="ui_reading_goal_reduce_motion_contrast" formatted="false">"पढ़ने का लक्ष्य, कम एनिमेशन और कंट्रास्ट"</string>
+    <string name="ui_reading_insights_32f8941" formatted="false">"पठन आँकड़े"</string>
+    <string name="ui_reading_list" formatted="false">"पठन सूची"</string>
+    <string name="ui_reading_lists" formatted="false">"पठन सूचियाँ"</string>
+    <string name="ui_reading_overview" formatted="false">"पठन का अवलोकन"</string>
+    <string name="ui_reading_time" formatted="false">"पढ़ने का समय"</string>
+    <string name="ui_ready" formatted="false">"तैयार"</string>
+    <string name="ui_ready_to_begin" formatted="false">"शुरू करने के लिए तैयार"</string>
+    <string name="ui_recent_books" formatted="false">"हाल की पुस्तकें"</string>
+    <string name="ui_recently_read" formatted="false">"हाल में पढ़ी"</string>
+    <string name="ui_record_sound_file" formatted="false">"ऑडियो फ़ाइल बनाएँ"</string>
+    <string name="ui_recorded_reading_time" formatted="false">"दर्ज किया गया पठन समय"</string>
+    <string name="ui_refresh" formatted="false">"रिफ़्रेश करें"</string>
+    <string name="ui_remove" formatted="false">"निकालें"</string>
+    <string name="ui_remove_from_queue_3d2dc52" formatted="false">"कतार से हटाएँ"</string>
+    <string name="ui_rename" formatted="false">"नाम बदलें"</string>
+    <string name="ui_render_current_reading_into_audio_file" formatted="false">"वर्तमान पाठ की ऑडियो फ़ाइल बनाएँ"</string>
+    <string name="ui_reset" formatted="false">"रीसेट करें"</string>
+    <string name="ui_reset_to_defaults" formatted="false">"डिफ़ॉल्ट पर रीसेट करें"</string>
+    <string name="ui_restore" formatted="false">"वापस लाएँ"</string>
+    <string name="ui_restore_backup" formatted="false">"बैकअप बहाल करें"</string>
+    <string name="ui_resume_reading" formatted="false">"पढ़ना जारी रखें"</string>
+    <string name="ui_retry" formatted="false">"फिर कोशिश करें"</string>
+    <string name="ui_review" formatted="false">"दोहराएँ"</string>
+    <string name="ui_save" formatted="false">"सहेजें"</string>
+    <string name="ui_save_changes" formatted="false">"बदलाव सहेजें"</string>
+    <string name="ui_scan_approved_folders_import_local_files" formatted="false">"अनुमत फ़ोल्डर देखें और फ़ाइल आयात करें"</string>
+    <string name="ui_search" formatted="false">"खोजें"</string>
+    <string name="ui_search_books" formatted="false">"पुस्तकें खोजें"</string>
+    <string name="ui_search_f54fbca" formatted="false">"खोजें…"</string>
+    <string name="ui_search_in_book" formatted="false">"पुस्तक में खोजें"</string>
+    <string name="ui_search_notes" formatted="false">"नोट्स खोजें"</string>
+    <string name="ui_see_all" formatted="false">"सभी देखें →"</string>
+    <string name="ui_see_what_vern_is_using_free_up_space" formatted="false">"Vern का उपयोग देखें और जगह खाली करें"</string>
+    <string name="ui_select" formatted="false">"चुनें"</string>
+    <string name="ui_select_all" formatted="false">"सभी चुनें"</string>
+    <string name="ui_select_text" formatted="false">"पाठ चुनें"</string>
+    <string name="ui_select_voice" formatted="false">"आवाज़ चुनें"</string>
+    <string name="ui_selected" formatted="false">"चुना गया"</string>
+    <string name="ui_set_a_daily_reading_goal" formatted="false">"रोज़ का पठन लक्ष्य तय करें"</string>
+    <string name="ui_set_a_goal" formatted="false">"लक्ष्य तय करें"</string>
+    <string name="ui_settings" formatted="false">"सेटिंग"</string>
+    <string name="ui_share" formatted="false">"साझा करें"</string>
+    <string name="ui_show_answer" formatted="false">"उत्तर दिखाएँ"</string>
+    <string name="ui_sleep_timer" formatted="false">"स्लीप टाइमर"</string>
+    <string name="ui_sort_by" formatted="false">"इसके अनुसार क्रम"</string>
+    <string name="ui_speed" formatted="false">"गति"</string>
+    <string name="ui_start_reading" formatted="false">"पढ़ना शुरू करें"</string>
+    <string name="ui_start_review" formatted="false">"दोहराना शुरू करें"</string>
+    <string name="ui_stop" formatted="false">"बंद करें"</string>
+    <string name="ui_stop_reading" formatted="false">"पढ़ना रोकें"</string>
+    <string name="ui_storage" formatted="false">"स्टोरेज"</string>
+    <string name="ui_study" formatted="false">"अध्ययन"</string>
+    <string name="ui_study_hub" formatted="false">"अध्ययन केंद्र"</string>
+    <string name="ui_switch_to_grid_view" formatted="false">"ग्रिड दृश्य चुनें"</string>
+    <string name="ui_switch_to_list_view" formatted="false">"सूची दृश्य चुनें"</string>
+    <string name="ui_sync_backup_center" formatted="false">"सिंक और बैकअप केंद्र"</string>
+    <string name="ui_sync_backup_library_flashcards_notes_and_progress" formatted="false">"लाइब्रेरी, फ़्लैशकार्ड, नोट्स और प्रगति का बैकअप व सिंक"</string>
+    <string name="ui_system" formatted="false">"सिस्टम"</string>
+    <string name="ui_system_default" formatted="false">"सिस्टम डिफ़ॉल्ट"</string>
+    <string name="ui_system_default_voice" formatted="false">"सिस्टम की डिफ़ॉल्ट आवाज़"</string>
+    <string name="ui_table_of_contents_1a42898" formatted="false">"विषय सूची"</string>
+    <string name="ui_text" formatted="false">"पाठ"</string>
+    <string name="ui_text_size" formatted="false">"पाठ का आकार"</string>
+    <string name="ui_theme_packs_colours_page_navigation" formatted="false">"थीम, रंग और पृष्ठ नेविगेशन"</string>
+    <string name="ui_this_month" formatted="false">"इस महीने"</string>
+    <string name="ui_this_week" formatted="false">"इस सप्ताह"</string>
+    <string name="ui_title" formatted="false">"शीर्षक"</string>
+    <string name="ui_to_your_target" formatted="false">"लक्ष्य तक"</string>
+    <string name="ui_today" formatted="false">"आज"</string>
+    <string name="ui_today_s_reading" formatted="false">"आज का पठन"</string>
+    <string name="ui_today_s_target_complete" formatted="false">"आज का लक्ष्य पूरा हुआ"</string>
+    <string name="ui_total_since_monday" formatted="false">"सोमवार से कुल"</string>
+    <string name="ui_translate" formatted="false">"अनुवाद करें"</string>
+    <string name="ui_trash" formatted="false">"ट्रैश"</string>
+    <string name="ui_try_again" formatted="false">"फिर कोशिश करें"</string>
+    <string name="ui_tts_engine_installed_voices_pitch_presets" formatted="false">"वाक् इंजन, स्थापित आवाज़ें और पिच"</string>
+    <string name="ui_tutorial" formatted="false">"ट्यूटोरियल"</string>
+    <string name="ui_unfinished" formatted="false">"अधूरी"</string>
+    <string name="ui_unpin" formatted="false">"पिन हटाएँ"</string>
+    <string name="ui_use_selected_voice_95565c4" formatted="false">"चुनी आवाज़ उपयोग करें"</string>
+    <string name="ui_user_manual" formatted="false">"उपयोगकर्ता मार्गदर्शिका"</string>
+    <string name="ui_version_developer_contact_social_links_feedback" formatted="false">"संस्करण, डेवलपर संपर्क, लिंक और प्रतिक्रिया"</string>
+    <string name="ui_view_all" formatted="false">"सभी देखें"</string>
+    <string name="ui_view_insights" formatted="false">"आँकड़े देखें →"</string>
+    <string name="ui_vocabulary" formatted="false">"शब्दावली"</string>
+    <string name="ui_voice_3091c84" formatted="false">"आवाज़"</string>
+    <string name="ui_voice_audio" formatted="false">"आवाज़ और ऑडियो"</string>
+    <string name="ui_voice_studio" formatted="false">"वॉइस स्टूडियो"</string>
+    <string name="ui_voices" formatted="false">"आवाज़ें"</string>
+    <string name="ui_volume" formatted="false">"आवाज़ का स्तर"</string>
+    <string name="ui_weekly_reading" formatted="false">"साप्ताहिक पठन"</string>
+    <string name="ui_with_recorded_reading" formatted="false">"दर्ज पठन के साथ"</string>
+    <string name="ui_word_replacements_before_playback" formatted="false">"वाचन से पहले शब्द बदलें"</string>
+    <string name="ui_write_note_96dcbf1" formatted="false">"नोट लिखें"</string>
+    <string name="ui_yes" formatted="false">"हाँ"</string>
+    <string name="ui_yesterday" formatted="false">"कल"</string>
+    <string name="ui_your_next_read_starts_here" formatted="false">"आपका अगला पठन यहाँ से शुरू होता है"</string>
+    <string name="ui_your_reading_today" formatted="false">"आज आपका पठन"</string>
+    <string name="widget_ready" formatted="false">"तैयार"</string>
+</resources>

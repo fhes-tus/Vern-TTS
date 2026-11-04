@@ -3,7 +3,14 @@ package com.veritas.reader.ui.screens
 /** Prefetched pages keep their content ready without running offscreen decoration. */
 internal val LocalLibraryPageVisible = androidx.compose.runtime.staticCompositionLocalOf { true }
 
-enum class LibrarySection(val label: String) { MY_LIBRARY("Added"), CLASSICS("Classics") }
+enum class LibrarySection(val label: String) {
+    MY_LIBRARY("Added"), CLASSICS("Classics");
+
+    val labelResource: Int get() = when (this) {
+        MY_LIBRARY -> com.veritas.reader.R.string.ui_added
+        CLASSICS -> com.veritas.reader.R.string.ui_classics
+    }
+}
 internal val LibraryTabProgress = androidx.compose.ui.semantics.SemanticsPropertyKey<Float>("LibraryTabProgress")
 
 /** Library's two pages swipe before advancing to the next main destination. */

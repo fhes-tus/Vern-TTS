@@ -131,7 +131,7 @@ internal fun StudyEmptyState(
                     Text(primaryActionLabel)
                 }
                 OutlinedButton(onClick = onGoToLibrary) {
-                    Text("Go to Library")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_go_to_library))
                 }
             }
         }
@@ -232,8 +232,8 @@ internal fun FlashcardSetTile(
     if (showDeleteDeckConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteDeckConfirm = false },
-            title = { Text("Delete Flashcard Deck?") },
-            text = { Text("Are you sure you want to delete \"${set.name}\" and all of its ${set.cards.size} cards? This action cannot be undone.") },
+            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_flashcard_deck)) },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_091, com.veritas.reader.ui.screens.localizedUiValue(set.name), com.veritas.reader.ui.screens.localizedUiValue(set.cards.size))) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -242,11 +242,11 @@ internal fun FlashcardSetTile(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Delete")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDeckConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDeckConfirm = false }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
             }
         )
     }
@@ -277,11 +277,11 @@ internal fun FlashcardSetTile(
                 Spacer(modifier = Modifier.weight(1f))
                 Box {
                     IconButton(onClick = { menuOpen = true }, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Set options", modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.MoreVert, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_set_options), modifier = Modifier.size(18.dp))
                     }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                        DropdownMenuItem(text = { Text("Rename") }, onClick = { menuOpen = false; onRename() })
-                        DropdownMenuItem(text = { Text("Delete set") }, onClick = { menuOpen = false; showDeleteDeckConfirm = true })
+                        DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rename)) }, onClick = { menuOpen = false; onRename() })
+                        DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_set)) }, onClick = { menuOpen = false; showDeleteDeckConfirm = true })
                     }
                 }
             }
@@ -296,7 +296,7 @@ internal fun FlashcardSetTile(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                "${set.cards.size} card${if (set.cards.size == 1) "" else "s"}",
+                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_207, com.veritas.reader.ui.screens.localizedUiValue(set.cards.size)),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -411,8 +411,8 @@ internal fun FlashcardViewerDialog(
     if (showDeleteCardConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteCardConfirm = false },
-            title = { Text("Delete Flashcard?") },
-            text = { Text("Are you sure you want to delete this card? This action cannot be undone.") },
+            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_flashcard)) },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_are_you_sure_you_want_to_delete_this_card_this_action_cannot_be_u)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -425,11 +425,11 @@ internal fun FlashcardViewerDialog(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Delete")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteCardConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteCardConfirm = false }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
             }
         )
     }
@@ -445,7 +445,7 @@ internal fun FlashcardViewerDialog(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-                    TextButton(onClick = onDismiss) { Text("Exit card") }
+                    TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_exit_card)) }
                 }
 
                 // Card is centered with 3D flip rotation effect & smooth swipe gestures
@@ -542,7 +542,7 @@ internal fun FlashcardViewerDialog(
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 ) {
                                     Text(
-                                        text = if (isShowingBack) "ANSWER · TAP TO FLIP" else "QUESTION · TAP TO FLIP",
+                                        text = if (isShowingBack) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_answer_tap_to_flip_4a50b8b) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_question_tap_to_flip_f976bc1),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = if (isShowingBack) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -572,7 +572,7 @@ internal fun FlashcardViewerDialog(
                             ) {
                                 Icon(
                                     Icons.Default.Delete,
-                                    contentDescription = "Delete this card",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_this_card),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -581,7 +581,7 @@ internal fun FlashcardViewerDialog(
                             // Flip affordance icon
                             Icon(
                                 Icons.Filled.Autorenew,
-                                contentDescription = "Tap card to flip",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tap_card_to_flip),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
                                 modifier = Modifier.align(Alignment.BottomEnd).size(22.dp)
                             )
@@ -590,14 +590,14 @@ internal fun FlashcardViewerDialog(
                 }
 
                 Text(
-                    "Swipe ← / → to move • Swipe ↑ to skip • Tap to flip",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_swipe_to_move_swipe_to_skip_tap_to_flip),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
                     modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp, bottom = 4.dp)
                 )
 
                 Text(
-                    "Rate your recall (Spaced Repetition)",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rate_your_recall_spaced_repetition),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 8.dp)
@@ -650,15 +650,15 @@ internal fun FlashcardViewerDialog(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     IconButton(onClick = { if (!isSwipingOut) goTo(safeIndex - 1) }, enabled = !isSwipingOut && safeIndex > 0) {
-                        Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous card")
+                        Icon(Icons.Filled.ChevronLeft, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_card))
                     }
                     Text(
-                        "${safeIndex + 1} of ${order.size}",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_092, com.veritas.reader.ui.screens.localizedUiValue(safeIndex + 1), com.veritas.reader.ui.screens.localizedUiValue(order.size)),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     IconButton(onClick = { if (!isSwipingOut) goTo(safeIndex + 1) }, enabled = !isSwipingOut && safeIndex < order.lastIndex) {
-                        Icon(Icons.Filled.ChevronRight, contentDescription = "Next card")
+                        Icon(Icons.Filled.ChevronRight, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_card))
                     }
                 }
             }
@@ -682,16 +682,16 @@ internal fun StudyDailyReviewHeroCard(
         border = VeritasPackStyle.cardBorder(colors)
     ) {
         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Your next review", style = MaterialTheme.typography.labelLarge, color = colors.onSurfaceVariant)
-            Text(if (cardsToReview > 0) "$cardsToReview ${if (cardsToReview == 1) "card" else "cards"} ready" else "All caught up",
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_next_review), style = MaterialTheme.typography.labelLarge, color = colors.onSurfaceVariant)
+            Text(if (cardsToReview > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_208, com.veritas.reader.ui.screens.localizedUiValue(cardsToReview)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_all_caught_up),
                 style = MaterialTheme.typography.headlineSmall, color = colors.onSurface)
-            Text(if (cardsToReview > 0) "Pick up where you left off with a short review." else "No cards are due. You can still browse your flashcards.",
+            Text(if (cardsToReview > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pick_up_where_you_left_off_with_a_short_review) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_cards_are_due_you_can_still_browse_your_flashcards),
                 style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
             Button(onClick = onStartReview, shape = VeritasPackStyle.chipShape(),
                 modifier = Modifier.fillMaxWidth().height(48.dp)) {
                 Icon(Icons.Filled.PlayArrow, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text(if (cardsToReview > 0) "Start review" else "Browse cards", style = MaterialTheme.typography.labelLarge)
+                Text(if (cardsToReview > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_review) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_browse_cards), style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -783,7 +783,7 @@ internal fun StudyActiveDeckItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "$cardCount cards",
+                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_093, com.veritas.reader.ui.screens.localizedUiValue(cardCount)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

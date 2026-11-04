@@ -32,7 +32,7 @@ internal fun OriginalDocumentImage(owner: Any, index: Int, description: String, 
         }
     }
     Box(modifier = Modifier.fillMaxWidth().height(240.dp).padding(vertical = 8.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
-        bitmap?.let { Image(it.asImageBitmap(), contentDescription = description.ifBlank { "Document illustration" }, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit) }
-            ?: Text(if (failed) "Illustration unavailable" else "Loading illustration…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        bitmap?.let { Image(it.asImageBitmap(), contentDescription = description.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_document_illustration) }, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit) }
+            ?: Text(if (failed) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_illustration_unavailable) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_loading_illustration), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

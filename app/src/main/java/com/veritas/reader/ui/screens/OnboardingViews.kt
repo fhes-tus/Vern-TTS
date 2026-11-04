@@ -90,14 +90,14 @@ fun RevampedOnboardingFlow(
                     Spacer(Modifier.weight(1f))
                     if (step < 4) TextButton(onClick = {
                         if (!finishing) { finishing = true; TutorialSpeaker.stop(); onDismiss() }
-                    }, enabled = !finishing) { Text("Set up later") }
+                    }, enabled = !finishing) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_set_up_later)) }
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     AnimatedContent(pages[step], transitionSpec = { fadeIn(fade).togetherWith(fadeOut(fade)) }, label = "setupPageLabel") {
                         Text(it, style = MaterialTheme.typography.labelLarge)
                     }
-                    Text("${step + 1} of ${pages.size}", style = MaterialTheme.typography.labelMedium,
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_127, com.veritas.reader.ui.screens.localizedUiValue(step + 1), com.veritas.reader.ui.screens.localizedUiValue(pages.size)), style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 LinearProgressIndicator(progress = { progress },
@@ -112,23 +112,23 @@ fun RevampedOnboardingFlow(
                         OnboardingArtwork(page, TutorialSpeaker.previewActive && page == 2)
                         when (page) {
                             0 -> {
-                                SetupHeading("Your next chapter starts here.", "Read, listen and keep your ideas together in Vern.")
+                                SetupHeading(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_your_next_chapter_starts_here), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_read_listen_and_keep_your_ideas_together_in_vern))
                                 SetupReadingPreview()
-                                SetupFeature("Read", "Bring in your books and documents. Pick up where you left off.")
-                                SetupFeature("Listen", "Follow the text as it’s read aloud, at your own pace.")
-                                SetupFeature("Keep what matters", "Save notes, highlights and flashcards alongside your reading.")
+                                SetupFeature(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_bring_in_your_books_and_documents_pick_up_where_you_left_off))
+                                SetupFeature(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_listen), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_follow_the_text_as_it_s_read_aloud_at_your_own_pace))
+                                SetupFeature(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_keep_what_matters), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_save_notes_highlights_and_flashcards_alongside_your_reading))
                             }
                             1 -> {
-                                SetupHeading("What fills your bookshelf?", "Choose the reading interest that fits you best. Change it anytime in Settings.")
+                                SetupHeading(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_what_fills_your_bookshelf), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_choose_the_reading_interest_that_fits_you_best_change_it_anytime))
                                 ReadingInterestOptions.forEach { option ->
                                     SetupChoice(option.label, option.detail, interest == option.label, glyph = option.id) { interest = option.label }
                                 }
                             }
                             2 -> {
-                                SetupHeading("Settle into your listening pace.", "Try a sample with your phone’s voice. Explore downloadable Vern voices later in Settings.")
+                                SetupHeading(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_settle_into_your_listening_pace), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_try_a_sample_with_your_phone_s_voice_explore_downloadable_vern_vo))
                                 Surface(shape = VeritasPackStyle.cardShape(), color = MaterialTheme.colorScheme.surfaceContainerLow) {
                                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        Text("“The city was still quiet. Kofi opened his book and returned to the sentence he had marked yesterday.”",
+                                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_the_city_was_still_quiet_kofi_opened_his_book_and_returned_to_the),
                                             style = MaterialTheme.typography.bodyLarge)
                                         FilledTonalButton(onClick = {
                                             previewTimedOut = false
@@ -137,14 +137,14 @@ fun RevampedOnboardingFlow(
                                         }, modifier = Modifier.fillMaxWidth()) {
                                             Icon(if (TutorialSpeaker.previewActive) Icons.Default.Stop else Icons.Default.PlayArrow, null)
                                             Spacer(Modifier.width(8.dp))
-                                            Text(if (TutorialSpeaker.previewActive) "Stop preview" else "Listen to a sample")
+                                            Text(if (TutorialSpeaker.previewActive) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop_preview) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_listen_to_a_sample))
                                         }
                                         (TutorialSpeaker.previewError ?: if (previewTimedOut) "The preview took too long. Try again or continue." else null)?.let {
                                             Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                                         }
                                     }
                                 }
-                                Text("Listening speed · ${String.format(java.util.Locale.ROOT, "%.2f", rate)}×", style = MaterialTheme.typography.titleMedium)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_128, com.veritas.reader.ui.screens.localizedUiValue(String.format(java.util.Locale.ROOT, "%.2f", rate))), style = MaterialTheme.typography.titleMedium)
                                 VeritasRoundSlider(rate, onValueChange = { TutorialSpeaker.stop(); rate = it },
                                     valueRange = .5f..2f, modifier = Modifier.heightIn(min = 48.dp)
                                         .semantics {
@@ -158,29 +158,29 @@ fun RevampedOnboardingFlow(
                                             onClick = { TutorialSpeaker.stop(); rate = value }, label = { Text(label) })
                                     }
                                 }
-                                Text("Choose a pace you can follow comfortably.", style = MaterialTheme.typography.bodySmall,
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_a_pace_you_can_follow_comfortably), style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             3 -> {
-                                SetupHeading("Turn reading into understanding.", "Keep notes and flashcards as you read. Choose an assistant to open when you use Ask AI.")
+                                SetupHeading(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_turn_reading_into_understanding), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_keep_notes_and_flashcards_as_you_read_choose_an_assistant_to_open))
                                 setupAssistants.forEach { (id, label) ->
-                                    SetupChoice(label, if (id == "chooser") "No default assistant" else "Open when you choose Ask AI", assistant == id) { assistant = id }
+                                    SetupChoice(label, if (id == "chooser") androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_no_default_assistant) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_open_when_you_choose_ask_ai), assistant == id) { assistant = id }
                                 }
-                                Text("You can use the study tools without an assistant. Set up in-app AI separately in Settings.",
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_you_can_use_the_study_tools_without_an_assistant_set_up_in_app_ai),
                                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             4 -> {
-                                SetupHeading("You’re ready to read.", "Start with the welcome document, or add something of your own.")
-                                OutlinedTextField(name, { name = it.take(60) }, label = { Text("Your name (optional)") },
+                                SetupHeading(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_you_re_ready_to_read), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_start_with_the_welcome_document_or_add_something_of_your_own))
+                                OutlinedTextField(name, { name = it.take(60) }, label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_name_optional)) },
                                     singleLine = true, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.compactShape())
                                 Surface(shape = VeritasPackStyle.cardShape(), color = MaterialTheme.colorScheme.surfaceContainerLow) {
                                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                                        SetupSummary("Reading", interest)
-                                        SetupSummary("Listening", "${String.format(java.util.Locale.ROOT, "%.2f", rate)}× speed")
-                                        SetupSummary("Ask AI", setupAssistants.firstOrNull { it.first == assistant }?.second ?: "Choose when I share")
+                                        SetupSummary(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading), interest)
+                                        SetupSummary(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_listening), "${String.format(java.util.Locale.ROOT, "%.2f", rate)}× speed")
+                                        SetupSummary(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ask_ai), setupAssistants.firstOrNull { it.first == assistant }?.second ?: "Choose when I share")
                                     }
                                 }
-                                Text("These preferences can be changed at any time in Settings.", style = MaterialTheme.typography.bodySmall,
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_these_preferences_can_be_changed_at_any_time_in_settings), style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
@@ -189,7 +189,7 @@ fun RevampedOnboardingFlow(
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (step > 0) IconButton(onClick = { back() }, enabled = !finishing) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Previous setup step")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_setup_step))
                     }
                     Button(onClick = {
                         if (!finishing) {
@@ -264,15 +264,15 @@ private fun SetupReadingPreview() {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = MaterialTheme.colorScheme.primary)
-                Text("A place to begin", style = MaterialTheme.typography.titleMedium)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_a_place_to_begin), style = MaterialTheme.typography.titleMedium)
             }
-            Text("The city was still quiet.", style = MaterialTheme.typography.bodyLarge,
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_the_city_was_still_quiet), style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, VeritasPackStyle.compactShape()).padding(8.dp))
-            Text("Kofi opened his book and returned to the sentence he had marked yesterday.", style = MaterialTheme.typography.bodyLarge)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_kofi_opened_his_book_and_returned_to_the_sentence_he_had_marked_y), style = MaterialTheme.typography.bodyLarge)
             HorizontalDivider()
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Default.GraphicEq, null, tint = MaterialTheme.colorScheme.primary)
-                Text("Follow each sentence as you listen", style = MaterialTheme.typography.labelLarge)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_follow_each_sentence_as_you_listen), style = MaterialTheme.typography.labelLarge)
             }
         }
     }

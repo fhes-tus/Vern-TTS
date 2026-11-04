@@ -238,18 +238,18 @@ fun BookCatalogBrowserDialog(
                                     onDismiss()
                                 }
                             }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back))
                             }
 
                             IconButton(
                                 onClick = { webViewInstance?.goForward() },
                                 enabled = webViewInstance?.canGoForward() == true
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Forward")
+                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_forward))
                             }
 
                             IconButton(onClick = { webViewInstance?.reload() }) {
-                                Icon(Icons.Filled.Refresh, contentDescription = "Reload")
+                                Icon(Icons.Filled.Refresh, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reload))
                             }
 
                             Column(
@@ -263,7 +263,7 @@ fun BookCatalogBrowserDialog(
                                 ) {
                                     Icon(
                                         Icons.Filled.Security,
-                                        contentDescription = "Encrypted & Sandboxed",
+                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_encrypted_sandboxed),
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(13.dp)
                                     )
@@ -284,7 +284,7 @@ fun BookCatalogBrowserDialog(
                             }
 
                             IconButton(onClick = onDismiss) {
-                                Icon(Icons.Filled.Close, contentDescription = "Close")
+                                Icon(Icons.Filled.Close, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close))
                             }
                         }
 
@@ -428,13 +428,13 @@ fun BookCatalogBrowserDialog(
     pendingDownload?.let { download ->
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { pendingDownload = null },
-            title = { Text("Download and add this book?") },
-            text = { Text("From ${Uri.parse(download.url).host}. Only supported book files will be imported.") },
+            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_download_and_add_this_book)) },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_068, com.veritas.reader.ui.screens.localizedUiValue(Uri.parse(download.url).host))) },
             confirmButton = { androidx.compose.material3.TextButton(onClick = {
                 pendingDownload = null
                 downloadAndImport(download.url, download.userAgent, download.disposition, download.mimeType)
-            }) { Text("Download") } },
-            dismissButton = { androidx.compose.material3.TextButton(onClick = { pendingDownload = null }) { Text("Cancel") } }
+            }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_download)) } },
+            dismissButton = { androidx.compose.material3.TextButton(onClick = { pendingDownload = null }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } }
         )
     }
 

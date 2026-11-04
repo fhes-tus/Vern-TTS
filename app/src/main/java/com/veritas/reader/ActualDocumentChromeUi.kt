@@ -165,7 +165,7 @@ internal fun ActualDocumentTopBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back),
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp)
                 )
@@ -185,7 +185,7 @@ internal fun ActualDocumentTopBar(
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
                     ) {
                         Text(
-                            text = if (isPdf) "PDF" else if (isPresentation) "PPT" else if (isEpub) "EPUB" else if (isDocx) "DOCX" else if (isImage) "IMG" else "DOC",
+                            text = if (isPdf) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pdf) else if (isPresentation) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ppt) else if (isEpub) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_epub) else if (isDocx) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_docx) else if (isImage) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_img) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_doc),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
@@ -206,7 +206,7 @@ internal fun ActualDocumentTopBar(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = "${if (isPresentation) "Slide" else if (isEpub) "Chapter" else "Page"} ${pageIndex + 1} of $pageCount",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_185, com.veritas.reader.ui.screens.localizedUiValue(if (isPresentation) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_slide) else if (isEpub) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_chapter) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_page)), com.veritas.reader.ui.screens.localizedUiValue(pageIndex + 1), com.veritas.reader.ui.screens.localizedUiValue(pageCount)),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -233,7 +233,7 @@ internal fun ActualDocumentTopBar(
                     )
                 } else {
                     Text(
-                        text = if (isPresentation) "PowerPoint Slide View" else if (isEpub) "EPUB Book View" else if (isDocx) "Word Document View" else if (isImage) "Original Image View" else "Original Document View",
+                        text = if (isPresentation) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_powerpoint_slide_view) else if (isEpub) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_epub_book_view) else if (isDocx) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_word_document_view) else if (isImage) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_original_image_view) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_original_document_view),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -249,7 +249,7 @@ internal fun ActualDocumentTopBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.List,
-                    contentDescription = "Table of Contents",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_table_of_contents),
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp)
                 )
@@ -272,7 +272,7 @@ internal fun ActualDocumentTopBar(
             ) {
                 Icon(
                     imageVector = Icons.Filled.InvertColors,
-                    contentDescription = "Paper Tone",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paper_tone),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
@@ -287,7 +287,7 @@ internal fun ActualDocumentTopBar(
             ) {
                 Icon(
                     imageVector = if (isLandscape) Icons.Filled.StayCurrentPortrait else Icons.Filled.StayCurrentLandscape,
-                    contentDescription = if (isLandscape) "Switch to portrait" else "Switch to landscape",
+                    contentDescription = if (isLandscape) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_switch_to_portrait) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_switch_to_landscape),
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp)
                 )
@@ -303,7 +303,7 @@ internal fun ActualDocumentTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More Options",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_more_options),
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(20.dp)
                     )
@@ -379,7 +379,7 @@ internal fun ActualDocumentOverflowMenu(
             .background(MaterialTheme.colorScheme.surface)
     ) {
         Text(
-            text = "Document Tools",
+            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_tools),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
@@ -395,7 +395,7 @@ internal fun ActualDocumentOverflowMenu(
 
         // --- VIEW & DISPLAY ---
         Text(
-            text = "Display",
+            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_display),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -404,8 +404,8 @@ internal fun ActualDocumentOverflowMenu(
         DropdownMenuItem(
             text = {
                 Column {
-                    Text("Fit to Screen", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                    Text("Reset zoom to 100%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_fit_to_screen), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reset_zoom_to_100), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             leadingIcon = {
@@ -419,8 +419,8 @@ internal fun ActualDocumentOverflowMenu(
         DropdownMenuItem(
             text = {
                 Column {
-                    Text("Rotate View (90°)", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                    Text(if (isLandscape) "Switch to portrait" else "Switch to landscape", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rotate_view_90), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(if (isLandscape) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_switch_to_portrait) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_switch_to_landscape), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             leadingIcon = {
@@ -436,20 +436,20 @@ internal fun ActualDocumentOverflowMenu(
                 Column {
                     Text(
                         when (paperToneMode) {
-                            PaperToneMode.ACTIVE_THEME -> "Default"
-                            PaperToneMode.DARK -> "Dark slate"
-                            PaperToneMode.NATURAL_WHITE -> "Bone"
-                            PaperToneMode.WARM_SEPIA -> "Sepia"
+                            PaperToneMode.ACTIVE_THEME -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_default)
+                            PaperToneMode.DARK -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_dark_slate)
+                            PaperToneMode.NATURAL_WHITE -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_bone)
+                            PaperToneMode.WARM_SEPIA -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sepia)
                         },
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         when (paperToneMode) {
-                            PaperToneMode.ACTIVE_THEME -> "Tap for Dark slate"
-                            PaperToneMode.DARK -> "Tap for Bone"
-                            PaperToneMode.NATURAL_WHITE -> "Tap for Sepia"
-                            PaperToneMode.WARM_SEPIA -> "Tap for Default"
+                            PaperToneMode.ACTIVE_THEME -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tap_for_dark_slate)
+                            PaperToneMode.DARK -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tap_for_bone)
+                            PaperToneMode.NATURAL_WHITE -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tap_for_sepia)
+                            PaperToneMode.WARM_SEPIA -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tap_for_default)
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -475,7 +475,7 @@ internal fun ActualDocumentOverflowMenu(
         if (hasMultiplePages) {
             HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
             Text(
-                text = "Navigation",
+                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_navigation),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -483,8 +483,8 @@ internal fun ActualDocumentOverflowMenu(
             DropdownMenuItem(
                 text = {
                     Column {
-                        Text("Table of Contents / Outline", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Chapters, headings & sections", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_table_of_contents_outline), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_chapters_headings_sections), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 leadingIcon = {
@@ -498,8 +498,8 @@ internal fun ActualDocumentOverflowMenu(
             DropdownMenuItem(
                 text = {
                     Column {
-                        Text("Jump to ${if (isPresentation) "Slide" else if (isEpub) "Chapter" else "Page"}...", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Go to 1–$pageCount", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_186, com.veritas.reader.ui.screens.localizedUiValue(if (isPresentation) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_slide) else if (isEpub) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_chapter) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_page))), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_000, com.veritas.reader.ui.screens.localizedUiValue(pageCount)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 leadingIcon = {
@@ -511,7 +511,7 @@ internal fun ActualDocumentOverflowMenu(
                 }
             )
             DropdownMenuItem(
-                text = { Text("First ${if (isPresentation) "Slide" else if (isEpub) "Chapter" else "Page"} (1)", color = MaterialTheme.colorScheme.onSurface) },
+                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_187, com.veritas.reader.ui.screens.localizedUiValue(if (isPresentation) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_slide) else if (isEpub) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_chapter) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_page))), color = MaterialTheme.colorScheme.onSurface) },
                 leadingIcon = {
                     Icon(Icons.Filled.FirstPage, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
@@ -522,7 +522,7 @@ internal fun ActualDocumentOverflowMenu(
                 }
             )
             DropdownMenuItem(
-                text = { Text("Last ${if (isPresentation) "Slide" else if (isEpub) "Chapter" else "Page"} ($pageCount)", color = MaterialTheme.colorScheme.onSurface) },
+                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_188, com.veritas.reader.ui.screens.localizedUiValue(if (isPresentation) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_slide) else if (isEpub) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_chapter) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_fragment_page)), com.veritas.reader.ui.screens.localizedUiValue(pageCount)), color = MaterialTheme.colorScheme.onSurface) },
                 leadingIcon = {
                     Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
@@ -537,7 +537,7 @@ internal fun ActualDocumentOverflowMenu(
         // --- STUDY & AUDIO ---
         HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
         Text(
-            text = "Reading & Audio",
+            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_audio),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -545,8 +545,8 @@ internal fun ActualDocumentOverflowMenu(
         DropdownMenuItem(
             text = {
                 Column {
-                    Text("Switch to Text Reader", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                    Text("Flowing text, notes & speed reader", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_switch_to_text_reader), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_flowing_text_notes_speed_reader), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             leadingIcon = {
@@ -560,8 +560,8 @@ internal fun ActualDocumentOverflowMenu(
         DropdownMenuItem(
             text = {
                 Column {
-                    Text("Voice Studio", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                    Text("Narrators, speed & audio tuning", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_studio), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_narrators_speed_audio_tuning), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             leadingIcon = {
@@ -578,8 +578,8 @@ internal fun ActualDocumentOverflowMenu(
         DropdownMenuItem(
             text = {
                 Column {
-                    Text("Share Original File", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                    Text("Send to other apps", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_original_file), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_send_to_other_apps), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             leadingIcon = {
@@ -606,8 +606,8 @@ internal fun ActualDocumentOverflowMenu(
         DropdownMenuItem(
             text = {
                 Column {
-                    Text("Open in External App", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                    Text("Use system PDF or photo viewer", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_in_external_app), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_use_system_pdf_or_photo_viewer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             leadingIcon = {
@@ -621,7 +621,7 @@ internal fun ActualDocumentOverflowMenu(
         )
         DropdownMenuItem(
             text = {
-                Text("Document Information", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_information), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             },
             leadingIcon = {
                 Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)

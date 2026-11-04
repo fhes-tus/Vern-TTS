@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_cancel" formatted="false">"إلغاء"</string>
+    <string name="action_clear" formatted="false">"مسح"</string>
+    <string name="action_delete" formatted="false">"حذف"</string>
+    <string name="app_language" formatted="false">"لغة التطبيق"</string>
+    <string name="crash_dialog_dismiss" formatted="false">"تجاهل"</string>
+    <string name="greeting_afternoon" formatted="false">"طاب مساؤك"</string>
+    <string name="greeting_evening" formatted="false">"مساء الخير"</string>
+    <string name="greeting_morning" formatted="false">"صباح الخير"</string>
+    <string name="greeting_named">"%1$s، %2$s"</string>
+    <string name="greeting_new_day" formatted="false">"مرحبًا بيوم جديد"</string>
+    <string name="greeting_night" formatted="false">"طابت ليلتك"</string>
+    <string name="greeting_rise" formatted="false">"صباح النشاط"</string>
+    <string name="greeting_see_you" formatted="false">"سعيد برؤيتك"</string>
+    <string name="greeting_welcome" formatted="false">"مرحبًا بعودتك"</string>
+    <string name="language_apply" formatted="false">"تطبيق"</string>
+    <string name="language_explanation" formatted="false">"اختر لغة القوائم وعناصر التحكم."</string>
+    <string name="language_follow_device" formatted="false">"استخدام لغة الجهاز"</string>
+    <string name="language_preview" formatted="false">"ترجمة تجريبية"</string>
+    <string name="language_preview_notice" formatted="false">"قد تتضمن الترجمات التجريبية نصوصًا بالإنجليزية. تبقى لغة الكتب وأصوات القراءة مستقلة."</string>
+    <string name="library_resume_progress">"الجملة %1$d من %2$d · تمت قراءة %3$d%%"</string>
+    <string name="reading_goal_target">"الهدف: %1$s"</string>
+    <string name="reading_less_than_minute" formatted="false">"أقل من دقيقة"</string>
+    <string name="reading_next_statistic" formatted="false">"إحصاء القراءة التالي"</string>
+    <string name="reading_previous_statistic" formatted="false">"إحصاء القراءة السابق"</string>
+    <string name="reading_statistic_position">"الإحصاء %1$d من %2$d"</string>
+    <string name="reminder_exact_allow" formatted="false">"فتح الإعدادات"</string>
+    <string name="reminder_exact_later" formatted="false">"ليس الآن"</string>
+    <string name="ui_0_day_streak" formatted="false">"سلسلة من 0 أيام"</string>
+    <string name="ui_a_new_classic_every_monday" formatted="false">"كتاب كلاسيكي جديد كل اثنين"</string>
+    <string name="ui_about" formatted="false">"حول التطبيق"</string>
+    <string name="ui_accessibility" formatted="false">"إمكانية الوصول"</string>
+    <string name="ui_add" formatted="false">"إضافة"</string>
+    <string name="ui_add_a_book_document_or_article_to_read_and_listen_at_your_own_pac" formatted="false">"أضف كتابًا أو مستندًا أو مقالًا للقراءة والاستماع بالوتيرة التي تناسبك."</string>
+    <string name="ui_add_a_book_or_document" formatted="false">"إضافة كتاب أو مستند"</string>
+    <string name="ui_add_bookmark" formatted="false">"إضافة إشارة مرجعية"</string>
+    <string name="ui_add_content" formatted="false">"إضافة محتوى"</string>
+    <string name="ui_add_note" formatted="false">"إضافة ملاحظة"</string>
+    <string name="ui_add_to_list" formatted="false">"إضافة إلى قائمة"</string>
+    <string name="ui_add_to_queue_69b498d" formatted="false">"إضافة إلى قائمة الانتظار"</string>
+    <string name="ui_add_to_vocabulary" formatted="false">"إضافة إلى المفردات"</string>
+    <string name="ui_add_your_first_read" formatted="false">"أضف قراءتك الأولى"</string>
+    <string name="ui_added" formatted="false">"المضافة"</string>
+    <string name="ui_again" formatted="false">"مجددًا"</string>
+    <string name="ui_ai_app_handoff_flashcards_quizzes" formatted="false">"تطبيقات الذكاء الاصطناعي والبطاقات والاختبارات"</string>
+    <string name="ui_ai_language" formatted="false">"الذكاء الاصطناعي واللغة"</string>
+    <string name="ui_ai_study_mode" formatted="false">"الذكاء الاصطناعي ووضع الدراسة"</string>
+    <string name="ui_all" formatted="false">"الكل"</string>
+    <string name="ui_all_books" formatted="false">"كل الكتب"</string>
+    <string name="ui_all_documents" formatted="false">"كل المستندات"</string>
+    <string name="ui_answer" formatted="false">"الإجابة"</string>
+    <string name="ui_appearance" formatted="false">"المظهر"</string>
+    <string name="ui_apply" formatted="false">"تطبيق"</string>
+    <string name="ui_ask_ai" formatted="false">"اسأل الذكاء الاصطناعي"</string>
+    <string name="ui_author" formatted="false">"المؤلف"</string>
+    <string name="ui_back" formatted="false">"رجوع"</string>
+    <string name="ui_background_playback" formatted="false">"التشغيل في الخلفية"</string>
+    <string name="ui_backup" formatted="false">"نسخة احتياطية"</string>
+    <string name="ui_battery_exemption_enabled_tap_to_manage" formatted="false">"استثناء البطارية مفعّل · اضغط للإدارة"</string>
+    <string name="ui_battery_optimized_tap_to_manage" formatted="false">"تحسين البطارية مفعّل · اضغط للإدارة"</string>
+    <string name="ui_book_of_the_week" formatted="false">"كتاب الأسبوع"</string>
+    <string name="ui_bookmark" formatted="false">"إشارة مرجعية"</string>
+    <string name="ui_bookmarks" formatted="false">"الإشارات المرجعية"</string>
+    <string name="ui_cancel" formatted="false">"إلغاء"</string>
+    <string name="ui_check_for_the_latest_vern_version" formatted="false">"البحث عن أحدث إصدار من Vern"</string>
+    <string name="ui_check_for_updates" formatted="false">"التحقق من التحديثات"</string>
+    <string name="ui_checklist" formatted="false">"قائمة مهام"</string>
+    <string name="ui_choose_a_target_or_track_your_reading_without_one" formatted="false">"اختر هدفًا أو تابع قراءتك دون هدف."</string>
+    <string name="ui_choose_assistant_selected_text_prompt" formatted="false">"اختيار المساعد وتعليمات النص المحدد"</string>
+    <string name="ui_choose_voice" formatted="false">"اختيار صوت"</string>
+    <string name="ui_classics" formatted="false">"الكتب الكلاسيكية"</string>
+    <string name="ui_clear" formatted="false">"مسح"</string>
+    <string name="ui_clear_cache" formatted="false">"مسح ذاكرة التخزين المؤقت"</string>
+    <string name="ui_close" formatted="false">"إغلاق"</string>
+    <string name="ui_collection" formatted="false">"المجموعة"</string>
+    <string name="ui_collections" formatted="false">"المجموعات"</string>
+    <string name="ui_confirm" formatted="false">"تأكيد"</string>
+    <string name="ui_contents" formatted="false">"المحتويات"</string>
+    <string name="ui_continue" formatted="false">"متابعة"</string>
+    <string name="ui_continue_reading" formatted="false">"متابعة القراءة"</string>
+    <string name="ui_copy" formatted="false">"نسخ"</string>
+    <string name="ui_copy_text" formatted="false">"نسخ النص"</string>
+    <string name="ui_create_backup" formatted="false">"إنشاء نسخة احتياطية"</string>
+    <string name="ui_create_flashcard" formatted="false">"إنشاء بطاقة مراجعة"</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"إنشاء قوائم محلية وإضافة القراءات المحفوظة"</string>
+    <string name="ui_customization" formatted="false">"التخصيص"</string>
+    <string name="ui_daily_goal" formatted="false">"الهدف اليومي"</string>
+    <string name="ui_daily_goal_reached" formatted="false">"تم تحقيق الهدف اليومي"</string>
+    <string name="ui_daily_reading_goal" formatted="false">"هدف القراءة اليومي"</string>
+    <string name="ui_dark" formatted="false">"داكن"</string>
+    <string name="ui_data_backup" formatted="false">"البيانات والنسخ الاحتياطي"</string>
+    <string name="ui_days_with_reading" formatted="false">"أيام القراءة"</string>
+    <string name="ui_default" formatted="false">"الافتراضي"</string>
+    <string name="ui_defaults_ocr_fallback_page_cleanup" formatted="false">"الإعدادات والتعرف على النص وتنظيف الصفحات"</string>
+    <string name="ui_definition" formatted="false">"التعريف"</string>
+    <string name="ui_delete" formatted="false">"حذف"</string>
+    <string name="ui_delete_note" formatted="false">"حذف الملاحظة"</string>
+    <string name="ui_delete_permanently_e63b515" formatted="false">"حذف نهائي"</string>
+    <string name="ui_description" formatted="false">"الوصف"</string>
+    <string name="ui_deselect_all" formatted="false">"إلغاء تحديد الكل"</string>
+    <string name="ui_details" formatted="false">"التفاصيل"</string>
+    <string name="ui_dictionary" formatted="false">"القاموس"</string>
+    <string name="ui_discard" formatted="false">"تجاهل"</string>
+    <string name="ui_discard_changes" formatted="false">"تجاهل التغييرات"</string>
+    <string name="ui_dismiss" formatted="false">"تجاهل"</string>
+    <string name="ui_dismiss_continue_reading" formatted="false">"إخفاء متابعة القراءة"</string>
+    <string name="ui_dismiss_tour" formatted="false">"إغلاق الجولة"</string>
+    <string name="ui_display_theme" formatted="false">"سمة العرض"</string>
+    <string name="ui_done" formatted="false">"تم"</string>
+    <string name="ui_download" formatted="false">"تنزيل"</string>
+    <string name="ui_downloaded" formatted="false">"تم التنزيل"</string>
+    <string name="ui_easy" formatted="false">"سهل"</string>
+    <string name="ui_edit" formatted="false">"تعديل"</string>
+    <string name="ui_edit_extracted_text" formatted="false">"تعديل النص المستخرج"</string>
+    <string name="ui_edit_goal" formatted="false">"تعديل الهدف"</string>
+    <string name="ui_edit_note" formatted="false">"تعديل الملاحظة"</string>
+    <string name="ui_error" formatted="false">"خطأ"</string>
+    <string name="ui_exit_full_screen" formatted="false">"إنهاء ملء الشاشة"</string>
+    <string name="ui_export" formatted="false">"تصدير"</string>
+    <string name="ui_export_audio" formatted="false">"تصدير الصوت"</string>
+    <string name="ui_favorites" formatted="false">"المفضلة"</string>
+    <string name="ui_favourites" formatted="false">"المفضلة"</string>
+    <string name="ui_file_browser" formatted="false">"متصفح الملفات"</string>
+    <string name="ui_filter" formatted="false">"تصفية"</string>
+    <string name="ui_filters" formatted="false">"عوامل التصفية"</string>
+    <string name="ui_finish" formatted="false">"إنهاء"</string>
+    <string name="ui_finished" formatted="false">"مكتملة"</string>
+    <string name="ui_first_day_of_reading" formatted="false">"أول يوم للقراءة"</string>
+    <string name="ui_flashcards" formatted="false">"بطاقات المراجعة"</string>
+    <string name="ui_font" formatted="false">"الخط"</string>
+    <string name="ui_font_size" formatted="false">"حجم الخط"</string>
+    <string name="ui_free_up_space" formatted="false">"إخلاء مساحة"</string>
+    <string name="ui_full_screen" formatted="false">"ملء الشاشة"</string>
+    <string name="ui_go_to_page" formatted="false">"الانتقال إلى الصفحة"</string>
+    <string name="ui_good" formatted="false">"جيد"</string>
+    <string name="ui_hard" formatted="false">"صعب"</string>
+    <string name="ui_help" formatted="false">"المساعدة"</string>
+    <string name="ui_highlight" formatted="false">"تظليل"</string>
+    <string name="ui_highlights" formatted="false">"التظليلات"</string>
+    <string name="ui_home" formatted="false">"الرئيسية"</string>
+    <string name="ui_icon_colours_startup_motion_funky_cards" formatted="false">"ألوان الأيقونات وحركة البدء وبطاقات Funky"</string>
+    <string name="ui_import" formatted="false">"استيراد"</string>
+    <string name="ui_import_defaults" formatted="false">"إعدادات الاستيراد الافتراضية"</string>
+    <string name="ui_import_settings" formatted="false">"إعدادات الاستيراد"</string>
+    <string name="ui_installed" formatted="false">"مثبّت"</string>
+    <string name="ui_interactive_guide_to_vern_features" formatted="false">"دليل تفاعلي لميزات Vern"</string>
+    <string name="ui_language" formatted="false">"اللغة"</string>
+    <string name="ui_learn_about_vern_through_guided_actions" formatted="false">"تعلم استخدام Vern خطوة بخطوة"</string>
+    <string name="ui_learn_more" formatted="false">"معرفة المزيد"</string>
+    <string name="ui_library" formatted="false">"المكتبة"</string>
+    <string name="ui_light" formatted="false">"فاتح"</string>
+    <string name="ui_line_spacing" formatted="false">"تباعد الأسطر"</string>
+    <string name="ui_listen" formatted="false">"استماع"</string>
+    <string name="ui_listening" formatted="false">"الاستماع"</string>
+    <string name="ui_listening_time" formatted="false">"وقت الاستماع"</string>
+    <string name="ui_loading" formatted="false">"جارٍ التحميل…"</string>
+    <string name="ui_loading_8f26c65" formatted="false">"جارٍ التحميل"</string>
+    <string name="ui_manage_voices" formatted="false">"إدارة الأصوات"</string>
+    <string name="ui_measuring" formatted="false">"جارٍ القياس…"</string>
+    <string name="ui_menu" formatted="false">"القائمة"</string>
+    <string name="ui_minutes" formatted="false">"دقائق"</string>
+    <string name="ui_minutes_by_day" formatted="false">"الدقائق حسب اليوم"</string>
+    <string name="ui_more" formatted="false">"المزيد"</string>
+    <string name="ui_more_options_86c0a35" formatted="false">"خيارات إضافية"</string>
+    <string name="ui_move_down_260ff8a" formatted="false">"نقل لأسفل"</string>
+    <string name="ui_move_up_b4f57cd" formatted="false">"نقل لأعلى"</string>
+    <string name="ui_my_library" formatted="false">"مكتبتي"</string>
+    <string name="ui_name" formatted="false">"الاسم"</string>
+    <string name="ui_narration_studio" formatted="false">"استوديو السرد"</string>
+    <string name="ui_narrator_dialogue_delivery_controls" formatted="false">"إعدادات الراوي وأداء الحوار"</string>
+    <string name="ui_new_list" formatted="false">"قائمة جديدة"</string>
+    <string name="ui_new_note" formatted="false">"ملاحظة جديدة"</string>
+    <string name="ui_newest_first" formatted="false">"الأحدث أولًا"</string>
+    <string name="ui_next" formatted="false">"التالي"</string>
+    <string name="ui_next_page_4bfc194" formatted="false">"الصفحة التالية"</string>
+    <string name="ui_next_sentence" formatted="false">"الجملة التالية"</string>
+    <string name="ui_no" formatted="false">"لا"</string>
+    <string name="ui_no_bookmarks_yet" formatted="false">"لا توجد إشارات مرجعية بعد"</string>
+    <string name="ui_no_books_yet" formatted="false">"لا توجد كتب بعد"</string>
+    <string name="ui_no_daily_target" formatted="false">"لا يوجد هدف يومي"</string>
+    <string name="ui_no_goal" formatted="false">"دون هدف"</string>
+    <string name="ui_no_highlights_yet" formatted="false">"لا توجد تظليلات بعد"</string>
+    <string name="ui_no_notes_yet" formatted="false">"لا توجد ملاحظات بعد"</string>
+    <string name="ui_no_results" formatted="false">"لا توجد نتائج"</string>
+    <string name="ui_no_results_found" formatted="false">"لم يتم العثور على نتائج"</string>
+    <string name="ui_none" formatted="false">"لا شيء"</string>
+    <string name="ui_not_now_e457149" formatted="false">"ليس الآن"</string>
+    <string name="ui_note" formatted="false">"ملاحظة"</string>
+    <string name="ui_notebook" formatted="false">"دفتر الملاحظات"</string>
+    <string name="ui_notebooks" formatted="false">"دفاتر الملاحظات"</string>
+    <string name="ui_notes" formatted="false">"الملاحظات"</string>
+    <string name="ui_notes_annotations" formatted="false">"الملاحظات والتعليقات"</string>
+    <string name="ui_offline" formatted="false">"دون اتصال"</string>
+    <string name="ui_ok" formatted="false">"موافق"</string>
+    <string name="ui_oldest_first" formatted="false">"الأقدم أولًا"</string>
+    <string name="ui_online_c3e839d" formatted="false">"عبر الإنترنت"</string>
+    <string name="ui_open" formatted="false">"فتح"</string>
+    <string name="ui_open_a_file_to_start_reading" formatted="false">"افتح ملفًا لبدء القراءة"</string>
+    <string name="ui_open_book" formatted="false">"فتح الكتاب"</string>
+    <string name="ui_open_file" formatted="false">"فتح ملف"</string>
+    <string name="ui_open_settings" formatted="false">"فتح الإعدادات"</string>
+    <string name="ui_open_text_editor_to_correct_text" formatted="false">"فتح المحرر لتصحيح النص"</string>
+    <string name="ui_original" formatted="false">"الأصل"</string>
+    <string name="ui_page" formatted="false">"صفحة"</string>
+    <string name="ui_paste" formatted="false">"لصق"</string>
+    <string name="ui_paste_text_or_url" formatted="false">"لصق نص أو رابط"</string>
+    <string name="ui_pause" formatted="false">"إيقاف مؤقت"</string>
+    <string name="ui_pause_or_stop_reading_after_chosen_time" formatted="false">"إيقاف القراءة مؤقتًا أو نهائيًا بعد مدة محددة"</string>
+    <string name="ui_pause_reading" formatted="false">"إيقاف القراءة مؤقتًا"</string>
+    <string name="ui_pdf_and_import_tools" formatted="false">"أدوات PDF والاستيراد"</string>
+    <string name="ui_pick_a_document_from_your_library_to_begin" formatted="false">"اختر مستندًا من مكتبتك للبدء."</string>
+    <string name="ui_pick_up_where_you_left_off" formatted="false">"تابع من حيث توقفت"</string>
+    <string name="ui_pin" formatted="false">"تثبيت"</string>
+    <string name="ui_pitch" formatted="false">"طبقة الصوت"</string>
+    <string name="ui_play" formatted="false">"تشغيل"</string>
+    <string name="ui_play_preview" formatted="false">"تشغيل المعاينة"</string>
+    <string name="ui_playback" formatted="false">"التشغيل"</string>
+    <string name="ui_preview" formatted="false">"معاينة"</string>
+    <string name="ui_preview_book" formatted="false">"معاينة الكتاب"</string>
+    <string name="ui_previous" formatted="false">"السابق"</string>
+    <string name="ui_previous_page_81f5471" formatted="false">"الصفحة السابقة"</string>
+    <string name="ui_previous_sentence" formatted="false">"الجملة السابقة"</string>
+    <string name="ui_print" formatted="false">"طباعة"</string>
+    <string name="ui_progress" formatted="false">"التقدم"</string>
+    <string name="ui_pronunciation" formatted="false">"النطق"</string>
+    <string name="ui_question" formatted="false">"السؤال"</string>
+    <string name="ui_queue" formatted="false">"قائمة الانتظار"</string>
+    <string name="ui_quizzes" formatted="false">"الاختبارات"</string>
+    <string name="ui_read" formatted="false">"قراءة"</string>
+    <string name="ui_read_at_your_own_pace" formatted="false">"اقرأ بالوتيرة التي تناسبك"</string>
+    <string name="ui_reading" formatted="false">"القراءة"</string>
+    <string name="ui_reading_goal" formatted="false">"هدف القراءة"</string>
+    <string name="ui_reading_goal_reduce_motion_contrast" formatted="false">"هدف القراءة وتقليل الحركة والتباين"</string>
+    <string name="ui_reading_insights_32f8941" formatted="false">"إحصاءات القراءة"</string>
+    <string name="ui_reading_list" formatted="false">"قائمة قراءة"</string>
+    <string name="ui_reading_lists" formatted="false">"قوائم القراءة"</string>
+    <string name="ui_reading_overview" formatted="false">"نظرة عامة على القراءة"</string>
+    <string name="ui_reading_time" formatted="false">"وقت القراءة"</string>
+    <string name="ui_ready" formatted="false">"جاهز"</string>
+    <string name="ui_ready_to_begin" formatted="false">"جاهز للبدء"</string>
+    <string name="ui_recent_books" formatted="false">"الكتب الأخيرة"</string>
+    <string name="ui_recently_read" formatted="false">"المقروءة مؤخرًا"</string>
+    <string name="ui_record_sound_file" formatted="false">"إنشاء ملف صوتي"</string>
+    <string name="ui_recorded_reading_time" formatted="false">"وقت القراءة المسجل"</string>
+    <string name="ui_refresh" formatted="false">"تحديث"</string>
+    <string name="ui_remove" formatted="false">"إزالة"</string>
+    <string name="ui_remove_from_queue_3d2dc52" formatted="false">"إزالة من قائمة الانتظار"</string>
+    <string name="ui_rename" formatted="false">"إعادة التسمية"</string>
+    <string name="ui_render_current_reading_into_audio_file" formatted="false">"تحويل القراءة الحالية إلى ملف صوتي"</string>
+    <string name="ui_reset" formatted="false">"إعادة ضبط"</string>
+    <string name="ui_reset_to_defaults" formatted="false">"استعادة الإعدادات الافتراضية"</string>
+    <string name="ui_restore" formatted="false">"استعادة"</string>
+    <string name="ui_restore_backup" formatted="false">"استعادة نسخة احتياطية"</string>
+    <string name="ui_resume_reading" formatted="false">"استئناف القراءة"</string>
+    <string name="ui_retry" formatted="false">"إعادة المحاولة"</string>
+    <string name="ui_review" formatted="false">"مراجعة"</string>
+    <string name="ui_save" formatted="false">"حفظ"</string>
+    <string name="ui_save_changes" formatted="false">"حفظ التغييرات"</string>
+    <string name="ui_scan_approved_folders_import_local_files" formatted="false">"فحص المجلدات المسموح بها واستيراد الملفات"</string>
+    <string name="ui_search" formatted="false">"بحث"</string>
+    <string name="ui_search_books" formatted="false">"البحث عن كتب"</string>
+    <string name="ui_search_f54fbca" formatted="false">"بحث…"</string>
+    <string name="ui_search_in_book" formatted="false">"البحث في الكتاب"</string>
+    <string name="ui_search_notes" formatted="false">"البحث في الملاحظات"</string>
+    <string name="ui_see_all" formatted="false">"عرض الكل ←"</string>
+    <string name="ui_see_what_vern_is_using_free_up_space" formatted="false">"عرض المساحة المستخدمة وإخلاء مساحة"</string>
+    <string name="ui_select" formatted="false">"اختيار"</string>
+    <string name="ui_select_all" formatted="false">"تحديد الكل"</string>
+    <string name="ui_select_text" formatted="false">"تحديد النص"</string>
+    <string name="ui_select_voice" formatted="false">"اختيار صوت"</string>
+    <string name="ui_selected" formatted="false">"محدد"</string>
+    <string name="ui_set_a_daily_reading_goal" formatted="false">"تحديد هدف يومي للقراءة"</string>
+    <string name="ui_set_a_goal" formatted="false">"تحديد هدف"</string>
+    <string name="ui_settings" formatted="false">"الإعدادات"</string>
+    <string name="ui_share" formatted="false">"مشاركة"</string>
+    <string name="ui_show_answer" formatted="false">"إظهار الإجابة"</string>
+    <string name="ui_sleep_timer" formatted="false">"مؤقت النوم"</string>
+    <string name="ui_sort_by" formatted="false">"ترتيب حسب"</string>
+    <string name="ui_speed" formatted="false">"السرعة"</string>
+    <string name="ui_start_reading" formatted="false">"بدء القراءة"</string>
+    <string name="ui_start_review" formatted="false">"بدء المراجعة"</string>
+    <string name="ui_stop" formatted="false">"إيقاف"</string>
+    <string name="ui_stop_reading" formatted="false">"إيقاف القراءة"</string>
+    <string name="ui_storage" formatted="false">"التخزين"</string>
+    <string name="ui_study" formatted="false">"الدراسة"</string>
+    <string name="ui_study_hub" formatted="false">"مركز الدراسة"</string>
+    <string name="ui_switch_to_grid_view" formatted="false">"التبديل إلى عرض الشبكة"</string>
+    <string name="ui_switch_to_list_view" formatted="false">"التبديل إلى عرض القائمة"</string>
+    <string name="ui_sync_backup_center" formatted="false">"مركز المزامنة والنسخ الاحتياطي"</string>
+    <string name="ui_sync_backup_library_flashcards_notes_and_progress" formatted="false">"مزامنة المكتبة والبطاقات والملاحظات والتقدم ونسخها احتياطيًا"</string>
+    <string name="ui_system" formatted="false">"النظام"</string>
+    <string name="ui_system_default" formatted="false">"إعداد النظام الافتراضي"</string>
+    <string name="ui_system_default_voice" formatted="false">"صوت النظام الافتراضي"</string>
+    <string name="ui_table_of_contents_1a42898" formatted="false">"جدول المحتويات"</string>
+    <string name="ui_text" formatted="false">"النص"</string>
+    <string name="ui_text_size" formatted="false">"حجم النص"</string>
+    <string name="ui_theme_packs_colours_page_navigation" formatted="false">"السمات والألوان والتنقل بين الصفحات"</string>
+    <string name="ui_this_month" formatted="false">"هذا الشهر"</string>
+    <string name="ui_this_week" formatted="false">"هذا الأسبوع"</string>
+    <string name="ui_title" formatted="false">"العنوان"</string>
+    <string name="ui_to_your_target" formatted="false">"حتى هدفك"</string>
+    <string name="ui_today" formatted="false">"اليوم"</string>
+    <string name="ui_today_s_reading" formatted="false">"قراءة اليوم"</string>
+    <string name="ui_today_s_target_complete" formatted="false">"اكتمل هدف اليوم"</string>
+    <string name="ui_total_since_monday" formatted="false">"الإجمالي منذ الاثنين"</string>
+    <string name="ui_translate" formatted="false">"ترجمة"</string>
+    <string name="ui_trash" formatted="false">"المهملات"</string>
+    <string name="ui_try_again" formatted="false">"حاول مجددًا"</string>
+    <string name="ui_tts_engine_installed_voices_pitch_presets" formatted="false">"محرك النطق والأصوات المثبتة وطبقة الصوت"</string>
+    <string name="ui_tutorial" formatted="false">"البرنامج التعليمي"</string>
+    <string name="ui_unfinished" formatted="false">"غير مكتملة"</string>
+    <string name="ui_unpin" formatted="false">"إلغاء التثبيت"</string>
+    <string name="ui_use_selected_voice_95565c4" formatted="false">"استخدام الصوت المحدد"</string>
+    <string name="ui_user_manual" formatted="false">"دليل الاستخدام"</string>
+    <string name="ui_version_developer_contact_social_links_feedback" formatted="false">"الإصدار والتواصل والروابط والملاحظات"</string>
+    <string name="ui_view_all" formatted="false">"عرض الكل"</string>
+    <string name="ui_view_insights" formatted="false">"عرض الإحصاءات ←"</string>
+    <string name="ui_vocabulary" formatted="false">"المفردات"</string>
+    <string name="ui_voice_3091c84" formatted="false">"الصوت"</string>
+    <string name="ui_voice_audio" formatted="false">"الصوت والنطق"</string>
+    <string name="ui_voice_studio" formatted="false">"استوديو الصوت"</string>
+    <string name="ui_voices" formatted="false">"الأصوات"</string>
+    <string name="ui_volume" formatted="false">"مستوى الصوت"</string>
+    <string name="ui_weekly_reading" formatted="false">"القراءة الأسبوعية"</string>
+    <string name="ui_with_recorded_reading" formatted="false">"مع قراءة مسجلة"</string>
+    <string name="ui_word_replacements_before_playback" formatted="false">"استبدال الكلمات قبل النطق"</string>
+    <string name="ui_write_note_96dcbf1" formatted="false">"كتابة ملاحظة"</string>
+    <string name="ui_yes" formatted="false">"نعم"</string>
+    <string name="ui_yesterday" formatted="false">"أمس"</string>
+    <string name="ui_your_next_read_starts_here" formatted="false">"قراءتك القادمة تبدأ هنا"</string>
+    <string name="ui_your_reading_today" formatted="false">"قراءتك اليوم"</string>
+    <string name="widget_ready" formatted="false">"جاهز"</string>
+</resources>

@@ -139,7 +139,7 @@ internal fun ReaderDocumentDetailsDialog(
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                Text("Document Details", style = MaterialTheme.typography.titleLarge)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_details), style = MaterialTheme.typography.titleLarge)
             }
         },
         text = {
@@ -165,7 +165,7 @@ internal fun ReaderDocumentDetailsDialog(
         },
         confirmButton = {
             Button(onClick = onDismiss) {
-                Text("Close")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close))
             }
         }
     )
@@ -207,7 +207,7 @@ fun SleepTimerDialog(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Outlined.Timer, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text("Sleep timer")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sleep_timer))
             }
         },
         text = {
@@ -245,7 +245,7 @@ fun SleepTimerDialog(
                                 shape = VeritasPackStyle.chipShape(),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
                             ) {
-                                Text("Cancel timer")
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel_timer))
                             }
                         }
                     }
@@ -262,7 +262,7 @@ fun SleepTimerDialog(
                     ) {
                         RadioButton(selected = !modeBySection, onClick = { modeBySection = false })
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Countdown")
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_countdown))
                     }
                     Row(
                         modifier = Modifier.clickable { modeBySection = true },
@@ -270,7 +270,7 @@ fun SleepTimerDialog(
                     ) {
                         RadioButton(selected = modeBySection, onClick = { modeBySection = true })
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("End of section")
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_end_of_section))
                     }
                 }
 
@@ -313,7 +313,7 @@ fun SleepTimerDialog(
                         RadioButton(
                             selected = selectedAction == action,
                             onClick = { selectedAction = action })
-                        Text(action.label)
+                        Text(com.veritas.reader.ui.screens.localizedCatalogLabel(action.label))
                     }
                 }
             }
@@ -332,12 +332,12 @@ fun SleepTimerDialog(
                 },
                 shape = VeritasPackStyle.chipShape()
             ) {
-                Text(if (isTimerActive) "Update timer" else "Start timer")
+                Text(if (isTimerActive) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_update_timer) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_timer))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss, shape = VeritasPackStyle.chipShape()) {
-                Text("Close")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close))
             }
         }
     )
@@ -498,7 +498,7 @@ internal fun ReaderDialogsAndSheetsHost(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = if (isAlreadyBookmarked) "Bookmark Options" else "Highlight Passage",
+                        text = if (isAlreadyBookmarked) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_bookmark_options) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_highlight_passage),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -524,12 +524,12 @@ internal fun ReaderDialogsAndSheetsHost(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Remove")
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove))
                         }
                     }
                 }
                 Text(
-                    text = if (isAlreadyBookmarked) "Select another color to update bookmark:" else "Select a highlight color:",
+                    text = if (isAlreadyBookmarked) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_select_another_color_to_update_bookmark) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_select_a_highlight_color),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -569,7 +569,7 @@ internal fun ReaderDialogsAndSheetsHost(
                             if (isSelectedColor) {
                                 Icon(
                                     Icons.Filled.Check,
-                                    contentDescription = "Selected color",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected_color),
                                     tint = com.veritas.reader.readableInk(Color(android.graphics.Color.parseColor(hex))),
                                     modifier = Modifier.size(24.dp)
                                 )
@@ -599,7 +599,7 @@ internal fun ReaderDialogsAndSheetsHost(
             },
             title = {
                 Text(
-                    text = "Ask AI",
+                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ask_ai),
                     style = MaterialTheme.typography.titleMedium)
             },
             text = {
@@ -608,7 +608,7 @@ internal fun ReaderDialogsAndSheetsHost(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Select how much of the document content you'd like to share as a Markdown file (.md):",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_select_how_much_of_the_document_content_you_d_like_to_share_as_a),
                         style = MaterialTheme.typography.bodyMedium
                     )
 
@@ -625,7 +625,7 @@ internal fun ReaderDialogsAndSheetsHost(
                                 onClick = { selectedScope = ShareScope.SELECTED_TEXT }
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Selected Text (${selectionVal.sentenceIndexes.size} sentences)", style = MaterialTheme.typography.bodyMedium)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_129, com.veritas.reader.ui.screens.localizedUiValue(selectionVal.sentenceIndexes.size)), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
 
@@ -657,7 +657,7 @@ internal fun ReaderDialogsAndSheetsHost(
                             onClick = { selectedScope = ShareScope.CUSTOM_PAGE_RANGE }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Custom Page Range", style = MaterialTheme.typography.bodyMedium)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_custom_page_range), style = MaterialTheme.typography.bodyMedium)
                     }
 
                     if (selectedScope == ShareScope.CUSTOM_PAGE_RANGE) {
@@ -669,14 +669,14 @@ internal fun ReaderDialogsAndSheetsHost(
                             OutlinedTextField(
                                 value = startPageStr,
                                 onValueChange = { startPageStr = it.filter { char -> char.isDigit() } },
-                                label = { Text("From") },
+                                label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_from)) },
                                 modifier = Modifier.weight(1f),
                                 singleLine = true
                             )
                             OutlinedTextField(
                                 value = endPageStr,
                                 onValueChange = { endPageStr = it.filter { char -> char.isDigit() } },
-                                label = { Text("To") },
+                                label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_to)) },
                                 modifier = Modifier.weight(1f),
                                 singleLine = true
                             )
@@ -695,7 +695,7 @@ internal fun ReaderDialogsAndSheetsHost(
                             onClick = { selectedScope = ShareScope.ENTIRE_DOCUMENT }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Entire Document (${document.pageCount} pages)", style = MaterialTheme.typography.bodyMedium)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_130, com.veritas.reader.ui.screens.localizedUiValue(document.pageCount)), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             },
@@ -717,7 +717,7 @@ internal fun ReaderDialogsAndSheetsHost(
                         onDismissShareToAi()
                     }
                 ) {
-                    Text("Share", style = MaterialTheme.typography.labelLarge)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share), style = MaterialTheme.typography.labelLarge)
                 }
             },
             dismissButton = {
@@ -725,7 +725,7 @@ internal fun ReaderDialogsAndSheetsHost(
                     onDismissShareToAiSheet()
                     onDismissShareToAi()
                 }) {
-                    Text("Cancel")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
                 }
             }
         )
@@ -770,7 +770,7 @@ fun JumpToPageDialog(
         },
         title = {
             Text(
-                "Jump to Page",
+                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_jump_to_page),
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center
             )
@@ -782,7 +782,7 @@ fun JumpToPageDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Enter a page number between 1 and $pageCount",
+                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_131, com.veritas.reader.ui.screens.localizedUiValue(pageCount)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -796,7 +796,7 @@ fun JumpToPageDialog(
                     singleLine = true,
                     isError = jumpInput.isNotBlank() && !isValid,
                     supportingText = if (jumpInput.isNotBlank() && !isValid) {
-                        { Text("Please enter 1 to $pageCount", color = MaterialTheme.colorScheme.error) }
+                        { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_132, com.veritas.reader.ui.screens.localizedUiValue(pageCount)), color = MaterialTheme.colorScheme.error) }
                     } else null,
                     textStyle = MaterialTheme.typography.titleLarge.copy(
                         textAlign = TextAlign.Center),
@@ -821,12 +821,12 @@ fun JumpToPageDialog(
                 enabled = isValid,
                 shape = VeritasPackStyle.chipShape()
             ) {
-                Text("Jump", style = MaterialTheme.typography.labelLarge)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_jump), style = MaterialTheme.typography.labelLarge)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
             }
         },
         shape = VeritasPackStyle.cardShape(),

@@ -120,14 +120,14 @@ internal fun MainSettingsDialogsHost(
                     val count = candidates.size
                     storageScope.launch {
                         val freed = viewModel.cleanupOriginals(ids)
-                        cleanupMessage = "Freed ${formatVeritasBytes(freed)} from $count document${if (count == 1) "" else "s"}."
+                        cleanupMessage = context.getString(R.string.settings_storage_freed, formatVeritasBytes(freed), count)
                         refreshTick++
                     }
                 },
                 onClearCache = {
                     storageScope.launch {
                         val freed = viewModel.clearAppCache()
-                        cleanupMessage = "Cleared ${formatVeritasBytes(freed)} of temporary cache."
+                        cleanupMessage = context.getString(R.string.settings_cache_cleared, formatVeritasBytes(freed))
                         refreshTick++
                     }
                 },
@@ -233,7 +233,7 @@ internal fun MainSettingsDialogsHost(
                     TextButton(
                         onClick = { userManualTipText = null }
                     ) {
-                        Text("Got it")
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_got_it))
                     }
                 }
             )

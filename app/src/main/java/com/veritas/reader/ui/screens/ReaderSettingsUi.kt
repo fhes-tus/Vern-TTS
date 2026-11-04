@@ -104,7 +104,7 @@ fun VeritasFontPicker(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = font.label,
+                        text = localizedSettingsOption(font.label),
                         fontFamily = family,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
@@ -112,7 +112,7 @@ fun VeritasFontPicker(
                     Text(
                         // A pangram-ish specimen: enough letterforms to tell the
                         // faces apart at a glance.
-                        text = "The quick brown fox jumps over",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_the_quick_brown_fox_jumps_over),
                         fontFamily = family,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
@@ -184,7 +184,7 @@ fun PackPalettePreview(packId: String) {
                 .background(VeritasPackStyle.panelColor(scheme))
                 .border(VeritasPackStyle.cardBorder(scheme), shape).padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Aa", color = scheme.onSurface, style = MaterialTheme.typography.labelLarge)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_aa_2c419ec), color = scheme.onSurface, style = MaterialTheme.typography.labelLarge)
                 Box(Modifier.weight(1f).height(2.dp).background(scheme.onSurfaceVariant.copy(alpha = .45f), VeritasPackStyle.chipShape()))
                 Box(Modifier.width(38.dp).height(16.dp).background(scheme.primary, VeritasPackStyle.chipShape()))
             }
@@ -219,7 +219,7 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
     val heroOnColor = heroColors.content
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            "Live preview",
+            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_live_preview),
             fontWeight = MaterialTheme.typography.titleLarge.fontWeight,
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleMedium
@@ -249,7 +249,7 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
                             modifier = Modifier.size(24.dp).clip(RoundedCornerShape(6.dp))
                         )
                         Spacer(Modifier.width(6.dp))
-                        Text("Vern", fontWeight = MaterialTheme.typography.titleLarge.fontWeight, color = scheme.onBackground, style = MaterialTheme.typography.titleMedium)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern), fontWeight = MaterialTheme.typography.titleLarge.fontWeight, color = scheme.onBackground, style = MaterialTheme.typography.titleMedium)
                         Spacer(Modifier.weight(1f))
                         Box(modifier = Modifier.size(22.dp).background(scheme.surfaceVariant, CircleShape))
                     }
@@ -265,14 +265,14 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
                     ) {
                         Column {
                             Text(
-                                "Continue reading",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_continue_reading),
                                 color = heroOnColor,
                                 style = MaterialTheme.typography.labelLarge,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                "Pick up where you left off",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pick_up_where_you_left_off),
                                 color = heroColors.secondaryContent,
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1,
@@ -315,7 +315,7 @@ fun ThemePreviewCard(themePackId: String, themeId: String, vibrantHero: Boolean 
                         .padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.PlayArrow, null, tint = scheme.primary, modifier = Modifier.size(22.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Continue reading", style = MaterialTheme.typography.labelLarge, color = scheme.onSurface)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_continue_reading), style = MaterialTheme.typography.labelLarge, color = scheme.onSurface)
                     }
                     // Bottom nav — active tab in primary, others muted
                     Row(
@@ -357,7 +357,7 @@ fun VeritasThemePicker(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         // ── 1. Appearance Mode (System Default / Light / Dark) ──
         Text(
-            text = "Appearance Mode",
+            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_appearance_mode),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -367,9 +367,9 @@ fun VeritasThemePicker(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val modes = listOf(
-                Triple("system", "System", Icons.Filled.BrightnessAuto),
-                Triple("light", "Light", Icons.Filled.LightMode),
-                Triple("dark", "Dark", Icons.Filled.DarkMode)
+                Triple("system", androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_system), Icons.Filled.BrightnessAuto),
+                Triple("light", androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_light), Icons.Filled.LightMode),
+                Triple("dark", androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_dark), Icons.Filled.DarkMode)
             )
             modes.forEach { (modeId, label, icon) ->
                 val isSelected = currentMode == modeId && currentFamily != "neon"
@@ -429,7 +429,7 @@ fun VeritasThemePicker(
 
         // ── 2. Palette Families (5 Sets) ──
         Text(
-            text = "Theme Palette Sets",
+            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_theme_palette_sets),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -461,7 +461,7 @@ fun VeritasThemePicker(
                             modifier = cardModifier
                         ) {
                             ThemeChoiceContent(
-                                label = if (family.isAccent) "Neon" else family.displayName,
+                                label = if (family.isAccent) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_neon) else family.displayName,
                                 previewColors = colors,
                                 selected = true
                             )
@@ -477,7 +477,7 @@ fun VeritasThemePicker(
                             modifier = cardModifier
                         ) {
                             ThemeChoiceContent(
-                                label = if (family.isAccent) "Neon" else family.displayName,
+                                label = if (family.isAccent) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_neon) else family.displayName,
                                 previewColors = colors,
                                 selected = false
                             )
@@ -530,9 +530,9 @@ fun ReaderSettingsDialog(
     var colourThemesExpanded by remember { mutableStateOf(false) }
     var typefaceExpanded by remember { mutableStateOf(false) }
 
-    FullScreenSettingsScaffold(title = "Display & theme", onBack = onDismiss) {
+    FullScreenSettingsScaffold(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_display_theme), onBack = onDismiss) {
         // Theme Packs Accordion
-        SettingsHubSectionTitle("Theme packs")
+        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_theme_packs))
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = VeritasPackStyle.cardShape(),
@@ -549,12 +549,12 @@ fun ReaderSettingsDialog(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Theme pack: ${VeritasThemePackCatalog.displayName(settings.themePackId)}",
+                            androidx.compose.ui.res.stringResource(R.string.settings_theme_pack, VeritasThemePackCatalog.displayName(settings.themePackId)),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            "UI styling, shapes, and surface finish",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ui_styling_shapes_and_surface_finish),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -562,7 +562,7 @@ fun ReaderSettingsDialog(
                     IconButton(onClick = { themePacksExpanded = !themePacksExpanded }) {
                         Icon(
                             if (themePacksExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                            contentDescription = if (themePacksExpanded) "Collapse" else "Expand",
+                            contentDescription = if (themePacksExpanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -578,7 +578,7 @@ fun ReaderSettingsDialog(
         }
 
         // Colour Themes Accordion
-        SettingsHubSectionTitle("Colour themes")
+        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_colour_themes))
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = VeritasPackStyle.cardShape(),
@@ -595,12 +595,12 @@ fun ReaderSettingsDialog(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Colour theme: ${VeritasThemeCatalog.displayName(settings.themeId)}",
+                            androidx.compose.ui.res.stringResource(R.string.settings_colour_theme, VeritasThemeCatalog.displayName(settings.themeId)),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            "Color palette and document canvas tone",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_color_palette_and_document_canvas_tone),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -608,7 +608,7 @@ fun ReaderSettingsDialog(
                     IconButton(onClick = { colourThemesExpanded = !colourThemesExpanded }) {
                         Icon(
                             if (colourThemesExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                            contentDescription = if (colourThemesExpanded) "Collapse" else "Expand",
+                            contentDescription = if (colourThemesExpanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -637,7 +637,7 @@ fun ReaderSettingsDialog(
         ReaderNavigationSettings(settings, onReadingSettingsChange)
 
         // Typeface Accordion
-        SettingsHubSectionTitle("Typeface")
+        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_typeface))
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = VeritasPackStyle.cardShape(),
@@ -654,12 +654,12 @@ fun ReaderSettingsDialog(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Selected Font: ${settings.uiFontId.replaceFirstChar { it.uppercase() }}",
+                            androidx.compose.ui.res.stringResource(R.string.settings_selected_font, localizedSettingsOption(VeritasUiFont.fromId(settings.uiFontId).label)),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            "Reader typography & font family",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reader_typography_font_family),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -667,7 +667,7 @@ fun ReaderSettingsDialog(
                     IconButton(onClick = { typefaceExpanded = !typefaceExpanded }) {
                         Icon(
                             if (typefaceExpanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                            contentDescription = if (typefaceExpanded) "Collapse" else "Expand",
+                            contentDescription = if (typefaceExpanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -684,7 +684,7 @@ fun ReaderSettingsDialog(
 
         // Jump to Page Card
         if (totalPages > 1 && onJumpToPage != null) {
-            SettingsHubSectionTitle("Jump to page")
+            SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_jump_to_page_8a8ded9))
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = VeritasPackStyle.cardShape(),
@@ -701,12 +701,12 @@ fun ReaderSettingsDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Page number",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_page_number),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            "Page $currentPage of $totalPages",
+                            androidx.compose.ui.res.stringResource(R.string.settings_page_position, currentPage, totalPages),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -747,7 +747,7 @@ fun ReaderSettingsDialog(
                             shape = RoundedCornerShape(12.dp),
                             enabled = inputPageText.toIntOrNull() != null && !inputError
                         ) {
-                            Text("Go")
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_go))
                         }
                     }
                 }
@@ -755,14 +755,14 @@ fun ReaderSettingsDialog(
         }
 
         // Preferences Section
-        SettingsHubSectionTitle("Display preferences")
+        SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_display_preferences))
         Card(Modifier.fillMaxWidth(), shape = VeritasPackStyle.cardShape()) {
             Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f).padding(end = 12.dp)) {
-                    Text("Glass in other theme packs", style = MaterialTheme.typography.titleMedium)
-                    Text("Translucent glass with curved edges for navigation, player and floating Add, Note and Import controls. Liquid glass includes this look.",
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_glass_in_other_theme_packs), style = MaterialTheme.typography.titleMedium)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_translucent_glass_with_curved_edges_for_navigation_player_and_flo),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (settings.reduceTransparency) Text("Reduce transparency currently keeps controls opaque.",
+                    if (settings.reduceTransparency) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reduce_transparency_currently_keeps_controls_opaque),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 VeritasSwitch(checked = settings.glassFloatingControls, onCheckedChange = { onToggleGlassFloatingControls() })
@@ -777,24 +777,24 @@ fun ReaderSettingsDialog(
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Vibrant hero card", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Rich colors from your selected theme", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vibrant_hero_card), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rich_colors_from_your_selected_theme), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     VeritasSwitch(checked = settings.vibrantHero, onCheckedChange = { onToggleVibrantHero() })
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Auto-play queue", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Automatically play next queued book", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_auto_play_queue), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_automatically_play_next_queued_book), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     VeritasSwitch(checked = settings.autoPlayQueue, onCheckedChange = { onToggleAutoPlayQueue() })
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("AMOLED Mode", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-                        Text("Pure black background for dark themes and battery saving", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_amoled_mode), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pure_black_background_for_dark_themes_and_battery_saving), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     VeritasSwitch(checked = settings.amoledMode, onCheckedChange = { onToggleAmoledMode() })
                 }
@@ -805,23 +805,23 @@ fun ReaderSettingsDialog(
 
 @Composable
 internal fun ReaderNavigationSettings(settings: ReaderSettings, onSave: (ReaderSettings) -> Unit) {
-    SettingsHubSectionTitle("Page navigation")
+    SettingsHubSectionTitle(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_page_navigation))
     Card(Modifier.fillMaxWidth(), shape = VeritasPackStyle.cardShape(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Reading layout", style = MaterialTheme.typography.titleMedium)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_layout), style = MaterialTheme.typography.titleMedium)
             ReaderNavigationChoices("layout", settings.readingLayout,
-                listOf("pages" to "Page swipe", "scroll" to "Vertical scroll")) { onSave(settings.copy(readingLayout = it)) }
-            Text("Text, illustrations and tables use the selected reading layout.", style = MaterialTheme.typography.bodySmall)
-            Text("Swipe effect", style = MaterialTheme.typography.titleMedium)
+                listOf("pages" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_page_swipe), "scroll" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_vertical_scroll))) { onSave(settings.copy(readingLayout = it)) }
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text_illustrations_and_tables_use_the_selected_reading_layout), style = MaterialTheme.typography.bodySmall)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_swipe_effect), style = MaterialTheme.typography.titleMedium)
             ReaderNavigationChoices("turn", settings.pageTurnStyle,
-                listOf("slide" to "Slide", "flip" to "Page curl", "hinge" to "Light flip", "none" to "None")) {
+                listOf("slide" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_slide), "flip" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_page_curl), "hinge" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_light_flip), "none" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_none))) {
                 onSave(settings.copy(pageTurnStyle = it))
             }
-            Text("Effects apply to text pages in Page swipe mode. Reduce motion turns off page animations.", style = MaterialTheme.typography.bodySmall)
-            Text("Original PDF navigation", style = MaterialTheme.typography.titleMedium)
-            ReaderNavigationChoices("pdf", settings.pdfNavigationMode, listOf("swipe" to "Swipe", "scroll" to "Scroll")) {
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_effects_apply_to_text_pages_in_page_swipe_mode_reduce_motion_turn), style = MaterialTheme.typography.bodySmall)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_original_pdf_navigation), style = MaterialTheme.typography.titleMedium)
+            ReaderNavigationChoices("pdf", settings.pdfNavigationMode, listOf("swipe" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_swipe), "scroll" to androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_scroll))) {
                 onSave(settings.copy(pdfNavigationMode = it))
             }
         }
@@ -868,7 +868,7 @@ private fun PaperToneOptionRow(
                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text("Aa", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_aa_2c419ec), color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {

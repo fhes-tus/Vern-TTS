@@ -230,7 +230,7 @@ internal fun NoteGroupCard(
                         if (!group.audioPath.isNullOrBlank()) {
                             Icon(
                                 imageVector = Icons.Filled.Mic,
-                                contentDescription = "Voice Memo",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_memo),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(14.dp)
                             )
@@ -245,7 +245,7 @@ internal fun NoteGroupCard(
                             )
                         } else if (!group.audioPath.isNullOrBlank()) {
                             Text(
-                                text = "Voice Memo ($memoDuration)",
+                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_110, com.veritas.reader.ui.screens.localizedUiValue(memoDuration)),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 maxLines = 1,
@@ -257,7 +257,7 @@ internal fun NoteGroupCard(
 
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    contentDescription = if (expanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -317,7 +317,7 @@ internal fun NoteGroupCard(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "Note",
+                                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_note),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary)
                                 }
@@ -378,7 +378,7 @@ internal fun NoteGroupCard(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Open in document ↗",
+                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_in_document),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary)
                         }
@@ -387,7 +387,7 @@ internal fun NoteGroupCard(
                             IconButton(onClick = { showMenu = true }) {
                                 Icon(
                                     imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = "Actions",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_actions),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -397,7 +397,7 @@ internal fun NoteGroupCard(
                                 onDismissRequest = { showMenu = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Share as text") },
+                                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_as_text)) },
                                     onClick = {
                                         showMenu = false
                                         val contextText = sentencesText.joinToString(" ")
@@ -411,7 +411,7 @@ internal fun NoteGroupCard(
                                     leadingIcon = { Icon(Icons.Filled.Share, contentDescription = null) }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Share as image") },
+                                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_as_image)) },
                                     onClick = {
                                         showMenu = false
                                         val fullText = sentencesText.joinToString(" ") + "\n\nNote: " + group.noteText
@@ -426,7 +426,7 @@ internal fun NoteGroupCard(
                                     leadingIcon = { Icon(Icons.Filled.Image, contentDescription = null) }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Copy") },
+                                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy)) },
                                     onClick = {
                                         showMenu = false
                                         val fullText = sentencesText.joinToString(" ") + "\n\nNote: " + group.noteText
@@ -435,7 +435,7 @@ internal fun NoteGroupCard(
                                     leadingIcon = { Icon(Icons.Filled.ContentPaste, contentDescription = null) }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Delete") },
+                                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) },
                                     onClick = {
                                         showMenu = false
                                         onDeleteGroup()

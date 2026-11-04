@@ -130,13 +130,13 @@ internal fun SyncAndBackupCenterDialog(
                     IconButton(onClick = onDismiss) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back),
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Sync & Backup Center",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sync_backup_center),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.weight(1f)
@@ -165,12 +165,12 @@ internal fun SyncAndBackupCenterDialog(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "Library Sync & Backup Engine",
+                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_library_sync_backup_engine),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
-                                text = "Vern Sync & Backup creates portable backup files containing your entire library, reading progress, flashcards, notes, bookmarks, and custom voice rules. Import safely merges data without deleting local readings.",
+                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern_sync_backup_creates_portable_backup_files_containing_your_en),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f))
                         }
@@ -190,17 +190,17 @@ internal fun SyncAndBackupCenterDialog(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Text(
-                                text = "Data Included in Backup & Sync",
+                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_data_included_in_backup_sync),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            SyncInfoRow("Saved Readings", documentCount.toString())
-                            SyncInfoRow("Bookmarks & Notes", annotationCount.toString())
-                            SyncInfoRow("Reading Queue", queueCount.toString())
-                            SyncInfoRow("Pronunciation Rules", pronunciationRuleCount.toString())
-                            SyncInfoRow("Flashcards, Decks & Progress", "Included")
-                            SyncInfoRow("Reading Streaks & History", "Included")
-                            SyncInfoRow("Voice & Reader Settings", "Included")
+                            SyncInfoRow(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_saved_readings), documentCount.toString())
+                            SyncInfoRow(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_bookmarks_notes), annotationCount.toString())
+                            SyncInfoRow(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_reading_queue), queueCount.toString())
+                            SyncInfoRow(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_pronunciation_rules), pronunciationRuleCount.toString())
+                            SyncInfoRow(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_flashcards_decks_progress), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_included))
+                            SyncInfoRow(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_reading_streaks_history), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_included))
+                            SyncInfoRow(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_voice_reader_settings), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_included))
                         }
                     }
 
@@ -218,7 +218,7 @@ internal fun SyncAndBackupCenterDialog(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Text(
-                                text = "Portable backup actions",
+                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_portable_backup_actions),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -233,10 +233,10 @@ internal fun SyncAndBackupCenterDialog(
                                     contentColor = MaterialTheme.colorScheme.onPrimary
                                 )
                             ) {
-                                Text("Export text & settings (.json)", fontWeight = FontWeight.Bold)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_export_text_settings_json), fontWeight = FontWeight.Bold)
                             }
 
-                            Text("Use the ZIP backup to carry Notes recordings, images and quiz media to another device. JSON carries text and settings only. Import merges with your existing data.", style = MaterialTheme.typography.bodySmall)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_use_the_zip_backup_to_carry_notes_recordings_images_and_quiz_medi), style = MaterialTheme.typography.bodySmall)
 
                             val fullBackupSizeMb = fullBackupEstimateBytes / (1024.0 * 1024.0)
                             OutlinedButton(
@@ -247,9 +247,9 @@ internal fun SyncAndBackupCenterDialog(
                             ) {
                                 Text(
                                     if (fullBackupEstimateBytes > 0)
-                                        String.format(locale, "Export portable backup with media (.zip ~%.1f MB)", fullBackupSizeMb)
+                                        androidx.compose.ui.res.stringResource(R.string.settings_export_zip_size, String.format(locale, "%.1f", fullBackupSizeMb))
                                     else
-                                        "Export portable backup with media (.zip)",
+                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_export_portable_backup_with_media_zip),
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -260,7 +260,7 @@ internal fun SyncAndBackupCenterDialog(
                                 enabled = !inProgress,
                                 shape = VeritasPackStyle.chipShape()
                             ) {
-                                Text("Share text & settings (.json)", fontWeight = FontWeight.Bold)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_text_settings_json), fontWeight = FontWeight.Bold)
                             }
 
                             OutlinedButton(
@@ -268,7 +268,7 @@ internal fun SyncAndBackupCenterDialog(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = VeritasPackStyle.chipShape()
                             ) {
-                                Text("Import Sync / Backup Pack", fontWeight = FontWeight.Bold)
+                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_sync_backup_pack), fontWeight = FontWeight.Bold)
                             }
 
                             BackupStatusBlock(inProgress = inProgress, message = message)
@@ -293,12 +293,12 @@ internal fun SyncAndBackupCenterDialog(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Automatic Weekly Backups",
+                                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_automatic_weekly_backups),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Automatically save local backup archives every 7 days",
+                                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_automatically_save_local_backup_archives_every_7_days),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -403,7 +403,7 @@ fun UnrestrictedBatteryDialog(
         },
         title = {
             Text(
-                text = "Unrestricted Battery Playback",
+                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unrestricted_battery_playback),
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -415,7 +415,7 @@ fun UnrestrictedBatteryDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "Android battery optimizations will pause or kill Vern speech playback shortly after your screen locks or turns off.",
+                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_android_battery_optimizations_will_pause_or_kill_vern_speech_play),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -429,12 +429,12 @@ fun UnrestrictedBatteryDialog(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            text = "How to enable uninterrupted audio:",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_how_to_enable_uninterrupted_audio),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Tap 'Turn On Unrestricted' and choose 'Allow' on the prompt, or select 'Battery' \u2192 'Unrestricted' in App Info.",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tap_turn_on_unrestricted_and_choose_allow_on_the_prompt_or_select),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -450,7 +450,7 @@ fun UnrestrictedBatteryDialog(
                 },
                 shape = RoundedCornerShape(50)
             ) {
-                Text("Turn On Unrestricted")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_turn_on_unrestricted))
             }
         },
         dismissButton = {
@@ -462,11 +462,11 @@ fun UnrestrictedBatteryDialog(
                             onDismiss()
                         }
                     ) {
-                        Text("Don't Ask Again")
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_don_t_ask_again))
                     }
                 }
                 TextButton(onClick = onDismiss) {
-                    Text("Not Now")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_not_now))
                 }
             }
         }

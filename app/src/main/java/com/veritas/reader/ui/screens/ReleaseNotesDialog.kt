@@ -25,7 +25,7 @@ fun ReleaseNotesDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "What's New in $versionName",
+                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_175, com.veritas.reader.ui.screens.localizedUiValue(versionName)),
                 style = MaterialTheme.typography.titleMedium)
         },
         text = {
@@ -44,7 +44,7 @@ fun ReleaseNotesDialog(
                     )
                 } else {
                     Text(
-                        text = "Vern has been updated to the latest version! Enjoy the new features and improvements.",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern_has_been_updated_to_the_latest_version_enjoy_the_new_feature),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -53,7 +53,7 @@ fun ReleaseNotesDialog(
         },
         confirmButton = {
             Button(onClick = onDismiss) {
-                Text("Close")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close))
             }
         }
     )

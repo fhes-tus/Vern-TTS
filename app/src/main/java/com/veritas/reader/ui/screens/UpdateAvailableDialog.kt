@@ -54,7 +54,7 @@ fun UpdateAvailableDialog(
         textContentColor = MaterialTheme.colorScheme.onSurface,
         title = {
             Text(
-                text = "New Update Available: $versionName",
+                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_182, com.veritas.reader.ui.screens.localizedUiValue(versionName)),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -69,7 +69,7 @@ fun UpdateAvailableDialog(
             ) {
                 if (isDownloading) {
                     Text(
-                        text = "Downloading update: ${(downloadProgress * 100).toInt()}%",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_183, com.veritas.reader.ui.screens.localizedUiValue((downloadProgress * 100).toInt())),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     LinearProgressIndicator(
@@ -84,23 +84,23 @@ fun UpdateAvailableDialog(
                 } else {
                     Text(
                         text = if (isPlayStoreInstall) {
-                            "A new version of Veritas Reader is available on Google Play and GitHub."
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_a_new_version_of_veritas_reader_is_available_on_google_play_and_g)
                         } else {
-                            "A new version of Veritas Reader is ready with latest enhancements."
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_a_new_version_of_veritas_reader_is_ready_with_latest_enhancements)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     if (downloadError != null) {
                         Text(
-                            text = "Download failed: $downloadError",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_184, com.veritas.reader.ui.screens.localizedUiValue(downloadError)),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.error
                         )
                     }
                     if (summaryBullets.isNotEmpty()) {
                         Text(
-                            text = "What's New:",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_what_s_new),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -141,11 +141,11 @@ fun UpdateAvailableDialog(
                             onDismiss()
                         }
                     ) {
-                        Text("Update on Google Play")
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_update_on_google_play))
                     }
                 } else {
                     Button(onClick = onUpdate) {
-                        Text(if (downloadError != null) "Retry Update" else "Update Now")
+                        Text(if (downloadError != null) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_retry_update) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_update_now))
                     }
                 }
             }
@@ -153,13 +153,13 @@ fun UpdateAvailableDialog(
         dismissButton = {
             if (isDownloading) {
                 TextButton(onClick = onCancelDownload) {
-                    Text("Cancel")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
                 }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (isPlayStoreInstall) {
                         TextButton(onClick = onUpdate) {
-                            Text("Direct APK", style = MaterialTheme.typography.labelMedium)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_direct_apk), style = MaterialTheme.typography.labelMedium)
                         }
                     } else {
                         TextButton(
@@ -168,11 +168,11 @@ fun UpdateAvailableDialog(
                                 onDismiss()
                             }
                         ) {
-                            Text("Google Play", style = MaterialTheme.typography.labelMedium)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_google_play), style = MaterialTheme.typography.labelMedium)
                         }
                     }
                     TextButton(onClick = onDismiss) {
-                        Text("Later", style = MaterialTheme.typography.labelMedium)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_later), style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }

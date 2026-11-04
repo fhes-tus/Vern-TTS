@@ -225,7 +225,7 @@ internal fun PlayerPanel(
                         if (coverBitmap != null) {
                             Image(
                                 bitmap = requireNotNull(coverBitmap).asImageBitmap(),
-                                contentDescription = "Switch to Original Document",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_switch_to_original_document),
                                 modifier = Modifier
                                     .size(32.dp)
                                     .clip(RoundedCornerShape(6.dp)),
@@ -275,7 +275,7 @@ internal fun PlayerPanel(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateBefore,
-                            contentDescription = "Previous",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous),
                             tint = if (canGoPrevious) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             modifier = Modifier.size(24.dp)
                         )
@@ -302,7 +302,7 @@ internal fun PlayerPanel(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                            contentDescription = "Next",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next),
                             tint = if (canGoNext) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             modifier = Modifier.size(24.dp)
                         )
@@ -330,7 +330,7 @@ internal fun PlayerPanel(
                     ) {
                         Icon(
                             imageVector = if (isLandscape) Icons.Filled.StayCurrentPortrait else Icons.Filled.StayCurrentLandscape,
-                            contentDescription = if (isLandscape) "Switch to portrait" else "Switch to landscape",
+                            contentDescription = if (isLandscape) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_switch_to_portrait) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_switch_to_landscape),
                             tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(22.dp)
                         )
@@ -348,7 +348,7 @@ internal fun PlayerPanel(
                     ) {
                         Icon(
                             imageVector = if (draggableState.currentValue == DragValue.Expanded) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
-                            contentDescription = "Expand Player Panel",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand_player_panel),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
@@ -392,7 +392,7 @@ internal fun PlayerPanel(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                "Speed ${"%.2f".format(rate)}x",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_153, com.veritas.reader.ui.screens.localizedUiValue("%.2f".format(rate))),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface)
                             Row(
@@ -476,7 +476,7 @@ internal fun PlayerPanel(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    "Pitch ${"%.2f".format(pitch)}",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_154, com.veritas.reader.ui.screens.localizedUiValue("%.2f".format(pitch))),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface)
                                 Row(
@@ -526,7 +526,7 @@ internal fun PlayerPanel(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    "Text size ${fontSizeSp}sp",
+                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_155, com.veritas.reader.ui.screens.localizedUiValue(fontSizeSp)),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface)
                                 Row(
@@ -580,7 +580,7 @@ internal fun PlayerPanel(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                "Line Spacing ${sectionSpacingDp}dp",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_156, com.veritas.reader.ui.screens.localizedUiValue(sectionSpacingDp)),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface)
                             Row(
@@ -622,7 +622,7 @@ internal fun PlayerPanel(
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        "${spacingPreset}dp",
+                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_157, com.veritas.reader.ui.screens.localizedUiValue(spacingPreset)),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
@@ -648,7 +648,7 @@ internal fun PlayerPanel(
                     if (availableVoices.isNotEmpty()) {
                         HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
                         Text(
-                            "Voice",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_3091c84),
                             modifier = Modifier.padding(horizontal = 8.dp),
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -695,13 +695,13 @@ internal fun PlayerPanel(
                             onClick = onPlayQueue,
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                         ) {
-                            Text(if (queueCount == 0) "Queue empty" else "Play Queue ($queueCount)", style = MaterialTheme.typography.labelMedium)
+                            Text(if (queueCount == 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_queue_empty) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_158, com.veritas.reader.ui.screens.localizedUiValue(queueCount)), style = MaterialTheme.typography.labelMedium)
                         }
                         TextButton(
                             onClick = onOpenVoiceStudio,
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                         ) {
-                            Text("Voice Studio ›", style = MaterialTheme.typography.labelMedium)
+                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_studio_4758e58), style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }

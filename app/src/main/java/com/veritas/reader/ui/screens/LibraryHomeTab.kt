@@ -157,7 +157,7 @@ internal fun LibraryHomeTab(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item(key = "greeting") {
-            Text(homeGreeting(uiState.userName, Calendar.getInstance().apply { timeInMillis = now }.get(Calendar.HOUR_OF_DAY), welcomeBack),
+            Text(localizedHomeGreeting(uiState.userName, Calendar.getInstance().apply { timeInMillis = now }.get(Calendar.HOUR_OF_DAY), welcomeBack),
                 style = MaterialTheme.typography.titleMedium, color = scheme.onSurface,
                 modifier = Modifier.padding(top = 2.dp, bottom = 2.dp))
         }
@@ -173,20 +173,20 @@ internal fun LibraryHomeTab(
                 onShowReadingStatsHome, onGoalMinutesChange, Modifier.staggeredEntrance(2), weeklyMillis, weekReadingMillis)
         } else item(key = "goal-prompt") {
             TextButton(onClick = { showGoalPicker = true }, modifier = Modifier.fillMaxWidth()) {
-                Text("Set a daily reading goal")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_set_a_daily_reading_goal))
             }
         }
         if (recentBooks.isNotEmpty()) {
             item(key = "recent-books") {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Recent books", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_recent_books), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
                     IconButton(onClick = onToggleHomeGridView) {
                         Icon(if (isHomeGridView) Icons.AutoMirrored.Filled.List else Icons.Filled.GridView,
-                            if (isHomeGridView) "Switch to list view" else "Switch to grid view",
+                            if (isHomeGridView) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_switch_to_list_view) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_switch_to_grid_view),
                             tint = scheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                     }
-                    TextButton(onClick = { onNavigateToTab(VeritasHomeTab.LIBRARY) }) { Text("See all →") }
+                    TextButton(onClick = { onNavigateToTab(VeritasHomeTab.LIBRARY) }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_see_all)) }
                 }
                 if (isHomeGridView) Row(Modifier.staggeredEntrance(3).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     recentBooks.forEach { doc -> HomeRecentBookGridItem(doc, { onOpenDocument(doc) }, Modifier.weight(1f)) }
@@ -208,14 +208,14 @@ internal fun LibraryHomeTab(
                 .onGloballyPositioned { OnboardingController.updateBounds("classics_catalog_card", it) },
                 shape = VeritasPackStyle.cardShape(), colors = CardDefaults.cardColors(containerColor = VeritasPackStyle.panelColor(scheme)),
                 border = VeritasPackStyle.cardBorder(scheme)) {
-                HomeActionRow(Icons.AutoMirrored.Filled.LibraryBooks, "Explore the classics", "Find your next read",
+                HomeActionRow(Icons.AutoMirrored.Filled.LibraryBooks, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_explore_the_classics), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_find_your_next_read),
                     scheme.tertiaryContainer, scheme.onTertiaryContainer, onOpenClassicsCatalog)
             }
         }
         if (documents.isNotEmpty() || showWeeklyPick) item(key = "add") {
             TextButton(onClick = onShowImportSheet, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Add, null, Modifier.size(20.dp))
-                Text("Add a book or document", Modifier.padding(start = 8.dp))
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_a_book_or_document), Modifier.padding(start = 8.dp))
             }
         }
     }

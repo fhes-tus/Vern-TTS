@@ -86,16 +86,16 @@ internal fun ScanImportSourceSheet(onDismiss: () -> Unit, onCapture: () -> Unit,
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Scan / OCR", style = MaterialTheme.typography.titleLarge)
-            Text("Extract printed text from a new or existing photo.", style = MaterialTheme.typography.bodyMedium)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_scan_ocr), style = MaterialTheme.typography.titleLarge)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_extract_printed_text_from_a_new_or_existing_photo), style = MaterialTheme.typography.bodyMedium)
             Surface(onClick = onCapture, shape = MaterialTheme.shapes.large) {
-                ListItem(headlineContent = { Text("Take photo") },
-                    supportingContent = { Text("Capture a page with your camera") },
+                ListItem(headlineContent = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_take_photo)) },
+                    supportingContent = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_capture_a_page_with_your_camera)) },
                     leadingContent = { Icon(Icons.Filled.PhotoCamera, contentDescription = null) })
             }
             Surface(onClick = onChoosePhoto, shape = MaterialTheme.shapes.large) {
-                ListItem(headlineContent = { Text("Choose photo") },
-                    supportingContent = { Text("Select an image from Photos or Collections") },
+                ListItem(headlineContent = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_photo)) },
+                    supportingContent = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_select_an_image_from_photos_or_collections)) },
                     leadingContent = { Icon(Icons.Filled.PhotoLibrary, contentDescription = null) })
             }
         }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="l10n_catalog_0" formatted="false">"当前句子"</string>
+    <string name="l10n_catalog_1" formatted="false">"当前页面"</string>
+    <string name="l10n_catalog_2" formatted="false">"当前章节"</string>
+    <string name="l10n_catalog_3" formatted="false">"整篇文档"</string>
+    <string name="l10n_catalog_4" formatted="false">"摘要"</string>
+    <string name="l10n_catalog_5" formatted="false">"要点"</string>
+    <string name="l10n_catalog_6" formatted="false">"解释当前章节"</string>
+    <string name="l10n_catalog_7" formatted="false">"学习笔记"</string>
+    <string name="l10n_catalog_8" formatted="false">"简化"</string>
+    <string name="l10n_catalog_9" formatted="false">"逐节"</string>
+    <string name="l10n_catalog_10" formatted="false">"测验"</string>
+    <string name="l10n_catalog_11" formatted="false">"自定义提示词"</string>
+    <string name="l10n_catalog_12" formatted="false">"翻译当前章节"</string>
+    <string name="l10n_catalog_13" formatted="false">"当前章节双语显示"</string>
+    <string name="l10n_catalog_14" formatted="false">"PPTX"</string>
+    <string name="l10n_catalog_15" formatted="false">"网页"</string>
+    <string name="l10n_catalog_16" formatted="false">"TXT"</string>
+    <string name="l10n_catalog_17" formatted="false">"OCR"</string>
+    <string name="l10n_catalog_18" formatted="false">"文件名"</string>
+    <string name="l10n_catalog_19" formatted="false">"日期与时间"</string>
+    <string name="l10n_catalog_20" formatted="false">"大小"</string>
+    <string name="l10n_catalog_21" formatted="false">"路径"</string>
+    <string name="l10n_catalog_22" formatted="false">"暂停播放"</string>
+    <string name="l10n_catalog_23" formatted="false">"停止播放"</string>
+    <string name="l10n_catalog_24" formatted="false">"中等图标"</string>
+    <string name="l10n_catalog_25" formatted="false">"小图标"</string>
+    <string name="l10n_catalog_26" formatted="false">"平铺"</string>
+    <string name="l10n_catalog_27" formatted="false">"每次选择"</string>
+    <string name="l10n_catalog_28" formatted="false">"分享时选择"</string>
+</resources>

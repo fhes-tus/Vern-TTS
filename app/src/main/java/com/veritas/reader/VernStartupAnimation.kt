@@ -42,7 +42,7 @@ internal fun VernStartupAnimation(enabled: Boolean) {
         .background(Color(VernCustomization.palette(VeritasThemeState.launcherPalette, VeritasThemeState.themeId).background))
         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {},
         contentAlignment = Alignment.Center) {
-        Image(painterResource(R.drawable.vern_v_cream), "Vern is starting",
+        Image(painterResource(R.drawable.vern_v_cream), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_vern_is_starting),
             Modifier.size(132.dp).graphicsLayer {
                 val scale = if (VeritasThemeState.splashAnimation == "bloom") .84f + entrance.value * .16f else 1f
                 scaleX = scale; scaleY = scale

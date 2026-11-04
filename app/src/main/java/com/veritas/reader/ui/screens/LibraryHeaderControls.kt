@@ -47,20 +47,20 @@ internal fun LibraryHeaderActions(
         IconButton({ if (section == LibrarySection.CLASSICS) classics.listMode = !classics.listMode else viewMenu = true },
             Modifier.testTag(if (section == LibrarySection.CLASSICS) "classics_view_mode" else "library_view_mode")) {
             val grid = if (section == LibrarySection.CLASSICS) !classics.listMode else viewMode == LibraryViewMode.TILES
-            Icon(if (grid) Icons.Default.GridView else Icons.AutoMirrored.Filled.List, "View mode")
+            Icon(if (grid) Icons.Default.GridView else Icons.AutoMirrored.Filled.List, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_view_mode))
         }
         DropdownMenu(viewMenu, { viewMenu = false }) {
             LibraryViewMode.entries.forEach { mode ->
-                DropdownMenuItem({ Text(mode.label) }, { onViewMode(mode); viewMenu = false })
+                DropdownMenuItem({ Text(com.veritas.reader.ui.screens.localizedCatalogLabel(mode.label)) }, { onViewMode(mode); viewMenu = false })
             }
             HorizontalDivider()
-            DropdownMenuItem({ Text("Reading lists") }, { viewMenu = false; onReadingLists() })
-            DropdownMenuItem({ Text("Reading history") }, { viewMenu = false; onReadingHistory() })
+            DropdownMenuItem({ Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_lists)) }, { viewMenu = false; onReadingLists() })
+            DropdownMenuItem({ Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_history)) }, { viewMenu = false; onReadingHistory() })
         }
     }
     IconButton(onSearch, Modifier.testTag("library_search_toggle")) {
         Icon(if (searchExpanded) Icons.Default.SearchOff else Icons.Default.Search,
-            if (searchExpanded) "Close library search" else "Search library")
+            if (searchExpanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close_library_search) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search_library))
     }
 }
 
@@ -85,31 +85,31 @@ internal fun NotesHeaderActions(
     var notebookPicker by remember { mutableStateOf(false) }
     var sortPicker by remember { mutableStateOf(false) }
     IconButton({ onSave(settings.copy(isGridView = !settings.isGridView)) }) {
-        Icon(if (settings.isGridView) Icons.Default.GridView else Icons.AutoMirrored.Filled.List, "Toggle layout")
+        Icon(if (settings.isGridView) Icons.Default.GridView else Icons.AutoMirrored.Filled.List, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_toggle_layout))
     }
     IconButton(onSearch, Modifier.testTag("notes_search_toggle")) {
         Icon(if (searchExpanded) Icons.Default.SearchOff else Icons.Default.Search,
-            if (searchExpanded) "Close notes search" else "Search notes")
+            if (searchExpanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close_notes_search) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search_notes))
     }
     Box {
-        IconButton({ menu = true }) { Icon(Icons.Default.MoreVert, "Notes options") }
+        IconButton({ menu = true }) { Icon(Icons.Default.MoreVert, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes_options)) }
         DropdownMenu(menu, { menu = false }) {
             DropdownMenuItem(
-                text = { Text(if (showTrash) "Show notes" else "Show trash") },
+                text = { Text(if (showTrash) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_show_notes) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_show_trash)) },
                 leadingIcon = { Icon(if (showTrash) Icons.Outlined.EditNote else Icons.Outlined.DeleteOutline, null) },
                 onClick = { onShowTrash(!showTrash); onSelectNotebook(null); menu = false }
             )
             if (!showTrash) {
                 DropdownMenuItem(
-                    text = { Text("Notebooks") },
+                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notebooks)) },
                     onClick = { notebookPicker = true; menu = false },
                     leadingIcon = { Icon(Icons.AutoMirrored.Outlined.MenuBook, null) }
                 )
             }
             HorizontalDivider()
-            if (!showTrash) DropdownMenuItem({ Text("Sort notes") }, { menu = false; sortPicker = true }, leadingIcon = { Icon(Icons.AutoMirrored.Filled.Sort, null) })
-            DropdownMenuItem({ Text("Notes settings") }, { menu = false; onSettings() }, leadingIcon = { Icon(Icons.Default.Settings, null) })
-            DropdownMenuItem({ Text("App settings") }, { menu = false; onAppSettings() }, leadingIcon = { Icon(Icons.Default.Settings, null) })
+            if (!showTrash) DropdownMenuItem({ Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sort_notes)) }, { menu = false; sortPicker = true }, leadingIcon = { Icon(Icons.AutoMirrored.Filled.Sort, null) })
+            DropdownMenuItem({ Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes_settings)) }, { menu = false; onSettings() }, leadingIcon = { Icon(Icons.Default.Settings, null) })
+            DropdownMenuItem({ Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_app_settings)) }, { menu = false; onAppSettings() }, leadingIcon = { Icon(Icons.Default.Settings, null) })
         }
     }
     if (notebookPicker) NotebookPickerDialog(notebooks, selectedNotebookId,
@@ -117,7 +117,7 @@ internal fun NotesHeaderActions(
         onDismiss = { notebookPicker = false },
         onCreate = if (canManageNotebooks) ({ notebookPicker = false; onCreateNotebook() }) else null,
         onManage = if (canManageNotebooks && notebooks.isNotEmpty()) ({ notebookPicker = false; onManageNotebooks() }) else null)
-    if (sortPicker) AlertDialog(onDismissRequest = { sortPicker = false }, title = { Text("Sort notes") },
+    if (sortPicker) AlertDialog(onDismissRequest = { sortPicker = false }, title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sort_notes)) },
         text = { Column {
             listOf("date" to "Last edited", "created" to "Newest", "title" to "Title").forEach { (value, label) ->
                 TextButton(onClick = { onSave(settings.copy(defaultSortOrder = value)); sortPicker = false }, modifier = Modifier.fillMaxWidth()) {
@@ -125,7 +125,7 @@ internal fun NotesHeaderActions(
                     if (settings.defaultSortOrder == value) Icon(Icons.Default.Check, null)
                 }
             }
-        } }, confirmButton = { TextButton({ sortPicker = false }) { Text("Close") } })
+        } }, confirmButton = { TextButton({ sortPicker = false }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) } })
 }
 
 @Composable
@@ -133,7 +133,7 @@ internal fun LibrarySortControl(sort: String, onSort: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Row(horizontalArrangement = Arrangement.End) {
         Box {
-            TextButton({ expanded = true }) { Text("Sort: $sort") }
+            TextButton({ expanded = true }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_090, com.veritas.reader.ui.screens.localizedUiValue(sort))) }
             DropdownMenu(expanded, { expanded = false }) {
                 listOf("Updated", "Newest", "Title", "Progress", "Type").forEach { value ->
                     DropdownMenuItem({ Text(value) }, { onSort(value); expanded = false })

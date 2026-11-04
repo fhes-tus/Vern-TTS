@@ -128,12 +128,12 @@ internal fun MainCatalogAndToolsDialogsHost(
     if (uiState.showAiStudyTools && uiState.activeDocument == null) {
         AlertDialog(
             onDismissRequest = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false) } },
-            title = { Text("AI Study Tools") },
-            text = { Text("Open a reading first, then AI Study Tools can prepare the current part or whole document.") },
+            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_study_tools)) },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_a_reading_first_then_ai_study_tools_can_prepare_the_current)) },
             confirmButton = {
                 TextButton(onClick = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false) } }) {
                     Text(
-                        "OK"
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ok)
                     )
                 }
             }

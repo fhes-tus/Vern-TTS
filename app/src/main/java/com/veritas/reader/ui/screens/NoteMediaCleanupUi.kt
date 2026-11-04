@@ -21,9 +21,9 @@ import kotlinx.coroutines.withContext
             .onFailure { status = "Could not safely check attachment references" }
     }
     Text(status, style = MaterialTheme.typography.bodySmall)
-    OutlinedButton(enabled = candidates.isNotEmpty(), onClick = { confirmation = true }) { Text("Review attachment cleanup") }
-    if (confirmation) AlertDialog(onDismissRequest = { confirmation = false }, title = { Text("Remove unused attachments?") },
-        text = { Text("Remove ${candidates.size} old files using ${formatVeritasBytes(candidates.sumOf { it.size })}. Files referenced by notes, Trash, revisions, recovery snapshots and sentence notes are kept. Completed backup archives are separate copies. Files created within the last day are kept.") },
+    OutlinedButton(enabled = candidates.isNotEmpty(), onClick = { confirmation = true }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_review_attachment_cleanup)) }
+    if (confirmation) AlertDialog(onDismissRequest = { confirmation = false }, title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_unused_attachments)) },
+        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_123, com.veritas.reader.ui.screens.localizedUiValue(candidates.size), com.veritas.reader.ui.screens.localizedUiValue(formatVeritasBytes(candidates.sumOf { it.size })))) },
         confirmButton = { TextButton(onClick = {
             confirmation = false
             scope.launch {
@@ -31,5 +31,5 @@ import kotlinx.coroutines.withContext
                     .onSuccess { freed -> candidates = emptyList(); status = "Freed ${formatVeritasBytes(freed)} from unused attachments" }
                     .onFailure { status = "Cleanup stopped; attachment references could not be verified" }
             }
-        }) { Text("Remove unused files") } }, dismissButton = { TextButton(onClick = { confirmation = false }) { Text("Cancel") } })
+        }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_unused_files)) } }, dismissButton = { TextButton(onClick = { confirmation = false }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } })
 }

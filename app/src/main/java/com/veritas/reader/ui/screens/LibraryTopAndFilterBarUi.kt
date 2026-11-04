@@ -124,7 +124,7 @@ internal fun LibraryTopAndFilterBar(
                                                     .onGloballyPositioned { if (isActiveHeader) OnboardingController.updateBounds("insights_trigger", it) }
                                             ) {
                                                 Icon(imageVector = Icons.Filled.Menu,
-                                                    contentDescription = "Menu",
+                                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_menu),
                                                     tint = MaterialTheme.colorScheme.onSurface)
                                             }
                                             VeritasWordmark()
@@ -135,7 +135,7 @@ internal fun LibraryTopAndFilterBar(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Settings,
-                                                contentDescription = "Settings",
+                                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_settings),
                                                 tint = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
@@ -148,7 +148,7 @@ internal fun LibraryTopAndFilterBar(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            "My Library",
+                                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_my_library),
                                             modifier = Modifier.weight(1f),
                                             style = MaterialTheme.typography.titleLarge,
                                             color = MaterialTheme.colorScheme.onSurface
@@ -160,7 +160,7 @@ internal fun LibraryTopAndFilterBar(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Settings,
-                                                contentDescription = "Settings",
+                                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_settings),
                                                 tint = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
@@ -171,7 +171,7 @@ internal fun LibraryTopAndFilterBar(
                                                 onClick = { onLibrarySectionChange(section) }, modifier = Modifier.weight(1f).height(40.dp),
                                                 selectedContentColor = MaterialTheme.colorScheme.primary,
                                                 unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant) {
-                                                Text(section.label, fontWeight = FontWeight.SemiBold)
+                                                Text(androidx.compose.ui.res.stringResource(section.labelResource), fontWeight = FontWeight.SemiBold)
                                             }
                                         }
                                     }
@@ -191,7 +191,7 @@ internal fun LibraryTopAndFilterBar(
                                     ) {
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(
-                                                "Notes & Annotations",
+                                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes_annotations),
                                                 style = MaterialTheme.typography.titleLarge,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -280,7 +280,7 @@ internal fun LibraryTopAndFilterBar(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            "Study Hub",
+                                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_hub),
                                             style = MaterialTheme.typography.titleLarge,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
@@ -302,7 +302,7 @@ internal fun LibraryTopAndFilterBar(
                                                     modifier = Modifier.size(18.dp)
                                                 )
                                                 Text(
-                                                    text = if (streak > 0) "$streak-Day Streak" else "0-Day Streak",
+                                                    text = if (streak > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_121, com.veritas.reader.ui.screens.localizedUiValue(streak)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_0_day_streak),
                                                     style = MaterialTheme.typography.labelMedium)
                                             }
                                         }

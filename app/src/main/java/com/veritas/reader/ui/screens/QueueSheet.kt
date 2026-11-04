@@ -76,10 +76,10 @@ fun VeritasQueueSheet(
         onDismissRequest = onDismiss,
         title = {
             Column {
-                Text("Play queue", style = MaterialTheme.typography.labelLarge)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play_queue), style = MaterialTheme.typography.labelLarge)
                 Text(
-                    if (queue.isEmpty()) "Nothing queued"
-                    else "${queue.size} reading${if (queue.size == 1) "" else "s"} · hold to reorder",
+                    if (queue.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_nothing_queued)
+                    else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_215, com.veritas.reader.ui.screens.localizedUiValue(queue.size)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -88,7 +88,7 @@ fun VeritasQueueSheet(
         text = {
             if (queue.isEmpty()) {
                 Text(
-                    "Add readings from the library's action menu to build a play queue.",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_readings_from_the_library_s_action_menu_to_build_a_play_queue),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -143,7 +143,7 @@ fun VeritasQueueSheet(
                             IconButton(onClick = { onRemove(document) }, modifier = Modifier.size(32.dp)) {
                                 Icon(
                                     Icons.Filled.Close,
-                                    contentDescription = "Remove from queue",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_from_queue_3d2dc52),
                                     modifier = Modifier.size(16.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -182,7 +182,7 @@ fun VeritasQueueSheet(
                             ) {
                                 Icon(
                                     Icons.Filled.DragHandle,
-                                    contentDescription = "Reorder",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reorder),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -192,12 +192,12 @@ fun VeritasQueueSheet(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Done") }
+            TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done)) }
         },
         dismissButton = {
             if (queue.isNotEmpty()) {
                 TextButton(onClick = onClear) {
-                    Text("Clear all", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear_all), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

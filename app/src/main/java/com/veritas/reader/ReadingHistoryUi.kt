@@ -61,18 +61,18 @@ internal fun ReadingHistoryDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text("Close") } },
+        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) } },
         dismissButton = {
             OutlinedButton(
                 onClick = onClearHistory,
                 enabled = visibleHistory.isNotEmpty(),
                 shape = RoundedCornerShape(50)
-            ) { Text("Clear") }
+            ) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear)) }
         },
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Outlined.History, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text("Reading history")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_history))
             }
         },
         text = {
@@ -94,12 +94,12 @@ internal fun ReadingHistoryDialog(
                             modifier = Modifier.size(48.dp)
                         )
                         Text(
-                            "No reading history yet.",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_reading_history_yet),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            "Open a reading from your library and it will appear here.",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_a_reading_from_your_library_and_it_will_appear_here),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -218,7 +218,7 @@ internal fun ReadingHistoryRow(
                         )
                     }
                     Text(
-                        "Sentence ${safeIndex + 1} of $safeChunkCount",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_046, com.veritas.reader.ui.screens.localizedUiValue(safeIndex + 1), com.veritas.reader.ui.screens.localizedUiValue(safeChunkCount)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -233,7 +233,7 @@ internal fun ReadingHistoryRow(
                     trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                 )
                 Text(
-                    "Opened ${formatUpdated(entry.openedAt)}",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_047, com.veritas.reader.ui.screens.localizedUiValue(formatUpdated(entry.openedAt))),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
@@ -247,7 +247,7 @@ internal fun ReadingHistoryRow(
             ) {
                 Icon(
                     Icons.Filled.PlayArrow,
-                    contentDescription = "Resume",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_resume),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }

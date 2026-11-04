@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_theme_pack">"Paquete de temas: %1$s"</string>
+    <string name="settings_colour_theme">"Tema de colores: %1$s"</string>
+    <string name="settings_selected_font">"Fuente seleccionada: %1$s"</string>
+    <string name="settings_page_position">"Página %1$d de %2$d"</string>
+    <string name="settings_playing_style">"Reproduciendo %1$s"</string>
+    <string name="settings_style_preview">"Vista previa: %1$s"</string>
+    <string name="settings_use_reading_voice">"Usar voz de lectura: %1$s"</string>
+    <string name="settings_pace_multiplier">"Ritmo: %1$s× tu velocidad de lectura"</string>
+    <string name="settings_pitch_multiplier">"Tono: %1$s×"</string>
+    <string name="settings_strength">"Intensidad: %1$d%%"</string>
+    <string name="settings_narration_summary">"%1$s · velocidad %2$s× · tono %3$s×"</string>
+    <string name="settings_voice_details">"%1$s, %2$s, calidad %3$d, latencia %4$d"</string>
+    <string name="settings_update_voice_size">"Actualizar · ~%1$d MB"</string>
+    <string name="settings_get_voice_size">"Obtener · ~%1$d MB"</string>
+    <string name="settings_downloading_percent">"Descargando %1$d%%"</string>
+    <string name="settings_queued" formatted="false">"En cola"</string>
+    <string name="settings_installing" formatted="false">"Instalando…"</string>
+    <string name="settings_downloading" formatted="false">"Descargando…"</string>
+    <string name="settings_voice_preview_failed" formatted="false">"La voz no terminó la frase. Comprueba su instalación o conexión."</string>
+    <string name="settings_voice_load_error">"No se pudieron cargar algunas voces: %1$s"</string>
+    <string name="settings_colour_state">"Saturación %1$d%%, brillo %2$d%%"</string>
+    <string name="settings_hue_degrees">"%1$d grados"</string>
+    <string name="settings_storage_summary">"Almacenamiento de Vern: %1$s · Documentos: %2$d"</string>
+    <string name="settings_originals_size">"Libros y archivos originales: %1$s"</string>
+    <string name="settings_text_size">"Texto extraído: %1$s"</string>
+    <string name="settings_covers_size">"Portadas y miniaturas: %1$s"</string>
+    <string name="settings_database_size">"Base de datos e índice: %1$s"</string>
+    <string name="settings_cache_size">"Caché temporal y audio: %1$s"</string>
+    <string name="settings_clear_cache">"Limpiar caché temporal: liberar %1$s"</string>
+    <string name="settings_smart_cleanup">"Limpieza inteligente: liberar %1$s"</string>
+    <string name="settings_cleanup_explanation">"Originales seleccionados: %1$d. Los favoritos no se modifican. Se conservan texto, progreso, notas, resaltados y portadas. La vista original requiere volver a importar."</string>
+    <string name="settings_storage_freed">"Liberado: %1$s · Documentos: %2$d"</string>
+    <string name="settings_cache_cleared">"Se limpiaron %1$s de caché temporal."</string>
+    <string name="settings_export_zip_size">"Exportar copia con archivos multimedia (.zip ~%1$s MB)"</string>
+    <string name="settings_version_build">"Versión %1$s · Compilación %2$d"</string>
+    <string name="settings_version">"Versión %1$s"</string>
+    <string name="settings_swatch_colour">"Color %1$s"</string>
+    <string name="settings_choose_swatch">"Elegir %1$s"</string>
+</resources>

@@ -49,24 +49,24 @@ fun PronunciationRulesDialog(rules: List<PronunciationRule>, voiceSettings: Voic
             pitch = voiceSettings.preferredPitch, text = text, voiceShaping = voiceSettings.voiceShaping)
     } }
     val quietButton = ButtonDefaults.textButtonColors(contentColor = colours.onSurface)
-    FullScreenSettingsScaffold(title = "Pronunciation rules", onBack = onDismiss) {
+    FullScreenSettingsScaffold(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_pronunciation_rules_bf2c874), onBack = onDismiss) {
         // The scaffold supplies the single 18 dp page margin; cards add 16 dp internally.
         Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
-            Text("Change what Vern says without changing the book.",
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_change_what_vern_says_without_changing_the_book),
                 style = MaterialTheme.typography.bodyMedium, color = colours.onSurfaceVariant)
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Start with an example", style = MaterialTheme.typography.titleSmall)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_with_an_example), style = MaterialTheme.typography.titleSmall)
                 FlowRow(Modifier.fillMaxWidth(), maxItemsInEachRow = 2, horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp)) {
                     speechRuleExamples.take(if (showExamples) speechRuleExamples.size else 4).forEach { (label, preset) ->
-                        SuggestionChip(onClick = { onDraftChange(preset) }, label = { Text(label) },
+                        SuggestionChip(onClick = { onDraftChange(preset) }, label = { Text(localizedSettingsOption(label)) },
                             modifier = Modifier.weight(1f).heightIn(min = 48.dp))
                     }
                 }
                 TextButton({ showExamples = !showExamples }, colors = quietButton,
                     contentPadding = PaddingValues(horizontal = 0.dp), modifier = Modifier.testTag("speech-rule-more-examples")) {
-                    Text(if (showExamples) "Fewer examples" else "More examples")
+                    Text(if (showExamples) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_fewer_examples) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_more_examples))
                 }
             }
 
@@ -74,57 +74,57 @@ fun PronunciationRulesDialog(rules: List<PronunciationRule>, voiceSettings: Voic
                 colors = CardDefaults.cardColors(containerColor = colours.surfaceContainerLow)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (draft.id == null) "New rule" else "Edit rule", style = MaterialTheme.typography.titleMedium,
+                        Text(if (draft.id == null) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_new_rule) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_edit_rule), style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.weight(1f))
-                        if (draft.find.isNotEmpty()) TextButton({ onDraftChange(SpeechRuleDraft()) }, colors = quietButton) { Text("Clear") }
+                        if (draft.find.isNotEmpty()) TextButton({ onDraftChange(SpeechRuleDraft()) }, colors = quietButton) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear)) }
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Match", style = MaterialTheme.typography.labelLarge, color = colours.onSurfaceVariant)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_match), style = MaterialTheme.typography.labelLarge, color = colours.onSurfaceVariant)
                         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                             SpeechRuleKind.entries.forEachIndexed { index, kind ->
                                 SegmentedButton(selected = draft.kind == kind, onClick = { onDraftChange(draft.copy(kind = kind)) },
                                     shape = SegmentedButtonDefaults.itemShape(index, SpeechRuleKind.entries.size), icon = {},
-                                    modifier = Modifier.heightIn(min = 48.dp).testTag("speech-kind-${kind.name}")) { Text(kind.label) }
+                                    modifier = Modifier.heightIn(min = 48.dp).testTag("speech-kind-${kind.name}")) { Text(localizedSettingsOption(kind.label)) }
                             }
                         }
                         OutlinedTextField(value = draft.find, onValueChange = { onDraftChange(draft.copy(find = it)) },
                             modifier = Modifier.fillMaxWidth().testTag("speech-rule-find"), singleLine = true,
-                            label = { Text(if (draft.kind == SpeechRuleKind.LITERAL) "Find word or phrase" else "Match pattern") },
+                            label = { Text(if (draft.kind == SpeechRuleKind.LITERAL) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_find_word_or_phrase) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_match_pattern)) },
                             isError = validation != null, shape = VeritasPackStyle.compactShape(), colors = fieldColours)
                         Text(when (draft.kind) {
-                            SpeechRuleKind.LITERAL -> "Matches complete words and phrases."
-                            SpeechRuleKind.PATTERN -> "Match changing text with markers such as [n] or {text}."
-                            SpeechRuleKind.REGEX -> "Use a regular expression for advanced matching."
+                            SpeechRuleKind.LITERAL -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_matches_complete_words_and_phrases)
+                            SpeechRuleKind.PATTERN -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_match_changing_text_with_markers_such_as_n_or_text)
+                            SpeechRuleKind.REGEX -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_use_a_regular_expression_for_advanced_matching)
                         }, style = MaterialTheme.typography.bodySmall, color = colours.onSurfaceVariant)
                         if (draft.kind != SpeechRuleKind.LITERAL) {
                             TextButton({ showGuide = !showGuide }, colors = quietButton,
                                 contentPadding = PaddingValues(horizontal = 0.dp), modifier = Modifier.testTag("speech-rule-pattern-guide")) {
-                                Text(if (showGuide) "Hide syntax guide" else "Syntax guide")
+                                Text(if (showGuide) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_hide_syntax_guide) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_syntax_guide))
                             }
                             if (showGuide) Text(if (draft.kind == SpeechRuleKind.PATTERN)
-                                "[n] matches [1], [12]… Use {number}, {word} or {text}. For example, _{text}_ matches an underscore-marked phrase. Inserted words stay separate when replacing enclosing markers."
-                            else "RE2 regex example: \\[([0-9]+)\\]. Look-around and pattern backreferences are unsupported. Empty-position matches are ignored.",
+                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_n_matches_1_12_use_number_word_or_text_for_example_text_matches_a)
+                            else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_re2_regex_example_0_9_look_around_and_pattern_backreferences_are),
                                 style = MaterialTheme.typography.bodySmall, color = colours.onSurfaceVariant)
                         }
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Match case", style = MaterialTheme.typography.bodyMedium)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_match_case), style = MaterialTheme.typography.bodyMedium)
                         VeritasSwitch(checked = draft.caseSensitive, onCheckedChange = { onDraftChange(draft.copy(caseSensitive = it)) },
                             modifier = Modifier.testTag("speech-rule-case"))
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Then", style = MaterialTheme.typography.labelLarge, color = colours.onSurfaceVariant)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_then), style = MaterialTheme.typography.labelLarge, color = colours.onSurfaceVariant)
                         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                             listOf(true to "Skip", false to "Say instead").forEachIndexed { index, (skip, label) ->
                                 SegmentedButton(selected = draft.skip == skip, onClick = { onDraftChange(draft.copy(skip = skip)) },
                                     shape = SegmentedButtonDefaults.itemShape(index, 2), icon = {},
-                                    modifier = Modifier.heightIn(min = 48.dp).testTag(if (skip) "speech-action-skip" else "speech-action-say")) { Text(label) }
+                                    modifier = Modifier.heightIn(min = 48.dp).testTag(if (skip) "speech-action-skip" else "speech-action-say")) { Text(localizedSettingsOption(label)) }
                             }
                         }
                         if (!draft.skip) OutlinedTextField(value = draft.replaceWith, onValueChange = { onDraftChange(draft.copy(replaceWith = it)) },
-                            modifier = Modifier.fillMaxWidth().testTag("speech-rule-replacement"), label = { Text("Say instead") },
-                            supportingText = { Text(if (draft.kind == SpeechRuleKind.LITERAL) "For example, sequel instead of SQL."
-                                else "Use \$1, \$2… for captured parts; \$0 for the whole match and \$\$ for a dollar sign.") },
+                            modifier = Modifier.fillMaxWidth().testTag("speech-rule-replacement"), label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_say_instead)) },
+                            supportingText = { Text(if (draft.kind == SpeechRuleKind.LITERAL) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_for_example_sequel_instead_of_sql)
+                                else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_180)) },
                             singleLine = true, shape = VeritasPackStyle.compactShape(), colors = fieldColours)
                     }
                     if (validation != null || saveError != null) Text(saveError ?: validation.orEmpty(),
@@ -132,45 +132,45 @@ fun PronunciationRulesDialog(rules: List<PronunciationRule>, voiceSettings: Voic
                         modifier = Modifier.testTag("speech-rule-error"))
                     Button(onClick = onAddRule, enabled = draft.find.isNotBlank() && validation == null,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("speech-rule-save"), shape = VeritasPackStyle.chipShape()) {
-                        Text(if (draft.id != null || rules.any { SpeechPatternRules.identity(it) == SpeechPatternRules.identity(draft.rule()) }) "Update rule" else "Save rule")
+                        Text(if (draft.id != null || rules.any { SpeechPatternRules.identity(it) == SpeechPatternRules.identity(draft.rule()) }) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_update_rule) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_rule))
                     }
                 }
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Try your rules", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_try_your_rules), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     OutlinedButton(onClick = ::audition, enabled = preview?.spoken?.isNotBlank() == true,
                         modifier = Modifier.heightIn(min = 48.dp).testTag("speech-rule-audition")) {
                         Icon(Icons.AutoMirrored.Outlined.VolumeUp, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Listen")
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_listen))
                     }
                 }
                 OutlinedTextField(value = testInput, onValueChange = { testInput = it.take(4000) },
-                    label = { Text("Original passage") }, supportingText = { Text("${testInput.length}/4000") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_original_passage)) }, supportingText = { Text("${testInput.length}/4000") },
                     modifier = Modifier.fillMaxWidth().testTag("speech-rule-test-input"), minLines = 2, maxLines = 4,
                     shape = VeritasPackStyle.compactShape(), colors = fieldColours)
                 Surface(modifier = Modifier.testTag("speech-rule-preview-panel"), shape = VeritasPackStyle.compactShape(), color = colours.surfaceContainerLow) {
                     Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Spoken result", style = MaterialTheme.typography.labelLarge, color = colours.onSurfaceVariant)
-                        Text(preview?.spoken?.ifBlank { "Nothing will be spoken." } ?: "Preparing preview…",
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_spoken_result), style = MaterialTheme.typography.labelLarge, color = colours.onSurfaceVariant)
+                        Text(preview?.spoken?.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_nothing_will_be_spoken) } ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preparing_preview),
                             style = MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth().testTag("speech-rule-preview"))
                         Text(preview?.let { "${it.matches} ${if (it.matches == 1) "match" else "matches"} · " +
-                            if (it.includesDraft) "Includes unsaved rule" else "Saved rules" } ?: "Preparing preview…",
+                            if (it.includesDraft) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_includes_unsaved_rule) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_saved_rules) } ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preparing_preview),
                             style = MaterialTheme.typography.bodySmall, color = colours.onSurfaceVariant)
                     }
                 }
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Saved rules", style = MaterialTheme.typography.titleMedium)
-                Text("${rules.size} ${if (rules.size == 1) "rule" else "rules"} · ${rules.count { it.enabled }} enabled",
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_saved_rules), style = MaterialTheme.typography.titleMedium)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_218, com.veritas.reader.ui.screens.localizedUiValue(rules.size), com.veritas.reader.ui.screens.localizedUiValue(rules.count { it.enabled })),
                     style = MaterialTheme.typography.bodySmall, color = colours.onSurfaceVariant)
                 if (rules.isEmpty()) Surface(shape = VeritasPackStyle.compactShape(), color = colours.surfaceContainerLow) {
                     Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("No rules yet", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-                        Text("Save an example or create your own above.", style = MaterialTheme.typography.bodySmall, color = colours.onSurfaceVariant)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_rules_yet), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_an_example_or_create_your_own_above), style = MaterialTheme.typography.bodySmall, color = colours.onSurfaceVariant)
                     }
                 }
                 rules.forEach { rule ->
@@ -184,10 +184,10 @@ fun PronunciationRulesDialog(rules: List<PronunciationRule>, voiceSettings: Voic
                                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(14.dp), tint = colours.onSurfaceVariant)
-                                    Text("${rule.matchKind.label} · ${if (rule.enabled) "On" else "Off"}" + if (rule.caseSensitive) " · Match case" else "",
+                                    Text(localizedSettingsOption(rule.matchKind.label) + " · " + localizedSettingsOption(if (rule.enabled) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_on) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_off)) + if (rule.caseSensitive) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_match_case_2e62945) else "",
                                         style = MaterialTheme.typography.bodySmall, color = colours.onSurfaceVariant)
                                 }
-                                if (ruleError != null) Text("Invalid rule · edit to fix: $ruleError",
+                                if (ruleError != null) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_181, com.veritas.reader.ui.screens.localizedUiValue(ruleError)),
                                     style = MaterialTheme.typography.bodySmall, color = colours.error)
                             }
                             VeritasSwitch(checked = rule.enabled, onCheckedChange = { onToggleRule(rule) },
@@ -203,9 +203,9 @@ fun PronunciationRulesDialog(rules: List<PronunciationRule>, voiceSettings: Voic
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton({ showMatchingHelp = !showMatchingHelp }, colors = quietButton,
                     contentPadding = PaddingValues(horizontal = 0.dp)) {
-                    Text(if (showMatchingHelp) "Hide matching details" else "How rules are matched")
+                    Text(if (showMatchingHelp) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_hide_matching_details) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_how_rules_are_matched))
                 }
-                if (showMatchingHelp) Text("Rules apply to all readings and audio exports, within each spoken passage. Earliest match wins, then longest; the most recently saved rule breaks a tie. The book text stays as it is.",
+                if (showMatchingHelp) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rules_apply_to_all_readings_and_audio_exports_within_each_spoken),
                     style = MaterialTheme.typography.bodySmall, color = colours.onSurfaceVariant)
             }
             Spacer(Modifier.height(8.dp))

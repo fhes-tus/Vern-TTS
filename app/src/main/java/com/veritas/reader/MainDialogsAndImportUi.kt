@@ -358,15 +358,15 @@ internal fun MainDialogsHost(
         uiState.deleteTarget?.let { target ->
             AlertDialog(
                 onDismissRequest = { viewModel.updateState { it.copy(deleteTarget = null) } },
-                title = { Text("Delete reading?") },
-                text = { Text("This removes ${target.title} from the local library, queue, and reading lists. Saved notes, bookmarks, and reading history remain available.") },
+                title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_reading)) },
+                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_029, com.veritas.reader.ui.screens.localizedUiValue(target.title))) },
                 confirmButton = {
-                    Button(onClick = { viewModel.deleteDocument(target) }) { Text("Delete") }
+                    Button(onClick = { viewModel.deleteDocument(target) }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) }
                 },
                 dismissButton = {
                     TextButton(onClick = { viewModel.updateState { it.copy(deleteTarget = null) } }) {
                         Text(
-                            "Cancel"
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)
                         )
                     }
                 }
@@ -383,12 +383,12 @@ internal fun MainDialogsHost(
                         )
                     }
                 },
-                title = { Text("Rename reading") },
+                title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rename_reading)) },
                 text = {
                     OutlinedTextField(
                         value = uiState.renameDraft,
                         onValueChange = { value -> viewModel.updateState { it.copy(renameDraft = value) } },
-                        label = { Text("Title") },
+                        label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_title)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -398,7 +398,7 @@ internal fun MainDialogsHost(
                         onClick = { viewModel.renameDocument(target, uiState.renameDraft) },
                         enabled = uiState.renameDraft.trim().isNotBlank()
                     ) {
-                        Text("Save")
+                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save))
                     }
                 },
                 dismissButton = {
@@ -409,7 +409,7 @@ internal fun MainDialogsHost(
                                 renameDraft = ""
                             )
                         }
-                    }) { Text("Cancel") }
+                    }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
                 }
             )
         }
@@ -424,7 +424,7 @@ internal fun MainDialogsHost(
                         )
                     }
                 },
-                title = { Text("Move to collection") },
+                title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_to_collection)) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(target.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -437,7 +437,7 @@ internal fun MainDialogsHost(
                                     )
                                 }
                             },
-                            label = { Text("Collection") },
+                            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collection)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -449,7 +449,7 @@ internal fun MainDialogsHost(
                             target,
                             uiState.collectionDraft
                         )
-                    }) { Text("Save") }
+                    }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save)) }
                 },
                 dismissButton = {
                     TextButton(onClick = {
@@ -459,7 +459,7 @@ internal fun MainDialogsHost(
                                 collectionDraft = ""
                             )
                         }
-                    }) { Text("Cancel") }
+                    }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
                 }
             )
         }
@@ -626,7 +626,7 @@ internal fun MainDialogsHost(
                         if (!displayAuthor.isNullOrBlank()) {
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "by $displayAuthor",
+                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_030, com.veritas.reader.ui.screens.localizedUiValue(displayAuthor)),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary,
                                 textAlign = TextAlign.Center
@@ -647,7 +647,7 @@ internal fun MainDialogsHost(
                             color = MaterialTheme.colorScheme.secondaryContainer
                         ) {
                             Text(
-                                text = fileExtension.ifBlank { target.sourceLabel.ifBlank { "Document" } },
+                                text = fileExtension.ifBlank { target.sourceLabel.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document) } },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -761,7 +761,7 @@ internal fun MainDialogsHost(
                                 catch (error: Exception) { overviewError = error.message ?: "Could not save the overview." }
                                 finally { overviewBusy = false }
                             }
-                        }) { Text(if (overviewBusy) "Summarizing…" else "Summarize with AI") }
+                        }) { Text(if (overviewBusy) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_summarizing) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_summarize_with_ai)) }
                     }
                     overviewError?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
                     Text(
@@ -784,7 +784,7 @@ internal fun MainDialogsHost(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Reading Progress",
+                                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_progress),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -831,7 +831,7 @@ internal fun MainDialogsHost(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = if (target.currentIndex > 0) "Resume" else "Read",
+                                text = if (target.currentIndex > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_resume) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read),
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
@@ -841,7 +841,7 @@ internal fun MainDialogsHost(
                             modifier = Modifier.size(50.dp),
                             shape = com.veritas.reader.VeritasPackStyle.compactShape()
                         ) {
-                            Icon(Icons.Filled.FileDownload, contentDescription = "Save to phone",
+                            Icon(Icons.Filled.FileDownload, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_to_phone),
                                 tint = MaterialTheme.colorScheme.primary)
                         }
                         FilledTonalIconButton(
@@ -875,7 +875,7 @@ internal fun MainDialogsHost(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Share,
-                                contentDescription = "Share Document",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_document),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }

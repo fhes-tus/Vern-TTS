@@ -78,21 +78,21 @@ fun OnboardingPersonaSelectionScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Choose Your Rhythm",
+            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_your_rhythm),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground)
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Vern tunes its typography, neural pacing, and synthesis tools to your reading discipline.",
+            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern_tunes_its_typography_neural_pacing_and_synthesis_tools_to_yo),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Select your reading discipline:",
+            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_select_your_reading_discipline),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -265,7 +265,7 @@ fun PersonaSquircleCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Selected",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected),
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(13.dp)
                     )

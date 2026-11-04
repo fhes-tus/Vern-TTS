@@ -73,7 +73,7 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text("AI Provider & Key Setup", style = MaterialTheme.typography.titleMedium)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_provider_key_setup), style = MaterialTheme.typography.titleMedium)
         },
         text = {
             Column(
@@ -83,13 +83,13 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    "Connect any AI model to generate flashcards, quizzes, and study summaries directly in Veritas Reader.",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_connect_any_ai_model_to_generate_flashcards_quizzes_and_study_sum),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
-                    "Model",
+                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_model),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -124,7 +124,7 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = modelDraft,
                     onValueChange = { modelDraft = it },
-                    label = { Text("Model Name / ID") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_model_name_id)) },
                     placeholder = { Text(selectedProvider.defaultModel) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -137,7 +137,7 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        "Provider",
+                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_provider),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -185,8 +185,8 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = keyDraft,
                     onValueChange = { keyDraft = it },
-                    label = { Text("${selectedProvider.label} API Key") },
-                    placeholder = { Text("Add API key") },
+                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_081, com.veritas.reader.ui.screens.localizedUiValue(selectedProvider.label))) },
+                    placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_api_key)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
@@ -196,7 +196,7 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                     OutlinedTextField(
                         value = endpointDraft,
                         onValueChange = { endpointDraft = it },
-                        label = { Text("API Endpoint URL") },
+                        label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_api_endpoint_url)) },
                         placeholder = { Text(selectedProvider.defaultEndpoint) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -206,13 +206,13 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
 
                 Text(
                     when (selectedProvider) {
-                        AiProvider.GEMINI -> "Free tier available at aistudio.google.com."
-                        AiProvider.OPENAI -> "Obtain keys from platform.openai.com."
-                        AiProvider.ANTHROPIC -> "Obtain keys from console.anthropic.com."
-                        AiProvider.GROQ -> "Ultra-fast inference at console.groq.com."
-                        AiProvider.OPENROUTER -> "Access hundreds of models at openrouter.ai."
-                        AiProvider.CUSTOM -> "Any standard OpenAI-compatible API base URL."
-                    } + " Keys are saved locally on your device only.",
+                        AiProvider.GEMINI -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_free_tier_available_at_aistudio_google_com)
+                        AiProvider.OPENAI -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_obtain_keys_from_platform_openai_com)
+                        AiProvider.ANTHROPIC -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_obtain_keys_from_console_anthropic_com)
+                        AiProvider.GROQ -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ultra_fast_inference_at_console_groq_com)
+                        AiProvider.OPENROUTER -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_access_hundreds_of_models_at_openrouter_ai)
+                        AiProvider.CUSTOM -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_any_standard_openai_compatible_api_base_url)
+                    } + androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_keys_are_saved_locally_on_your_device_only),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -235,11 +235,11 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                     onDismiss()
                 }
             ) {
-                Text("Save")
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
         }
     )
 }
@@ -259,8 +259,8 @@ internal fun VocabularyEntryRow(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete Vocabulary Word?") },
-            text = { Text("Are you sure you want to remove \"${entry.word}\" from your vocabulary list?") },
+            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_vocabulary_word)) },
+            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_082, com.veritas.reader.ui.screens.localizedUiValue(entry.word))) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -268,11 +268,11 @@ internal fun VocabularyEntryRow(
                         onRemoveVocabularyWord(document.id, entry.word)
                     }
                 ) {
-                    Text("Delete")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
             }
         )
     }
@@ -296,7 +296,7 @@ internal fun VocabularyEntryRow(
             }
             Text(entry.explanation, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             entry.meaningSourceUrl?.let { url ->
-                Text("Definition: Wiktionary", style = MaterialTheme.typography.labelSmall,
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_definition_wiktionary), style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable {
                         runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) }
                     })
@@ -329,7 +329,7 @@ internal fun VocabularyEntryRow(
             IconButton(onClick = { itemMenuExpanded = true }) {
                 Icon(
                     imageVector = Icons.Filled.MoreVert,
-                    contentDescription = "Entry Actions",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_entry_actions),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -338,12 +338,12 @@ internal fun VocabularyEntryRow(
                 onDismissRequest = { itemMenuExpanded = false }
             ) {
                 DropdownMenuItem(
-                    text = { Text(if (com.veritas.reader.VocabularyLookup.needsDefinition(entry.explanation)) "Find meaning" else "Refresh meaning") },
+                    text = { Text(if (com.veritas.reader.VocabularyLookup.needsDefinition(entry.explanation)) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_find_meaning) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_refresh_meaning)) },
                     onClick = { itemMenuExpanded = false; onRefreshVocabularyMeaning(document.id, entry) },
                     leadingIcon = { Icon(Icons.Filled.Language, contentDescription = null) }
                 )
                 DropdownMenuItem(
-                    text = { Text("Share as text") },
+                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_as_text)) },
                     onClick = {
                         itemMenuExpanded = false
                         shareVocabularyAsWords(
@@ -355,7 +355,7 @@ internal fun VocabularyEntryRow(
                     leadingIcon = { Icon(Icons.Filled.Share, contentDescription = null) }
                 )
                 DropdownMenuItem(
-                    text = { Text("Share as image") },
+                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_as_image)) },
                     onClick = {
                         itemMenuExpanded = false
                         shareVocabularyAsImage(
@@ -368,7 +368,7 @@ internal fun VocabularyEntryRow(
                     leadingIcon = { Icon(Icons.Filled.Image, contentDescription = null) }
                 )
                 DropdownMenuItem(
-                    text = { Text("Copy") },
+                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy)) },
                     onClick = {
                         itemMenuExpanded = false
                         val vocabText = buildString {
@@ -382,7 +382,7 @@ internal fun VocabularyEntryRow(
                     leadingIcon = { Icon(Icons.Filled.ContentPaste, contentDescription = null) }
                 )
                 DropdownMenuItem(
-                    text = { Text("Delete") },
+                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) },
                     onClick = {
                         itemMenuExpanded = false
                         showDeleteConfirm = true

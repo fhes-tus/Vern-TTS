@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" formatted="false">"Vern"</string>
+    <string name="settings_a_small_target_to_help_make_reading_a_habit" formatted="false">"पढ़ने की आदत बनाने के लिए छोटा लक्ष्य।"</string>
+    <string name="settings_adaptive_cover_theme" formatted="false">"कवर के अनुसार थीम"</string>
+    <string name="settings_add_new_items_at_the_top" formatted="false">"नए आइटम ऊपर जोड़ें"</string>
+    <string name="settings_amoled" formatted="false">"AMOLED"</string>
+    <string name="settings_an_evening_nudge_when_your_goal_is_at_risk" formatted="false">"लक्ष्य छूटने का अंदेशा हो तो शाम को याद दिलाएं।"</string>
+    <string name="settings_attachment_badges" formatted="false">"अटैचमेंट बैज"</string>
+    <string name="settings_attachment_thumbnails" formatted="false">"अटैचमेंट थंबनेल"</string>
+    <string name="settings_bionic_reading" formatted="false">"बायोनिक पठन"</string>
+    <string name="settings_bloom" formatted="false">"खिलना"</string>
+    <string name="settings_book_sources" formatted="false">"किताब स्रोत"</string>
+    <string name="settings_bookmarks_notes" formatted="false">"बुकमार्क और नोट्स"</string>
+    <string name="settings_character_voices" formatted="false">"पात्रों की आवाज़ें"</string>
+    <string name="settings_checklists" formatted="false">"चेकलिस्ट"</string>
+    <string name="settings_clean_repeated_headers_and_footers" formatted="false">"दोहराए हेडर और फ़ूटर साफ़ करें"</string>
+    <string name="settings_collapsible_reader_bars" formatted="false">"छिप सकने वाली रीडर पट्टियाँ"</string>
+    <string name="settings_completed_items_at_the_bottom" formatted="false">"पूरे किए आइटम नीचे"</string>
+    <string name="settings_daily_rhythm" formatted="false">"दैनिक लय"</string>
+    <string name="settings_detect_dialogue" formatted="false">"संवाद पहचानें"</string>
+    <string name="settings_dialogue_badges" formatted="false">"संवाद बैज"</string>
+    <string name="settings_display_rich_link_previews" formatted="false">"लिंक के विस्तृत पूर्वावलोकन दिखाएं"</string>
+    <string name="settings_display_theme" formatted="false">"प्रदर्शन और थीम"</string>
+    <string name="settings_emphasise_the_first_letters_of_each_word" formatted="false">"हर शब्द के शुरुआती अक्षर उभारें।"</string>
+    <string name="settings_express_punctuation" formatted="false">"विराम चिह्न के अनुसार भाव दें"</string>
+    <string name="settings_fade" formatted="false">"धीरे उभरना"</string>
+    <string name="settings_flashcards_decks_progress" formatted="false">"फ़्लैशकार्ड, डेक और प्रगति"</string>
+    <string name="settings_force_fresh_extraction" formatted="false">"हमेशा नए सिरे से टेक्स्ट निकालें"</string>
+    <string name="settings_force_ocr_for_pdf_import" formatted="false">"PDF आयात में हमेशा OCR उपयोग करें"</string>
+    <string name="settings_gentle_pacing_cues_natural_voice_intonation" formatted="false">"हल्के विराम और स्वाभाविक स्वर"</string>
+    <string name="settings_grid" formatted="false">"ग्रिड"</string>
+    <string name="settings_hidden" formatted="false">"छिपा हुआ"</string>
+    <string name="settings_identify_the_current_role_in_the_reader" formatted="false">"रीडर में मौजूदा पात्र दिखाएं"</string>
+    <string name="settings_include_page_markers" formatted="false">"पेज चिह्न शामिल करें"</string>
+    <string name="settings_included" formatted="false">"शामिल"</string>
+    <string name="settings_keep_decorative_animations_still" formatted="false">"सजावटी एनीमेशन स्थिर रखें।"</string>
+    <string name="settings_large" formatted="false">"बड़ा"</string>
+    <string name="settings_larger" formatted="false">"और बड़ा"</string>
+    <string name="settings_last_edited" formatted="false">"पिछला संपादन"</string>
+    <string name="settings_layout" formatted="false">"लेआउट"</string>
+    <string name="settings_let_your_current_book_colour_the_reading_space" formatted="false">"मौजूदा किताब के रंगों से पढ़ने की जगह सजाएं।"</string>
+    <string name="settings_light_flip" formatted="false">"हल्का पलटना"</string>
+    <string name="settings_list" formatted="false">"सूची"</string>
+    <string name="settings_long" formatted="false">"लंबा"</string>
+    <string name="settings_manual_crop_before_extract" formatted="false">"टेक्स्ट निकालने से पहले मैन्युअल क्रॉप करें"</string>
+    <string name="settings_match_original_layout_where_possible" formatted="false">"जहाँ संभव हो मूल लेआउट रखें"</string>
+    <string name="settings_mix_installed_system_lite_and_studio_voices_in_one_cast" formatted="false">"एक साथ इंस्टॉल की हुई सिस्टम, Lite और Studio आवाज़ें चुनें"</string>
+    <string name="settings_motion_clarity" formatted="false">"गति और स्पष्टता"</string>
+    <string name="settings_move_an_item_down_when_you_check_it" formatted="false">"चेक करने पर आइटम नीचे करें"</string>
+    <string name="settings_narration_studio" formatted="false">"वाचन स्टूडियो"</string>
+    <string name="settings_navigation_labels" formatted="false">"नेविगेशन लेबल"</string>
+    <string name="settings_neural_voices_already_interpret_punctuation_naturally" formatted="false">"न्यूरल आवाज़ें पहले से विराम चिह्न स्वाभाविक रूप से समझती हैं"</string>
+    <string name="settings_new_notes" formatted="false">"नए नोट्स"</string>
+    <string name="settings_newest" formatted="false">"सबसे नए"</string>
+    <string name="settings_notes_page" formatted="false">"नोट्स पेज"</string>
+    <string name="settings_option_12_uk_and_us_voices_about_20mb_each_select_several_to_download_to" formatted="false">"12 ब्रिटिश और अमेरिकी आवाज़ें, लगभग 20 MB प्रति आवाज़। कई आवाज़ें चुन सकते हैं; अतिरिक्त डाउनलोड अपनी बारी की प्रतीक्षा करते हैं।"</string>
+    <string name="settings_option_add_books_to_the_queue_first" formatted="false">"पहले कतार में किताबें जोड़ें।"</string>
+    <string name="settings_option_auto_detect" formatted="false">"अपने आप पहचानें"</string>
+    <string name="settings_option_balanced" formatted="false">"संतुलित"</string>
+    <string name="settings_option_bedtime_calm" formatted="false">"सोने से पहले शांति"</string>
+    <string name="settings_option_black" formatted="false">"काला"</string>
+    <string name="settings_option_blank" formatted="false">"खाली"</string>
+    <string name="settings_option_blue" formatted="false">"नीला"</string>
+    <string name="settings_option_brighter" formatted="false">"ज़्यादा चमकीला"</string>
+    <string name="settings_option_colour_shade" formatted="false">"रंग की छटा"</string>
+    <string name="settings_option_confident_articulate_delivery_for_academic_and_business_text" formatted="false">"शैक्षणिक और व्यावसायिक टेक्स्ट के लिए आत्मविश्वासी, स्पष्ट वाचन।"</string>
+    <string name="settings_option_cyan" formatted="false">"सायन"</string>
+    <string name="settings_option_darker" formatted="false">"ज़्यादा गहरा"</string>
+    <string name="settings_option_declared_in_html" formatted="false">"HTML में घोषित"</string>
+    <string name="settings_option_default_language" formatted="false">"डिफ़ॉल्ट भाषा"</string>
+    <string name="settings_option_deliberate_pacing_with_grounded_tone_for_deep_comprehension" formatted="false">"गहराई से समझने के लिए ठहरी गति और स्थिर स्वर।"</string>
+    <string name="settings_option_dialogue" formatted="false">"संवाद"</string>
+    <string name="settings_option_dot_matrix" formatted="false">"बिंदुओं वाला"</string>
+    <string name="settings_option_fast_energetic_review_with_crisp_consonant_clarity" formatted="false">"स्पष्ट उच्चारण के साथ तेज़ और ऊर्जावान दोहराव।"</string>
+    <string name="settings_option_force_ocr" formatted="false">"हमेशा OCR उपयोग करें"</string>
+    <string name="settings_option_green" formatted="false">"हरा"</string>
+    <string name="settings_option_grey" formatted="false">"धूसर"</string>
+    <string name="settings_option_hue" formatted="false">"वर्ण"</string>
+    <string name="settings_option_keep_marked_words" formatted="false">"चिह्नित शब्द रखें"</string>
+    <string name="settings_option_lecture_bright" formatted="false">"स्पष्ट व्याख्यान"</string>
+    <string name="settings_option_less_saturated" formatted="false">"कम गहरा रंग"</string>
+    <string name="settings_option_literal" formatted="false">"शाब्दिक"</string>
+    <string name="settings_option_more_saturated" formatted="false">"और गहरा रंग"</string>
+    <string name="settings_option_narrator" formatted="false">"वाचक"</string>
+    <string name="settings_option_natural_everyday_audio_reading_with_standard_timing" formatted="false">"सामान्य गति से रोज़ का स्वाभाविक वाचन।"</string>
+    <string name="settings_option_network_voice" formatted="false">"ऑनलाइन आवाज़"</string>
+    <string name="settings_option_offline_voice" formatted="false">"ऑफ़लाइन आवाज़"</string>
+    <string name="settings_option_on" formatted="false">"चालू"</string>
+    <string name="settings_option_open_a_reading_first" formatted="false">"पहले कोई किताब या दस्तावेज़ खोलें।"</string>
+    <string name="settings_option_orange" formatted="false">"नारंगी"</string>
+    <string name="settings_option_pattern" formatted="false">"पैटर्न"</string>
+    <string name="settings_option_plain_text" formatted="false">"सादा टेक्स्ट"</string>
+    <string name="settings_option_prefer_ocr_when_text_is_poor" formatted="false">"टेक्स्ट कमज़ोर हो तो OCR चुनें"</string>
+    <string name="settings_option_purple" formatted="false">"बैंगनी"</string>
+    <string name="settings_option_quick_scan" formatted="false">"तेज़ दोहराव"</string>
+    <string name="settings_option_red" formatted="false">"लाल"</string>
+    <string name="settings_option_references_n" formatted="false">"संदर्भ [n]"</string>
+    <string name="settings_option_regex" formatted="false">"रेगुलर एक्सप्रेशन"</string>
+    <string name="settings_option_richest_most_expressive_voices_28_english_speakers_in_one_126mb_d" formatted="false">"सबसे भावपूर्ण आवाज़ें: एक 126 MB डाउनलोड में 28 अंग्रेज़ी वक्ता। भारी मॉडल: मध्यम क्षमता के फ़ोन पर वाक्यों के बीच रुक सकता है।"</string>
+    <string name="settings_option_ruled_lines" formatted="false">"रेखाओं वाला"</string>
+    <string name="settings_option_save_a_reading_first" formatted="false">"पहले कोई पठन सहेजें।"</string>
+    <string name="settings_option_slow_soothing_mellow_tone_for_quiet_night_time_listening" formatted="false">"रात में शांत सुनने के लिए धीमा और सुकून भरा स्वर।"</string>
+    <string name="settings_option_starred_text" formatted="false">"तारों वाला टेक्स्ट"</string>
+    <string name="settings_option_startup_preview" formatted="false">"शुरुआती पूर्वावलोकन"</string>
+    <string name="settings_option_storyteller" formatted="false">"कहानीकार"</string>
+    <string name="settings_option_study_focus" formatted="false">"अध्ययन पर ध्यान"</string>
+    <string name="settings_option_system_default" formatted="false">"सिस्टम डिफ़ॉल्ट"</string>
+    <string name="settings_option_underscore_text" formatted="false">"अंडरस्कोर वाला टेक्स्ट"</string>
+    <string name="settings_option_warm_chest_resonant_narration_for_fiction_and_novels" formatted="false">"कहानियों और उपन्यासों के लिए गर्मजोशी भरा गूंजता वाचन।"</string>
+    <string name="settings_option_white" formatted="false">"सफ़ेद"</string>
+    <string name="settings_option_yellow" formatted="false">"पीला"</string>
+    <string name="settings_page_curl" formatted="false">"पेज मुड़ना"</string>
+    <string name="settings_page_swipe" formatted="false">"पेज स्वाइप"</string>
+    <string name="settings_prefer_ocr_when_pdf_text_is_weak" formatted="false">"PDF का टेक्स्ट कमज़ोर हो तो OCR चुनें"</string>
+    <string name="settings_pronunciation_rules" formatted="false">"उच्चारण नियम"</string>
+    <string name="settings_pronunciation_rules_bf2c874" formatted="false">"उच्चारण नियम"</string>
+    <string name="settings_reading_focus" formatted="false">"पठन और एकाग्रता"</string>
+    <string name="settings_reading_queue" formatted="false">"पढ़ने की कतार"</string>
+    <string name="settings_reading_streaks_history" formatted="false">"लगातार पढ़ने का रिकॉर्ड और इतिहास"</string>
+    <string name="settings_recognize_quoted_speech_and_speech_tags" formatted="false">"उद्धृत संवाद और वक्ता के संकेत पहचानें"</string>
+    <string name="settings_reduce_motion" formatted="false">"गति कम करें"</string>
+    <string name="settings_reduce_transparency" formatted="false">"पारदर्शिता कम करें"</string>
+    <string name="settings_relaxed" formatted="false">"खुला"</string>
+    <string name="settings_remove_bottom_page_noise" formatted="false">"पेज के नीचे की अवांछित सामग्री हटाएं"</string>
+    <string name="settings_remove_page_numbers" formatted="false">"पेज नंबर हटाएं"</string>
+    <string name="settings_remove_top_page_noise" formatted="false">"पेज के ऊपर की अवांछित सामग्री हटाएं"</string>
+    <string name="settings_repair_hyphenated_line_breaks" formatted="false">"पंक्ति के अंत में टूटे शब्द जोड़ें"</string>
+    <string name="settings_rise" formatted="false">"ऊपर उठना"</string>
+    <string name="settings_saved_readings" formatted="false">"सहेजी गई सामग्री"</string>
+    <string name="settings_saving_backup" formatted="false">"सहेजना और बैकअप"</string>
+    <string name="settings_scroll" formatted="false">"स्क्रॉल"</string>
+    <string name="settings_section_labels" formatted="false">"अनुभाग लेबल"</string>
+    <string name="settings_separate_words_when_font_changes" formatted="false">"फ़ॉन्ट बदलने पर शब्द अलग करें"</string>
+    <string name="settings_shake_in_the_final_minute_to_add_ten_minutes" formatted="false">"अंतिम मिनट में हिलाकर दस मिनट जोड़ें।"</string>
+    <string name="settings_shake_to_extend_timer" formatted="false">"टाइमर बढ़ाने के लिए हिलाएं"</string>
+    <string name="settings_short" formatted="false">"छोटा"</string>
+    <string name="settings_show_images_and_video_previews_on_note_cards" formatted="false">"नोट कार्ड पर चित्र और वीडियो पूर्वावलोकन दिखाएं"</string>
+    <string name="settings_show_names_beneath_navigation_icons" formatted="false">"नेविगेशन आइकन के नीचे नाम दिखाएं।"</string>
+    <string name="settings_show_section_numbers_for_easier_study_and_search" formatted="false">"अध्ययन और खोज आसान बनाने के लिए अनुभाग नंबर दिखाएं।"</string>
+    <string name="settings_show_the_book_linked_to_a_reading_note" formatted="false">"पठन नोट से जुड़ी किताब दिखाएं"</string>
+    <string name="settings_show_the_kinds_of_media_in_each_note" formatted="false">"हर नोट में मीडिया का प्रकार दिखाएं"</string>
+    <string name="settings_show_the_waveform_beside_a_voice_memo" formatted="false">"वॉइस मेमो के पास तरंग दिखाएं"</string>
+    <string name="settings_show_website_cards_in_notes_and_on_the_notes_page" formatted="false">"नोट्स और नोट्स पेज में वेबसाइट कार्ड दिखाएं"</string>
+    <string name="settings_slide" formatted="false">"खिसकना"</string>
+    <string name="settings_small" formatted="false">"छोटा"</string>
+    <string name="settings_standard" formatted="false">"मानक"</string>
+    <string name="settings_start_a_new_item_above_the_existing_list" formatted="false">"मौजूदा सूची के ऊपर नया आइटम शुरू करें"</string>
+    <string name="settings_streak_reminder" formatted="false">"लगातार पढ़ने की याद"</string>
+    <string name="settings_swipe" formatted="false">"स्वाइप"</string>
+    <string name="settings_tap_the_page_to_hide_or_show_reader_controls" formatted="false">"रीडर नियंत्रण दिखाने या छिपाने के लिए पेज दबाएं।"</string>
+    <string name="settings_text_previews" formatted="false">"टेक्स्ट पूर्वावलोकन"</string>
+    <string name="settings_use_role_specific_pacing_and_pitch" formatted="false">"पात्र के अनुसार गति और पिच उपयोग करें"</string>
+    <string name="settings_use_solid_panels_for_clearer_text_and_controls" formatted="false">"टेक्स्ट और नियंत्रण साफ़ दिखाने के लिए ठोस पैनल उपयोग करें।"</string>
+    <string name="settings_vertical_scroll" formatted="false">"ऊर्ध्वाधर स्क्रॉल"</string>
+    <string name="settings_voice_and_language" formatted="false">"आवाज़ और भाषा"</string>
+    <string name="settings_voice_reader_settings" formatted="false">"आवाज़ और रीडर सेटिंग"</string>
+    <string name="settings_voice_waveforms" formatted="false">"आवाज़ की तरंगें"</string>
+    <string name="settings_wide" formatted="false">"चौड़ा"</string>
+    <string name="settings_writing" formatted="false">"लेखन"</string>
+    <string name="ui_a_little_space_for_big_ideas" formatted="false">"बड़े विचारों के लिए एक छोटी जगह।"</string>
+    <string name="ui_a_speech_tag_such_as_alice_said_identifies_this_character" formatted="false">"“ऐलिस ने कहा” जैसे वाक्यांश इस पात्र की पहचान करते हैं।"</string>
+    <string name="ui_a_thought_worth_keeping" formatted="false">"सहेजने लायक एक विचार"</string>
+    <string name="ui_aa" formatted="false">"अआ"</string>
+    <string name="ui_aa_2c419ec" formatted="false">"अआ"</string>
+    <string name="ui_access_hundreds_of_models_at_openrouter_ai" formatted="false">"openrouter.ai पर सैकड़ों मॉडल पाएं।"</string>
+    <string name="ui_active" formatted="false">"सक्रिय"</string>
+    <string name="ui_active_voice" formatted="false">"सक्रिय आवाज़"</string>
+    <string name="ui_add_api_key" formatted="false">"API कुंजी जोड़ें"</string>
+    <string name="ui_add_character" formatted="false">"पात्र जोड़ें"</string>
+    <string name="ui_add_language_voice" formatted="false">"भाषा या आवाज़ जोड़ें"</string>
+    <string name="ui_ai_assistant_preference" formatted="false">"पसंदीदा AI सहायक"</string>
+    <string name="ui_ai_provider_key_setup" formatted="false">"AI प्रदाता और कुंजी सेटअप"</string>
+    <string name="ui_always_growing" formatted="false">"लगातार बेहतर"</string>
+    <string name="ui_amoled_mode" formatted="false">"AMOLED मोड"</string>
+    <string name="ui_android_battery_optimizations_will_pause_or_kill_vern_speech_play" formatted="false">"Android की बैटरी बचत स्क्रीन लॉक या बंद होने के बाद Vern का वाचन रोक सकती है।"</string>
+    <string name="ui_any_standard_openai_compatible_api_base_url" formatted="false">"OpenAI-संगत API का मानक बेस URL।"</string>
+    <string name="ui_api_endpoint_url" formatted="false">"API एंडपॉइंट URL"</string>
+    <string name="ui_app_backups_include_notes_and_these_preferences_zip_backups_also" formatted="false">"ऐप के बैकअप में नोट्स और ये प्राथमिकताएं शामिल हैं। ZIP में समर्थित स्थानीय अटैचमेंट भी आते हैं। ऐप सेटिंग में बैकअप और पुनर्स्थापना चुनें।"</string>
+    <string name="ui_app_icon_colours" formatted="false">"ऐप आइकन के रंग"</string>
+    <string name="ui_appearance_mode" formatted="false">"दिखावट मोड"</string>
+    <string name="ui_apply_narration_settings" formatted="false">"वाचन सेटिंग लागू करें"</string>
+    <string name="ui_auto_play_queue" formatted="false">"कतार अपने आप चलाएं"</string>
+    <string name="ui_automatic_weekly_backups" formatted="false">"साप्ताहिक स्वचालित बैकअप"</string>
+    <string name="ui_automatically_play_next_queued_book" formatted="false">"कतार की अगली किताब अपने आप चलाएं"</string>
+    <string name="ui_automatically_save_local_backup_archives_every_7_days" formatted="false">"हर 7 दिन में स्थानीय बैकअप अपने आप सहेजें"</string>
+    <string name="ui_book" formatted="false">"किताब"</string>
+    <string name="ui_books_notes_and_dashboard_cards_drop_into_varied_tilts_and_offset" formatted="false">"किताबों, नोट्स और डैशबोर्ड के कार्ड अलग-अलग झुकाव में दिखते हैं। हर कार्ड अपनी जगह पर रहता है।"</string>
+    <string name="ui_change_colour" formatted="false">"रंग बदलें"</string>
+    <string name="ui_change_what_vern_says_without_changing_the_book" formatted="false">"किताब बदले बिना तय करें कि Vern क्या बोले।"</string>
+    <string name="ui_character_voice" formatted="false">"पात्र की आवाज़"</string>
+    <string name="ui_checking_for_updates" formatted="false">"अपडेट खोजे जा रहे हैं…"</string>
+    <string name="ui_choose_a_palette_for_your_launcher_icon_the_launcher_updates_when" formatted="false">"लॉन्चर आइकन के लिए रंग चुनें। आइकन Vern से बाहर आने पर बदलेगा, ताकि सेटिंग खुली रहें।"</string>
+    <string name="ui_choose_accent_colour" formatted="false">"मुख्य रंग चुनें"</string>
+    <string name="ui_choose_any_colour_for_buttons_highlights_and_matching_tints_it_fo" formatted="false">"बटन, हाइलाइट और उनसे मेल खाने वाले रंग चुनें। यह आपके थीम पैक और लाइट, डार्क या सिस्टम मोड के अनुसार ढलता है।"</string>
+    <string name="ui_choose_colour" formatted="false">"रंग चुनें"</string>
+    <string name="ui_choose_the_assistant_veritas_should_launch_when_you_select_text_i" formatted="false">"रीडर में टेक्स्ट चुनने पर खुलने वाला सहायक चुनें। ऐप इंस्टॉल न होने पर Veritas उसका Play Store पेज खोल सकता है।"</string>
+    <string name="ui_close_notes_settings" formatted="false">"नोट्स सेटिंग बंद करें"</string>
+    <string name="ui_collapse" formatted="false">"समेटें"</string>
+    <string name="ui_color_palette_and_document_canvas_tone" formatted="false">"रंग समूह और दस्तावेज़ की पृष्ठभूमि"</string>
+    <string name="ui_colour_themes" formatted="false">"रंग थीम"</string>
+    <string name="ui_colours_card_character_and_page_motion" formatted="false">"रंग, कार्ड का अंदाज़ और पेज की गति।"</string>
+    <string name="ui_comfort_comes_first" formatted="false">"आराम सबसे पहले"</string>
+    <string name="ui_connect_any_ai_model_to_generate_flashcards_quizzes_and_study_sum" formatted="false">"Veritas Reader में सीधे फ़्लैशकार्ड, क्विज़ और अध्ययन सारांश बनाने के लिए AI मॉडल जोड़ें।"</string>
+    <string name="ui_control_how_pdfs_and_text_files_are_imported_before_they_enter_th" formatted="false">"रीडर में खोलने से पहले तय करें कि PDF और टेक्स्ट फ़ाइलें कैसे आयात हों।"</string>
+    <string name="ui_current_voice_model" formatted="false">"वर्तमान वॉइस मॉडल"</string>
+    <string name="ui_custom_accent" formatted="false">"कस्टम मुख्य रंग"</string>
+    <string name="ui_custom_prompt_template" formatted="false">"कस्टम प्रॉम्प्ट टेम्पलेट"</string>
+    <string name="ui_data_included_in_backup_sync" formatted="false">"बैकअप और सिंक में शामिल डेटा"</string>
+    <string name="ui_definition_wiktionary" formatted="false">"परिभाषा: Wiktionary"</string>
+    <string name="ui_delete_vocabulary_word" formatted="false">"शब्दावली से यह शब्द हटाएं?"</string>
+    <string name="ui_delete_voice_model" formatted="false">"वॉइस मॉडल हटाएं"</string>
+    <string name="ui_device_animations_are_off_startup_stays_still" formatted="false">"डिवाइस के एनीमेशन बंद हैं। शुरुआती स्क्रीन स्थिर रहेगी।"</string>
+    <string name="ui_discard_narration_changes" formatted="false">"वाचन के बदलाव छोड़ दें?"</string>
+    <string name="ui_display_preferences" formatted="false">"प्रदर्शन प्राथमिकताएं"</string>
+    <string name="ui_don_t_ask_again" formatted="false">"दोबारा न पूछें"</string>
+    <string name="ui_download_in_voice_studio" formatted="false">" · वॉइस स्टूडियो से डाउनलोड करें"</string>
+    <string name="ui_download_voices_for_offline_reading_update_older_piper_voices_usi" formatted="false">"ऑफ़लाइन पढ़ने के लिए आवाज़ें डाउनलोड करें। कम शोर वाले पूर्ण-सटीकता पैकेज के लिए पुरानी Piper आवाज़ों को सूची के अपडेट बटन से अपडेट करें। बफ़र में मौजूद वाचन सामान्य रूप से चलता रहेगा।"</string>
+    <string name="ui_edit_rule" formatted="false">"नियम बदलें"</string>
+    <string name="ui_effects_apply_to_text_pages_in_page_swipe_mode_reduce_motion_turn" formatted="false">"प्रभाव पेज स्वाइप मोड के टेक्स्ट पेजों पर लागू होते हैं। गति कम करने से पेज एनीमेशन बंद होते हैं।"</string>
+    <string name="ui_end_page" formatted="false">"अंतिम पेज"</string>
+    <string name="ui_entry_actions" formatted="false">"प्रविष्टि के विकल्प"</string>
+    <string name="ui_expand" formatted="false">"फैलाएं"</string>
+    <string name="ui_export_portable_backup_with_media_zip" formatted="false">"मीडिया सहित पोर्टेबल बैकअप निर्यात करें (.zip)"</string>
+    <string name="ui_export_text_settings_json" formatted="false">"टेक्स्ट और सेटिंग निर्यात करें (.json)"</string>
+    <string name="ui_extraction_mode" formatted="false">"टेक्स्ट निकालने का तरीका"</string>
+    <string name="ui_fewer_examples" formatted="false">"कम उदाहरण"</string>
+    <string name="ui_find_meaning" formatted="false">"अर्थ खोजें"</string>
+    <string name="ui_find_vern_online" formatted="false">"Vern को ऑनलाइन खोजें"</string>
+    <string name="ui_find_word_or_phrase" formatted="false">"शब्द या वाक्यांश खोजें"</string>
+    <string name="ui_follow_my_colour_theme" formatted="false">"मेरी रंग थीम के अनुसार"</string>
+    <string name="ui_for_example_sequel_instead_of_sql" formatted="false">"उदाहरण के लिए SQL के बदले “सीक्वल” बोलें।"</string>
+    <string name="ui_free_tier_available_at_aistudio_google_com" formatted="false">"aistudio.google.com पर मुफ़्त स्तर उपलब्ध है।"</string>
+    <string name="ui_funky_cards" formatted="false">"रंगीले कार्ड"</string>
+    <string name="ui_glass_in_other_theme_packs" formatted="false">"दूसरे थीम पैक में ग्लास प्रभाव"</string>
+    <string name="ui_go" formatted="false">"जाएं"</string>
+    <string name="ui_got_it" formatted="false">"समझ गया"</string>
+    <string name="ui_hide_matching_details" formatted="false">"मिलान विवरण छिपाएं"</string>
+    <string name="ui_hide_syntax_guide" formatted="false">"सिंटैक्स गाइड छिपाएं"</string>
+    <string name="ui_high_contrast" formatted="false">"उच्च कंट्रास्ट"</string>
+    <string name="ui_high_contrast_keeps_its_accessibility_colours_your_custom_accent" formatted="false">"उच्च कंट्रास्ट मोड अपने सुलभ रंग रखता है। उससे बाहर आने पर आपका कस्टम रंग लौट आता है।"</string>
+    <string name="ui_how_rules_are_matched" formatted="false">"नियमों का मिलान कैसे होता है"</string>
+    <string name="ui_how_to_enable_uninterrupted_audio" formatted="false">"बिना रुकावट वाचन के लिए:"</string>
+    <string name="ui_html_with_images" formatted="false">"चित्रों सहित HTML"</string>
+    <string name="ui_import_sync_backup_pack" formatted="false">"सिंक या बैकअप पैक आयात करें"</string>
+    <string name="ui_include_online_network_voices" formatted="false">"ऑनलाइन आवाज़ें शामिल करें"</string>
+    <string name="ui_includes_unsaved_rule" formatted="false">"बिना सहेजा नियम शामिल है"</string>
+    <string name="ui_install" formatted="false">"इंस्टॉल करें"</string>
+    <string name="ui_install_from_play_store" formatted="false">"Play Store से इंस्टॉल करें"</string>
+    <string name="ui_jump_to_page" formatted="false">"पेज पर जाएं"</string>
+    <string name="ui_jump_to_page_8a8ded9" formatted="false">"पेज पर जाएं"</string>
+    <string name="ui_keep_editing" formatted="false">"संपादन जारी रखें"</string>
+    <string name="ui_keep_your_reading_space_up_to_date" formatted="false">"अपने पढ़ने के अनुभव को अप टू डेट रखें।"</string>
+    <string name="ui_keys_are_saved_locally_on_your_device_only" formatted="false">" कुंजियाँ केवल आपके डिवाइस पर सहेजी जाती हैं।"</string>
+    <string name="ui_language_voice_library" formatted="false">"भाषा और आवाज़ लाइब्रेरी"</string>
+    <string name="ui_library_sync_backup_engine" formatted="false">"लाइब्रेरी सिंक और बैकअप"</string>
+    <string name="ui_listen_to_preview" formatted="false">"पूर्वावलोकन सुनें"</string>
+    <string name="ui_lite" formatted="false">"Lite"</string>
+    <string name="ui_live_preview" formatted="false">"तुरंत पूर्वावलोकन"</string>
+    <string name="ui_loading_voice_models" formatted="false">"वॉइस मॉडल लोड हो रहे हैं…"</string>
+    <string name="ui_made_better_together" formatted="false">"मिलकर बेहतर बनाएं"</string>
+    <string name="ui_make_vern_yours" formatted="false">"Vern को अपना बनाएं"</string>
+    <string name="ui_match" formatted="false">"मिलान"</string>
+    <string name="ui_match_case" formatted="false">"बड़े-छोटे अक्षर का मिलान"</string>
+    <string name="ui_match_case_2e62945" formatted="false">" · बड़े-छोटे अक्षर का मिलान"</string>
+    <string name="ui_match_changing_text_with_markers_such_as_n_or_text" formatted="false">"बदलते टेक्स्ट का मिलान [n] या {text} जैसे संकेतों से करें।"</string>
+    <string name="ui_match_pattern" formatted="false">"मिलान पैटर्न"</string>
+    <string name="ui_matches_complete_words_and_phrases" formatted="false">"पूरे शब्दों और वाक्यांशों से मिलान करता है।"</string>
+    <string name="ui_minimum_word_gap" formatted="false">"शब्दों के बीच न्यूनतम अंतर"</string>
+    <string name="ui_model" formatted="false">"मॉडल"</string>
+    <string name="ui_model_name_id" formatted="false">"मॉडल का नाम या ID"</string>
+    <string name="ui_more_examples" formatted="false">"और उदाहरण"</string>
+    <string name="ui_n_matches_1_12_use_number_word_or_text_for_example_text_matches_a" formatted="false">"[n] का मिलान [1], [12]… से होता है। {number}, {word} या {text} उपयोग करें। उदाहरण: _{text}_ अंडरस्कोर से घिरे वाक्यांश से मेल खाता है। संकेत हटाने पर शब्द अलग रहते हैं।"</string>
+    <string name="ui_name_as_it_appears_in_the_book" formatted="false">"किताब में लिखा हुआ नाम"</string>
+    <string name="ui_narration_mode" formatted="false">"वाचन मोड"</string>
+    <string name="ui_narration_shortcuts" formatted="false">"वाचन शॉर्टकट"</string>
+    <string name="ui_new_rule" formatted="false">"नया नियम"</string>
+    <string name="ui_no_rules_yet" formatted="false">"अभी कोई नियम नहीं"</string>
+    <string name="ui_no_voices_found_matching_search_filter" formatted="false">"खोज से मेल खाती कोई आवाज़ नहीं मिली।"</string>
+    <string name="ui_not_now" formatted="false">"अभी नहीं"</string>
+    <string name="ui_notes_save_automatically_as_you_write_the_editor_shows_when_your" formatted="false">"लिखते समय नोट्स अपने आप सहेजे जाते हैं। संपादक दिखाता है कि बदलाव कब सहेजे गए हैं।"</string>
+    <string name="ui_notes_settings" formatted="false">"नोट्स सेटिंग"</string>
+    <string name="ui_notes_settings_cc5a665" formatted="false">"नोट्स सेटिंग"</string>
+    <string name="ui_nothing_to_clean_up" formatted="false">"साफ़ करने के लिए कुछ नहीं"</string>
+    <string name="ui_nothing_will_be_spoken" formatted="false">"कुछ भी नहीं बोला जाएगा।"</string>
+    <string name="ui_obtain_keys_from_console_anthropic_com" formatted="false">"console.anthropic.com से कुंजी लें।"</string>
+    <string name="ui_obtain_keys_from_platform_openai_com" formatted="false">"platform.openai.com से कुंजी लें।"</string>
+    <string name="ui_off" formatted="false">"बंद"</string>
+    <string name="ui_on_device" formatted="false">" · डिवाइस पर"</string>
+    <string name="ui_online" formatted="false">" · ऑनलाइन"</string>
+    <string name="ui_open_file_browser" formatted="false">"फ़ाइल ब्राउज़र खोलें"</string>
+    <string name="ui_open_quotes_carry_across_sentences_speaker_tags_and_labels_identi" formatted="false">"उद्धरण कई वाक्यों तक चल सकते हैं। वक्ता के संकेत और नाम पात्र पहचानते हैं; अस्पष्ट संवाद में डिफ़ॉल्ट संवाद प्रोफ़ाइल उपयोग होती है।"</string>
+    <string name="ui_open_source_licenses" formatted="false">"ओपन सोर्स लाइसेंस"</string>
+    <string name="ui_original_passage" formatted="false">"मूल अंश"</string>
+    <string name="ui_original_pdf_navigation" formatted="false">"मूल PDF नेविगेशन"</string>
+    <string name="ui_page_navigation" formatted="false">"पेज नेविगेशन"</string>
+    <string name="ui_page_number" formatted="false">"पेज नंबर"</string>
+    <string name="ui_paper" formatted="false">"कागज़"</string>
+    <string name="ui_pdf_import_tools" formatted="false">"PDF और आयात उपकरण"</string>
+    <string name="ui_play_sample" formatted="false">"नमूना चलाएं"</string>
+    <string name="ui_plays_the_passage_sentence_by_sentence_with_the_same_role_detecti" formatted="false">"अंश को वाचन जैसी ही पात्र पहचान, आवाज़ों और उच्चारण नियमों से वाक्य-दर-वाक्य पढ़ता है।"</string>
+    <string name="ui_portable_backup_actions" formatted="false">"पोर्टेबल बैकअप विकल्प"</string>
+    <string name="ui_preparing_preview" formatted="false">"पूर्वावलोकन तैयार हो रहा है…"</string>
+    <string name="ui_preview_finished" formatted="false">"पूर्वावलोकन पूरा हुआ"</string>
+    <string name="ui_preview_startup_motion" formatted="false">"शुरुआती एनीमेशन देखें"</string>
+    <string name="ui_preview_text" formatted="false">"पूर्वावलोकन टेक्स्ट"</string>
+    <string name="ui_preview_voice" formatted="false">"आवाज़ सुनें"</string>
+    <string name="ui_prompt_template" formatted="false">"प्रॉम्प्ट टेम्पलेट"</string>
+    <string name="ui_provider" formatted="false">"प्रदाता"</string>
+    <string name="ui_punctuation" formatted="false">"विराम चिह्न"</string>
+    <string name="ui_pure_black_background_for_dark_themes_and_battery_saving" formatted="false">"डार्क थीम और बैटरी बचत के लिए बिल्कुल काली पृष्ठभूमि"</string>
+    <string name="ui_quick_colours" formatted="false">"तुरंत चुनने वाले रंग"</string>
+    <string name="ui_re2_regex_example_0_9_look_around_and_pattern_backreferences_are" formatted="false">"RE2 उदाहरण: \[([0-9]+)\]। लुकअराउंड और पैटर्न बैकरेफ़रेंस समर्थित नहीं हैं। खाली मिलान अनदेखे किए जाते हैं।"</string>
+    <string name="ui_read_listen_make_it_yours" formatted="false">"पढ़ें। सुनें।\nअपने अंदाज़ में।"</string>
+    <string name="ui_reader_typography_font_family" formatted="false">"रीडर की टाइपोग्राफ़ी और फ़ॉन्ट परिवार"</string>
+    <string name="ui_reading_layout" formatted="false">"पढ़ने का लेआउट"</string>
+    <string name="ui_ready_to_launch" formatted="false">"खोलने के लिए तैयार"</string>
+    <string name="ui_reduce_motion_is_on_startup_stays_still" formatted="false">"गति कम करना चालू है। शुरुआती स्क्रीन स्थिर रहेगी।"</string>
+    <string name="ui_reduce_transparency_currently_keeps_controls_opaque" formatted="false">"पारदर्शिता कम करने से अभी नियंत्रण अपारदर्शी हैं।"</string>
+    <string name="ui_refresh_meaning" formatted="false">"अर्थ फिर खोजें"</string>
+    <string name="ui_remove_character" formatted="false">"पात्र हटाएं"</string>
+    <string name="ui_reset_delivery" formatted="false">"वाचन शैली रीसेट करें"</string>
+    <string name="ui_reset_notes_preferences" formatted="false">"नोट्स की प्राथमिकताएं रीसेट करें"</string>
+    <string name="ui_reset_notes_preferences_c9adb9e" formatted="false">"नोट्स की प्राथमिकताएं रीसेट करें?"</string>
+    <string name="ui_reset_preferences" formatted="false">"प्राथमिकताएं रीसेट करें"</string>
+    <string name="ui_restore_the_default_layout_and_writing_preferences_your_notes_and" formatted="false">"लेआउट और लिखने की डिफ़ॉल्ट प्राथमिकताएं बहाल करें। नोट्स और अटैचमेंट वैसी ही रहेंगी।"</string>
+    <string name="ui_rich_colors_from_your_selected_theme" formatted="false">"चुनी हुई थीम के गहरे रंग"</string>
+    <string name="ui_rules_apply_to_all_readings_and_audio_exports_within_each_spoken" formatted="false">"नियम सभी वाचन और ऑडियो निर्यात में हर बोले गए अंश पर लागू होते हैं। पहले मिलान, फिर सबसे लंबे मिलान को प्राथमिकता मिलती है; बराबरी पर हाल में सहेजा नियम चुना जाता है। किताब का टेक्स्ट नहीं बदलता।"</string>
+    <string name="ui_sample" formatted="false">"नमूना"</string>
+    <string name="ui_save_ai_settings" formatted="false">"AI सेटिंग सहेजें"</string>
+    <string name="ui_save_an_example_or_create_your_own_above" formatted="false">"उदाहरण सहेजें या ऊपर अपना नियम बनाएं।"</string>
+    <string name="ui_save_rule" formatted="false">"नियम सहेजें"</string>
+    <string name="ui_saved_rules" formatted="false">"सहेजे गए नियम"</string>
+    <string name="ui_say_instead" formatted="false">"इसके बदले बोलें"</string>
+    <string name="ui_search_voices" formatted="false">"आवाज़ें खोजें"</string>
+    <string name="ui_search_voices_or_languages" formatted="false">"आवाज़ें या भाषाएं खोजें…"</string>
+    <string name="ui_select_preferred_ai_app" formatted="false">"पसंदीदा AI ऐप चुनें"</string>
+    <string name="ui_selected_colour" formatted="false">"चुना हुआ रंग"</string>
+    <string name="ui_shape_the_narrator_and_dialogue_voices_then_listen_before_applyin" formatted="false">"वाचक और संवाद की आवाज़ें तय करें, फिर लागू करने से पहले सुनें। आधार आपकी चुनी हुई पढ़ने की गति रहेगी।"</string>
+    <string name="ui_shape_your_reading_space_around_what_feels_good_to_you" formatted="false">"पढ़ने की जगह को अपनी सुविधा के अनुसार ढालें।"</string>
+    <string name="ui_share_as_image" formatted="false">"चित्र के रूप में साझा करें"</string>
+    <string name="ui_share_as_text" formatted="false">"टेक्स्ट के रूप में साझा करें"</string>
+    <string name="ui_share_text_settings_json" formatted="false">"टेक्स्ट और सेटिंग साझा करें (.json)"</string>
+    <string name="ui_shown_on_a_fresh_launch_from_your_icon_returning_from_recents_doe" formatted="false">"आइकन से ऐप को नए सिरे से खोलने पर दिखता है। हाल के ऐप्स से लौटने पर दोबारा नहीं चलता। बदलाव Vern से बाहर आने पर लागू होते हैं।"</string>
+    <string name="ui_skip" formatted="false">"छोड़ें"</string>
+    <string name="ui_smart_cleanup_removes_original_files_of_fully_read_or_90_day_dorm" formatted="false">"स्मार्ट सफ़ाई पूरी पढ़ी गई या 90 से ज़्यादा दिन से न खुली, गैर-पसंदीदा फ़ाइलों के मूल हटाती है। टेक्स्ट, प्रगति, नोट्स और हाइलाइट हमेशा सुरक्षित रहते हैं।"</string>
+    <string name="ui_speech_edits" formatted="false">"वाचन संपादन"</string>
+    <string name="ui_spoken_result" formatted="false">"बोला जाने वाला परिणाम"</string>
+    <string name="ui_start_page" formatted="false">"शुरुआती पेज"</string>
+    <string name="ui_start_with_an_example" formatted="false">"उदाहरण से शुरू करें"</string>
+    <string name="ui_startup_animation" formatted="false">"शुरुआती एनीमेशन"</string>
+    <string name="ui_stop_preview" formatted="false">"पूर्वावलोकन रोकें"</string>
+    <string name="ui_stop_preview_e984397" formatted="false">"पूर्वावलोकन रोकें"</string>
+    <string name="ui_studio" formatted="false">"Studio"</string>
+    <string name="ui_study_focus" formatted="false">"अध्ययन पर ध्यान"</string>
+    <string name="ui_swipe_effect" formatted="false">"स्वाइप प्रभाव"</string>
+    <string name="ui_syntax_guide" formatted="false">"सिंटैक्स गाइड"</string>
+    <string name="ui_system_tts_settings" formatted="false">"सिस्टम TTS सेटिंग"</string>
+    <string name="ui_tap_the_selected_preset_again_to_restore_your_previous_theme" formatted="false">"पिछली थीम पर लौटने के लिए चुना हुआ विकल्प फिर दबाएं।"</string>
+    <string name="ui_tap_turn_on_unrestricted_and_choose_allow_on_the_prompt_or_select" formatted="false">"“बिना प्रतिबंध चालू करें” दबाकर “अनुमति दें” चुनें, या ऐप की जानकारी में बैटरी → बिना प्रतिबंध चुनें।"</string>
+    <string name="ui_temporary_cache_is_clean" formatted="false">"अस्थायी कैश साफ़ है"</string>
+    <string name="ui_text_adjusts_to_contrast_with_your_colour" formatted="false">"आपके रंग पर टेक्स्ट स्पष्ट दिखने के लिए अपने आप ढलता है।"</string>
+    <string name="ui_text_encoding" formatted="false">"टेक्स्ट एन्कोडिंग"</string>
+    <string name="ui_text_illustrations_and_tables_use_the_selected_reading_layout" formatted="false">"टेक्स्ट, चित्र और तालिकाएं चुने हुए लेआउट का उपयोग करते हैं।"</string>
+    <string name="ui_text_size_and_spacing_apply_only_while_writing_notes" formatted="false">"टेक्स्ट का आकार और अंतर केवल नोट्स लिखते समय लागू होता है।"</string>
+    <string name="ui_the_quick_brown_fox_jumps_over" formatted="false">"तेज़ भूरी लोमड़ी छलांग लगाती है"</string>
+    <string name="ui_theme_packs" formatted="false">"थीम पैक"</string>
+    <string name="ui_theme_palette_sets" formatted="false">"थीम रंग समूह"</string>
+    <string name="ui_then" formatted="false">"फिर"</string>
+    <string name="ui_this_name_already_has_a_profile" formatted="false">"इस नाम की प्रोफ़ाइल पहले से है।"</string>
+    <string name="ui_translucent_glass_with_curved_edges_for_navigation_player_and_flo" formatted="false">"नेविगेशन, प्लेयर और जोड़ें, नोट व आयात के फ़्लोटिंग बटन पर गोल किनारे वाला पारदर्शी ग्लास प्रभाव। Liquid glass में यह शामिल है।"</string>
+    <string name="ui_try_a_passage" formatted="false">"अंश आज़माएं"</string>
+    <string name="ui_try_your_rules" formatted="false">"नियम आज़माएं"</string>
+    <string name="ui_turn_off_the_app_s_tone_profile_speed_and_pitch_stay_as_selected" formatted="false">"ऐप का टोन प्रोफ़ाइल बंद करें। चुनी हुई गति और पिच वैसी ही रहेंगी। Android EQ का समर्थन इंजन और डिवाइस पर निर्भर है।"</string>
+    <string name="ui_turn_on_unrestricted" formatted="false">"बिना प्रतिबंध चालू करें"</string>
+    <string name="ui_typeface" formatted="false">"फ़ॉन्ट"</string>
+    <string name="ui_ui_styling_shapes_and_surface_finish" formatted="false">"इंटरफ़ेस शैली, आकार और सतह की बनावट"</string>
+    <string name="ui_ultra_fast_inference_at_console_groq_com" formatted="false">"console.groq.com पर तेज़ मॉडल सेवा।"</string>
+    <string name="ui_unrestricted_battery_playback" formatted="false">"बैटरी प्रतिबंध के बिना वाचन"</string>
+    <string name="ui_update_rule" formatted="false">"नियम अपडेट करें"</string>
+    <string name="ui_use_a_regular_expression_for_advanced_matching" formatted="false">"उन्नत मिलान के लिए रेगुलर एक्सप्रेशन उपयोग करें।"</string>
+    <string name="ui_use_selected_voice" formatted="false">"चुनी हुई आवाज़ उपयोग करें"</string>
+    <string name="ui_use_selection_where_the_selected_text_should_appear" formatted="false">"जहाँ चुना हुआ टेक्स्ट आए वहाँ {selection} लिखें"</string>
+    <string name="ui_use_system_default" formatted="false">"सिस्टम की डिफ़ॉल्ट आवाज़ चुनें"</string>
+    <string name="ui_use_the_zip_backup_to_carry_notes_recordings_images_and_quiz_medi" formatted="false">"नोट्स की रिकॉर्डिंग, चित्र और क्विज़ मीडिया दूसरे डिवाइस पर ले जाने के लिए ZIP बैकअप चुनें। JSON में केवल टेक्स्ट और सेटिंग होती हैं। आयात मौजूदा डेटा के साथ जोड़ा जाता है।"</string>
+    <string name="ui_use_theme_colours" formatted="false">"थीम के रंग उपयोग करें"</string>
+    <string name="ui_use_vern_lite" formatted="false">"Vern Lite उपयोग करें"</string>
+    <string name="ui_use_vern_studio" formatted="false">"Vern Studio उपयोग करें"</string>
+    <string name="ui_vern" formatted="false">"Vern"</string>
+    <string name="ui_vern_is_built_using_the_following_open_source_libraries_and_tools" formatted="false">"Vern में निम्न ओपन सोर्स लाइब्रेरी और उपकरण उपयोग किए गए हैं:"</string>
+    <string name="ui_vern_is_ready" formatted="false">"Vern तैयार है"</string>
+    <string name="ui_vern_sync_backup_creates_portable_backup_files_containing_your_en" formatted="false">"Vern आपकी पूरी लाइब्रेरी, पढ़ने की प्रगति, फ़्लैशकार्ड, नोट्स, बुकमार्क और वाचन नियमों का पोर्टेबल बैकअप बनाता है। आयात करने पर मौजूदा सामग्री मिटाए बिना डेटा जोड़ा जाता है।"</string>
+    <string name="ui_vern_voice_models" formatted="false">"Vern वॉइस मॉडल"</string>
+    <string name="ui_vibrant_hero_card" formatted="false">"चटख मुख्य कार्ड"</string>
+    <string name="ui_voice_presets" formatted="false">"आवाज़ के प्रीसेट"</string>
+    <string name="ui_voice_shaping" formatted="false">"आवाज़ का स्वरूप"</string>
+    <string name="ui_voices_and_delivery" formatted="false">"आवाज़ें और वाचन शैली"</string>
+    <string name="ui_working_on_backup_file" formatted="false">"बैकअप फ़ाइल पर काम हो रहा है…"</string>
+    <string name="ui_your_books_your_notes_your_pace_a_quieter_place_to_read_listen_an" formatted="false">"आपकी किताबें, आपके नोट्स, आपकी गति। पढ़ने, सुनने और नई बातें जानने की एक शांत जगह।"</string>
+    <string name="ui_your_library_stays_on_your_device_online_features_are_optional" formatted="false">"आपकी लाइब्रेरी आपके डिवाइस पर रहती है। ऑनलाइन सुविधाएं वैकल्पिक हैं।"</string>
+    <string name="ui_your_saved_narration_settings_will_stay_as_they_are" formatted="false">"आपकी सहेजी गई वाचन सेटिंग वैसी ही रहेंगी।"</string>
+</resources>

@@ -88,7 +88,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Study Hub",
+                        text = widgetString(R.string.ui_study_hub),
                         style = TextStyle(
                             fontSize = if (isWide) 16.sp else 14.sp,
                             fontWeight = FontWeight.Bold,
@@ -105,7 +105,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "🔥 ${tracker.currentStreak}d Streak",
+                            text = widgetString(R.string.l10n_widget_dynamic_13, widgetValue(tracker.currentStreak)),
                             style = TextStyle(
                                 fontSize = if (isWide) 12.sp else 10.sp,
                                 fontWeight = FontWeight.Bold,
@@ -134,7 +134,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                         ) {
                             Column(modifier = GlanceModifier.defaultWeight()) {
                                 Text(
-                                    text = if (dueCards.isNotEmpty()) "${dueCards.size} Cards Due" else "No reviews due",
+                                    text = if (dueCards.isNotEmpty()) widgetString(R.string.l10n_widget_dynamic_14, widgetValue(dueCards.size)) else widgetString(R.string.l10n_widget_6),
                                     style = TextStyle(
                                         fontSize = if (isWide) 15.sp else 13.sp,
                                         fontWeight = FontWeight.Bold,
@@ -144,7 +144,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                 )
                                 Spacer(modifier = GlanceModifier.height(2.dp))
                                 Text(
-                                    text = if (allCards.isNotEmpty()) "$successfulRecallPercent% last recalled well • ${sets.size} active deck${if (sets.size == 1) "" else "s"}" else "${notes.size} study notes saved",
+                                    text = if (allCards.isNotEmpty()) widgetString(R.string.l10n_widget_dynamic_15, widgetValue(successfulRecallPercent), widgetValue(sets.size)) else widgetString(R.string.l10n_widget_dynamic_16, widgetValue(notes.size)),
                                     style = TextStyle(
                                         fontSize = if (isWide) 12.sp else 10.sp,
                                         color = VeritasWidgetColors.textMuted
@@ -164,7 +164,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Study",
+                                    text = widgetString(R.string.ui_study),
                                     style = TextStyle(
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
@@ -190,7 +190,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                         ) {
                             Column {
                                 Text(
-                                    text = "Due",
+                                    text = widgetString(R.string.l10n_widget_29),
                                     style = TextStyle(
                                         fontSize = if (isWide) 12.sp else 10.sp,
                                         color = VeritasWidgetColors.textMuted
@@ -220,7 +220,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                         ) {
                             Column {
                                 Text(
-                                    text = "Recall",
+                                    text = widgetString(R.string.l10n_widget_30),
                                     style = TextStyle(
                                         fontSize = if (isWide) 12.sp else 10.sp,
                                         color = VeritasWidgetColors.textMuted
@@ -250,7 +250,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                         ) {
                             Column {
                                 Text(
-                                    text = if (sets.isNotEmpty()) "Decks" else "Notes",
+                                    text = if (sets.isNotEmpty()) widgetString(R.string.l10n_widget_31) else widgetString(R.string.ui_notes),
                                     style = TextStyle(
                                         fontSize = if (isWide) 12.sp else 10.sp,
                                         color = VeritasWidgetColors.textMuted
@@ -297,7 +297,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
-                                                text = "NEXT CARD",
+                                                text = widgetString(R.string.l10n_widget_32),
                                                 style = TextStyle(
                                                     fontSize = 9.sp,
                                                     fontWeight = FontWeight.Bold,
@@ -307,7 +307,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                         }
                                         Spacer(modifier = GlanceModifier.width(6.dp))
                                         Text(
-                                            text = nextCard.setName.ifBlank { "Flashcards" },
+                                            text = nextCard.setName.ifBlank { widgetString(R.string.ui_flashcards) },
                                             style = TextStyle(
                                                 fontSize = 11.sp,
                                                 color = VeritasWidgetColors.textMuted
@@ -327,7 +327,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                     )
                                 } else if (allCards.isNotEmpty()) {
                                     Text(
-                                        text = "All Caught Up!",
+                                        text = widgetString(R.string.l10n_widget_33),
                                         style = TextStyle(
                                             fontSize = if (isWide) 14.sp else 13.sp,
                                             fontWeight = FontWeight.Bold,
@@ -336,7 +336,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                     )
                                     Spacer(modifier = GlanceModifier.height(2.dp))
                                     Text(
-                                        text = "All ${allCards.size} cards reviewed • Keep it up!",
+                                        text = widgetString(R.string.l10n_widget_dynamic_17, widgetValue(allCards.size)),
                                         style = TextStyle(
                                             fontSize = 11.sp,
                                             color = VeritasWidgetColors.textMuted
@@ -344,7 +344,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                     )
                                 } else {
                                     Text(
-                                        text = "Study Hub Ready",
+                                        text = widgetString(R.string.l10n_widget_34),
                                         style = TextStyle(
                                             fontSize = if (isWide) 14.sp else 13.sp,
                                             fontWeight = FontWeight.Bold,
@@ -353,7 +353,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                     )
                                     Spacer(modifier = GlanceModifier.height(2.dp))
                                     Text(
-                                        text = "Import cards from reading notes or AI prompts",
+                                        text = widgetString(R.string.l10n_widget_35),
                                         style = TextStyle(
                                             fontSize = 11.sp,
                                             color = VeritasWidgetColors.textMuted
@@ -373,7 +373,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = if (dueCards.isNotEmpty()) "Review" else "Open",
+                                    text = if (dueCards.isNotEmpty()) widgetString(R.string.ui_review) else widgetString(R.string.ui_open),
                                     style = TextStyle(
                                         fontSize = if (isWide) 13.sp else 11.sp,
                                         fontWeight = FontWeight.Bold,
@@ -388,7 +388,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                     if (isTall && sets.isNotEmpty()) {
                         Spacer(modifier = GlanceModifier.height(10.dp))
                         Text(
-                            text = "Active Decks",
+                            text = widgetString(R.string.l10n_widget_36),
                             style = TextStyle(
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
@@ -422,7 +422,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                         )
                                         Spacer(modifier = GlanceModifier.height(2.dp))
                                         Text(
-                                            text = "${set.cards.size} cards • ${if (setDue > 0) "$setDue due" else "caught up"}",
+                                            text = widgetString(R.string.l10n_widget_dynamic_18, widgetValue(set.cards.size), widgetValue(setDue)),
                                             style = TextStyle(
                                                 fontSize = 10.sp,
                                                 color = if (setDue > 0) VeritasWidgetColors.streakAccent else VeritasWidgetColors.textMuted
@@ -443,7 +443,7 @@ class StudyDashboardWidget : GlanceAppWidget() {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Daily Goal: ${dailyGoalMinutes} min",
+                                    text = widgetString(R.string.l10n_widget_dynamic_19, widgetValue(dailyGoalMinutes)),
                                     style = TextStyle(
                                         fontSize = 11.sp,
                                         color = VeritasWidgetColors.textMuted

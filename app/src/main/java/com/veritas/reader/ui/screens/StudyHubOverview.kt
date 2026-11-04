@@ -52,8 +52,8 @@ internal fun StudyHubOverview(
         if (sets.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Your decks", style = MaterialTheme.typography.titleMedium, color = colors.onSurface, modifier = Modifier.weight(1f))
-                    TextButton(onClick = { onSelectSection("Flashcards") }) { Text("See all") }
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_decks), style = MaterialTheme.typography.titleMedium, color = colors.onSurface, modifier = Modifier.weight(1f))
+                    TextButton(onClick = { onSelectSection("Flashcards") }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_see_all_2941c5c)) }
                 }
                 sets.take(3).forEachIndexed { index, set ->
                     StudyActiveDeckItem(index + 1, set.name, set.cards.size, Icons.Outlined.Style, { onOpenDeck(set) })
@@ -61,7 +61,7 @@ internal fun StudyHubOverview(
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Your study material", style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_study_material), style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
             collections.chunked(2).forEach { pair ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     pair.forEach { collection ->
@@ -70,7 +70,7 @@ internal fun StudyHubOverview(
                             .testTag("study-material-${collection.section}"),
                             shape = VeritasPackStyle.compactShape(),
                             colors = ButtonDefaults.textButtonColors(containerColor = colors.surfaceContainerHigh.copy(alpha = .65f))) {
-                            Text(if (collection.section == "Vocab") "Vocabulary" else collection.section,
+                            Text(if (collection.section == "Vocab") androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vocabulary) else collection.section,
                                 modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Start,
                                 style = MaterialTheme.typography.bodyMedium, color = colors.onSurface)
                             val unit = if (collection.count != 1) collection.unit else when (collection.unit) {
@@ -91,25 +91,25 @@ internal fun StudyHubOverview(
             border = BorderStroke(1.dp, colors.outlineVariant.copy(alpha = .5f))
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Create something new", style = MaterialTheme.typography.titleMedium)
-                Text("Start with your own cards or questions, or build a set from a book.", style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create_something_new), style = MaterialTheme.typography.titleMedium)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_with_your_own_cards_or_questions_or_build_a_set_from_a_book), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onImportFlashcards, modifier = Modifier.weight(1f)) { Text("Paste cards") }
-                    OutlinedButton(onClick = onImportQuiz, modifier = Modifier.weight(1f)) { Text("Paste quiz") }
+                    OutlinedButton(onClick = onImportFlashcards, modifier = Modifier.weight(1f)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_cards)) }
+                    OutlinedButton(onClick = onImportQuiz, modifier = Modifier.weight(1f)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_quiz)) }
                 }
                 Button(onClick = onCreateWithAi, modifier = Modifier.fillMaxWidth(), enabled = !state.isGeneratingAiStudy) {
                     Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Create with AI")
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create_with_ai))
                 }
-                TextButton(onClick = onSetupAi, modifier = Modifier.align(Alignment.End)) { Text("AI settings") }
+                TextButton(onClick = onSetupAi, modifier = Modifier.align(Alignment.End)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_settings)) }
             }
         }
         OutlinedButton(onClick = onExportStudyGuide, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
             .vernScatteredCard("study-export-guide", amount = .45f)) {
             Icon(Icons.Outlined.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("Export study guide PDF")
+            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_export_study_guide_pdf))
         }
     }
 }
@@ -131,7 +131,7 @@ internal fun StudyBookPickerDialog(documents: List<SavedDocument>, onSelect: (Sa
                 }
             }
         },
-        confirmButton = { if (documents.isEmpty()) TextButton(onClick = onGoToLibrary) { Text("Open library") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        confirmButton = { if (documents.isEmpty()) TextButton(onClick = onGoToLibrary) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_library)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } }
     )
 }

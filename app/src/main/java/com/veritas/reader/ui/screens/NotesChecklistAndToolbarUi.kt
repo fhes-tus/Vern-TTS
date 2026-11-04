@@ -134,15 +134,15 @@ internal fun NotesTopAppBar(
         title = { },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back))
             }
         },
         actions = {
-            IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, "Notes Settings") }
+            IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes_settings_cc5a665)) }
             IconButton(onClick = onTogglePin) {
                 Icon(
                     imageVector = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                    contentDescription = "Pin Note",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pin_note_ae126ef),
                     tint = if (isPinned) MaterialTheme.colorScheme.primary else onCardColor.copy(alpha = 0.8f)
                 )
             }
@@ -151,29 +151,29 @@ internal fun NotesTopAppBar(
                 IconButton(onClick = onShowReminderMenu) {
                     Icon(
                         imageVector = if (reminderAt != null) Icons.Filled.NotificationsActive else Icons.Outlined.NotificationAdd,
-                        contentDescription = "Reminder",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reminder),
                         tint = if (reminderAt != null) MaterialTheme.colorScheme.primary else onCardColor.copy(alpha = 0.8f)
                     )
                 }
                 DropdownMenu(expanded = showReminderMenu, onDismissRequest = onDismissReminderMenu) {
                     DropdownMenuItem(
-                        text = { Text("Later today (3 hrs)") },
+                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_later_today_3_hrs)) },
                         onClick = onSetReminderLaterToday,
                         leadingIcon = { Icon(Icons.Filled.Schedule, contentDescription = null) }
                     )
                     DropdownMenuItem(
-                        text = { Text("Tomorrow morning (9 AM)") },
+                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tomorrow_morning_9_am)) },
                         onClick = onSetReminderTomorrow,
                         leadingIcon = { Icon(Icons.Filled.WbSunny, contentDescription = null) }
                     )
                     DropdownMenuItem(
-                        text = { Text("Pick date & time…") },
+                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pick_date_time)) },
                         onClick = onPickReminderDateTime,
                         leadingIcon = { Icon(Icons.Filled.EditCalendar, contentDescription = null) }
                     )
                     if (reminderAt != null) {
                         DropdownMenuItem(
-                            text = { Text("Remove reminder") },
+                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_reminder)) },
                             onClick = onRemoveReminder,
                             leadingIcon = { Icon(Icons.Filled.NotificationsOff, contentDescription = null) }
                         )
@@ -184,7 +184,7 @@ internal fun NotesTopAppBar(
             IconButton(onClick = onSave) {
                 Icon(
                     imageVector = Icons.Filled.Archive,
-                    contentDescription = "Save Note",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_note),
                     tint = onCardColor.copy(alpha = 0.8f)
                 )
             }
@@ -330,7 +330,7 @@ internal fun NoteChecklistSection(
                 ) {
                     Icon(
                         Icons.Filled.Close,
-                        contentDescription = "Remove item",
+                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_item),
                         tint = onCardColor.copy(alpha = 0.5f),
                         modifier = Modifier.size(18.dp)
                     )
@@ -357,8 +357,8 @@ internal fun NoteChecklistSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Item")
-                Text("Add list item")
+                Icon(Icons.Filled.Add, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_item))
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_list_item))
             }
         }
     }
@@ -435,7 +435,7 @@ internal fun NotesBottomToolbar(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = onCloseMenu) {
-                            Icon(Icons.Filled.Close, contentDescription = "Close Menu", tint = onCardColor)
+                            Icon(Icons.Filled.Close, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close_menu), tint = onCardColor)
                         }
                         VerticalDivider(
                             modifier = Modifier
@@ -444,18 +444,18 @@ internal fun NotesBottomToolbar(
                             color = onCardColor.copy(alpha = 0.2f)
                         )
 
-                        FormatToolbarButton(Icons.Filled.Title, "Heading", onCardColor) { onCycleHeading() }
-                        FormatToolbarButton(Icons.Filled.FormatBold, "Bold", onCardColor) { onApplyMarker("**") }
-                        FormatToolbarButton(Icons.Filled.FormatItalic, "Italic", onCardColor) { onApplyMarker("*") }
-                        FormatToolbarButton(Icons.Filled.FormatUnderlined, "Underline", onCardColor) { onApplyMarker("__") }
-                        FormatToolbarButton(Icons.Filled.StrikethroughS, "Strikethrough", onCardColor) { onApplyMarker("~~") }
-                        FormatToolbarButton(Icons.Filled.FormatQuote, "Quote", onCardColor) { onToggleQuote() }
-                        FormatToolbarButton(Icons.Filled.Code, "Monospace", onCardColor) { onApplyMarker("`") }
-                        FormatToolbarButton(Icons.AutoMirrored.Filled.FormatListBulleted, "Bullet list", onCardColor) { onApplyLinePrefix("- ") }
-                        FormatToolbarButton(Icons.Filled.FormatListNumbered, "Numbered list", onCardColor) { onApplyLinePrefix("1. ") }
-                        FormatToolbarButton(Icons.Filled.CheckBoxOutlineBlank, "Task", onCardColor) { onToggleTask() }
-                        FormatToolbarButton(Icons.AutoMirrored.Filled.FormatIndentDecrease, "Outdent", onCardColor) { onApplyOutdent() }
-                        FormatToolbarButton(Icons.AutoMirrored.Filled.FormatIndentIncrease, "Indent", onCardColor) { onApplyIndent() }
+                        FormatToolbarButton(Icons.Filled.Title, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_heading), onCardColor) { onCycleHeading() }
+                        FormatToolbarButton(Icons.Filled.FormatBold, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_bold), onCardColor) { onApplyMarker("**") }
+                        FormatToolbarButton(Icons.Filled.FormatItalic, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_italic), onCardColor) { onApplyMarker("*") }
+                        FormatToolbarButton(Icons.Filled.FormatUnderlined, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_underline), onCardColor) { onApplyMarker("__") }
+                        FormatToolbarButton(Icons.Filled.StrikethroughS, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_strikethrough), onCardColor) { onApplyMarker("~~") }
+                        FormatToolbarButton(Icons.Filled.FormatQuote, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_quote), onCardColor) { onToggleQuote() }
+                        FormatToolbarButton(Icons.Filled.Code, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_monospace), onCardColor) { onApplyMarker("`") }
+                        FormatToolbarButton(Icons.AutoMirrored.Filled.FormatListBulleted, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_bullet_list), onCardColor) { onApplyLinePrefix("- ") }
+                        FormatToolbarButton(Icons.Filled.FormatListNumbered, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_numbered_list), onCardColor) { onApplyLinePrefix("1. ") }
+                        FormatToolbarButton(Icons.Filled.CheckBoxOutlineBlank, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_task), onCardColor) { onToggleTask() }
+                        FormatToolbarButton(Icons.AutoMirrored.Filled.FormatIndentDecrease, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_outdent), onCardColor) { onApplyOutdent() }
+                        FormatToolbarButton(Icons.AutoMirrored.Filled.FormatIndentIncrease, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_indent), onCardColor) { onApplyIndent() }
                     }
                 }
                 NotesToolbarMenu.ATTACHMENTS -> {
@@ -468,7 +468,7 @@ internal fun NotesBottomToolbar(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = onCloseMenu) {
-                            Icon(Icons.Filled.Close, contentDescription = "Close Menu", tint = onCardColor)
+                            Icon(Icons.Filled.Close, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close_menu), tint = onCardColor)
                         }
                         VerticalDivider(
                             modifier = Modifier
@@ -481,19 +481,19 @@ internal fun NotesBottomToolbar(
                         IconButton(onClick = onToggleChecklist) {
                             Icon(
                                 imageVector = if (isChecklist) Icons.Filled.Checklist else Icons.Outlined.Checklist,
-                                contentDescription = "Checklist Toggle",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_checklist_toggle),
                                 tint = if (isChecklist) MaterialTheme.colorScheme.primary else onCardColor.copy(alpha = 0.8f)
                             )
                         }
 
                         IconButton(onClick = onTakePhoto) {
-                            Icon(Icons.Outlined.PhotoCamera, "Take photo", tint = onCardColor.copy(alpha = 0.8f))
+                            Icon(Icons.Outlined.PhotoCamera, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_take_photo), tint = onCardColor.copy(alpha = 0.8f))
                         }
                         // Attach Image
                         IconButton(onClick = onPickImage) {
                             Icon(
                                 imageVector = Icons.Outlined.Image,
-                                contentDescription = "Attach Image",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_attach_image),
                                 tint = onCardColor.copy(alpha = 0.8f)
                             )
                         }
@@ -502,7 +502,7 @@ internal fun NotesBottomToolbar(
                         IconButton(onClick = onPickVideo) {
                             Icon(
                                 imageVector = Icons.Outlined.VideoLibrary,
-                                contentDescription = "Attach Video",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_attach_video),
                                 tint = onCardColor.copy(alpha = 0.8f)
                             )
                         }
@@ -511,7 +511,7 @@ internal fun NotesBottomToolbar(
                         IconButton(onClick = onPickFile) {
                             Icon(
                                 imageVector = Icons.Outlined.AttachFile,
-                                contentDescription = "Attach File",
+                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_attach_file),
                                 tint = onCardColor.copy(alpha = 0.8f)
                             )
                         }
@@ -520,7 +520,7 @@ internal fun NotesBottomToolbar(
                         IconButton(onClick = onToggleRecording) {
                             Icon(
                                 imageVector = if (isRecording) Icons.Filled.Stop else Icons.Outlined.Mic,
-                                contentDescription = if (isRecording) "Stop Recording" else "Record Audio",
+                                contentDescription = if (isRecording) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop_recording) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_record_audio_9ede70b),
                                 tint = if (isRecording) MaterialTheme.colorScheme.error else onCardColor.copy(alpha = 0.8f)
                             )
                         }
@@ -539,21 +539,21 @@ internal fun NotesBottomToolbar(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(onClick = onOpenAttachments) {
-                                Icon(Icons.Filled.AddBox, contentDescription = "Add Attachments", tint = onCardColor.copy(alpha = 0.8f))
+                                Icon(Icons.Filled.AddBox, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_attachments), tint = onCardColor.copy(alpha = 0.8f))
                             }
                             IconButton(onClick = onToggleRecording) {
                                 Icon(
                                     imageVector = if (isRecording) Icons.Filled.Stop else Icons.Outlined.Mic,
-                                    contentDescription = if (isRecording) "Stop Recording" else "Record Audio",
+                                    contentDescription = if (isRecording) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop_recording) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_record_audio_9ede70b),
                                     tint = if (isRecording) MaterialTheme.colorScheme.error else (if (hasAudio) MaterialTheme.colorScheme.primary else onCardColor.copy(alpha = 0.8f))
                                 )
                             }
                             IconButton(onClick = onToggleColorPicker) {
-                                Icon(Icons.Outlined.Palette, contentDescription = "Color Picker", tint = onCardColor.copy(alpha = 0.8f))
+                                Icon(Icons.Outlined.Palette, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_color_picker), tint = onCardColor.copy(alpha = 0.8f))
                             }
                             if (!isChecklist) {
                                 IconButton(onClick = onOpenFormatting) {
-                                    Icon(Icons.Filled.TextFields, contentDescription = "Formatting Tools", tint = onCardColor.copy(alpha = 0.8f))
+                                    Icon(Icons.Filled.TextFields, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_formatting_tools), tint = onCardColor.copy(alpha = 0.8f))
                                 }
                             }
                         }
@@ -568,7 +568,7 @@ internal fun NotesBottomToolbar(
                             ) {
                                 Icon(
                                     Icons.AutoMirrored.Filled.Undo,
-                                    contentDescription = "Undo",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_undo),
                                     tint = onCardColor.copy(alpha = if (canUndo) 0.85f else 0.3f)
                                 )
                             }
@@ -578,7 +578,7 @@ internal fun NotesBottomToolbar(
                             ) {
                                 Icon(
                                     Icons.AutoMirrored.Filled.Redo,
-                                    contentDescription = "Redo",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_redo),
                                     tint = onCardColor.copy(alpha = if (canRedo) 0.85f else 0.3f)
                                 )
                             }
@@ -586,17 +586,17 @@ internal fun NotesBottomToolbar(
                             var showOverflow by remember { mutableStateOf(false) }
                             Box {
                                 IconButton(onClick = { showOverflow = true }) {
-                                    Icon(Icons.Filled.MoreVert, contentDescription = "More Options", tint = onCardColor.copy(alpha = 0.8f))
+                                    Icon(Icons.Filled.MoreVert, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_more_options), tint = onCardColor.copy(alpha = 0.8f))
                                 }
                                 DropdownMenu(
                                     expanded = showOverflow,
                                     onDismissRequest = { showOverflow = false }
                                 ) {
-                                    DropdownMenuItem(text = { Text("Notebooks") },
+                                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notebooks)) },
                                         leadingIcon = { Icon(Icons.AutoMirrored.Outlined.MenuBook, null) },
                                         onClick = { showOverflow = false; onNotebooks() })
                                     DropdownMenuItem(
-                                        text = { Text("Share") },
+                                        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share)) },
                                         onClick = {
                                             showOverflow = false
                                             onShare()
@@ -605,7 +605,7 @@ internal fun NotesBottomToolbar(
                                     )
                                     if (hasExistingNote) {
                                         DropdownMenuItem(
-                                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete), color = MaterialTheme.colorScheme.error) },
                                             onClick = {
                                                 showOverflow = false
                                                 onDelete()
@@ -613,7 +613,7 @@ internal fun NotesBottomToolbar(
                                             leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) }
                                         )
                                         DropdownMenuItem(
-                                            text = { Text("Make a Copy") },
+                                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_make_a_copy)) },
                                             onClick = {
                                                 showOverflow = false
                                                 onCopy()

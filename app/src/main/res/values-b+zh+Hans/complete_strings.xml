@@ -1,0 +1,784 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_0_found" formatted="false">"找到 0 项"</string>
+    <string name="ui_1_tap_import" formatted="false">"一键导入"</string>
+    <string name="ui_100_perfect" formatted="false">"100% · 满分"</string>
+    <string name="ui_1fk" formatted="false">"%.1fk"</string>
+    <string name="ui_70_99_passing" formatted="false">"70–99% · 通过"</string>
+    <string name="ui_70_review" formatted="false">"&lt;70% · 需复习"</string>
+    <string name="ui_a_handoff_opens_the_other_app_its_response_is_not_automatically_r" formatted="false">"转交操作会打开其他应用；Vern 不会自动朗读或导入其回复。"</string>
+    <string name="ui_a_new_version_of_veritas_reader_is_available_on_google_play_and_g" formatted="false">"Google Play 和 GitHub 已提供新版 Veritas Reader。"</string>
+    <string name="ui_a_new_version_of_veritas_reader_is_ready_with_latest_enhancements" formatted="false">"包含最新改进的 Veritas Reader 新版本已就绪。"</string>
+    <string name="ui_a_notebook_with_this_name_already_exists" formatted="false">"已存在同名笔记本。"</string>
+    <string name="ui_a_place_to_begin" formatted="false">"起点"</string>
+    <string name="ui_actions" formatted="false">"操作"</string>
+    <string name="ui_active_docs" formatted="false">"活跃文档"</string>
+    <string name="ui_active_minutes" formatted="false">"活跃分钟"</string>
+    <string name="ui_add_a_book_to_start_reading" formatted="false">"添加一本书以开始阅读。"</string>
+    <string name="ui_add_a_reading_to_choose_a_passage" formatted="false">"添加读物以选择段落。"</string>
+    <string name="ui_add_another_memo" formatted="false">"添加另一条备忘"</string>
+    <string name="ui_add_another_voice_memo" formatted="false">"添加另一条语音备忘"</string>
+    <string name="ui_add_attachments" formatted="false">"添加附件"</string>
+    <string name="ui_add_current" formatted="false">"添加当前项"</string>
+    <string name="ui_add_current_reading" formatted="false">"添加当前读物"</string>
+    <string name="ui_add_end_punctuation_to_unpunctuated_lines_for_smoother_listening" formatted="false">"为无标点的行添加句末标点，使朗读更流畅。"</string>
+    <string name="ui_add_favorite" formatted="false">"添加收藏"</string>
+    <string name="ui_add_flashcard_set" formatted="false">"添加抽认卡集"</string>
+    <string name="ui_add_image" formatted="false">"添加图片"</string>
+    <string name="ui_add_item" formatted="false">"添加项目"</string>
+    <string name="ui_add_list_item" formatted="false">"添加列表项目"</string>
+    <string name="ui_add_manual_session" formatted="false">"添加手动记录"</string>
+    <string name="ui_add_memo" formatted="false">"添加备忘"</string>
+    <string name="ui_add_readings_from_the_library_s_action_menu_to_build_a_play_queue" formatted="false">"从书库操作菜单添加读物，建立播放队列。"</string>
+    <string name="ui_add_recording" formatted="false">"添加录音"</string>
+    <string name="ui_add_something" formatted="false">"添加内容"</string>
+    <string name="ui_add_to_favorites" formatted="false">"加入收藏"</string>
+    <string name="ui_add_to_notes" formatted="false">"添加到笔记"</string>
+    <string name="ui_add_to_queue" formatted="false">"加入队列"</string>
+    <string name="ui_adding_attachment" formatted="false">"正在添加附件…"</string>
+    <string name="ui_ai_is_preparing_study_materials" formatted="false">"AI 正在准备学习资料…"</string>
+    <string name="ui_ai_output_can_contain_mistakes_keep_the_original_passage_availabl" formatted="false">"AI 生成内容可能有误。使用生成的学习资料时，请保留原始段落供参考。"</string>
+    <string name="ui_ai_reply" formatted="false">"AI 回复"</string>
+    <string name="ui_ai_settings" formatted="false">"AI 设置"</string>
+    <string name="ui_ai_study_studio" formatted="false">"AI 学习工作室"</string>
+    <string name="ui_ai_study_tools" formatted="false">"AI 学习工具"</string>
+    <string name="ui_all_apps" formatted="false">"所有应用"</string>
+    <string name="ui_all_caught_up" formatted="false">"已全部完成"</string>
+    <string name="ui_all_files_access_granted" formatted="false">"已获全部文件访问权限"</string>
+    <string name="ui_all_quests_complete" formatted="false">"所有任务已完成！🎉"</string>
+    <string name="ui_all_settings" formatted="false">"全部设置"</string>
+    <string name="ui_answer_tap_to_flip" formatted="false">"答案（点按翻面）"</string>
+    <string name="ui_answer_tap_to_flip_4a50b8b" formatted="false">"答案 · 点按翻面"</string>
+    <string name="ui_app_health" formatted="false">"应用状态"</string>
+    <string name="ui_app_settings" formatted="false">"应用设置"</string>
+    <string name="ui_archive" formatted="false">"归档"</string>
+    <string name="ui_are_you_sure_you_want_to_close_vern" formatted="false">"确定要关闭 Vern 吗？"</string>
+    <string name="ui_are_you_sure_you_want_to_delete_this_card_this_action_cannot_be_u" formatted="false">"确定删除此卡片？此操作无法撤销。"</string>
+    <string name="ui_article_link" formatted="false">"文章链接"</string>
+    <string name="ui_ascending" formatted="false">"升序"</string>
+    <string name="ui_ascending_order" formatted="false">"升序排列"</string>
+    <string name="ui_ask_another_assistant" formatted="false">"询问其他助手"</string>
+    <string name="ui_assistant_and_prompt_settings" formatted="false">"助手与提示词设置"</string>
+    <string name="ui_attach_file" formatted="false">"附加文件"</string>
+    <string name="ui_attach_image" formatted="false">"附加图片"</string>
+    <string name="ui_attach_video" formatted="false">"附加视频"</string>
+    <string name="ui_attach_voice_memo" formatted="false">"附加语音备忘"</string>
+    <string name="ui_attached_document" formatted="false">"附件文档"</string>
+    <string name="ui_attached_file" formatted="false">"附件文件"</string>
+    <string name="ui_attachment_options" formatted="false">"附件选项"</string>
+    <string name="ui_attachment_unavailable_re_add_it_or_restore_the_portable_zip_back" formatted="false">"附件不可用。请重新添加或恢复便携 ZIP 备份。"</string>
+    <string name="ui_audio" formatted="false">"音频"</string>
+    <string name="ui_audio_attachment" formatted="false">"音频附件"</string>
+    <string name="ui_audio_sample" formatted="false">"音频示例"</string>
+    <string name="ui_author_or_character_name" formatted="false">"作者或角色姓名"</string>
+    <string name="ui_auto_copies_prompt" formatted="false">"自动复制提示词"</string>
+    <string name="ui_auto_punctuate" formatted="false">"自动添加标点"</string>
+    <string name="ui_automatic_reading_measures_visible_reader_time_after_interaction" formatted="false">"自动阅读记录会在交互后计算阅读器可见时间。它估计的是活动，而非注意力。"</string>
+    <string name="ui_avg_wpm" formatted="false">"平均字词/分钟"</string>
+    <string name="ui_back_to_library" formatted="false">"返回书库"</string>
+    <string name="ui_back_to_reader" formatted="false">"返回阅读器"</string>
+    <string name="ui_back_to_reader_d5e590e" formatted="false">"返回阅读器"</string>
+    <string name="ui_back_to_sentence_selection" formatted="false">"返回句子选择"</string>
+    <string name="ui_batch_actions" formatted="false">"批量操作"</string>
+    <string name="ui_batch_actions_600a251" formatted="false">"批量操作"</string>
+    <string name="ui_best" formatted="false">"最佳"</string>
+    <string name="ui_bone" formatted="false">"骨白色"</string>
+    <string name="ui_book_summary_details" formatted="false">"书籍摘要与详情"</string>
+    <string name="ui_bookmark_options" formatted="false">"书签选项"</string>
+    <string name="ui_booknotes" formatted="false">"书籍笔记"</string>
+    <string name="ui_browse_cards" formatted="false">"浏览卡片"</string>
+    <string name="ui_browse_files" formatted="false">"浏览文件"</string>
+    <string name="ui_browse_storage" formatted="false">"浏览存储"</string>
+    <string name="ui_build_a_playlist_from_your_library" formatted="false">"从书库建立播放列表。"</string>
+    <string name="ui_building_outline" formatted="false">"正在生成大纲…"</string>
+    <string name="ui_bulleted_list" formatted="false">"项目符号列表"</string>
+    <string name="ui_cancel_download" formatted="false">"取消下载"</string>
+    <string name="ui_cancel_quests" formatted="false">"取消任务"</string>
+    <string name="ui_cancel_timer" formatted="false">"取消定时器"</string>
+    <string name="ui_cannot_load_image" formatted="false">"无法加载图片"</string>
+    <string name="ui_capture_a_page_with_your_camera" formatted="false">"用相机拍摄页面"</string>
+    <string name="ui_card_importer" formatted="false">"卡片导入器"</string>
+    <string name="ui_chapters_headings_sections" formatted="false">"章节、标题和小节"</string>
+    <string name="ui_checklist_toggle" formatted="false">"切换清单"</string>
+    <string name="ui_choose_a_pace_you_can_follow_comfortably" formatted="false">"选择适合跟随的舒适速度。"</string>
+    <string name="ui_choose_an_edition" formatted="false">"选择版本"</string>
+    <string name="ui_choose_book" formatted="false">"选择书籍"</string>
+    <string name="ui_choose_how_to_save_or_open_this_content_in_vern" formatted="false">"选择如何在 Vern 中保存或打开此内容："</string>
+    <string name="ui_choose_photo" formatted="false">"选择照片"</string>
+    <string name="ui_choose_your_daily_target" formatted="false">"选择每日目标"</string>
+    <string name="ui_choose_your_default_assistant_for_instant_study_handoffs_summarie" formatted="false">"选择用于学习转交、摘要、测验和词汇的默认助手。"</string>
+    <string name="ui_choose_your_rhythm" formatted="false">"选择你的节奏"</string>
+    <string name="ui_clean_whitespace_formatting" formatted="false">"清理空白与格式"</string>
+    <string name="ui_clear_all" formatted="false">"全部清除"</string>
+    <string name="ui_clear_filter" formatted="false">"清除筛选"</string>
+    <string name="ui_clear_filters" formatted="false">"清除筛选条件"</string>
+    <string name="ui_clear_search" formatted="false">"清除搜索"</string>
+    <string name="ui_clear_selection" formatted="false">"清除选择"</string>
+    <string name="ui_clear_the_search_or_change_filters_to_see_more_saved_readings" formatted="false">"清除搜索或更改筛选，以显示更多已保存读物。"</string>
+    <string name="ui_close_insights" formatted="false">"关闭统计"</string>
+    <string name="ui_close_library_search" formatted="false">"关闭书库搜索"</string>
+    <string name="ui_close_menu" formatted="false">"关闭菜单"</string>
+    <string name="ui_close_notes_search" formatted="false">"关闭笔记搜索"</string>
+    <string name="ui_close_outline" formatted="false">"关闭大纲"</string>
+    <string name="ui_close_quiz" formatted="false">"关闭测验"</string>
+    <string name="ui_close_search" formatted="false">"关闭搜索"</string>
+    <string name="ui_collapse_all" formatted="false">"全部收起"</string>
+    <string name="ui_collapse_player" formatted="false">"收起播放器"</string>
+    <string name="ui_color_picker" formatted="false">"颜色选择器"</string>
+    <string name="ui_completed" formatted="false">"已完成"</string>
+    <string name="ui_content" formatted="false">"内容"</string>
+    <string name="ui_continue_reading_from_here" formatted="false">"从此处继续阅读"</string>
+    <string name="ui_copy_all" formatted="false">"全部复制"</string>
+    <string name="ui_copy_path" formatted="false">"复制路径"</string>
+    <string name="ui_copy_prompt" formatted="false">"复制提示词"</string>
+    <string name="ui_copy_url" formatted="false">"复制链接"</string>
+    <string name="ui_correct" formatted="false">"正确"</string>
+    <string name="ui_correct_duration" formatted="false">"修正时长"</string>
+    <string name="ui_correct_session" formatted="false">"修正记录"</string>
+    <string name="ui_could_not_load_history" formatted="false">"无法加载历史记录。"</string>
+    <string name="ui_could_not_render_this_page_use_page_navigation_to_try_again" formatted="false">"无法呈现此页。请通过页面导航重试。"</string>
+    <string name="ui_countdown" formatted="false">"倒计时"</string>
+    <string name="ui_create" formatted="false">"创建"</string>
+    <string name="ui_create_flashcards_quizzes_summaries_and_explanations_review_the_r" formatted="false">"创建抽认卡、测验、摘要和解释，并对照原文检查结果。"</string>
+    <string name="ui_create_list" formatted="false">"创建列表"</string>
+    <string name="ui_create_notebooks_to_organise_your_notes_a_note_can_belong_to_more" formatted="false">"创建笔记本以整理笔记，一条笔记可属于多个笔记本。"</string>
+    <string name="ui_create_quizzes_using_ai_study_studio_to_practice_here" formatted="false">"使用 AI 学习工作室创建测验，在此练习。"</string>
+    <string name="ui_create_something_new" formatted="false">"创建新内容"</string>
+    <string name="ui_create_with_ai" formatted="false">"使用 AI 创建"</string>
+    <string name="ui_creating_audio_from_this_reading" formatted="false">"正在将此读物转为音频…"</string>
+    <string name="ui_creating_notebook" formatted="false">"正在创建笔记本…"</string>
+    <string name="ui_credit_the_author_narrator_or_character_who_said_it" formatted="false">"注明说出这段话的作者、旁白或角色。"</string>
+    <string name="ui_current_reading_is_in_this_list" formatted="false">"当前读物已在此列表中"</string>
+    <string name="ui_current_streak" formatted="false">"当前连续阅读"</string>
+    <string name="ui_custom_page_range" formatted="false">"自定义页码范围"</string>
+    <string name="ui_daily_pace" formatted="false">"每日节奏"</string>
+    <string name="ui_daily_reading_target" formatted="false">"每日阅读目标"</string>
+    <string name="ui_dark_slate" formatted="false">"深石板色"</string>
+    <string name="ui_date_yyyy_mm_dd" formatted="false">"日期（YYYY-MM-DD）"</string>
+    <string name="ui_default_assistant_app" formatted="false">"默认助手应用"</string>
+    <string name="ui_delete_all" formatted="false">"全部删除"</string>
+    <string name="ui_delete_all_0817058" formatted="false">"全部删除"</string>
+    <string name="ui_delete_all_bookmarks" formatted="false">"删除所有书签？"</string>
+    <string name="ui_delete_all_notes" formatted="false">"删除所有笔记？"</string>
+    <string name="ui_delete_all_vocabulary" formatted="false">"删除所有词汇？"</string>
+    <string name="ui_delete_flashcard" formatted="false">"删除抽认卡？"</string>
+    <string name="ui_delete_flashcard_deck" formatted="false">"删除抽认卡组？"</string>
+    <string name="ui_delete_highlight" formatted="false">"删除高亮？"</string>
+    <string name="ui_delete_label" formatted="false">"删除标签？"</string>
+    <string name="ui_delete_list" formatted="false">"删除列表？"</string>
+    <string name="ui_delete_permanently" formatted="false">"永久删除？"</string>
+    <string name="ui_delete_quiz" formatted="false">"删除测验？"</string>
+    <string name="ui_delete_reading" formatted="false">"删除读物？"</string>
+    <string name="ui_delete_selected_marks" formatted="false">"删除所选标记？"</string>
+    <string name="ui_delete_selected_readings" formatted="false">"删除所选读物？"</string>
+    <string name="ui_delete_set" formatted="false">"删除集合"</string>
+    <string name="ui_delete_this_card" formatted="false">"删除此卡片"</string>
+    <string name="ui_delete_this_file" formatted="false">"删除此文件？"</string>
+    <string name="ui_delete_voice_memo" formatted="false">"删除语音备忘"</string>
+    <string name="ui_deleted_notes_appear_here_until_you_restore_or_permanently_delete" formatted="false">"已删除的笔记会保留在此处，直到恢复或永久删除。"</string>
+    <string name="ui_descending" formatted="false">"降序"</string>
+    <string name="ui_descending_order" formatted="false">"降序排列"</string>
+    <string name="ui_deselect_tab" formatted="false">"取消选择标签页"</string>
+    <string name="ui_detected_study_notes_explanation_on_clipboard" formatted="false">"📝 检测到剪贴板中的学习笔记或解释"</string>
+    <string name="ui_direct_apk" formatted="false">"直接下载 APK"</string>
+    <string name="ui_discard_recording" formatted="false">"放弃录音"</string>
+    <string name="ui_dismiss_tip" formatted="false">"关闭提示"</string>
+    <string name="ui_display" formatted="false">"显示"</string>
+    <string name="ui_doc" formatted="false">"DOC"</string>
+    <string name="ui_document" formatted="false">"文档"</string>
+    <string name="ui_document_actions" formatted="false">"文档操作"</string>
+    <string name="ui_document_details" formatted="false">"文档详情"</string>
+    <string name="ui_document_details_1ae2b40" formatted="false">"文档详情"</string>
+    <string name="ui_document_info" formatted="false">"文档信息"</string>
+    <string name="ui_document_information" formatted="false">"文档信息"</string>
+    <string name="ui_document_title" formatted="false">"文档标题"</string>
+    <string name="ui_document_tools" formatted="false">"文档工具"</string>
+    <string name="ui_documents_prioritized_images_at_end" formatted="false">"文档优先 · 图片置后"</string>
+    <string name="ui_docx" formatted="false">"DOCX"</string>
+    <string name="ui_don_t_show_again" formatted="false">"不再显示"</string>
+    <string name="ui_down" formatted="false">"向下"</string>
+    <string name="ui_download_and_add_this_book" formatted="false">"下载并添加此书？"</string>
+    <string name="ui_download_failed_tap_retry" formatted="false">"下载失败。请点按重试。"</string>
+    <string name="ui_edit_selected_text" formatted="false">"编辑所选文本"</string>
+    <string name="ui_edit_speech_pronunciation" formatted="false">"编辑朗读或发音"</string>
+    <string name="ui_empty_note" formatted="false">"空笔记"</string>
+    <string name="ui_encrypted_sandboxed" formatted="false">"加密并隔离"</string>
+    <string name="ui_end_of_document" formatted="false">"文档结束"</string>
+    <string name="ui_end_of_section" formatted="false">"章节结束"</string>
+    <string name="ui_enter_your_name" formatted="false">"输入你的姓名"</string>
+    <string name="ui_epub" formatted="false">"EPUB"</string>
+    <string name="ui_epub_book_view" formatted="false">"EPUB 书籍视图"</string>
+    <string name="ui_error_loading_image" formatted="false">"加载图片时出错"</string>
+    <string name="ui_excellent_understanding" formatted="false">"理解得很棒！"</string>
+    <string name="ui_exclude_this_session_from_totals" formatted="false">"不将此记录计入总计"</string>
+    <string name="ui_exit" formatted="false">"退出"</string>
+    <string name="ui_exit_card" formatted="false">"退出卡片"</string>
+    <string name="ui_exit_vern" formatted="false">"退出 Vern？"</string>
+    <string name="ui_expand_all" formatted="false">"全部展开"</string>
+    <string name="ui_expand_player_panel" formatted="false">"展开播放器面板"</string>
+    <string name="ui_experience_neural_voices_tuned_for_effortless_long_form_immersion" formatted="false">"体验为长时间沉浸聆听优化的神经网络声音。"</string>
+    <string name="ui_explanation" formatted="false">"解释"</string>
+    <string name="ui_explore_in_library" formatted="false">"在书库中探索 📚"</string>
+    <string name="ui_explore_more_book_archives" formatted="false">"探索更多书籍档案"</string>
+    <string name="ui_export_sessions_csv" formatted="false">"导出记录为 CSV"</string>
+    <string name="ui_export_study_guide_pdf" formatted="false">"导出学习指南为 PDF"</string>
+    <string name="ui_export_text" formatted="false">"导出文本"</string>
+    <string name="ui_extract_printed_text_from_a_new_or_existing_photo" formatted="false">"从新拍摄或现有照片中提取印刷文字。"</string>
+    <string name="ui_extracted_text" formatted="false">"提取的文本"</string>
+    <string name="ui_faster_0_05" formatted="false">"加速 +0.05×"</string>
+    <string name="ui_favorite" formatted="false">"收藏"</string>
+    <string name="ui_file" formatted="false">"文件"</string>
+    <string name="ui_file_attachment" formatted="false">"文件附件"</string>
+    <string name="ui_files_documents" formatted="false">"文件与文档"</string>
+    <string name="ui_filter_outline" formatted="false">"筛选大纲"</string>
+    <string name="ui_find" formatted="false">"查找"</string>
+    <string name="ui_find_in_page" formatted="false">"在页面中查找"</string>
+    <string name="ui_find_or_create_a_notebook" formatted="false">"查找或创建笔记本"</string>
+    <string name="ui_find_replace" formatted="false">"查找与替换"</string>
+    <string name="ui_finding_more_files" formatted="false">"正在查找更多文件…"</string>
+    <string name="ui_finishing" formatted="false">"正在完成…"</string>
+    <string name="ui_fit_to_screen" formatted="false">"适应屏幕"</string>
+    <string name="ui_flag_question_for_review" formatted="false">"标记此题以便复习"</string>
+    <string name="ui_flagged" formatted="false">"已标记"</string>
+    <string name="ui_flashcard_and_quiz_replies_can_be_pasted_straight_back_into_vern" formatted="false">"抽认卡和测验回复可直接粘贴回 Vern：卡片会加入间隔重复卡组，测验会成为应用内计分测试。"</string>
+    <string name="ui_flawless_mastery" formatted="false">"掌握得完美！"</string>
+    <string name="ui_flowing_text_notes_speed_reader" formatted="false">"流式文本、笔记与速读"</string>
+    <string name="ui_folders" formatted="false">"文件夹"</string>
+    <string name="ui_folders_to_scan" formatted="false">"要扫描的文件夹"</string>
+    <string name="ui_follow_each_sentence_as_you_listen" formatted="false">"边听边跟随每个句子"</string>
+    <string name="ui_for_example_compare_these_characters_motivations" formatted="false">"例如：比较这些角色的动机。"</string>
+    <string name="ui_formatting_tools" formatted="false">"格式工具"</string>
+    <string name="ui_forward" formatted="false">"前进"</string>
+    <string name="ui_forward_20_words" formatted="false">"前进 20 个词"</string>
+    <string name="ui_free_ai_approach" formatted="false">"免费使用 AI 的方式"</string>
+    <string name="ui_from" formatted="false">"从"</string>
+    <string name="ui_from_page" formatted="false">"起始页"</string>
+    <string name="ui_full_screen_reading" formatted="false">"全屏阅读"</string>
+    <string name="ui_gemini_key" formatted="false">"Gemini 密钥"</string>
+    <string name="ui_general_document_note" formatted="false">"文档通用笔记"</string>
+    <string name="ui_general_note" formatted="false">"通用笔记"</string>
+    <string name="ui_go_to_home" formatted="false">"前往首页"</string>
+    <string name="ui_go_to_library" formatted="false">"前往书库"</string>
+    <string name="ui_go_up" formatted="false">"向上"</string>
+    <string name="ui_go_up_25874ec" formatted="false">"向上"</string>
+    <string name="ui_go_up_one_folder_level" formatted="false">"返回上级文件夹"</string>
+    <string name="ui_goal_met" formatted="false">"🎉 目标已达成！"</string>
+    <string name="ui_goal_reached" formatted="false">"目标已达成"</string>
+    <string name="ui_good_effort_keep_reviewing" formatted="false">"努力得不错，继续复习！"</string>
+    <string name="ui_google_play" formatted="false">"Google Play"</string>
+    <string name="ui_grant_all_files_access" formatted="false">"授予全部文件访问权限"</string>
+    <string name="ui_grant_all_files_access_for_broad_phone_storage_browsing_or_choose" formatted="false">"授予全部文件访问权限以浏览手机存储，或选择特定文件夹进行扫描。"</string>
+    <string name="ui_guided_tour" formatted="false">"引导教程"</string>
+    <string name="ui_h1" formatted="false">"标题 1"</string>
+    <string name="ui_h2" formatted="false">"标题 2"</string>
+    <string name="ui_here_is_what_makes_reading_in_vern_uniquely_powerful" formatted="false">"了解 Vern 阅读体验的独特之处。"</string>
+    <string name="ui_hide_book_archives" formatted="false">"隐藏书籍档案"</string>
+    <string name="ui_hide_notes" formatted="false">"隐藏笔记"</string>
+    <string name="ui_highlight_passage" formatted="false">"高亮段落"</string>
+    <string name="ui_illustration_unavailable" formatted="false">"插图不可用"</string>
+    <string name="ui_image" formatted="false">"图片"</string>
+    <string name="ui_image_attachment" formatted="false">"图片附件"</string>
+    <string name="ui_image_could_not_be_displayed" formatted="false">"无法显示图片。"</string>
+    <string name="ui_img" formatted="false">"图片"</string>
+    <string name="ui_import_a_file_or_paste_text_to_create_your_first_local_reading_it" formatted="false">"导入文件或粘贴文本以创建第一项本地读物。进度、批注和队列状态会自动保存。"</string>
+    <string name="ui_import_first_file" formatted="false">"导入第一个文件"</string>
+    <string name="ui_import_link" formatted="false">"导入链接"</string>
+    <string name="ui_import_pdfs_epubs_documents_or_paste_web_articles_to_get_started" formatted="false">"导入 PDF、EPUB、文档或粘贴网页文章以开始。"</string>
+    <string name="ui_import_recognized_content" formatted="false">"导入识别内容"</string>
+    <string name="ui_import_to_read" formatted="false">"导入以阅读"</string>
+    <string name="ui_import_web_article" formatted="false">"导入网页文章"</string>
+    <string name="ui_import_with_file_picker" formatted="false">"通过文件选择器导入"</string>
+    <string name="ui_importing" formatted="false">"正在导入"</string>
+    <string name="ui_in_app_generation_needs_your_provider_s_api_key_external_assistan" formatted="false">"应用内生成需要服务商的 API 密钥。使用外部助手应用无需在此添加密钥。"</string>
+    <string name="ui_in_your_documents" formatted="false">"在你的文档中"</string>
+    <string name="ui_incomplete" formatted="false">"未完成"</string>
+    <string name="ui_indent" formatted="false">"增加缩进"</string>
+    <string name="ui_insert" formatted="false">"插入"</string>
+    <string name="ui_insights" formatted="false">"统计"</string>
+    <string name="ui_instructions" formatted="false">"说明"</string>
+    <string name="ui_jump" formatted="false">"跳转"</string>
+    <string name="ui_jump_to_page_c8b54ed" formatted="false">"跳转到页面…"</string>
+    <string name="ui_kofi_opened_his_book_and_returned_to_the_sentence_he_had_marked_y" formatted="false">"科菲打开书，回到昨天标记的那句话。"</string>
+    <string name="ui_language_name_or_code" formatted="false">"语言名称或代码"</string>
+    <string name="ui_last_7_days" formatted="false">"最近 7 天"</string>
+    <string name="ui_later" formatted="false">"稍后"</string>
+    <string name="ui_later_today_3_hrs" formatted="false">"今天稍后（3 小时）"</string>
+    <string name="ui_leave_blank_for_unfiled" formatted="false">"留空以保持未分类"</string>
+    <string name="ui_link_preview_options" formatted="false">"链接预览选项"</string>
+    <string name="ui_list_name" formatted="false">"列表名称"</string>
+    <string name="ui_list_title" formatted="false">"列表标题"</string>
+    <string name="ui_listen_to_a_sample" formatted="false">"聆听示例"</string>
+    <string name="ui_listen_to_anything_eyes_free" formatted="false">"无需看屏幕，随时聆听。"</string>
+    <string name="ui_loading_illustration" formatted="false">"正在加载插图…"</string>
+    <string name="ui_local_library_no_ads_offline_voices" formatted="false">"🔒 本地书库 · 无广告 · 离线声音"</string>
+    <string name="ui_make_a_copy" formatted="false">"创建副本"</string>
+    <string name="ui_manage_notebooks" formatted="false">"管理笔记本"</string>
+    <string name="ui_manual_importers_ai_settings" formatted="false">"手动导入与 AI 设置"</string>
+    <string name="ui_manual_session" formatted="false">"手动记录"</string>
+    <string name="ui_mark_finished" formatted="false">"标为已读完"</string>
+    <string name="ui_mastered" formatted="false">"已掌握 🏆"</string>
+    <string name="ui_mastered_100" formatted="false">"100% 掌握"</string>
+    <string name="ui_missed" formatted="false">"未完成"</string>
+    <string name="ui_month" formatted="false">"月"</string>
+    <string name="ui_more_options" formatted="false">"更多选项"</string>
+    <string name="ui_move" formatted="false">"移动"</string>
+    <string name="ui_move_down" formatted="false">"下移"</string>
+    <string name="ui_move_down_in_queue" formatted="false">"在队列中下移"</string>
+    <string name="ui_move_selected_readings" formatted="false">"移动所选读物"</string>
+    <string name="ui_move_to_collection" formatted="false">"移至收藏集"</string>
+    <string name="ui_move_to_trash" formatted="false">"移至回收站？"</string>
+    <string name="ui_move_to_trash_572a73d" formatted="false">"移至回收站"</string>
+    <string name="ui_move_up" formatted="false">"上移"</string>
+    <string name="ui_move_up_in_queue" formatted="false">"在队列中上移"</string>
+    <string name="ui_name_for_the_home_tab_welcome" formatted="false">"首页欢迎称呼"</string>
+    <string name="ui_narration_mode_on" formatted="false">"旁白模式已开启"</string>
+    <string name="ui_narrators_speed_audio_tuning" formatted="false">"旁白、速度与音频调节"</string>
+    <string name="ui_navigation" formatted="false">"导航"</string>
+    <string name="ui_new" formatted="false">"新"</string>
+    <string name="ui_new_notebook" formatted="false">"新笔记本"</string>
+    <string name="ui_new_quiz" formatted="false">"新测验"</string>
+    <string name="ui_new_reading_list" formatted="false">"新阅读列表"</string>
+    <string name="ui_next_2f04eb1" formatted="false">"下一步 →"</string>
+    <string name="ui_next_card" formatted="false">"下一张卡片"</string>
+    <string name="ui_next_chapter" formatted="false">"下一章"</string>
+    <string name="ui_next_match" formatted="false">"下一匹配项"</string>
+    <string name="ui_next_month" formatted="false">"下个月"</string>
+    <string name="ui_next_page" formatted="false">"下一页"</string>
+    <string name="ui_next_slide" formatted="false">"下一张幻灯片"</string>
+    <string name="ui_next_slide_a4cf971" formatted="false">"下一张幻灯片"</string>
+    <string name="ui_next_week" formatted="false">"下一周"</string>
+    <string name="ui_no_audio_yet" formatted="false">"暂无音频"</string>
+    <string name="ui_no_bookmarks_yet_in_this_document_select_one_or_more_sentences_an" formatted="false">"此文档暂无书签。选择一个或多个句子，点按书签图标以保存。"</string>
+    <string name="ui_no_books_found" formatted="false">"未找到书籍"</string>
+    <string name="ui_no_cards_are_due_you_can_still_browse_your_flashcards" formatted="false">"暂无到期卡片。你仍可浏览抽认卡。"</string>
+    <string name="ui_no_cards_recognized_yet_check_the_q_a_format" formatted="false">"尚未识别卡片，请检查 Q:/A: 格式。"</string>
+    <string name="ui_no_data_yet" formatted="false">"暂无数据"</string>
+    <string name="ui_no_earlier_versions_yet_history_is_kept_when_you_edit_this_note" formatted="false">"暂无旧版本。编辑此笔记时会保留历史记录。"</string>
+    <string name="ui_no_file_access_yet" formatted="false">"尚无文件访问权限"</string>
+    <string name="ui_no_files_or_folders_match_this_view" formatted="false">"没有符合条件的文件或文件夹。"</string>
+    <string name="ui_no_folders_approved" formatted="false">"未授权文件夹"</string>
+    <string name="ui_no_heavy_local_ai_model_is_bundled_in_the_base_app_a_real_offline" formatted="false">"基础应用未捆绑大型本地 AI 模型。未来可将离线模型作为单独的可选下载包提供。"</string>
+    <string name="ui_no_hyperlinks_detected_in_this_document" formatted="false">"此文档中未检测到超链接。"</string>
+    <string name="ui_no_matches_inside_any_document" formatted="false">"所有文档中均无匹配项。"</string>
+    <string name="ui_no_matching_highlights" formatted="false">"没有匹配的高亮。"</string>
+    <string name="ui_no_matching_links_found" formatted="false">"未找到匹配链接。"</string>
+    <string name="ui_no_matching_manual_sections_found_try_searching_for_voice_dark_mo" formatted="false">"未找到匹配的手册章节。\n试着搜索“声音”“深色模式”“pdf”或“备份”。"</string>
+    <string name="ui_no_matching_notes" formatted="false">"没有匹配笔记"</string>
+    <string name="ui_no_matching_readings" formatted="false">"没有匹配读物"</string>
+    <string name="ui_no_measured_sessions_yet_earlier_aggregate_totals_remain_preserve" formatted="false">"暂无测量记录。以前的汇总总量仍保留，但其模式和位置未知。"</string>
+    <string name="ui_no_notes_found" formatted="false">"未找到笔记"</string>
+    <string name="ui_no_outline_is_available_for_this_document" formatted="false">"此文档暂无大纲。"</string>
+    <string name="ui_no_outline_matches" formatted="false">"没有匹配的大纲项。"</string>
+    <string name="ui_no_questions_recognized_yet_check_the_format" formatted="false">"尚未识别问题，请检查格式。"</string>
+    <string name="ui_no_quizzes_found" formatted="false">"未找到测验"</string>
+    <string name="ui_no_readable_text_found" formatted="false">"未找到可读文本。"</string>
+    <string name="ui_no_readable_text_was_extracted_for_this_page" formatted="false">"未从此页提取到可读文本。"</string>
+    <string name="ui_no_reading_activity_recorded" formatted="false">"未记录阅读活动"</string>
+    <string name="ui_no_reading_history_yet" formatted="false">"暂无阅读历史。"</string>
+    <string name="ui_no_reading_lists_yet" formatted="false">"暂无阅读列表。"</string>
+    <string name="ui_no_saved_highlights_yet" formatted="false">"暂无保存的高亮。"</string>
+    <string name="ui_no_saved_readings_yet" formatted="false">"暂无保存的读物"</string>
+    <string name="ui_no_sentence_notes_yet" formatted="false">"暂无句子笔记。"</string>
+    <string name="ui_notebook_name" formatted="false">"笔记本名称"</string>
+    <string name="ui_notes_and_bookmarks" formatted="false">"笔记与书签"</string>
+    <string name="ui_notes_attached_to_individual_sentences" formatted="false">"附在特定句子上的笔记。"</string>
+    <string name="ui_notes_options" formatted="false">"笔记选项"</string>
+    <string name="ui_nothing_queued" formatted="false">"队列为空"</string>
+    <string name="ui_now_reading" formatted="false">"正在阅读"</string>
+    <string name="ui_numbered_list" formatted="false">"编号列表"</string>
+    <string name="ui_ocr_screenshots_and_figures_large_decks_import_slower" formatted="false">"对截图和图形使用 OCR。大型幻灯片导入较慢。"</string>
+    <string name="ui_official_ai_assistants" formatted="false">"官方 AI 助手"</string>
+    <string name="ui_onboarding_quests" formatted="false">"入门任务"</string>
+    <string name="ui_only_part_of_this_document_has_been_extracted_no_text_is_availabl" formatted="false">"仅提取了部分文档。此页暂时没有文本。"</string>
+    <string name="ui_open_a_document_tap_reader_tools_ai_choose_a_task_then_send_the_p" formatted="false">"打开文档，点按阅读工具 → AI，选择任务，将提示词发送到 ChatGPT、Gemini、Claude、Copilot、Perplexity 或其他已安装应用。提示词也会复制到剪贴板。"</string>
+    <string name="ui_open_a_reading_first_then_ai_study_tools_can_prepare_the_current" formatted="false">"请先打开读物，AI 学习工具随后可处理当前部分或整篇文档。"</string>
+    <string name="ui_open_a_reading_from_your_library_and_it_will_appear_here" formatted="false">"从书库打开读物后，它会显示在此处。"</string>
+    <string name="ui_open_in_document" formatted="false">"在文档中打开 ↗"</string>
+    <string name="ui_open_in_external_app" formatted="false">"在外部应用中打开"</string>
+    <string name="ui_open_in_player" formatted="false">"在播放器中打开"</string>
+    <string name="ui_open_library" formatted="false">"打开书库"</string>
+    <string name="ui_open_link" formatted="false">"打开链接"</string>
+    <string name="ui_open_original" formatted="false">"打开原始文件"</string>
+    <string name="ui_open_reading" formatted="false">"打开读物"</string>
+    <string name="ui_open_study_tools" formatted="false">"打开学习工具"</string>
+    <string name="ui_opening_document" formatted="false">"正在打开文档…"</string>
+    <string name="ui_opening_folder" formatted="false">"正在打开文件夹。"</string>
+    <string name="ui_opens_your_chosen_assistant_or_the_share_menu_your_draft_stays_he" formatted="false">"打开所选助手或分享菜单。返回时草稿仍会保留。"</string>
+    <string name="ui_order" formatted="false">"顺序："</string>
+    <string name="ui_original_document_view" formatted="false">"原始文档视图"</string>
+    <string name="ui_original_document_view_is_unavailable" formatted="false">"⚠️ 原始文档视图不可用"</string>
+    <string name="ui_original_image_view" formatted="false">"原始图片视图"</string>
+    <string name="ui_original_view" formatted="false">"原始视图"</string>
+    <string name="ui_others" formatted="false">"其他"</string>
+    <string name="ui_outline" formatted="false">"大纲"</string>
+    <string name="ui_overall_learning_metrics" formatted="false">"整体学习统计"</string>
+    <string name="ui_page_not_found" formatted="false">"未找到页面"</string>
+    <string name="ui_pair_your_ai_study_partner" formatted="false">"连接 AI 学习伙伴"</string>
+    <string name="ui_paper_tone" formatted="false">"纸张色调"</string>
+    <string name="ui_paper_tone_21c43d7" formatted="false">"纸张色调"</string>
+    <string name="ui_parent_directory" formatted="false">"上级文件夹"</string>
+    <string name="ui_passage_or_context_optional" formatted="false">"段落或背景（可选）"</string>
+    <string name="ui_paste_a_link_to_any_web_article_report_or_blog_post_below" formatted="false">"在下方粘贴网页文章、报告或博客链接："</string>
+    <string name="ui_paste_ai_reply_add_cards" formatted="false">"粘贴 AI 回复 → 添加卡片"</string>
+    <string name="ui_paste_ai_response_here" formatted="false">"在此粘贴 AI 回复"</string>
+    <string name="ui_paste_cards" formatted="false">"粘贴卡片"</string>
+    <string name="ui_paste_flashcards_quiz_or_study_notes" formatted="false">"粘贴抽认卡、测验或学习笔记…"</string>
+    <string name="ui_paste_loose_text_a_document_snippet_or_email_contents_below" formatted="false">"在下方粘贴文本、文档片段或邮件内容："</string>
+    <string name="ui_paste_quiz" formatted="false">"粘贴测验"</string>
+    <string name="ui_paste_text" formatted="false">"粘贴文本"</string>
+    <string name="ui_paste_text_e6f8612" formatted="false">"粘贴文本"</string>
+    <string name="ui_paste_text_here" formatted="false">"在此粘贴文本…"</string>
+    <string name="ui_paste_the_ai_app_s_quiz_reply_below_q_a_b_c_d_answer_format" formatted="false">"在下方粘贴 AI 应用的测验回复（Q: / A) B) C) D) / Answer: 格式）。"</string>
+    <string name="ui_paste_the_ai_app_s_reply_below_cards_are_detected_from_q_a_or_fro" formatted="false">"在下方粘贴 AI 回复。卡片按 Q:/A: 或 Front:/Back: 配对识别。"</string>
+    <string name="ui_paste_translated_result_here" formatted="false">"在此粘贴译文…"</string>
+    <string name="ui_pdf" formatted="false">"PDF"</string>
+    <string name="ui_pdf_options" formatted="false">"PDF 选项"</string>
+    <string name="ui_performance_per_book_document" formatted="false">"按书籍或文档统计表现"</string>
+    <string name="ui_photos_images" formatted="false">"照片与图片"</string>
+    <string name="ui_pick_date_time" formatted="false">"选择日期与时间…"</string>
+    <string name="ui_pick_up_where_you_left_off_with_a_short_review" formatted="false">"通过简短回顾接着上次继续。"</string>
+    <string name="ui_pin_note" formatted="false">"置顶笔记"</string>
+    <string name="ui_pin_note_ae126ef" formatted="false">"置顶笔记"</string>
+    <string name="ui_pinned" formatted="false">"已置顶"</string>
+    <string name="ui_pinned_1779864" formatted="false">"已置顶"</string>
+    <string name="ui_play_question_recording" formatted="false">"播放问题录音"</string>
+    <string name="ui_play_queue" formatted="false">"播放队列"</string>
+    <string name="ui_play_video" formatted="false">"播放视频"</string>
+    <string name="ui_play_voice_sample" formatted="false">"播放声音示例"</string>
+    <string name="ui_player" formatted="false">"播放器"</string>
+    <string name="ui_powerpoint_slide_view" formatted="false">"PowerPoint 幻灯片视图"</string>
+    <string name="ui_ppt" formatted="false">"PPT"</string>
+    <string name="ui_preparing_audio" formatted="false">"正在准备音频…"</string>
+    <string name="ui_preparing_export" formatted="false">"正在准备导出…"</string>
+    <string name="ui_preparing_image" formatted="false">"正在准备图片…"</string>
+    <string name="ui_preparing_page_illustrations" formatted="false">"正在准备页面插图…"</string>
+    <string name="ui_previous_card" formatted="false">"上一张卡片"</string>
+    <string name="ui_previous_chapter" formatted="false">"上一章"</string>
+    <string name="ui_previous_match" formatted="false">"上一匹配项"</string>
+    <string name="ui_previous_month" formatted="false">"上个月"</string>
+    <string name="ui_previous_page" formatted="false">"上一页"</string>
+    <string name="ui_previous_question" formatted="false">"上一题"</string>
+    <string name="ui_previous_setup_step" formatted="false">"上一步设置"</string>
+    <string name="ui_previous_slide" formatted="false">"上一张幻灯片"</string>
+    <string name="ui_previous_slide_8e53512" formatted="false">"上一张幻灯片"</string>
+    <string name="ui_previous_week" formatted="false">"上一周"</string>
+    <string name="ui_primary_study_focus" formatted="false">"主要学习方向"</string>
+    <string name="ui_priority_translation_targets" formatted="false">"优先翻译语言"</string>
+    <string name="ui_progress_composition" formatted="false">"进度构成"</string>
+    <string name="ui_prompt_instructions" formatted="false">"提示词说明"</string>
+    <string name="ui_protected_folder" formatted="false">"受保护的文件夹"</string>
+    <string name="ui_protected_folder_android_may_block_this_path" formatted="false">"受保护的文件夹 · Android 可能阻止此路径"</string>
+    <string name="ui_question_image" formatted="false">"问题图片"</string>
+    <string name="ui_question_recording" formatted="false">"问题录音"</string>
+    <string name="ui_question_tap_to_flip" formatted="false">"问题（点按翻面）"</string>
+    <string name="ui_question_tap_to_flip_f976bc1" formatted="false">"问题 · 点按翻面"</string>
+    <string name="ui_questions_right" formatted="false">"答对题数"</string>
+    <string name="ui_quests" formatted="false">"任务"</string>
+    <string name="ui_queue_empty" formatted="false">"队列为空"</string>
+    <string name="ui_quick_action" formatted="false">"快捷操作"</string>
+    <string name="ui_quick_external_ai_hand_off" formatted="false">"快速转交外部 AI"</string>
+    <string name="ui_quiz_importer" formatted="false">"测验导入器"</string>
+    <string name="ui_quiz_lab_performance" formatted="false">"测验与表现"</string>
+    <string name="ui_quiz_needs_repair" formatted="false">"测验需要修复"</string>
+    <string name="ui_quote_source" formatted="false">"引文来源"</string>
+    <string name="ui_rate_your_recall_spaced_repetition" formatted="false">"评价回忆效果（间隔重复）"</string>
+    <string name="ui_read_aloud_selection" formatted="false">"朗读所选内容"</string>
+    <string name="ui_read_from_here" formatted="false">"从此处朗读"</string>
+    <string name="ui_read_original" formatted="false">"朗读原文"</string>
+    <string name="ui_read_out_translation" formatted="false">"朗读译文"</string>
+    <string name="ui_read_presenter_notes_after_each_slide" formatted="false">"在每张幻灯片后朗读演讲者备注。"</string>
+    <string name="ui_read_text_in_slide_images" formatted="false">"读取幻灯片图片中的文本"</string>
+    <string name="ui_read_with_tts_narration_word_tracking_and_study_tools" formatted="false">"使用语音朗读、词语跟踪与学习工具阅读"</string>
+    <string name="ui_reader_appearance" formatted="false">"阅读器外观"</string>
+    <string name="ui_reader_gestures" formatted="false">"阅读器手势"</string>
+    <string name="ui_reader_identity" formatted="false">"读者身份"</string>
+    <string name="ui_reader_tools" formatted="false">"阅读工具"</string>
+    <string name="ui_reader_tools_d784703" formatted="false">"阅读工具"</string>
+    <string name="ui_reading_activity" formatted="false">"阅读活动"</string>
+    <string name="ui_reading_audio" formatted="false">"阅读与音频"</string>
+    <string name="ui_reading_history" formatted="false">"阅读历史"</string>
+    <string name="ui_reading_insights" formatted="false">"阅读统计"</string>
+    <string name="ui_reading_progress" formatted="false">"阅读进度"</string>
+    <string name="ui_reading_recorded_duration_not_available" formatted="false">"已记录阅读，时长不可用"</string>
+    <string name="ui_reading_rhythm" formatted="false">"阅读节奏"</string>
+    <string name="ui_reading_text_size" formatted="false">"阅读字号"</string>
+    <string name="ui_reading_velocity_daily_goal" formatted="false">"阅读速度与每日目标"</string>
+    <string name="ui_ready_to_listen" formatted="false">"准备聆听"</string>
+    <string name="ui_ready_to_resume" formatted="false">"可以继续。"</string>
+    <string name="ui_recognized_study_notes_summary" formatted="false">"✓ 已识别学习笔记或摘要"</string>
+    <string name="ui_record" formatted="false">"录制"</string>
+    <string name="ui_record_audio" formatted="false">"录制音频"</string>
+    <string name="ui_record_audio_9ede70b" formatted="false">"录制音频"</string>
+    <string name="ui_recording_voice_memo" formatted="false">"正在录制语音备忘"</string>
+    <string name="ui_redo" formatted="false">"重做"</string>
+    <string name="ui_refresh_clipboard" formatted="false">"刷新剪贴板"</string>
+    <string name="ui_refresh_files" formatted="false">"刷新文件"</string>
+    <string name="ui_reload" formatted="false">"重新加载"</string>
+    <string name="ui_reminder" formatted="false">"提醒"</string>
+    <string name="ui_remove_all_files_access" formatted="false">"移除全部文件访问权限"</string>
+    <string name="ui_remove_attachment" formatted="false">"移除附件"</string>
+    <string name="ui_remove_favorite" formatted="false">"取消收藏"</string>
+    <string name="ui_remove_from_favorites" formatted="false">"从收藏中移除"</string>
+    <string name="ui_remove_from_queue" formatted="false">"从队列移除"</string>
+    <string name="ui_remove_item" formatted="false">"移除项目"</string>
+    <string name="ui_remove_reminder" formatted="false">"移除提醒"</string>
+    <string name="ui_remove_unused_attachments" formatted="false">"删除未使用的附件？"</string>
+    <string name="ui_remove_unused_files" formatted="false">"删除未使用的文件"</string>
+    <string name="ui_rename_reading" formatted="false">"重命名读物"</string>
+    <string name="ui_rename_set" formatted="false">"重命名集合"</string>
+    <string name="ui_reorder" formatted="false">"重新排序"</string>
+    <string name="ui_replace_all" formatted="false">"全部替换"</string>
+    <string name="ui_replace_next" formatted="false">"替换下一项"</string>
+    <string name="ui_replace_with" formatted="false">"替换为"</string>
+    <string name="ui_reset_zoom_to_100" formatted="false">"重置缩放为 100%"</string>
+    <string name="ui_restart" formatted="false">"重新开始"</string>
+    <string name="ui_restart_guided_tour" formatted="false">"重新开始引导教程"</string>
+    <string name="ui_restore_original_measurement" formatted="false">"恢复原始测量"</string>
+    <string name="ui_restore_this_version" formatted="false">"恢复此版本？"</string>
+    <string name="ui_restore_this_version_86a8990" formatted="false">"恢复此版本"</string>
+    <string name="ui_results" formatted="false">"结果"</string>
+    <string name="ui_resume" formatted="false">"继续"</string>
+    <string name="ui_resume_reading_ba8c6b6" formatted="false">"继续阅读"</string>
+    <string name="ui_retake" formatted="false">"重新测试"</string>
+    <string name="ui_retention_gauge" formatted="false">"记忆保持指标"</string>
+    <string name="ui_retention_mastery_score_calibration" formatted="false">"记忆保持、掌握与评分校准"</string>
+    <string name="ui_retry_update" formatted="false">"重试更新"</string>
+    <string name="ui_review_attachment_cleanup" formatted="false">"检查附件清理"</string>
+    <string name="ui_review_exam_questions" formatted="false">"复习考试问题"</string>
+    <string name="ui_review_import" formatted="false">"检查并导入"</string>
+    <string name="ui_review_needed" formatted="false">"需要复习"</string>
+    <string name="ui_revision_history" formatted="false">"版本历史"</string>
+    <string name="ui_rewind_20_words" formatted="false">"后退 20 个词"</string>
+    <string name="ui_rotate_view_90" formatted="false">"旋转视图（90°）"</string>
+    <string name="ui_rsvp_speed_reader" formatted="false">"RSVP 速读器"</string>
+    <string name="ui_rsvp_speed_reader_8bf1641" formatted="false">"⚡ RSVP 速读器"</string>
+    <string name="ui_sample_question_1" formatted="false">"示例问题 1"</string>
+    <string name="ui_sanctuary_001" formatted="false">"静谧之所 · 001"</string>
+    <string name="ui_save_note" formatted="false">"保存笔记"</string>
+    <string name="ui_save_reading" formatted="false">"保存读物"</string>
+    <string name="ui_save_to_lists" formatted="false">"保存到列表"</string>
+    <string name="ui_save_to_phone" formatted="false">"保存到手机"</string>
+    <string name="ui_save_to_sentence_note" formatted="false">"保存为句子笔记"</string>
+    <string name="ui_save_to_your_notebook_as_a_reference_checklist_or_study_note" formatted="false">"保存到笔记本，作为参考、清单或学习笔记"</string>
+    <string name="ui_saved" formatted="false">"已保存"</string>
+    <string name="ui_scan_ocr" formatted="false">"扫描 / OCR"</string>
+    <string name="ui_scope" formatted="false">"范围"</string>
+    <string name="ui_score_mastery_distribution" formatted="false">"得分与掌握分布"</string>
+    <string name="ui_search_features_e_g_read_out_loud_dark_mode_pdf" formatted="false">"搜索功能（朗读、深色模式、pdf）…"</string>
+    <string name="ui_search_files" formatted="false">"搜索文件…"</string>
+    <string name="ui_search_in_document" formatted="false">"在文档中搜索…"</string>
+    <string name="ui_search_library" formatted="false">"搜索书库"</string>
+    <string name="ui_search_links" formatted="false">"搜索链接"</string>
+    <string name="ui_search_quizzes_by_title_or_book" formatted="false">"按标题或书籍搜索测验…"</string>
+    <string name="ui_searching_every_document" formatted="false">"正在搜索所有文档…"</string>
+    <string name="ui_see_all_2941c5c" formatted="false">"查看全部"</string>
+    <string name="ui_select_a_highlight_color" formatted="false">"选择高亮颜色："</string>
+    <string name="ui_select_an_image_from_photos_or_collections" formatted="false">"从照片或收藏集中选择图片"</string>
+    <string name="ui_select_another_color_to_update_bookmark" formatted="false">"选择其他颜色以更新书签："</string>
+    <string name="ui_select_how_much_of_the_document_content_you_d_like_to_share_as_a" formatted="false">"选择要以 Markdown 文件（.md）分享的文档内容范围："</string>
+    <string name="ui_select_images_for_text_extraction_ocr" formatted="false">"选择要提取文本的图片（OCR）"</string>
+    <string name="ui_select_your_narrator" formatted="false">"选择朗读声音"</string>
+    <string name="ui_select_your_reading_discipline" formatted="false">"选择阅读领域："</string>
+    <string name="ui_selected_color" formatted="false">"已选颜色"</string>
+    <string name="ui_selected_text_actions" formatted="false">"所选文本操作"</string>
+    <string name="ui_send_structured_translation_prompts_to_priority_translator_ai_app" formatted="false">"向优先翻译或 AI 应用发送结构化翻译提示词，或聆听原文及译文。"</string>
+    <string name="ui_send_to_ai" formatted="false">"发送给 AI"</string>
+    <string name="ui_send_to_assistant" formatted="false">"发送给助手"</string>
+    <string name="ui_send_to_other_apps" formatted="false">"发送到其他应用"</string>
+    <string name="ui_sentence_note" formatted="false">"句子笔记"</string>
+    <string name="ui_sentence_notes" formatted="false">"句子笔记"</string>
+    <string name="ui_sepia" formatted="false">"棕褐色"</string>
+    <string name="ui_session" formatted="false">"次记录"</string>
+    <string name="ui_sessions" formatted="false">"次记录"</string>
+    <string name="ui_set_name" formatted="false">"集合名称"</string>
+    <string name="ui_set_name_optional" formatted="false">"集合名称（可选）"</string>
+    <string name="ui_set_options" formatted="false">"集合选项"</string>
+    <string name="ui_set_up_later" formatted="false">"稍后设置"</string>
+    <string name="ui_share_as_pdf" formatted="false">"以 PDF 分享"</string>
+    <string name="ui_share_document" formatted="false">"分享文档"</string>
+    <string name="ui_share_file" formatted="false">"分享文件"</string>
+    <string name="ui_share_image" formatted="false">"分享图片"</string>
+    <string name="ui_share_original_file" formatted="false">"分享原始文件"</string>
+    <string name="ui_share_quote" formatted="false">"分享引文"</string>
+    <string name="ui_share_to_vern" formatted="false">"分享到 Vern"</string>
+    <string name="ui_show_all_books" formatted="false">"显示所有书籍"</string>
+    <string name="ui_show_all_notes" formatted="false">"显示所有笔记"</string>
+    <string name="ui_show_horizontal_shelves" formatted="false">"显示横向书架"</string>
+    <string name="ui_show_notes" formatted="false">"显示笔记"</string>
+    <string name="ui_show_trash" formatted="false">"显示回收站"</string>
+    <string name="ui_show_vertical_list" formatted="false">"显示纵向列表"</string>
+    <string name="ui_silent_rsvp_save_for_audio" formatted="false">"静默 RSVP · 保存以播放音频"</string>
+    <string name="ui_silent_visual_rsvp" formatted="false">"静默视觉 RSVP"</string>
+    <string name="ui_skip_table" formatted="false">"跳过表格"</string>
+    <string name="ui_slides_options" formatted="false">"幻灯片选项"</string>
+    <string name="ui_slower_0_05" formatted="false">"减速 −0.05×"</string>
+    <string name="ui_smart_resume_catch_up" formatted="false">"智能续读回顾"</string>
+    <string name="ui_sort_files_by" formatted="false">"文件排序依据"</string>
+    <string name="ui_sort_notes" formatted="false">"笔记排序"</string>
+    <string name="ui_source_layout" formatted="false">"原始布局"</string>
+    <string name="ui_speaker_notes" formatted="false">"演讲者备注"</string>
+    <string name="ui_speaker_notes_3d6e76c" formatted="false">"演讲者备注"</string>
+    <string name="ui_spoken_audio_read_out" formatted="false">"语音朗读"</string>
+    <string name="ui_start_a_timer_from_books_it_runs_while_that_book_s_reader_is_visi" formatted="false">"从书籍页面启动计时器。仅在该书阅读器可见时计时。"</string>
+    <string name="ui_start_guided_tour" formatted="false">"开始引导教程"</string>
+    <string name="ui_start_interactive_quiz" formatted="false">"开始互动测验"</string>
+    <string name="ui_start_quiz" formatted="false">"开始测验"</string>
+    <string name="ui_start_timer" formatted="false">"启动计时器"</string>
+    <string name="ui_start_with_your_own_cards_or_questions_or_build_a_set_from_a_book" formatted="false">"从自己的卡片或问题开始，也可根据书籍创建集合。"</string>
+    <string name="ui_stop_question_recording" formatted="false">"停止问题录音"</string>
+    <string name="ui_stop_reading_timer" formatted="false">"停止阅读计时器"</string>
+    <string name="ui_stop_recording" formatted="false">"停止录制"</string>
+    <string name="ui_streaks" formatted="false">"连续阅读"</string>
+    <string name="ui_study_a_reading" formatted="false">"学习一篇读物"</string>
+    <string name="ui_study_content_found_on_clipboard" formatted="false">"剪贴板中发现学习内容！"</string>
+    <string name="ui_study_content_on_clipboard" formatted="false">"剪贴板中的学习内容"</string>
+    <string name="ui_study_deck_now" formatted="false">"立即学习卡组"</string>
+    <string name="ui_study_guide_pdf" formatted="false">"学习指南 PDF"</string>
+    <string name="ui_success" formatted="false">"成功"</string>
+    <string name="ui_summarize_with_ai" formatted="false">"使用 AI 总结"</string>
+    <string name="ui_summarizing" formatted="false">"正在总结…"</string>
+    <string name="ui_swipe_to_move_swipe_to_skip_tap_to_flip" formatted="false">"左右滑动切换 · 上滑跳过 · 点按翻面"</string>
+    <string name="ui_switch_to_landscape" formatted="false">"切换为横屏"</string>
+    <string name="ui_switch_to_portrait" formatted="false">"切换为竖屏"</string>
+    <string name="ui_switch_to_text_reader" formatted="false">"切换到文本阅读器"</string>
+    <string name="ui_table_of_contents" formatted="false">"目录"</string>
+    <string name="ui_table_of_contents_outline" formatted="false">"目录 / 大纲"</string>
+    <string name="ui_take_a_pasted_quiz" formatted="false">"参加粘贴的测验"</string>
+    <string name="ui_take_photo" formatted="false">"拍照"</string>
+    <string name="ui_tap_card_to_flip" formatted="false">"点按卡片翻面"</string>
+    <string name="ui_tap_for_bone" formatted="false">"点按使用骨白色"</string>
+    <string name="ui_tap_for_dark_slate" formatted="false">"点按使用深石板色"</string>
+    <string name="ui_tap_for_default" formatted="false">"点按使用默认色"</string>
+    <string name="ui_tap_for_sepia" formatted="false">"点按使用棕褐色"</string>
+    <string name="ui_tap_to_open" formatted="false">"• 点按打开"</string>
+    <string name="ui_tap_to_play" formatted="false">"点按播放"</string>
+    <string name="ui_tap_to_view" formatted="false">"点按查看"</string>
+    <string name="ui_target_language" formatted="false">"目标语言"</string>
+    <string name="ui_target_off" formatted="false">"目标已关闭"</string>
+    <string name="ui_text_options" formatted="false">"文本选项"</string>
+    <string name="ui_the_city_was_still_quiet" formatted="false">"城市依然宁静。"</string>
+    <string name="ui_the_city_was_still_quiet_kofi_opened_his_book_and_returned_to_the" formatted="false">"“城市依然宁静。科菲打开书，回到昨天标记的那句话。”"</string>
+    <string name="ui_the_measured_duration_remains_in_the_record_this_correction_chang" formatted="false">"测量时长仍会保留。此修正会更改总计。"</string>
+    <string name="ui_these_preferences_can_be_changed_at_any_time_in_settings" formatted="false">"你随时可以在设置中更改这些偏好。"</string>
+    <string name="ui_this_is_used_to_personalize_your_home_tab_and_reading_experience" formatted="false">"此信息用于个性化首页和阅读体验。"</string>
+    <string name="ui_this_list_is_empty" formatted="false">"此列表为空。"</string>
+    <string name="ui_this_note_will_be_permanently_deleted_its_attachment_files_are_ke" formatted="false">"此笔记将永久删除。附件文件会保留，以免移除其他笔记共享的媒体。"</string>
+    <string name="ui_this_quiz_has_missing_questions_or_answers_that_do_not_match_its" formatted="false">"此测验存在缺失问题或答案与选项不符。请为每题提供正确答案后重新导入。"</string>
+    <string name="ui_this_removes_the_file_from_your_phone_s_storage_not_just_from_ver" formatted="false">"这会从手机存储中删除文件，而不仅是从 Vern 移除。此操作无法撤销。"</string>
+    <string name="ui_this_removes_the_list_only_saved_readings_stay_in_your_library" formatted="false">"仅删除列表。已保存读物仍会保留在书库。"</string>
+    <string name="ui_this_removes_the_selected_annotation_from_the_book_and_study_too" formatted="false">"此批注将同时从书籍和学习区域移除。"</string>
+    <string name="ui_this_week_s_pick" formatted="false">"本周精选"</string>
+    <string name="ui_this_will_permanently_remove_all_vocabulary_words_saved_for_this" formatted="false">"此书保存的所有词汇将永久删除。"</string>
+    <string name="ui_time_at_reading_locations" formatted="false">"各阅读位置的时长"</string>
+    <string name="ui_tip" formatted="false">"提示"</string>
+    <string name="ui_tip_open_a_reading_to_see_this_live_in_the_reader" formatted="false">"提示：打开读物即可在阅读器中体验！"</string>
+    <string name="ui_to" formatted="false">"至"</string>
+    <string name="ui_to_page" formatted="false">"结束页"</string>
+    <string name="ui_today_s_sessions" formatted="false">"今日记录"</string>
+    <string name="ui_toggle_layout" formatted="false">"切换布局"</string>
+    <string name="ui_tomorrow_morning_9_am" formatted="false">"明天上午（9 点）"</string>
+    <string name="ui_transform_your_research_documents_and_reading_materials_into_high" formatted="false">"将研究、文档与阅读资料转为高质量、专注的音频体验。"</string>
+    <string name="ui_translated_text_type_or_paste_to_listen" formatted="false">"译文（输入或粘贴以聆听）"</string>
+    <string name="ui_translation_handoff" formatted="false">"翻译转交"</string>
+    <string name="ui_translation_scope_mode" formatted="false">"翻译范围与模式"</string>
+    <string name="ui_trash_is_empty" formatted="false">"回收站为空"</string>
+    <string name="ui_try_another_filter_or_create_a_note" formatted="false">"尝试其他筛选条件或创建笔记。"</string>
+    <string name="ui_try_another_title_author_or_genre" formatted="false">"尝试其他书名、作者或类型。"</string>
+    <string name="ui_try_searching_for_a_different_keyword" formatted="false">"尝试搜索其他关键词。"</string>
+    <string name="ui_undo" formatted="false">"撤销"</string>
+    <string name="ui_unflag_question" formatted="false">"取消标记此题"</string>
+    <string name="ui_unpin_note" formatted="false">"取消置顶笔记"</string>
+    <string name="ui_unplayed" formatted="false">"未播放"</string>
+    <string name="ui_unrecognized_document_format" formatted="false">"无法识别文档格式。"</string>
+    <string name="ui_unsaved_changes" formatted="false">"未保存的更改"</string>
+    <string name="ui_unsupported" formatted="false">"不支持"</string>
+    <string name="ui_unsupported_file" formatted="false">"不支持的文件"</string>
+    <string name="ui_untitled_note" formatted="false">"无标题笔记"</string>
+    <string name="ui_untitled_set" formatted="false">"无标题集合"</string>
+    <string name="ui_up" formatted="false">"向上"</string>
+    <string name="ui_update_now" formatted="false">"立即更新"</string>
+    <string name="ui_update_on_google_play" formatted="false">"在 Google Play 更新"</string>
+    <string name="ui_update_timer" formatted="false">"更新定时器"</string>
+    <string name="ui_use_an_explicit_timer_only" formatted="false">"仅使用手动计时器"</string>
+    <string name="ui_use_queue_on_any_document_card_to_add_it_here_queue_order_control" formatted="false">"在任意文档卡片上使用队列选项将其加入此处。队列顺序决定后台服务接下来播放的内容。"</string>
+    <string name="ui_use_system_pdf_or_photo_viewer" formatted="false">"使用系统 PDF 或照片查看器"</string>
+    <string name="ui_user_manual_ea99fa3" formatted="false">"用户手册"</string>
+    <string name="ui_veritas_studio_pass" formatted="false">"VERITAS STUDIO 通行证"</string>
+    <string name="ui_vern_classic" formatted="false">"Vern Classic"</string>
+    <string name="ui_vern_does_not_bundle_a_large_offline_model_and_does_not_require_a" formatted="false">"Vern 未捆绑大型离线模型，也无需 API 密钥。它为此手机已安装的 AI 应用准备提示词。"</string>
+    <string name="ui_vern_has_been_updated_to_the_latest_version_enjoy_the_new_feature" formatted="false">"Vern 已更新到最新版本！欢迎体验新功能与改进。"</string>
+    <string name="ui_vern_opened" formatted="false">"Vern 已打开"</string>
+    <string name="ui_vern_setup" formatted="false">"Vern 设置"</string>
+    <string name="ui_vern_tunes_its_typography_neural_pacing_and_synthesis_tools_to_yo" formatted="false">"Vern 根据阅读领域调整排版、语音节奏和合成工具。"</string>
+    <string name="ui_video" formatted="false">"视频"</string>
+    <string name="ui_video_attachment" formatted="false">"视频附件"</string>
+    <string name="ui_view_full_reading_insights" formatted="false">"查看完整阅读统计 📊"</string>
+    <string name="ui_view_image" formatted="false">"查看图片"</string>
+    <string name="ui_view_mode" formatted="false">"显示模式"</string>
+    <string name="ui_visit_website" formatted="false">"访问网站"</string>
+    <string name="ui_voice" formatted="false">"声音 ›"</string>
+    <string name="ui_voice_and_settings" formatted="false">"声音与设置"</string>
+    <string name="ui_voice_memo" formatted="false">"语音备忘"</string>
+    <string name="ui_voice_personalities" formatted="false">"声音风格"</string>
+    <string name="ui_voice_studio_4758e58" formatted="false">"语音工作室 ›"</string>
+    <string name="ui_waiting_for_pasted_text" formatted="false">"等待粘贴文本…"</string>
+    <string name="ui_web_lookup" formatted="false">"网页查询"</string>
+    <string name="ui_weekly_app_activity" formatted="false">"每周应用活动"</string>
+    <string name="ui_welcome_to_vern" formatted="false">"欢迎使用 Vern"</string>
+    <string name="ui_what_s_new" formatted="false">"更新内容："</string>
+    <string name="ui_what_should_we_call_you" formatted="false">"我们该如何称呼你？"</string>
+    <string name="ui_what_should_we_call_you_e_g_alex" formatted="false">"我们该如何称呼你？（例如小明）"</string>
+    <string name="ui_word_document_view" formatted="false">"Word 文档视图"</string>
+    <string name="ui_work_with_a_passage_from_your_reading_or_send_it_to_an_assistant" formatted="false">"处理阅读中的段落，或将其发送给常用助手。"</string>
+    <string name="ui_workflow_steps" formatted="false">"操作步骤"</string>
+    <string name="ui_write_note" formatted="false">"编写笔记"</string>
+    <string name="ui_write_notes_about_this_document" formatted="false">"为此文档编写笔记"</string>
+    <string name="ui_write_the_note_to_attach_to_this_sentence" formatted="false">"编写要附加到此句的笔记"</string>
+    <string name="ui_write_what_you_want_to_ask_add_a_passage_if_your_question_needs_o" formatted="false">"写下你的问题，必要时添加段落。"</string>
+    <string name="ui_write_your_instructions_the_selected_reading_scope_will_be_includ" formatted="false">"写下你的说明。所选阅读范围会随提示词一并发送。"</string>
+    <string name="ui_year" formatted="false">"年"</string>
+    <string name="ui_you_can_restore_this_note_from_trash" formatted="false">"你可以从回收站恢复此笔记。"</string>
+    <string name="ui_you_can_use_the_study_tools_without_an_assistant_set_up_in_app_ai" formatted="false">"无需助手也可使用学习工具。应用内 AI 请在设置中单独配置。"</string>
+    <string name="ui_your_current_version_will_be_kept_in_history_the_note_keeps_its_c" formatted="false">"当前版本会保留在历史中，笔记仍属于当前笔记本。"</string>
+    <string name="ui_your_decks" formatted="false">"你的卡组"</string>
+    <string name="ui_your_first_measured_session_will_appear_here_reading_stops_after" formatted="false">"第一次测量记录会显示在此。闲置后停止阅读计时；播放音频时统计聆听时间。"</string>
+    <string name="ui_your_library_stored_locally_vern" formatted="false">"你的本地书库 · Vern"</string>
+    <string name="ui_your_name" formatted="false">"你的姓名"</string>
+    <string name="ui_your_name_optional" formatted="false">"你的姓名（可选）"</string>
+    <string name="ui_your_next_review" formatted="false">"下次复习"</string>
+    <string name="ui_your_own_prompt" formatted="false">"你的提示词"</string>
+    <string name="ui_your_preferred_name" formatted="false">"你希望使用的称呼"</string>
+    <string name="ui_your_reading_superpowers" formatted="false">"你的阅读超能力"</string>
+    <string name="ui_your_sanctuary_awaits" formatted="false">"你的静谧空间已就绪。"</string>
+    <string name="ui_your_studio_profile_neural_narration_and_reading_rhythms_have_bee" formatted="false">"你的声音配置、朗读与阅读节奏已为沉浸体验做好准备。"</string>
+    <string name="ui_your_study_material" formatted="false">"你的学习资料"</string>
+    <string name="widget_player_description">"Vern 播放控件"</string>
+    <string name="widget_cover_description">"Vern 当前读物封面"</string>
+    <string name="widget_quick_note_description">"Vern 快速笔记列表"</string>
+    <string name="widget_flashcard_description">"Vern 每日抽认卡复习"</string>
+    <string name="widget_quick_capture_description">"Vern 快速记录操作"</string>
+    <string name="widget_reading_progress_description">"Vern 阅读进度状态"</string>
+    <string name="widget_study_dashboard_description">"Vern 学习统计面板"</string>
+    <string name="widget_previous">"‹"</string>
+    <string name="widget_play">"▶"</string>
+    <string name="widget_next">"›"</string>
+    <string name="widget_favorite">"♡"</string>
+    <string name="crash_dialog_title">"Vern 意外关闭"</string>
+    <string name="crash_dialog_message">"上次应用因错误关闭。你可以将崩溃详情发送给开发者以帮助修复，未经同意不会发送任何内容。"</string>
+    <string name="crash_dialog_send">"发送报告"</string>
+    <string name="tts_hint_title">"可使用更好的声音"</string>
+    <string name="tts_hint_message">"当前文字转语音引擎可能限制词语高亮和语音质量。安装 Google Text-to-Speech 通常可改善阅读体验。"</string>
+    <string name="tts_hint_get">"获取 Google TTS"</string>
+    <string name="tts_hint_dismiss">"保留当前引擎"</string>
+    <string name="reminder_exact_title">"允许准时提醒"</string>
+    <string name="reminder_exact_message">"为在设定时间准时响铃，Vern 需要“闹钟和提醒”权限。否则提醒可能稍有延迟。"</string>
+    <string name="delete_note_title">"删除此笔记？"</string>
+    <string name="delete_note_message">"此操作无法撤销。"</string>
+    <string name="clear_history_title">"清除阅读历史？"</string>
+    <string name="clear_history_message">"这会移除所有历史记录，文档和阅读进度不受影响。"</string>
+    <string name="share_to_notes">"添加到 Vern 笔记"</string>
+    <string name="share_to_import">"导入 Vern"</string>
+    <string name="exit_dialog_title">"退出 Vern？"</string>
+    <string name="exit_dialog_message">"确定要关闭应用吗？"</string>
+    <string name="action_exit">"退出"</string>
+</resources>

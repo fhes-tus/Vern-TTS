@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="l10n_widget_0" formatted="false">"抽认卡集"</string>
+    <string name="l10n_widget_1" formatted="false">"暂无抽认卡 📚"</string>
+    <string name="l10n_widget_2" formatted="false">"在学习中心创建或导入卡片"</string>
+    <string name="l10n_widget_3" formatted="false">"选择抽认卡集 📚"</string>
+    <string name="l10n_widget_4" formatted="false">"复习 ›"</string>
+    <string name="l10n_widget_5" formatted="false">"‹ 卡集"</string>
+    <string name="l10n_widget_6" formatted="false">"暂无到期复习"</string>
+    <string name="l10n_widget_7" formatted="false">"暂无到期卡片。点按练习此卡组。"</string>
+    <string name="l10n_widget_8" formatted="false">"答案"</string>
+    <string name="l10n_widget_9" formatted="false">"问题"</string>
+    <string name="l10n_widget_10" formatted="false">"点按翻回"</string>
+    <string name="l10n_widget_11" formatted="false">"‹ 上一项"</string>
+    <string name="l10n_widget_12" formatted="false">"翻至答案"</string>
+    <string name="l10n_widget_13" formatted="false">"下一项 ›"</string>
+    <string name="l10n_widget_14" formatted="false">"良好 ✓"</string>
+    <string name="l10n_widget_15" formatted="false">"跳过 ›"</string>
+    <string name="l10n_widget_16" formatted="false">"记录一个想法"</string>
+    <string name="l10n_widget_17" formatted="false">"新清单"</string>
+    <string name="l10n_widget_18" formatted="false">"快速记录"</string>
+    <string name="l10n_widget_19" formatted="false">"文本笔记"</string>
+    <string name="l10n_widget_20" formatted="false">"立即阅读"</string>
+    <string name="l10n_widget_21" formatted="false">"笔记与任务"</string>
+    <string name="l10n_widget_22" formatted="false">"+ 新建"</string>
+    <string name="l10n_widget_23" formatted="false">"暂无笔记 · 点按创建"</string>
+    <string name="l10n_widget_24" formatted="false">"阅读记录"</string>
+    <string name="l10n_widget_25" formatted="false">"无当前书籍 · 点按打开书库"</string>
+    <string name="l10n_widget_26" formatted="false">"书籍图标"</string>
+    <string name="l10n_widget_27" formatted="false">"本周阅读"</string>
+    <string name="l10n_widget_28" formatted="false">"每日目标"</string>
+    <string name="l10n_widget_29" formatted="false">"到期"</string>
+    <string name="l10n_widget_30" formatted="false">"回忆"</string>
+    <string name="l10n_widget_31" formatted="false">"卡组"</string>
+    <string name="l10n_widget_32" formatted="false">"下一张卡片"</string>
+    <string name="l10n_widget_33" formatted="false">"已全部完成！"</string>
+    <string name="l10n_widget_34" formatted="false">"学习中心已就绪"</string>
+    <string name="l10n_widget_35" formatted="false">"从阅读笔记或 AI 提示词导入卡片"</string>
+    <string name="l10n_widget_36" formatted="false">"活跃卡组"</string>
+    <string name="l10n_widget_37" formatted="false">"正在准备阅读。点按取消"</string>
+    <string name="l10n_widget_dynamic_0">"卡集：%1$s"</string>
+    <string name="l10n_widget_dynamic_1">"卡片：%1$s · 到期：%2$s"</string>
+    <string name="l10n_widget_dynamic_2">"学习中心另有 %1$s 项 ›"</string>
+    <string name="l10n_widget_dynamic_3">"🔥 连续 %1$s 天"</string>
+    <string name="l10n_widget_dynamic_4">"已完成 %1$s%% · %2$s/%3$s 分钟"</string>
+    <string name="l10n_widget_dynamic_5">"已完成 %1$s%% · 今日 %2$s 分钟"</string>
+    <string name="l10n_widget_dynamic_6">"每日目标：%1$s 分钟"</string>
+    <string name="l10n_widget_dynamic_7">"%1$s%%（%2$s 分钟）"</string>
+    <string name="l10n_widget_dynamic_8">"今日：%1$s 分钟"</string>
+    <string name="l10n_widget_dynamic_9">"平均：每天 %1$s 分钟"</string>
+    <string name="l10n_widget_dynamic_10">"目标：每天 %1$s 分钟"</string>
+    <string name="l10n_widget_dynamic_11">"本周 %1$s 分钟"</string>
+    <string name="l10n_widget_dynamic_12">"%1$s / %2$s 分钟（%3$s%%）"</string>
+    <string name="l10n_widget_dynamic_13">"🔥 连续 %1$s 天"</string>
+    <string name="l10n_widget_dynamic_14">"到期卡片：%1$s"</string>
+    <string name="l10n_widget_dynamic_15">"上次成功回忆 %1$s%% · 活跃卡组：%2$s"</string>
+    <string name="l10n_widget_dynamic_16">"已保存学习笔记：%1$s"</string>
+    <string name="l10n_widget_dynamic_17">"全部 %1$s 张卡片已复习 · 继续加油！"</string>
+    <string name="l10n_widget_dynamic_18">"卡片：%1$s · 到期：%2$s"</string>
+    <string name="l10n_widget_dynamic_19">"每日目标：%1$s 分钟"</string>
+    <string name="l10n_widget_dynamic_20">"打开 %1$s"</string>
+</resources>

@@ -707,13 +707,13 @@ fun UserManualDialog(
                     IconButton(onClick = onDismiss) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back),
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "User Manual",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_user_manual_ea99fa3),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.weight(1f)
@@ -728,7 +728,7 @@ fun UserManualDialog(
                     onValueChange = { searchQuery = it },
                     placeholder = {
                         Text(
-                            "Search features (e.g. read out loud, dark mode, pdf)...",
+                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search_features_e_g_read_out_loud_dark_mode_pdf),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
@@ -736,7 +736,7 @@ fun UserManualDialog(
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
@@ -745,7 +745,7 @@ fun UserManualDialog(
                             IconButton(onClick = { searchQuery = "" }) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Clear search",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear_search),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -774,7 +774,7 @@ fun UserManualDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No matching manual sections found.\nTry searching for 'voice', 'dark mode', 'pdf', or 'backup'.",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_matching_manual_sections_found_try_searching_for_voice_dark_mo),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 24.dp)
@@ -863,7 +863,7 @@ fun SectionCard(
                 }
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (isExpanded) "Collapse" else "Expand",
+                    contentDescription = if (isExpanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp)
                 )
@@ -944,7 +944,7 @@ fun ChapterCard(
                 }
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (isExpanded) "Collapse" else "Expand",
+                    contentDescription = if (isExpanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp)
                 )
@@ -971,7 +971,7 @@ fun ChapterCard(
                                 .padding(12.dp)
                         ) {
                             Text(
-                                text = "Workflow Steps",
+                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_workflow_steps),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )

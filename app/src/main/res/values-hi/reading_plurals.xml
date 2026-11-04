@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="reading_minutes">
+        <item quantity="one">"%1$d मिनट"</item>
+        <item quantity="other">"%1$d मिनट"</item>
+    </plurals>
+    <plurals name="reading_minutes_daily">
+        <item quantity="one">"प्रतिदिन %1$d मिनट"</item>
+        <item quantity="other">"प्रतिदिन %1$d मिनट"</item>
+    </plurals>
+    <plurals name="reading_minutes_to_goal">
+        <item quantity="one">"लक्ष्य तक %1$d मिनट"</item>
+        <item quantity="other">"लक्ष्य तक %1$d मिनट"</item>
+    </plurals>
+    <plurals name="reading_days">
+        <item quantity="one">"%1$d दिन"</item>
+        <item quantity="other">"%1$d दिन"</item>
+    </plurals>
+    <plurals name="reading_days_this_week">
+        <item quantity="one">"इस सप्ताह %1$d दिन पढ़ा"</item>
+        <item quantity="other">"इस सप्ताह %1$d दिन पढ़ा"</item>
+    </plurals>
+</resources>

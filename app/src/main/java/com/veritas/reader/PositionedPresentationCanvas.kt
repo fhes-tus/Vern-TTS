@@ -42,12 +42,12 @@ internal fun PositionedPresentationCanvas(
         Column(modifier = Modifier.heightIn(max = maxHeight).verticalScroll(rememberScrollState()).padding(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Row(modifier = Modifier.fillMaxWidth().onSizeChanged { headerHeight = with(density) { it.height.toDp() } }, verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Slide ${slide.number} of $count", style = MaterialTheme.typography.labelLarge)
-                    Text("Source layout", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_044, com.veritas.reader.ui.screens.localizedUiValue(slide.number), com.veritas.reader.ui.screens.localizedUiValue(count)), style = MaterialTheme.typography.labelLarge)
+                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_source_layout), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                if (slide.notesLines.isNotEmpty()) TextButton(onClick = onToggleNotes) { Text(if (showNotes) "Hide notes" else "Notes") }
-                IconButton(enabled = slide.number > 1, onClick = onPrevious) { Icon(Icons.AutoMirrored.Filled.NavigateBefore, "Previous slide") }
-                IconButton(enabled = slide.number < count, onClick = onNext) { Icon(Icons.AutoMirrored.Filled.NavigateNext, "Next slide") }
+                if (slide.notesLines.isNotEmpty()) TextButton(onClick = onToggleNotes) { Text(if (showNotes) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_hide_notes) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes)) }
+                IconButton(enabled = slide.number > 1, onClick = onPrevious) { Icon(Icons.AutoMirrored.Filled.NavigateBefore, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_slide_8e53512)) }
+                IconButton(enabled = slide.number < count, onClick = onNext) { Icon(Icons.AutoMirrored.Filled.NavigateNext, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_slide_a4cf971)) }
             }
             BoxWithConstraints(modifier = Modifier.width(slideWidth).height(slideWidth / layout.aspectRatio), contentAlignment = Alignment.Center) {
                 val width = maxWidth
@@ -81,7 +81,7 @@ internal fun PositionedPresentationCanvas(
                                 }
                             }
                             element.mediaPath?.let { path ->
-                                images[path]?.let { bitmap -> Image(bitmap.asImageBitmap(), "Slide illustration", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit) }
+                                images[path]?.let { bitmap -> Image(bitmap.asImageBitmap(), androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_slide_illustration), modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit) }
                             }
                             if (element.text.isNotBlank()) Box(
                                 Modifier.fillMaxSize().padding(start = width * element.insetLeft, top = height * element.insetTop,
@@ -94,7 +94,7 @@ internal fun PositionedPresentationCanvas(
                 }
             }
             if (showNotes && slide.notesLines.isNotEmpty()) Column(modifier = Modifier.fillMaxWidth().heightIn(max = notesHeight).verticalScroll(rememberScrollState())) {
-                Text("Speaker notes", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_speaker_notes_3d6e76c), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 Text(slide.notesLines.joinToString("\n\n"), style = MaterialTheme.typography.bodyMedium)
             }
         }

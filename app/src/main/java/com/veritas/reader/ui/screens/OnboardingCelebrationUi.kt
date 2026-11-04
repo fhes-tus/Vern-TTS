@@ -179,7 +179,7 @@ fun CelebrationAnimatedBadge(modifier: Modifier = Modifier) {
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Success",
+                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_success),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(44.dp)
                 )
@@ -237,7 +237,7 @@ fun OnboardingReadyCelebrationScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = if (userName.isNotBlank()) "Your Sanctuary is Ready, ${userName.trim()}." else "Your Sanctuary Awaits.",
+            text = if (userName.isNotBlank()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_125, com.veritas.reader.ui.screens.localizedUiValue(userName.trim())) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_sanctuary_awaits),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
@@ -246,7 +246,7 @@ fun OnboardingReadyCelebrationScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Your studio profile, neural narration, and reading rhythms have been calibrated for effortless immersion.",
+            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_studio_profile_neural_narration_and_reading_rhythms_have_bee),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -298,7 +298,7 @@ fun OnboardingReadyCelebrationScreen(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = "VERITAS STUDIO PASS",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_veritas_studio_pass),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                             letterSpacing = 1.8.sp
@@ -317,7 +317,7 @@ fun OnboardingReadyCelebrationScreen(
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
-                            text = "SANCTUARY · 001",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sanctuary_001),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             letterSpacing = 0.8.sp
@@ -372,14 +372,14 @@ fun OnboardingReadyCelebrationScreen(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Reader Identity",
+                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reader_identity),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         OutlinedTextField(
                             value = userName,
                             onValueChange = onUserNameChange,
-                            placeholder = { Text("What should we call you? (e.g. Alex)") },
+                            placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_what_should_we_call_you_e_g_alex)) },
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -403,12 +403,12 @@ fun OnboardingReadyCelebrationScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         VipStudioPassBadge(
-                            label = "Discipline",
+                            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_discipline),
                             value = personaTitle,
                             modifier = Modifier.weight(1f)
                         )
                         VipStudioPassBadge(
-                            label = "Narrator",
+                            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_narrator),
                             value = "$voiceTitle · Calibrated",
                             modifier = Modifier.weight(1f)
                         )
@@ -418,12 +418,12 @@ fun OnboardingReadyCelebrationScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         VipStudioPassBadge(
-                            label = "Material",
+                            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_material),
                             value = interest,
                             modifier = Modifier.weight(1f)
                         )
                         VipStudioPassBadge(
-                            label = "AI Studio",
+                            label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_ai_studio),
                             value = aiTitle,
                             modifier = Modifier.weight(1f)
                         )
@@ -441,7 +441,7 @@ fun OnboardingReadyCelebrationScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "🔒 LOCAL LIBRARY · NO ADS · OFFLINE VOICES",
+                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_local_library_no_ads_offline_voices),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                         letterSpacing = 0.8.sp,
