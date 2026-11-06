@@ -3,6 +3,23 @@ import type { ReactNode } from 'react';
 // One visual language across navigation, reader tools and workspace actions.
 export function Glyph({ name }: { name: string }) {
   const paths: Record<string, ReactNode> = {
+    info: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v6M12 7h.01" />
+      </>
+    ),
+    eye: (
+      <>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ),
+    file: (
+      <>
+        <path d="M6 3h8l4 4v14H6ZM14 3v5h4M9 12h6m-6 4h6" />
+      </>
+    ),
     pin: <path d="m8 3 8 0-1 5 3 4v2H6v-2l3-4-1-5ZM12 14v7" />,
     home: (
       <>
@@ -33,6 +50,7 @@ export function Glyph({ name }: { name: string }) {
       </>
     ),
     list: <path d="M8 5h13M8 12h13M8 19h13M3 5h.01M3 12h.01M3 19h.01" />,
+    history: <path d="M3 5v5h5M3 10a9 9 0 1 1 1 7M12 7v5l3 2" />,
     external: <path d="M14 3h7v7m0-7L10 14M10 3H3v18h18v-7" />,
     book: (
       <>

@@ -21,28 +21,83 @@ function fixtureBook(): Book {
   };
 }
 type Original = { name: string; bytes: number[]; starts: number[]; format: string };
-async function openReader(page: Page, book = fixtureBook(), original: Original | null = null) {
+async function openReader(
+  page: Page,
+  book = fixtureBook(),
+  original: Original | null = null,
+  audio = false,
+) {
   await page.addInitScript(
-    ({ book, prefs, original }) => {
+    ({ book, prefs, original, audio }) => {
       const state = {
         book,
         prefs,
         notes: [] as { id: string; bookId: string; position: number; text: string; kind: string }[],
         fullscreen: false,
         sourcePage: 0,
+        speech: [] as { text: string; resolve: (value: unknown) => void }[],
+        referenceRequests: [] as { site: string; text: string }[],
       };
+      if (audio) {
+        class Context extends EventTarget {
+          state = 'running';
+          currentTime = 0;
+          destination = {};
+          resume = async () => {};
+          createBuffer = () => ({ copyToChannel: () => {}, duration: 1 });
+          createBufferSource = () => {
+            const source = {
+              buffer: null,
+              onended: null as (() => void) | null,
+              connect: () => {},
+              disconnect: () => {},
+              start: () => Reflect.set(window, '__finishSpeech', () => source.onended?.()),
+              stop: (when?: number) => {
+                if (when === undefined) queueMicrotask(() => source.onended?.());
+              },
+            };
+            return source;
+          };
+        }
+        Reflect.set(window, 'AudioContext', Context);
+      }
       Reflect.set(window, 'isTauri', true);
       Reflect.set(window, '__readerState', state);
       Reflect.set(window, '__TAURI_INTERNALS__', {
         metadata: { currentWindow: { label: 'main' }, currentWebview: { label: 'main' } },
         invoke: async (command: string, args: Record<string, unknown> = {}) => {
+          if (command === 'record_reading_activity') return;
+          if (command === 'record_reading_open') return;
           if (command === 'list_books') return [structuredClone(state.book)];
           if (command === 'get_settings') return structuredClone(state.prefs);
           if (command === 'save_settings') {
             state.prefs = structuredClone(args.settings as Settings);
             return;
           }
-          if (command === 'list_voices') return [];
+          if (command === 'open_reference') {
+            state.referenceRequests.push({ site: String(args.site), text: String(args.text) });
+            return;
+          }
+          if (command === 'list_voices')
+            return audio
+              ? [
+                  {
+                    id: prefs.voice,
+                    name: 'Test voice',
+                    family: 'Lite',
+                    engine: 'Piper',
+                    size: '',
+                    state: 'installed',
+                    downloaded: 0,
+                    total: 0,
+                    error: null,
+                  },
+                ]
+              : [];
+          if (command === 'synthesize')
+            return new Promise((resolve) =>
+              state.speech.push({ text: String(args.text), resolve }),
+            );
           if (
             [
               'list_all_annotations',
@@ -90,13 +145,202 @@ async function openReader(page: Page, book = fixtureBook(), original: Original |
         },
       });
     },
-    { book, prefs: { ...defaultSettings, lastBook: book.id }, original },
+    { book, prefs: { ...defaultSettings, lastBook: book.id }, original, audio },
   );
   await page.goto('/');
   await page.getByRole('button', { name: 'Continue reading', exact: true }).first().click();
   await expect(page.locator('.flow-page-body p').first()).toBeVisible();
   await expect(page.getByText('Laying out pages…')).not.toBeVisible();
 }
+
+test('word tools refresh the draft for each explicit reader selection', async ({ page }) => {
+  await openReader(page);
+  for (const word of ['Alice', 'sunlight']) {
+    await page
+      .locator('.flow-page-body p')
+      .first()
+      .evaluate((element, word) => {
+        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          const start = (node.textContent ?? '').indexOf(word);
+          if (start < 0) continue;
+          const range = document.createRange();
+          range.setStart(node, start);
+          range.setEnd(node, start + word.length);
+          window.getSelection()?.removeAllRanges();
+          window.getSelection()?.addRange(range);
+          document.dispatchEvent(new Event('selectionchange'));
+          return;
+        }
+        throw new Error('Selection text missing.');
+      }, word);
+    await page.getByRole('button', { name: 'Word tools', exact: true }).click();
+    await expect(page.getByLabel('Word or phrase', { exact: true })).toHaveValue(word);
+    await expect(page.getByLabel('Text to look up or translate')).toHaveValue(word);
+    await page.getByRole('button', { name: 'Open Google Translate' }).click();
+    await expect
+      .poll(() => page.evaluate(() => Reflect.get(window, '__readerState').referenceRequests))
+      .toContainEqual({ site: 'translate', text: word });
+    await page.getByLabel('Text to look up or translate').fill('An edited reference draft');
+    await page.getByRole('button', { name: 'Go back', exact: true }).click();
+    await expect(page.locator('.flow-page-body p').first()).toBeVisible();
+  }
+});
+
+test('the reader gives most of the window to the book and keeps search and notes on demand', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1365, height: 767 });
+  await openReader(page);
+  const canvas = await page.locator('.reader-viewport').boundingBox();
+  expect(canvas!.height).toBeGreaterThan(767 * 0.72);
+  expect(canvas!.width).toBeGreaterThan(1365 * 0.9);
+  await expect(page.locator('.notebook')).not.toBeVisible();
+  await expect(page.getByRole('searchbox', { name: 'Search this book' })).not.toBeVisible();
+  await page.screenshot({ path: '.artifacts/reader-space-1365.png' });
+  await page.keyboard.press('Control+f');
+  await expect(page.getByRole('searchbox', { name: 'Search this book' })).toBeFocused();
+  await page.getByRole('searchbox', { name: 'Search this book' }).fill('quiet garden');
+  expect((await page.locator('.reader-viewport').boundingBox())!.height).toBeCloseTo(
+    canvas!.height,
+    0,
+  );
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('searchbox', { name: 'Search this book' })).not.toBeVisible();
+  await page.getByRole('button', { name: 'Toggle notebook', exact: true }).click();
+  await expect(page.getByLabel('Leave a thought')).toBeVisible();
+  expect((await page.locator('.reader-viewport').boundingBox())!.width).toBeCloseTo(
+    canvas!.width,
+    0,
+  );
+  await page.getByRole('button', { name: 'Close notebook', exact: true }).click();
+  await expect(page.locator('.notebook')).not.toBeVisible();
+  await page.setViewportSize({ width: 900, height: 650 });
+  await expect
+    .poll(async () => (await page.locator('.reader-viewport').boundingBox())!.height)
+    .toBeGreaterThan(650 * 0.7);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: '.artifacts/reader-space-900.png' });
+  for (const destination of ['Home', 'Library', 'Study', 'Notes']) {
+    await page
+      .getByRole('navigation', { name: 'Main navigation' })
+      .getByRole('button', { name: destination, exact: true })
+      .click();
+    await expect(page.locator('.topbar')).toHaveCSS('height', '56px');
+    const bar = await page.locator('.playback-bar').boundingBox();
+    const controls = await page.locator('.transport').boundingBox();
+    expect(controls!.x + controls!.width / 2).toBeCloseTo(bar!.x + bar!.width / 2, 0);
+    await expect(page.locator('.playback-bar')).toHaveCSS('height', '60px');
+  }
+});
+
+test('Enter jumps to the entered page, including either page of a two-page spread', async ({
+  page,
+}) => {
+  await openReader(page);
+  const jump = page.getByRole('spinbutton', { name: 'Go to page' });
+  const spread = page.locator('.reader-spread');
+  for (const layout of ['single', 'double']) {
+    await page.getByRole('combobox', { name: 'Page layout' }).selectOption(layout);
+    await expect(page.getByText('Laying out pages…')).not.toBeVisible();
+    for (const target of ['4', '11', '2']) {
+      await jump.fill(target);
+      await jump.press('Enter');
+      await expect(spread).toHaveAttribute('data-page-start', target);
+      await expect(jump).toHaveValue(target);
+      const position = Number(
+        await page.locator('.flow-page-body p').first().getAttribute('data-passage'),
+      );
+      await expect
+        .poll(() => page.evaluate(() => Reflect.get(window, '__readerState').book.position))
+        .toBe(position);
+      // An unrelated UI update must not snap a completed jump back.
+      await page.getByRole('button', { name: 'Toggle notebook', exact: true }).click();
+      await expect(spread).toHaveAttribute('data-page-start', target);
+      await page.getByRole('button', { name: 'Toggle notebook', exact: true }).click();
+    }
+  }
+  await jump.fill('999999');
+  await jump.press('Enter');
+  await expect(jump).toHaveValue((await jump.getAttribute('max')) ?? '');
+});
+
+test('toolbar text size changes the book and persists through navigation', async ({ page }) => {
+  await openReader(page);
+  const paper = page.locator('.flow-paper').first();
+  await expect(paper).toHaveCSS('font-size', '21px');
+  await page.getByRole('button', { name: 'Increase text size', exact: true }).click();
+  await expect(paper).toHaveCSS('font-size', '22px');
+  await expect(page.locator('.flow-page-body p').first()).toHaveCSS('font-size', '22px');
+  await expect
+    .poll(() => page.evaluate(() => Reflect.get(window, '__readerState').prefs.fontSize))
+    .toBe(22);
+  await page.getByRole('button', { name: 'Decrease text size', exact: true }).click();
+  await expect(paper).toHaveCSS('font-size', '21px');
+  await page.getByRole('button', { name: 'Increase text size', exact: true }).click();
+  await page.getByRole('button', { name: 'Go back', exact: true }).click();
+  await page.getByRole('button', { name: 'Continue reading', exact: true }).first().click();
+  await expect(paper).toHaveCSS('font-size', '22px');
+});
+
+test('trackpad pinch changes reading type size without zooming app controls', async ({ page }) => {
+  await openReader(page);
+  const viewport = page.locator('.reader-viewport');
+  await viewport.dispatchEvent('wheel', { deltaY: -72, ctrlKey: true });
+  await expect(page.locator('.flow-paper').first()).toHaveCSS('font-size', '23px');
+  await viewport.dispatchEvent('wheel', { deltaY: 36, ctrlKey: true });
+  await expect(page.locator('.flow-paper').first()).toHaveCSS('font-size', '22px');
+  await expect
+    .poll(() => page.evaluate(() => Reflect.get(window, '__readerState').prefs.fontSize))
+    .toBe(22);
+  expect(await page.evaluate(() => window.visualViewport?.scale)).toBe(1);
+  await expect(page.locator('.reader-header h1')).toHaveCSS('font-size', '15px');
+});
+
+test('reader appearance applies fonts, spacing, paper and accessibility without changing the source text', async ({
+  page,
+}) => {
+  await openReader(page);
+  const before = await page.locator('.flow-page-body p').first().textContent();
+  await page.getByRole('button', { name: 'Reader settings', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Reader settings' });
+  for (const font of ['System', 'Outfit', 'Times New Roman', 'Atkinson']) {
+    await dialog.getByLabel('Reader typeface').selectOption(font);
+    await expect
+      .poll(() => page.evaluate(() => Reflect.get(window, '__readerState').prefs.readerFont))
+      .toBe(font);
+    await expect(page.locator('.flow-paper').first()).toHaveCSS(
+      'font-family',
+      font === 'System'
+        ? 'system-ui'
+        : font === 'Times New Roman'
+          ? '"Times New Roman", Times, serif'
+          : font,
+    );
+  }
+  await dialog.getByLabel('Reader line spacing').selectOption('2.2');
+  await dialog.getByLabel('Paper tone').selectOption('sepia');
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(page.locator('.flow-page-body p').first()).toHaveCSS('line-height', '46.2px');
+  await expect(page.locator('.flow-paper').first()).toHaveCSS(
+    'background-color',
+    'rgb(245, 234, 214)',
+  );
+  await page.getByRole('button', { name: 'Reader settings', exact: true }).click();
+  await page.getByRole('button', { name: 'All settings', exact: true }).click();
+  await page
+    .getByRole('navigation', { name: 'Settings categories' })
+    .getByRole('button', { name: 'Accessibility', exact: true })
+    .click();
+  await page.getByLabel('Bionic reading', { exact: false }).check();
+  await page.getByLabel('Section numbers', { exact: false }).check();
+  await page.getByRole('button', { name: 'Close settings', exact: true }).click();
+  await expect(page.locator('.flow-page-body p').first()).toHaveText(before!);
+  await expect(page.locator('.flow-page-body b').first()).toBeVisible();
+  await expect(page.locator('.flow-page-body p').first()).toHaveAttribute('data-section', '1');
+  await page.screenshot({ path: '.artifacts/reader-appearance.png' });
+});
 
 test('single and two-page layouts turn by controls, keyboard, wheel and drag without losing text selection', async ({
   page,
@@ -219,6 +463,7 @@ test('original PDF renders real canvases and selectable text, turns pages, zooms
     timeout: 15000,
   });
   await expect(page.locator('.textLayer')).toContainText('Original first page words.');
+  await expect(page.locator('.sidebar')).toHaveCSS('width', '56px');
   await page.locator('.reader-viewport').focus();
   await page.keyboard.press('Shift+ArrowRight');
   await expect(page.getByRole('toolbar', { name: 'Selected text actions' })).toBeVisible();
@@ -245,6 +490,9 @@ test('original PDF renders real canvases and selectable text, turns pages, zooms
     .poll(async () => (await page.locator('.pdf-page').first().boundingBox())?.width ?? 0)
     .toBeGreaterThan(before!.width * 1.4);
   await page.screenshot({ path: '.artifacts/reader-original-pdf.png' });
+  await page.getByRole('combobox', { name: 'Reader view' }).selectOption('flow');
+  await expect(page.locator('.sidebar')).toHaveCSS('width', '56px');
+  await expect(page.locator('.reader-viewport')).toHaveJSProperty('clientWidth', 1304);
 });
 
 test('source DOCX renders its original paragraphs and explicit page breaks through the document worker', async ({
@@ -368,4 +616,135 @@ test('touch swipe handlers turn forwards and backwards in single and two-page la
     await swipe(350, 600);
     await expect(spread).toHaveAttribute('data-page-start', '1');
   }
+});
+
+test('speech highlighting follows audio output without replacing a manual text selection', async ({
+  page,
+}) => {
+  const book = {
+    ...fixtureBook(),
+    chunks: [
+      'Alice watched the quiet garden.',
+      'The second sentence is being read.',
+      'The final sentence waits.',
+    ],
+  };
+  await openReader(page, book, null, true);
+  const highlighted = () =>
+    page.evaluate(() =>
+      Array.from(CSS.highlights.get('vern-speech') ?? [])
+        .map((range) => range.toString())
+        .join(''),
+    );
+  const resolveNext = () =>
+    page.evaluate(() =>
+      Reflect.get(window, '__readerState')
+        .speech.shift()
+        .resolve({ samples: [0.1, 0.2], sampleRate: 24000 }),
+    );
+  await page.getByRole('button', { name: 'Play narration', exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => Reflect.get(window, '__readerState').speech.length))
+    .toBe(1);
+  expect(await highlighted()).toBe('');
+  await resolveNext();
+  await expect.poll(highlighted).toBe(book.chunks[0]);
+  await page.locator('[data-passage="0"]').dblclick({ position: { x: 20, y: 12 } });
+  await expect(page.getByRole('toolbar', { name: 'Selected text actions' })).toBeVisible();
+  const selection = await page.evaluate(() => window.getSelection()?.toString());
+  await resolveNext();
+  await page.evaluate(() => Reflect.get(window, '__finishSpeech')());
+  await expect.poll(highlighted).toBe(book.chunks[1]);
+  expect(await page.evaluate(() => window.getSelection()?.toString())).toBe(selection);
+  await page.getByRole('button', { name: 'Add to note', exact: true }).click();
+  await expect(page.getByLabel('Leave a thought')).toHaveValue(selection!.trim());
+  await page.getByRole('button', { name: 'Pause narration', exact: true }).click();
+  await expect.poll(highlighted).toBe('');
+});
+
+test('original PDF speech is highlighted through the selectable text layer', async ({ page }) => {
+  test.setTimeout(60_000);
+  const book = {
+    ...fixtureBook(),
+    format: 'PDF',
+    chunks: ['Original first page words.', 'Original second page words.'],
+  };
+  await openReader(
+    page,
+    book,
+    { name: 'two-pages.pdf', format: 'PDF', bytes: smallPdf(), starts: [0, 1] },
+    true,
+  );
+  await page.getByRole('combobox', { name: 'Reader view' }).selectOption('original');
+  await expect(page.locator('.pdf-page')).toHaveAttribute('data-rendered-page', '0', {
+    timeout: 15000,
+  });
+  await page.getByRole('button', { name: 'Play narration', exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => Reflect.get(window, '__readerState').speech.length))
+    .toBe(1);
+  await page.evaluate(() =>
+    Reflect.get(window, '__readerState')
+      .speech.shift()
+      .resolve({ samples: [0.1, 0.2], sampleRate: 24000 }),
+  );
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        Array.from(CSS.highlights.get('vern-speech') ?? [])
+          .map((range) => range.toString())
+          .join(''),
+      ),
+    )
+    .toBe(book.chunks[0]);
+  await page.locator('.reader-viewport').focus();
+  await page.keyboard.press('Shift+ArrowRight');
+  await expect(page.getByRole('toolbar', { name: 'Selected text actions' })).toBeVisible();
+  expect(await page.evaluate(() => window.getSelection()?.toString())).toBe('O');
+  await page.getByRole('button', { name: 'Pause narration', exact: true }).click();
+});
+
+test('Listen reads only selected text and highlights that text within its original passage', async ({
+  page,
+}) => {
+  const book = {
+    ...fixtureBook(),
+    chunks: ['Alice watched the quiet garden.', 'The second sentence waits.'],
+  };
+  await openReader(page, book, null, true);
+  await page.locator('.reader-viewport').focus();
+  for (let i = 0; i < 5; i++) await page.keyboard.press('Shift+ArrowRight');
+  expect(await page.evaluate(() => window.getSelection()?.toString())).toBe('Alice');
+  const toolbar = await page.getByRole('toolbar', { name: 'Selected text actions' }).boundingBox();
+  const selectionBottom = await page.evaluate(
+    () => window.getSelection()!.getRangeAt(0).getBoundingClientRect().bottom,
+  );
+  expect(toolbar!.y).toBeGreaterThan(selectionBottom);
+  await page
+    .getByRole('toolbar', { name: 'Selected text actions' })
+    .getByRole('button', { name: 'Listen', exact: true })
+    .click();
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        Reflect.get(window, '__readerState').speech.map((item: { text: string }) => item.text),
+      ),
+    )
+    .toEqual(['Alice']);
+  await page.evaluate(() =>
+    Reflect.get(window, '__readerState')
+      .speech.shift()
+      .resolve({ samples: [0.1, 0.2], sampleRate: 24000 }),
+  );
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        Array.from(CSS.highlights.get('vern-speech') ?? [])
+          .map((range) => range.toString())
+          .join(''),
+      ),
+    )
+    .toBe('Alice');
+  await page.screenshot({ path: '.artifacts/reader-selection-speech.png' });
+  await page.getByRole('button', { name: 'Pause narration', exact: true }).click();
 });

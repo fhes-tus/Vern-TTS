@@ -31,3 +31,64 @@ it('discards obsolete synthesis after seeking before it reaches the audio device
   expect(createBuffer).not.toHaveBeenCalled();
   expect(onChunk).not.toHaveBeenCalled();
 });
+
+it('reports output only after synthesis and while the audio context is running', async () => {
+  let synthesized!: (value: unknown) => void;
+  let source!: {
+    onended: () => void;
+    start: () => void;
+    connect: () => void;
+    disconnect: () => void;
+    stop: () => void;
+    buffer?: unknown;
+  };
+  class Context extends EventTarget {
+    state = 'running';
+    currentTime = 0;
+    destination = {};
+    resume = async () => {};
+    createBuffer = () => ({ copyToChannel: vi.fn(), duration: 1 });
+    createBufferSource = () =>
+      (source = {
+        onended: () => {},
+        start: vi.fn(),
+        connect: vi.fn(),
+        disconnect: vi.fn(),
+        stop: vi.fn(),
+      });
+  }
+  const context = new Context();
+  vi.stubGlobal('AudioContext', function TestAudioContext() {
+    return context;
+  });
+  transport.invoke.mockImplementation((command: string) =>
+    command === 'synthesize'
+      ? new Promise((resolve) => {
+          synthesized = resolve;
+        })
+      : Promise.resolve(),
+  );
+  const output = vi.fn();
+  const playback = new Playback().start(
+    'voice',
+    ['A reading passage.'],
+    0,
+    1,
+    async () => {},
+    vi.fn(),
+    output,
+  );
+  await vi.waitFor(() => expect(synthesized).toBeTypeOf('function'));
+  expect(output).not.toHaveBeenCalled();
+  synthesized({ samples: [0.1, 0.2], sampleRate: 24000 });
+  await vi.waitFor(() => expect(output).toHaveBeenLastCalledWith(0));
+  context.state = 'suspended';
+  context.dispatchEvent(new Event('statechange'));
+  expect(output).toHaveBeenLastCalledWith(null);
+  context.state = 'running';
+  context.dispatchEvent(new Event('statechange'));
+  expect(output).toHaveBeenLastCalledWith(0);
+  source.onended();
+  await playback;
+  expect(output).toHaveBeenLastCalledWith(null);
+});

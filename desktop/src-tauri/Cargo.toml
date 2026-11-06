@@ -27,9 +27,20 @@ sha2 = "0.11"
 uuid = { version = "1", features = ["v4"] }
 tar = "0.4"
 bzip2 = "0.6"
+zip = { version = "=9.0.5", default-features = false, features = ["deflate"] }
 sherpa-onnx = "=1.13.8"
 unicode-normalization = "0.1"
 regex = "1.13"
+chrono = "0.4"
+chrono-tz = "=0.10.4"
+base64 = "0.22"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62.2", features = ["Foundation", "Media_Core", "Media_SpeechSynthesis", "Storage_Streams", "Win32_System_WinRT"] }
+
+# Generated OS bindings do not need large debug symbols; retain symbols in Vern.
+[profile.dev.package.windows]
+debug = 0
 
 [[example]]
 name = "verify-native"

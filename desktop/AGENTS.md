@@ -2,7 +2,7 @@
 
 - Read `../docs/desktop-architecture.md` and `../docs/desktop-feature-parity.md` before changing architecture.
 - Rust owns all persistence, settings, file access, voice downloads and inference. Do not add localStorage/IndexedDB or frontend SQL/store as another persistence owner.
-- Studio means Kokoro; Lite means Piper. Preserve the exact Kokoro v1.0 package and speaker mapping. No system/browser speech substitution.
+- Studio means Kokoro; Lite means Piper. Preserve the exact Kokoro v1.0 package and speaker mapping. Windows voices are an explicitly selected native source, as requested by the user; never silently substitute system/browser speech for Studio or Lite.
 - Keep imports and inference off the UI thread. Render books as plain text. Archive paths, extraction sizes, native requests and positions must be bounded/validated.
 - Use shared CSS tokens and Android fonts; retain their notices. Keyboard controls, visible focus and reduced-motion support are required.
 - Run `npm ci`, `npm run build`, `npm test`, `npm run lint`, `npm run format:check`, `npm run test:e2e` from this directory. Install Playwright Chromium once with `npx playwright install chromium`.

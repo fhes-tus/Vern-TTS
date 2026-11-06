@@ -1,0 +1,18 @@
+{
+  "bundle": {
+    "windows": {
+      "signCommand": {
+        "cmd": "powershell.exe",
+        "args": [
+          "-NoProfile",
+          "-NonInteractive",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "src-tauri/scripts/sign-windows.ps1",
+          "%1"
+        ]
+      }
+    }
+  }
+}

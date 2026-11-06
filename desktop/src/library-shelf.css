@@ -1,0 +1,126 @@
+.shelf-filters {
+  align-items: end;
+  flex-wrap: wrap;
+}
+.shelf-sort-note {
+  margin-left: auto;
+  align-self: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+.library-selection {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 0;
+  margin-bottom: 20px;
+  border-block: 1px solid var(--line);
+}
+.library-selection strong {
+  margin-right: auto;
+  font-size: 14px;
+}
+.book-card {
+  position: relative;
+  border-radius: 10px;
+}
+.book-card.book-is-selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 7px;
+}
+.book-card:has(details[open]) {
+  z-index: 6;
+}
+.book-card-actions {
+  position: absolute;
+  inset: 8px 8px auto;
+  display: flex;
+  align-items: start;
+  justify-content: flex-end;
+  z-index: 3;
+  pointer-events: none;
+}
+.book-card-actions > * {
+  pointer-events: auto;
+}
+.book-select,
+.book-options summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.book-select input {
+  accent-color: var(--accent);
+  width: 17px;
+  height: 17px;
+  margin: 0;
+}
+.book-select {
+  margin-right: auto;
+}
+.library-selection .danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.book-options summary {
+  list-style: none;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+.book-options summary::-webkit-details-marker {
+  display: none;
+}
+.book-options[open] {
+  z-index: 5;
+}
+.book-options summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+.book-options-list {
+  position: absolute;
+  right: 0;
+  top: 38px;
+  width: 230px;
+  max-width: calc(100vw - 80px);
+  display: grid;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: 0 6px 20px #0002;
+}
+.book-options-list button {
+  padding: 10px;
+  text-align: left;
+  border-radius: 5px;
+  font-size: 13px;
+}
+.book-options-list button:hover {
+  background: var(--container);
+}
+.book-options-list .book-delete {
+  color: var(--danger, #ae3730);
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+}
+.delete-book-list {
+  max-height: 200px;
+  overflow: auto;
+  padding-left: 22px;
+}
+@media (max-width: 650px) {
+  .shelf-sort-note {
+    width: 100%;
+    margin: 0;
+  }
+}

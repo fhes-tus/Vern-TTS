@@ -27,6 +27,7 @@ fn main() -> Result<(), String> {
         favorite: false,
         collection: String::new(),
         text_available: true,
+        cover: None,
         updated_at: 0,
     })?;
     db.progress(&book.id, 1)?;

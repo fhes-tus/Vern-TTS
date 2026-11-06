@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "lint": "eslint src tests",
     "format": "prettier --write src tests *.json *.ts *.js",
-    "format:check": "prettier --check src tests *.json *.ts *.js"
+    "format:check": "prettier --check src tests *.json *.ts *.js",
+    "tauri:build:windows-signed": "tauri build --config src-tauri/tauri.signing.conf.json"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",

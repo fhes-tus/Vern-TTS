@@ -1,8 +1,9 @@
 use crate::storage::{error, Book, Result, Storage};
 use rusqlite::{params, OptionalExtension};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
-#[derive(Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SourceInfo {
     pub name: String,
@@ -17,6 +18,39 @@ pub struct SourceFile {
     pub bytes: Vec<u8>,
 }
 
+pub(crate) fn validate_source(
+    book: &Book,
+    name: &str,
+    bytes: &[u8],
+    page_starts: &[usize],
+) -> Result<String> {
+    let extension = name.rsplit('.').next().unwrap_or("").to_uppercase();
+    if bytes.is_empty()
+        || bytes.len() > 32 * 1024 * 1024
+        || name.len() > 1000
+        || name
+            .chars()
+            .any(|c| c.is_control() || matches!(c, '/' | '\\' | ':'))
+        || extension != book.format
+        || !["TXT", "MD", "LOG", "PDF", "EPUB", "DOCX", "PPTX"].contains(&extension.as_str())
+    {
+        return Err("The original file does not match this import.".into());
+    }
+    if page_starts.len() > 10_000
+        || page_starts.windows(2).any(|p| p[0] > p[1])
+        || page_starts.iter().any(|p| *p >= book.chunks.len())
+        || page_starts.first().is_some_and(|p| *p != 0)
+    {
+        return Err("The document page index is invalid.".into());
+    }
+    if extension == "PDF" && !bytes.starts_with(b"%PDF-")
+        || ["EPUB", "DOCX", "PPTX"].contains(&extension.as_str()) && !bytes.starts_with(b"PK")
+    {
+        return Err("The original document has an invalid file signature.".into());
+    }
+    Ok(extension)
+}
+
 impl Storage {
     pub fn import_source(
         &mut self,
@@ -26,33 +60,17 @@ impl Storage {
         page_starts: Vec<usize>,
         text_available: bool,
     ) -> Result<Book> {
-        let extension = name.rsplit('.').next().unwrap_or("").to_uppercase();
-        if bytes.is_empty()
-            || bytes.len() > 32 * 1024 * 1024
-            || name.len() > 1000
-            || name.contains(['/', '\\', '\0'])
-            || extension != book.format
-        {
-            return Err("The original file does not match this import.".into());
+        let extension = validate_source(&book, &name, &bytes, &page_starts)?;
+        if book.text_available != text_available {
+            return Err("The extracted-text status does not match this reading.".into());
         }
-        if page_starts.len() > 10_000
-            || page_starts.windows(2).any(|p| p[0] > p[1])
-            || page_starts.iter().any(|p| *p >= book.chunks.len())
-            || page_starts.first().is_some_and(|p| *p != 0)
-        {
-            return Err("The document page index is invalid.".into());
-        }
-        if extension == "PDF" && !bytes.starts_with(b"%PDF-")
-            || ["EPUB", "DOCX", "PPTX"].contains(&extension.as_str()) && !bytes.starts_with(b"PK")
-        {
-            return Err("The original document has an invalid file signature.".into());
-        }
+        let digest = crate::storage::hex_digest(Sha256::digest(&bytes));
         self.connection
             .execute_batch("SAVEPOINT import_source")
             .map_err(error)?;
         let result = (|| {
-            let saved = self.save_book(book)?;
-            self.connection.execute("INSERT OR IGNORE INTO sources(book_id,name,format,bytes,page_starts,page,text_available) VALUES(?1,?2,?3,?4,?5,0,?6)", params![saved.id,name,extension,bytes,serde_json::to_string(&page_starts).map_err(error)?,text_available]).map_err(error)?;
+            let saved = self.save_original_book(book, &digest, bytes.len())?;
+            self.connection.execute("INSERT OR IGNORE INTO sources(book_id,name,format,bytes,page_starts,page,text_available,digest) VALUES(?1,?2,?3,?4,?5,0,?6,?7)", params![saved.id,name,extension,bytes,serde_json::to_string(&page_starts).map_err(error)?,text_available,digest]).map_err(error)?;
             Ok(saved)
         })();
         match result {
@@ -90,6 +108,23 @@ impl Storage {
             })
         })
         .transpose()
+    }
+    pub(crate) fn restore_source(
+        &mut self,
+        id: &str,
+        info: &SourceInfo,
+        bytes: Vec<u8>,
+    ) -> Result<()> {
+        let mut book = self.book(id)?;
+        book.format.clone_from(&info.format);
+        validate_source(&book, &info.name, &bytes, &info.page_starts)?;
+        if info.page >= info.page_starts.len().max(1) {
+            return Err("The backed-up original page is outside its document.".into());
+        }
+        // A merge can add a missing attachment without changing existing reading progress.
+        let digest = crate::storage::hex_digest(Sha256::digest(&bytes));
+        self.connection.execute("INSERT OR IGNORE INTO sources(book_id,name,format,bytes,page_starts,page,text_available,digest) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",params![id,info.name,info.format,bytes,serde_json::to_string(&info.page_starts).map_err(error)?,i64::try_from(info.page).map_err(error)?,info.text_available,digest]).map_err(error)?;
+        Ok(())
     }
     pub fn source_file(&self, id: &str) -> Result<Option<SourceFile>> {
         self.connection
@@ -163,6 +198,7 @@ mod tests {
             collection: String::new(),
             updated_at: 0,
             text_available: true,
+            cover: None,
         };
         let bytes = b"%PDF-1.4\nsource-persistence-fixture".to_vec();
         let mut db = Storage::open(&path).unwrap();

@@ -51,6 +51,40 @@ export function contrastInk(hex: string) {
   const luminance = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
   return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? '#000000' : '#ffffff';
 }
+function rgb(hex: string) {
+  return [1, 3, 5].map((index) => parseInt(hex.slice(index, index + 2), 16));
+}
+export function contrastRatio(a: string, b: string) {
+  const luminance = (hex: string) =>
+    rgb(hex)
+      .map((value) => {
+        const c = value / 255;
+        return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      })
+      .reduce((sum, c, index) => sum + c * [0.2126, 0.7152, 0.0722][index], 0);
+  const x = luminance(a),
+    y = luminance(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+// Preserve the chosen button colour while making small accent text readable on each surface.
+export function readableAccent(accent: string, background: string) {
+  if (contrastRatio(accent, background) >= 4.5) return accent;
+  const source = rgb(accent),
+    target = rgb(contrastInk(background));
+  for (let step = 1; step <= 100; step++) {
+    const mixed =
+      '#' +
+      source
+        .map((value, index) =>
+          Math.round(value + ((target[index] - value) * step) / 100)
+            .toString(16)
+            .padStart(2, '0'),
+        )
+        .join('');
+    if (contrastRatio(mixed, background) >= 4.5) return mixed;
+  }
+  return contrastInk(background);
+}
 export function useTheme(settings: Settings) {
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
@@ -61,6 +95,7 @@ export function useTheme(settings: Settings) {
       root.dataset.theme = p.dark ? 'dark' : 'light';
       root.dataset.palette = settings.colorTheme;
       root.dataset.reduceMotion = String(settings.reduceMotion);
+      root.dataset.reduceTransparency = String(settings.reduceTransparency);
       root.style.colorScheme = p.dark ? 'dark' : 'light';
       const tokens = {
         page: p.background,
@@ -76,6 +111,9 @@ export function useTheme(settings: Settings) {
         muted: p.onSurfaceVariant,
         accent,
         'accent-strong': accent,
+        'accent-text': readableAccent(accent, p.background),
+        'accent-on-surface': readableAccent(accent, p.surface),
+        'accent-on-container': readableAccent(accent, p.surfaceVariant),
         'on-accent': contrastInk(accent),
         sage: p.tertiary,
         'accent-container': settings.accentColor
@@ -90,5 +128,11 @@ export function useTheme(settings: Settings) {
     apply();
     media.addEventListener?.('change', apply);
     return () => media.removeEventListener?.('change', apply);
-  }, [settings.theme, settings.colorTheme, settings.accentColor, settings.reduceMotion]);
+  }, [
+    settings.theme,
+    settings.colorTheme,
+    settings.accentColor,
+    settings.reduceMotion,
+    settings.reduceTransparency,
+  ]);
 }

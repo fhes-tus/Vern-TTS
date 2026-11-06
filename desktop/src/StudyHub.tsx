@@ -108,16 +108,10 @@ export function StudyHub(props: {
         <div className="page study-hub">
           <div className="page-heading">
             <div>
-              <span className="eyebrow">MAKE ROOM FOR WHAT YOU LEARN</span>
               <h1>
                 {view === 'overview' ? 'Study Hub' : 'Quizzes'}
                 <span className="heading-dot">.</span>
               </h1>
-              <p>
-                {view === 'overview'
-                  ? 'Your cards, quizzes and reading discoveries, together.'
-                  : 'Practise, check explanations and keep your best score.'}
-              </p>
             </div>
             <div className="action-row">
               <button
@@ -149,7 +143,6 @@ export function StudyHub(props: {
             <>
               <section className="study-review-banner">
                 <div>
-                  <span className="eyebrow">READY WHEN YOU ARE</span>
                   <h2>{counts.due} cards ready to review</h2>
                   <p>{counts.decks} decks · Review ratings set the next due date.</p>
                 </div>
@@ -216,7 +209,7 @@ export function StudyHub(props: {
                   <div>
                     <h2>{quiz.title}</h2>
                     <p>
-                      {quiz.questions.length} questions · {quiz.attempts} attempts · Best:{' '}
+                      {quiz.questions.length} questions · {quiz.attempts} desktop attempts · Best:{' '}
                       {quiz.bestScore === null
                         ? 'not attempted'
                         : `${quiz.bestScore}/${quiz.questions.length}`}

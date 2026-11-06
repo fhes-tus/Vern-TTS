@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Notice } from './Notice';
 import { call, native } from './api';
 import { Glyph } from './Glyph';
-import type { Book } from './types';
+import type { Book, Settings } from './types';
 
 const tasks = [
   {
@@ -54,18 +55,21 @@ export function AiHandoff({
   onError,
   onStudy,
   initial,
+  settings,
 }: {
   books: Book[];
   active?: Book;
   onError: (error: unknown) => void;
   onStudy: () => void;
   initial?: { bookId: string; text: string };
+  settings: Settings;
 }) {
   const [bookId, setBookId] = useState(initial?.bookId ?? '');
   const [task, setTask] = useState('explain');
   const [instructions, setInstructions] = useState(tasks[0].instruction);
   const [passage, setPassage] = useState(initial?.text.slice(0, 12000) ?? '');
-  const [assistant, setAssistant] = useState('chatgpt');
+  const [assistant, setAssistant] = useState(settings.aiAssistant);
+  useEffect(() => setAssistant(settings.aiAssistant), [settings.aiAssistant]);
   const [status, setStatus] = useState('');
   const book = books.find((book) => book.id === bookId) ?? active ?? books[0];
   const prompt = `${instructions.trim()}\n\n${book ? `Source: ${book.title}${book.author ? ` — ${book.author}` : ''}\n` : ''}Passage:\n${passage.trim()}`;
@@ -80,7 +84,6 @@ export function AiHandoff({
   }
   return (
     <div className="page ai-page">
-      <span className="eyebrow">A LITTLE HELP THINKING IT THROUGH</span>
       <h1>
         AI handoff<span className="heading-dot">.</span>
       </h1>
@@ -205,7 +208,7 @@ export function AiHandoff({
             <Glyph name="external" />
             Copy & open assistant
           </button>
-          {status && <p role="status">{status}</p>}
+          {status && <Notice onDismiss={() => setStatus('')}>{status}</Notice>}
           <p className="muted">
             Opens the assistant’s website in your browser. Paste and send the prompt there. Replies
             can be pasted into Study Hub and reviewed before saving.

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Notice } from './Notice';
 import { api, native, type Classic } from './api';
 import { importInWorker } from './import-client';
 import { Glyph } from './Glyph';
@@ -85,13 +86,9 @@ export function ClassicsPage({
     <div className="page classics-page">
       <div className="page-heading">
         <div>
-          <span className="eyebrow">A WORLD OF STORIES</span>
           <h1>
             Classics<span className="heading-dot">.</span>
           </h1>
-          <p className="page-description">
-            The familiar Vern catalogue. Pick a cover, find your next chapter.
-          </p>
         </div>
         <span className="catalogue-count">{entries.length} curated books</span>
       </div>
@@ -100,7 +97,7 @@ export function ClassicsPage({
           <Glyph name="search" />
           <input
             aria-label="Search classics"
-            placeholder="Title, author or a little curiosity…"
+            placeholder="Search titles or authors"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -121,7 +118,7 @@ export function ClassicsPage({
         ))}
       </div>
       {phase && (
-        <div className="catalogue-status" role="status">
+        <Notice onDismiss={() => setPhase('')}>
           {busy && <span className="activity-ring" />}
           {phase}
           {busy && (
@@ -129,7 +126,7 @@ export function ClassicsPage({
               Cancel download
             </button>
           )}
-        </div>
+        </Notice>
       )}
       <div className={`classics-grid ${list ? 'catalogue-list' : ''}`}>
         {visible.map((entry) => {

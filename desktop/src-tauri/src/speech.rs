@@ -47,6 +47,14 @@ impl Speech {
         if !is_current() {
             return Err("Speech request cancelled.".into());
         }
+        if crate::windows_speech::valid_id(voice_id) {
+            let mut cache = self.engine.lock().map_err(error)?;
+            *cache = None;
+            if !is_current() {
+                return Err("Speech request cancelled.".into());
+            }
+            return crate::windows_speech::synthesize(voice_id, text, rate, is_current);
+        }
         let d = descriptor(voice_id)?;
         if !voices.installed(d) {
             return Err("Download this voice in Voice Studio before listening.".into());
@@ -55,14 +63,15 @@ impl Speech {
         if !is_current() {
             return Err("Speech request cancelled.".into());
         }
-        if cache.as_ref().is_none_or(|(id, _)| id != voice_id) {
+        let engine_key = format!("{}:{}", d.id, d.sid >= 20);
+        if cache.as_ref().is_none_or(|(id, _)| id != &engine_key) {
             // Drop previous graph first to bound memory use when switching families.
             *cache = None;
             let engine = voices
                 .verify(d)
                 .and_then(|()| load_engine(&voices.root.join(d.id), d))
                 .inspect_err(|message| voices.invalidate(d, message.clone()))?;
-            *cache = Some((voice_id.into(), engine));
+            *cache = Some((engine_key, engine));
         }
         let clean: String = text
             .nfc()

@@ -43,8 +43,10 @@ impl Quiz {
             || self.created_at > 8_640_000_000_000_000
             || self.best_score.is_some_and(|s| s > self.questions.len())
             || self.last_score.is_some_and(|s| s > self.questions.len())
-            || (self.attempts == 0) != self.best_score.is_none()
-            || self.best_score.is_none() != self.last_score.is_none()
+            // Android exports best score only. Zero desktop attempts with a known
+            // imported best and unknown last score is valid; never invent attempts.
+            || (self.attempts == 0 && self.last_score.is_some())
+            || (self.attempts > 0 && (self.best_score.is_none() || self.last_score.is_none()))
             || self.best_score < self.last_score
         {
             return Err(

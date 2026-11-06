@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { BookCover } from './BookCover';
 import { api, native } from './api';
 import { Glyph } from './Glyph';
 import type { Annotation, Book, CardInput, Flashcard } from './types';
@@ -157,6 +158,9 @@ export function BookDetails({
           void submit();
         }}
       >
+        <div className="details-book-cover">
+          <BookCover book={book} large />
+        </div>
         <label>
           Title
           <input
@@ -378,19 +382,15 @@ export function NotesPage({
   );
   return (
     <div className="page notes-page">
-      <span className="eyebrow">KEEP THE WORDS THAT MATTER</span>
       <h1>
         Notes & bookmarks<span className="heading-dot">.</span>
       </h1>
-      <p className="page-description">
-        Your thoughts across every book, with a path back to the source.
-      </p>
       <div className="workspace-filters">
         <label>
           Search notes
           <input
             type="search"
-            placeholder="Find a thought…"
+            placeholder="Search notes"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -524,7 +524,11 @@ function CardEditor({
           />
         </label>
         {input.bookId && (
-          <p className="muted">Linked to passage {(input.position ?? 0) + 1} in the source book.</p>
+          <p className="muted">
+            {input.position === null
+              ? 'Linked to the source book.'
+              : `Linked to passage ${input.position + 1} in the source book.`}
+          </p>
         )}
         {error && <p role="alert">{error}</p>}
         <button
@@ -626,11 +630,9 @@ export function StudyPage({
     <div className="page study-page">
       <div className="page-heading">
         <div>
-          <span className="eyebrow">A LITTLE PRACTICE, OFTEN</span>
           <h1>
             Flashcards<span className="heading-dot">.</span>
           </h1>
-          <p>Turn reading into recall, one card at a time.</p>
         </div>
         <button
           className="primary"
@@ -754,9 +756,12 @@ export function StudyPage({
                         : `Next review ${new Date(card.dueAt).toLocaleDateString()}`}
                   </p>
                   <div className="action-row">
-                    {book && card.position !== null && (
-                      <button className="text-button" onClick={() => onOpen(book, card.position!)}>
-                        Source passage →
+                    {book && (
+                      <button
+                        className="text-button"
+                        onClick={() => onOpen(book, card.position ?? book.position)}
+                      >
+                        {card.position === null ? 'Source book →' : 'Source passage →'}
                       </button>
                     )}
                     <button className="text-button" disabled={busy} onClick={() => setEditor(card)}>

@@ -41,8 +41,14 @@
   --sage: #52695c;
   --highlight: #fde8cc;
   --reader: Georgia, serif;
+  --highlight-yellow: #f0d36b;
+  --highlight-sage: #9dcaaf;
+  --highlight-blue: #98bee8;
+  --highlight-rose: #e8a9b6;
+  --reading-highlight-mix: 35%;
 }
 :root[data-theme='dark'] {
+  --reading-highlight-mix: 25%;
   color-scheme: dark;
   --page: #181715;
   --surface: #22211f;
@@ -170,7 +176,7 @@ small {
 }
 .brand-dot,
 .heading-dot {
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .sidebar-caption {
   font-size: 12px;
@@ -205,8 +211,8 @@ small {
   background: var(--container);
 }
 .nav-item.selected {
-  background: var(--accent-container);
-  color: var(--accent-strong);
+  background: var(--container);
+  color: var(--ink);
   font-weight: 500;
 }
 .nav-count {
@@ -248,8 +254,7 @@ small {
 }
 .version {
   display: block;
-  font-size: 9px;
-  letter-spacing: 1.25px;
+  font-size: 11px;
   color: var(--muted);
   margin: 25px 12px 0;
 }
@@ -272,6 +277,18 @@ small {
 .breadcrumb {
   font-size: 12px;
   color: var(--muted);
+}
+.window-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.window-navigation .breadcrumb {
+  min-width: 0;
+}
+.window-navigation .icon-button {
+  flex-shrink: 0;
 }
 .breadcrumb span {
   padding: 0 12px;
@@ -337,7 +354,7 @@ small {
 }
 .preview-banner {
   background: var(--accent-container);
-  color: var(--accent-strong);
+  color: var(--ink);
   font-size: 12px;
   padding: 9px 38px;
 }
@@ -368,8 +385,8 @@ main {
   margin: 0 auto;
 }
 .eyebrow {
-  font-size: 9px;
-  letter-spacing: 1.65px;
+  font-size: 11px;
+  letter-spacing: 0;
   color: var(--muted);
   font-weight: 500;
 }
@@ -398,7 +415,7 @@ main {
   line-height: 1;
   font-weight: 400;
   letter-spacing: -1px;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .book-count span {
   font-size: 10px;
@@ -631,7 +648,7 @@ main {
 .empty-library > svg {
   width: 28px;
   height: 28px;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .empty-library h3 {
   font-size: 15px;
@@ -649,7 +666,7 @@ main {
   padding-top: 30px;
 }
 .shelf-footer span {
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
   margin-left: 5px;
 }
 .book-grid {
@@ -772,7 +789,7 @@ main {
   height: 15px;
 }
 .is-favorite {
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .is-favorite svg {
   fill: var(--accent-container);
@@ -809,7 +826,7 @@ progress::-moz-progress-bar {
 .icon-button:hover:not(:disabled),
 .icon-button.selected {
   background: var(--container);
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .playback-bar {
   flex-shrink: 0;
@@ -854,7 +871,7 @@ progress::-moz-progress-bar {
 .now-playing span {
   display: block;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   margin-top: 5px;
 }
 .transport {
@@ -906,8 +923,7 @@ progress::-moz-progress-bar {
 }
 .voice-selector small {
   display: block;
-  font-size: 8px;
-  letter-spacing: 1px;
+  font-size: 11px;
   margin-top: 4px;
   color: var(--muted);
 }
@@ -987,7 +1003,7 @@ progress::-moz-progress-bar {
 }
 .reader-chapter span {
   display: block;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
   font-size: 22px;
   margin-top: 12px;
 }
@@ -1009,7 +1025,7 @@ progress::-moz-progress-bar {
 }
 .reader-end {
   text-align: center;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
   padding-top: 20px;
 }
 .reader-position {
@@ -1036,7 +1052,7 @@ progress::-moz-progress-bar {
   gap: 9px;
 }
 .notebook-title > svg {
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
   width: 18px;
 }
 .notebook-title h2 {
@@ -1118,7 +1134,7 @@ progress::-moz-progress-bar {
 }
 .note-link {
   font-size: 10px;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1145,14 +1161,14 @@ progress::-moz-progress-bar {
 }
 .search-results small {
   display: block;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
   font-size: 9px;
   margin-bottom: 5px;
 }
 .text-button {
   font-family: Outfit, sans-serif;
   font-size: 12px;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
   padding: 10px 0;
 }
 .voices-page h1,
@@ -1232,7 +1248,7 @@ progress::-moz-progress-bar {
   font-size: 10px;
   letter-spacing: 1.3px;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .voice-family span {
   font-size: 9px;
@@ -1519,6 +1535,7 @@ progress::-moz-progress-bar {
   justify-self: start;
 }
 .workspace-dialog {
+  overscroll-behavior: contain;
   width: min(580px, calc(100vw - 48px));
   max-height: calc(100vh - 48px);
   overflow-y: auto;
@@ -1621,7 +1638,7 @@ progress::-moz-progress-bar {
 }
 .search-excerpt small {
   display: block;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
   margin-bottom: 5px;
 }
 .study-summary {
@@ -1686,15 +1703,41 @@ progress::-moz-progress-bar {
   line-height: 1.7;
   margin: 16px 0;
 }
-.restore-choice {
+.backup-counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1.5rem;
+  margin: 0 0 1.25rem;
+}
+.backup-counts > div {
   display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.backup-counts dt {
+  color: var(--muted);
+}
+.backup-counts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.workspace-dialog label.restore-choice {
+  display: flex;
+  flex-direction: row;
   gap: 12px;
   align-items: start;
   margin: 24px 0;
   line-height: 1.6;
 }
 .restore-choice input {
-  margin-top: 6px;
+  width: auto;
+  flex: 0 0 auto;
+  margin: 6px 0 0;
+}
+@media (max-width: 600px) {
+  .backup-counts {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* The book owns the available height; app chrome is optional in focus mode. */
@@ -1804,9 +1847,96 @@ progress::-moz-progress-bar {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
   margin: 0 4px 15px;
+}
+@media (max-width: 700px) {
+  .app-shell {
+    flex-direction: column;
+    min-height: 0;
+  }
+  .sidebar {
+    width: 100%;
+    padding: 10px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+  }
+  .sidebar .brand > span {
+    font-size: 26px;
+    letter-spacing: -1px;
+  }
+  .sidebar .brand img {
+    width: 28px;
+    height: 28px;
+  }
+  .sidebar-caption,
+  .sidebar-bottom {
+    display: none;
+  }
+  .sidebar nav {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+  }
+  .sidebar .nav-item {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    width: auto;
+    min-width: 44px;
+    padding: 6px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+  .sidebar .nav-item svg {
+    width: 16px;
+    height: 16px;
+  }
+  .workspace {
+    min-height: 0;
+  }
+  .topbar {
+    height: auto;
+    min-height: 56px;
+    padding: 10px 16px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .topbar-actions {
+    gap: 8px;
+  }
+  .topbar .breadcrumb {
+    min-width: 0;
+  }
+  .preview-banner {
+    padding: 8px 16px;
+  }
+  .page {
+    padding: 24px 16px;
+  }
+  .playback-bar {
+    padding: 10px 16px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .playback-bar .now-playing {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+  .playback-bar .transport {
+    flex-shrink: 0;
+  }
+  .playback-bar .playback-options {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 .sidebar .version {
   margin-left: 5px;
@@ -1817,6 +1947,7 @@ progress::-moz-progress-bar {
 }
 .section-nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 10px 32px;
   border-bottom: 1px solid var(--line);
@@ -1847,6 +1978,27 @@ progress::-moz-progress-bar {
 .classic-shelf-cover {
   object-fit: cover;
 }
+.home-heading {
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.home-heading + .home-hero {
+  margin-top: 0;
+}
+@media (max-width: 600px) {
+  .home-page .home-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    min-height: 0;
+  }
+  .home-page .home-book-stack {
+    width: 266px;
+    height: 215px;
+    justify-self: center;
+    transform-origin: center;
+  }
+}
 .home-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 270px;
@@ -1855,7 +2007,7 @@ progress::-moz-progress-bar {
   margin: 30px 0 24px;
   padding: 32px;
   border-radius: 22px;
-  background: linear-gradient(115deg, var(--accent-container), var(--low));
+  background: var(--accent-container);
   border: 1px solid var(--line);
   min-height: 290px;
   overflow: hidden;
@@ -1919,7 +2071,7 @@ progress::-moz-progress-bar {
   text-align: left;
 }
 .home-counters .glyph {
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
   grid-row: span 2;
   margin-top: 6px;
 }
@@ -1942,7 +2094,7 @@ progress::-moz-progress-bar {
   font-size: 12px;
 }
 .section-heading > .glyph {
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .section-heading p {
   color: var(--muted);
@@ -1976,7 +2128,7 @@ progress::-moz-progress-bar {
   width: 46px;
   height: 46px;
   border-radius: 14px;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
   background: var(--accent-container);
   flex-shrink: 0;
 }
@@ -2220,7 +2372,7 @@ progress::-moz-progress-bar {
   margin-left: auto;
   width: 15px;
   height: 15px;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .palette-preview {
   display: flex;
@@ -2417,7 +2569,7 @@ progress::-moz-progress-bar {
 }
 .reader-match-list small {
   display: block;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .reader-viewport {
   flex: 1;
@@ -2466,8 +2618,11 @@ progress::-moz-progress-bar {
 }
 .flow-page-body p[aria-current='location'],
 .flow-scroll p[aria-current='location'] {
-  background: var(--highlight);
-  box-shadow: 0 0 0 4px var(--highlight);
+  border-inline-start: 2px solid var(--line);
+}
+::highlight(vern-speech) {
+  background-color: var(--highlight);
+  color: var(--ink);
 }
 .flow-page-body p::selection,
 .flow-scroll p::selection,
@@ -2921,7 +3076,7 @@ a,
 .study-collection svg {
   width: 26px;
   height: 26px;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .study-collection strong {
   font-size: 19px;
@@ -2972,7 +3127,7 @@ a,
 }
 .quiz-choice strong {
   margin-left: auto;
-  color: var(--accent);
+  color: var(--accent-text, var(--accent));
 }
 .quiz-question:disabled {
   opacity: 1;
@@ -3106,4 +3261,104 @@ a,
 .notes-workspace .page-heading {
   flex-wrap: wrap;
   gap: 20px;
+}
+
+/* Reader marks use the app's surfaces and type; colour belongs to the saved passage. */
+.reading-highlights {
+  display: grid;
+  gap: 16px;
+}
+.highlight-book {
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.highlight-excerpt {
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--low);
+  color: var(--ink);
+  border-radius: 8px;
+  line-height: 1.6;
+}
+.highlight-colours {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+.highlight-colours legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.workspace-form .highlight-colours label {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.workspace-form .highlight-colours input[type='radio'] {
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  padding: 0;
+  flex: none;
+}
+.reading-highlights input[type='color'] {
+  width: 64px;
+  height: 40px;
+  min-height: 40px;
+  padding: 4px;
+}
+.highlight-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  flex: none;
+}
+.reading-highlight-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+.reading-highlight-list > li {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.highlight-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.highlight-error,
+.highlight-confirm {
+  padding: 12px;
+  background: var(--low);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+}
+.reading-highlights button:disabled {
+  opacity: 1;
+  color: var(--muted);
+  background: var(--low);
+}
+@media (max-width: 700px) {
+  .reading-highlights .action-row button,
+  .highlight-colours label {
+    min-height: 44px;
+  }
 }

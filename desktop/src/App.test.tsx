@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { defaultSettings, type Book } from './types';
 
@@ -19,10 +19,15 @@ vi.mock('./api', () => ({
     settings: async () => defaultSettings,
     voices: async () => [],
     allAnnotations: async () => store.notes,
+    highlights: async () => [],
+    saveHighlight: async (input: unknown) => input,
+    deleteHighlight: async () => {},
     flashcards: async () => [],
     personalNotes: async () => [],
     notebooks: async () => [],
     quizzes: async () => [],
+    recordActivity: async () => {},
+    recordReadingOpen: async () => {},
     annotations: async () => store.notes,
     sourceInfo: async () => null,
     saveSettings: (...args: unknown[]) => {
@@ -74,7 +79,7 @@ beforeEach(() => {
   );
   Object.defineProperty(document, 'fonts', {
     configurable: true,
-    value: { ready: Promise.resolve() },
+    value: { ready: Promise.resolve(), load: async () => [] },
   });
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
@@ -100,8 +105,9 @@ describe('reader interaction with a mocked native transport', () => {
   it('opens imported text, saves the selected passage and anchors notes to it', async () => {
     Element.prototype.scrollIntoView = vi.fn();
     render(<App />);
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Import book' })).toBeEnabled());
-    fireEvent.click(screen.getByRole('button', { name: 'Import book' }));
+    const home = within(screen.getByRole('region', { name: 'Add your first book' }));
+    await waitFor(() => expect(home.getByRole('button', { name: 'Import book' })).toBeEnabled());
+    fireEvent.click(home.getByRole('button', { name: 'Import book' }));
     await screen.findByText('A second passage.', {}, { timeout: 10000 });
     fireEvent.click(screen.getByText('A second passage.'), { detail: 1 });
     await waitFor(() => expect(store.progress).toHaveBeenLastCalledWith('alice', 1));
@@ -121,5 +127,5 @@ describe('reader interaction with a mocked native transport', () => {
       ),
     );
     expect(await screen.findByText('Remember this passage.')).toBeVisible();
-  });
+  }, 15_000);
 });

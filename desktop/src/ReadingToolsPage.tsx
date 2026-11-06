@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Notice } from './Notice';
 import { native } from './api';
+import { ReferenceTools } from './ReferenceTools';
 import type { Book, CardInput, PronunciationRule, Settings, Vocabulary } from './types';
 
 export function ReadingToolsPage({
@@ -9,13 +11,15 @@ export function ReadingToolsPage({
   onSave,
   onOpen,
   onCard,
+  pronunciationOnly = false,
 }: {
   settings: Settings;
   books: Book[];
-  source: { bookId: string; position: number; word?: string } | null;
+  source: { bookId: string; position: number; word?: string; text?: string } | null;
   onSave: (patch: Partial<Settings>) => Promise<boolean>;
   onOpen: (book: Book, position: number) => void;
   onCard: (card: CardInput) => void;
+  pronunciationOnly?: boolean;
 }) {
   const [word, setWord] = useState<Vocabulary>({
     id: crypto.randomUUID(),
@@ -56,153 +60,153 @@ export function ReadingToolsPage({
     `${entry.word} ${entry.definition}`.toLowerCase().includes(query.toLowerCase()),
   );
   return (
-    <div className="page reading-tools-page">
-      <span className="eyebrow">MAKE THE WORDS YOUR OWN</span>
-      <h1>
-        Reading tools<span className="heading-dot">.</span>
-      </h1>
-      <p className="page-description">
-        Keep your vocabulary and teach your offline voices how to say a word or phrase.
-      </p>
-      {message && <p role="status">{message}</p>}
-      <section className="settings-card">
-        <h2>Vocabulary notebook</h2>
-        <p className="muted">
-          Record a word and its meaning, then turn it into a flashcard. Definitions are written by
-          you; online dictionary and translation lookup are still being built.
-        </p>
-        <form
-          className="workspace-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void save(
-              {
-                vocabulary: [
-                  ...settings.vocabulary.filter((entry) => entry.id !== word.id),
-                  { ...word, word: word.word.trim(), definition: word.definition.trim() },
-                ],
-              },
-              resetWord,
-            );
-          }}
-        >
-          <label>
-            Word or phrase
-            <input
-              required
-              maxLength={100}
-              value={word.word}
-              onChange={(e) => setWord({ ...word, word: e.target.value })}
-            />
-          </label>
-          <label>
-            Meaning
-            <textarea
-              required
-              maxLength={2000}
-              value={word.definition}
-              onChange={(e) => setWord({ ...word, definition: e.target.value })}
-            />
-          </label>
-          {word.bookId && (
-            <p className="muted">
-              Source: {books.find((b) => b.id === word.bookId)?.title} · passage{' '}
-              {(word.position ?? 0) + 1}{' '}
+    <div className={pronunciationOnly ? 'reading-tools-page' : 'page reading-tools-page'}>
+      {!pronunciationOnly && (
+        <>
+          <h1>
+            Reading tools<span className="heading-dot">.</span>
+          </h1>
+        </>
+      )}
+      {message && <Notice onDismiss={() => setMessage('')}>{message}</Notice>}
+      {!pronunciationOnly && <ReferenceTools initialText={source?.text ?? source?.word} />}
+      {!pronunciationOnly && (
+        <section className="settings-card">
+          <h2>Vocabulary notebook</h2>
+          <p className="muted">Save a definition or make a flashcard from it.</p>
+          <form
+            className="workspace-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void save(
+                {
+                  vocabulary: [
+                    ...settings.vocabulary.filter((entry) => entry.id !== word.id),
+                    { ...word, word: word.word.trim(), definition: word.definition.trim() },
+                  ],
+                },
+                resetWord,
+              );
+            }}
+          >
+            <label>
+              Word or phrase
+              <input
+                required
+                maxLength={100}
+                value={word.word}
+                onChange={(e) => setWord({ ...word, word: e.target.value })}
+              />
+            </label>
+            <label>
+              Meaning
+              <textarea
+                required
+                maxLength={2000}
+                value={word.definition}
+                onChange={(e) => setWord({ ...word, definition: e.target.value })}
+              />
+            </label>
+            {word.bookId && (
+              <p className="muted">
+                Source: {books.find((b) => b.id === word.bookId)?.title} · passage{' '}
+                {(word.position ?? 0) + 1}{' '}
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => setWord({ ...word, bookId: null, position: null })}
+                >
+                  Remove source link
+                </button>
+              </p>
+            )}
+            <div className="action-row">
               <button
-                type="button"
-                className="text-button"
-                onClick={() => setWord({ ...word, bookId: null, position: null })}
+                className="primary"
+                disabled={busy || !native || !word.word.trim() || !word.definition.trim()}
               >
-                Remove source link
+                Save vocabulary
               </button>
-            </p>
-          )}
-          <div className="action-row">
-            <button
-              className="primary"
-              disabled={busy || !native || !word.word.trim() || !word.definition.trim()}
-            >
-              Save vocabulary
-            </button>
-            <button className="secondary" type="button" disabled={busy} onClick={resetWord}>
-              Clear form
-            </button>
+              <button className="secondary" type="button" disabled={busy} onClick={resetWord}>
+                Clear form
+              </button>
+            </div>
+          </form>
+          <div className="workspace-filters">
+            <label>
+              Search vocabulary
+              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
+            </label>
           </div>
-        </form>
-        <div className="workspace-filters">
-          <label>
-            Search vocabulary
-            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
-          </label>
-        </div>
-        <div className="annotation-grid">
-          {words.map((entry) => {
-            const book = books.find((b) => b.id === entry.bookId);
-            return (
-              <article className="saved-note" key={entry.id}>
-                <h3>{entry.word}</h3>
-                <p>{entry.definition}</p>
-                <div className="action-row">
-                  <button className="text-button" disabled={busy} onClick={() => setWord(entry)}>
-                    Edit
-                  </button>
-                  <button
-                    className="text-button"
-                    disabled={busy}
-                    onClick={() =>
-                      onCard({
-                        deck: 'Vocabulary',
-                        front: entry.word,
-                        back: entry.definition,
-                        bookId: entry.bookId,
-                        position: entry.position,
-                      })
-                    }
-                  >
-                    Create flashcard
-                  </button>
-                  {book && entry.position !== null && (
-                    <button className="text-button" onClick={() => onOpen(book, entry.position!)}>
-                      Source passage →
-                    </button>
-                  )}
-                  <button
-                    className="text-button"
-                    disabled={busy}
-                    onClick={() => setDeleting(entry.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-                {deleting === entry.id && (
+          <div className="annotation-grid">
+            {words.map((entry) => {
+              const book = books.find((b) => b.id === entry.bookId);
+              return (
+                <article className="saved-note" key={entry.id}>
+                  <h3>{entry.word}</h3>
+                  <p>{entry.definition}</p>
                   <div className="action-row">
-                    <span>Delete this vocabulary entry?</span>
+                    <button className="text-button" disabled={busy} onClick={() => setWord(entry)}>
+                      Edit
+                    </button>
                     <button
-                      className="danger small"
+                      className="text-button"
                       disabled={busy}
                       onClick={() =>
-                        void save(
-                          { vocabulary: settings.vocabulary.filter((v) => v.id !== entry.id) },
-                          () => {
-                            setDeleting(null);
-                            if (word.id === entry.id) resetWord();
-                          },
-                        )
+                        onCard({
+                          deck: 'Vocabulary',
+                          front: entry.word,
+                          back: entry.definition,
+                          bookId: entry.bookId,
+                          position: entry.position,
+                        })
                       }
                     >
-                      Delete entry
+                      Create flashcard
                     </button>
-                    <button className="secondary small" onClick={() => setDeleting(null)}>
-                      Keep
+                    {book && entry.position !== null && (
+                      <button className="text-button" onClick={() => onOpen(book, entry.position!)}>
+                        Source passage →
+                      </button>
+                    )}
+                    <button
+                      className="text-button"
+                      disabled={busy}
+                      onClick={() => setDeleting(entry.id)}
+                    >
+                      Delete
                     </button>
                   </div>
-                )}
-              </article>
-            );
-          })}
-        </div>
-        {!words.length && <p className="muted">No vocabulary matches this view.</p>}
-      </section>
+                  {deleting === entry.id && (
+                    <div className="action-row">
+                      <span>Delete this vocabulary entry?</span>
+                      <button
+                        className="danger small"
+                        disabled={busy}
+                        onClick={() =>
+                          void save(
+                            { vocabulary: settings.vocabulary.filter((v) => v.id !== entry.id) },
+                            () => {
+                              setDeleting(null);
+                              if (word.id === entry.id) resetWord();
+                            },
+                          )
+                        }
+                      >
+                        Delete entry
+                      </button>
+                      <button className="secondary small" onClick={() => setDeleting(null)}>
+                        Keep
+                      </button>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+          {!words.length && <p className="muted">No vocabulary matches this view.</p>}
+        </section>
+      )}
       <section className="settings-card">
         <h2>Pronunciation rules</h2>
         <p className="muted">

@@ -44,12 +44,19 @@ function pdfAssets(): import('vite').Plugin {
 
 export default defineConfig({
   plugins: [react(), pdfAssets()],
+  // Workers load these outside the page's initial dependency crawl. Discovering
+  // them during an import can trigger a dev-server reload and cancel that import.
+  optimizeDeps: { include: ['@xmldom/xmldom', 'fflate', 'pdfjs-dist'] },
   clearScreen: false,
   server: {
     host: '127.0.0.1',
     port: 1420,
     strictPort: true,
-    watch: { ignored: ['**/.tools/**', '**/src-tauri/**', '**/.artifacts/**'] },
+    watch: {
+      ignored: ['**/.tools/**', '**/src-tauri/**', '**/.artifacts/**'],
+      // Wait for editors/formatters to finish replacing a file before caching its contents.
+      awaitWriteFinish: { stabilityThreshold: 250, pollInterval: 50 },
+    },
   },
   build: { target: ['es2022', 'chrome105', 'safari15'] },
 });

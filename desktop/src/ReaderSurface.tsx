@@ -19,11 +19,21 @@ import {
 } from './document-model';
 import { paginate, pageForPosition, type FlowPage } from './pagination';
 import type { Book, Settings, SourceInfo } from './types';
+import { readerFontFamily, readerPaperStyle } from './reader-appearance';
+import { useNarrationHighlight, type SpokenPassage } from './narration-highlight';
+import { ReadingHighlights } from './ReadingHighlights';
 
 const PdfPage = lazy(() => import('./PdfPage').then((module) => ({ default: module.PdfPage })));
-export type ReaderSelection = { bookId: string; text: string; position: number };
+export type ReaderSelection = {
+  bookId: string;
+  text: string;
+  position: number;
+  endPosition?: number;
+  highlightable?: boolean;
+};
 type Props = {
   book: Book;
+  spoken: SpokenPassage | null;
   settings: Settings;
   query: string;
   onQuery: (value: string) => void;
@@ -33,6 +43,9 @@ type Props = {
   onError: (e: unknown) => void;
   onImport: () => void;
   onPreferences: () => void;
+  onBack: () => void;
+  onForward: () => void;
+  canForward: boolean;
   fullscreen: boolean;
   onFullscreen: () => void;
   notebook: boolean;
@@ -139,7 +152,25 @@ function SourcePage({
     </div>
   );
 }
-const normalize = (text: string) => text.replace(/\s+/g, ' ').trim();
+const normalize = (text: string) =>
+  text
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\s\-\u00ad]/gu, '');
+function ReadingText({ text, bionic }: { text: string; bionic: boolean }) {
+  if (!bionic) return text;
+  return text.split(/(\p{L}[\p{L}\p{M}]*)/u).map((word, n) => {
+    if (!/^\p{L}/u.test(word)) return word;
+    const letters = Array.from(word);
+    const length = Math.ceil(letters.length / 2);
+    return (
+      <span key={n}>
+        <b>{letters.slice(0, length).join('')}</b>
+        {letters.slice(length).join('')}
+      </span>
+    );
+  });
+}
 function pageAt(starts: number[], position: number) {
   let page = 0;
   for (let n = 0; n < starts.length; n++) {
@@ -153,6 +184,17 @@ export function ReaderSurface(props: Props) {
   const { book, settings, onError } = props;
   const root = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
+  useNarrationHighlight(viewport, props.spoken);
+  const clickSeek = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(clickSeek.current), []);
+  function selectPassage(detail: number, position: number) {
+    clearTimeout(clickSeek.current);
+    if (detail !== 1 || !window.getSelection()?.isCollapsed) return;
+    // A double click selects a word; its first click must not stop narration.
+    clickSeek.current = setTimeout(() => {
+      if (window.getSelection()?.isCollapsed) void props.onSeek(position);
+    }, 300);
+  }
   const stage = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 700, height: 500 });
   const [pages, setPages] = useState<FlowPage[]>([]);
@@ -165,9 +207,14 @@ export function ReaderSurface(props: Props) {
   const [sourceLoading, setSourceLoading] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [selection, setSelection] = useState<ReaderSelection | null>(null);
+  const [selectionAtTop, setSelectionAtTop] = useState(false);
+  const [highlightsOpen, setHighlightsOpen] = useState(false);
+  const [highlightRequest, setHighlightRequest] = useState<ReaderSelection | null>(null);
+  const highlightButton = useRef<HTMLButtonElement>(null);
   const [copied, setCopied] = useState('');
   const [controls, setControls] = useState(true);
   const [jump, setJump] = useState('1');
+  const [searchOpen, setSearchOpen] = useState(() => !!props.query);
   const pageRef = useRef(0);
   const latestPosition = useRef(book.position);
   latestPosition.current = book.position;
@@ -175,14 +222,20 @@ export function ReaderSurface(props: Props) {
   const pendingTurn = useRef(0);
   const direction = useRef(1);
   const wheel = useRef({ amount: 0, last: 0, changed: 0 });
+  const pinch = useRef({ amount: 0, last: 0 });
+  const readingSize = useRef(settings.fontSize);
+  readingSize.current = settings.fontSize;
   const pointer = useRef<{ x: number; y: number; id: number; allowed: boolean } | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const sourceWrites = useRef<Promise<void>>(Promise.resolve());
   const view = book.textAvailable === false ? 'original' : settings.readerView;
   const columns = settings.readerLayout === 'double' ? 2 : 1;
   const count = view === 'flow' ? pages.length : (pdf?.numPages ?? document?.pages.length ?? 0);
-  const start = Math.floor(Math.min(page, Math.max(0, count - 1)) / columns) * columns;
-  const pageWidth = Math.max(120, (dimensions.width - (columns === 2 ? 46 : 32)) / columns);
+  const start = Math.min(page, Math.max(0, count - 1));
+  const pageWidth = Math.max(
+    120,
+    columns === 2 ? (dimensions.width - 14) / 2 : Math.min(1000, dimensions.width),
+  );
 
   useLayoutEffect(() => {
     const element = viewport.current;
@@ -193,7 +246,17 @@ export function ReaderSurface(props: Props) {
         setDimensions({ width: Math.floor(width), height: Math.floor(height) });
     });
     observer.observe(element);
-    return () => observer.disconnect();
+    const header = root.current?.querySelector<HTMLElement>('.reader-header');
+    const layout = root.current?.parentElement;
+    const toolbarObserver = new ResizeObserver(() => {
+      if (header) layout?.style.setProperty('--reader-toolbar-height', `${header.offsetHeight}px`);
+    });
+    if (header) toolbarObserver.observe(header);
+    return () => {
+      observer.disconnect();
+      toolbarObserver.disconnect();
+      layout?.style.removeProperty('--reader-toolbar-height');
+    };
   }, []);
   useEffect(() => {
     let cancelled = false;
@@ -214,16 +277,20 @@ export function ReaderSurface(props: Props) {
     let cancelled = false;
     setPaginating(true);
     async function layout() {
+      await window.document.fonts.load(
+        `${settings.fontSize}px ${readerFontFamily(settings.readerFont)}`,
+      );
       await window.document.fonts.ready;
       const context = window.document.createElement('canvas').getContext('2d')!;
-      context.font = `${settings.fontSize}px "${settings.readerFont}"`;
+      context.font = `${settings.bionicReading ? '700 ' : ''}${settings.fontSize}px ${readerFontFamily(settings.readerFont)}`;
       const next = await paginate(
         book.chunks,
-        Math.max(75, pageWidth - 68),
-        Math.max(100, dimensions.height - 100),
+        Math.max(75, pageWidth - 58),
+        Math.max(100, dimensions.height - 76),
         settings.fontSize,
         (text) => context.measureText(text).width,
         () => cancelled,
+        settings.lineSpacing,
       );
       if (cancelled) return;
       const target = pageForPosition(next, latestPosition.current);
@@ -246,6 +313,8 @@ export function ReaderSurface(props: Props) {
     book.chunks,
     settings.fontSize,
     settings.readerFont,
+    settings.lineSpacing,
+    settings.bionicReading,
     view,
     pageWidth,
     dimensions.height,
@@ -331,7 +400,7 @@ export function ReaderSurface(props: Props) {
     };
   }, [book.id, view, source?.name]);
   useEffect(() => {
-    if (pendingTurn.current) return;
+    if (pendingTurn.current || selection || !window.getSelection()?.isCollapsed) return;
     if (view === 'flow' && pages.length) {
       const visible = pages
         .slice(start, start + columns)
@@ -354,7 +423,17 @@ export function ReaderSurface(props: Props) {
         pageRef.current = target;
       }
     }
-  }, [book.position, view, pages, count, source?.pageStarts, columns, start, book.chunks.length]);
+  }, [
+    book.position,
+    view,
+    pages,
+    count,
+    source?.pageStarts,
+    columns,
+    start,
+    book.chunks.length,
+    selection,
+  ]);
   useEffect(() => {
     if (view !== 'flow' || settings.readerLayout !== 'scroll' || selection) return;
     viewport.current?.querySelector('[aria-current="location"]')?.scrollIntoView({
@@ -396,9 +475,10 @@ export function ReaderSurface(props: Props) {
     setCopied('');
   }
   function go(target: number) {
-    if (!count) return;
-    const safe = Math.floor(Math.max(0, Math.min(count - 1, target)) / columns) * columns;
-    if (safe === Math.floor(pageRef.current / columns) * columns) return;
+    if (!count || !Number.isFinite(target)) return;
+    const safe = Math.floor(Math.max(0, Math.min(count - 1, target)));
+    setJump(String(safe + 1));
+    if (safe === pageRef.current) return;
     direction.current = safe > pageRef.current ? 1 : -1;
     pageRef.current = safe;
     setPage(safe);
@@ -421,6 +501,20 @@ export function ReaderSurface(props: Props) {
   }
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === 'f' &&
+        !window.document.querySelector('dialog[open]')
+      ) {
+        event.preventDefault();
+        setSearchOpen(true);
+        requestAnimationFrame(() => {
+          props.searchRef.current?.focus();
+          props.searchRef.current?.select();
+        });
+        return;
+      }
       if (
         event.defaultPrevented ||
         window.document.querySelector('dialog[open]') ||
@@ -492,12 +586,33 @@ export function ReaderSurface(props: Props) {
     const element = viewport.current;
     if (!element) return;
     const handler = (event: WheelEvent) => {
-      if (
-        event.ctrlKey ||
-        zoom > 1 ||
-        !window.getSelection()?.isCollapsed ||
-        settings.readerLayout === 'scroll'
-      )
+      if (event.ctrlKey) {
+        event.preventDefault();
+        const delta =
+          event.deltaY *
+          (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? dimensions.height : 1);
+        if (view === 'original') {
+          setZoom((current) =>
+            Math.max(0.5, Math.min(2, Math.round(current * Math.exp(-delta * 0.005) * 100) / 100)),
+          );
+        } else {
+          const now = performance.now();
+          if (now - pinch.current.last > 250) pinch.current.amount = 0;
+          pinch.current.last = now;
+          pinch.current.amount += delta;
+          const steps = Math.trunc(pinch.current.amount / 36);
+          if (steps) {
+            pinch.current.amount -= steps * 36;
+            const fontSize = Math.max(14, Math.min(32, readingSize.current - steps));
+            if (fontSize !== readingSize.current) {
+              readingSize.current = fontSize;
+              void props.onSettings({ fontSize });
+            }
+          }
+        }
+        return;
+      }
+      if (zoom > 1 || !window.getSelection()?.isCollapsed || settings.readerLayout === 'scroll')
         return;
       const horizontal = event.shiftKey
         ? event.deltaY || event.deltaX
@@ -542,6 +657,9 @@ export function ReaderSurface(props: Props) {
         return;
       }
       const range = selected.getRangeAt(0);
+      setSelectionAtTop(
+        range.getBoundingClientRect().top < viewport.current.getBoundingClientRect().top + 110,
+      );
       const anchor =
         range.startContainer.nodeType === 1
           ? (range.startContainer as Element)
@@ -561,7 +679,44 @@ export function ReaderSurface(props: Props) {
         );
         position = found >= 0 ? found : first;
       }
-      setSelection({ bookId: book.id, text, position });
+      let endPosition = position;
+      let highlightable = false;
+      const intersected = [...viewport.current.querySelectorAll<HTMLElement>('[data-passage]')]
+        .filter((element) => {
+          if (!range.intersectsNode(element)) return false;
+          const portion = range.cloneRange();
+          const block = window.document.createRange();
+          block.selectNodeContents(element);
+          if (portion.compareBoundaryPoints(Range.START_TO_START, block) < 0)
+            portion.setStart(block.startContainer, block.startOffset);
+          if (portion.compareBoundaryPoints(Range.END_TO_END, block) > 0)
+            portion.setEnd(block.endContainer, block.endOffset);
+          return !!portion.toString().trim();
+        })
+        .map((element) => Number(element.dataset.passage))
+        .filter((at) => Number.isSafeInteger(at) && at >= 0 && at < book.chunks.length);
+      if (intersected.length) {
+        position = Math.min(...intersected);
+        endPosition = Math.max(...intersected);
+        highlightable = true;
+      } else {
+        const page = Number(
+          anchor?.closest('[data-source-page]')?.getAttribute('data-source-page') ?? start,
+        );
+        const first = source?.pageStarts[page] ?? 0;
+        const end = source?.pageStarts[page + 1] ?? book.chunks.length;
+        const candidates = book.chunks.flatMap((chunk, index) =>
+          index >= first && index < end && normalize(chunk).includes(normalize(text))
+            ? [index]
+            : [],
+        );
+        if (candidates.length === 1) {
+          position = candidates[0];
+          endPosition = position;
+          highlightable = true;
+        }
+      }
+      setSelection({ bookId: book.id, text, position, endPosition, highlightable });
       setCopied('');
       revealControls();
     };
@@ -574,7 +729,7 @@ export function ReaderSurface(props: Props) {
     <article
       className="flow-paper"
       aria-label={`Reading page ${index + 1}`}
-      style={{ fontSize: settings.fontSize, fontFamily: settings.readerFont }}
+      style={readerPaperStyle(settings)}
     >
       <div className="flow-page-body">
         {pages[index]?.parts.map((part) => (
@@ -582,13 +737,13 @@ export function ReaderSurface(props: Props) {
             key={`${part.position}-${part.start}`}
             data-passage={part.position}
             data-start={part.start}
+            data-section={settings.showSectionNumbers ? part.position + 1 : undefined}
             aria-current={book.position === part.position ? 'location' : undefined}
             onClick={(event) => {
-              if (event.detail === 1 && window.getSelection()?.isCollapsed && !pointer.current)
-                void props.onSeek(part.position);
+              if (!pointer.current) selectPassage(event.detail, part.position);
             }}
           >
-            {part.text}
+            <ReadingText text={part.text} bionic={settings.bionicReading} />
           </p>
         ))}
       </div>
@@ -604,13 +759,94 @@ export function ReaderSurface(props: Props) {
       onKeyDown={revealControls}
     >
       <header className="reader-header reader-hud">
+        <button
+          className="icon-button reader-back"
+          aria-label="Go back"
+          title="Back from this book"
+          onClick={props.onBack}
+        >
+          <Glyph name="back" />
+        </button>
+        <button
+          className="icon-button reader-back"
+          aria-label="Go forward"
+          title="Forward (Alt+Right)"
+          disabled={!props.canForward}
+          onClick={props.onForward}
+        >
+          <Glyph name="arrow" />
+        </button>
         <div className="reader-title">
-          <h1>{book.title}</h1>
+          <h1 title={`${book.title}${book.author ? ` — ${book.author}` : ''}`}>{book.title}</h1>
           <p>{book.author}</p>
+        </div>
+        <div className="reader-page-controls reader-inline-pages">
+          <button
+            className="secondary small"
+            aria-label="Previous page"
+            disabled={!count || start === 0}
+            onClick={() => go(start - columns)}
+          >
+            <Glyph name="back" />
+            <span className="reader-direction-label">Previous</span>
+          </button>
+          <button
+            className="secondary small"
+            aria-label="Next page"
+            disabled={!count || start + columns >= count}
+            onClick={() => go(start + columns)}
+          >
+            <span className="reader-direction-label">Next</span>
+            <Glyph name="arrow" />
+          </button>
+          <form
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (jump.trim()) go(Number(jump) - 1);
+              else setJump(String(start + 1));
+            }}
+          >
+            <label>
+              Page{' '}
+              <input
+                aria-label="Go to page"
+                title="Type a page number and press Enter"
+                type="number"
+                min={1}
+                max={Math.max(1, count)}
+                value={jump}
+                onChange={(e) => setJump(e.target.value)}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            </label>
+            <span aria-live="polite">
+              of {count || '…'}
+              {columns === 2 && count > start + 1
+                ? ` · showing ${start + 1}–${Math.min(count, start + 2)}`
+                : ''}
+            </span>
+            <button type="submit" className="sr-only" disabled={!count} tabIndex={-1}>
+              Jump to page
+            </button>
+          </form>
+          <details className="reader-input-help reader-shortcuts">
+            <summary aria-label="Page turning shortcuts">
+              <span className="reader-shortcut-label">Shortcuts</span>
+              <span className="reader-shortcut-symbol" aria-hidden="true">
+                ?
+              </span>
+            </summary>
+            <p>
+              Select text normally · ←/→ or PgUp/PgDn · Shift + wheel or horizontal trackpad ·
+              Alt-drag or drag a page edge
+              {document?.notice && view === 'original' ? ` · ${document.notice}` : ''}
+            </p>
+          </details>
         </div>
         <div className="reader-control-row">
           <label>
-            View
+            <span className="sr-only">View</span>
             <select
               aria-label="Reader view"
               value={view}
@@ -626,12 +862,13 @@ export function ReaderSurface(props: Props) {
             </select>
           </label>
           <label>
-            Pages
+            <span className="sr-only">Pages</span>
             <select
               aria-label="Page layout"
               value={settings.readerLayout}
               onChange={(e) => {
                 clearSelection();
+                if (e.target.value === 'double') go(Math.floor(pageRef.current / 2) * 2);
                 void props.onSettings({ readerLayout: e.target.value as Settings['readerLayout'] });
               }}
             >
@@ -640,24 +877,67 @@ export function ReaderSurface(props: Props) {
               <option value="scroll">Scroll</option>
             </select>
           </label>
+          {view === 'flow' && (
+            <div className="reader-text-size" role="group" aria-label="Reading text size">
+              <button
+                className="icon-button"
+                aria-label="Decrease text size"
+                title="Decrease text size"
+                disabled={settings.fontSize <= 14}
+                onClick={() =>
+                  void props.onSettings({ fontSize: Math.max(14, settings.fontSize - 1) })
+                }
+              >
+                A−
+              </button>
+              <output aria-label="Current text size">{settings.fontSize}</output>
+              <button
+                className="icon-button"
+                aria-label="Increase text size"
+                title="Increase text size"
+                disabled={settings.fontSize >= 32}
+                onClick={() =>
+                  void props.onSettings({ fontSize: Math.min(32, settings.fontSize + 1) })
+                }
+              >
+                A+
+              </button>
+            </div>
+          )}
           {view === 'original' && (
             <label>
-              Zoom
+              <span className="sr-only">Zoom</span>
               <select
                 aria-label="Document zoom"
                 value={zoom}
                 onChange={(e) => setZoom(Number(e.target.value))}
               >
-                {[0.75, 1, 1.25, 1.5, 2].map((value) => (
-                  <option key={value} value={value}>
-                    {Math.round(value * 100)}%
-                  </option>
-                ))}
+                {[...new Set([0.5, 0.75, 1, 1.25, 1.5, 2, zoom])]
+                  .sort((a, b) => a - b)
+                  .map((value) => (
+                    <option key={value} value={value}>
+                      {Math.round(value * 100)}%
+                    </option>
+                  ))}
               </select>
             </label>
           )}
           <button
-            className="secondary small"
+            className="icon-button"
+            aria-label="Search this book"
+            title="Search this book (Ctrl+F)"
+            aria-expanded={searchOpen}
+            onClick={() => {
+              setSearchOpen((open) => !open);
+              if (searchOpen) props.onQuery('');
+              requestAnimationFrame(() => props.searchRef.current?.focus());
+            }}
+          >
+            <Glyph name="search" />
+          </button>
+          <button
+            className="icon-button"
+            title={props.bookmarked ? 'Remove bookmark' : 'Bookmark passage'}
             aria-label={
               props.bookmarked ? 'Remove bookmark from current passage' : 'Bookmark current passage'
             }
@@ -666,24 +946,39 @@ export function ReaderSurface(props: Props) {
             onClick={props.onBookmark}
           >
             <Glyph name="bookmark" />
-            Bookmark
+            <span className="sr-only">Bookmark</span>
           </button>
           <button
-            className="secondary small"
+            className="icon-button"
             aria-label="Toggle notebook"
+            title="Notebook"
             aria-pressed={props.notebook}
             onClick={props.onNotebook}
           >
             <Glyph name="note" />
-            Notebook
+            <span className="sr-only">Notebook</span>
           </button>
           <button
-            className="secondary small"
+            ref={highlightButton}
+            className="icon-button"
+            aria-label="Show reading highlights"
+            title="Reading highlights"
+            aria-expanded={highlightsOpen}
+            onClick={() => {
+              setHighlightRequest(null);
+              setHighlightsOpen(true);
+            }}
+          >
+            <Glyph name="edit" />
+          </button>
+          <button
+            className="icon-button"
             aria-label={props.fullscreen ? 'Exit fullscreen reading' : 'Fullscreen reading'}
+            title={props.fullscreen ? 'Exit fullscreen (F11)' : 'Fullscreen (F11)'}
             onClick={props.onFullscreen}
           >
             <Glyph name={props.fullscreen ? 'window' : 'fullscreen'} />
-            {props.fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+            <span className="sr-only">{props.fullscreen ? 'Exit fullscreen' : 'Fullscreen'}</span>
           </button>
           <button
             className="icon-button"
@@ -694,34 +989,59 @@ export function ReaderSurface(props: Props) {
             <Glyph name="settings" />
           </button>
         </div>
-        <label className="search">
-          <input
-            ref={props.searchRef}
-            type="search"
-            aria-label="Search this book"
-            placeholder="Search this book…"
-            value={props.query}
-            onChange={(e) => props.onQuery(e.target.value)}
-          />
-        </label>
-        {props.query && (
-          <div className="reader-match-list">
-            {book.chunks
-              .map((text, position) => ({ text, position }))
-              .filter((part) => part.text.toLowerCase().includes(props.query.toLowerCase()))
-              .slice(0, 30)
-              .map((part) => (
-                <button
-                  key={part.position}
-                  onClick={() => {
-                    void props.onSeek(part.position);
-                    props.onQuery('');
-                  }}
-                >
-                  <small>Passage {part.position + 1}</small>
-                  {part.text.slice(0, 160)}
-                </button>
-              ))}
+        {searchOpen && (
+          <div
+            className="reader-search-panel"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                setSearchOpen(false);
+                props.onQuery('');
+              }
+            }}
+          >
+            <label className="search">
+              <input
+                ref={props.searchRef}
+                type="search"
+                aria-label="Search this book"
+                placeholder="Search this book…"
+                value={props.query}
+                onChange={(e) => props.onQuery(e.target.value)}
+              />
+            </label>
+            <button
+              className="icon-button"
+              aria-label="Close book search"
+              title="Close search"
+              onClick={() => {
+                setSearchOpen(false);
+                props.onQuery('');
+              }}
+            >
+              <Glyph name="close" />
+            </button>
+            {props.query && (
+              <div className="reader-match-list">
+                {book.chunks
+                  .map((text, position) => ({ text, position }))
+                  .filter((part) => part.text.toLowerCase().includes(props.query.toLowerCase()))
+                  .slice(0, 30)
+                  .map((part) => (
+                    <button
+                      key={part.position}
+                      onClick={() => {
+                        void props.onSeek(part.position);
+                        props.onQuery('');
+                        setSearchOpen(false);
+                      }}
+                    >
+                      <small>Passage {part.position + 1}</small>
+                      {part.text.slice(0, 160)}
+                    </button>
+                  ))}
+              </div>
+            )}
           </div>
         )}
       </header>
@@ -737,6 +1057,7 @@ export function ReaderSurface(props: Props) {
       {selection && (
         <div
           className="selection-actions"
+          data-placement={selectionAtTop ? 'bottom' : 'top'}
           role="toolbar"
           aria-label="Selected text actions"
           onMouseDown={(event) => event.preventDefault()}
@@ -764,9 +1085,23 @@ export function ReaderSurface(props: Props) {
             <Glyph name="note" />
             Add to note
           </button>
+          <button
+            disabled={!selection.highlightable}
+            title={
+              selection.highlightable
+                ? 'Highlight the selected passages'
+                : 'Choose an exact passage in Reading view to highlight it'
+            }
+            onClick={() => {
+              setHighlightRequest(selection);
+              setHighlightsOpen(true);
+            }}
+          >
+            Highlight passages
+          </button>
           <button onClick={() => props.onVocabulary(selection)}>
             <Glyph name="dictionary" />
-            Save word
+            Word tools
           </button>
           <button onClick={() => props.onFlashcard(selection)}>
             <Glyph name="study" />
@@ -847,10 +1182,7 @@ export function ReaderSurface(props: Props) {
           </p>
         )}
         {view === 'flow' && settings.readerLayout === 'scroll' ? (
-          <div
-            className="flow-scroll"
-            style={{ fontSize: settings.fontSize, fontFamily: settings.readerFont }}
-          >
+          <div className="flow-scroll" style={readerPaperStyle(settings)}>
             <button
               className="text-button"
               disabled={book.position < 35}
@@ -866,13 +1198,13 @@ export function ReaderSurface(props: Props) {
                   <p
                     key={position}
                     data-passage={position}
+                    data-section={settings.showSectionNumbers ? position + 1 : undefined}
                     aria-current={position === book.position ? 'location' : undefined}
                     onClick={(e) => {
-                      if (e.detail === 1 && window.getSelection()?.isCollapsed)
-                        void props.onSeek(position);
+                      selectPassage(e.detail, position);
                     }}
                   >
-                    {text}
+                    <ReadingText text={text} bionic={settings.bionicReading} />
                   </p>
                 );
               })}
@@ -931,55 +1263,21 @@ export function ReaderSurface(props: Props) {
         />
         <div className="reader-edge reader-edge-right" data-page-edge="next" aria-hidden="true" />
       </div>
-      <footer className="reader-page-controls reader-hud">
-        <button
-          className="secondary small"
-          aria-label="Previous page"
-          disabled={!count || start === 0}
-          onClick={() => go(start - columns)}
-        >
-          ← Previous
-        </button>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            go(Number(jump) - 1);
-          }}
-        >
-          <label>
-            Page{' '}
-            <input
-              aria-label="Go to page"
-              type="number"
-              min={1}
-              max={Math.max(1, count)}
-              value={jump}
-              onChange={(e) => setJump(e.target.value)}
-            />
-          </label>
-          <span aria-live="polite">
-            of {count || '…'}
-            {columns === 2 && count > start + 1
-              ? ` · showing ${start + 1}–${Math.min(count, start + 2)}`
-              : ''}
-          </span>
-          <button className="text-button" disabled={!count}>
-            Go
-          </button>
-        </form>
-        <button
-          className="secondary small"
-          aria-label="Next page"
-          disabled={!count || start + columns >= count}
-          onClick={() => go(start + columns)}
-        >
-          Next →
-        </button>
-      </footer>
-      <p className="reader-input-help reader-hud">
-        Select text normally · ←/→ or PgUp/PgDn · Shift + wheel or horizontal trackpad · Alt-drag or
-        drag a page edge{document?.notice && view === 'original' ? ` · ${document.notice}` : ''}
-      </p>
+      <ReadingHighlights
+        key={book.id}
+        book={book}
+        viewport={viewport}
+        pageStarts={source?.pageStarts}
+        open={highlightsOpen}
+        request={highlightRequest}
+        onSeek={props.onSeek}
+        onClose={() => {
+          setHighlightsOpen(false);
+          setHighlightRequest(null);
+          revealControls();
+          requestAnimationFrame(() => highlightButton.current?.focus());
+        }}
+      />
     </section>
   );
 }

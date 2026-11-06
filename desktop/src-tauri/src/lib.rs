@@ -1,14 +1,30 @@
+pub mod activity;
+pub mod android_archive;
+pub mod android_backup;
+pub mod android_history;
+pub mod android_migration;
+pub mod android_restore;
+mod android_settings;
+pub mod backup_archive;
 pub mod classics;
+pub mod covers;
 pub mod documents;
 mod handoff;
+pub mod highlights;
+mod legacy_activity;
+pub mod note_media;
 pub mod notes;
+pub mod opened_books;
+mod profile;
 pub mod quizzes;
+pub mod reading_lists;
 pub mod reading_tools;
 pub mod speech;
 pub mod storage;
 pub mod study;
 pub mod transfer;
 pub mod voices;
+pub mod windows_speech;
 use speech::{Audio, Speech};
 use std::{
     fs,
@@ -27,11 +43,231 @@ struct AppState {
     voices: Arc<Voices>,
     speech: Arc<Speech>,
     pending_backup: Mutex<Option<(String, Backup)>>,
+    android_conversion: Mutex<Option<(String, android_restore::Conversion)>>,
     classics: Arc<classics::Downloads>,
+    activity: Mutex<activity::Tracker>,
+}
+#[tauri::command]
+async fn list_opened_books(
+    state: State<'_, Arc<AppState>>,
+) -> Result<Vec<opened_books::OpenedBook>> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.opened_books()).await
+}
+#[tauri::command]
+async fn record_reading_open(state: State<'_, Arc<AppState>>, id: String) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.record_reading_open(&id)).await
+}
+#[tauri::command]
+async fn remove_opened_book(state: State<'_, Arc<AppState>>, id: String) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.remove_opened_book(&id)).await
+}
+#[tauri::command]
+async fn clear_opened_books(state: State<'_, Arc<AppState>>) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.clear_opened_books()).await
+}
+#[tauri::command]
+async fn list_highlights(
+    state: State<'_, Arc<AppState>>,
+    book_id: Option<String>,
+) -> Result<Vec<highlights::ReadingHighlight>> {
+    let state = state.inner().clone();
+    work(move || {
+        let db = state.db.lock().map_err(error)?;
+        match book_id {
+            Some(id) => db.book_highlights(&id),
+            None => db.all_highlights(),
+        }
+    })
+    .await
+}
+#[tauri::command]
+async fn save_highlight(
+    state: State<'_, Arc<AppState>>,
+    input: highlights::HighlightInput,
+) -> Result<highlights::ReadingHighlight> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.save_highlight(input)).await
+}
+#[tauri::command]
+async fn delete_highlight(state: State<'_, Arc<AppState>>, id: String) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.delete_highlight(&id)).await
+}
+#[tauri::command]
+async fn list_note_media(
+    state: State<'_, Arc<AppState>>,
+    id: String,
+) -> Result<Vec<note_media::NoteMedia>> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.note_media(&id)).await
+}
+#[tauri::command]
+async fn get_note_media(state: State<'_, Arc<AppState>>, id: String) -> Result<String> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.note_media_url(&id)).await
+}
+#[tauri::command]
+async fn delete_note_media(state: State<'_, Arc<AppState>>, id: String) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.delete_note_media(&id)).await
+}
+#[tauri::command]
+async fn attach_note_media(
+    app: tauri::AppHandle,
+    state: State<'_, Arc<AppState>>,
+    id: String,
+) -> Result<Option<note_media::NoteMedia>> {
+    let state = state.inner().clone();
+    work(move || {
+        let Some(file) = app
+            .dialog()
+            .file()
+            .add_filter(
+                "Image or recording",
+                &["jpg", "jpeg", "png", "wav", "mp3", "ogg"],
+            )
+            .blocking_pick_file()
+        else {
+            return Ok(None);
+        };
+        let path = file.into_path().map_err(error)?;
+        let input = fs::File::open(&path).map_err(error)?;
+        if !input.metadata().map_err(error)?.is_file() {
+            return Err("Choose a regular attachment file.".into());
+        }
+        let mut bytes = Vec::new();
+        input
+            .take(note_media::LIMIT as u64 + 1)
+            .read_to_end(&mut bytes)
+            .map_err(error)?;
+        let name = path
+            .file_name()
+            .and_then(|v| v.to_str())
+            .ok_or("Choose a file with a supported name.")?
+            .to_string();
+        state
+            .db
+            .lock()
+            .map_err(error)?
+            .add_note_media(&id, name, bytes)
+            .map(Some)
+    })
+    .await
+}
+#[tauri::command]
+async fn list_note_revisions(
+    state: State<'_, Arc<AppState>>,
+    id: String,
+) -> Result<Vec<notes::NoteRevision>> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.note_revisions(&id)).await
+}
+#[tauri::command]
+async fn list_reading_lists(
+    state: State<'_, Arc<AppState>>,
+) -> Result<Vec<reading_lists::ReadingList>> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.reading_lists()).await
+}
+#[tauri::command]
+async fn save_reading_list(
+    state: State<'_, Arc<AppState>>,
+    input: reading_lists::ListInput,
+) -> Result<reading_lists::ReadingList> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.save_reading_list(input)).await
+}
+#[tauri::command]
+async fn delete_reading_list(state: State<'_, Arc<AppState>>, id: String) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.delete_reading_list(&id)).await
+}
+#[tauri::command]
+async fn record_reading_activity(
+    state: State<'_, Arc<AppState>>,
+    event: activity::Event,
+) -> Result<()> {
+    let mono = std::time::Instant::now();
+    let wall = storage::now();
+    let state = state.inner().clone();
+    work(move || {
+        let mut tracker = state.activity.lock().map_err(error)?;
+        let mut db = state.db.lock().map_err(error)?;
+        tracker.event(&mut db, event, mono, wall)
+    })
+    .await
+}
+#[tauri::command]
+async fn get_reading_activity(state: State<'_, Arc<AppState>>) -> Result<activity::Report> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.activity_report()).await
+}
+#[tauri::command]
+async fn correct_reading_session(
+    state: State<'_, Arc<AppState>>,
+    id: String,
+    corrected_ms: Option<u64>,
+    excluded: bool,
+) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || {
+        state
+            .db
+            .lock()
+            .map_err(error)?
+            .correct_session(&id, corrected_ms, excluded)
+    })
+    .await
+}
+#[tauri::command]
+async fn add_reading_session(
+    state: State<'_, Arc<AppState>>,
+    target: activity::Target,
+    mode: activity::Mode,
+    started_at: u64,
+    duration_ms: u64,
+) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || {
+        state
+            .db
+            .lock()
+            .map_err(error)?
+            .manual_session(target, mode, started_at, duration_ms)
+    })
+    .await
+}
+#[tauri::command]
+async fn export_reading_sessions(
+    app: tauri::AppHandle,
+    state: State<'_, Arc<AppState>>,
+) -> Result<bool> {
+    let state = state.inner().clone();
+    work(move || {
+        let bytes = state.db.lock().map_err(error)?.sessions_csv()?;
+        save_export(&app, "Vern-reading-history.csv", "csv", &bytes)
+    })
+    .await
 }
 #[tauri::command]
 async fn open_assistant(id: String) -> Result<()> {
     work(move || handoff::open(&id)).await
+}
+#[tauri::command]
+async fn open_reference(site: String, text: String) -> Result<()> {
+    work(move || handoff::open_reference(&site, &text)).await
+}
+#[tauri::command]
+async fn open_app_link(id: String) -> Result<()> {
+    work(move || handoff::open_about(&id)).await
+}
+#[tauri::command]
+async fn open_voice_settings() -> Result<()> {
+    work(handoff::open_voice_settings).await
 }
 #[tauri::command]
 async fn list_classics(state: State<'_, Arc<AppState>>) -> Result<Vec<classics::Classic>> {
@@ -286,8 +522,27 @@ fn save_export(app: &tauri::AppHandle, name: &str, extension: &str, bytes: &[u8]
 async fn export_backup(app: tauri::AppHandle, state: State<'_, Arc<AppState>>) -> Result<bool> {
     let state = state.inner().clone();
     work(move || {
-        let bytes = state.db.lock().map_err(error)?.backup_bytes()?;
-        save_export(&app, "Vern-desktop-backup.json", "json", &bytes)
+        let Some(file) = app
+            .dialog()
+            .file()
+            .add_filter("Vern full backup", &["vernbackup", "zip"])
+            .set_file_name("Vern-library.vernbackup")
+            .blocking_save_file()
+        else {
+            return Ok(false);
+        };
+        let path = file.into_path().map_err(error)?;
+        if !path.extension().is_some_and(|ext| {
+            ["vernbackup", "zip"]
+                .iter()
+                .any(|allowed| ext.to_string_lossy().eq_ignore_ascii_case(allowed))
+        }) {
+            return Err("Choose a .vernbackup or .zip filename.".into());
+        }
+        let snapshot = state.db.lock().map_err(error)?.backup_database_snapshot()?;
+        let snapshot_db = Storage::open(snapshot.path())?;
+        backup_archive::write(&snapshot_db, &path)?;
+        Ok(true)
     })
     .await
 }
@@ -295,25 +550,131 @@ async fn export_backup(app: tauri::AppHandle, state: State<'_, Arc<AppState>>) -
 async fn inspect_backup(
     app: tauri::AppHandle,
     state: State<'_, Arc<AppState>>,
-) -> Result<Option<BackupPreview>> {
+) -> Result<Option<BackupInspection>> {
     let state = state.inner().clone();
     work(move || {
         *state.pending_backup.lock().map_err(error)? = None;
+        *state.android_conversion.lock().map_err(error)? = None;
         let Some(file) = app
             .dialog()
             .file()
-            .add_filter("Vern desktop backup", &["json"])
+            .add_filter("Vern backup", &["vernbackup", "zip", "json"])
             .blocking_pick_file()
         else {
             return Ok(None);
         };
-        let backup = transfer::read_backup(&file.into_path().map_err(error)?)?;
+        let path = file.into_path().map_err(error)?;
         let token = uuid::Uuid::new_v4().to_string();
+        if android_restore::is_android(&path)? {
+            let conversion = android_restore::Conversion::read(&path)?;
+            let documents = conversion.document_count();
+            *state.android_conversion.lock().map_err(error)? = Some((token.clone(), conversion));
+            return Ok(Some(BackupInspection::Android { token, documents }));
+        }
+        let backup = transfer::read_backup(&path)?;
         let preview = backup.preview(token.clone());
         *state.pending_backup.lock().map_err(error)? = Some((token, backup));
-        Ok(Some(preview))
+        Ok(Some(BackupInspection::Desktop { preview }))
     })
     .await
+}
+#[derive(serde::Serialize)]
+#[serde(tag = "kind", rename_all = "lowercase")]
+enum BackupInspection {
+    Desktop { preview: BackupPreview },
+    Android { token: String, documents: usize },
+}
+#[tauri::command]
+async fn android_backup_text(
+    state: State<'_, Arc<AppState>>,
+    token: String,
+) -> Result<Option<android_backup::AndroidTextInput>> {
+    let state = state.inner().clone();
+    work(move || {
+        let pending = state.android_conversion.lock().map_err(error)?;
+        let (id, conversion) = pending.as_ref().ok_or("Choose the Android backup again.")?;
+        if id != &token {
+            return Err("Choose the Android backup again.".into());
+        }
+        conversion.next_text()
+    })
+    .await
+}
+#[tauri::command]
+async fn accept_android_text(
+    state: State<'_, Arc<AppState>>,
+    token: String,
+    index: usize,
+    converted: android_migration::ConvertedAndroidText,
+) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || {
+        let mut pending = state.android_conversion.lock().map_err(error)?;
+        let (id, conversion) = pending.as_mut().ok_or("Choose the Android backup again.")?;
+        if id != &token {
+            return Err("Choose the Android backup again.".into());
+        }
+        conversion.accept(index, converted)
+    })
+    .await
+}
+#[tauri::command]
+async fn finish_android_backup(
+    state: State<'_, Arc<AppState>>,
+    token: String,
+) -> Result<BackupPreview> {
+    let state = state.inner().clone();
+    work(move || {
+        let conversion = {
+            let mut pending = state.android_conversion.lock().map_err(error)?;
+            if !pending.as_ref().is_some_and(|(id, _)| id == &token) {
+                return Err("Choose the Android backup again.".into());
+            }
+            pending.take().ok_or("Choose the Android backup again.")?.1
+        };
+        let settings = state.db.lock().map_err(error)?.settings()?;
+        let backup = conversion.finish(settings)?;
+        let preview = backup.preview(token.clone());
+        *state.pending_backup.lock().map_err(error)? = Some((token, backup));
+        Ok(preview)
+    })
+    .await
+}
+#[tauri::command]
+async fn list_android_imports(
+    state: State<'_, Arc<AppState>>,
+) -> Result<Vec<android_archive::ImportSummary>> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.android_import_summaries()).await
+}
+#[tauri::command]
+async fn export_android_import(
+    app: tauri::AppHandle,
+    state: State<'_, Arc<AppState>>,
+    id: String,
+) -> Result<bool> {
+    let state = state.inner().clone();
+    work(move || {
+        let Some(file) = app
+            .dialog()
+            .file()
+            .add_filter("Original Android backup", &["zip"])
+            .set_file_name("Vern-Android-backup.zip")
+            .blocking_save_file()
+        else {
+            return Ok(false);
+        };
+        let snapshot = state.db.lock().map_err(error)?.backup_database_snapshot()?;
+        Storage::open(snapshot.path())?
+            .export_android_import(&id, &file.into_path().map_err(error)?)?;
+        Ok(true)
+    })
+    .await
+}
+#[tauri::command]
+async fn delete_android_import(state: State<'_, Arc<AppState>>, id: String) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.delete_android_import(&id)).await
 }
 #[tauri::command]
 async fn restore_backup(
@@ -340,6 +701,11 @@ async fn restore_backup(
 }
 #[tauri::command]
 fn discard_backup(state: State<'_, Arc<AppState>>, token: String) -> Result<()> {
+    let mut conversion = state.android_conversion.lock().map_err(error)?;
+    if conversion.as_ref().is_some_and(|(id, _)| id == &token) {
+        *conversion = None;
+    }
+    drop(conversion);
     let mut pending = state.pending_backup.lock().map_err(error)?;
     if pending.as_ref().is_some_and(|(id, _)| id == &token) {
         *pending = None;
@@ -391,7 +757,9 @@ async fn export_passage_audio(
             )
         };
         let text = reading_tools::apply_pronunciation(&text, &rules)?;
-        descriptor(&voice_id)?;
+        if !voices::valid_id(&voice_id) {
+            return Err("Unknown voice.".into());
+        }
         if !(0.5..=2.0).contains(&rate) {
             return Err("Choose a narration speed between 0.5× and 2×.".into());
         }
@@ -447,6 +815,11 @@ async fn get_source_info(
 ) -> Result<Option<documents::SourceInfo>> {
     let state = state.inner().clone();
     work(move || state.db.lock().map_err(error)?.source_info(&id)).await
+}
+#[tauri::command]
+async fn save_book_cover(state: State<'_, Arc<AppState>>, id: String, cover: String) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.save_cover(&id, &cover)).await
 }
 #[tauri::command]
 async fn get_source_file(
@@ -555,7 +928,9 @@ async fn synthesize(
         if text.len() > 4096 || text.trim().is_empty() || !(0.5..=2.0).contains(&rate) {
             return Err("Invalid speech chunk.".into());
         }
-        descriptor(&voice_id)?;
+        if !voices::valid_id(&voice_id) {
+            return Err("Unknown voice.".into());
+        }
         let rules = state.db.lock().map_err(error)?.pronunciation_rules()?;
         let text = reading_tools::apply_pronunciation(&text, &rules)?;
         if state
@@ -580,6 +955,12 @@ async fn synthesize(
 }
 
 pub fn run() {
+    let mut context = tauri::generate_context!();
+    if let Some(path) = std::env::var_os("VERN_PROFILE_DIR") {
+        let root = profile::validate(path.into()).expect("Invalid isolated Vern profile");
+        context.config_mut().app.app_directories_override =
+            Some(tauri::utils::config::AppDirectoriesOverride::Root(root));
+    }
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
@@ -604,14 +985,36 @@ pub fn run() {
                 voices: Arc::new(Voices::new(root.join("voices"))?),
                 speech: Arc::new(Speech::default()),
                 pending_backup: Mutex::new(None),
+                android_conversion: Mutex::new(None),
                 classics: Arc::new(classics::Downloads::default()),
+                activity: Mutex::new(activity::Tracker::default()),
             };
             app.manage(Arc::new(state));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            list_opened_books,
+            record_reading_open,
+            remove_opened_book,
+            clear_opened_books,
+            list_highlights,
+            save_highlight,
+            delete_highlight,
+            list_reading_lists,
+            save_reading_list,
+            delete_reading_list,
+            record_reading_activity,
+            get_reading_activity,
+            correct_reading_session,
+            add_reading_session,
+            export_reading_sessions,
             list_books,
             list_personal_notes,
+            list_note_media,
+            get_note_media,
+            attach_note_media,
+            delete_note_media,
+            list_note_revisions,
             list_notebooks,
             save_personal_note,
             save_notebook,
@@ -620,12 +1023,16 @@ pub fn run() {
             delete_notebook,
             list_classics,
             open_assistant,
+            open_reference,
+            open_app_link,
+            open_voice_settings,
             download_classic,
             cancel_classic_download,
             save_classic,
             save_book,
             save_book_with_source,
             get_source_info,
+            save_book_cover,
             get_source_file,
             save_source_page,
             save_source_index,
@@ -650,6 +1057,12 @@ pub fn run() {
             save_settings,
             export_backup,
             inspect_backup,
+            android_backup_text,
+            accept_android_text,
+            finish_android_backup,
+            list_android_imports,
+            export_android_import,
+            delete_android_import,
             restore_backup,
             discard_backup,
             export_book,
@@ -661,6 +1074,6 @@ pub fn run() {
             cancel_speech,
             synthesize
         ])
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("Could not run Vern");
 }

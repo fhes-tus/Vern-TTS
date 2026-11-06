@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { TextLayer, type PDFDocumentProxy } from 'pdfjs-dist';
-import 'pdfjs-dist/web/pdf_viewer.css';
+import './pdf-text-layer.css';
 
 export function PdfPage({
   document,

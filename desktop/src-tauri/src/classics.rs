@@ -34,6 +34,39 @@ pub fn entry(id: &str) -> Result<Classic> {
         .find(|book| book.id == id)
         .ok_or("This classic is not in the catalogue.".into())
 }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClassicLink {
+    pub catalog_id: String,
+    pub book_id: String,
+}
+impl Storage {
+    pub fn classic_links(&self) -> Result<Vec<ClassicLink>> {
+        let mut q = self
+            .connection
+            .prepare("SELECT catalog_id,book_id FROM classic_books ORDER BY catalog_id")
+            .map_err(error)?;
+        let rows = q
+            .query_map([], |r| {
+                Ok(ClassicLink {
+                    catalog_id: r.get(0)?,
+                    book_id: r.get(1)?,
+                })
+            })
+            .map_err(error)?;
+        rows.map(|r| r.map_err(error)).collect()
+    }
+    pub fn restore_classic_link(&self, link: &ClassicLink) -> Result<()> {
+        entry(&link.catalog_id)?;
+        self.connection
+            .execute(
+                "INSERT OR IGNORE INTO classic_books(catalog_id,book_id) VALUES(?1,?2)",
+                params![link.catalog_id, link.book_id],
+            )
+            .map_err(error)?;
+        Ok(())
+    }
+}
 #[derive(Default)]
 pub struct Downloads {
     active: Mutex<HashMap<String, Arc<AtomicBool>>>,
@@ -211,6 +244,7 @@ mod tests {
             favorite: false,
             collection: String::new(),
             text_available: true,
+            cover: None,
             updated_at: 0,
         };
         let id = "classic_alice_wonderland";

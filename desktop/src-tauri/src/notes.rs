@@ -35,6 +35,13 @@ pub struct NoteInput {
     pub is_checklist: bool,
     pub label_ids: Vec<String>,
 }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NoteRevision {
+    pub id: String,
+    pub note_id: String,
+    pub note: Note,
+}
 impl Note {
     fn validate(&self) -> Result<()> {
         uuid::Uuid::parse_str(&self.id).map_err(error)?;
@@ -54,6 +61,47 @@ impl Note {
     }
 }
 impl Storage {
+    pub fn all_note_revisions(&self) -> Result<Vec<NoteRevision>> {
+        let mut q = self
+            .connection
+            .prepare("SELECT value FROM note_revisions ORDER BY rowid DESC")
+            .map_err(error)?;
+        let rows = q.query_map([], |r| r.get::<_, String>(0)).map_err(error)?;
+        rows.map(|r| serde_json::from_str(&r.map_err(error)?).map_err(error))
+            .collect()
+    }
+    pub fn note_revisions(&self, id: &str) -> Result<Vec<NoteRevision>> {
+        self.personal_note(id)?;
+        let mut q = self
+            .connection
+            .prepare(
+                "SELECT value FROM note_revisions WHERE note_id=?1 ORDER BY json_extract(value,'$.note.updatedAt') DESC,rowid DESC LIMIT 30",
+            )
+            .map_err(error)?;
+        let rows = q
+            .query_map([id], |r| r.get::<_, String>(0))
+            .map_err(error)?;
+        rows.map(|r| serde_json::from_str(&r.map_err(error)?).map_err(error))
+            .collect()
+    }
+    pub fn restore_note_revision(&self, revision: &NoteRevision) -> Result<()> {
+        uuid::Uuid::parse_str(&revision.id).map_err(error)?;
+        revision.note.validate()?;
+        if revision.note.id != revision.note_id {
+            return Err("The revision belongs to another note.".into());
+        }
+        self.connection
+            .execute(
+                "INSERT OR IGNORE INTO note_revisions(id,note_id,value) VALUES(?1,?2,?3)",
+                params![
+                    revision.id,
+                    revision.note_id,
+                    serde_json::to_string(revision).map_err(error)?
+                ],
+            )
+            .map_err(error)?;
+        Ok(())
+    }
     pub fn notebooks(&self) -> Result<Vec<Notebook>> {
         let mut q = self
             .connection
@@ -153,7 +201,41 @@ impl Storage {
             updated_at: now(),
             deleted_at: None,
         };
-        self.write_note(&note)?;
+        self.connection
+            .execute_batch("SAVEPOINT save_note_revision")
+            .map_err(error)?;
+        let result = (|| {
+            self.write_note(&note)?;
+            if let Some(previous) = old {
+                if previous.title != note.title
+                    || previous.content != note.content
+                    || previous.color != note.color
+                    || previous.pinned != note.pinned
+                    || previous.is_checklist != note.is_checklist
+                    || previous.label_ids != note.label_ids
+                {
+                    self.restore_note_revision(&NoteRevision {
+                        id: uuid::Uuid::new_v4().to_string(),
+                        note_id: note.id.clone(),
+                        note: previous,
+                    })?;
+                    self.connection.execute("DELETE FROM note_revisions WHERE note_id=?1 AND id NOT IN(SELECT id FROM note_revisions WHERE note_id=?1 ORDER BY rowid DESC LIMIT 30)",[&note.id]).map_err(error)?;
+                }
+            }
+            Ok(())
+        })();
+        match result {
+            Ok(()) => self
+                .connection
+                .execute_batch("RELEASE save_note_revision")
+                .map_err(error)?,
+            Err(e) => {
+                self.connection
+                    .execute_batch("ROLLBACK TO save_note_revision; RELEASE save_note_revision")
+                    .map_err(error)?;
+                return Err(e);
+            }
+        }
         Ok(note)
     }
     pub fn trash_note(&mut self, id: &str, trashed: bool) -> Result<()> {
@@ -204,6 +286,47 @@ impl Storage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn revisions_are_bounded_restore_transactionally_and_follow_trash() {
+        let mut db = Storage::open(std::path::Path::new(":memory:")).unwrap();
+        let input = |id: Option<String>, content: String| NoteInput {
+            id,
+            title: "A thought".into(),
+            content,
+            color: "paper".into(),
+            pinned: false,
+            is_checklist: false,
+            label_ids: vec![],
+        };
+        let note = db.save_note(input(None, "Original".into())).unwrap();
+        for index in 0..35 {
+            db.save_note(input(Some(note.id.clone()), format!("Revision {index}")))
+                .unwrap();
+        }
+        let history = db.note_revisions(&note.id).unwrap();
+        assert_eq!(history.len(), 30);
+        assert_eq!(history[0].note.content, "Revision 33");
+        let backup = serde_json::from_slice(&db.backup_bytes().unwrap()).unwrap();
+        let mut restored = Storage::open(std::path::Path::new(":memory:")).unwrap();
+        restored.restore_backup(backup, false).unwrap();
+        assert_eq!(restored.note_revisions(&note.id).unwrap().len(), 30);
+        assert_eq!(
+            restored.note_revisions(&note.id).unwrap()[0].note.content,
+            "Revision 33"
+        );
+        let mut bad = input(Some(note.id.clone()), "Bad save".into());
+        bad.label_ids = vec!["missing".into()];
+        assert!(db.save_note(bad).is_err());
+        assert_eq!(db.note_revisions(&note.id).unwrap().len(), 30);
+        assert_eq!(db.personal_note(&note.id).unwrap().content, "Revision 34");
+        db.trash_note(&note.id, true).unwrap();
+        assert_eq!(db.note_revisions(&note.id).unwrap().len(), 30);
+        assert!(db
+            .save_note(input(Some(note.id.clone()), "Hidden change".into()))
+            .is_err());
+        db.delete_note(&note.id).unwrap();
+        assert!(db.all_note_revisions().unwrap().is_empty());
+    }
     #[test]
     fn notebooks_checklists_trash_and_backup_survive_reopen() {
         let root = std::env::temp_dir().join(format!("vern-notes-{}", uuid::Uuid::new_v4()));

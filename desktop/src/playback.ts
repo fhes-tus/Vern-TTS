@@ -39,6 +39,7 @@ export class Playback {
     rate: number,
     onChunk: (index: number) => Promise<void>,
     onState: (state: string) => void,
+    onOutput: (index: number | null) => void = () => {},
   ) {
     await this.stop();
     const generation = this.generation;
@@ -79,10 +80,18 @@ export class Playback {
           source.connect(this.context!.destination);
           source.onended = () => {
             source.disconnect();
+            this.context!.removeEventListener('statechange', contextState);
             if (this.source === source) this.source = null;
+            if (generation === this.generation) onOutput(null);
             resolve();
           };
+          const contextState = () => {
+            if (generation === this.generation)
+              onOutput(this.context!.state === 'running' ? index : null);
+          };
+          this.context!.addEventListener('statechange', contextState);
           source.start();
+          contextState();
           this.sourceEnd = this.context!.currentTime + buffer.duration;
           this.setSleepDeadline(this.deadline);
         });
@@ -93,6 +102,8 @@ export class Playback {
       if (generation === this.generation) onState('Finished');
     } catch (error) {
       if (generation === this.generation) throw error;
+    } finally {
+      if (generation === this.generation) onOutput(null);
     }
   }
 }

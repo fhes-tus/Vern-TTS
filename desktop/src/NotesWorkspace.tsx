@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, native } from './api';
 import { Glyph } from './Glyph';
+import { NoteAttachments } from './NoteAttachments';
 import { Modal, NotesPage } from './WorkspacePages';
-import type { Book, NoteInput, Notebook, PersonalNote } from './types';
+import type { Book, NoteInput, Notebook, PersonalNote, NotesSettings, NoteRevision } from './types';
 const empty: NoteInput = {
   title: '',
   content: '',
@@ -21,18 +22,27 @@ const inputFor = (n: PersonalNote): NoteInput => ({
   labelIds: n.labelIds,
 });
 export function NotesWorkspace(props: {
+  settings: NotesSettings;
+  onSettings: (settings: NotesSettings) => Promise<boolean>;
+  onPreferences: () => void;
   books: Book[];
   onOpen: (book: Book, position: number) => void;
   onError: (e: unknown) => void;
   initialView?: 'personal' | 'books';
+  entryVersion?: number;
 }) {
   const [view, setView] = useState<'personal' | 'books' | 'trash'>(props.initialView ?? 'personal');
+  const lastEntry = useRef(props.entryVersion);
+  useEffect(() => {
+    if (lastEntry.current === props.entryVersion) return;
+    lastEntry.current = props.entryVersion;
+    setView(props.initialView ?? 'personal');
+  }, [props.entryVersion, props.initialView]);
   const [notes, setNotes] = useState<PersonalNote[]>([]);
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [query, setQuery] = useState('');
   const [label, setLabel] = useState('');
-  const [sort, setSort] = useState('updated');
-  const [grid, setGrid] = useState(true);
+  const { sort, grid } = props.settings;
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [editor, setEditor] = useState<NoteInput | null>(null);
@@ -90,6 +100,10 @@ export function NotesWorkspace(props: {
   return (
     <>
       <div className="study-tabs" role="group" aria-label="Notes collections">
+        <button className="secondary small" onClick={props.onPreferences}>
+          <Glyph name="settings" />
+          Notes settings
+        </button>
         {(['personal', 'books', 'trash'] as const).map((v) => (
           <button
             key={v}
@@ -106,16 +120,11 @@ export function NotesWorkspace(props: {
         <div className="page notes-workspace">
           <div className="page-heading">
             <div>
-              <span className="eyebrow">KEEP A THOUGHT CLOSE</span>
               <h1>
                 {view === 'trash' ? 'Trash' : 'Notes'}
                 <span className="heading-dot">.</span>
               </h1>
-              <p>
-                {view === 'trash'
-                  ? 'Restore a thought, or delete it permanently.'
-                  : 'A place for your ideas, plans and little lists.'}
-              </p>
+              {view === 'trash' && <p>Restore or permanently delete notes.</p>}
             </div>
             <div className="action-row">
               <button
@@ -130,7 +139,13 @@ export function NotesWorkspace(props: {
                 <button
                   className="primary"
                   disabled={!native || loading}
-                  onClick={() => setEditor({ ...empty, labelIds: label ? [label] : [] })}
+                  onClick={() =>
+                    setEditor({
+                      ...empty,
+                      isChecklist: props.settings.newChecklist,
+                      labelIds: label ? [label] : [],
+                    })
+                  }
                 >
                   <Glyph name="plus" />
                   New note
@@ -161,7 +176,15 @@ export function NotesWorkspace(props: {
             </label>
             <label>
               Sort notes
-              <select value={sort} onChange={(e) => setSort(e.target.value)}>
+              <select
+                value={sort}
+                onChange={(e) =>
+                  void props.onSettings({
+                    ...props.settings,
+                    sort: e.target.value as NotesSettings['sort'],
+                  })
+                }
+              >
                 <option value="updated">Last edited</option>
                 <option value="created">Date created</option>
                 <option value="title">Title</option>
@@ -170,7 +193,7 @@ export function NotesWorkspace(props: {
             <button
               className="icon-button"
               aria-label={grid ? 'Show notes as list' : 'Show notes as grid'}
-              onClick={() => setGrid(!grid)}
+              onClick={() => void props.onSettings({ ...props.settings, grid: !grid })}
             >
               <Glyph name={grid ? 'list' : 'grid'} />
             </button>
@@ -193,33 +216,50 @@ export function NotesWorkspace(props: {
                 </div>
                 {note.isChecklist ? (
                   <div className="note-checklist">
-                    {note.content.split('\n').map(
-                      (line, i) =>
-                        line.trim() && (
-                          <label key={i} className="note-check">
-                            <input
-                              type="checkbox"
-                              disabled={busy || view === 'trash'}
-                              checked={/^\s*-\s*\[x\]/i.test(line)}
-                              onChange={() =>
-                                void run(async () => {
-                                  const lines = note.content.split('\n');
-                                  lines[i] =
-                                    `- [${/^\s*-\s*\[x\]/i.test(line) ? ' ' : 'x'}] ${line.replace(/^\s*-\s*\[[ x]\]\s*/i, '')}`;
-                                  await api.savePersonalNote({
-                                    ...inputFor(note),
-                                    content: lines.join('\n'),
-                                  });
-                                })
-                              }
-                            />
-                            <span>{line.replace(/^\s*-\s*\[[ x]\]\s*/i, '')}</span>
-                          </label>
-                        ),
-                    )}
+                    {note.content
+                      .split('\n')
+                      .map((line, index) => ({ line, index }))
+                      .sort((a, b) =>
+                        props.settings.checkedToBottom
+                          ? Number(/^\s*-\s*\[x\]/i.test(a.line)) -
+                            Number(/^\s*-\s*\[x\]/i.test(b.line))
+                          : a.index - b.index,
+                      )
+                      .map(
+                        ({ line, index: i }) =>
+                          line.trim() && (
+                            <label key={i} className="note-check">
+                              <input
+                                type="checkbox"
+                                disabled={busy || view === 'trash'}
+                                checked={/^\s*-\s*\[x\]/i.test(line)}
+                                onChange={() =>
+                                  void run(async () => {
+                                    const lines = note.content.split('\n');
+                                    lines[i] =
+                                      `- [${/^\s*-\s*\[x\]/i.test(line) ? ' ' : 'x'}] ${line.replace(/^\s*-\s*\[[ x]\]\s*/i, '')}`;
+                                    await api.savePersonalNote({
+                                      ...inputFor(note),
+                                      content: lines.join('\n'),
+                                    });
+                                  })
+                                }
+                              />
+                              <span>{line.replace(/^\s*-\s*\[[ x]\]\s*/i, '')}</span>
+                            </label>
+                          ),
+                      )}
                   </div>
                 ) : (
-                  <p className="personal-note-body">
+                  <p
+                    className="personal-note-body"
+                    style={{
+                      display: props.settings.previewLines ? '-webkit-box' : 'none',
+                      WebkitBoxOrient: 'vertical',
+                      WebkitLineClamp: props.settings.previewLines,
+                      overflow: 'hidden',
+                    }}
+                  >
                     {note.content.slice(0, 1000)}
                     {note.content.length > 1000 ? '…' : ''}
                   </p>
@@ -325,6 +365,7 @@ export function NotesWorkspace(props: {
       )}
       {editor && (
         <NoteEditor
+          settings={props.settings}
           initial={editor}
           notebooks={notebooks}
           onClose={() => setEditor(null)}
@@ -345,32 +386,40 @@ export function NotesWorkspace(props: {
   );
 }
 function NoteEditor({
+  settings,
   initial,
   notebooks,
   onClose,
   onSaved,
 }: {
+  settings: NotesSettings;
   initial: NoteInput;
   notebooks: Notebook[];
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
   const [draft, setDraft] = useState(initial);
+  const [history, setHistory] = useState<NoteRevision[] | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [revisionMessage, setRevisionMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  function persistDraft() {
+    return api.savePersonalNote({
+      ...draft,
+      content: draft.isChecklist
+        ? draft.content
+            .split('\n')
+            .map((l) => (!l.trim() || /^\s*-\s*\[[ x]\]/i.test(l) ? l : `- [ ] ${l}`))
+            .join('\n')
+        : draft.content,
+    });
+  }
   async function save() {
     setBusy(true);
     setError('');
     try {
-      await api.savePersonalNote({
-        ...draft,
-        content: draft.isChecklist
-          ? draft.content
-              .split('\n')
-              .map((l) => (!l.trim() || /^\s*-\s*\[[ x]\]/i.test(l) ? l : `- [ ] ${l}`))
-              .join('\n')
-          : draft.content,
-      });
+      await persistDraft();
       await onSaved();
       onClose();
     } catch (e) {
@@ -405,6 +454,9 @@ function NoteEditor({
         <label>
           Note text
           <textarea
+            className="notes-writing"
+            data-paper={settings.paper}
+            style={{ fontSize: `${settings.fontScale}em`, lineHeight: settings.lineSpacing }}
             maxLength={200000}
             rows={10}
             value={draft.content}
@@ -459,6 +511,85 @@ function NoteEditor({
               </label>
             ))}
           </fieldset>
+        )}
+        <NoteAttachments
+          noteId={draft.id}
+          disabled={busy}
+          onBusy={setBusy}
+          prepare={async () => {
+            const saved = await persistDraft();
+            setDraft(inputFor(saved));
+            await onSaved();
+            return saved.id;
+          }}
+        />
+        {draft.id && (
+          <section className="note-history">
+            <button
+              className="text-button"
+              type="button"
+              disabled={busy}
+              aria-expanded={historyOpen}
+              onClick={() => {
+                if (historyOpen) {
+                  setHistoryOpen(false);
+                  return;
+                }
+                setBusy(true);
+                setError('');
+                void api
+                  .noteRevisions(draft.id!)
+                  .then((value) => {
+                    setHistory(value);
+                    setHistoryOpen(true);
+                  })
+                  .catch((e) => setError(String(e)))
+                  .finally(() => setBusy(false));
+              }}
+            >
+              Version history
+            </button>
+            {historyOpen && (
+              <>
+                <p className="muted">
+                  The last 30 saved versions are kept. Choose a version to review it, then save to
+                  apply it.
+                </p>
+                {history?.length ? (
+                  history.map((revision) => (
+                    <details key={revision.id}>
+                      <summary>
+                        {new Date(revision.note.updatedAt).toLocaleString()} ·{' '}
+                        {revision.note.title || 'Untitled note'}
+                      </summary>
+                      <pre>{revision.note.content}</pre>
+                      <button
+                        type="button"
+                        className="secondary small"
+                        onClick={() => {
+                          setDraft({
+                            ...inputFor(revision.note),
+                            id: initial.id,
+                            labelIds: revision.note.labelIds.filter((id) =>
+                              notebooks.some((notebook) => notebook.id === id),
+                            ),
+                          });
+                          setRevisionMessage(
+                            'Previous version loaded into the editor. Save note to keep it, or cancel to leave the current note.',
+                          );
+                        }}
+                      >
+                        Use this version
+                      </button>
+                    </details>
+                  ))
+                ) : (
+                  <p className="muted">No previous versions yet.</p>
+                )}
+              </>
+            )}
+            {revisionMessage && <p role="status">{revisionMessage}</p>}
+          </section>
         )}
         {error && <p role="alert">{error}</p>}
         <div className="action-row">

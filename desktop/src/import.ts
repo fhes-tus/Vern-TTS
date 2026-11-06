@@ -1,6 +1,7 @@
 import { unzipSync } from 'fflate';
 import { DOMParser } from '@xmldom/xmldom';
-import type { ParsedBook } from './types';
+import { defaultSettings, type ParsedBook, type PdfImportSettings } from './types';
+import { cleanPdfPages } from './pdf-import';
 
 const LIMIT = 32 * 1024 * 1024;
 const decoder = new TextDecoder('utf-8', { fatal: true });
@@ -185,7 +186,11 @@ export function officeText(bytes: Uint8Array, format: 'docx' | 'pptx') {
   return { ...metadata, text: slides.join('\n\n'), pages: slides };
 }
 
-export async function parseBook(name: string, bytes: Uint8Array): Promise<ParsedBook> {
+export async function parseBook(
+  name: string,
+  bytes: Uint8Array,
+  pdfOptions: PdfImportSettings = defaultSettings.pdfImport,
+): Promise<ParsedBook> {
   if (bytes.length > LIMIT) throw new Error('Please choose a book smaller than 32 MB.');
   const format = name.split('.').pop()?.toLowerCase() ?? '';
   let title = name.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
@@ -217,6 +222,10 @@ export async function parseBook(name: string, bytes: Uint8Array): Promise<Parsed
       const pages: string[] = [];
       let chars = 0;
       for (let n = 1; n <= pdf.numPages; n++) {
+        if (n < pdfOptions.startPage || (pdfOptions.endPage && n > pdfOptions.endPage)) {
+          pages.push('');
+          continue;
+        }
         const content = await (await pdf.getPage(n)).getTextContent();
         const page = content.items
           .map((item) => ('str' in item ? item.str + (item.hasEOL ? '\n' : ' ') : ''))
@@ -225,8 +234,8 @@ export async function parseBook(name: string, bytes: Uint8Array): Promise<Parsed
         if (chars > LIMIT) throw new Error('Extracted PDF text exceeds 32 MB.');
         pages.push(page);
       }
-      text = pages.join('\n\n');
-      sourcePages = pages;
+      sourcePages = cleanPdfPages(pages, pdfOptions);
+      text = sourcePages.join('\n\n');
     } finally {
       await task.destroy();
     }

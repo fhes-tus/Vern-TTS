@@ -1,0 +1,596 @@
+/* Shared desktop chrome reserves the middle column for playback. */
+.generated-cover {
+  padding: 0;
+  border-radius: 3px;
+  box-shadow: none;
+  display: block;
+}
+.about-page {
+  display: grid;
+  gap: 28px;
+}
+.about-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  padding: 30px;
+  background: var(--container);
+}
+.about-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+.about-brand img {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+}
+.settings-content .about-brand h2 {
+  font-size: 32px;
+  margin: 0;
+}
+.about-brand p {
+  color: var(--muted);
+  font-size: 13px;
+}
+.about-hero > h3 {
+  font-size: clamp(30px, 3.5vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -1px;
+  margin: 28px 0 16px;
+  position: relative;
+  z-index: 1;
+  font-weight: 500;
+}
+.about-hero > p {
+  max-width: 480px;
+  line-height: 1.7;
+  position: relative;
+  z-index: 1;
+}
+.about-version {
+  display: inline-block;
+  margin-top: 24px;
+  background: var(--surface);
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+.about-spines {
+  position: absolute;
+  right: -10px;
+  top: 20px;
+  height: 270px;
+  fill: var(--ink);
+  opacity: 0.045;
+  transform: rotate(12deg);
+}
+.about-community h3,
+.about-online h3 {
+  font-size: 17px;
+  margin-bottom: 12px;
+}
+.about-community > button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 18px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.about-community strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+}
+.about-community small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.about-community > button > .glyph:last-child {
+  margin-left: auto;
+  width: 16px;
+}
+.about-online > div {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.about-online .secondary {
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+}
+.about-licenses summary {
+  cursor: pointer;
+  padding-block: 10px;
+  font-size: 14px;
+}
+.about-licenses p {
+  font-size: 13px;
+  margin-block: 12px;
+}
+.about-licenses pre {
+  font-family: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  max-height: 300px;
+  overflow: auto;
+  background: var(--surface);
+  padding: 16px;
+}
+.about-privacy {
+  font-size: 13px;
+  color: var(--muted);
+}
+.generated-cover-copy {
+  font-family: Outfit, sans-serif;
+}
+.generated-cover-title {
+  font-weight: 650;
+  line-height: 1.06;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  overflow: hidden;
+}
+.generated-cover-author {
+  font-size: 23px;
+  font-weight: 450;
+  line-height: 1.15;
+  margin-top: 20px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.details-book-cover {
+  display: flex;
+  justify-content: center;
+  padding-block: 4px 16px;
+}
+.home-book-stack .cover {
+  width: 160px;
+  height: 240px;
+  transform: rotate(4deg);
+}
+.app-shell .workspace > .topbar {
+  height: 56px;
+  min-height: 56px;
+  padding: 8px 18px;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+.app-shell .topbar .icon-button {
+  width: 32px;
+  height: 32px;
+}
+.app-shell .topbar .small {
+  min-height: 34px;
+  padding: 7px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+.app-shell .topbar-actions {
+  gap: 12px;
+  flex-shrink: 0;
+}
+.app-shell .breadcrumb {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app-shell .breadcrumb span {
+  padding-inline: 6px;
+}
+.app-shell .window-navigation {
+  gap: 4px;
+}
+.app-shell .workspace > .playback-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  height: 60px;
+  min-height: 60px;
+  padding: 8px 18px;
+  gap: 16px;
+}
+.app-shell.reader-focus .workspace > .topbar,
+.app-shell.reader-focus .workspace > .playback-bar {
+  display: none;
+}
+.app-shell .workspace > .playback-bar .now-playing {
+  width: 100%;
+  min-width: 0;
+}
+.app-shell .playback-bar .now-icon {
+  display: none;
+}
+.app-shell .playback-bar .now-playing strong,
+.app-shell .playback-bar .now-playing span {
+  font-size: 12px;
+  margin-top: 1px;
+}
+.app-shell .workspace > .playback-bar .transport {
+  width: auto;
+  gap: 12px;
+  justify-self: center;
+}
+.app-shell .playback-bar .icon-button {
+  width: 32px;
+  height: 32px;
+}
+.app-shell .playback-bar .play-button {
+  width: 40px;
+  height: 40px;
+}
+.app-shell .playback-bar .play-button svg {
+  width: 20px;
+  height: 20px;
+}
+.app-shell .workspace > .playback-bar .playback-options {
+  width: 100%;
+  min-width: 0;
+  gap: 14px;
+}
+.app-shell .playback-bar select {
+  height: 32px;
+  padding: 5px 8px;
+}
+.app-shell .playback-bar .voice-selector {
+  min-width: 0;
+  font-size: 12px;
+  gap: 6px;
+}
+.app-shell .playback-bar .voice-selector span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.app-shell .playback-bar .voice-selector small {
+  display: none;
+}
+.desktop-settings {
+  padding: 24px;
+  max-width: 1240px;
+}
+.desktop-settings > h1 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+.settings-layout {
+  display: grid;
+  grid-template-columns: 224px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.settings-category-picker {
+  display: none;
+}
+.settings-navigation {
+  display: grid;
+  gap: 20px;
+  position: sticky;
+  top: 16px;
+}
+.settings-nav-group {
+  display: grid;
+  gap: 3px;
+}
+.settings-nav-group h2 {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 0 12px 7px;
+}
+.settings-navigation button {
+  border-left: 2px solid transparent;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: left;
+}
+.settings-navigation button > .glyph:last-child {
+  margin-left: auto;
+  width: 12px;
+  opacity: 0;
+}
+.settings-navigation button[aria-current='page'] > .glyph:last-child {
+  opacity: 1;
+}
+.settings-navigation button[aria-current='page'] {
+  font-weight: 500;
+  border-left-color: var(--accent);
+}
+.settings-navigation button[aria-current='page'],
+.settings-navigation button:hover {
+  background: var(--container);
+  color: var(--ink);
+}
+.settings-navigation .glyph {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+.settings-content {
+  min-width: 0;
+  container-type: inline-size;
+}
+.settings-content .settings-card {
+  margin: 0 0 20px;
+  width: 100%;
+  max-width: none;
+  padding: 28px;
+  border-radius: 12px;
+}
+.settings-content h2 {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+.settings-content label:not(.toggle-setting):not(.settings-switch-row):not(.restore-choice) {
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+}
+.settings-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.settings-switch-row > span {
+  min-width: 0;
+}
+.settings-switch-row strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+}
+.settings-switch-row small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+.settings-switch-row input {
+  appearance: none;
+  flex-shrink: 0;
+  width: 36px;
+  height: 22px;
+  padding: 2px;
+  border: 1px solid var(--muted);
+  border-radius: 20px;
+  background: var(--container);
+  cursor: pointer;
+}
+.settings-switch-row input::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.settings-switch-row input:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.settings-switch-row input:checked::before {
+  transform: translateX(14px);
+  background: var(--on-accent);
+}
+.settings-switch-row input:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.settings-content .settings-subheading {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 26px;
+  margin-bottom: 6px;
+}
+.settings-field-group {
+  margin-top: 24px;
+}
+.settings-page-range {
+  background: var(--low);
+  padding: 1px 18px 12px;
+  border-radius: 8px;
+}
+.field-hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.settings-page-range .text-button {
+  margin-top: 8px;
+}
+.notice-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 14px;
+  margin-block: 16px;
+  background: var(--accent-container);
+  color: var(--ink);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.notice-banner > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.notice-banner .icon-button {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  color: inherit;
+}
+.notice-error {
+  background: var(--low);
+  border: 1px solid var(--line);
+}
+@container (max-width: 500px) {
+  .settings-content .settings-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.settings-content .toggle-setting {
+  font-size: 13px;
+}
+.settings-content select,
+.settings-content input[type='number'] {
+  width: 100%;
+  min-height: 34px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.settings-content .settings-pair {
+  margin-block: 18px;
+}
+.settings-steps {
+  padding-left: 22px;
+  margin-block: 20px;
+}
+.settings-steps li {
+  margin-bottom: 12px;
+}
+.about-details {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 18px;
+  margin-block: 24px;
+}
+.about-details dt {
+  color: var(--muted);
+}
+.about-details dd {
+  margin: 0;
+}
+.flow-page-body p,
+.flow-scroll p {
+  line-height: var(--reader-leading, 1.85);
+  position: relative;
+}
+[data-section]::before {
+  content: attr(data-section);
+  position: absolute;
+  right: calc(100% + 7px);
+  top: 0.6em;
+  font:
+    9px Outfit,
+    sans-serif;
+  opacity: 0.65;
+}
+.notes-writing[data-paper='ruled'] {
+  background-image: repeating-linear-gradient(
+    transparent 0 calc(1lh - 1px),
+    var(--line) calc(1lh - 1px) 1lh
+  );
+  background-origin: content-box;
+}
+.notes-writing[data-paper='grid'] {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.notes-writing[data-paper='dots'] {
+  background-image: radial-gradient(var(--muted) 0.7px, transparent 0.7px);
+  background-size: 18px 18px;
+}
+html[data-reduce-transparency='true'] .reader-hud,
+html[data-reduce-transparency='true'] .reader-search-panel,
+html[data-reduce-transparency='true'] .selection-actions {
+  background: var(--surface);
+  backdrop-filter: none;
+}
+@media (max-width: 1000px) {
+  .app-shell .topbar .local-label {
+    display: none;
+  }
+  .settings-layout {
+    display: block;
+  }
+  .settings-navigation {
+    display: none;
+  }
+  .settings-category-picker {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 22px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .settings-category-picker select {
+    width: 100%;
+    padding: 10px 12px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .desktop-settings {
+    padding: 20px;
+  }
+}
+@media (max-width: 700px) {
+  .settings-layout {
+    display: block;
+  }
+  .settings-navigation {
+    display: none;
+  }
+  .settings-navigation button {
+    font-size: 12px;
+    padding: 8px;
+  }
+  .settings-content .settings-card {
+    padding: 16px;
+  }
+  .app-shell .topbar .small {
+    padding-inline: 7px;
+    font-size: 11px;
+  }
+  .app-shell .topbar-actions {
+    gap: 5px;
+  }
+  .app-shell .topbar .breadcrumb {
+    display: none;
+  }
+  .app-shell .workspace > .playback-bar {
+    gap: 6px;
+    padding-inline: 8px;
+  }
+  .app-shell .workspace > .playback-bar .playback-options {
+    gap: 6px;
+  }
+  .app-shell .playback-bar .voice-selector {
+    width: 24px;
+  }
+  .app-shell .playback-bar .voice-selector span {
+    display: none;
+  }
+}

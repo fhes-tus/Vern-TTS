@@ -93,8 +93,13 @@ impl Storage {
                     return Err("The flashcard source is outside this book.".into());
                 }
             }
+            (Some(id), None) => {
+                // Android cards can refer to a whole book without a sentence anchor.
+                // Retain that association without fabricating a source position.
+                self.book(id)?;
+            }
             (None, None) => {}
-            _ => return Err("Select both a book and a source passage, or neither.".into()),
+            _ => return Err("A source passage needs a book.".into()),
         }
         let id = input.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
         uuid::Uuid::parse_str(&id).map_err(error)?;

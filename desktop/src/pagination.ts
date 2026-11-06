@@ -9,11 +9,12 @@ export async function paginate(
   fontSize: number,
   measure: (text: string) => number,
   cancelled: () => boolean,
+  leading = 1.85,
 ): Promise<FlowPage[]> {
   const pages: FlowPage[] = [];
   let parts: PagePart[] = [];
   let used = 0;
-  const lineHeight = fontSize * 1.85;
+  const lineHeight = fontSize * leading;
   const nextPage = () => {
     if (parts.length) pages.push({ parts });
     parts = [];
