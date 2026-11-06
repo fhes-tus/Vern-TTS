@@ -17,16 +17,16 @@ class BotSecurityTest(unittest.TestCase):
     def test_current_release_and_menu_do_not_require_github(self):
         with patch.object(bot, 'get_latest_release', side_effect=AssertionError('Unexpected GitHub lookup')):
             text, menu = bot.get_welcome_content()
-            self.assertIn('2.7.0', text)
-            self.assertIn('Build 45', text)
+            self.assertIn('2.8.0', text)
+            self.assertIn('Build 47', text)
             self.assertEqual(menu['inline_keyboard'][0][0]['url'], bot.CONTENT['play_url'])
-            self.assertIn('Build 45', bot.get_changelog_content()[0])
+            self.assertIn('Build 47', bot.get_changelog_content()[0])
 
     def test_downloads_prioritize_play_and_label_separate_github_release(self):
         release = {'tag':'v2.6.2', 'universal_url':bot.GITHUB_URL+'/releases/latest', 'arm64_url':bot.GITHUB_URL+'/releases/latest'}
         with patch.object(bot, 'get_latest_release', return_value=release):
             text, menu = bot.get_download_content()
-            self.assertIn('Build 45', text)
+            self.assertIn('Build 47', text)
             self.assertIn('Latest GitHub APK release: <b>v2.6.2</b>', text)
             self.assertEqual(menu['inline_keyboard'][0][0]['url'], bot.CONTENT['play_url'])
             self.assertNotIn('review is currently', text)
@@ -46,11 +46,11 @@ class BotSecurityTest(unittest.TestCase):
             self.assertLessEqual(len(command['description']),256)
 
     def test_channel_announcement_rejects_unpublished_and_never_invents_assets(self):
-        for data in [None, {'tag_name':'v2.7.0','draft':True}, {'tag_name':'v2.7.0','prerelease':True}]:
+        for data in [None, {'tag_name':'v2.8.0','draft':True}, {'tag_name':'v2.8.0','prerelease':True}]:
             with self.assertRaises(ValueError):
                 broadcast.build_announcement(data)
-        text, markup = broadcast.build_announcement({'tag_name':'v2.7.0','assets':[]})
-        self.assertIn('Build 45', text)
+        text, markup = broadcast.build_announcement({'tag_name':'v2.8.0','assets':[]})
+        self.assertIn('Build 47', text)
         self.assertEqual(markup['inline_keyboard'][0][0]['url'], bot.CONTENT['play_url'])
         self.assertNotIn('.apk', json.dumps(markup))
 

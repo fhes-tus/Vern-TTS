@@ -2,14 +2,14 @@
 
 The channel is `@myreader_veritas`; the bot is `@VernTTS_bot`.
 
-## 2.7.0 / 45 content
+## 2.8.0 / 47 content
 
-- [Channel announcement](release/v2.7.0/text/telegram-channel-post.txt)
-- [Bot preview copy](release/v2.7.0/text/telegram-bot-preview.html)
-- [Full release notes](RELEASE_NOTES_v2.7.0.md)
-- [Release preparation and verification](release/v2.7.0/README.md)
+- [Channel announcement](release/v2.8.0/text/telegram-channel-post.txt)
+- [Bot preview copy](release/v2.8.0/text/telegram-bot-preview.html)
+- [Full release notes](RELEASE_NOTES_v2.8.0.md)
+- [Release preparation and verification](release/v2.8.0/README.md)
 
-The user confirmed version 2.7.0 / build 45 as the current Play release. The bot uses a concise welcome, Google Play as the primary install option, current release notes, and practical reading help. GitHub APK downloads are labelled separately and resolve actual published assets. [Shared content](scripts/telegram_content.json) supplies both bot implementations, profile text, the channel bio, and the channel announcement. Actual publication receipts are recorded in [progress.md](progress.md).
+The user confirmed version 2.8.0 / build 47 as the current release. The bot uses a concise welcome, Google Play as the primary install option, current release notes, and practical reading help. GitHub APK downloads are labelled separately and resolve actual published assets. [Shared content](scripts/telegram_content.json) supplies both bot implementations, profile text, the channel bio, and the channel announcement. Actual publication receipts are recorded in [progress.md](progress.md).
 
 ## Channel bio
 
@@ -36,7 +36,7 @@ https://github.com/fhes-tus/Vern-TTS/releases
 Website:
 https://fhes-tus.github.io/Vern-TTS/
 
-For installation and current changes, ask @VernTTS_bot with /download or /changelog. Version 2.7.0 / build 45 adds photo scanning, quote images, PDF swipes, and reading improvements.
+For installation and current changes, ask @VernTTS_bot with /download or /changelog. Version 2.8.0 / build 47 adds on-device translation, 4 new languages (de, ko, pt, ru), pronunciation guide, and desktop companion.
 
 Your reading data stays on the device by default. Optional AI, translation, sharing and online catalog features use their relevant services; the privacy policy explains these and ML Kit diagnostics.
 

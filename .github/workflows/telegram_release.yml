@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Published release tag to broadcast (e.g. v2.7.0)'
+        description: 'Published release tag to broadcast (e.g. v2.8.0)'
         required: false
         default: ''
 

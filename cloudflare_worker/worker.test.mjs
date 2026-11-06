@@ -34,7 +34,7 @@ test('legacy milestone command gives the current release and keeps secrets out o
   try {
     assert.equal((await worker.fetch(request(JSON.stringify({ message: { chat: { id: 12 }, text: '/milestone' } })), env)).status, 200);
     assert.equal(messages.length, 1);
-    assert.match(messages[0].text, /2\.7\.0.*Build 45/);
+    assert.match(messages[0].text, /2\.8\.0.*Build 47/);
     assert.doesNotMatch(messages[0].text, /in development|preview|review is currently/i);
     assert.ok(!messages[0].text.includes(env.TELEGRAM_BOT_TOKEN));
     assert.equal((await worker.fetch(request(JSON.stringify({ message: { chat: { id: 'forged' }, text: '/download' } })), env)).status, 200);
@@ -55,7 +55,7 @@ test('welcome and current release do not depend on GitHub availability', async (
       assert.equal((await worker.fetch(request(JSON.stringify({ message: { chat: { id: 12 }, text } })), env)).status, 200);
     }
     assert.equal(messages.length, 4);
-    assert.match(messages[0].text, /Version 2\.7\.0.*Build 45/);
+    assert.match(messages[0].text, /Version 2\.8\.0.*Build 47/);
     assert.equal(messages[0].reply_markup.inline_keyboard[0][0].url, content.play_url);
     assert.match(messages[2].text, /Make yourself comfortable/);
     assert.match(messages[3].text, /Privacy and offline use/);

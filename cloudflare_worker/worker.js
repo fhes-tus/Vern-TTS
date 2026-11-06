@@ -613,7 +613,7 @@ function markdownToTelegramHtml(mdText, maxBullets = 8) {
 
 async function sendChangelogContent(token, chatId, messageId = null) {
   const text = CONTENT.release;
-  const markup = {"inline_keyboard":[[{"text":"Get it on Google Play","url":"https://play.google.com/store/apps/details?id=com.veritas.reader"}],[{"text":"Full release notes","url":"https://github.com/fhes-tus/Vern-TTS/blob/main/RELEASE_NOTES_v2.7.0.md"}],[{"text":"Main menu","callback_data":"cmd_menu"}]]};
+  const markup = {"inline_keyboard":[[{"text":"Get it on Google Play","url":"https://play.google.com/store/apps/details?id=com.veritas.reader"}],[{"text":"Full release notes","url":"https://github.com/fhes-tus/Vern-TTS/blob/main/RELEASE_NOTES_v2.8.0.md"}],[{"text":"Main menu","callback_data":"cmd_menu"}]]};
   if (messageId) await editMessageText(token, chatId, messageId, text, markup);
   else await sendMessage(token, chatId, text, markup);
 }
@@ -622,7 +622,7 @@ async function sendChangelogContent(token, chatId, messageId = null) {
 
 async function sendWelcome(token, chatId, messageId = null) {
   const text = CONTENT.welcome;
-  const markup = {"inline_keyboard":[[{"text":"Get it on Google Play","url":"https://play.google.com/store/apps/details?id=com.veritas.reader"}],[{"text":"What's new in 2.7.0","callback_data":"cmd_changelog"},{"text":"Explore classics","callback_data":"cmd_classics"}],[{"text":"Features","callback_data":"cmd_features"},{"text":"Voices and listening","callback_data":"cmd_guide_voice"}],[{"text":"Help / FAQs","callback_data":"cmd_faq"},{"text":"Telegram channel","url":"https://t.me/myreader_veritas"}],[{"text":"Website","url":"https://fhes-tus.github.io/Vern-TTS/"}]]};
+  const markup = {"inline_keyboard":[[{"text":"Get it on Google Play","url":"https://play.google.com/store/apps/details?id=com.veritas.reader"}],[{"text":"What's new in 2.8.0","callback_data":"cmd_changelog"},{"text":"Explore classics","callback_data":"cmd_classics"}],[{"text":"Features","callback_data":"cmd_features"},{"text":"Voices and listening","callback_data":"cmd_guide_voice"}],[{"text":"Help / FAQs","callback_data":"cmd_faq"},{"text":"Telegram channel","url":"https://t.me/myreader_veritas"}],[{"text":"Website","url":"https://fhes-tus.github.io/Vern-TTS/"}]]};
   if (messageId) await editMessageText(token, chatId, messageId, text, markup);
   else await sendMessage(token, chatId, text, markup);
 }

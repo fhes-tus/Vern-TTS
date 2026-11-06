@@ -241,11 +241,11 @@ def load_classics():
     return []
 
 def get_changelog_content():
-    return CONTENT["release"], {"inline_keyboard": [[{"text": "Get it on Google Play", "url": "https://play.google.com/store/apps/details?id=com.veritas.reader"}], [{"text": "Full release notes", "url": "https://github.com/fhes-tus/Vern-TTS/blob/main/RELEASE_NOTES_v2.7.0.md"}], [{"text": "Main menu", "callback_data": "cmd_menu"}]]}
+    return CONTENT["release"], {"inline_keyboard": [[{"text": "Get it on Google Play", "url": "https://play.google.com/store/apps/details?id=com.veritas.reader"}], [{"text": "Full release notes", "url": "https://github.com/fhes-tus/Vern-TTS/blob/main/RELEASE_NOTES_v2.8.0.md"}], [{"text": "Main menu", "callback_data": "cmd_menu"}]]}
 
 
 def get_welcome_content():
-    return CONTENT["welcome"], {"inline_keyboard": [[{"text": "Get it on Google Play", "url": "https://play.google.com/store/apps/details?id=com.veritas.reader"}], [{"text": "What's new in 2.7.0", "callback_data": "cmd_changelog"}, {"text": "Explore classics", "callback_data": "cmd_classics"}], [{"text": "Features", "callback_data": "cmd_features"}, {"text": "Voices and listening", "callback_data": "cmd_guide_voice"}], [{"text": "Help / FAQs", "callback_data": "cmd_faq"}, {"text": "Telegram channel", "url": "https://t.me/myreader_veritas"}], [{"text": "Website", "url": "https://fhes-tus.github.io/Vern-TTS/"}]]}
+    return CONTENT["welcome"], {"inline_keyboard": [[{"text": "Get it on Google Play", "url": "https://play.google.com/store/apps/details?id=com.veritas.reader"}], [{"text": "What's new in 2.8.0", "callback_data": "cmd_changelog"}, {"text": "Explore classics", "callback_data": "cmd_classics"}], [{"text": "Features", "callback_data": "cmd_features"}, {"text": "Voices and listening", "callback_data": "cmd_guide_voice"}], [{"text": "Help / FAQs", "callback_data": "cmd_faq"}, {"text": "Telegram channel", "url": "https://t.me/myreader_veritas"}], [{"text": "Website", "url": "https://fhes-tus.github.io/Vern-TTS/"}]]}
 
 
 def get_download_content():

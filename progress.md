@@ -840,3 +840,12 @@ Final source review also kept failed-download rows/status visible under collapse
 - Updated the instrumentation scenario to cover the single rule, the group in both states, and the return to a single rule. Kept direct editing from the saved row.
 - Set Android `versionName` to `2.8.0` and `versionCode` to 47. Stopped the earlier preview build when the requested version changed.
 - On Windows, Gradle `:app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest --offline --max-workers=2 --no-parallel --console=plain` succeeded in 4m54s. The JVM report shows 713 tests, 0 failures, 0 errors and 0 skips. AAPT2 confirmed that the ARM64 APK is `com.veritas.reader.preview` version 2.8.0, code 47. The revised Android UI tests compiled. The APK remains on the PC for the phone check.
+
+### Website and community kit alignment for 2.8.0 / build 47 (2026-11-06)
+
+- Aligned website `docs/index.html` navigation tag to `2.8.0` and download section release note to `Version 2.8.0 · Build 47`.
+- Updated shared Telegram content `scripts/telegram_content.json` to version `2.8.0`, build `47`, detailing on-device translation, 4 new languages, pronunciation rules guide, custom cloud voice settings, and desktop cross-platform workspace.
+- Updated `TELEGRAM_COMMUNITY_KIT.md` and added release draft texts under `release/v2.8.0/text/` (`telegram-channel-post.txt`, `telegram-bot-preview.html`).
+- Aligned Cloudflare Worker (`cloudflare_worker/worker.js`, `cloudflare_worker/README.md`) and Python polling bot (`scripts/bot_polling.py`) to reference `RELEASE_NOTES_v2.8.0.md` and `What's new in 2.8.0`.
+- Verified Cloudflare Worker unit tests (`node --test cloudflare_worker/worker.test.mjs`, 5/5 pass) and Python bot security tests (`python -m unittest scripts/test_bot_security.py`, 9/9 pass).
+- Updated GitHub Actions workflow dispatch example tag in `.github/workflows/telegram_release.yml`.

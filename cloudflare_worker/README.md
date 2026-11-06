@@ -1,6 +1,6 @@
 # Vern Telegram bot
 
-Cloudflare Worker for `@VernTTS_bot`. It serves book searches, reading guides, Google Play installation, and the Vern 2.7.0 / build 45 release summary. The welcome, downloads, feature help, FAQs, command menu, and channel copy share [telegram_content.json](../scripts/telegram_content.json) with the Python polling bot. Google Play is the primary install option. Alternative APK links resolve actual assets from the latest published GitHub release and are labelled separately; no APK filenames are guessed.
+Cloudflare Worker for `@VernTTS_bot`. It serves book searches, reading guides, Google Play installation, and the Vern 2.8.0 / build 47 release summary. The welcome, downloads, feature help, FAQs, command menu, and channel copy share [telegram_content.json](../scripts/telegram_content.json) with the Python polling bot. Google Play is the primary install option. Alternative APK links resolve actual assets from the latest published GitHub release and are labelled separately; no APK filenames are guessed.
 
 ## Configuration
 

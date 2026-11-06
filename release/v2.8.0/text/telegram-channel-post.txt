@@ -1,0 +1,19 @@
+Vern 2.8.0 · Build 47
+
+New tools for global reading and listening:
+
+• On-device translation with offline ML Kit models.
+• 4 new languages: German, Korean, Portuguese, and Russian.
+• Pronunciation rules guide with regex and IPA support.
+• Custom cloud voice settings with API key management.
+• Cross-platform desktop companion with offline SQLite library.
+
+Read, listen, and keep your ideas together.
+
+Get Vern on Google Play below. For help and book discoveries, visit @VernTTS_bot.
+
+Already using a GitHub APK? Export a backup before switching install sources; contact support if an update fails.
+
+Google Play: https://play.google.com/store/apps/details?id=com.veritas.reader
+Website: https://fhes-tus.github.io/Vern-TTS/
+Bot: https://t.me/VernTTS_bot
