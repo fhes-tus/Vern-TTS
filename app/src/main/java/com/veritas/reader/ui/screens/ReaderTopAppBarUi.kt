@@ -135,7 +135,7 @@ internal fun ReaderTopAppBar(
                     IconButton(onClick = onBackToLibrary) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -158,14 +158,14 @@ internal fun ReaderTopAppBar(
                     val context = LocalContext.current
                     IconButton(
                         onClick = { onToggleSearch(!showSearch) }
-                    ) { Icon(Icons.Outlined.Search, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search), tint = MaterialTheme.colorScheme.onSurface) }
+                    ) { Icon(Icons.Outlined.Search, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_search), tint = MaterialTheme.colorScheme.onSurface) }
                     IconButton(
                         onClick = onOpenOutline,
                         modifier = Modifier.outlineRevealAnchor(onOutlinePositioned)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_m3_toc),
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_outline),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_outline),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -179,25 +179,26 @@ internal fun ReaderTopAppBar(
                                 PaperToneMode.WARM_SEPIA -> PaperToneMode.ACTIVE_THEME
                             }
                             onPaperToneModeChange(nextTone)
-                            val toneLabel = when (nextTone) {
-                                PaperToneMode.ACTIVE_THEME -> "Default"
-                                PaperToneMode.DARK -> "Dark slate"
-                                PaperToneMode.NATURAL_WHITE -> "Bone"
-                                PaperToneMode.WARM_SEPIA -> "Sepia"
-                            }
-                            Toast.makeText(context, "Paper tone: $toneLabel", Toast.LENGTH_SHORT).show()
+                            val toneLabel = context.getString(when (nextTone) {
+                                PaperToneMode.ACTIVE_THEME -> R.string.ui_default
+                                PaperToneMode.DARK -> R.string.ui_dark_slate
+                                PaperToneMode.NATURAL_WHITE -> R.string.ui_bone
+                                PaperToneMode.WARM_SEPIA -> R.string.ui_sepia
+                            })
+                            Toast.makeText(context, context.getString(R.string.reader_paper_tone_selected, toneLabel),
+                                Toast.LENGTH_SHORT).show()
                         }
                     ) {
                         Icon(
                             imageVector = Icons.Filled.InvertColors,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paper_tone_21c43d7),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paper_tone_21c43d7),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Box {
                         IconButton(
                             onClick = { internalShowTools = true; onShowToolsChange(true) }
-                        ) { Icon(Icons.Filled.MoreVert, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_more), tint = MaterialTheme.colorScheme.onSurface) }
+                        ) { Icon(Icons.Filled.MoreVert, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_more), tint = MaterialTheme.colorScheme.onSurface) }
                         ReaderToolsMenu(
                             readerSettings = state.readerSettings,
                             onReadingSettingsChange = onReadingSettingsChange,

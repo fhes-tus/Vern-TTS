@@ -128,7 +128,7 @@ private fun RowScope.NavigationTab(tab: VeritasHomeTab, active: VeritasHomeTab, 
         }
         if (drawable != null) Icon(painterResource(drawable), null, Modifier.size(size), tint = color)
         else Icon(if (selected) Icons.Filled.Layers else Icons.Outlined.Layers, null, Modifier.size(size), tint = color)
-    }, label = androidx.compose.ui.res.stringResource(tab.labelResource), showLabel = labels, showSelectionPill = false, modifier = Modifier.onGloballyPositioned {
+    }, label = com.veritas.reader.ui.screens.menuString(tab.labelResource), showLabel = labels, showSelectionPill = false, modifier = Modifier.onGloballyPositioned {
         OnboardingController.updateBounds("${tab.name.lowercase()}_tab", it)
     })
 }

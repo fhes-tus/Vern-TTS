@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="filter_all_notes">"Toutes les notes"</string>
+    <string name="filter_voice_memos">"Mémos vocaux"</string>
+    <string name="filter_reminders">"Rappels"</string>
+    <string name="filter_overview">"Vue d’ensemble"</string>
+    <string name="filter_history">"Historique"</string>
+    <string name="filter_updated">"Dernière mise à jour"</string>
+    <string name="filter_type">"Type"</string>
+    <string name="filter_featured">"À la une"</string>
+    <string name="filter_shortest">"Les plus courts"</string>
+    <string name="filter_family_youth">"Famille et jeunesse"</string>
+    <string name="filter_mystery">"Mystère"</string>
+    <string name="filter_adventure">"Aventure"</string>
+    <string name="filter_romance_drama">"Romance et drame"</string>
+    <string name="filter_life_habits">"Vie et habitudes"</string>
+    <string name="filter_quick_reads">"Lectures courtes"</string>
+    <string name="filter_epic_classics">"Classiques épiques"</string>
+    <string name="filter_faith_spirit">"Foi et spiritualité"</string>
+    <string name="filter_search_classics">"Rechercher des livres ou des auteurs"</string>
+    <string name="filter_count">"%1$s (%2$s)"</string>
+</resources>

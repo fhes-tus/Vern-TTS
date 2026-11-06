@@ -245,7 +245,7 @@ internal fun SmartOutlineDialog(
         }
     }
     ReaderOutlineScreen(
-        title = if (documentOutline.isNotEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_table_of_contents_1a42898) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_smart_outline),
+        title = if (documentOutline.isNotEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_table_of_contents_1a42898) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_smart_outline),
         documentTitle = resolveHumanDocumentTitle(document.title, document.sourceLabel),
         entries = entries.orEmpty(),
         currentIndex = currentIndex,

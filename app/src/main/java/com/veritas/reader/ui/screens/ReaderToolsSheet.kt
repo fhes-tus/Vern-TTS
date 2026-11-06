@@ -145,7 +145,7 @@ fun ReaderToolsSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reader_tools_d784703),
+                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reader_tools_d784703),
                         style = MaterialTheme.typography.titleLarge)
                     IconButton(
                         onClick = { choose(onOpenDocumentDetails) },
@@ -153,7 +153,7 @@ fun ReaderToolsSheet(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Info,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_info)
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_document_info)
                         )
                     }
                 }
@@ -163,17 +163,17 @@ fun ReaderToolsSheet(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    ToolItem(icon = Icons.Outlined.RecordVoiceOver, label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_3091c84), onClick = { choose(onOpenVoiceStudio) })
-                    ToolItem(icon = Icons.Outlined.TheaterComedy, label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_narration), onClick = { choose(onOpenNarrationStudio) })
-                    ToolItem(icon = Icons.Outlined.Timer, label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_timer), onClick = { choose(onOpenSleepTimer) })
+                    ToolItem(icon = Icons.Outlined.RecordVoiceOver, label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_voice_3091c84), onClick = { choose(onOpenVoiceStudio) })
+                    ToolItem(icon = Icons.Outlined.TheaterComedy, label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_narration), onClick = { choose(onOpenNarrationStudio) })
+                    ToolItem(icon = Icons.Outlined.Timer, label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_timer), onClick = { choose(onOpenSleepTimer) })
                 }
                 Spacer(modifier = Modifier.size(24.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    ToolItem(icon = Icons.Outlined.AutoAwesome, label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ask_ai), onClick = { choose(onOpenAskAi) })
-                    ToolItem(icon = Icons.Outlined.Settings, label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_all_settings), onClick = { showAllSettings = true })
+                    ToolItem(icon = Icons.Outlined.AutoAwesome, label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ask_ai), onClick = { choose(onOpenAskAi) })
+                    ToolItem(icon = Icons.Outlined.Settings, label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_all_settings), onClick = { showAllSettings = true })
                 }
             }
         } else {
@@ -192,18 +192,18 @@ fun ReaderToolsSheet(
                     IconButton(onClick = { showAllSettings = false }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back)
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back)
                         )
                     }
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_all_settings),
+                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_all_settings),
                         style = MaterialTheme.typography.titleLarge)
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(onClick = { choose(onOpenDocumentDetails) }) {
                         Icon(
                             imageVector = Icons.Outlined.Info,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_info)
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_document_info)
                         )
                     }
                 }
@@ -212,16 +212,16 @@ fun ReaderToolsSheet(
 
                 // READ SECTION
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_read),
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
 
                 SettingsItem(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_details_1ae2b40),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_document_details_1ae2b40),
                     leadingIcon = Icons.Outlined.Info,
-                    subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_metadata_length_format),
+                    subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_metadata_length_format),
                     onClick = { choose(onOpenDocumentDetails) }
                 )
                 ReaderNavigationOverflowItems(readerSettings, onReadingSettingsChange)
@@ -236,7 +236,7 @@ fun ReaderToolsSheet(
 
                 val readingHistoryFeature = readerFeature(VeritasFeatureId.READING_HISTORY)
                 SettingsItem(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_history),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_history),
                     leadingIcon = Icons.Outlined.History,
                     enabled = readingHistoryFeature.enabled,
                     subtitle = if (!readingHistoryFeature.enabled) readingHistoryFeature.disabledReason else null,
@@ -247,14 +247,14 @@ fun ReaderToolsSheet(
 
                 // NOTES AND BOOKMARKS SECTION
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes_and_bookmarks),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_notes_and_bookmarks),
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
 
                 SettingsItem(
-                    title = if (showBookmarks) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_hide_bookmarks) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_bookmarks),
+                    title = if (showBookmarks) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_hide_bookmarks) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_bookmarks),
                     leadingIcon = Icons.Outlined.Bookmark,
                     onClick = { choose(onToggleBookmarks) }
                 )
@@ -273,7 +273,7 @@ fun ReaderToolsSheet(
 
                 // STUDY SECTION
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_study),
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
@@ -282,7 +282,7 @@ fun ReaderToolsSheet(
 
                 val studyToolsFeature = readerFeature(VeritasFeatureId.OFFLINE_STUDY_TOOLS)
                 SettingsItem(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_ai_study_tools),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_ai_study_tools),
                     leadingIcon = Icons.Outlined.School,
                     enabled = studyToolsFeature.enabled,
                     subtitle = if (!studyToolsFeature.enabled) studyToolsFeature.disabledReason else null,
@@ -291,7 +291,7 @@ fun ReaderToolsSheet(
 
                 val translationFeature = readerFeature(VeritasFeatureId.TRANSLATION_HANDOFF)
                 SettingsItem(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_translation_handoff),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_translation_handoff),
                     leadingIcon = Icons.Outlined.Translate,
                     enabled = translationFeature.enabled,
                     subtitle = if (!translationFeature.enabled) translationFeature.disabledReason else null,
@@ -300,7 +300,7 @@ fun ReaderToolsSheet(
 
                 val textEditorFeature = readerFeature(VeritasFeatureId.EXTRACTED_TEXT_EDITOR)
                 SettingsItem(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_edit_extracted_text),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_edit_extracted_text),
                     leadingIcon = Icons.Outlined.EditNote,
                     enabled = textEditorFeature.enabled,
                     subtitle = if (!textEditorFeature.enabled) textEditorFeature.disabledReason else null,
@@ -311,7 +311,7 @@ fun ReaderToolsSheet(
 
                 // VOICE AND SETTINGS SECTION
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_and_settings),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_voice_and_settings),
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
@@ -319,7 +319,7 @@ fun ReaderToolsSheet(
 
                 val pronunciationFeature = readerFeature(VeritasFeatureId.PRONUNCIATION_RULES)
                 SettingsItem(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_pronunciation_rules_bf2c874),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_pronunciation_rules_bf2c874),
                     leadingIcon = Icons.Outlined.Spellcheck,
                     enabled = pronunciationFeature.enabled,
                     subtitle = if (!pronunciationFeature.enabled) pronunciationFeature.disabledReason else null,
@@ -327,14 +327,14 @@ fun ReaderToolsSheet(
                 )
 
                 SettingsItem(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reader_appearance),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reader_appearance),
                     leadingIcon = Icons.Outlined.Palette,
                     onClick = { choose(onOpenReaderSettings) }
                 )
 
                 val exportAudioFeature = readerFeature(VeritasFeatureId.QUEUE_AUDIO_EXPORT)
                 SettingsItem(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_export_audio),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_export_audio),
                     leadingIcon = Icons.Outlined.FileDownload,
                     enabled = exportAudioFeature.enabled,
                     subtitle = if (!exportAudioFeature.enabled) exportAudioFeature.disabledReason else null,

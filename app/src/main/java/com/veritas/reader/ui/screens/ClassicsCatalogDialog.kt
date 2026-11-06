@@ -822,7 +822,7 @@ fun ClassicBookCover(
                         )
                     }
                     Text(
-                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern_classic),
+                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_vern_classic),
                         style = MaterialTheme.typography.labelSmall,
                         color = book.accentColor.copy(alpha = 0.85f),
                         fontSize = if (large) 7.sp else 5.5.sp,
@@ -853,7 +853,7 @@ fun ClassicsCatalogDialog(
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
-                TextButton(onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back_to_library)) }
+                TextButton(onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back_to_library)) }
                 ClassicsCatalogContent(existingDocuments, emptyMap(), onDownloadBook, {}, onOpenBook, onOpenBookBrowser)
             }
         }
@@ -916,7 +916,7 @@ fun ClassicBookDetailSheet(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_077, com.veritas.reader.ui.screens.localizedUiValue(book.author)),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_077, com.veritas.reader.ui.screens.localizedUiValue(book.author)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary)
             }
@@ -942,7 +942,7 @@ fun ClassicBookDetailSheet(
                     color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Text(
-                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_078, com.veritas.reader.ui.screens.localizedUiValue(book.estimatedMinutes)),
+                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_078, com.veritas.reader.ui.screens.localizedUiValue(book.estimatedMinutes)),
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -973,7 +973,7 @@ fun ClassicBookDetailSheet(
             }
 
             if (book.editions.isNotEmpty()) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_an_edition), style = MaterialTheme.typography.titleSmall, modifier = Modifier.fillMaxWidth())
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_choose_an_edition), style = MaterialTheme.typography.titleSmall, modifier = Modifier.fillMaxWidth())
                 book.editions.chunked(2).forEach { pair ->
                     Row(Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Max),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1006,7 +1006,7 @@ fun ClassicBookDetailSheet(
             Spacer(modifier = Modifier.height(4.dp))
 
             if (downloadState.message.isNotBlank()) Text(downloadState.message, color = MaterialTheme.colorScheme.error)
-            if (selectedBusy) TextButton({ if (book.editions.isEmpty()) onCancelDownload() else onCancelEdition(selectedBook) }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel_download)) }
+            if (selectedBusy) TextButton({ if (book.editions.isEmpty()) onCancelDownload() else onCancelEdition(selectedBook) }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel_download)) }
             // Primary Action Button
             if (installedDoc != null) {
                 Button(
@@ -1019,7 +1019,7 @@ fun ClassicBookDetailSheet(
                 ) {
                     Icon(Icons.Filled.AutoStories, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_book), style = MaterialTheme.typography.labelLarge)
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_book), style = MaterialTheme.typography.labelLarge)
                 }
             } else {
                 Button(
@@ -1041,7 +1041,7 @@ fun ClassicBookDetailSheet(
                     } else {
                         Icon(if (book.hasDirectTextDownload) Icons.Filled.Download else Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(if (book.hasDirectTextDownload) selectedState.actionLabel else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_visit_website), style = MaterialTheme.typography.labelLarge)
+                        Text(if (book.hasDirectTextDownload) selectedState.actionLabel else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_visit_website), style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }

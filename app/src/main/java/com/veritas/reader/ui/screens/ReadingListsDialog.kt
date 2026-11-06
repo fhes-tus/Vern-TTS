@@ -64,8 +64,8 @@ fun ReadingListsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) } },
-        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_lists)) },
+        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close)) } },
+        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_lists)) },
         text = {
             Column(
                 modifier = Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
@@ -81,11 +81,11 @@ fun ReadingListsDialog(
                     )
                 ) {
                     Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create_list), style = MaterialTheme.typography.labelLarge)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_list), style = MaterialTheme.typography.labelLarge)
                         OutlinedTextField(
                             value = newListTitle,
                             onValueChange = { newListTitle = it },
-                            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_list_name)) },
+                            label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_list_name)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(50)
@@ -99,14 +99,14 @@ fun ReadingListsDialog(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(50)
                         ) {
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create))
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create))
                         }
                     }
                 }
 
                 if (activeLists.isEmpty()) {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_reading_lists_yet),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_reading_lists_yet),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
@@ -168,7 +168,7 @@ private fun ReadingListCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(list.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_217, com.veritas.reader.ui.screens.localizedUiValue(orderedDocuments.size)),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_217, com.veritas.reader.ui.screens.localizedUiValue(orderedDocuments.size)),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -206,14 +206,14 @@ private fun ReadingListCard(
                         }
                     )
                     Text(
-                        if (containsActive) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_current_reading_is_in_this_list) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_current_reading),
+                        if (containsActive) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_current_reading_is_in_this_list) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_current_reading),
                         modifier = Modifier.weight(1f)
                     )
                 }
             }
 
             if (orderedDocuments.isEmpty()) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_this_list_is_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_this_list_is_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 orderedDocuments.forEachIndexed { index, document ->
                     ReadingListDocumentRow(
@@ -230,8 +230,8 @@ private fun ReadingListCard(
 
             HorizontalDivider()
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { onArchiveList(list.id) }, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_archive)) }
-                Button(onClick = { confirmDelete = true }, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) }
+                OutlinedButton(onClick = { onArchiveList(list.id) }, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_archive)) }
+                Button(onClick = { confirmDelete = true }, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) }
             }
         }
     }
@@ -239,8 +239,8 @@ private fun ReadingListCard(
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_list)) },
-            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_this_removes_the_list_only_saved_readings_stay_in_your_library)) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_list)) },
+            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_this_removes_the_list_only_saved_readings_stay_in_your_library)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -249,11 +249,11 @@ private fun ReadingListCard(
                     },
                     shape = RoundedCornerShape(50)
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete))
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { confirmDelete = false }, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
+                OutlinedButton(onClick = { confirmDelete = false }, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
             }
         )
     }
@@ -273,15 +273,15 @@ private fun ReadingListDocumentRow(
         Column(modifier = Modifier.weight(1f).clickable { onOpen() }) {
             Text(document.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
             Text(
-                document.sourceLabel.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text) },
+                document.sourceLabel.ifBlank { com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_text) },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        TextButton(onClick = onMoveUp, enabled = canMoveUp) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_up)) }
-        TextButton(onClick = onMoveDown, enabled = canMoveDown) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_down)) }
-        TextButton(onClick = onRemove) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove)) }
+        TextButton(onClick = onMoveUp, enabled = canMoveUp) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_up)) }
+        TextButton(onClick = onMoveDown, enabled = canMoveDown) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_down)) }
+        TextButton(onClick = onRemove) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove)) }
     }
 }
 
@@ -309,11 +309,11 @@ fun ManageDocumentListsDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) }
+            Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close)) }
         },
         title = {
             Text(
-                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_to_lists),
+                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_lists),
                 style = MaterialTheme.typography.titleLarge)
         },
         text = {
@@ -324,14 +324,14 @@ fun ManageDocumentListsDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_172, com.veritas.reader.ui.screens.localizedUiValue(document.title)),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_172, com.veritas.reader.ui.screens.localizedUiValue(document.title)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 if (activeLists.isEmpty()) {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_reading_lists_yet),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_reading_lists_yet),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
@@ -400,11 +400,11 @@ fun ManageDocumentListsDialog(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_new_reading_list), style = MaterialTheme.typography.titleLarge)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_new_reading_list), style = MaterialTheme.typography.titleLarge)
                         OutlinedTextField(
                             value = newListTitle,
                             onValueChange = { newListTitle = it },
-                            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_list_title)) },
+                            label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_list_title)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(50)
@@ -418,7 +418,7 @@ fun ManageDocumentListsDialog(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(50)
                         ) {
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create_list))
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_list))
                         }
                     }
                 }

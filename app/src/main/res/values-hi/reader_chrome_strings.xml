@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reader_page_sentence_progress">"पृष्ठ %2$d में से %1$d • वाक्य %3$d/%4$d"</string>
+    <string name="reader_paper_tone_selected">"कागज़ का रंग: %1$s"</string>
+    <string name="pdf_swipe_pages">"पृष्ठ बदलने के लिए स्वाइप करें"</string>
+    <string name="pdf_scroll_pages">"पृष्ठों को स्क्रॉल करें"</string>
+    <string name="pdf_fit_current_page">"मौजूदा पृष्ठ को स्क्रीन में फ़िट करें"</string>
+    <string name="pdf_switch_orientation">"स्क्रीन की दिशा बदलें"</string>
+    <string name="pdf_outline_count">"अध्याय और अनुभाग: %1$d"</string>
+    <string name="pdf_outline_description">"अध्याय, अनुभाग और लिंक"</string>
+    <string name="pdf_first_page">"पहला पृष्ठ (%1$d)"</string>
+    <string name="pdf_last_page">"अंतिम पृष्ठ (%1$d)"</string>
+    <string name="pdf_jump_beginning">"शुरुआत पर जाएँ"</string>
+    <string name="pdf_jump_end">"दस्तावेज़ के अंत पर जाएँ"</string>
+    <string name="pdf_live_sync">"लाइव सिंक"</string>
+    <string name="pdf_sync_off">"सिंक बंद"</string>
+    <string name="pdf_sync_enabled">"लाइव सिंक (चालू)"</string>
+    <string name="pdf_sync_disabled">"लाइव सिंक (बंद)"</string>
+    <string name="pdf_pause_highlight">"अपने आप हाइलाइट करना रोकने के लिए टैप करें"</string>
+    <string name="pdf_enable_sync">"वाचन को PDF के साथ सिंक करने के लिए टैप करें"</string>
+    <string name="pdf_share_missing">"साझा करने के लिए PDF फ़ाइल नहीं मिली।"</string>
+    <string name="pdf_share_document">"PDF दस्तावेज़ साझा करें"</string>
+    <string name="pdf_document_format">"प्रारूप"</string>
+    <string name="pdf_original_format">"PDF (मूल दस्तावेज़)"</string>
+    <string name="pdf_total_sentences">"कुल वाक्य"</string>
+    <string name="pdf_estimated_reading_time">"पढ़ने का अनुमानित समय"</string>
+    <string name="pdf_added_date">"जोड़ने की तारीख"</string>
+    <string name="pdf_ready_to_read">"पढ़ने के लिए तैयार"</string>
+    <string name="pdf_preparing_reading">"वाचन तैयार हो रहा है…"</string>
+    <string name="pdf_cancel_preparing">"प्लेबैक तैयार हो रहा है। रद्द करने के लिए टैप करें"</string>
+    <string name="pdf_back_to_vern">"Vern पर लौटें"</string>
+    <string name="pdf_speed_value">"गति %1$.2f×"</string>
+    <string name="pdf_pitch_value">"स्वर %1$.2f"</string>
+    <string name="pdf_queue_count">"कतार (%1$d)"</string>
+    <string name="pdf_continue_queue">"कतार जारी रखें (%1$d)"</string>
+    <string name="pdf_file_share">"फ़ाइल और साझा करना"</string>
+</resources>

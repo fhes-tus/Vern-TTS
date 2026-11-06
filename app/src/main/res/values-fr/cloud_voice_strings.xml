@@ -84,4 +84,13 @@
     <string name="voice_explore" formatted="false">"Explorer les voix"</string>
     <string name="voice_connection_help_button" formatted="false">"Aide à la connexion"</string>
     <string name="voice_connection_help" formatted="false">"Utilisez une clé de votre compte autorisée à générer de la parole. Les aperçus et lectures envoient le texte au fournisseur et peuvent être facturés. Pour un serveur personnalisé, entrez son adresse HTTPS complète, son modèle et sa voix. Il doit accepter les requêtes vocales compatibles OpenAI et renvoyer du MP3 ou WAV. Les autres formats nécessitent un adaptateur. Faites confiance au serveur avant de lui confier texte et clé."</string>
+    <string name="cloud_about_azure">"Saisissez la clé de votre ressource Azure Speech et sa région, par exemple eastus. Chargez la liste des voix pour trouver votre langue. Les aperçus et la lecture utilisent votre compte Azure."</string>
+    <string name="cloud_about_google">"Activez l’API Cloud Text-to-Speech et la facturation dans votre projet Google Cloud. Utilisez une clé API limitée à Cloud Text-to-Speech. Les aperçus et la lecture utilisent ce projet."</string>
+    <string name="cloud_azure_region">"Région de la ressource Speech"</string>
+    <string name="cloud_catalog_key_hint">"Laissez ce champ vide pour utiliser la clé enregistrée pour cette connexion."</string>
+    <string name="cloud_choose_voice">"Choisir une voix en ligne"</string>
+    <string name="cloud_catalog_search">"Rechercher par langue ou par voix"</string>
+    <string name="cloud_catalog_empty">"Aucune voix ne correspond à votre recherche."</string>
+    <string name="cloud_catalog_error">"Vern ne parvient pas à charger la liste des voix. Vérifiez votre connexion et les paramètres du fournisseur."</string>
+    <string name="cloud_catalog_voice_missing">"Cette voix est indisponible pour cette connexion. Choisissez une autre voix."</string>
 </resources>

@@ -159,54 +159,54 @@ internal fun ReaderOutlineScreen(
         ) {
             Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { close(onDismiss) }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back_to_reader)) }
+                    IconButton(onClick = { close(onDismiss) }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back_to_reader)) }
                     Column(Modifier.weight(1f)) {
                         Text(title, style = MaterialTheme.typography.titleLarge)
                         Text(documentTitle, maxLines = 1, overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    IconButton(onClick = { close(onDismiss) }) { Icon(Icons.Filled.Close, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close_outline)) }
+                    IconButton(onClick = { close(onDismiss) }) { Icon(Icons.Filled.Close, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_outline)) }
                 }
                 Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(), singleLine = true,
-                        label = { Text(if (linkTab) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search_links) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_filter_outline)) },
-                        trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Filled.Close, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear_filter)) } })
+                        label = { Text(if (linkTab) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_search_links) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_filter_outline)) },
+                        trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Filled.Close, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_clear_filter)) } })
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         val requestedPage = jumpPage.toIntOrNull()?.takeIf { it in 1..pageCount }
                         OutlinedTextField(jumpPage, { jumpPage = it.filter(Char::isDigit).take(6) }, Modifier.weight(1f), singleLine = true,
-                            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_145, com.veritas.reader.ui.screens.localizedUiValue(pageCount))) },
+                            label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_145, com.veritas.reader.ui.screens.localizedUiValue(pageCount))) },
                             isError = jumpPage.isNotEmpty() && requestedPage == null,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                         TextButton(enabled = requestedPage != null && !closing, onClick = {
                             requestedPage?.let { page -> close { onJumpToDestination(page, sentenceForPage(page)) } }
-                        }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_go)) }
+                        }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_go)) }
                     }
                 }
                 if (showLinks) {
                     Row(Modifier.padding(horizontal = 16.dp)) {
-                        TextButton(onClick = { linkTab = false }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_146, com.veritas.reader.ui.screens.localizedUiValue(entries.size)), fontWeight = if (!linkTab) FontWeight.Bold else FontWeight.Normal) }
-                        TextButton(onClick = { linkTab = true }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_147, com.veritas.reader.ui.screens.localizedUiValue(links.size)), fontWeight = if (linkTab) FontWeight.Bold else FontWeight.Normal) }
+                        TextButton(onClick = { linkTab = false }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_146, com.veritas.reader.ui.screens.localizedUiValue(entries.size)), fontWeight = if (!linkTab) FontWeight.Bold else FontWeight.Normal) }
+                        TextButton(onClick = { linkTab = true }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_147, com.veritas.reader.ui.screens.localizedUiValue(links.size)), fontWeight = if (linkTab) FontWeight.Bold else FontWeight.Normal) }
                     }
                 }
                 if (!linkTab) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (matches != null) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_148, com.veritas.reader.ui.screens.localizedUiValue(matches.size)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_149, com.veritas.reader.ui.screens.localizedUiValue(entries.size)),
+                        Text(if (matches != null) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_148, com.veritas.reader.ui.screens.localizedUiValue(matches.size)) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_149, com.veritas.reader.ui.screens.localizedUiValue(entries.size)),
                             Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (branches.isNotEmpty()) {
-                            TextButton(onClick = { collapsed = emptySet() }, enabled = query.isBlank() && collapsed.isNotEmpty()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand_all)) }
-                            TextButton(onClick = { collapsed = branches }, enabled = query.isBlank() && collapsed != branches) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse_all)) }
+                            TextButton(onClick = { collapsed = emptySet() }, enabled = query.isBlank() && collapsed.isNotEmpty()) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_expand_all)) }
+                            TextButton(onClick = { collapsed = branches }, enabled = query.isBlank() && collapsed != branches) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collapse_all)) }
                         }
                     }
                 }
                 HorizontalDivider()
                 if (loading) {
-                    Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_building_outline)) }
+                    Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_building_outline)) }
                 } else if (linkTab) {
                     val filteredLinks = links.withIndex().filter { (_, link) ->
                         query.isBlank() || link.title.contains(query.trim(), true) || link.searchText.contains(query.trim(), true)
                     }
                     LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(16.dp)) {
-                        if (filteredLinks.isEmpty()) item { Text(if (links.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_hyperlinks_detected_in_this_document) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_matching_links_found)) }
+                        if (filteredLinks.isEmpty()) item { Text(if (links.isEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_hyperlinks_detected_in_this_document) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_matching_links_found)) }
                         items(filteredLinks, key = { it.index }) { (index, link) ->
                             Column(Modifier.fillMaxWidth().clickable(enabled = !closing) { close { onOpenLink(index) } }.padding(vertical = 14.dp)) {
                                 Text(link.title, style = MaterialTheme.typography.bodyLarge)
@@ -217,7 +217,7 @@ internal fun ReaderOutlineScreen(
                 } else {
                     LazyColumn(Modifier.fillMaxWidth().weight(1f).testTag("outline-entries"), state = listState,
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
-                        if (visibleRows.isEmpty()) item { Text(if (entries.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_outline_is_available_for_this_document) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_outline_matches), Modifier.padding(16.dp)) }
+                        if (visibleRows.isEmpty()) item { Text(if (entries.isEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_outline_is_available_for_this_document) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_outline_matches), Modifier.padding(16.dp)) }
                         items(visibleRows, key = { it.entryIndex }) { row ->
                             val entry = entries[row.entryIndex]
                             val active = row.entryIndex == activeIndex

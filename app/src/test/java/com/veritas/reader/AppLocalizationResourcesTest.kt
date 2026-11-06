@@ -10,6 +10,8 @@ import org.junit.Test
 class AppLocalizationResourcesTest {
     private val res = listOf(File("src/main/res"), File("app/src/main/res"))
         .first { it.isDirectory }
+    private val qualifiers = AppLanguageCatalog.choices.filterNot { it.tag == "en" }
+        .map { if ('-' in it.tag) "b+" + it.tag.replace('-', '+') else it.tag }
 
     private fun strings(directory: String): Map<String, String> {
         val result = linkedMapOf<String, String>()
@@ -31,7 +33,6 @@ class AppLocalizationResourcesTest {
     @Test fun previewPacksHaveEnglishFallbackAndMatchingFormatArguments() {
         val base = strings("values")
         val placeholders = Regex("%[1-9][0-9]*\\\$[sd]")
-        val qualifiers = listOf("fr", "es", "hi", "b+zh+Hans", "ar")
         qualifiers.forEach { qualifier ->
             val translated = strings("values-$qualifier")
             translated.forEach { (key, value) ->
@@ -57,7 +58,7 @@ class AppLocalizationResourcesTest {
         val nodes = config.getElementsByTagName("locale")
         val tags = (0 until nodes.length).map { nodes.item(it).attributes.getNamedItem("android:name").nodeValue }.toSet()
         assertEquals(AppLanguageCatalog.choices.map { it.tag }.toSet(), tags)
-        listOf("values", "values-fr", "values-es", "values-hi", "values-b+zh+Hans", "values-ar").forEach { directory ->
+        (listOf("values") + qualifiers.map { "values-$it" }).forEach { directory ->
             val plurals = factory.newDocumentBuilder().parse(File(res, "$directory/reading_plurals.xml"))
                 .getElementsByTagName("plurals")
             for (i in 0 until plurals.length) {
@@ -66,11 +67,13 @@ class AppLocalizationResourcesTest {
                 val quantities = (0 until items.length).map { (items.item(it) as org.w3c.dom.Element).getAttribute("quantity") }.toSet()
                 assertTrue("Plural fallback: $directory/${element.getAttribute("name")}", "other" in quantities)
                 if (directory == "values-ar") assertEquals(setOf("zero", "one", "two", "few", "many", "other"), quantities)
+                if (directory == "values-ru") assertEquals(setOf("one", "few", "many", "other"), quantities)
+                if (directory == "values-ko") assertEquals(setOf("other"), quantities)
             }
         }
     }
 
-    @Test fun settingsSubpageResourcesHaveAllFiveTranslations() {
+    @Test fun settingsSubpageResourcesHaveAllPackagedTranslations() {
         val sourceRoot = listOf(File("src/main/java/com/veritas/reader"), File("app/src/main/java/com/veritas/reader"))
             .first { it.isDirectory }
         val screens = setOf("SettingsHub.kt", "ReaderSettingsUi.kt", "CustomizationSettingsUi.kt",
@@ -82,13 +85,13 @@ class AppLocalizationResourcesTest {
             .flatMap { Regex("R\\.string\\.(\\w+)").findAll(it.readText()).map { match -> match.groupValues[1] } }
             .toSet()
         assertTrue("Settings scan unexpectedly empty", references.size > 350)
-        listOf("fr", "es", "hi", "b+zh+Hans", "ar").forEach { qualifier ->
+        qualifiers.forEach { qualifier ->
             val translated = strings("values-$qualifier")
             assertEquals("Untranslated settings resources: $qualifier", emptySet<String>(), references - translated.keys)
         }
     }
 
-    @Test fun everyDeclaredTranslatableMessageHasAllFiveTranslations() {
+    @Test fun everyDeclaredTranslatableMessageHasAllPackagedTranslations() {
         val translatable = linkedSetOf<String>()
         File(res, "values").listFiles { file -> file.extension == "xml" }!!.forEach { file ->
             val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
@@ -98,7 +101,7 @@ class AppLocalizationResourcesTest {
                 if (element.getAttribute("translatable") != "false") translatable += element.getAttribute("name")
             }
         }
-        listOf("fr", "es", "hi", "b+zh+Hans", "ar").forEach { qualifier ->
+        qualifiers.forEach { qualifier ->
             assertEquals("Untranslated declared messages: $qualifier", emptySet<String>(), translatable - strings("values-$qualifier").keys)
         }
     }

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="speech_syntax_example_result">"مثال الإدخال ← نتيجة القراءة"</string>
+    <string name="speech_syntax_digits">"يطابق رقمًا واحدًا أو أكثر."</string>
+    <string name="speech_syntax_word">"يطابق كلمة واحدة."</string>
+    <string name="speech_syntax_text">"يطابق نصًا في سطر واحد."</string>
+    <string name="speech_syntax_braces">"اكتب قوسين معقوفين لمطابقة قوس معقوف حرفي واحد."</string>
+    <string name="speech_syntax_capture">"تلتقط الأقواس الدائرية النص لاستخدامه في الاستبدال."</string>
+    <string name="speech_syntax_brackets">"تجعل الشرطة المائلة العكسية القوس المربع حرفيًا."</string>
+    <string name="speech_syntax_first_group">"في حقل قل بدلًا من ذلك، يدرج الالتقاط الأول. تابع الترقيم للالتقاطات التالية."</string>
+    <string name="speech_syntax_whole_match">"في حقل قل بدلًا من ذلك، يدرج المطابقة بالكامل."</string>
+    <string name="speech_syntax_dollar">"في حقل قل بدلًا من ذلك، يدرج علامة دولار واحدة."</string>
+    <string name="speech_syntax_skip">"اختر تخطّي لحذف المطابقة كاملة من السرد."</string>
+    <string name="speech_syntax_re2_limits">"تستخدم التعبيرات النمطية RE2. لا يدعم النمط التحقق من النص قبل المطابقة أو بعدها أو الإشارة إلى مجموعات سابقة. طابق حرفًا واحدًا على الأقل."</string>
+    <string name="speech_syntax_walkthrough">"جرّب قاعدة تقرأ الرقم داخل القوسين المربعين"</string>
+    <string name="speech_syntax_step_pattern">"أدخل الرمز أعلاه في نمط المطابقة. تُطابَق الأقواس المربعة كما هي. وتحتفظ العلامة بالأرقام داخلها."</string>
+    <string name="speech_syntax_step_regex">"أدخل الرمز أعلاه في نمط المطابقة. تجعل الشرطات المائلة العكسية المطابقة تبحث عن أقواس مربعة فعلية. وتحتفظ الأقواس المستديرة بالأرقام داخلها."</string>
+    <string name="speech_syntax_step_say">"اختر النطق بدلًا منه وأدخل القيمة أعلاه. سيقرأ Vern أول جزء احتفظ به النمط، وهو الرقم هنا."</string>
+    <string name="speech_syntax_step_try">"أدخل المثال في المقطع الأصلي. راجع النتيجة المنطوقة أو اضغط استماع. احفظ القاعدة عندما تناسبك النتيجة."</string>
+    <string name="speech_syntax_use_example">"ملء الحقول بهذا المثال"</string>
+</resources>

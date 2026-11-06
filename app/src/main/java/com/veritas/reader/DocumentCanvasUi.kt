@@ -134,7 +134,7 @@ internal fun PresentationSlideCanvas(
                         color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_011, com.veritas.reader.ui.screens.localizedUiValue(slide.number), com.veritas.reader.ui.screens.localizedUiValue(slideCount)),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_011, com.veritas.reader.ui.screens.localizedUiValue(slide.number), com.veritas.reader.ui.screens.localizedUiValue(slideCount)),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -148,7 +148,7 @@ internal fun PresentationSlideCanvas(
                             color = if (showNotes) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
                         ) {
                             Text(
-                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_012, com.veritas.reader.ui.screens.localizedUiValue(slide.notesLines.size)),
+                                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_012, com.veritas.reader.ui.screens.localizedUiValue(slide.notesLines.size)),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = if (showNotes) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -168,7 +168,7 @@ internal fun PresentationSlideCanvas(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateBefore,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_slide),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous_slide),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -179,7 +179,7 @@ internal fun PresentationSlideCanvas(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_slide),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next_slide),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -232,7 +232,7 @@ internal fun PresentationSlideCanvas(
                         if (bmp != null) {
                             Image(
                                 bitmap = bmp.asImageBitmap(),
-                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_slide_image),
+                                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_slide_image),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(max = 220.dp)
@@ -282,7 +282,7 @@ internal fun PresentationSlideCanvas(
                             if (bmp != null) {
                                 Image(
                                     bitmap = bmp.asImageBitmap(),
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_slide_image),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_slide_image),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .heightIn(max = 220.dp)
@@ -306,7 +306,7 @@ internal fun PresentationSlideCanvas(
                         ) {
                             Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(
-                                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_speaker_notes),
+                                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_speaker_notes),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
@@ -371,7 +371,7 @@ internal fun EpubBookCanvas(
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
-                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_013, com.veritas.reader.ui.screens.localizedUiValue(chapter.number), com.veritas.reader.ui.screens.localizedUiValue(chapterCount)),
+                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_013, com.veritas.reader.ui.screens.localizedUiValue(chapter.number), com.veritas.reader.ui.screens.localizedUiValue(chapterCount)),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -389,7 +389,7 @@ internal fun EpubBookCanvas(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateBefore,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_chapter),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous_chapter),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -400,7 +400,7 @@ internal fun EpubBookCanvas(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_chapter),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next_chapter),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -437,7 +437,7 @@ internal fun EpubBookCanvas(
                     itemsIndexed(chapter.paragraphs, key = { index, _ -> "${chapter.number}:$index" }) { paraIdx, para ->
                         val imageIndex = Regex("""^\[\[VERITAS_IMAGE:(\d+)]]$""").matchEntire(para.trim())?.groupValues?.get(1)?.toIntOrNull()
                         if (imageIndex != null) {
-                            if (imageIndex < chapter.images.size) OriginalDocumentImage(chapter, imageIndex, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_chapter_illustration)) { chapter.images[imageIndex] }
+                            if (imageIndex < chapter.images.size) OriginalDocumentImage(chapter, imageIndex, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_chapter_illustration)) { chapter.images[imageIndex] }
                             return@itemsIndexed
                         }
                         val isHighlighted = isPlaying &&
@@ -525,7 +525,7 @@ internal fun DocxDocumentCanvas(
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
-                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_014, com.veritas.reader.ui.screens.localizedUiValue(page.pageNumber), com.veritas.reader.ui.screens.localizedUiValue(pageCount)),
+                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_014, com.veritas.reader.ui.screens.localizedUiValue(page.pageNumber), com.veritas.reader.ui.screens.localizedUiValue(pageCount)),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -543,7 +543,7 @@ internal fun DocxDocumentCanvas(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateBefore,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_page),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous_page),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -554,7 +554,7 @@ internal fun DocxDocumentCanvas(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_page),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next_page),
                             modifier = Modifier.size(20.dp)
                         )
                     }

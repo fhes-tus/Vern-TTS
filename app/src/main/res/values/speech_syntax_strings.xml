@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="speech_syntax_example_result">"Example input → spoken result"</string>
+    <string name="speech_syntax_digits">"Matches one or more digits."</string>
+    <string name="speech_syntax_word">"Matches one word."</string>
+    <string name="speech_syntax_text">"Matches text on one line."</string>
+    <string name="speech_syntax_braces">"Write two braces to match one literal brace."</string>
+    <string name="speech_syntax_capture">"Parentheses capture text for use in the replacement."</string>
+    <string name="speech_syntax_brackets">"A backslash makes the bracket literal."</string>
+    <string name="speech_syntax_first_group">"In Say instead, inserts the first capture. Use the same numbering for later captures."</string>
+    <string name="speech_syntax_whole_match">"In Say instead, inserts the entire match."</string>
+    <string name="speech_syntax_dollar">"In Say instead, inserts one dollar sign."</string>
+    <string name="speech_syntax_skip">"Choose Skip to omit the whole match from narration."</string>
+    <string name="speech_syntax_re2_limits">"Regex uses RE2. Look-around and references to earlier groups inside the match pattern are unavailable. Match at least one character."</string>
+    <string name="speech_syntax_walkthrough">"Try an example that reads the number inside brackets"</string>
+    <string name="speech_syntax_step_pattern">"Enter the code above in Match pattern. The brackets match as written. The marker keeps the digits inside them."</string>
+    <string name="speech_syntax_step_regex">"Enter the code above in Match pattern. The backslashes match actual brackets. The parentheses keep the digits inside them."</string>
+    <string name="speech_syntax_step_say">"Select Say instead and enter the value above. It tells Vern to read the first part the match kept, which is the number."</string>
+    <string name="speech_syntax_step_try">"Enter the sample in Original passage. Check Spoken result or tap Listen. Save the rule when it sounds right."</string>
+    <string name="speech_syntax_use_example">"Fill in this example"</string>
+</resources>

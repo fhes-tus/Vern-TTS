@@ -227,7 +227,7 @@ internal fun LibraryBooksTab(
                                             },
                                             modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp)
                                         ) {
-                                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_084, com.veritas.reader.ui.screens.localizedUiValue(libraryQuery.trim())))
+                                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_084, com.veritas.reader.ui.screens.localizedUiValue(libraryQuery.trim())))
                                         }
                                     }
 
@@ -263,7 +263,7 @@ internal fun LibraryBooksTab(
         if (!selectionMode && documents.isNotEmpty()) item("library-results-summary") {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    if (hasActiveFilters) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_085, com.veritas.reader.ui.screens.localizedUiValue(visibleDocuments.size), com.veritas.reader.ui.screens.localizedUiValue(documents.size)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_204, com.veritas.reader.ui.screens.localizedUiValue(documents.size)),
+                    if (hasActiveFilters) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_085, com.veritas.reader.ui.screens.localizedUiValue(visibleDocuments.size), com.veritas.reader.ui.screens.localizedUiValue(documents.size)) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_204, com.veritas.reader.ui.screens.localizedUiValue(documents.size)),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -274,7 +274,7 @@ internal fun LibraryBooksTab(
                     onSourceFilterChange("All")
                     onCollectionFilterChange("All")
                     onReadingListFilterChange("All")
-                }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reset)) }
+                }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reset)) }
                 LibrarySortControl(sortMode, onSortModeChange)
             }
         }
@@ -283,9 +283,9 @@ internal fun LibraryBooksTab(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         if (selectionMode) {
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_086, com.veritas.reader.ui.screens.localizedUiValue(selectedDocumentIds.size), com.veritas.reader.ui.screens.localizedUiValue(visibleDocuments.size))
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_086, com.veritas.reader.ui.screens.localizedUiValue(selectedDocumentIds.size), com.veritas.reader.ui.screens.localizedUiValue(visibleDocuments.size))
                         } else {
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_087, com.veritas.reader.ui.screens.localizedUiValue(visibleDocuments.size))
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_087, com.veritas.reader.ui.screens.localizedUiValue(visibleDocuments.size))
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -294,25 +294,25 @@ internal fun LibraryBooksTab(
                 if (selectionMode) {
                     Box {
                         TextButton(onClick = { showBatchMenu = true }) {
-                            Icon(imageVector = Icons.Filled.MoreVert, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_batch_actions_600a251))
+                            Icon(imageVector = Icons.Filled.MoreVert, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_batch_actions_600a251))
                         }
                         DropdownMenu(expanded = showBatchMenu, onDismissRequest = { showBatchMenu = false }) {
                             DropdownMenuItem(
-                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_all)) },
+                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_all)) },
                                 onClick = {
                                     onSelectedDocumentIdsChange(visibleDocuments.map { it.id }.toSet())
                                     showBatchMenu = false
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) },
+                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) },
                                 onClick = {
                                     showBatchMenu = false
                                     onConfirmBatchDelete()
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_to_favorites)) },
+                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_favorites)) },
                                 onClick = {
                                     onBatchFavoriteDocuments(selectedDocumentIds)
                                     onSelectedDocumentIdsChange(emptySet())
@@ -320,7 +320,7 @@ internal fun LibraryBooksTab(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_to_queue)) },
+                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_queue)) },
                                 onClick = {
                                     onBatchQueueDocuments(selectedDocumentIds)
                                     onSelectedDocumentIdsChange(emptySet())
@@ -328,7 +328,7 @@ internal fun LibraryBooksTab(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_to_collection)) },
+                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_to_collection)) },
                                 onClick = {
 
                                     showBatchMenu = false
@@ -336,7 +336,7 @@ internal fun LibraryBooksTab(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) },
+                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) },
                                 onClick = {
                                     onSelectedDocumentIdsChange(emptySet())
                                     showBatchMenu = false
@@ -362,8 +362,8 @@ internal fun LibraryBooksTab(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Text(if (libraryQuery.isNotBlank()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_088, com.veritas.reader.ui.screens.localizedUiValue(libraryQuery.trim())) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_matching_readings), style = MaterialTheme.typography.titleMedium)
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear_the_search_or_change_filters_to_see_more_saved_readings), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(if (libraryQuery.isNotBlank()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_088, com.veritas.reader.ui.screens.localizedUiValue(libraryQuery.trim())) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_matching_readings), style = MaterialTheme.typography.titleMedium)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_clear_the_search_or_change_filters_to_see_more_saved_readings), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         OutlinedButton(
                             onClick = {
                                 onLibraryQueryChange("")
@@ -373,7 +373,7 @@ internal fun LibraryBooksTab(
                                 onReadingListFilterChange("All")
                             }
                         ) {
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear_filters))
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_clear_filters))
                         }
                     }
                 }

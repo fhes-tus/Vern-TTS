@@ -41,7 +41,9 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             )
         }
         applyToolbarInsets(toolbar)
-        toolbar.addView(iconButton(R.drawable.ic_m3_chevron_left) { finish() })
+        toolbar.addView(iconButton(R.drawable.ic_m3_chevron_left) { finish() }.apply {
+            contentDescription = getString(R.string.ui_back)
+        })
 
         val titleCol = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -70,7 +72,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             background = rounded(colorSyncBackground, 4.dp)
         }
         val subTextView = TextView(this).apply {
-            text = " • Original View"
+            text = " • ${getString(R.string.ui_original_view)}"
             setTextColor(colorTextSecondary)
             textSize = 11f
             maxLines = 1
@@ -92,7 +94,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             }
         }
         val label = TextView(this).apply {
-            text = "🔗 Live Sync"
+            text = "🔗 ${getString(R.string.pdf_live_sync)}"
             setTextColor(colorPrimary)
             textSize = 11f
             typeface = Typeface.DEFAULT_BOLD
@@ -107,20 +109,26 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             if (isSyncEnabled) {
                 pendingManualPageSync = true
                 lifecycleScope.launch { updateSentenceHighlight(forceSync = true) }
-                Toast.makeText(activity, "Live sync enabled", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, R.string.pdf_sync_enabled, Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(activity, "Live sync disabled", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, R.string.pdf_sync_disabled, Toast.LENGTH_SHORT).show()
             }
         }
         toolbar.addView(pill)
 
-        toolbar.addView(iconButton(R.drawable.ic_m3_search) { toggleSearch() })
+        toolbar.addView(iconButton(R.drawable.ic_m3_search) { toggleSearch() }.apply {
+            contentDescription = getString(R.string.ui_search)
+        })
         toolbar.addView(iconButton(R.drawable.ic_m3_toc) { showTableOfContentsDialog() }.also {
-            it.contentDescription = "Table of Contents"
+            it.contentDescription = getString(R.string.ui_table_of_contents)
             outlineButton = it
         })
-        toolbar.addView(iconButton(R.drawable.ic_m3_contrast) { cyclePaperToneMode() })
-        toolbar.addView(iconButton(R.drawable.ic_m3_more_vert) { showTopMenu(toolbar) })
+        toolbar.addView(iconButton(R.drawable.ic_m3_contrast) { cyclePaperToneMode() }.apply {
+            contentDescription = getString(R.string.ui_paper_tone)
+        })
+        toolbar.addView(iconButton(R.drawable.ic_m3_more_vert) { showTopMenu(toolbar) }.apply {
+            contentDescription = getString(R.string.ui_more_options)
+        })
         toolbarChrome = toolbar
 
         fragmentContainer = FrameLayout(this).apply {
@@ -201,7 +209,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
 
         // Status text
         panelStatusLabel = TextView(this).apply {
-            text = if (PlaybackStateStore.isPlaying) "Now reading" else "Ready to read"
+            text = getString(if (PlaybackStateStore.isPlaying) R.string.ui_now_reading else R.string.pdf_ready_to_read)
             setTextColor(colorTextPrimary)
             textSize = 12f
             typeface = Typeface.DEFAULT_BOLD
@@ -261,7 +269,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
 
         // Status message row
         val expandedStatus = TextView(this).apply {
-            text = PlaybackStateStore.statusMessage.ifBlank { "Original View" }
+            text = PlaybackStateStore.statusMessage.ifBlank { getString(R.string.ui_original_view) }
             setTextColor(colorTextSecondary)
             textSize = 12f
             maxLines = 1
@@ -273,22 +281,20 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         // Speed slider
         panelSpeedLabel = labeledSeekBar(
             menu = expandedSection,
-            title = "Speed",
+            valueLabel = R.string.pdf_speed_value,
             min = 0.5f,
             max = 2.0f,
             current = PlaybackStateStore.rate,
-            suffix = "x",
             onSliderCreated = { panelSpeedSlider = it }
         ) { value -> adjustPlayback(rate = value, pitch = PlaybackStateStore.pitch) }
 
         // Pitch slider
         panelPitchLabel = labeledSeekBar(
             menu = expandedSection,
-            title = "Pitch",
+            valueLabel = R.string.pdf_pitch_value,
             min = 0.7f,
             max = 1.4f,
             current = PlaybackStateStore.pitch,
-            suffix = "",
             onSliderCreated = { panelPitchSlider = it }
         ) { value -> adjustPlayback(rate = PlaybackStateStore.rate, pitch = value) }
 
@@ -299,14 +305,14 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             setPadding(0, 8.dp, 0, 0)
         }
         bottomRow.addView(TextView(this).apply {
-            text = if (PlaybackStateStore.queueCount == 0) "Queue empty"
-                   else "Queue (${PlaybackStateStore.queueCount})"
+            text = if (PlaybackStateStore.queueCount == 0) getString(R.string.ui_queue_empty)
+                   else getString(R.string.pdf_queue_count, PlaybackStateStore.queueCount)
             setTextColor(colorTextSecondary)
             textSize = 13f
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         })
         bottomRow.addView(TextView(this).apply {
-            text = "Voice Studio ›"
+            text = "${getString(R.string.ui_voice_studio)} ›"
             setTextColor(colorPrimary)
             textSize = 13f
             typeface = Typeface.DEFAULT_BOLD
@@ -363,7 +369,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             setBackgroundColor(colorBackground)
         }
         root.addView(TextView(this).apply {
-            text = "Original View"
+            text = getString(R.string.ui_original_view)
             setTextColor(colorTextPrimary)
             textSize = 22f
         })
@@ -374,7 +380,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             gravity = Gravity.CENTER
             setPadding(0, 12.dp, 0, 18.dp)
         })
-        root.addView(prominentButton("Back to Vern") { finish() })
+        root.addView(prominentButton(getString(R.string.pdf_back_to_vern)) { finish() })
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val safe = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             view.setPadding(24.dp + safe.left, 24.dp + safe.top, 24.dp + safe.right, 24.dp + safe.bottom)
@@ -396,13 +402,13 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
                 if (isLightTheme) Color.WHITE else Color.rgb(8, 34, 40), resources.displayMetrics.density,
                 pdfChromeSettings.reduceMotion).also { control.foreground = it }
             control.foregroundGravity = Gravity.CENTER
-            control.contentDescription = "Preparing playback. Tap to cancel"
+            control.contentDescription = getString(R.string.pdf_cancel_preparing)
             if (control.isShown && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) loading.start()
             else loading.stop()
             return
         }
         (control.foreground as? PlaybackLoadingDrawable)?.stop()
-        control.contentDescription = if (playing) "Pause" else "Play"
+        control.contentDescription = getString(if (playing) R.string.ui_pause else R.string.ui_play)
         val icon = androidx.core.content.ContextCompat.getDrawable(
             this,
             if (playing) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
@@ -415,10 +421,13 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
     internal fun VeritasPdfViewerActivity.updatePlaybackControls() {
         val playing = PlaybackStateStore.isPlaying
         applyPlayPauseIcon(playing)
-        panelStatusLabel?.text = if (PlaybackStateStore.isPreparingFor(document?.id)) "Preparing reading…"
-            else if (playing) "Now reading" else "Ready to read"
-        panelSpeedLabel?.text = "Speed ${"%.2f".format(PlaybackStateStore.rate)}x"
-        panelPitchLabel?.text = "Pitch ${"%.2f".format(PlaybackStateStore.pitch)}"
+        panelStatusLabel?.text = getString(when {
+            PlaybackStateStore.isPreparingFor(document?.id) -> R.string.pdf_preparing_reading
+            playing -> R.string.ui_now_reading
+            else -> R.string.pdf_ready_to_read
+        })
+        panelSpeedLabel?.text = getString(R.string.pdf_speed_value, PlaybackStateStore.rate)
+        panelPitchLabel?.text = getString(R.string.pdf_pitch_value, PlaybackStateStore.pitch)
         panelSpeedSlider?.let { if (!it.isTrackingTouch) it.currentVal = PlaybackStateStore.rate }
         panelPitchSlider?.let { if (!it.isTrackingTouch) it.currentVal = PlaybackStateStore.pitch }
     }

@@ -125,7 +125,7 @@ fun BooknotesDialog(
                     shape = VeritasPackStyle.chipShape(),
                     modifier = Modifier.wrapContentWidth()
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save))
                 }
                 OutlinedButton(
                     onClick = onExportPdf,
@@ -135,7 +135,7 @@ fun BooknotesDialog(
                 ) {
                     Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_guide_pdf))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_study_guide_pdf))
                 }
                 OutlinedButton(
                     onClick = onExportNotes,
@@ -145,7 +145,7 @@ fun BooknotesDialog(
                 ) {
                     Icon(Icons.Outlined.FileDownload, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_export))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_export))
                 }
                 TextButton(
                     onClick = {
@@ -155,7 +155,7 @@ fun BooknotesDialog(
                     shape = VeritasPackStyle.chipShape(),
                     modifier = Modifier.wrapContentWidth()
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close))
                 }
             }
         },
@@ -163,7 +163,7 @@ fun BooknotesDialog(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Outlined.EditNote, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_booknotes))
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_booknotes))
             }
         },
         text = {
@@ -186,14 +186,14 @@ fun BooknotesDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(220.dp),
-                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_general_note)) },
-                    placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_write_notes_about_this_document)) },
+                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_general_note)) },
+                    placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_write_notes_about_this_document)) },
                     minLines = 6,
                     maxLines = 12,
                     shape = VeritasPackStyle.cardShape()
                 )
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_216, com.veritas.reader.ui.screens.localizedUiValue(
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_216, com.veritas.reader.ui.screens.localizedUiValue(
                         documentNote.trim().split(Regex("\\s+")).count { it.isNotBlank() }
                     )),
                     style = MaterialTheme.typography.bodySmall,
@@ -203,7 +203,7 @@ fun BooknotesDialog(
                 // Voice memos attached to General Note
                 if (generalMemos.isNotEmpty()) {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_138, com.veritas.reader.ui.screens.localizedUiValue(generalMemos.size)),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_138, com.veritas.reader.ui.screens.localizedUiValue(generalMemos.size)),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -214,14 +214,14 @@ fun BooknotesDialog(
                         generalMemos.forEachIndexed { aIdx, memo ->
                             AssistChip(
                                 onClick = { VoiceNoteRecorder.playAudio(memo.first) },
-                                label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_139, com.veritas.reader.ui.screens.localizedUiValue(aIdx + 1), com.veritas.reader.ui.screens.localizedUiValue(memo.second))) },
+                                label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_139, com.veritas.reader.ui.screens.localizedUiValue(aIdx + 1), com.veritas.reader.ui.screens.localizedUiValue(memo.second))) },
                                 leadingIcon = {
                                     Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
                                 },
                                 trailingIcon = {
                                     Icon(
                                         Icons.Outlined.Delete,
-                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_voice_memo),
+                                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_voice_memo),
                                         modifier = Modifier.size(14.dp).clickable {
                                             val updated = generalMemos.filterIndexed { i, _ -> i != aIdx }
                                             generalMemos = updated
@@ -250,7 +250,7 @@ fun BooknotesDialog(
                     ) {
                         if (isRecordingGeneral && recordingState == VoiceRecordingState.RECORDING) {
                             Text(
-                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_140, com.veritas.reader.ui.screens.localizedUiValue(recordingDuration)),
+                                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_140, com.veritas.reader.ui.screens.localizedUiValue(recordingDuration)),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.weight(1f)
@@ -267,11 +267,11 @@ fun BooknotesDialog(
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                             ) {
-                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop))
+                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_stop))
                             }
                         } else {
                             Text(
-                                if (generalMemos.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_attach_voice_memo) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_another_memo),
+                                if (generalMemos.isEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_attach_voice_memo) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_another_memo),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.weight(1f)
@@ -289,7 +289,7 @@ fun BooknotesDialog(
                             ) {
                                 Icon(Icons.Outlined.Mic, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(if (generalMemos.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_record) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_memo))
+                                Text(if (generalMemos.isEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_record) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_memo))
                             }
                         }
                     }
@@ -298,9 +298,9 @@ fun BooknotesDialog(
                 HorizontalDivider()
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sentence_notes), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_sentence_notes), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes_attached_to_individual_sentences),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_notes_attached_to_individual_sentences),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -311,16 +311,16 @@ fun BooknotesDialog(
                     ) {
                         Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_current))
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_current))
                     }
                 }
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_141, com.veritas.reader.ui.screens.localizedUiValue(currentIndex + 1)),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_141, com.veritas.reader.ui.screens.localizedUiValue(currentIndex + 1)),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (notes.isEmpty()) {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_sentence_notes_yet),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_sentence_notes_yet),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
@@ -346,7 +346,7 @@ fun BooknotesDialog(
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_142, com.veritas.reader.ui.screens.localizedUiValue(note.chunkIndex + 1)),
+                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_142, com.veritas.reader.ui.screens.localizedUiValue(note.chunkIndex + 1)),
                                         style = MaterialTheme.typography.titleMedium,
                                         modifier = Modifier.weight(1f),
                                         color = MaterialTheme.colorScheme.onSurface
@@ -358,7 +358,7 @@ fun BooknotesDialog(
                                     )
                                 }
                                 Text(
-                                    note.note.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_empty_note) },
+                                    note.note.ifBlank { com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_empty_note) },
                                     style = MaterialTheme.typography.labelLarge,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -371,7 +371,7 @@ fun BooknotesDialog(
                                         memoPaths.forEachIndexed { aIdx, aPath ->
                                             AssistChip(
                                                 onClick = { VoiceNoteRecorder.playAudio(aPath) },
-                                                label = { Text(if (memoPaths.size > 1) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_143, com.veritas.reader.ui.screens.localizedUiValue(aIdx + 1)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_144, com.veritas.reader.ui.screens.localizedUiValue(note.audioDurationSeconds))) },
+                                                label = { Text(if (memoPaths.size > 1) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_143, com.veritas.reader.ui.screens.localizedUiValue(aIdx + 1)) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_144, com.veritas.reader.ui.screens.localizedUiValue(note.audioDurationSeconds))) },
                                                 leadingIcon = {
                                                     Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
                                                 }
@@ -459,13 +459,13 @@ internal fun BookmarksOverviewDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            Button(onClick = onDismiss, shape = VeritasPackStyle.chipShape()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) }
+            Button(onClick = onDismiss, shape = VeritasPackStyle.chipShape()) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close)) }
         },
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.Bookmark, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_bookmarks))
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_bookmarks))
             }
         },
         text = {
@@ -487,7 +487,7 @@ internal fun BookmarksOverviewDialog(
 
                 if (bookmarkRanges.isNotEmpty()) {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_bookmarks),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_bookmarks),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -550,7 +550,7 @@ internal fun BookmarksOverviewDialog(
                     }
                 } else {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_bookmarks_yet_in_this_document_select_one_or_more_sentences_an),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_bookmarks_yet_in_this_document_select_one_or_more_sentences_an),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium
                     )

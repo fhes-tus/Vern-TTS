@@ -83,7 +83,7 @@ fun WidgetMenuDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_quick_action),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_quick_action),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -91,37 +91,37 @@ fun WidgetMenuDialog(
 
                 WidgetMenuItem(
                     icon = Icons.AutoMirrored.Filled.NoteAdd,
-                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_text_notes),
+                    label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_text_notes),
                     onClick = { onActionSelected(MainActivity.ACTION_SHOW_NOTES) }
                 )
 
                 WidgetMenuItem(
                     icon = Icons.AutoMirrored.Filled.ListAlt,
-                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_list),
+                    label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_list),
                     onClick = { onActionSelected(MainActivity.ACTION_NEW_CHECKLIST_NOTE) }
                 )
 
                 WidgetMenuItem(
                     icon = Icons.Filled.NotificationsActive,
-                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reminder),
+                    label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reminder),
                     onClick = { onActionSelected(MainActivity.ACTION_NEW_REMINDER_NOTE) }
                 )
 
                 WidgetMenuItem(
                     icon = Icons.AutoMirrored.Filled.MenuBook,
-                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_library),
+                    label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_library),
                     onClick = { onActionSelected(MainActivity.ACTION_OPEN_LIBRARY) }
                 )
 
                 WidgetMenuItem(
                     icon = Icons.Filled.UploadFile,
-                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_import_documents),
+                    label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_import_documents),
                     onClick = { onActionSelected(MainActivity.ACTION_IMPORT_DOCUMENTS) }
                 )
 
                 WidgetMenuItem(
                     icon = Icons.Filled.AutoStories,
-                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_active_reading),
+                    label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_active_reading),
                     onClick = { onActionSelected(MainActivity.ACTION_ACTIVE_READING) }
                 )
             }

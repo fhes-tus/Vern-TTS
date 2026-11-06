@@ -3,7 +3,6 @@ package com.veritas.reader.ui.screens
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -33,7 +32,10 @@ internal fun deviceLanguageChoiceLabel(): String {
     val context = LocalContext.current
     val displayLocale = LocalConfiguration.current.locales[0]
     val device = AppLanguages.deviceLocales(context).get(0) ?: Locale.ENGLISH
-    return stringResource(R.string.language_follow_device_named,device.getDisplayName(displayLocale))
+    if (LocalSettingsTranslation.current?.enabled == true) {
+        return menuString(R.string.language_follow_device) + " · " + device.getDisplayName(device)
+    }
+    return menuString(R.string.language_follow_device_named,device.getDisplayName(displayLocale))
 }
 
 @Composable

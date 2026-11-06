@@ -146,7 +146,7 @@ internal fun DashboardDonutChart(
                 )
                 Icon(
                     imageVector = Icons.Filled.ChevronRight,
-                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_details),
+                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_details),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     modifier = Modifier.size(16.dp)
                 )
@@ -250,7 +250,7 @@ internal fun DashboardDonutChart(
                             )
                         } else {
                             Text(
-                                text = if (totalVal >= 1000f) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_1fk).format(totalVal / 1000f) else "${totalVal.toInt()}",
+                                text = if (totalVal >= 1000f) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_1fk).format(totalVal / 1000f) else "${totalVal.toInt()}",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -361,13 +361,13 @@ private fun DonutChartDetailDialog(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_205, com.veritas.reader.ui.screens.localizedUiValue(if (totalVal >= 1000f) "%.1fk".format(totalVal / 1000f) else "${totalVal.toInt()}"), com.veritas.reader.ui.screens.localizedUiValue(totalLabel)),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_205, com.veritas.reader.ui.screens.localizedUiValue(if (totalVal >= 1000f) "%.1fk".format(totalVal / 1000f) else "${totalVal.toInt()}"), com.veritas.reader.ui.screens.localizedUiValue(totalLabel)),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Filled.Close, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close), modifier = Modifier.size(18.dp))
+                        Icon(Icons.Filled.Close, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close), modifier = Modifier.size(18.dp))
                     }
                 }
 
@@ -448,7 +448,7 @@ private fun DonutChartDetailDialog(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            text = if (title.contains("Source", ignoreCase = true)) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_explore_in_library) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_view_full_reading_insights),
+                            text = if (title.contains("Source", ignoreCase = true)) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_explore_in_library) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_view_full_reading_insights),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
@@ -488,8 +488,8 @@ internal fun AnnotationDocumentCard(
     if (showDeleteConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_all_notes)) },
-            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_089, com.veritas.reader.ui.screens.localizedUiValue(noteAnnotations.size + if (hasDocumentNote) 1 else 0), com.veritas.reader.ui.screens.localizedUiValue(document.title))) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_all_notes)) },
+            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_089, com.veritas.reader.ui.screens.localizedUiValue(noteAnnotations.size + if (hasDocumentNote) 1 else 0), com.veritas.reader.ui.screens.localizedUiValue(document.title))) },
             confirmButton = {
                 Button(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
@@ -499,12 +499,12 @@ internal fun AnnotationDocumentCard(
                         showDeleteConfirmDialog = false
                     }
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_all))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_all))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel))
                 }
             }
         )
@@ -546,7 +546,7 @@ internal fun AnnotationDocumentCard(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_206, com.veritas.reader.ui.screens.localizedUiValue(noteAnnotations.size + if (hasDocumentNote) 1 else 0)),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_206, com.veritas.reader.ui.screens.localizedUiValue(noteAnnotations.size + if (hasDocumentNote) 1 else 0)),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -558,7 +558,7 @@ internal fun AnnotationDocumentCard(
                     IconButton(onClick = { showBatchMenu = true }) {
                         Icon(
                             imageVector = Icons.Filled.MoreVert,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_batch_actions),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_batch_actions),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -567,7 +567,7 @@ internal fun AnnotationDocumentCard(
                         onDismissRequest = { showBatchMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_as_pdf)) },
+                            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_share_as_pdf)) },
                             onClick = {
                                 showBatchMenu = false
                                 val pdf = StudyGuidePdfExporter.generateNotesBatchPdf(
@@ -584,7 +584,7 @@ internal fun AnnotationDocumentCard(
                             leadingIcon = { Icon(Icons.Outlined.EditNote, contentDescription = null) }
                         )
                         DropdownMenuItem(
-                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy_all)) },
+                            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_copy_all)) },
                             onClick = {
                                 showBatchMenu = false
                                 val allText = buildString {
@@ -606,7 +606,7 @@ internal fun AnnotationDocumentCard(
                             leadingIcon = { Icon(Icons.Filled.ContentPaste, contentDescription = null) }
                         )
                         DropdownMenuItem(
-                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_all_0817058)) },
+                            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_all_0817058)) },
                             onClick = {
                                 showBatchMenu = false
                                 showDeleteConfirmDialog = true
@@ -619,7 +619,7 @@ internal fun AnnotationDocumentCard(
                 IconButton(onClick = { expanded = !expanded }) {
                     Icon(
                         imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                        contentDescription = if (expanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
+                        contentDescription = if (expanded) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collapse) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_expand),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -633,7 +633,7 @@ internal fun AnnotationDocumentCard(
                 ) {
                     if (hasDocumentNote || noteAnnotations.isNotEmpty()) {
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_notes),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -671,7 +671,7 @@ internal fun AnnotationDocumentCard(
                                     )
                                 }
                                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_general_document_note), style = MaterialTheme.typography.bodyMedium)
+                                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_general_document_note), style = MaterialTheme.typography.bodyMedium)
                                     Text(documentNote, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                                 }
                                 Box(
@@ -681,7 +681,7 @@ internal fun AnnotationDocumentCard(
                                         .padding(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
                                     Text(
-                                        text = if (selectionMode) (if (selectedDocumentNote) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_select)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open),
+                                        text = if (selectionMode) (if (selectedDocumentNote) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_selected) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_select)) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open),
                                         color = MaterialTheme.colorScheme.primary,
                                         style = MaterialTheme.typography.labelSmall)
                                 }
@@ -746,7 +746,7 @@ internal fun AudioVoiceMemoWaveform(
         ) {
             Icon(
                 imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                contentDescription = if (isPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pause) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play),
+                contentDescription = if (isPlaying) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_pause) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_play),
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(20.dp)
             )

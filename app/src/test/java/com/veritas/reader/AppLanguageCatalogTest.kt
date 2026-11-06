@@ -9,7 +9,7 @@ class AppLanguageCatalogTest {
         assertEquals("",AppLanguageCatalog.selectionTag(""))
         assertEquals("en",AppLanguageCatalog.selectionTag("en-GB"))
         assertEquals("fr",AppLanguageCatalog.selectionTag("fr-CA"))
-        assertEquals("de-DE",AppLanguageCatalog.selectionTag("de-DE"))
+        assertEquals("it-IT",AppLanguageCatalog.selectionTag("it-IT"))
         assertEquals("zh-Hant-TW",AppLanguageCatalog.selectionTag("zh-Hant-TW"))
         assertNotEquals("",AppLanguageCatalog.selectionTag("ha-GH"))
     }
@@ -20,6 +20,11 @@ class AppLanguageCatalogTest {
         assertEquals("es", AppLanguageCatalog.canonicalTag("es-MX"))
         assertEquals("hi", AppLanguageCatalog.canonicalTag("hi-IN"))
         assertEquals("ar", AppLanguageCatalog.canonicalTag("ar-EG"))
+        assertEquals("pt", AppLanguageCatalog.canonicalTag("pt-BR"))
+        assertEquals("pt", AppLanguageCatalog.canonicalTag("pt-PT"))
+        assertEquals("ru", AppLanguageCatalog.canonicalTag("ru-RU"))
+        assertEquals("de", AppLanguageCatalog.canonicalTag("de-DE"))
+        assertEquals("ko", AppLanguageCatalog.canonicalTag("ko-KR"))
         assertEquals("zh-Hans", AppLanguageCatalog.canonicalTag("zh-CN"))
         assertEquals("zh-Hans", AppLanguageCatalog.canonicalTag("zh-Hans-SG"))
         assertEquals("zh-Hans", AppLanguageCatalog.canonicalTag("zh-Hans-TW"))
@@ -28,7 +33,7 @@ class AppLanguageCatalogTest {
     }
 
     @Test fun unsupportedLanguagesDoNotPretendToHaveATranslation() {
-        assertNull(AppLanguageCatalog.canonicalTag("de-DE"))
+        assertNull(AppLanguageCatalog.canonicalTag("it-IT"))
         assertNull(AppLanguageCatalog.canonicalTag("zh-Hant"))
         assertNull(AppLanguageCatalog.canonicalTag("zh-Hant-CN"))
         assertNull(AppLanguageCatalog.canonicalTag("zh-Latn"))

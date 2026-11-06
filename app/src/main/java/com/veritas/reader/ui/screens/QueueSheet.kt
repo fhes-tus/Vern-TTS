@@ -76,10 +76,10 @@ fun VeritasQueueSheet(
         onDismissRequest = onDismiss,
         title = {
             Column {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play_queue), style = MaterialTheme.typography.labelLarge)
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_play_queue), style = MaterialTheme.typography.labelLarge)
                 Text(
-                    if (queue.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_nothing_queued)
-                    else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_215, com.veritas.reader.ui.screens.localizedUiValue(queue.size)),
+                    if (queue.isEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_nothing_queued)
+                    else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_215, com.veritas.reader.ui.screens.localizedUiValue(queue.size)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -88,7 +88,7 @@ fun VeritasQueueSheet(
         text = {
             if (queue.isEmpty()) {
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_readings_from_the_library_s_action_menu_to_build_a_play_queue),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_readings_from_the_library_s_action_menu_to_build_a_play_queue),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -143,7 +143,7 @@ fun VeritasQueueSheet(
                             IconButton(onClick = { onRemove(document) }, modifier = Modifier.size(32.dp)) {
                                 Icon(
                                     Icons.Filled.Close,
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_from_queue_3d2dc52),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_queue_3d2dc52),
                                     modifier = Modifier.size(16.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -182,7 +182,7 @@ fun VeritasQueueSheet(
                             ) {
                                 Icon(
                                     Icons.Filled.DragHandle,
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reorder),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reorder),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -192,12 +192,12 @@ fun VeritasQueueSheet(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done)) }
+            TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_done)) }
         },
         dismissButton = {
             if (queue.isNotEmpty()) {
                 TextButton(onClick = onClear) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clear_all), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_clear_all), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

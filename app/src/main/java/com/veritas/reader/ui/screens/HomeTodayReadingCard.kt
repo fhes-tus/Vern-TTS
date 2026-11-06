@@ -158,9 +158,9 @@ internal fun HomeTodayReadingCard(
                 }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = { showGoalPicker = true }, modifier = Modifier.weight(1f)) {
-                    Text(if (hasGoal) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_edit_goal) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_set_a_goal))
+                    Text(if (hasGoal) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_edit_goal) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_set_a_goal))
                 }
-                TextButton(onClick = onOpenInsights, modifier = Modifier.weight(1f)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_view_insights)) }
+                TextButton(onClick = onOpenInsights, modifier = Modifier.weight(1f)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_view_insights)) }
             }
         }
     }
@@ -194,7 +194,7 @@ private fun ReadingStatPage(stat: ReadingCardStat, page: Int, pages: Int, fracti
             }
             Column(Modifier.weight(.44f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 ReadingStatIllustration(page, fraction, weekReadingMillis)
-                Text(when (page) { 1 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_days_with_reading); 3 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_minutes_by_day); else -> if (hasGoal) goalLabel else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_daily_target) },
+                Text(when (page) { 1 -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_days_with_reading); 3 -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_minutes_by_day); else -> if (hasGoal) goalLabel else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_daily_target) },
                     style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
@@ -208,13 +208,13 @@ private fun ReadingStatIllustration(page: Int, fraction: Float, week: List<Long>
     val reduced = LocalVeritasMotion.current.reduceMotion
     val values = List(7) { week.getOrElse(it) { 0L }.coerceAtLeast(0) }
     val numbers = java.text.NumberFormat.getIntegerInstance(androidx.compose.ui.platform.LocalConfiguration.current.locales[0])
-    val read = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_day_read)
-    val unread = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_day_unread)
+    val read = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.a11y_day_read)
+    val unread = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.a11y_day_unread)
     val description = when (page) {
-        0 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_daily_progress,numbers.format((fraction * 100).toInt()))
-        1 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_reading_days,values.joinToString(", ") { if (it > 0) read else unread })
-        2 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_goal_progress,numbers.format((fraction * 100).toInt()))
-        else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.a11y_reading_minutes,values.joinToString(", ") { numbers.format(it / 60_000L) })
+        0 -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.a11y_daily_progress,numbers.format((fraction * 100).toInt()))
+        1 -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.a11y_reading_days,values.joinToString(", ") { if (it > 0) read else unread })
+        2 -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.a11y_goal_progress,numbers.format((fraction * 100).toInt()))
+        else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.a11y_reading_minutes,values.joinToString(", ") { numbers.format(it / 60_000L) })
     }
     Canvas(Modifier.fillMaxWidth().requiredHeight(50.dp).testTag("reading-stat-graphic-$page").semantics { contentDescription = description }) {
         val ink = scheme.primary
@@ -270,24 +270,24 @@ internal fun HomeReadingGoalDialog(goalMinutes: Int, onGoalMinutesChange: (Int) 
     val scheme = MaterialTheme.colorScheme
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_daily_reading_goal)) },
+        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_daily_reading_goal)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_a_target_or_track_your_reading_without_one), color = scheme.onSurfaceVariant)
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_choose_a_target_or_track_your_reading_without_one), color = scheme.onSurfaceVariant)
                 val options = (listOf(0, 15, 30, 45, 60) + goalMinutes.takeIf { it > 0 }.let { listOfNotNull(it) }).distinct().sorted()
                 options.forEach { minutes ->
                     Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable {
                         onGoalMinutesChange(minutes)
                         onDismiss()
                     }.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (minutes == 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_goal)
+                        Text(if (minutes == 0) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_goal)
                             else androidx.compose.ui.res.pluralStringResource(com.veritas.reader.R.plurals.reading_minutes_daily, minutes, minutes), Modifier.weight(1f),
                             color = if (minutes == goalMinutes) scheme.primary else scheme.onSurface)
-                        if (minutes == goalMinutes) Icon(Icons.Filled.Check, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected), tint = scheme.primary)
+                        if (minutes == goalMinutes) Icon(Icons.Filled.Check, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_selected), tint = scheme.primary)
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done)) } }
+        confirmButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_done)) } }
     )
 }

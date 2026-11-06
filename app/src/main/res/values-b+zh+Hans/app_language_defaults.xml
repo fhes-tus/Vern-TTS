@@ -2,4 +2,20 @@
 <resources>
     <string name="language_follow_device_named">"使用设备语言 · %1$s"</string>
     <string name="language_device_behavior" formatted="false">"此选项会清除 Vern 的应用语言设置，并遵循手机上受支持的语言偏好。如果 Vern 不支持其中任何语言，则使用英语。之后手机语言更改时，应用会自动跟随。"</string>
+    <string name="menu_translation_explanation">"如果 Google 翻译支持手机的语言，可以在此设备上翻译 Vern 的界面和菜单。首次下载模型通常约需 30 MB。Google ML Kit 会收集使用和性能指标。"</string>
+    <string name="menu_translation_preparing">"正在准备下载模型。等待期间，设置将保留当前语言。"</string>
+    <string name="menu_translation_failed">"无法准备模型。请检查网络连接后重试。"</string>
+    <string name="menu_translation_mobile">"允许使用移动数据下载模型"</string>
+    <string name="menu_translation_enable">"使用 Google 翻译"</string>
+    <string name="menu_translation_disable">"关闭设置翻译"</string>
+    <string name="menu_translation_attribution">"由 Google 翻译提供支持"</string>
+    <string name="menu_translation_about">"关于 Google 翻译"</string>
+    <string name="menu_translation_disclaimer">"Google 按原样提供这些译文，不保证其准确性、可靠性、适销性、对特定目的的适用性或不侵权。"</string>
+    <string name="menu_translation_thermal">"手机过热时，Android 会暂缓下载模型。系统允许后，Vern 会继续下载。"</string>
+    <string name="menu_translation_model_name">"%1$s翻译模型"</string>
+    <string name="menu_translation_waiting_network">"正在等待网络连接。连接后 Vern 将开始下载。"</string>
+    <string name="menu_translation_waiting_wifi">"正在等待 Wi-Fi。你可以在下方允许使用移动数据。"</string>
+    <string name="menu_translation_downloading">"正在从 Google 下载模型。"</string>
+    <string name="menu_translation_applying">"模型已就绪。正在此手机上翻译界面。"</string>
+    <string name="menu_translation_ready">"模型已就绪，可以离线翻译界面。"</string>
 </resources>

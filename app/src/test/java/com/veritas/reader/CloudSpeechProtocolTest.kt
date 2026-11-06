@@ -5,28 +5,30 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CloudSpeechProtocolTest {
+    private val CloudSpeechProtocol.Request.jsonBody: JSONObject get() = JSONObject(requireNotNull(body))
+
     @Test fun providerWireFormatsUseTheirOwnContracts() {
         val eleven = CloudSpeechProtocol.request(CloudVoiceConfig(),"Bonjour العربية नमस्ते 中文")
         assertEquals("https://api.elevenlabs.io/v1/text-to-dialogue/stream?output_format=mp3_44100_128",eleven.url)
-        assertEquals("Bonjour العربية नमस्ते 中文",eleven.body.getJSONArray("inputs").getJSONObject(0).getString("text"))
-        assertEquals(CloudVoiceProvider.ELEVENLABS.voice,eleven.body.getJSONArray("inputs").getJSONObject(0).getString("voice_id"))
-        assertEquals("eleven_v4",eleven.body.getString("model_id"))
+        assertEquals("Bonjour العربية नमस्ते 中文",eleven.jsonBody.getJSONArray("inputs").getJSONObject(0).getString("text"))
+        assertEquals(CloudVoiceProvider.ELEVENLABS.voice,eleven.jsonBody.getJSONArray("inputs").getJSONObject(0).getString("voice_id"))
+        assertEquals("eleven_v4",eleven.jsonBody.getString("model_id"))
         val cartesia = CloudSpeechProtocol.request(CloudVoiceConfig(provider = CloudVoiceProvider.CARTESIA,language = "ar"),"مرحبا")
         assertEquals("2026-08-14",cartesia.headers["Cartesia-Version"])
-        assertEquals("sonic-3.6",cartesia.body.getString("model_id"))
-        assertEquals("ar",cartesia.body.getString("language"))
-        assertEquals("pcm_s16le",cartesia.body.getJSONObject("output_format").getString("encoding"))
-        assertTrue(cartesia.body.get("voice") is String)
+        assertEquals("sonic-3.6",cartesia.jsonBody.getString("model_id"))
+        assertEquals("ar",cartesia.jsonBody.getString("language"))
+        assertEquals("pcm_s16le",cartesia.jsonBody.getJSONObject("output_format").getString("encoding"))
+        assertTrue(cartesia.jsonBody.get("voice") is String)
         val mini = CloudSpeechProtocol.request(CloudVoiceConfig(provider = CloudVoiceProvider.MINIMAX),"Hello")
-        assertFalse(mini.body.getBoolean("stream"))
-        assertEquals("speech-2.8-hd",mini.body.getString("model"))
-        assertEquals("hex",mini.body.getString("output_format"))
-        assertEquals("mp3",mini.body.getJSONObject("audio_setting").getString("format"))
+        assertFalse(mini.jsonBody.getBoolean("stream"))
+        assertEquals("speech-2.8-hd",mini.jsonBody.getString("model"))
+        assertEquals("hex",mini.jsonBody.getString("output_format"))
+        assertEquals("mp3",mini.jsonBody.getJSONObject("audio_setting").getString("format"))
         val kitten = CloudSpeechProtocol.request(CloudVoiceConfig(provider = CloudVoiceProvider.KITTEN),"Hello")
         assertEquals("https://api.kittenml.com/v1/audio/speech",kitten.url)
-        assertEquals("kitten-tts-2-latest",kitten.body.getString("model"))
-        assertEquals("07 — Saoirse — Joyful Irish Female",kitten.body.getString("voice"))
-        assertEquals("mp3",kitten.body.getString("response_format"))
+        assertEquals("kitten-tts-2-latest",kitten.jsonBody.getString("model"))
+        assertEquals("07 — Saoirse — Joyful Irish Female",kitten.jsonBody.getString("voice"))
+        assertEquals("mp3",kitten.jsonBody.getString("response_format"))
     }
 
     @Test fun customEndpointIsExactAndRejectsCredentialBearingUrlsAndRedirectTargets() {
@@ -43,9 +45,9 @@ class CloudSpeechProtocolTest {
         for(model in listOf("eleven_v3","eleven_multilingual_v2","eleven_flash_v2_5")) {
             val request = CloudSpeechProtocol.request(CloudVoiceConfig(model = model),"Hello")
             assertEquals("https://api.elevenlabs.io/v1/text-to-speech/JBFqnCBsd6RMkjVDRZzb/stream?output_format=mp3_44100_128",request.url)
-            assertEquals("Hello",request.body.getString("text"))
-            assertEquals(model,request.body.getString("model_id"))
-            assertFalse(request.body.has("inputs"))
+            assertEquals("Hello",request.jsonBody.getString("text"))
+            assertEquals(model,request.jsonBody.getString("model_id"))
+            assertFalse(request.jsonBody.has("inputs"))
         }
         for(model in listOf("eleven_v4_turbo","eleven_v3_conversational"))
             assertThrows(IllegalArgumentException::class.java) { CloudVoiceConfig(model = model).checked() }
@@ -55,7 +57,7 @@ class CloudSpeechProtocolTest {
 
     @Test fun clonedKittenVoiceUsesItsObjectContractAndDiagnosticsHideConfigurationAndText() {
         val request = CloudSpeechProtocol.request(CloudVoiceConfig(provider = CloudVoiceProvider.KITTEN,voice = "voice_testclone"),"private book passage")
-        assertEquals("voice_testclone",request.body.getJSONObject("voice").getString("id"))
+        assertEquals("voice_testclone",request.jsonBody.getJSONObject("voice").getString("id"))
         assertFalse(request.toString().contains("private book"))
         assertFalse(request.toString().contains("voice_testclone"))
         assertFalse(CloudVoiceConfig(provider = CloudVoiceProvider.CUSTOM,endpoint = "https://private.example/tts").toString().contains("private.example"))
@@ -108,5 +110,28 @@ class CloudSpeechProtocolTest {
         assertEquals(2,config.retries)
         assertThrows(IllegalArgumentException::class.java) { CloudSpeechProtocol.request(CloudVoiceConfig(),"x".repeat(801)) }
         assertThrows(IllegalArgumentException::class.java) { CloudVoiceConfig(timeoutSeconds = 1).checked() }
+    }
+
+    @Test fun azureRejectsHostAndSsmlInjectionAndScopesRegionKeys() {
+        val config = CloudVoiceConfig(provider = CloudVoiceProvider.AZURE, region = "eastus")
+        assertEquals(config, CloudVoiceConfig.fromJson(config.toJson()).checked())
+        for (region in listOf("", "eastus.example.com", "eastus@other", "eastus/path", "eastus\n")) {
+            assertThrows(IllegalArgumentException::class.java) { config.copy(region = region).checked() }
+        }
+        assertThrows(IllegalArgumentException::class.java) { config.copy(endpoint = "https://other.test/tts").checked() }
+        assertThrows(IllegalArgumentException::class.java) { config.copy(voice = """en-US-Jenny" /><voice name="other""").checked() }
+        val otherRegion = config.copy(region = "westus2")
+        assertNotEquals(config.credentialName, otherRegion.credentialName)
+        assertNotEquals(CloudSpeechProtocol.cacheKey(config, "Hello", "key"),
+            CloudSpeechProtocol.cacheKey(otherRegion, "Hello", "key"))
+    }
+
+    @Test fun googleCloudRejectsForeignEndpointsAndInvalidAudio() {
+        val config = CloudVoiceConfig(provider = CloudVoiceProvider.GOOGLE_CLOUD)
+        assertThrows(IllegalArgumentException::class.java) { config.copy(endpoint = "https://other.test/tts").checked() }
+        assertThrows(IllegalArgumentException::class.java) { config.copy(language = "").checked() }
+        assertThrows(IllegalArgumentException::class.java) {
+            CloudSpeechProtocol.audio(config.provider, """{"audioContent":"invalid base64"}""".toByteArray())
+        }
     }
 }

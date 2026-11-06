@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reader_page_sentence_progress">"Страница %1$d из %2$d • Предложение %3$d/%4$d"</string>
+    <string name="reader_paper_tone_selected">"Тон бумаги: %1$s"</string>
+    <string name="pdf_swipe_pages">"Смахните, чтобы перелистнуть страницу"</string>
+    <string name="pdf_scroll_pages">"Прокручивайте страницы"</string>
+    <string name="pdf_fit_current_page">"Подогнать текущую страницу под экран"</string>
+    <string name="pdf_switch_orientation">"Изменить ориентацию экрана"</string>
+    <string name="pdf_outline_count">"Главы и разделы: %1$d"</string>
+    <string name="pdf_outline_description">"Главы, разделы и ссылки"</string>
+    <string name="pdf_first_page">"Первая страница (%1$d)"</string>
+    <string name="pdf_last_page">"Последняя страница (%1$d)"</string>
+    <string name="pdf_jump_beginning">"Перейти к началу"</string>
+    <string name="pdf_jump_end">"Перейти в конец документа"</string>
+    <string name="pdf_live_sync">"Синхронизация с чтением"</string>
+    <string name="pdf_sync_off">"Синхронизация выключена"</string>
+    <string name="pdf_sync_enabled">"Синхронизация с чтением (включена)"</string>
+    <string name="pdf_sync_disabled">"Синхронизация с чтением (выключена)"</string>
+    <string name="pdf_pause_highlight">"Нажмите, чтобы приостановить автоподсветку"</string>
+    <string name="pdf_enable_sync">"Нажмите, чтобы синхронизировать озвучивание с PDF"</string>
+    <string name="pdf_share_missing">"Не удалось найти PDF для отправки."</string>
+    <string name="pdf_share_document">"Поделиться PDF"</string>
+    <string name="pdf_document_format">"Формат"</string>
+    <string name="pdf_original_format">"PDF (исходный документ)"</string>
+    <string name="pdf_total_sentences">"Всего предложений"</string>
+    <string name="pdf_estimated_reading_time">"Примерное время чтения"</string>
+    <string name="pdf_added_date">"Дата добавления"</string>
+    <string name="pdf_ready_to_read">"Готово к чтению"</string>
+    <string name="pdf_preparing_reading">"Подготовка к чтению…"</string>
+    <string name="pdf_cancel_preparing">"Подготовка воспроизведения. Нажмите для отмены"</string>
+    <string name="pdf_back_to_vern">"Вернуться в Vern"</string>
+    <string name="pdf_speed_value">"Скорость %1$.2f×"</string>
+    <string name="pdf_pitch_value">"Высота голоса %1$.2f"</string>
+    <string name="pdf_queue_count">"Очередь (%1$d)"</string>
+    <string name="pdf_continue_queue">"Продолжить очередь (%1$d)"</string>
+    <string name="pdf_file_share">"Файл и отправка"</string>
+</resources>

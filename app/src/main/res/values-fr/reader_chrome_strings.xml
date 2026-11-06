@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reader_page_sentence_progress">"Page %1$d sur %2$d • Phrase %3$d/%4$d"</string>
+    <string name="reader_paper_tone_selected">"Teinte du papier : %1$s"</string>
+    <string name="pdf_swipe_pages">"Balayer pour tourner les pages"</string>
+    <string name="pdf_scroll_pages">"Faire défiler les pages"</string>
+    <string name="pdf_fit_current_page">"Ajuster la page actuelle"</string>
+    <string name="pdf_switch_orientation">"Changer l’orientation de l’écran"</string>
+    <string name="pdf_outline_count">"Chapitres et sections : %1$d"</string>
+    <string name="pdf_outline_description">"Chapitres, sections et liens"</string>
+    <string name="pdf_first_page">"Première page (%1$d)"</string>
+    <string name="pdf_last_page">"Dernière page (%1$d)"</string>
+    <string name="pdf_jump_beginning">"Aller au début"</string>
+    <string name="pdf_jump_end">"Aller à la fin du document"</string>
+    <string name="pdf_live_sync">"Synchro en direct"</string>
+    <string name="pdf_sync_off">"Synchro désactivée"</string>
+    <string name="pdf_sync_enabled">"Synchro en direct (activée)"</string>
+    <string name="pdf_sync_disabled">"Synchro en direct (désactivée)"</string>
+    <string name="pdf_pause_highlight">"Toucher pour suspendre le surlignage automatique"</string>
+    <string name="pdf_enable_sync">"Toucher pour synchroniser la lecture audio avec le PDF"</string>
+    <string name="pdf_share_missing">"Impossible de trouver le fichier PDF à partager."</string>
+    <string name="pdf_share_document">"Partager le PDF"</string>
+    <string name="pdf_document_format">"Format"</string>
+    <string name="pdf_original_format">"PDF (document original)"</string>
+    <string name="pdf_total_sentences">"Nombre de phrases"</string>
+    <string name="pdf_estimated_reading_time">"Temps de lecture estimé"</string>
+    <string name="pdf_added_date">"Date d’ajout"</string>
+    <string name="pdf_ready_to_read">"Prêt à lire"</string>
+    <string name="pdf_preparing_reading">"Préparation de la lecture…"</string>
+    <string name="pdf_cancel_preparing">"Préparation de la lecture audio. Toucher pour annuler"</string>
+    <string name="pdf_back_to_vern">"Retour à Vern"</string>
+    <string name="pdf_speed_value">"Vitesse %1$.2f×"</string>
+    <string name="pdf_pitch_value">"Tonalité %1$.2f"</string>
+    <string name="pdf_queue_count">"File d’attente (%1$d)"</string>
+    <string name="pdf_continue_queue">"Reprendre la file d’attente (%1$d)"</string>
+    <string name="pdf_file_share">"Fichier et partage"</string>
+</resources>

@@ -202,7 +202,7 @@ internal fun HomeSidebarDialog(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Close,
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close),
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
@@ -248,7 +248,7 @@ internal fun HomeSidebarDialog(
                                     )
                                 }
                                 Text(
-                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_118, com.veritas.reader.ui.screens.localizedUiValue(snapshot.currentStreak)),
+                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_118, com.veritas.reader.ui.screens.localizedUiValue(snapshot.currentStreak)),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -265,37 +265,37 @@ internal fun HomeSidebarDialog(
 
                         // 4. Primary Navigation Items
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_navigation),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_navigation),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 4.dp)
                         )
 
                         SidebarAction(
-                            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_your_library),
-                            subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_all_saved_readings_collections_formats),
+                            title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_your_library),
+                            subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_all_saved_readings_collections_formats),
                             icon = Icons.AutoMirrored.Filled.MenuBook,
                             onClick = onOpenLibrary
                         )
 
                         SidebarAction(
-                            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_insights),
-                            subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_daily_streaks_analytics_activity_heatmap),
+                            title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_insights),
+                            subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_daily_streaks_analytics_activity_heatmap),
                             icon = Icons.Filled.Insights,
                             badgeText = "${snapshot.currentStreak}d 🔥",
                             onClick = onOpenStats
                         )
 
                         SidebarAction(
-                            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_reading_history),
-                            subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_recent_sessions_and_timestamps),
+                            title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_reading_history),
+                            subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_recent_sessions_and_timestamps),
                             icon = Icons.Outlined.History,
                             onClick = onOpenReadingHistory
                         )
 
                         SidebarAction(
-                            title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_sync_backup),
-                            subtitle = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_sync_backup_library_notes_and_progress),
+                            title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_sync_backup),
+                            subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_sync_backup_library_notes_and_progress),
                             icon = Icons.Filled.Sync,
                             onClick = onOpenSyncCenter
                         )
@@ -322,7 +322,7 @@ internal fun HomeSidebarDialog(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_library_stored_locally_vern),
+                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_your_library_stored_locally_vern),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -354,12 +354,12 @@ internal fun ReaderTrackerSidebarCard(snapshot: ReaderTrackerSnapshot, onOpenSta
             ) {
                 Column {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_rhythm),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_rhythm),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_last_7_days),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_last_7_days),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -370,7 +370,7 @@ internal fun ReaderTrackerSidebarCard(snapshot: ReaderTrackerSnapshot, onOpenSta
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.height(32.dp)
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_insights), style = MaterialTheme.typography.labelMedium)
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_insights), style = MaterialTheme.typography.labelMedium)
                 }
             }
 
@@ -382,12 +382,12 @@ internal fun ReaderTrackerSidebarCard(snapshot: ReaderTrackerSnapshot, onOpenSta
             ) {
                 CompactStat(
                     value = formatTrackerDuration(snapshot.weeklyUsageMillis),
-                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_this_week),
+                    label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_this_week),
                     modifier = Modifier.weight(1f)
                 )
                 CompactStat(
                     value = "${snapshot.documentsReadThisWeek}",
-                    label = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_readings),
+                    label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_readings),
                     modifier = Modifier.weight(1f)
                 )
             }

@@ -40,6 +40,9 @@ The application uses local machine learning models (Google Play Services ML Kit)
 ### ML Kit diagnostics
 Google ML Kit is also used for language identification. Google documents collection of device/app information, identifiers, performance metrics, API configuration, input/output sizes, feature events and errors for diagnostics and usage analytics. Language identification can additionally report identified languages. This SDK traffic is separate from on-device document processing. See [Google’s ML Kit Android data disclosure](https://developers.google.com/ml-kit/android-data-disclosure) for the collected fields and their purposes.
 
+### Optional interface translation
+When you enable **Translate with Google**, Vern uses Google Translate through ML Kit to translate built-in interface labels on your device. Values such as book titles are inserted on the device after translating the label. The translation model is downloaded from Google and Wi-Fi is required by default. You can allow mobile data for model downloads in the same settings. The SDK can send configuration, usage and performance metrics to Google. See [Google Translate](https://cloud.google.com/translate) and [ML Kit terms and privacy](https://developers.google.com/ml-kit/terms).
+
 ### Text-to-Speech (TTS) engine
 Playback is synthesized via your Android device's active Text-to-Speech (TTS) engine (such as Google Speech Services).
 *   **Synthesis Context:** The active sentence text is passed to the system TTS engine API to read the content aloud.

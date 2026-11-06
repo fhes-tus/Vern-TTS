@@ -45,8 +45,8 @@ class AppLanguageDefaultInstrumentedTest {
         val previous = manager.applicationLocales
         val phone = manager.systemLocales.toLanguageTags()
         try {
-            instrumentation.runOnMainSync { manager.applicationLocales = LocaleList(Locale.GERMANY) }
-            waitUntil { AppLanguages.selectedTag(context) == "de-DE" }
+            instrumentation.runOnMainSync { manager.applicationLocales = LocaleList(Locale.ITALY) }
+            waitUntil { AppLanguages.selectedTag(context) == "it-IT" }
             assertFalse(AppLanguages.selectedTag(context).isEmpty())
             instrumentation.runOnMainSync { AppLanguages.select(context,"") }
             waitUntil { manager.applicationLocales.isEmpty && AppLanguages.selectedTag(context).isEmpty() }

@@ -12,7 +12,11 @@ object AppLanguageCatalog {
         Choice("es", "Español"),
         Choice("hi", "हिन्दी"),
         Choice("zh-Hans", "简体中文"),
-        Choice("ar", "العربية")
+        Choice("ar", "العربية"),
+        Choice("pt", "Português (Brasil)"),
+        Choice("ru", "Русский"),
+        Choice("de", "Deutsch"),
+        Choice("ko", "한국어")
     )
 
     /** An unsupported explicit override is still an override, not the device-default choice. */
@@ -23,7 +27,7 @@ object AppLanguageCatalog {
         if (tag.isBlank()) return ""
         val locale = Locale.forLanguageTag(tag)
         return when (locale.language) {
-            "en", "fr", "es", "hi", "ar" -> locale.language
+            "en", "fr", "es", "hi", "ar", "pt", "ru", "de", "ko" -> locale.language
             "zh" -> when (locale.script) {
                 "Hans" -> "zh-Hans"
                 "Hant" -> null

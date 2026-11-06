@@ -207,19 +207,19 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back_to_reader_d5e590e),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back_to_reader_d5e590e),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rsvp_speed_reader_8bf1641),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_rsvp_speed_reader_8bf1641),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_176, com.veritas.reader.ui.screens.localizedUiValue(currentWordIndex + 1), com.veritas.reader.ui.screens.localizedUiValue(tokens.size.coerceAtLeast(1))),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_176, com.veritas.reader.ui.screens.localizedUiValue(currentWordIndex + 1), com.veritas.reader.ui.screens.localizedUiValue(tokens.size.coerceAtLeast(1))),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -233,7 +233,7 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                     ) {
                         Icon(
                             Icons.Filled.Refresh,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_restart),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_restart),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -299,7 +299,7 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                     )
                 } else {
                     Text(
-                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_end_of_document),
+                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_end_of_document),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -354,7 +354,7 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                             ) {
                                 Icon(
                                     Icons.Filled.FastRewind,
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rewind_20_words),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_rewind_20_words),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -369,7 +369,7 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
                                         imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                        contentDescription = if (isPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pause) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play),
+                                        contentDescription = if (isPlaying) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_pause) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_play),
                                         tint = MaterialTheme.colorScheme.onPrimary,
                                         modifier = Modifier.size(32.dp)
                                     )
@@ -383,7 +383,7 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                             ) {
                                 Icon(
                                     Icons.Filled.FastForward,
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_forward_20_words),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_forward_20_words),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -397,7 +397,7 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                         ) {
                             Icon(
                                 Icons.Filled.FastForward,
-                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_speed),
+                                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_speed),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -409,7 +409,7 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
-                                text = if (audioNarration) "${String.format(java.util.Locale.ROOT, "%.2f", audioRate)}×" else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_177, com.veritas.reader.ui.screens.localizedUiValue(wordsPerMinute.toInt())),
+                                text = if (audioNarration) "${String.format(java.util.Locale.ROOT, "%.2f", audioRate)}×" else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_177, com.veritas.reader.ui.screens.localizedUiValue(wordsPerMinute.toInt())),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.width(68.dp),
@@ -435,7 +435,7 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = if (audioNarration) timingLabel else if (document.id == null) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_silent_rsvp_save_for_audio) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_silent_visual_rsvp),
+                                    text = if (audioNarration) timingLabel else if (document.id == null) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_silent_rsvp_save_for_audio) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_silent_visual_rsvp),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -447,7 +447,7 @@ internal fun RsvpSpeedReaderContent(document: ReaderDocument, initialSentenceInd
                             )
                         }
                         if (audioNarration && PlaybackStateStore.activeDocumentId == document.id) Text(
-                            if (preparing) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preparing_audio) else PlaybackStateStore.statusMessage,
+                            if (preparing) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_preparing_audio) else PlaybackStateStore.statusMessage,
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }

@@ -60,6 +60,7 @@ import com.veritas.reader.DocumentPageImageLoader
 import com.veritas.reader.DocumentRepository
 import com.veritas.reader.NarrationSettings
 import com.veritas.reader.PaperToneMode
+import com.veritas.reader.R
 import com.veritas.reader.ReaderAnnotation
 import com.veritas.reader.ReaderDocument
 import com.veritas.reader.ReaderMode
@@ -526,9 +527,10 @@ fun ReaderScreen(
             1f
         )
     val progressLabel = if (document.chunks.isEmpty()) {
-        "0 / 0"
+        "${localizedUiValue(0)} / ${localizedUiValue(0)}"
     } else {
-        "Page $currentPageNumber of $totalPages • Sentence ${currentIndex + 1}/${document.chunks.size}"
+        menuString(R.string.reader_page_sentence_progress,
+            currentPageNumber, totalPages, currentIndex + 1, document.chunks.size)
     }
     annotations.count { it.type == AnnotationType.BOOKMARK }
     annotations.count { it.type == AnnotationType.NOTE }
@@ -599,7 +601,7 @@ fun ReaderScreen(
                         .fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_readable_text_found))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_readable_text_found))
                 }
             } else {
                 Box(

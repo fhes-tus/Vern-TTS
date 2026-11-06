@@ -84,7 +84,7 @@ internal fun OriginalPdfPager(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     if (image != null) Image(image.asImageBitmap(), "Original PDF page ${page + 1} of $pageCount",
                         Modifier.fillMaxSize(), contentScale = ContentScale.Fit, colorFilter = colorFilter)
-                    else if (rendered?.isFailure == true) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_could_not_render_this_page_use_page_navigation_to_try_again))
+                    else if (rendered?.isFailure == true) Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_could_not_render_this_page_use_page_navigation_to_try_again))
                     else CircularProgressIndicator()
                 }
             }

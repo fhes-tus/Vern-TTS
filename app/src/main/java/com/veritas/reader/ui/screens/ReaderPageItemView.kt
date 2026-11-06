@@ -164,7 +164,7 @@ internal fun ReaderPageItemView(
                     val pageItem = pageItems.getOrNull(pageIndex)
                     if (pageItem == null) {
                         Box(modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()), contentAlignment = Alignment.Center) {
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_page_not_found), style = MaterialTheme.typography.bodyMedium)
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_page_not_found), style = MaterialTheme.typography.bodyMedium)
                         }
                     } else {
                         val pageNumber = pageItem.pageNumber
@@ -315,11 +315,11 @@ internal fun ReaderPageItemView(
                                         )
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             if (bookmarked) {
-                                                AnnotationPill(Icons.Filled.Bookmark, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_bookmarked))
+                                                AnnotationPill(Icons.Filled.Bookmark, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_bookmarked))
                                                 Spacer(modifier = Modifier.width(6.dp))
                                             }
                                             Text(
-                                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_150, com.veritas.reader.ui.screens.localizedUiValue(pageNumber), com.veritas.reader.ui.screens.localizedUiValue(pageItems.size)),
+                                                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_150, com.veritas.reader.ui.screens.localizedUiValue(pageNumber), com.veritas.reader.ui.screens.localizedUiValue(pageItems.size)),
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.SemiBold,
                                                 color = if (paperTone == PaperToneMode.WARM_SEPIA) Color(0xFF6D4C41) else paperAccent
@@ -353,16 +353,16 @@ internal fun ReaderPageItemView(
                                             .padding(bottom = 16.dp)
                                     ) pageContent@{
                                         if (!pageMediaReady) {
-                                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preparing_page_illustrations), color = canvasTextColor,
+                                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_preparing_page_illustrations), color = canvasTextColor,
                                                 modifier = Modifier.padding(vertical = 24.dp))
                                             return@pageContent
                                         }
                                         if (pageItem.text.isBlank()) {
                                             Text(
                                                 text = if (document.partial) {
-                                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_only_part_of_this_document_has_been_extracted_no_text_is_availabl)
+                                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_only_part_of_this_document_has_been_extracted_no_text_is_availabl)
                                                 } else {
-                                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_readable_text_was_extracted_for_this_page)
+                                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_readable_text_was_extracted_for_this_page)
                                                 },
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 color = canvasTextColor.copy(alpha = 0.7f),
@@ -410,7 +410,7 @@ internal fun ReaderPageItemView(
                                                     ) {
                                                         androidx.compose.foundation.Image(
                                                             bitmap = coverBitmap.asImageBitmap(),
-                                                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_cover),
+                                                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_cover),
                                                             modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()),
                                                             contentScale = androidx.compose.ui.layout.ContentScale.Crop
                                                         )
@@ -619,7 +619,7 @@ internal fun ReaderPageItemView(
                                                     verticalArrangement = Arrangement.spacedBy(4.dp)
                                                 ) {
                                                     Text(
-                                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_note),
+                                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_note),
                                                         style = MaterialTheme.typography.labelMedium,
                                                         fontWeight = FontWeight.Bold
                                                     )
@@ -685,7 +685,7 @@ internal fun ReaderInlineIllustration(bitmap: android.graphics.Bitmap?, imageInd
                 contentScale = androidx.compose.ui.layout.ContentScale.Fit
             )
         } else {
-            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_151, com.veritas.reader.ui.screens.localizedUiValue(imageIndex + 1)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_151, com.veritas.reader.ui.screens.localizedUiValue(imageIndex + 1)), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -967,7 +967,7 @@ internal fun ReaderComposeTableCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_152, com.veritas.reader.ui.screens.localizedUiValue(table.rows.size)),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_152, com.veritas.reader.ui.screens.localizedUiValue(table.rows.size)),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = paperAccent
@@ -983,7 +983,7 @@ internal fun ReaderComposeTableCard(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_skip_table),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_skip_table),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Medium,
                             color = paperAccent

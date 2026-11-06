@@ -80,24 +80,24 @@ internal fun VeritasHomeHeroCard(
                 WeeklyPickContent(weeklyBook, colors) { onPreviewClassic(weeklyBook) }
             } else if (doc == null) {
                 Icon(Icons.Filled.AutoStories, null, tint = onCardColor, modifier = Modifier.size(32.dp))
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_next_read_starts_here), style = MaterialTheme.typography.headlineSmall, color = onCardColor)
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_a_book_document_or_article_to_read_and_listen_at_your_own_pac),
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_your_next_read_starts_here), style = MaterialTheme.typography.headlineSmall, color = onCardColor)
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_a_book_document_or_article_to_read_and_listen_at_your_own_pac),
                     style = MaterialTheme.typography.bodyMedium, color = colors.secondaryContent)
                 Button(onClick = onAddContent, shape = VeritasPackStyle.chipShape(),
                     colors = ButtonDefaults.buttonColors(containerColor = colors.actionContainer, contentColor = colors.actionContent),
                     modifier = Modifier.heightIn(min = 48.dp)) {
                     Icon(Icons.Filled.Add, null, Modifier.size(20.dp))
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_your_first_read), Modifier.padding(start = 8.dp))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_your_first_read), Modifier.padding(start = 8.dp))
                 }
             } else {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_continue_reading), style = MaterialTheme.typography.titleSmall, color = onCardColor)
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pick_up_where_you_left_off), style = MaterialTheme.typography.bodySmall,
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_continue_reading), style = MaterialTheme.typography.titleSmall, color = onCardColor)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_pick_up_where_you_left_off), style = MaterialTheme.typography.bodySmall,
                             color = colors.secondaryContent)
                     }
                     IconButton(onClick = { onClear(doc) }, modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Filled.Close, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_dismiss_continue_reading), tint = colors.secondaryContent,
+                        Icon(Icons.Filled.Close, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_dismiss_continue_reading), tint = colors.secondaryContent,
                             modifier = Modifier.size(18.dp))
                     }
                 }
@@ -126,7 +126,7 @@ internal fun VeritasHomeHeroCard(
                                     style = MaterialTheme.typography.bodySmall, color = colors.secondaryContent,
                                     maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text(if (index <= 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ready_to_begin) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_080, com.veritas.reader.ui.screens.localizedUiValue((fraction * 100).toInt())),
+                                    Text(if (index <= 0) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ready_to_begin) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_080, com.veritas.reader.ui.screens.localizedUiValue((fraction * 100).toInt())),
                                         style = MaterialTheme.typography.labelMedium, color = colors.secondaryContent)
                                     LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(5.dp),
                                         color = colors.progress, trackColor = colors.progress.copy(alpha = 0.18f))
@@ -148,7 +148,7 @@ private fun ContinueReadingAction(doc: SavedDocument, onOpen: (SavedDocument) ->
         colors = ButtonDefaults.buttonColors(containerColor = colors.actionContainer, contentColor = colors.actionContent),
         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
         Icon(Icons.Filled.AutoStories, null, Modifier.size(20.dp))
-        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_continue), Modifier.padding(start = 8.dp), maxLines = 1)
+        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_continue), Modifier.padding(start = 8.dp), maxLines = 1)
     }
 }
 
@@ -156,8 +156,8 @@ private fun ContinueReadingAction(doc: SavedDocument, onOpen: (SavedDocument) ->
 private fun WeeklyPickContent(book: ClassicBookEntry, colors: VeritasHeroColors, onPreview: () -> Unit) {
     val onCardColor = colors.content
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_book_of_the_week), style = MaterialTheme.typography.titleSmall, color = onCardColor)
-        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_a_new_classic_every_monday), style = MaterialTheme.typography.bodySmall,
+        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_book_of_the_week), style = MaterialTheme.typography.titleSmall, color = onCardColor)
+        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_a_new_classic_every_monday), style = MaterialTheme.typography.bodySmall,
             color = colors.secondaryContent)
     }
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically,
@@ -177,6 +177,6 @@ private fun WeeklyPickContent(book: ClassicBookEntry, colors: VeritasHeroColors,
         colors = ButtonDefaults.buttonColors(containerColor = colors.actionContainer, contentColor = colors.actionContent),
         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
         Icon(Icons.Filled.AutoStories, null, Modifier.size(20.dp))
-        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preview_book), Modifier.padding(start = 8.dp))
+        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_preview_book), Modifier.padding(start = 8.dp))
     }
 }

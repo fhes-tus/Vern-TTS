@@ -59,7 +59,7 @@ class SpeechPatternRulesInstrumentedTest {
         ui.waitUntil(5000) { repository.loadPronunciationRules().size == 1 }
         val id = repository.loadPronunciationRules().single().id
         assertEquals("Before after.", DocumentRepository(context).applyPronunciationRules("Before[12] after."))
-        ui.onNodeWithText("[n] → Skip").performScrollTo().performClick()
+        ui.onNodeWithTag("speech-rule-edit-$id").performScrollTo().performClick()
         ui.onNodeWithTag("speech-action-say").performScrollTo().performClick()
         ui.onNodeWithTag("speech-rule-replacement").performScrollTo().performTextReplacement("reference \$1")
         ui.onNodeWithTag("speech-rule-test-input").performScrollTo().performTextReplacement("Before[12] after.")
@@ -91,17 +91,46 @@ class SpeechPatternRulesInstrumentedTest {
         assertEquals(SpeechRuleKind.REGEX, repository.loadPronunciationRules().single().matchKind)
     }
 
-    @Test fun starredPresetCanBeDisabledAndRemoved() = withEditor { repository ->
+    @Test fun onlyMultipleSavedRulesCanBeCollapsedAsAGroup() = withEditor { repository ->
         ui.onNodeWithText("Starred text").performScrollTo().performClick()
         ui.onNodeWithTag("speech-rule-save").performScrollTo().performClick()
         ui.waitUntil(5000) { repository.loadPronunciationRules().size == 1 }
         val saved = repository.loadPronunciationRules().single()
+        val listToggle = ui.onNodeWithTag("speech-rule-list-toggle")
+        val savedToggle = ui.onNodeWithTag("speech-rule-toggle-${saved.id}")
+        listToggle.assertDoesNotExist()
+        savedToggle.assertExists()
         assertEquals("Keep  end.", repository.applyPronunciationRules("Keep *terro* end."))
-        ui.onNodeWithText("*{text}* → Skip").performScrollTo()
-        ui.onNode(hasTestTag("speech-rule-toggle-${saved.id}")).performClick()
-        ui.waitUntil(5000) { !repository.loadPronunciationRules().single().enabled }
+        ui.onNodeWithText("Dr. → Doctor").performScrollTo().performClick()
+        ui.onNodeWithTag("speech-rule-save").performScrollTo().performClick()
+        ui.waitUntil(5000) { repository.loadPronunciationRules().size == 2 }
+        val other = repository.loadPronunciationRules().single { it.id != saved.id }
+        val otherToggle = ui.onNodeWithTag("speech-rule-toggle-${other.id}")
+        savedToggle.assertDoesNotExist()
+        otherToggle.assertDoesNotExist()
+        listToggle.performScrollTo().performClick()
+        savedToggle.assertExists()
+        otherToggle.assertExists()
+        listToggle.performScrollTo().performClick()
+        savedToggle.assertDoesNotExist()
+        otherToggle.assertDoesNotExist()
+        listToggle.performScrollTo().performClick()
+        savedToggle.performScrollTo().performClick()
+        ui.waitUntil(5000) { !repository.loadPronunciationRules().single { it.id == saved.id }.enabled }
         assertEquals("Keep *terro* end.", repository.applyPronunciationRules("Keep *terro* end."))
-        ui.onNodeWithContentDescription("Remove rule *{text}*").performClick()
-        ui.waitUntil(5000) { repository.loadPronunciationRules().isEmpty() }
+        ui.onNodeWithTag("speech-rule-remove-${saved.id}").performScrollTo().performClick()
+        ui.waitUntil(5000) { repository.loadPronunciationRules().map { it.id } == listOf(other.id) }
+        listToggle.assertDoesNotExist()
+        otherToggle.assertExists()
+    }
+
+    @Test fun bothSyntaxWalkthroughsFillTheRuleAndProduceTheShownPreview() = withEditor { repository ->
+        for (kind in listOf(SpeechRuleKind.PATTERN, SpeechRuleKind.REGEX)) {
+            ui.onNodeWithTag("speech-kind-${kind.name}").performScrollTo().performClick()
+            ui.onNodeWithTag("speech-rule-pattern-guide").performScrollTo().performClick()
+            ui.onNodeWithTag("speech-rule-use-example").performScrollTo().performClick()
+            previewEquals("12")
+            assertTrue(repository.loadPronunciationRules().isEmpty())
+        }
     }
 }

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reader_page_sentence_progress">"Página %1$d de %2$d • Oración %3$d/%4$d"</string>
+    <string name="reader_paper_tone_selected">"Tono del papel: %1$s"</string>
+    <string name="pdf_swipe_pages">"Desliza para pasar de página"</string>
+    <string name="pdf_scroll_pages">"Desplázate por las páginas"</string>
+    <string name="pdf_fit_current_page">"Ajusta la página actual"</string>
+    <string name="pdf_switch_orientation">"Cambia la orientación de la pantalla"</string>
+    <string name="pdf_outline_count">"Capítulos y secciones: %1$d"</string>
+    <string name="pdf_outline_description">"Capítulos, secciones y enlaces"</string>
+    <string name="pdf_first_page">"Primera página (%1$d)"</string>
+    <string name="pdf_last_page">"Última página (%1$d)"</string>
+    <string name="pdf_jump_beginning">"Ve al principio"</string>
+    <string name="pdf_jump_end">"Ve al final del documento"</string>
+    <string name="pdf_live_sync">"Sincronización en vivo"</string>
+    <string name="pdf_sync_off">"Sincronización desactivada"</string>
+    <string name="pdf_sync_enabled">"Sincronización en vivo (activada)"</string>
+    <string name="pdf_sync_disabled">"Sincronización en vivo (desactivada)"</string>
+    <string name="pdf_pause_highlight">"Toca para pausar el resaltado automático"</string>
+    <string name="pdf_enable_sync">"Toca para sincronizar la narración con el PDF"</string>
+    <string name="pdf_share_missing">"No se encontró el archivo PDF para compartir."</string>
+    <string name="pdf_share_document">"Compartir documento PDF"</string>
+    <string name="pdf_document_format">"Formato"</string>
+    <string name="pdf_original_format">"PDF (documento original)"</string>
+    <string name="pdf_total_sentences">"Total de oraciones"</string>
+    <string name="pdf_estimated_reading_time">"Tiempo estimado de lectura"</string>
+    <string name="pdf_added_date">"Fecha de incorporación"</string>
+    <string name="pdf_ready_to_read">"Listo para leer"</string>
+    <string name="pdf_preparing_reading">"Preparando la lectura…"</string>
+    <string name="pdf_cancel_preparing">"Preparando la reproducción. Toca para cancelar"</string>
+    <string name="pdf_back_to_vern">"Volver a Vern"</string>
+    <string name="pdf_speed_value">"Velocidad %1$.2f×"</string>
+    <string name="pdf_pitch_value">"Tono %1$.2f"</string>
+    <string name="pdf_queue_count">"Cola (%1$d)"</string>
+    <string name="pdf_continue_queue">"Continuar la cola (%1$d)"</string>
+    <string name="pdf_file_share">"Archivo y uso compartido"</string>
+</resources>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reader_page_sentence_progress">"الصفحة %1$d من %2$d • الجملة %3$d/%4$d"</string>
+    <string name="reader_paper_tone_selected">"لون الورق: %1$s"</string>
+    <string name="pdf_swipe_pages">"اسحب لتقليب الصفحات"</string>
+    <string name="pdf_scroll_pages">"مرّر عبر الصفحات"</string>
+    <string name="pdf_fit_current_page">"ملاءمة الصفحة الحالية للشاشة"</string>
+    <string name="pdf_switch_orientation">"تغيير اتجاه الشاشة"</string>
+    <string name="pdf_outline_count">"الفصول والأقسام: %1$d"</string>
+    <string name="pdf_outline_description">"الفصول والأقسام والروابط"</string>
+    <string name="pdf_first_page">"الصفحة الأولى (%1$d)"</string>
+    <string name="pdf_last_page">"الصفحة الأخيرة (%1$d)"</string>
+    <string name="pdf_jump_beginning">"الانتقال إلى البداية"</string>
+    <string name="pdf_jump_end">"الانتقال إلى نهاية المستند"</string>
+    <string name="pdf_live_sync">"المزامنة المباشرة"</string>
+    <string name="pdf_sync_off">"المزامنة متوقفة"</string>
+    <string name="pdf_sync_enabled">"المزامنة المباشرة (مفعّلة)"</string>
+    <string name="pdf_sync_disabled">"المزامنة المباشرة (متوقفة)"</string>
+    <string name="pdf_pause_highlight">"اضغط لإيقاف التمييز التلقائي مؤقتًا"</string>
+    <string name="pdf_enable_sync">"اضغط لمزامنة القراءة الصوتية مع ملف PDF"</string>
+    <string name="pdf_share_missing">"تعذّر العثور على ملف PDF لمشاركته."</string>
+    <string name="pdf_share_document">"مشاركة مستند PDF"</string>
+    <string name="pdf_document_format">"التنسيق"</string>
+    <string name="pdf_original_format">"PDF (المستند الأصلي)"</string>
+    <string name="pdf_total_sentences">"إجمالي الجمل"</string>
+    <string name="pdf_estimated_reading_time">"مدة القراءة المقدّرة"</string>
+    <string name="pdf_added_date">"تاريخ الإضافة"</string>
+    <string name="pdf_ready_to_read">"جاهز للقراءة"</string>
+    <string name="pdf_preparing_reading">"جارٍ إعداد القراءة…"</string>
+    <string name="pdf_cancel_preparing">"جارٍ إعداد التشغيل. اضغط للإلغاء"</string>
+    <string name="pdf_back_to_vern">"العودة إلى Vern"</string>
+    <string name="pdf_speed_value">"السرعة %1$.2f×"</string>
+    <string name="pdf_pitch_value">"طبقة الصوت %1$.2f"</string>
+    <string name="pdf_queue_count">"قائمة الانتظار (%1$d)"</string>
+    <string name="pdf_continue_queue">"متابعة قائمة الانتظار (%1$d)"</string>
+    <string name="pdf_file_share">"الملف والمشاركة"</string>
+</resources>

@@ -21,9 +21,9 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.veritas.reader.ui.VeritasSleekSliderView
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
+import java.text.DateFormat
+import java.text.NumberFormat
 import java.util.Date
-import java.util.Locale
 import kotlin.math.roundToInt
 
 internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
@@ -41,7 +41,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             addView(input)
         }
         val titleView = TextView(this).apply {
-            text = "Jump to Page"
+            text = getString(R.string.ui_jump_to_page)
             setTextColor(colorTextPrimary)
             textSize = 17f
             typeface = Typeface.DEFAULT_BOLD
@@ -50,13 +50,13 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
         val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
             .setCustomTitle(titleView)
             .setView(layout)
-            .setPositiveButton("Go") { _, _ ->
+            .setPositiveButton(R.string.ui_go) { _, _ ->
                 val num = input.text.toString().trim().toIntOrNull()
                 if (num != null && num in 1..total) {
                     navigateToPdfPage(num - 1)
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.ui_cancel, null)
             .create()
         dialog.window?.setBackgroundDrawable(ColorDrawable(colorSurface))
         dialog.show()
@@ -67,7 +67,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
     internal fun VeritasPdfViewerActivity.sharePdf() {
         val metadata = document ?: return
         val uri = repository.getShareableUri(metadata) ?: repository.originalUri(metadata) ?: run {
-            Toast.makeText(this, "Could not locate PDF file to share.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.pdf_share_missing, Toast.LENGTH_SHORT).show()
             return
         }
         val intent = Intent(Intent.ACTION_SEND).apply {
@@ -77,7 +77,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             clipData = android.content.ClipData.newUri(contentResolver, metadata.title, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        runCatching { startActivity(Intent.createChooser(intent, "Share PDF Document")) }
+        runCatching { startActivity(Intent.createChooser(intent, getString(R.string.pdf_share_document))) }
     }
 
     internal fun VeritasPdfViewerActivity.showTopMenu(anchor: View) {
@@ -86,20 +86,20 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
         val items = mutableListOf<OverflowMenuItem>()
 
         // Display
-        items.add(OverflowMenuItem(title = "Display", isHeader = true))
-        items.add(OverflowMenuItem(title = "Reading layout",
-            subtitle = if (pdfChromeSettings.pdfNavigationMode == "swipe") "Swipe to turn pages" else "Scroll through pages",
+        items.add(OverflowMenuItem(title = getString(R.string.ui_display), isHeader = true))
+        items.add(OverflowMenuItem(title = getString(R.string.ui_reading_layout),
+            subtitle = getString(if (pdfChromeSettings.pdfNavigationMode == "swipe") R.string.pdf_swipe_pages else R.string.pdf_scroll_pages),
             iconRes = R.drawable.ic_m3_swipe_horizontal,
-            choices = listOf("swipe" to "Page swipe", "scroll" to "Vertical scroll").map { (mode, label) ->
-                OverflowMenuItem(title = label,
-                    subtitle = if (mode == "swipe") "Swipe to turn pages" else "Scroll through pages",
+            choices = listOf("swipe" to R.string.settings_page_swipe, "scroll" to R.string.settings_vertical_scroll).map { (mode, label) ->
+                OverflowMenuItem(title = getString(label),
+                    subtitle = getString(if (mode == "swipe") R.string.pdf_swipe_pages else R.string.pdf_scroll_pages),
                     selected = pdfChromeSettings.pdfNavigationMode == mode,
                     action = { setPdfNavigationMode(mode) })
             }))
 
         items.add(OverflowMenuItem(
-            title = "Fit to Screen",
-            subtitle = "Fit the current page",
+            title = getString(R.string.ui_fit_to_screen),
+            subtitle = getString(R.string.pdf_fit_current_page),
             iconRes = R.drawable.ic_m3_fitscreen,
             action = {
                 if (pdfChromeSettings.pdfNavigationMode == "swipe") focusPdfPage(pdfNavigationPage)
@@ -107,62 +107,63 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             }
         ))
         items.add(OverflowMenuItem(
-            title = "Rotate View (90°)",
-            subtitle = "Switch screen orientation",
+            title = getString(R.string.ui_rotate_view_90),
+            subtitle = getString(R.string.pdf_switch_orientation),
             iconRes = R.drawable.ic_m3_rotate_right,
             action = { rotateViewer() }
         ))
         items.add(OverflowMenuItem(
             title = when (paperToneMode) {
-                PaperToneMode.ACTIVE_THEME -> "Default"
-                PaperToneMode.DARK -> "Dark slate"
-                PaperToneMode.NATURAL_WHITE -> "Bone"
-                PaperToneMode.WARM_SEPIA -> "Sepia"
+                PaperToneMode.ACTIVE_THEME -> getString(R.string.ui_default)
+                PaperToneMode.DARK -> getString(R.string.ui_dark_slate)
+                PaperToneMode.NATURAL_WHITE -> getString(R.string.ui_bone)
+                PaperToneMode.WARM_SEPIA -> getString(R.string.ui_sepia)
             },
             subtitle = when (paperToneMode) {
-                PaperToneMode.ACTIVE_THEME -> "Tap for Dark slate"
-                PaperToneMode.DARK -> "Tap for Bone"
-                PaperToneMode.NATURAL_WHITE -> "Tap for Sepia"
-                PaperToneMode.WARM_SEPIA -> "Tap for Default"
+                PaperToneMode.ACTIVE_THEME -> getString(R.string.ui_tap_for_dark_slate)
+                PaperToneMode.DARK -> getString(R.string.ui_tap_for_bone)
+                PaperToneMode.NATURAL_WHITE -> getString(R.string.ui_tap_for_sepia)
+                PaperToneMode.WARM_SEPIA -> getString(R.string.ui_tap_for_default)
             },
             iconRes = R.drawable.ic_m3_contrast,
             action = { cyclePaperToneMode() }
         ))
 
         // Navigation
-        items.add(OverflowMenuItem(title = "Navigation", isHeader = true))
+        items.add(OverflowMenuItem(title = getString(R.string.ui_navigation), isHeader = true))
         items.add(OverflowMenuItem(
-            title = "Table of Contents",
-            subtitle = if (pdfTocItems.isNotEmpty()) "${pdfTocItems.size} chapters & sections" else "Chapters, sections & links",
+            title = getString(R.string.ui_table_of_contents),
+            subtitle = if (pdfTocItems.isNotEmpty()) getString(R.string.pdf_outline_count, pdfTocItems.size)
+            else getString(R.string.pdf_outline_description),
             iconRes = R.drawable.ic_m3_toc,
             action = { showTableOfContentsDialog() }
         ))
         if (pageCount > 1) {
             items.add(OverflowMenuItem(
-                title = "Jump to Page...",
-                subtitle = "Go to 1–$pageCount",
+                title = getString(R.string.ui_jump_to_page_c8b54ed),
+                subtitle = getString(R.string.l10n_dynamic_000, NumberFormat.getIntegerInstance(resources.configuration.locales[0]).format(pageCount)),
                 iconRes = R.drawable.ic_m3_jump_page,
                 action = { showJumpToPageDialog() }
             ))
             items.add(OverflowMenuItem(
-                title = "First Page (1)",
-                subtitle = "Jump to beginning",
+                title = getString(R.string.pdf_first_page, 1),
+                subtitle = getString(R.string.pdf_jump_beginning),
                 iconRes = R.drawable.ic_m3_first_page,
                 action = { navigateToPdfPage(0) }
             ))
             items.add(OverflowMenuItem(
-                title = "Last Page ($pageCount)",
-                subtitle = "Jump to end of document",
+                title = getString(R.string.pdf_last_page, pageCount),
+                subtitle = getString(R.string.pdf_jump_end),
                 iconRes = R.drawable.ic_m3_last_page,
                 action = { navigateToPdfPage(pageCount - 1) }
             ))
         }
 
         // Reading & Audio
-        items.add(OverflowMenuItem(title = "Reading & Audio", isHeader = true))
+        items.add(OverflowMenuItem(title = getString(R.string.ui_reading_audio), isHeader = true))
         items.add(OverflowMenuItem(
-            title = if (isSyncEnabled) "Live Sync (Enabled)" else "Live Sync (Disabled)",
-            subtitle = if (isSyncEnabled) "Tap to pause auto-highlighting" else "Tap to sync speech with PDF",
+            title = getString(if (isSyncEnabled) R.string.pdf_sync_enabled else R.string.pdf_sync_disabled),
+            subtitle = getString(if (isSyncEnabled) R.string.pdf_pause_highlight else R.string.pdf_enable_sync),
             iconRes = R.drawable.ic_m3_link,
             action = {
                 isSyncEnabled = !isSyncEnabled
@@ -170,42 +171,42 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
                 if (isSyncEnabled) {
                     pendingManualPageSync = true
                     lifecycleScope.launch { updateSentenceHighlight(forceSync = true) }
-                    Toast.makeText(activity, "Live sync enabled", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(activity, R.string.pdf_sync_enabled, Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(activity, "Live sync disabled", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(activity, R.string.pdf_sync_disabled, Toast.LENGTH_SHORT).show()
                 }
             }
         ))
         items.add(OverflowMenuItem(
-            title = "Switch to Text Reader",
-            subtitle = "Flowing text, notes & speed reader",
+            title = getString(R.string.ui_switch_to_text_reader),
+            subtitle = getString(R.string.ui_flowing_text_notes_speed_reader),
             iconRes = R.drawable.ic_m3_book,
             action = { finish() }
         ))
         items.add(OverflowMenuItem(
-            title = "Voice Studio",
-            subtitle = "Narrators, speed & audio tuning",
+            title = getString(R.string.ui_voice_studio),
+            subtitle = getString(R.string.ui_narrators_speed_audio_tuning),
             iconRes = R.drawable.ic_m3_mic,
             action = { togglePanelExpand() }
         ))
 
         // File & Share
-        items.add(OverflowMenuItem(title = "File & Share", isHeader = true))
+        items.add(OverflowMenuItem(title = getString(R.string.pdf_file_share), isHeader = true))
         items.add(OverflowMenuItem(
-            title = "Share Original File",
-            subtitle = "Send to other apps",
+            title = getString(R.string.ui_share_original_file),
+            subtitle = getString(R.string.ui_send_to_other_apps),
             iconRes = R.drawable.ic_m3_share,
             action = { sharePdf() }
         ))
         items.add(OverflowMenuItem(
-            title = "Open in External App",
-            subtitle = "Use system PDF or photo viewer",
+            title = getString(R.string.ui_open_in_external_app),
+            subtitle = getString(R.string.ui_use_system_pdf_or_photo_viewer),
             iconRes = R.drawable.ic_m3_open_in_new,
             action = { openOriginal() }
         ))
         items.add(OverflowMenuItem(
-            title = "Document Information",
-            subtitle = "Metadata, length & format",
+            title = getString(R.string.ui_document_information),
+            subtitle = getString(R.string.l10n_metadata_length_format),
             iconRes = R.drawable.ic_m3_info,
             action = { showDocInfoDialog() }
         ))
@@ -234,7 +235,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             setPadding(18.dp, 4.dp, 18.dp, 6.dp)
         }
         val headerTitle = TextView(this).apply {
-            text = "Document Tools"
+            text = getString(R.string.ui_document_tools)
             setTextColor(colorTextPrimary)
             textSize = 15f
             typeface = Typeface.DEFAULT_BOLD
@@ -400,12 +401,15 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
 
     internal fun VeritasPdfViewerActivity.showDocInfoDialog() {
         val metadata = document ?: return
+        val locale = resources.configuration.locales[0]
+        val numbers = NumberFormat.getIntegerInstance(locale)
+        val minutes = (metadata.sentenceCount * 2.5 / 60).toInt().coerceAtLeast(1)
         val items = listOf(
-            "Title" to metadata.title,
-            "Format" to "PDF (Original Document)",
-            "Total Sentences" to "${metadata.sentenceCount}",
-            "Est. Reading Time" to "${(metadata.sentenceCount * 2.5 / 60).toInt().coerceAtLeast(1)} min",
-            "Added Date" to SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(metadata.createdAt))
+            getString(R.string.ui_title) to metadata.title,
+            getString(R.string.pdf_document_format) to getString(R.string.pdf_original_format),
+            getString(R.string.pdf_total_sentences) to numbers.format(metadata.sentenceCount),
+            getString(R.string.pdf_estimated_reading_time) to resources.getQuantityString(R.plurals.reading_minutes, minutes, minutes),
+            getString(R.string.pdf_added_date) to DateFormat.getDateInstance(DateFormat.MEDIUM, locale).format(Date(metadata.createdAt))
         )
         val view = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -431,7 +435,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             }
         }
         val titleView = TextView(this).apply {
-            text = "Document Details"
+            text = getString(R.string.ui_document_details)
             setTextColor(colorTextPrimary)
             textSize = 17f
             typeface = Typeface.DEFAULT_BOLD
@@ -440,7 +444,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
         val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
             .setCustomTitle(titleView)
             .setView(view)
-            .setPositiveButton("Close", null)
+            .setPositiveButton(R.string.ui_close, null)
             .create()
         dialog.window?.setBackgroundDrawable(ColorDrawable(colorSurface))
         dialog.show()
@@ -453,11 +457,11 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
         if (isSyncEnabled) {
             pill.background = rounded(colorSyncBackground, 14.dp)
             label.setTextColor(colorPrimary)
-            label.text = "🔗 Live Sync"
+            label.text = "🔗 ${getString(R.string.pdf_live_sync)}"
         } else {
             pill.background = rounded(colorSurface, 14.dp)
             label.setTextColor(colorTextSecondary)
-            label.text = "🔗 Sync Off"
+            label.text = "🔗 ${getString(R.string.pdf_sync_off)}"
         }
     }
 
@@ -476,10 +480,10 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         }
         val status = PlaybackStateStore.statusMessage.ifBlank {
-            if (PlaybackStateStore.isPlaying) "Reading." else "Paused."
+            getString(if (PlaybackStateStore.isPlaying) R.string.ui_now_reading else R.string.l10n_fragment_paused)
         }
         menu.addView(TextView(this).apply {
-            text = "Playback"
+            text = getString(R.string.ui_playback)
             setTextColor(colorTextPrimary)
             textSize = 16f
             typeface = Typeface.DEFAULT_BOLD
@@ -500,22 +504,20 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
         })
         val speedLabel = labeledSeekBar(
             menu = menu,
-            title = "Speed",
+            valueLabel = R.string.pdf_speed_value,
             min = 0.5f,
             max = 2.0f,
-            current = PlaybackStateStore.rate,
-            suffix = "x"
+            current = PlaybackStateStore.rate
         ) { value -> adjustPlayback(rate = value, pitch = PlaybackStateStore.pitch) }
         val pitchLabel = labeledSeekBar(
             menu = menu,
-            title = "Pitch",
+            valueLabel = R.string.pdf_pitch_value,
             min = 0.7f,
             max = 1.4f,
-            current = PlaybackStateStore.pitch,
-            suffix = ""
+            current = PlaybackStateStore.pitch
         ) { value -> adjustPlayback(rate = PlaybackStateStore.rate, pitch = value) }
         menu.addView(TextView(this).apply {
-            text = "Voice and language"
+            text = getString(R.string.settings_voice_and_language)
             setTextColor(colorTextPrimary)
             textSize = 15f
             setPadding(0, 12.dp, 0, 12.dp)
@@ -525,7 +527,8 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             }
         })
         menu.addView(TextView(this).apply {
-            text = if (PlaybackStateStore.queueCount == 0) "Queue empty" else "Continue queue (${PlaybackStateStore.queueCount})"
+            text = if (PlaybackStateStore.queueCount == 0) getString(R.string.ui_queue_empty)
+            else getString(R.string.pdf_continue_queue, PlaybackStateStore.queueCount)
             setTextColor(colorTextSecondary)
             textSize = 14f
             setPadding(0, 8.dp, 0, 0)
@@ -541,11 +544,10 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
 
     internal fun VeritasPdfViewerActivity.labeledSeekBar(
         menu: LinearLayout,
-        title: String,
+        @androidx.annotation.StringRes valueLabel: Int,
         min: Float,
         max: Float,
         current: Float,
-        suffix: String,
         stepIncrement: Float = 0.05f,
         onSliderCreated: ((VeritasSleekSliderView) -> Unit)? = null,
         onCommitted: (Float) -> Unit
@@ -556,7 +558,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             setPadding(0, 6.dp, 0, 4.dp)
         }
         val label = TextView(this).apply {
-            text = "$title ${"%.2f".format(current)}$suffix"
+            text = getString(valueLabel, current)
             setTextColor(colorTextPrimary)
             textSize = 14f
             typeface = Typeface.DEFAULT_BOLD
@@ -582,7 +584,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
                 val s = sliderRef ?: return@setOnClickListener
                 val next = (((s.currentVal - stepIncrement) * 20f).roundToInt().toFloat() / 20f).coerceIn(min, max)
                 s.currentVal = next
-                label.text = "$title ${"%.2f".format(next)}$suffix"
+                label.text = getString(valueLabel, next)
                 onCommitted(next)
             }
         }
@@ -604,7 +606,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
                 val s = sliderRef ?: return@setOnClickListener
                 val next = (((s.currentVal + stepIncrement) * 20f).roundToInt().toFloat() / 20f).coerceIn(min, max)
                 s.currentVal = next
-                label.text = "$title ${"%.2f".format(next)}$suffix"
+                label.text = getString(valueLabel, next)
                 onCommitted(next)
             }
         }
@@ -622,7 +624,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
                 outline = colorOutline
             )
             onProgressChangedUser = { value ->
-                label.text = "$title ${"%.2f".format(value)}$suffix"
+                label.text = getString(valueLabel, value)
             }
             onStopTracking = { value ->
                 onCommitted(value)

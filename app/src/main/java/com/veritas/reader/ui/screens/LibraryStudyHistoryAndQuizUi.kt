@@ -56,7 +56,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -216,17 +215,17 @@ internal fun LazyListScope.studyHistorySection(
                             if (confirmClearHistory) {
                                 AlertDialog(
                                     onDismissRequest = { confirmClearHistory = false },
-                                    title = { Text(stringResource(R.string.clear_history_title)) },
-                                    text = { Text(stringResource(R.string.clear_history_message)) },
+                                    title = { Text(menuString(R.string.clear_history_title)) },
+                                    text = { Text(menuString(R.string.clear_history_message)) },
                                     confirmButton = {
                                         TextButton(onClick = {
                                             confirmClearHistory = false
                                             onClearReadingHistory()
-                                        }) { Text(stringResource(R.string.action_clear), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                                        }) { Text(menuString(R.string.action_clear), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                                     },
                                     dismissButton = {
                                         TextButton(onClick = { confirmClearHistory = false }) {
-                                            Text(stringResource(R.string.action_cancel))
+                                            Text(menuString(R.string.action_cancel))
                                         }
                                     }
                                 )

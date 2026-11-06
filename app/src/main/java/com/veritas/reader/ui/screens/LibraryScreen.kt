@@ -709,11 +709,11 @@ fun LibraryScreen(
                     ) { currentTab ->
                         if (currentTab == VeritasHomeTab.NOTES) {
                             ExtendedFloatingActionButton(
-                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_note)) },
+                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_note)) },
                                 icon = {
                                     Icon(
                                         imageVector = Icons.Outlined.EditNote,
-                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_write_note_96dcbf1),
+                                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_write_note_96dcbf1),
                                         modifier = Modifier.size(22.dp)
                                     )
                                 },
@@ -732,7 +732,7 @@ fun LibraryScreen(
                                 label = "fabPlusRotation"
                             )
                             ExtendedFloatingActionButton(
-                                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add)) },
+                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add)) },
                                 icon = {
                                     Text(
                                         "+",
@@ -853,7 +853,8 @@ fun LibraryScreen(
                         LibrarySearchField(
                             if (librarySection == LibrarySection.CLASSICS) classicsHeaderState.query else libraryQuery,
                             { if (librarySection == LibrarySection.CLASSICS) classicsHeaderState.query = it else libraryQuery = it },
-                            if (librarySection == LibrarySection.CLASSICS) "Search books or authors" else "Search library...",
+                            menuString(if (librarySection == LibrarySection.CLASSICS) com.veritas.reader.R.string.filter_search_classics
+                                else com.veritas.reader.R.string.ui_search_library),
                             Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp)
                                 .testTag(if (librarySection == LibrarySection.CLASSICS) "classics_search" else "library_search"),
                             onDone = { searchExpanded = false; headerFocus.clearFocus() })

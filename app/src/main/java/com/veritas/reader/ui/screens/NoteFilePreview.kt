@@ -20,8 +20,8 @@ internal fun NoteFilePreview(file: NoteBlock.File) {
     Surface(Modifier.fillMaxWidth().testTag("note_file_preview").clickable { openDocumentFile(context, file.path, file.fileName) },
         shape = VeritasPackStyle.cardShape(), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
         Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(Icons.Default.Description, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_attached_document), tint = MaterialTheme.colorScheme.primary)
-            Text(file.fileName.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_attached_file) }, Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Icon(Icons.Default.Description, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_attached_document), tint = MaterialTheme.colorScheme.primary)
+            Text(file.fileName.ifBlank { com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_attached_file) }, Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
 }

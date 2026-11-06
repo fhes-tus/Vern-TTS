@@ -92,7 +92,7 @@ fun OnboardingVoiceAuditionScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_select_your_narrator),
+            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_select_your_narrator),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -100,7 +100,7 @@ fun OnboardingVoiceAuditionScreen(
         Spacer(modifier = Modifier.height(6.dp))
 
         Text(
-            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_experience_neural_voices_tuned_for_effortless_long_form_immersion),
+            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_experience_neural_voices_tuned_for_effortless_long_form_immersion),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -117,7 +117,7 @@ fun OnboardingVoiceAuditionScreen(
 
         // Preset List
         Text(
-            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_voice_personalities),
+            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_voice_personalities),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -245,7 +245,7 @@ fun OnboardingVoiceAuditionScreen(
                         if (isSelected) {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
-                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected),
+                                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_selected),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(22.dp)
                             )
@@ -292,12 +292,12 @@ fun OnboardingVoiceAuditionScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_audio_sample),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_audio_sample),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_124, com.veritas.reader.ui.screens.localizedUiValue(selectedPreset.title)),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_124, com.veritas.reader.ui.screens.localizedUiValue(selectedPreset.title)),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -348,12 +348,12 @@ fun OnboardingVoiceAuditionScreen(
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play_sample),
+                        contentDescription = if (isPlaying) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_stop) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_play_sample),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        if (isPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop_preview_e984397) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play_voice_sample),
+                        if (isPlaying) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_stop_preview_e984397) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_play_voice_sample),
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -417,7 +417,7 @@ fun TactileVoicePlayButton(
         ) {
             Icon(
                 imageVector = if (isPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
-                contentDescription = if (isPlaying) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preview),
+                contentDescription = if (isPlaying) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_stop) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_preview),
                 tint = when {
                     isPlaying -> MaterialTheme.colorScheme.onErrorContainer
                     isSelected -> MaterialTheme.colorScheme.onPrimary
@@ -666,13 +666,13 @@ fun OnboardingAiSelectionScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pair_your_ai_study_partner),
+            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_pair_your_ai_study_partner),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onBackground
         )
 
         Text(
-            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_your_default_assistant_for_instant_study_handoffs_summarie),
+            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_choose_your_default_assistant_for_instant_study_handoffs_summarie),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -680,7 +680,7 @@ fun OnboardingAiSelectionScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_official_ai_assistants),
+            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_official_ai_assistants),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -733,7 +733,7 @@ fun OnboardingAiSelectionScreen(
                                 if (isSelected) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
-                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected),
+                                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_selected),
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(16.dp)
                                     )
@@ -748,7 +748,7 @@ fun OnboardingAiSelectionScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_primary_study_focus),
+            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_primary_study_focus),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -788,7 +788,7 @@ fun OnboardingAiSelectionScreen(
                         if (isSelected) {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
-                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_active),
+                                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_active),
                                 tint = MaterialTheme.colorScheme.tertiary,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -815,13 +815,13 @@ fun OnboardingFeatureShowcaseScreen() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_reading_superpowers),
+            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_your_reading_superpowers),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onBackground
         )
 
         Text(
-            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_here_is_what_makes_reading_in_vern_uniquely_powerful),
+            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_here_is_what_makes_reading_in_vern_uniquely_powerful),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -835,19 +835,19 @@ fun OnboardingFeatureShowcaseScreen() {
             OnboardingFeatureCard(
                 icon = "📑",
                 badge = "Dual-Engine",
-                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_original_canvas_text_studio),
+                title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_original_canvas_text_studio),
                 desc = "Toggle between original visual PDF layout and responsive reflowed text with sentence-by-sentence karaoke highlighting."
             )
             OnboardingFeatureCard(
                 icon = "🗣️",
                 badge = "Multi-App Handoff",
-                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_translation_spoken_read_out),
+                title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_translation_spoken_read_out),
                 desc = "Send structured translation requests to your priority translation tools and listen to spoken read-out of both original and translated text."
             )
             OnboardingFeatureCard(
                 icon = "📊",
                 badge = "Private & Local",
-                title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_on_device_reading_insights),
+                title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_on_device_reading_insights),
                 desc = "Track your daily streaks, monthly time heatmaps, and listening history with zero cloud tracking."
             )
         }

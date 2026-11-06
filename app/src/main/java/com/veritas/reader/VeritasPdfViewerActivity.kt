@@ -445,13 +445,13 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         val currentSettings = repository.loadReaderSettings()
         repository.saveReaderSettings(currentSettings.copy(paperToneMode = paperToneMode.name.lowercase()))
         applyPaperToneMode()
-        val toneLabel = when (paperToneMode) {
-            PaperToneMode.ACTIVE_THEME -> "Default"
-            PaperToneMode.DARK -> "Dark slate"
-            PaperToneMode.NATURAL_WHITE -> "Bone"
-            PaperToneMode.WARM_SEPIA -> "Sepia"
-        }
-        Toast.makeText(this, "Paper tone: $toneLabel", Toast.LENGTH_SHORT).show()
+        val toneLabel = getString(when (paperToneMode) {
+            PaperToneMode.ACTIVE_THEME -> R.string.ui_default
+            PaperToneMode.DARK -> R.string.ui_dark_slate
+            PaperToneMode.NATURAL_WHITE -> R.string.ui_bone
+            PaperToneMode.WARM_SEPIA -> R.string.ui_sepia
+        })
+        Toast.makeText(this, getString(R.string.reader_paper_tone_selected, toneLabel), Toast.LENGTH_SHORT).show()
     }
 
 

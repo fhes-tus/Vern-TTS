@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="speech_syntax_example_result">"उदाहरण इनपुट → बोला गया परिणाम"</string>
+    <string name="speech_syntax_digits">"एक या अधिक अंकों से मेल खाता है।"</string>
+    <string name="speech_syntax_word">"एक शब्द से मेल खाता है।"</string>
+    <string name="speech_syntax_text">"एक पंक्ति के टेक्स्ट से मेल खाता है।"</string>
+    <string name="speech_syntax_braces">"एक असली घुँघराले कोष्ठक के लिए उसे दो बार लिखें।"</string>
+    <string name="speech_syntax_capture">"गोल कोष्ठक टेक्स्ट को कैप्चर करते हैं ताकि उसे बदलाव में इस्तेमाल कर सकें।"</string>
+    <string name="speech_syntax_brackets">"बैकस्लैश से वर्ग कोष्ठक को अक्षर की तरह खोजा जाता है।"</string>
+    <string name="speech_syntax_first_group">"इसके बजाय बोलें में पहला कैप्चर जोड़ता है। अगले कैप्चर के लिए क्रम में नंबर दें।"</string>
+    <string name="speech_syntax_whole_match">"इसके बजाय बोलें में पूरा मेल जोड़ता है।"</string>
+    <string name="speech_syntax_dollar">"इसके बजाय बोलें में एक डॉलर चिह्न जोड़ता है।"</string>
+    <string name="speech_syntax_skip">"पूरा मेल पढ़ने से हटाने के लिए छोड़ें चुनें।"</string>
+    <string name="speech_syntax_re2_limits">"Regex, RE2 का इस्तेमाल करता है। पैटर्न में आगे या पीछे की जाँच और पिछले समूह के संदर्भ उपलब्ध नहीं हैं। कम से कम एक अक्षर से मेल ज़रूरी है।"</string>
+    <string name="speech_syntax_walkthrough">"कोष्ठकों के अंदर की संख्या पढ़ने वाला उदाहरण आज़माएँ"</string>
+    <string name="speech_syntax_step_pattern">"ऊपर दिया कोड मिलान पैटर्न में डालें। वर्ग कोष्ठक जैसे लिखे हैं वैसे ही मिलेंगे। मार्कर उनके अंदर के अंक याद रखता है।"</string>
+    <string name="speech_syntax_step_regex">"ऊपर दिया कोड मिलान पैटर्न में डालें। उलटे स्लैश असली वर्ग कोष्ठकों से मिलान कराते हैं। गोल कोष्ठक अंदर के अंक याद रखते हैं।"</string>
+    <string name="speech_syntax_step_say">"इसके बदले बोलें चुनें और ऊपर दिया मान डालें। Vern मिलान में याद रखा पहला हिस्सा बोलेगा, जो यहाँ संख्या है।"</string>
+    <string name="speech_syntax_step_try">"नमूना मूल अंश में डालें। बोला जाने वाला परिणाम देखें या सुनें पर टैप करें। परिणाम सही लगे तो नियम सहेजें।"</string>
+    <string name="speech_syntax_use_example">"इस उदाहरण से भरें"</string>
+</resources>

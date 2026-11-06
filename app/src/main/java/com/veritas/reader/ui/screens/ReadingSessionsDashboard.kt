@@ -72,8 +72,8 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_insights), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-                    IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close_insights)) }
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_insights), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+                    IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_insights)) }
                 }
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("Overview", "Books", "History").forEachIndexed { index, label ->
@@ -92,13 +92,13 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                         }
                     } else if (tab == 1) {
                         item(key = "books-summary") {
-                            InsightsDetailCard(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_your_reading_shelf), Icons.AutoMirrored.Filled.MenuBook) {
+                            InsightsDetailCard(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_your_reading_shelf), Icons.AutoMirrored.Filled.MenuBook) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    CompactStat("${documents.size}", androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_books), Modifier.weight(1f))
-                                    CompactStat("${documents.count { it.id in snapshot.completionDates }}", androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_finished), Modifier.weight(1f))
-                                    CompactStat("${sessionsByBook.keys.count { it in documentsById }}", androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_with_activity), Modifier.weight(1f))
+                                    CompactStat("${documents.size}", com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_books), Modifier.weight(1f))
+                                    CompactStat("${documents.count { it.id in snapshot.completionDates }}", com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_finished), Modifier.weight(1f))
+                                    CompactStat("${sessionsByBook.keys.count { it in documentsById }}", com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_with_activity), Modifier.weight(1f))
                                 }
-                                if (documents.isEmpty()) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_a_book_to_start_reading))
+                                if (documents.isEmpty()) Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_a_book_to_start_reading))
                             }
                         }
                         items(documents, key = { "book-${it.id}" }) { doc ->
@@ -111,39 +111,39 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                         }
                     } else {
                         item {
-                            InsightsDetailCard(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_today), Icons.Default.AutoGraph) {
+                            InsightsDetailCard(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_today), Icons.Default.AutoGraph) {
                                 InsightsModeBars(snapshot.measuredReadingMillisByDate[todayKey] ?: 0,
                                     snapshot.listeningMillisByDate[todayKey] ?: 0, "today")
-                                if ((snapshot.legacyReadingMillisByDate[todayKey] ?: 0) > 0) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_173, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(snapshot.legacyReadingMillisByDate.getValue(todayKey)))))
-                                if (sessions.isEmpty()) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_first_measured_session_will_appear_here_reading_stops_after))
+                                if ((snapshot.legacyReadingMillisByDate[todayKey] ?: 0) > 0) Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_173, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(snapshot.legacyReadingMillisByDate.getValue(todayKey)))))
+                                if (sessions.isEmpty()) Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_your_first_measured_session_will_appear_here_reading_stops_after))
                             }
                         }
                         item {
-                            InsightsDetailCard(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_daily_goal), Icons.Default.Flag) {
+                            InsightsDetailCard(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_daily_goal), Icons.Default.Flag) {
                                 val todayMillis = snapshot.readingMillisByDate[todayKey] ?: 0
                                 val goal = readerSettings.dailyGoalMinutes
                                 InsightsGoalRing(todayMillis, goal)
                                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     (listOf(0, 15, 30, 45, 60) + listOf(goal).filter { it > 0 }).distinct().sorted().forEach { minutes ->
                                         FilterChip(selected = goal == minutes, onClick = { onGoalMinutesChange(minutes) },
-                                            label = { Text(if (minutes == 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_off) else "${minutes}m") })
+                                            label = { Text(if (minutes == 0) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_off) else "${minutes}m") })
                                     }
                                 }
                             }
                         }
                         item {
-                            InsightsDetailCard(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_reading_timer), Icons.Default.Timer) {
-                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_automatic_reading_measures_visible_reader_time_after_interaction))
+                            InsightsDetailCard(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_reading_timer), Icons.Default.Timer) {
+                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_automatic_reading_measures_visible_reader_time_after_interaction))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_use_an_explicit_timer_only), modifier = Modifier.weight(1f))
+                                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_use_an_explicit_timer_only), modifier = Modifier.weight(1f))
                                     Switch(checked = explicit, onCheckedChange = { value ->
                                         explicit = value; scope.launch(Dispatchers.IO) { repository.prefs.edit().putBoolean("reading_explicit_only", value).commit(); tracker.flush() }
                                     })
                                 }
-                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_174, com.veritas.reader.ui.screens.localizedUiValue(idle / 60), com.veritas.reader.ui.screens.localizedUiValue(idle % 60)))
+                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_174, com.veritas.reader.ui.screens.localizedUiValue(idle / 60), com.veritas.reader.ui.screens.localizedUiValue(idle % 60)))
                                 VeritasRoundSlider(value = idle.toFloat(), onValueChange = { idle = it.toInt() }, valueRange = 30f..900f)
-                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_a_timer_from_books_it_runs_while_that_book_s_reader_is_visi), style = MaterialTheme.typography.bodySmall)
-                                TextButton(onClick = { tracker.explicitTimer(null) }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_stop_reading_timer)) }
+                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_start_a_timer_from_books_it_runs_while_that_book_s_reader_is_visi), style = MaterialTheme.typography.bodySmall)
+                                TextButton(onClick = { tracker.explicitTimer(null) }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_stop_reading_timer)) }
                             }
                         }
 
@@ -163,17 +163,17 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                                     intent.clipData = android.content.ClipData.newRawUri("Reading sessions", uri)
                                     context.startActivity(android.content.Intent.createChooser(intent, "Export reading history"))
                                 } catch (error: Exception) { if (error is kotlinx.coroutines.CancellationException) throw error; csvError = error.message }
-                            } }, enabled = snapshot.sessions.isNotEmpty()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_export_sessions_csv)) }
+                            } }, enabled = snapshot.sessions.isNotEmpty()) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_export_sessions_csv)) }
                             csvError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                         }
-                        item { TextButton(onClick = { manual = true }, enabled = documents.isNotEmpty()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_manual_session)) } }
-                        if (sessions.isEmpty()) item { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_measured_sessions_yet_earlier_aggregate_totals_remain_preserve)) }
+                        item { TextButton(onClick = { manual = true }, enabled = documents.isNotEmpty()) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_manual_session)) } }
+                        if (sessions.isEmpty()) item { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_measured_sessions_yet_earlier_aggregate_totals_remain_preserve)) }
                         historyByDay.forEach { (date, entries) ->
                             item(key = "history-date-$date") {
                                 Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Icon(Icons.Default.Timeline, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
-                                    Text(if (date == today) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_today_s_sessions) else date.format(DateTimeFormatter.ofPattern("EEE, d MMM yyyy")),
+                                    Text(if (date == today) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_today_s_sessions) else date.format(DateTimeFormatter.ofPattern("EEE, d MMM yyyy")),
                                         style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                                     Text("${entries.size}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
@@ -185,11 +185,11 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                     }
                 }
                 if (com.veritas.reader.ui.OnboardingController.activeStep == com.veritas.reader.ui.OnboardingStep.INSIGHTS_PAGE_SPOTLIGHT) {
-                    InsightsCard(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_insights)) {
+                    InsightsCard(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_insights)) {
                         Text(com.veritas.reader.ui.OnboardingStep.INSIGHTS_PAGE_SPOTLIGHT.body)
                         Row {
-                            TextButton(onClick = { onDismiss(); com.veritas.reader.ui.OnboardingController.activeStep = com.veritas.reader.ui.OnboardingStep.INSIGHTS_SPOTLIGHT }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back)) }
-                            TextButton(onClick = { onDismiss(); com.veritas.reader.ui.OnboardingController.activeStep = com.veritas.reader.ui.OnboardingStep.NOTES_TAB_SPOTLIGHT }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next)) }
+                            TextButton(onClick = { onDismiss(); com.veritas.reader.ui.OnboardingController.activeStep = com.veritas.reader.ui.OnboardingStep.INSIGHTS_SPOTLIGHT }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back)) }
+                            TextButton(onClick = { onDismiss(); com.veritas.reader.ui.OnboardingController.activeStep = com.veritas.reader.ui.OnboardingStep.NOTES_TAB_SPOTLIGHT }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next)) }
                         }
                     }
                 }
@@ -233,21 +233,28 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
     var date by remember { mutableStateOf(session?.let { java.time.Instant.ofEpochMilli(it.startedAt).atZone(ZoneId.systemDefault()).toLocalDate().toString() } ?: LocalDate.now().toString()) }
     val duration = minutes.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0 && it <= 1440 }?.let { (it * 60_000).toLong() }
     val start = runCatching { LocalDate.parse(date).atTime(12, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() }.getOrNull()
-    AlertDialog(onDismissRequest = onDismiss, title = { Text(if (session == null) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_manual_session) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_correct_duration)) }, text = {
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(if (session == null) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_manual_session) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_correct_duration)) }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (session == null) {
-                Box { TextButton(onClick = { menu = true }) { Text(book?.title ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_book)) }
+                Box { TextButton(onClick = { menu = true }) { Text(book?.title ?: com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_choose_book)) }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) { documents.forEach { doc -> DropdownMenuItem(
                         text = { Text(doc.title) }, onClick = { book = doc; menu = false }) } }
                 }
-                Row { ReadingSessionMode.entries.forEach { value -> FilterChip(mode == value, onClick = { mode = value }, label = { Text(value.name.lowercase().replaceFirstChar { it.titlecase() }) }) } }
-                OutlinedTextField(date, onValueChange = { date = it }, label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_date_yyyy_mm_dd)) }, singleLine = true)
-            } else Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_the_measured_duration_remains_in_the_record_this_correction_chang))
-            OutlinedTextField(minutes, onValueChange = { minutes = it }, label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_active_minutes)) }, singleLine = true)
-            if (session != null) TextButton(onClick = { onSave(book, mode, session.startedAt, 0, true) }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_exclude_this_session_from_totals)) }
-            if (session != null && (session.correctedMillis != null || session.excluded)) TextButton(onClick = onReset) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_restore_original_measurement)) }
+                Row {
+                    ReadingSessionMode.entries.forEach { value ->
+                        FilterChip(mode == value, onClick = { mode = value }, label = {
+                            Text(menuString(if (value == ReadingSessionMode.READING) com.veritas.reader.R.string.ui_reading
+                                else com.veritas.reader.R.string.ui_listening))
+                        })
+                    }
+                }
+                OutlinedTextField(date, onValueChange = { date = it }, label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_date_yyyy_mm_dd)) }, singleLine = true)
+            } else Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_the_measured_duration_remains_in_the_record_this_correction_chang))
+            OutlinedTextField(minutes, onValueChange = { minutes = it }, label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_active_minutes)) }, singleLine = true)
+            if (session != null) TextButton(onClick = { onSave(book, mode, session.startedAt, 0, true) }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_exclude_this_session_from_totals)) }
+            if (session != null && (session.correctedMillis != null || session.excluded)) TextButton(onClick = onReset) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_restore_original_measurement)) }
         }
     }, confirmButton = { TextButton(enabled = duration != null && start != null && (book != null || session != null), onClick = {
         onSave(book, mode, session?.startedAt ?: start!!, duration!!, false)
-    }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save)) } }, dismissButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } })
+    }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save)) } }, dismissButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } })
 }

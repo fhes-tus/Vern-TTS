@@ -75,25 +75,25 @@ internal fun PasteFlashcardsDialog(
     val parsed = remember(pasted) { AiResultParser.parseFlashcards(pasted) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_flashcard_set)) },
+        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_flashcard_set)) },
         confirmButton = {
             Button(onClick = { onImport(setName, parsed) }, enabled = parsed.isNotEmpty()) {
-                Text(if (parsed.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_200, com.veritas.reader.ui.screens.localizedUiValue(parsed.size)))
+                Text(if (parsed.isEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_import) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_200, com.veritas.reader.ui.screens.localizedUiValue(parsed.size)))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = setName,
                     onValueChange = { setName = it },
                     singleLine = true,
-                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_set_name_optional)) },
-                    placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_untitled_set)) },
+                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_set_name_optional)) },
+                    placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_untitled_set)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_the_ai_app_s_reply_below_cards_are_detected_from_q_a_or_fro),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_the_ai_app_s_reply_below_cards_are_detected_from_q_a_or_fro),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -103,13 +103,13 @@ internal fun PasteFlashcardsDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp),
-                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_reply)) }
+                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ai_reply)) }
                 )
                 Text(
                     when {
-                        pasted.isBlank() -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_waiting_for_pasted_text)
-                        parsed.isEmpty() -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_cards_recognized_yet_check_the_q_a_format)
-                        else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_201, com.veritas.reader.ui.screens.localizedUiValue(parsed.size), com.veritas.reader.ui.screens.localizedUiValue(parsed.first().front.take(60)))
+                        pasted.isBlank() -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_waiting_for_pasted_text)
+                        parsed.isEmpty() -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_cards_recognized_yet_check_the_q_a_format)
+                        else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_201, com.veritas.reader.ui.screens.localizedUiValue(parsed.size), com.veritas.reader.ui.screens.localizedUiValue(parsed.first().front.take(60)))
                     },
                     color = if (parsed.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall
@@ -142,7 +142,7 @@ internal fun PasteQuizDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_take_a_pasted_quiz)) },
+        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_take_a_pasted_quiz)) },
         confirmButton = {
             Button(
                 onClick = {
@@ -152,14 +152,14 @@ internal fun PasteQuizDialog(
                 },
                 enabled = parsed.isNotEmpty()
             ) {
-                Text(if (parsed.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_quiz) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_054, com.veritas.reader.ui.screens.localizedUiValue(parsed.size)))
+                Text(if (parsed.isEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_start_quiz) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_054, com.veritas.reader.ui.screens.localizedUiValue(parsed.size)))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_the_ai_app_s_quiz_reply_below_q_a_b_c_d_answer_format),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_the_ai_app_s_quiz_reply_below_q_a_b_c_d_answer_format),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -169,13 +169,13 @@ internal fun PasteQuizDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp),
-                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_reply)) }
+                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ai_reply)) }
                 )
                 Text(
                     when {
-                        pasted.isBlank() -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_waiting_for_pasted_text)
-                        parsed.isEmpty() -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_questions_recognized_yet_check_the_format)
-                        else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_202, com.veritas.reader.ui.screens.localizedUiValue(parsed.size))
+                        pasted.isBlank() -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_waiting_for_pasted_text)
+                        parsed.isEmpty() -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_questions_recognized_yet_check_the_format)
+                        else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_202, com.veritas.reader.ui.screens.localizedUiValue(parsed.size))
                     },
                     color = if (parsed.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall
@@ -206,9 +206,9 @@ internal fun QuizPlayerDialog(
     if (editableQuestions.isEmpty() || editableQuestions.any { !it.isPlayable }) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_quiz_needs_repair)) },
-            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_this_quiz_has_missing_questions_or_answers_that_do_not_match_its)) },
-            confirmButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) } }
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_quiz_needs_repair)) },
+            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_this_quiz_has_missing_questions_or_answers_that_do_not_match_its)) },
+            confirmButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close)) } }
         )
         return
     }
@@ -250,7 +250,7 @@ internal fun QuizPlayerDialog(
                         onClick = onDismiss,
                         modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(Icons.Filled.Close, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close_quiz))
+                        Icon(Icons.Filled.Close, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_quiz))
                     }
                     Text(
                         text = quizTitle,
@@ -273,7 +273,7 @@ internal fun QuizPlayerDialog(
                             ) {
                                 Icon(
                                     imageVector = if (isFlagged) Icons.Filled.Flag else Icons.Outlined.Flag,
-                                    contentDescription = if (isFlagged) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unflag_question) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_flag_question_for_review),
+                                    contentDescription = if (isFlagged) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_unflag_question) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_flag_question_for_review),
                                     tint = if (isFlagged) Color(0xFFE5A93C) else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -283,7 +283,7 @@ internal fun QuizPlayerDialog(
                             color = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Text(
-                                text = if (finished) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_results) else "${safeIndex + 1} / ${editableQuestions.size}",
+                                text = if (finished) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_results) else "${safeIndex + 1} / ${editableQuestions.size}",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -397,10 +397,10 @@ internal fun QuizPlayerDialog(
 
                         Text(
                             text = when {
-                                percentage == 100 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_flawless_mastery)
-                                percentage >= 80 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_excellent_understanding)
-                                percentage >= 60 -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_good_effort_keep_reviewing)
-                                else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_review_needed)
+                                percentage == 100 -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_flawless_mastery)
+                                percentage >= 80 -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_excellent_understanding)
+                                percentage >= 60 -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_good_effort_keep_reviewing)
+                                else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_review_needed)
                             },
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -410,7 +410,7 @@ internal fun QuizPlayerDialog(
                         Spacer(Modifier.height(6.dp))
 
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_055, com.veritas.reader.ui.screens.localizedUiValue(score), com.veritas.reader.ui.screens.localizedUiValue(editableQuestions.size), com.veritas.reader.ui.screens.localizedUiValue(percentage)),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_055, com.veritas.reader.ui.screens.localizedUiValue(score), com.veritas.reader.ui.screens.localizedUiValue(editableQuestions.size), com.veritas.reader.ui.screens.localizedUiValue(percentage)),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary)
 
@@ -423,15 +423,15 @@ internal fun QuizPlayerDialog(
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("$score", color = Color(0xFF10B981), style = MaterialTheme.typography.titleMedium)
-                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_correct), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_correct), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("${editableQuestions.size - score}", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.titleMedium)
-                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_missed), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_missed), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("${flagged.size}", color = Color(0xFFE5A93C), style = MaterialTheme.typography.titleMedium)
-                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_flagged), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_flagged), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
 
@@ -447,7 +447,7 @@ internal fun QuizPlayerDialog(
                         ) {
                             Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_review_exam_questions))
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_review_exam_questions))
                         }
 
                         Spacer(Modifier.height(10.dp))
@@ -457,7 +457,7 @@ internal fun QuizPlayerDialog(
                             modifier = Modifier.fillMaxWidth().height(48.dp),
                             shape = RoundedCornerShape(50)
                         ) {
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done), fontWeight = FontWeight.Bold)
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_done), fontWeight = FontWeight.Bold)
                         }
                     }
                 } else {
@@ -483,7 +483,7 @@ internal fun QuizPlayerDialog(
                                 if (isFlagged) {
                                     Icon(
                                         Icons.Filled.Flag,
-                                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_flagged),
+                                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_flagged),
                                         tint = Color(0xFFE5A93C),
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -597,7 +597,7 @@ internal fun QuizPlayerDialog(
                                     Text("💡", fontSize = 18.sp)
                                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         Text(
-                                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_explanation),
+                                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_explanation),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.primary
                                         )
@@ -627,9 +627,9 @@ internal fun QuizPlayerDialog(
                             modifier = Modifier.weight(1f).height(48.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp)
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_question), modifier = Modifier.size(16.dp))
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous_question), modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous), maxLines = 1)
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous), maxLines = 1)
                         }
 
                         if (selected == null) {
@@ -646,7 +646,7 @@ internal fun QuizPlayerDialog(
                                 modifier = Modifier.weight(1f).height(48.dp),
                                 contentPadding = PaddingValues(horizontal = 8.dp)
                             ) {
-                                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_skip), maxLines = 1)
+                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_skip), maxLines = 1)
                             }
                         }
 
@@ -663,7 +663,7 @@ internal fun QuizPlayerDialog(
                             contentPadding = PaddingValues(horizontal = 8.dp)
                         ) {
                             Text(
-                                text = if (safeIndex + 1 >= editableQuestions.size) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_056, com.veritas.reader.ui.screens.localizedUiValue(userAnswers.size), com.veritas.reader.ui.screens.localizedUiValue(editableQuestions.size)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_2f04eb1),
+                                text = if (safeIndex + 1 >= editableQuestions.size) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_056, com.veritas.reader.ui.screens.localizedUiValue(userAnswers.size), com.veritas.reader.ui.screens.localizedUiValue(editableQuestions.size)) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next_2f04eb1),
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1
                             )

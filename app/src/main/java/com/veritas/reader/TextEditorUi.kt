@@ -334,7 +334,7 @@ internal fun TextEditorDialog(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     IconButton(onClick = onDismiss, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back))
                     }
                     Column(
                         modifier = Modifier
@@ -342,7 +342,7 @@ internal fun TextEditorDialog(
                             .padding(horizontal = 4.dp)
                     ) {
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_edit_extracted_text),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_edit_extracted_text),
                             style = MaterialTheme.typography.titleMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -362,7 +362,7 @@ internal fun TextEditorDialog(
                     ) {
                         Icon(
                             Icons.Outlined.Search,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_search),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_search),
                             tint = if (showSearch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
@@ -373,7 +373,7 @@ internal fun TextEditorDialog(
                     ) {
                         Icon(
                             Icons.Filled.FindReplace,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_find_replace),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_find_replace),
                             tint = if (showReplace) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
@@ -383,7 +383,7 @@ internal fun TextEditorDialog(
                         enabled = editorValue.text.isNotBlank(),
                         modifier = Modifier.size(38.dp)
                     ) {
-                        Icon(Icons.Outlined.FileDownload, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_export_text), modifier = Modifier.size(20.dp))
+                        Icon(Icons.Outlined.FileDownload, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_export_text), modifier = Modifier.size(20.dp))
                     }
                     Button(
                         onClick = {
@@ -397,7 +397,7 @@ internal fun TextEditorDialog(
                     ) {
                         Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save), style = MaterialTheme.typography.labelMedium)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save), style = MaterialTheme.typography.labelMedium)
                     }
                 }
 
@@ -425,7 +425,7 @@ internal fun TextEditorDialog(
                             },
                             enabled = currentPartIndex > 0
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.NavigateBefore, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_page))
+                            Icon(Icons.AutoMirrored.Filled.NavigateBefore, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous_page))
                         }
 
                         Surface(
@@ -433,7 +433,7 @@ internal fun TextEditorDialog(
                             color = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Text(
-                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_057, com.veritas.reader.ui.screens.localizedUiValue(currentPartIndex + 1), com.veritas.reader.ui.screens.localizedUiValue(totalPages)),
+                                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_057, com.veritas.reader.ui.screens.localizedUiValue(currentPartIndex + 1), com.veritas.reader.ui.screens.localizedUiValue(totalPages)),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
@@ -448,7 +448,7 @@ internal fun TextEditorDialog(
                             },
                             enabled = currentPartIndex < totalPages - 1
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_page))
+                            Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next_page))
                         }
                     }
                 }
@@ -474,12 +474,12 @@ internal fun TextEditorDialog(
                                 onValueChange = { searchQuery = it.take(120) },
                                 modifier = Modifier.weight(1f),
                                 singleLine = true,
-                                label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_find_in_page)) },
+                                label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_find_in_page)) },
                                 shape = RoundedCornerShape(8.dp)
                             )
                             Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.primaryContainer) {
                                 Text(
-                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_058, com.veritas.reader.ui.screens.localizedUiValue(searchMatches)),
+                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_058, com.veritas.reader.ui.screens.localizedUiValue(searchMatches)),
                                     style = MaterialTheme.typography.labelSmall,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
                                 )
@@ -488,7 +488,7 @@ internal fun TextEditorDialog(
                                 onClick = ::findNextSearchMatch,
                                 enabled = searchMatches > 0,
                                 shape = RoundedCornerShape(50)
-                            ) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next)) }
+                            ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next)) }
                         }
                     }
                 }
@@ -513,7 +513,7 @@ internal fun TextEditorDialog(
                                     onValueChange = { searchQuery = it.take(120) },
                                     modifier = Modifier.weight(1f),
                                     singleLine = true,
-                                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_find)) },
+                                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_find)) },
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 OutlinedTextField(
@@ -521,7 +521,7 @@ internal fun TextEditorDialog(
                                     onValueChange = { replaceQuery = it.take(120) },
                                     modifier = Modifier.weight(1f),
                                     singleLine = true,
-                                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_replace_with)) },
+                                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_replace_with)) },
                                     shape = RoundedCornerShape(8.dp)
                                 )
                             }
@@ -531,10 +531,10 @@ internal fun TextEditorDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 TextButton(onClick = ::replaceCurrentMatch, enabled = searchQuery.isNotBlank()) {
-                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_replace_next))
+                                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_replace_next))
                                 }
                                 Button(onClick = ::replaceAllMatches, enabled = searchQuery.isNotBlank(), shape = RoundedCornerShape(50)) {
-                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_replace_all))
+                                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_replace_all))
                                 }
                             }
                         }
@@ -550,7 +550,7 @@ internal fun TextEditorDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_059, com.veritas.reader.ui.screens.localizedUiValue(wordCount), com.veritas.reader.ui.screens.localizedUiValue(charCount)),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_059, com.veritas.reader.ui.screens.localizedUiValue(wordCount), com.veritas.reader.ui.screens.localizedUiValue(charCount)),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -598,7 +598,7 @@ internal fun TextEditorDialog(
                             },
                             enabled = undoStack.isNotEmpty()
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_undo))
+                            Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_undo))
                         }
 
                         IconButton(
@@ -611,7 +611,7 @@ internal fun TextEditorDialog(
                             },
                             enabled = redoStack.isNotEmpty()
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_redo))
+                            Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_redo))
                         }
 
                         Box(
@@ -650,11 +650,11 @@ internal fun TextEditorDialog(
 
                         // Headings
                         IconButton(onClick = { toggleLinePrefix("# ") }) {
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_h1), style = MaterialTheme.typography.labelMedium)
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_h1), style = MaterialTheme.typography.labelMedium)
                         }
 
                         IconButton(onClick = { toggleLinePrefix("## ") }) {
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_h2), style = MaterialTheme.typography.labelMedium)
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_h2), style = MaterialTheme.typography.labelMedium)
                         }
 
                         // Quote
@@ -671,15 +671,15 @@ internal fun TextEditorDialog(
 
                         // Lists & Indent
                         IconButton(onClick = ::applyBulletList) {
-                            Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_bulleted_list))
+                            Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_bulleted_list))
                         }
 
                         IconButton(onClick = ::applyNumberedList) {
-                            Icon(Icons.Filled.FormatListNumbered, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_numbered_list))
+                            Icon(Icons.Filled.FormatListNumbered, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_numbered_list))
                         }
 
                         IconButton(onClick = ::applyIndent) {
-                            Icon(Icons.AutoMirrored.Filled.FormatIndentIncrease, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_indent))
+                            Icon(Icons.AutoMirrored.Filled.FormatIndentIncrease, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_indent))
                         }
 
                         Box(
@@ -693,7 +693,7 @@ internal fun TextEditorDialog(
                         IconButton(onClick = {
                             transformSelection { it.uppercase() }
                         }) {
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_aa), style = MaterialTheme.typography.labelMedium)
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_aa), style = MaterialTheme.typography.labelMedium)
                         }
 
                         IconButton(onClick = {
@@ -703,12 +703,12 @@ internal fun TextEditorDialog(
                                 }
                             }
                         }) {
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_aa_2c419ec), style = MaterialTheme.typography.labelMedium)
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_aa_2c419ec), style = MaterialTheme.typography.labelMedium)
                         }
 
                         // Clean whitespace & formatting
                         IconButton(onClick = ::cleanAndNormalizeText) {
-                            Icon(Icons.Filled.CleaningServices, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_clean_whitespace_formatting))
+                            Icon(Icons.Filled.CleaningServices, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_clean_whitespace_formatting))
                         }
                     }
                 }

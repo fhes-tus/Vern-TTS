@@ -2,4 +2,20 @@
 <resources>
     <string name="language_follow_device_named">"استخدام لغة الجهاز · %1$s"</string>
     <string name="language_device_behavior" formatted="false">"يمسح هذا الخيار لغة Vern الخاصة ويتبع تفضيلات لغات الهاتف المدعومة. إذا لم تتوفر أي منها في Vern، تُستخدم الإنجليزية. تُتبع تغييرات لغة الهاتف لاحقًا تلقائيًا."</string>
+    <string name="menu_translation_explanation">"ترجم شاشات Vern وقوائمه على هذا الجهاز عندما تدعم خدمة ترجمة Google لغة الهاتف. يبلغ حجم التنزيل الأول للنموذج نحو 30 ميغابايت عادةً. تجمع Google ML Kit مقاييس الاستخدام والأداء."</string>
+    <string name="menu_translation_preparing">"جارٍ إعداد تنزيل النموذج. تبقى الإعدادات بلغتها الحالية أثناء الانتظار."</string>
+    <string name="menu_translation_failed">"تعذّر إعداد النموذج. تحقّق من اتصالك وحاول مرة أخرى."</string>
+    <string name="menu_translation_mobile">"السماح باستخدام بيانات الهاتف لتنزيل النماذج"</string>
+    <string name="menu_translation_enable">"الترجمة باستخدام Google"</string>
+    <string name="menu_translation_disable">"إيقاف ترجمة الإعدادات"</string>
+    <string name="menu_translation_attribution">"الترجمة من خدمة ترجمة Google"</string>
+    <string name="menu_translation_about">"لمحة عن ترجمة Google"</string>
+    <string name="menu_translation_disclaimer">"توفّر Google هذه الترجمات كما هي، دون ضمان الدقة أو الموثوقية أو قابلية التسويق أو الملاءمة لغرض معين أو عدم انتهاك الحقوق."</string>
+    <string name="menu_translation_thermal">"يؤجّل Android تنزيل النموذج عندما يسخن الهاتف. سيتابع Vern التنزيل عندما يسمح Android بذلك."</string>
+    <string name="menu_translation_model_name">"نموذج الترجمة للغة %1$s"</string>
+    <string name="menu_translation_waiting_network">"في انتظار اتصال بالإنترنت. سيبدأ Vern التنزيل عند الاتصال."</string>
+    <string name="menu_translation_waiting_wifi">"في انتظار Wi-Fi. يمكنك السماح باستخدام بيانات الهاتف أدناه."</string>
+    <string name="menu_translation_downloading">"جارٍ تنزيل النموذج من Google."</string>
+    <string name="menu_translation_applying">"النموذج جاهز. جارٍ ترجمة الواجهة على هذا الهاتف."</string>
+    <string name="menu_translation_ready">"النموذج جاهز لترجمة الواجهة دون اتصال."</string>
 </resources>

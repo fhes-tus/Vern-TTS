@@ -10,7 +10,11 @@ internal enum class CloudVoiceProvider(val title: String, val endpoint: String, 
     CARTESIA("Cartesia", "https://api.cartesia.ai/tts/bytes", "sonic-3.6", "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4", "https://docs.cartesia.ai/api-reference/tts/bytes"),
     MINIMAX("MiniMax", "https://api.minimax.io/v1/t2a_v2", "speech-2.8-hd", "English_expressive_narrator", "https://platform.minimax.io/docs/api-reference/speech-t2a-http"),
     KITTEN("KittenML", "https://api.kittenml.com/v1/audio/speech", "kitten-tts-2-latest", "07 — Saoirse — Joyful Irish Female", "https://kittenml.com/"),
-    CUSTOM("OpenAI-compatible server", "", "", "", "https://github.com/debpalash/VoiceStudio")
+    AZURE("Microsoft Azure Speech", "", "neural", "en-US-JennyNeural", "https://learn.microsoft.com/azure/ai-services/speech-service/get-started-text-to-speech"),
+    GOOGLE_CLOUD("Google Cloud Text-to-Speech", "https://texttospeech.googleapis.com/v1/text:synthesize", "v1", "en-US-Neural2-F", "https://cloud.google.com/text-to-speech/docs/get-started"),
+    CUSTOM("OpenAI-compatible server", "", "", "", "https://github.com/debpalash/VoiceStudio");
+
+    val hasVoiceCatalog: Boolean get() = this == AZURE || this == GOOGLE_CLOUD
 }
 
 internal data class CloudVoiceConfig(
@@ -19,16 +23,19 @@ internal data class CloudVoiceConfig(
     val endpoint: String = provider.endpoint,
     val model: String = provider.model,
     val voice: String = provider.voice,
-    val language: String = "",
+    val language: String = if (provider.hasVoiceCatalog) "en-US" else "",
     val wifiOnly: Boolean = true,
     val fallbackToPhone: Boolean = false,
     val cacheAudio: Boolean = false,
     val timeoutSeconds: Int = 30,
     val retries: Int = 0,
-    val pricePerMillion: Double = 0.0
+    val pricePerMillion: Double = 0.0,
+    val region: String = ""
 ) {
     fun checked(): CloudVoiceConfig {
-        val uri = runCatching { URI(endpoint) }.getOrNull()
+        if (provider == CloudVoiceProvider.AZURE) require(AZURE_REGION.matches(region)) { "region" }
+        val speechEndpoint = speechEndpoint()
+        val uri = runCatching { URI(speechEndpoint) }.getOrNull()
         require(uri != null && uri.scheme == "https" && !uri.host.isNullOrBlank() &&
             uri.userInfo == null && uri.fragment == null && uri.rawQuery == null &&
             (uri.port == -1 || uri.port in 1..65535) && endpoint.length <= 2048 &&
@@ -41,28 +48,44 @@ internal data class CloudVoiceConfig(
         // These require the provider's realtime WebSocket protocol, not either HTTP route.
         require(provider != CloudVoiceProvider.ELEVENLABS || model !in setOf("eleven_v4_turbo","eleven_v3_conversational")) { "model" }
         require(language.length <= 35 && language.all { it.isLetterOrDigit() || it == '-' }) { "language" }
+        if (provider.hasVoiceCatalog) {
+            require(model == provider.model && CATALOG_VOICE_ID.matches(voice)) { "voice" }
+            require(CATALOG_LOCALE.matches(language)) { "language" }
+        }
         require(timeoutSeconds in 5..120 && retries in 0..2 && pricePerMillion.isFinite() && pricePerMillion >= 0) { "limits" }
         return this
     }
 
-    val credentialName: String get() = "tts_" + provider.name + if (provider == CloudVoiceProvider.CUSTOM) "_" + cloudDigest(endpoint) else ""
+    fun speechEndpoint(): String = if (provider == CloudVoiceProvider.AZURE)
+        "https://$region.tts.speech.microsoft.com/cognitiveservices/v1" else endpoint
+
+    val credentialName: String get() = "tts_" + provider.name + when (provider) {
+        CloudVoiceProvider.CUSTOM -> "_" + cloudDigest(endpoint)
+        CloudVoiceProvider.AZURE -> "_" + cloudDigest(region)
+        else -> ""
+    }
 
     override fun toString(): String = "CloudVoiceConfig(provider=$provider, enabled=$enabled, connection=redacted)"
 
     fun toJson(): JSONObject = JSONObject().put("enabled", enabled).put("provider", provider.name)
         .put("endpoint", endpoint).put("model", model).put("voice", voice).put("language", language)
         .put("wifiOnly", wifiOnly).put("fallback", fallbackToPhone).put("cache", cacheAudio)
-        .put("timeout", timeoutSeconds).put("retries", retries).put("price", pricePerMillion)
+        .put("timeout", timeoutSeconds).put("retries", retries).put("price", pricePerMillion).put("region", region)
 
     companion object {
+        private val AZURE_REGION = Regex("[a-z][a-z0-9]{1,39}")
+        internal val CATALOG_VOICE_ID = Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,199}")
+        internal val CATALOG_LOCALE = Regex("[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8}){1,4}")
+
         fun fromJson(obj: JSONObject): CloudVoiceConfig {
             val rawProvider = obj.optString("provider")
             val provider = runCatching { CloudVoiceProvider.valueOf(rawProvider) }.getOrNull()
                 ?: return CloudVoiceConfig()
             return CloudVoiceConfig(obj.optBoolean("enabled"), provider,
                 obj.optString("endpoint", provider.endpoint), obj.optString("model", provider.model), obj.optString("voice", provider.voice),
-                obj.optString("language"), obj.optBoolean("wifiOnly", true), obj.optBoolean("fallback"), obj.optBoolean("cache"),
-                obj.optInt("timeout", 30).coerceIn(5,120), obj.optInt("retries",0).coerceIn(0,2), obj.optDouble("price",0.0).takeIf { it.isFinite() && it >= 0 } ?: 0.0)
+                obj.optString("language", if (provider.hasVoiceCatalog) "en-US" else ""), obj.optBoolean("wifiOnly", true), obj.optBoolean("fallback"), obj.optBoolean("cache"),
+                obj.optInt("timeout", 30).coerceIn(5,120), obj.optInt("retries",0).coerceIn(0,2), obj.optDouble("price",0.0).takeIf { it.isFinite() && it >= 0 } ?: 0.0,
+                obj.optString("region"))
         }
     }
 }

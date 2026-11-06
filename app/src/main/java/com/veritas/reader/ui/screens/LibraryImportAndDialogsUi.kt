@@ -179,8 +179,8 @@ internal fun LibraryDialogsAndSheetsHost(
     if (deletingQuiz != null) {
         AlertDialog(
             onDismissRequest = { onDismissQuizToDelete() },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_quiz)) },
-            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_094, com.veritas.reader.ui.screens.localizedUiValue(deletingQuiz.title))) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_quiz)) },
+            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_094, com.veritas.reader.ui.screens.localizedUiValue(deletingQuiz.title))) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -188,11 +188,11 @@ internal fun LibraryDialogsAndSheetsHost(
                         onDismissQuizToDelete()
                     }
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onDismissQuizToDelete() }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
+                TextButton(onClick = { onDismissQuizToDelete() }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
             }
         )
     }
@@ -204,9 +204,9 @@ internal fun LibraryDialogsAndSheetsHost(
         AlertDialog(
             onDismissRequest = { onDismissContentSearchResults() },
             confirmButton = {
-                TextButton(onClick = { onDismissContentSearchResults() }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) }
+                TextButton(onClick = { onDismissContentSearchResults() }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close)) }
             },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_in_your_documents)) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_in_your_documents)) },
             text = {
                 Column(
                     modifier = Modifier
@@ -217,10 +217,10 @@ internal fun LibraryDialogsAndSheetsHost(
                     when {
                         uiState.librarySearchInProgress -> {
                             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_searching_every_document), style = MaterialTheme.typography.bodySmall)
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_searching_every_document), style = MaterialTheme.typography.bodySmall)
                         }
                         uiState.librarySearchHits.isEmpty() ->
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_matches_inside_any_document), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_matches_inside_any_document), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         else -> uiState.librarySearchHits.forEach { hit ->
                             Card(
                                 modifier = Modifier
@@ -235,7 +235,7 @@ internal fun LibraryDialogsAndSheetsHost(
                                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                     Text(hit.document.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     Text(hit.snippet, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 3, overflow = TextOverflow.Ellipsis)
-                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_095, com.veritas.reader.ui.screens.localizedUiValue(hit.sentenceIndex + 1)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_095, com.veritas.reader.ui.screens.localizedUiValue(hit.sentenceIndex + 1)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         }
@@ -365,13 +365,13 @@ internal fun LibraryDialogsAndSheetsHost(
                         onClearSelectedDocuments()
                         onDismissConfirmBatchDelete()
                     }
-                ) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) }
+                ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { onDismissConfirmBatchDelete() }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
+                TextButton(onClick = { onDismissConfirmBatchDelete() }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
             },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_selected_readings)) },
-            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_209, com.veritas.reader.ui.screens.localizedUiValue(selectedDocumentIds.size))) }
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_selected_readings)) },
+            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_209, com.veritas.reader.ui.screens.localizedUiValue(selectedDocumentIds.size))) }
         )
     }
 
@@ -385,13 +385,13 @@ internal fun LibraryDialogsAndSheetsHost(
                         onClearSelectedAnnotations()
                         onDismissConfirmAnnotationDelete()
                     }
-                ) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) }
+                ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { onDismissConfirmAnnotationDelete() }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
+                TextButton(onClick = { onDismissConfirmAnnotationDelete() }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
             },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_selected_marks)) },
-            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_210, com.veritas.reader.ui.screens.localizedUiValue(selectedAnnotationKeys.size))) }
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_selected_marks)) },
+            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_210, com.veritas.reader.ui.screens.localizedUiValue(selectedAnnotationKeys.size))) }
         )
     }
 
@@ -455,17 +455,17 @@ internal fun LibraryDialogsAndSheetsHost(
         var draft by remember(target.setId) { mutableStateOf(target.name) }
         AlertDialog(
             onDismissRequest = { onDismissRenameSetTarget() },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rename_set)) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_rename_set)) },
             confirmButton = {
-                Button(onClick = { onRenameFlashcardSet(target.setId, draft); onDismissRenameSetTarget() }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save)) }
+                Button(onClick = { onRenameFlashcardSet(target.setId, draft); onDismissRenameSetTarget() }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save)) }
             },
-            dismissButton = { TextButton(onClick = { onDismissRenameSetTarget() }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } },
+            dismissButton = { TextButton(onClick = { onDismissRenameSetTarget() }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } },
             text = {
                 OutlinedTextField(
                     value = draft,
                     onValueChange = { draft = it },
                     singleLine = true,
-                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_set_name)) },
+                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_set_name)) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -483,19 +483,19 @@ internal fun LibraryDialogsAndSheetsHost(
                         onBatchCollectionDraftChange("")
                         onDismissBatchCollectionDialog()
                     }
-                ) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move)) }
+                ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move)) }
             },
             dismissButton = {
-                TextButton(onClick = { onDismissBatchCollectionDialog() }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
+                TextButton(onClick = { onDismissBatchCollectionDialog() }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
             },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_selected_readings)) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_selected_readings)) },
             text = {
                 OutlinedTextField(
                     value = batchCollectionDraft,
                     onValueChange = { onBatchCollectionDraftChange(it) },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collection)) },
-                    placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_leave_blank_for_unfiled)) },
+                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collection)) },
+                    placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_leave_blank_for_unfiled)) },
                     singleLine = true
                 )
             }
@@ -505,8 +505,8 @@ internal fun LibraryDialogsAndSheetsHost(
     confirmDeleteVocabDocId?.let { delDocId ->
         AlertDialog(
             onDismissRequest = { onDismissConfirmDeleteVocabDocId() },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_all_vocabulary)) },
-            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_this_will_permanently_remove_all_vocabulary_words_saved_for_this)) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_all_vocabulary)) },
+            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_this_will_permanently_remove_all_vocabulary_words_saved_for_this)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -516,12 +516,12 @@ internal fun LibraryDialogsAndSheetsHost(
                         onDismissConfirmDeleteVocabDocId()
                     }
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_all))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_all))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onDismissConfirmDeleteVocabDocId() }) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel))
                 }
             }
         )
@@ -545,7 +545,7 @@ internal fun LibraryDialogsAndSheetsHost(
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     val bookTitle = uiState.importSourceName.takeIf { it.isNotBlank() }
                     Text(
-                        text = if (!bookTitle.isNullOrBlank()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_096, com.veritas.reader.ui.screens.localizedUiValue(bookTitle)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_opening_document),
+                        text = if (!bookTitle.isNullOrBlank()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_096, com.veritas.reader.ui.screens.localizedUiValue(bookTitle)) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_opening_document),
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis

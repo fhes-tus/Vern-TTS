@@ -73,8 +73,8 @@ internal fun AiFreeModeDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) } },
-        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_study_mode)) },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close)) } },
+        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ai_study_mode)) },
         text = {
             Column(
                 modifier = Modifier
@@ -92,26 +92,26 @@ internal fun AiFreeModeDialog(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_free_ai_approach),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_free_ai_approach),
                             style = MaterialTheme.typography.titleMedium)
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern_does_not_bundle_a_large_offline_model_and_does_not_require_a),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_vern_does_not_bundle_a_large_offline_model_and_does_not_require_a),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
-                InfoStepCard(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_1_ai_app_handoff)) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_a_document_tap_reader_tools_ai_choose_a_task_then_send_the_p))
+                InfoStepCard(title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_1_ai_app_handoff)) {
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_a_document_tap_reader_tools_ai_choose_a_task_then_send_the_p))
                 }
-                InfoStepCard(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_2_paste_the_reply_back)) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_flashcard_and_quiz_replies_can_be_pasted_straight_back_into_vern))
+                InfoStepCard(title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_2_paste_the_reply_back)) {
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_flashcard_and_quiz_replies_can_be_pasted_straight_back_into_vern))
                 }
-                InfoStepCard(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_3_base_app_stays_lighter)) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_heavy_local_ai_model_is_bundled_in_the_base_app_a_real_offline))
+                InfoStepCard(title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_3_base_app_stays_lighter)) {
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_heavy_local_ai_model_is_bundled_in_the_base_app_a_real_offline))
                 }
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_198, com.veritas.reader.ui.screens.localizedUiValue(documentCount)),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_198, com.veritas.reader.ui.screens.localizedUiValue(documentCount)),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -131,34 +131,34 @@ internal fun AiCenterDialog(
     val context = androidx.compose.ui.platform.LocalContext.current
     val provider = remember { GeminiStudyService.getProvider(context) }
     val configured = remember { GeminiStudyService.hasApiKey(context) }
-    com.veritas.reader.ui.screens.FullScreenSettingsScaffold(title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_ai_tools), onBack = onDismiss) {
-        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_work_with_a_passage_from_your_reading_or_send_it_to_an_assistant),
+    com.veritas.reader.ui.screens.FullScreenSettingsScaffold(title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_ai_tools), onBack = onDismiss) {
+        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_work_with_a_passage_from_your_reading_or_send_it_to_an_assistant),
             style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Card(shape = VeritasPackStyle.cardShape(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
             border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_a_reading), style = MaterialTheme.typography.titleLarge)
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create_flashcards_quizzes_summaries_and_explanations_review_the_r))
-                Text(if (configured) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_039, com.veritas.reader.ui.screens.localizedUiValue(provider.label)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_in_app_generation_needs_your_provider_s_api_key_external_assistan),
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_study_a_reading), style = MaterialTheme.typography.titleLarge)
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_flashcards_quizzes_summaries_and_explanations_review_the_r))
+                Text(if (configured) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_039, com.veritas.reader.ui.screens.localizedUiValue(provider.label)) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_in_app_generation_needs_your_provider_s_api_key_external_assistan),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Button(onClick = onOpenStudyTools, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_study_tools)) }
-                if (documentCount == 0) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_a_reading_to_choose_a_passage), style = MaterialTheme.typography.bodySmall)
+                Button(onClick = onOpenStudyTools, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_study_tools)) }
+                if (documentCount == 0) Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_a_reading_to_choose_a_passage), style = MaterialTheme.typography.bodySmall)
             }
         }
         Card(shape = VeritasPackStyle.cardShape(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
             border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ask_another_assistant), style = MaterialTheme.typography.titleLarge)
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_199, com.veritas.reader.ui.screens.localizedUiValue(installedAiCount)))
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_a_handoff_opens_the_other_app_its_response_is_not_automatically_r), style = MaterialTheme.typography.bodySmall,
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ask_another_assistant), style = MaterialTheme.typography.titleLarge)
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_199, com.veritas.reader.ui.screens.localizedUiValue(installedAiCount)))
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_a_handoff_opens_the_other_app_its_response_is_not_automatically_r), style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                OutlinedButton(onClick = onOpenAskAiSettings, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_assistant_and_prompt_settings)) }
+                OutlinedButton(onClick = onOpenAskAiSettings, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_assistant_and_prompt_settings)) }
             }
         }
         CustomAiHandoffCard(includeContextField = true) { instructions, passage ->
             AiPromptLauncher.launchCustomPrompt(context, instructions, passage, askAiSettings)
         }
-        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_output_can_contain_mistakes_keep_the_original_passage_availabl),
+        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ai_output_can_contain_mistakes_keep_the_original_passage_availabl),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -174,7 +174,7 @@ internal fun ExportAudioStatusDialog(
 ) {
     AlertDialog(
         onDismissRequest = { if (!inProgress) onDismiss() },
-        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_export_audio)) },
+        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_export_audio)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (inProgress) {
@@ -183,11 +183,11 @@ internal fun ExportAudioStatusDialog(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_creating_audio_from_this_reading))
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_creating_audio_from_this_reading))
                     }
                 }
                 Text(
-                    message ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_preparing_export),
+                    message ?: com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_preparing_export),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (file != null) {
@@ -197,14 +197,14 @@ internal fun ExportAudioStatusDialog(
         },
         confirmButton = {
             if (file != null) {
-                Button(onClick = { onShare(file) }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share)) }
+                Button(onClick = { onShare(file) }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_share)) }
             }
         },
         dismissButton = {
             if (inProgress && onCancel != null) {
-                TextButton(onClick = onCancel) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
+                TextButton(onClick = onCancel) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
             } else {
-                TextButton(onClick = onDismiss, enabled = !inProgress) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) }
+                TextButton(onClick = onDismiss, enabled = !inProgress) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close)) }
             }
         }
     )
@@ -450,18 +450,18 @@ internal fun AiAppStudyDialog(
                             IconButton(onClick = onDismiss, modifier = Modifier.size(40.dp)) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back),
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Column {
                                 Text(
-                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ai_study_studio),
+                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ai_study_studio),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_040, com.veritas.reader.ui.screens.localizedUiValue(document.title), com.veritas.reader.ui.screens.localizedUiValue(currentPage), com.veritas.reader.ui.screens.localizedUiValue(document.pageCount.coerceAtLeast(1))),
+                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_040, com.veritas.reader.ui.screens.localizedUiValue(document.title), com.veritas.reader.ui.screens.localizedUiValue(currentPage), com.veritas.reader.ui.screens.localizedUiValue(document.pageCount.coerceAtLeast(1))),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
@@ -495,7 +495,7 @@ internal fun AiAppStudyDialog(
                                             tint = MaterialTheme.colorScheme.onSecondaryContainer
                                         )
                                         Text(
-                                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_hub),
+                                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_study_hub),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSecondaryContainer
                                         )
@@ -512,7 +512,7 @@ internal fun AiAppStudyDialog(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Refresh,
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_refresh_clipboard),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_refresh_clipboard),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -543,7 +543,7 @@ internal fun AiAppStudyDialog(
                                         modifier = Modifier.size(15.dp)
                                     )
                                     Text(
-                                        if (hasGeminiKey) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_041, com.veritas.reader.ui.screens.localizedUiValue(activeProvider.label)) else defaultAiName,
+                                        if (hasGeminiKey) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_041, com.veritas.reader.ui.screens.localizedUiValue(activeProvider.label)) else defaultAiName,
                                         style = MaterialTheme.typography.labelSmall,
                                         color = if (hasGeminiKey) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -582,12 +582,12 @@ internal fun AiAppStudyDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_focus),
+                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_study_focus),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_042, com.veritas.reader.ui.screens.localizedUiValue(scopeSentences.size), com.veritas.reader.ui.screens.localizedUiValue(scopeWordCount)),
+                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_042, com.veritas.reader.ui.screens.localizedUiValue(scopeSentences.size), com.veritas.reader.ui.screens.localizedUiValue(scopeWordCount)),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -626,7 +626,7 @@ internal fun AiAppStudyDialog(
                                     OutlinedTextField(
                                         value = customStartPage,
                                         onValueChange = { customStartPage = it.filter { ch -> ch.isDigit() } },
-                                        label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_from_page), fontSize = 11.sp) },
+                                        label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_from_page), fontSize = 11.sp) },
                                         modifier = Modifier.weight(1f),
                                         singleLine = true,
                                         shape = RoundedCornerShape(12.dp)
@@ -634,7 +634,7 @@ internal fun AiAppStudyDialog(
                                     OutlinedTextField(
                                         value = customEndPage,
                                         onValueChange = { customEndPage = it.filter { ch -> ch.isDigit() } },
-                                        label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_to_page), fontSize = 11.sp) },
+                                        label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_to_page), fontSize = 11.sp) },
                                         modifier = Modifier.weight(1f),
                                         singleLine = true,
                                         shape = RoundedCornerShape(12.dp)
@@ -692,13 +692,13 @@ internal fun AiAppStudyDialog(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_043, com.veritas.reader.ui.screens.localizedUiValue(GeminiStudyService.getProvider(context).label)),
+                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_043, com.veritas.reader.ui.screens.localizedUiValue(GeminiStudyService.getProvider(context).label)),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 TextButton(onClick = { onCancelGeneration(); isGenerating = false }) {
-                                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
+                                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel))
                                 }
                             }
                         }
@@ -807,12 +807,12 @@ private fun QuickExternalAiChips(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_quick_external_ai_hand_off),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_quick_external_ai_hand_off),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_auto_copies_prompt),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_auto_copies_prompt),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

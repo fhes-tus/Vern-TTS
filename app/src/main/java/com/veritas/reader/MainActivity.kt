@@ -277,12 +277,14 @@ open class MainActivity : AppCompatActivity() {
                 // here so cutouts and landscape navigation cannot cover any screen.
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
+                    com.veritas.reader.ui.screens.TranslatedAppMenus {
                     VeritasReaderApp(
                         initialShare = initialShare,
                         openVoiceStudioOnStart = openVoiceStudioOnStart,
                         widgetAction = widgetAction,
                         noteId = noteId
                     )
+                    }
 
                 }
             }

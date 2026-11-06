@@ -124,7 +124,7 @@ internal fun LibraryTopAndFilterBar(
                                                     .onGloballyPositioned { if (isActiveHeader) OnboardingController.updateBounds("insights_trigger", it) }
                                             ) {
                                                 Icon(imageVector = Icons.Filled.Menu,
-                                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_menu),
+                                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_menu),
                                                     tint = MaterialTheme.colorScheme.onSurface)
                                             }
                                             VeritasWordmark()
@@ -135,7 +135,7 @@ internal fun LibraryTopAndFilterBar(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Settings,
-                                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_settings),
+                                                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_settings),
                                                 tint = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
@@ -148,7 +148,7 @@ internal fun LibraryTopAndFilterBar(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_my_library),
+                                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_my_library),
                                             modifier = Modifier.weight(1f),
                                             style = MaterialTheme.typography.titleLarge,
                                             color = MaterialTheme.colorScheme.onSurface
@@ -160,7 +160,7 @@ internal fun LibraryTopAndFilterBar(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Settings,
-                                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_settings),
+                                                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_settings),
                                                 tint = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
@@ -171,7 +171,7 @@ internal fun LibraryTopAndFilterBar(
                                                 onClick = { onLibrarySectionChange(section) }, modifier = Modifier.weight(1f).height(40.dp),
                                                 selectedContentColor = MaterialTheme.colorScheme.primary,
                                                 unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant) {
-                                                Text(androidx.compose.ui.res.stringResource(section.labelResource), fontWeight = FontWeight.SemiBold)
+                                                Text(com.veritas.reader.ui.screens.menuString(section.labelResource), fontWeight = FontWeight.SemiBold)
                                             }
                                         }
                                     }
@@ -191,7 +191,7 @@ internal fun LibraryTopAndFilterBar(
                                     ) {
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(
-                                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notes_annotations),
+                                                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_notes_annotations),
                                                 style = MaterialTheme.typography.titleLarge,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -245,7 +245,7 @@ internal fun LibraryTopAndFilterBar(
                                                     ),
                                                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                 ) {
-                                                    Text(option, style = MaterialTheme.typography.labelMedium)
+                                                    Text(localizedCatalogLabel(option), style = MaterialTheme.typography.labelMedium)
                                                 }
                                             } else {
                                                 OutlinedButton(
@@ -267,7 +267,7 @@ internal fun LibraryTopAndFilterBar(
                                                     ),
                                                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                 ) {
-                                                    Text(option, style = MaterialTheme.typography.labelMedium)
+                                                    Text(localizedCatalogLabel(option), style = MaterialTheme.typography.labelMedium)
                                                 }
                                             }
                                         }
@@ -280,7 +280,7 @@ internal fun LibraryTopAndFilterBar(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_hub),
+                                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_study_hub),
                                             style = MaterialTheme.typography.titleLarge,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
@@ -302,7 +302,7 @@ internal fun LibraryTopAndFilterBar(
                                                     modifier = Modifier.size(18.dp)
                                                 )
                                                 Text(
-                                                    text = if (streak > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_121, com.veritas.reader.ui.screens.localizedUiValue(streak)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_0_day_streak),
+                                                    text = if (streak > 0) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_121, com.veritas.reader.ui.screens.localizedUiValue(streak)) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_0_day_streak),
                                                     style = MaterialTheme.typography.labelMedium)
                                             }
                                         }
@@ -385,6 +385,8 @@ internal fun LibraryDocumentFilters(
                                         data class LibraryChip(
                                             val label: String,
                                             val active: Boolean,
+                                            val count: Int,
+                                            val catalog: Boolean = true,
                                             val apply: () -> Unit
                                         )
 
@@ -397,64 +399,67 @@ internal fun LibraryDocumentFilters(
 
                                         val chips = buildList {
                                             add(LibraryChip(
-                                                "All (${documents.size})",
+                                                "All",
                                                 statusFilter == "All" && sourceFilter == "All" &&
-                                                    collectionFilter == "All" && readingListFilter == "All"
+                                                    collectionFilter == "All" && readingListFilter == "All",
+                                                documents.size
                                             ) { reset() })
 
                                             if (hasInProgress || statusFilter == "In progress") {
-                                                add(LibraryChip("In progress ($inProgressCount)", statusFilter == "In progress") {
+                                                add(LibraryChip("In progress", statusFilter == "In progress", inProgressCount) {
                                                     if (statusFilter == "In progress") reset() else { reset(); onStatusFilterChange("In progress") }
                                                 })
                                             }
 
                                             if (hasUnread || statusFilter == "Unread") {
-                                                add(LibraryChip("Unread ($unreadCount)", statusFilter == "Unread") {
+                                                add(LibraryChip("Unread", statusFilter == "Unread", unreadCount) {
                                                     if (statusFilter == "Unread") reset() else { reset(); onStatusFilterChange("Unread") }
                                                 })
                                             }
 
                                             if (hasCompleted || statusFilter == "Completed") {
-                                                add(LibraryChip("Completed ($completedCount)", statusFilter == "Completed") {
+                                                add(LibraryChip("Completed", statusFilter == "Completed", completedCount) {
                                                     if (statusFilter == "Completed") reset() else { reset(); onStatusFilterChange("Completed") }
                                                 })
                                             }
 
                                             if (hasFavorites || statusFilter == "Favorites") {
-                                                add(LibraryChip("Favorites ($favoritesCount)", statusFilter == "Favorites") {
+                                                add(LibraryChip("Favorites", statusFilter == "Favorites", favoritesCount) {
                                                     if (statusFilter == "Favorites") reset() else { reset(); onStatusFilterChange("Favorites") }
                                                 })
                                             }
 
                                             if (queuedDocuments.isNotEmpty()) {
-                                                add(LibraryChip("Queue ${queuedDocuments.size}", statusFilter == "Queued") {
+                                                add(LibraryChip("Queue", statusFilter == "Queued", queuedDocuments.size) {
                                                     reset(); onStatusFilterChange("Queued")
                                                 })
                                             }
 
                                             collections.forEach { name ->
                                                 val count = documents.count { it.collection.trim() == name }
-                                                add(LibraryChip("$name ($count)", collectionFilter == name) {
+                                                add(LibraryChip(name, collectionFilter == name, count, catalog = false) {
                                                     if (collectionFilter == name) reset() else { reset(); onCollectionFilterChange(name) }
                                                 })
                                             }
 
                                             readingLists.forEach { readingList ->
                                                 val count = documents.count { readingList.contains(it.id) }
-                                                add(LibraryChip("≡ ${readingList.title} ($count)", readingListFilter == readingList.id) {
+                                                add(LibraryChip("≡ ${readingList.title}", readingListFilter == readingList.id, count, catalog = false) {
                                                     if (readingListFilter == readingList.id) reset() else { reset(); onReadingListFilterChange(readingList.id) }
                                                 })
                                             }
 
                                             formats.forEach { fmt ->
                                                 val count = documents.count { it.sourceLabel.trim().equals(fmt, ignoreCase = true) }
-                                                add(LibraryChip("$fmt ($count)", sourceFilter == fmt) {
+                                                add(LibraryChip(fmt, sourceFilter == fmt, count) {
                                                     if (sourceFilter == fmt) reset() else { reset(); onSourceFilterChange(fmt) }
                                                 })
                                             }
                                         }
 
                                         chips.forEach { chip ->
+                                            val label = if (chip.catalog) localizedCatalogLabel(chip.label) else chip.label
+                                            val countedLabel = menuString(com.veritas.reader.R.string.filter_count, label, localizedUiValue(chip.count))
                                             if (chip.active) {
                                                 Button(
                                                     onClick = chip.apply,
@@ -465,7 +470,7 @@ internal fun LibraryDocumentFilters(
                                                     ),
                                                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                 ) {
-                                                    Text(chip.label, style = MaterialTheme.typography.labelMedium)
+                                                    Text(countedLabel, style = MaterialTheme.typography.labelMedium)
                                                 }
                                             } else {
                                                 OutlinedButton(
@@ -477,7 +482,7 @@ internal fun LibraryDocumentFilters(
                                                     ),
                                                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
                                                 ) {
-                                                    Text(chip.label, style = MaterialTheme.typography.labelMedium)
+                                                    Text(countedLabel, style = MaterialTheme.typography.labelMedium)
                                                 }
                                             }
                                         }

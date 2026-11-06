@@ -85,7 +85,7 @@ internal fun AiStudyClipboardBanner(
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_study_content_found_on_clipboard),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_study_content_found_on_clipboard),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -93,9 +93,9 @@ internal fun AiStudyClipboardBanner(
 
                 Text(
                     when {
-                        detectedCards.isNotEmpty() -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_031, com.veritas.reader.ui.screens.localizedUiValue(detectedCards.size))
-                        detectedQuiz.isNotEmpty() -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_032, com.veritas.reader.ui.screens.localizedUiValue(detectedQuiz.size))
-                        else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_detected_study_notes_explanation_on_clipboard)
+                        detectedCards.isNotEmpty() -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_031, com.veritas.reader.ui.screens.localizedUiValue(detectedCards.size))
+                        detectedQuiz.isNotEmpty() -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_032, com.veritas.reader.ui.screens.localizedUiValue(detectedQuiz.size))
+                        else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_detected_study_notes_explanation_on_clipboard)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -140,14 +140,14 @@ internal fun AiStudyClipboardBanner(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(50)
                     ) {
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_review_import), fontWeight = FontWeight.Bold)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_review_import), fontWeight = FontWeight.Bold)
                     }
 
                     OutlinedButton(
                         onClick = { onDismissBanner() },
                         shape = RoundedCornerShape(50)
                     ) {
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_dismiss))
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_dismiss))
                     }
                 }
             }
@@ -186,9 +186,9 @@ internal fun AiStudyCoreToolsCards(
 
     // 5 Core Modern Study Tools
     ModernToolActionCard(
-        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_ai_flashcard_deck),
+        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_ai_flashcard_deck),
         badge = "SM-2 Active Recall",
-        description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_extracts_definitions_formulas_and_key_facts_into_interactive_spac),
+        description = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_extracts_definitions_formulas_and_key_facts_into_interactive_spac),
         icon = Icons.Outlined.Style,
         containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f),
         iconTint = MaterialTheme.colorScheme.secondary,
@@ -248,9 +248,9 @@ internal fun AiStudyCoreToolsCards(
     )
 
     ModernToolActionCard(
-        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_practice_exam_quiz),
+        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_practice_exam_quiz),
         badge = "Interactive Studio",
-        description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_generates_multiple_choice_exam_questions_with_instant_scoring_and),
+        description = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_generates_multiple_choice_exam_questions_with_instant_scoring_and),
         icon = Icons.Outlined.Quiz,
         containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
         iconTint = MaterialTheme.colorScheme.primary,
@@ -312,9 +312,9 @@ internal fun AiStudyCoreToolsCards(
     )
 
     ModernToolActionCard(
-        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_executive_summary),
+        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_executive_summary),
         badge = "BLUF Framework",
-        description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_high_yield_summary_with_core_thesis_4_6_bullet_takeaways_with_cit),
+        description = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_high_yield_summary_with_core_thesis_4_6_bullet_takeaways_with_cit),
         icon = Icons.Outlined.Summarize,
         containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f),
         iconTint = MaterialTheme.colorScheme.tertiary,
@@ -374,9 +374,9 @@ internal fun AiStudyCoreToolsCards(
     )
 
     ModernToolActionCard(
-        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_explain_simplify),
+        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_explain_simplify),
         badge = "Feynman Technique",
-        description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_deconstructs_difficult_passages_into_plain_english_with_relatable),
+        description = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_deconstructs_difficult_passages_into_plain_english_with_relatable),
         icon = Icons.Outlined.School,
         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
         iconTint = MaterialTheme.colorScheme.primary,
@@ -438,9 +438,9 @@ internal fun AiStudyCoreToolsCards(
     )
 
     ModernToolActionCard(
-        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_study_guide_cheatsheet),
+        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_study_guide_cheatsheet),
         badge = "Structured Framework",
-        description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_generates_organized_headings_definitions_glossary_core_formulas_a),
+        description = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_generates_organized_headings_definitions_glossary_core_formulas_a),
         icon = Icons.Outlined.Description,
         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
         iconTint = MaterialTheme.colorScheme.secondary,
@@ -549,7 +549,7 @@ internal fun AiStudyManualAccordion(
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Text(
-                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_manual_importers_ai_settings),
+                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_manual_importers_ai_settings),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -568,8 +568,8 @@ internal fun AiStudyManualAccordion(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(110.dp),
-                                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_ai_response_here)) },
-                                    placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_flashcards_quiz_or_study_notes)) },
+                                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_ai_response_here)) },
+                                    placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_flashcards_quiz_or_study_notes)) },
                                     shape = RoundedCornerShape(12.dp)
                                 )
 
@@ -579,9 +579,9 @@ internal fun AiStudyManualAccordion(
                                 if (manualInputDraft.isNotBlank()) {
                                     Text(
                                         when {
-                                            parsedCards.isNotEmpty() -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_033, com.veritas.reader.ui.screens.localizedUiValue(parsedCards.size))
-                                            parsedQuiz.isNotEmpty() -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_034, com.veritas.reader.ui.screens.localizedUiValue(parsedQuiz.size))
-                                            else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_recognized_study_notes_summary)
+                                            parsedCards.isNotEmpty() -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_033, com.veritas.reader.ui.screens.localizedUiValue(parsedCards.size))
+                                            parsedQuiz.isNotEmpty() -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_034, com.veritas.reader.ui.screens.localizedUiValue(parsedQuiz.size))
+                                            else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_recognized_study_notes_summary)
                                         },
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary)
@@ -619,7 +619,7 @@ internal fun AiStudyManualAccordion(
                                             modifier = Modifier.weight(1f),
                                             shape = RoundedCornerShape(50)
                                         ) {
-                                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_recognized_content))
+                                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_import_recognized_content))
                                         }
                                     }
                                 }
@@ -633,21 +633,21 @@ internal fun AiStudyManualAccordion(
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(50)
                                     ) {
-                                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_card_importer), fontSize = 11.sp)
+                                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_card_importer), fontSize = 11.sp)
                                     }
                                     OutlinedButton(
                                         onClick = { onShowPasteQuiz() },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(50)
                                     ) {
-                                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_quiz_importer), fontSize = 11.sp)
+                                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_quiz_importer), fontSize = 11.sp)
                                     }
                                     OutlinedButton(
                                         onClick = { onShowGeminiSetup() },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(50)
                                     ) {
-                                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_gemini_key), fontSize = 11.sp)
+                                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_gemini_key), fontSize = 11.sp)
                                     }
                                 }
                             }

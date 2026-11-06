@@ -1,12 +1,11 @@
 package com.veritas.reader.ui.screens
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import com.veritas.reader.R
 
 @Composable
 internal fun localizedHomeGreeting(name: String, hour: Int, welcomeBack: Boolean): String {
-    val greeting = stringResource(when {
+    val greeting = menuString(when {
         welcomeBack -> R.string.greeting_welcome
         hour in 0..3 -> R.string.greeting_see_you
         hour in 4..5 -> R.string.greeting_new_day
@@ -17,7 +16,7 @@ internal fun localizedHomeGreeting(name: String, hour: Int, welcomeBack: Boolean
         else -> R.string.greeting_night
     })
     val displayName = name.trim().lineSequence().firstOrNull().orEmpty()
-    return if (displayName.isBlank()) greeting else stringResource(R.string.greeting_named, greeting, displayName)
+    return if (displayName.isBlank()) greeting else menuString(R.string.greeting_named, greeting, displayName)
 }
 
 /** Stable for an hour; recomposition never randomly changes the greeting. */

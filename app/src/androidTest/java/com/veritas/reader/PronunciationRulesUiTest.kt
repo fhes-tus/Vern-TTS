@@ -74,10 +74,11 @@ class PronunciationRulesUiTest {
             ui.onNodeWithTag("speech-rule-audition").assertIsEnabled()
             capture("$name-preview")
             ui.onNodeWithTag("speech-rule-save").performScrollTo().performClick()
-            ui.runOnIdle { assertEquals("w/o", rules.single().find) }
-            ui.onNodeWithText("w/o → without").performScrollTo()
+            val saved = ui.runOnIdle { rules.single().also { assertEquals("w/o", it.find) } }
+            val edit = ui.onNodeWithTag("speech-rule-edit-${saved.id}")
+            edit.performScrollTo()
             capture("$name-saved")
-            ui.onNodeWithText("w/o → without").performClick()
+            edit.performClick()
             ui.onNodeWithTag("speech-rule-find").performScrollTo().assertTextContains("w/o")
             ui.onNodeWithTag("speech-rule-replacement").performScrollTo().assertTextContains("without")
         }

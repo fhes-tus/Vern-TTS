@@ -132,7 +132,7 @@ internal fun RecentImportItem(
             if (coverBitmap != null) {
                 Image(
                     bitmap = coverBitmap.asImageBitmap(),
-                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_cover),
+                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_cover),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -179,7 +179,7 @@ internal fun RecentImportItem(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.MoreVert,
-                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_more_options_86c0a35),
+                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_more_options_86c0a35),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -188,27 +188,27 @@ internal fun RecentImportItem(
                     onDismissRequest = { showActions = false },
                     modifier = Modifier.width(240.dp)
                 ) {
-                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_reading)) }, onClick = { showActions = false; onOpen() })
-                    DropdownMenuItem(text = { Text(if (document.favorite) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_from_favorites) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_to_favorites)) }, onClick = { showActions = false; onToggleFavorite() })
-                    DropdownMenuItem(text = { Text(if (isQueued) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_from_queue) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_to_queue)) }, onClick = { showActions = false; onToggleQueue() })
+                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_reading)) }, onClick = { showActions = false; onOpen() })
+                    DropdownMenuItem(text = { Text(if (document.favorite) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_favorites) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_favorites)) }, onClick = { showActions = false; onToggleFavorite() })
+                    DropdownMenuItem(text = { Text(if (isQueued) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_queue) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_queue)) }, onClick = { showActions = false; onToggleQueue() })
                     if (isQueued) {
                         // Reordering by menu rather than by drag: the queue lives in a
                         // scrolling grid, where a small drag handle is easy to miss.
                         DropdownMenuItem(
-                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_up_in_queue)) },
+                            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_up_in_queue)) },
                             onClick = { showActions = false; onMoveQueueUp() }
                         )
                         DropdownMenuItem(
-                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_down_in_queue)) },
+                            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_down_in_queue)) },
                             onClick = { showActions = false; onMoveQueueDown() }
                         )
                     }
-                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_to_collection)) }, onClick = { showActions = false; onSetCollection() })
-                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_to_lists)) }, onClick = { showActions = false; onManageLists() })
-                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rename)) }, onClick = { showActions = false; onRename() })
-                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_to_phone)) }, onClick = { showActions = false; saveBookToPhone() })
-                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_details)) }, onClick = { showActions = false; onShowDetails() })
-                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) }, onClick = { showActions = false; onDelete() })
+                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_to_collection)) }, onClick = { showActions = false; onSetCollection() })
+                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_lists)) }, onClick = { showActions = false; onManageLists() })
+                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_rename)) }, onClick = { showActions = false; onRename() })
+                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_phone)) }, onClick = { showActions = false; saveBookToPhone() })
+                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_details)) }, onClick = { showActions = false; onShowDetails() })
+                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) }, onClick = { showActions = false; onDelete() })
                 }
             }
         }
@@ -311,12 +311,12 @@ fun EmptyLibraryCard(onImportFile: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             BrandMark(compact = true)
-            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_saved_readings_yet), style = MaterialTheme.typography.titleLarge)
+            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_saved_readings_yet), style = MaterialTheme.typography.titleLarge)
             Text(
-                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_a_file_or_paste_text_to_create_your_first_local_reading_it),
+                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_import_a_file_or_paste_text_to_create_your_first_local_reading_it),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Button(onClick = onImportFile) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_first_file)) }
+            Button(onClick = onImportFile) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_import_first_file)) }
         }
     }
 }
@@ -431,7 +431,7 @@ fun DocumentCard(
                 if (coverBitmap != null && !selected) {
                     Image(
                         bitmap = coverBitmap.asImageBitmap(),
-                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_cover),
+                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_cover),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
@@ -485,8 +485,8 @@ fun DocumentCard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         if (document.collection.isNotBlank()) SoftChip(document.collection, emphasis = true)
-                        if (isQueued) SoftChip(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_queued))
-                        if (document.favorite) SoftChip(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_favorite))
+                        if (isQueued) SoftChip(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_queued))
+                        if (document.favorite) SoftChip(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_favorite))
                         SoftChip(formatUpdated(document.updatedAt))
                     }
                 }
@@ -512,7 +512,7 @@ fun DocumentCard(
                     IconButton(onClick = onShowDetails, modifier = Modifier.size(48.dp)) {
                         Icon(
                             imageVector = Icons.Outlined.Info,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_book_summary_details),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_book_summary_details),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
@@ -521,7 +521,7 @@ fun DocumentCard(
                         IconButton(onClick = { showActions = true }, modifier = Modifier.size(48.dp)) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
-                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_actions),
+                                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_document_actions),
                                 modifier = Modifier.size(20.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -531,15 +531,15 @@ fun DocumentCard(
                             onDismissRequest = { showActions = false },
                             modifier = Modifier.width(260.dp)
                         ) {
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_reading)) }, onClick = { showActions = false; onOpen() })
-                            DropdownMenuItem(text = { Text(if (document.favorite) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_from_favorites) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_to_favorites)) }, onClick = { showActions = false; onToggleFavorite() })
-                            DropdownMenuItem(text = { Text(if (isQueued) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_from_queue) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_to_queue)) }, onClick = { showActions = false; onToggleQueue() })
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_to_collection)) }, onClick = { showActions = false; onSetCollection() })
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_to_lists)) }, onClick = { showActions = false; onManageLists() })
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rename)) }, onClick = { showActions = false; onRename() })
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_to_phone)) }, onClick = { showActions = false; saveBookToPhone() })
-                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_details)) }, onClick = { showActions = false; onShowDetails() })
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) }, onClick = { showActions = false; onDelete() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_reading)) }, onClick = { showActions = false; onOpen() })
+                            DropdownMenuItem(text = { Text(if (document.favorite) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_favorites) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_favorites)) }, onClick = { showActions = false; onToggleFavorite() })
+                            DropdownMenuItem(text = { Text(if (isQueued) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_queue) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_queue)) }, onClick = { showActions = false; onToggleQueue() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_to_collection)) }, onClick = { showActions = false; onSetCollection() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_lists)) }, onClick = { showActions = false; onManageLists() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_rename)) }, onClick = { showActions = false; onRename() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_phone)) }, onClick = { showActions = false; saveBookToPhone() })
+                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_details)) }, onClick = { showActions = false; onShowDetails() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) }, onClick = { showActions = false; onDelete() })
                         }
                     }
                 }
@@ -636,7 +636,7 @@ fun DocumentTileCard(
                 if (coverBitmap != null) {
                     Image(
                         bitmap = coverBitmap.asImageBitmap(),
-                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_cover),
+                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_cover),
                         modifier = Modifier.width(LibraryArtworkWidth).height(LibraryArtworkHeight).bookCoverMotion("cover-${document.id}").align(Alignment.Center).clip(RoundedCornerShape(6.dp)),
                         contentScale = ContentScale.Fit
                     )
@@ -668,7 +668,7 @@ fun DocumentTileCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Check,
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_selected),
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -692,7 +692,7 @@ fun DocumentTileCard(
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text(
-                                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_new),
+                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_new),
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold
@@ -708,7 +708,7 @@ fun DocumentTileCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Star,
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_favorite),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_favorite),
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(12.dp)
                                 )
@@ -727,21 +727,21 @@ fun DocumentTileCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
-                                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_document_actions),
+                                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_document_actions),
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
                         DropdownMenu(expanded = showActions, onDismissRequest = { showActions = false }) {
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_reading)) }, onClick = { showActions = false; onOpen() })
-                            DropdownMenuItem(text = { Text(if (document.favorite) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_favorite) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_favorite)) }, onClick = { showActions = false; onToggleFavorite() })
-                            DropdownMenuItem(text = { Text(if (isQueued) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_remove_from_queue) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_to_queue)) }, onClick = { showActions = false; onToggleQueue() })
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_to_collection)) }, onClick = { showActions = false; onSetCollection() })
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_to_lists)) }, onClick = { showActions = false; onManageLists() })
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_rename)) }, onClick = { showActions = false; onRename() })
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_to_phone)) }, onClick = { showActions = false; saveBookToPhone() })
-                    DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_details)) }, onClick = { showActions = false; onShowDetails() })
-                            DropdownMenuItem(text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) }, onClick = { showActions = false; onDelete() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_reading)) }, onClick = { showActions = false; onOpen() })
+                            DropdownMenuItem(text = { Text(if (document.favorite) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_favorite) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_favorite)) }, onClick = { showActions = false; onToggleFavorite() })
+                            DropdownMenuItem(text = { Text(if (isQueued) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_queue) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_queue)) }, onClick = { showActions = false; onToggleQueue() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_to_collection)) }, onClick = { showActions = false; onSetCollection() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_lists)) }, onClick = { showActions = false; onManageLists() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_rename)) }, onClick = { showActions = false; onRename() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_phone)) }, onClick = { showActions = false; saveBookToPhone() })
+                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_details)) }, onClick = { showActions = false; onShowDetails() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) }, onClick = { showActions = false; onDelete() })
                         }
                     }
                 }
@@ -794,7 +794,7 @@ fun DocumentTileCard(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Info,
-                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_book_summary_details),
+                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_book_summary_details),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.size(15.dp)
                     )

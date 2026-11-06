@@ -84,7 +84,7 @@ object VeritasThemeState {
 @Composable
 fun BrandMark(modifier: Modifier = Modifier, compact: Boolean = false, size: Dp? = null) {
     val ink = if (MaterialTheme.colorScheme.surface.luminance() > .5f) Color(0xFF3C3C40) else Color(0xFFFFF6E6)
-    Image(painterResource(R.drawable.vern_v_mark), contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.app_name),
+    Image(painterResource(R.drawable.vern_v_mark), contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.app_name),
         modifier = modifier.size(size ?: if (compact) 24.dp else 58.dp).testTag("vern-brand-mark"),
         colorFilter = ColorFilter.tint(ink),
         contentScale = ContentScale.Fit)
@@ -182,7 +182,7 @@ fun VeritasWordmark(modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             BrandMark(size = 28.dp)
-            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ern), style = MaterialTheme.typography.titleLarge,
+            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ern), style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Black, maxLines = 1)
         }
     }
@@ -275,7 +275,7 @@ internal fun ShareTargetChooserDialog(
             ) {
                 BrandMark(compact = true)
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_to_vern),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_share_to_vern),
                     style = MaterialTheme.typography.titleLarge)
             }
         },
@@ -285,7 +285,7 @@ internal fun ShareTargetChooserDialog(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_how_to_save_or_open_this_content_in_vern),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_choose_how_to_save_or_open_this_content_in_vern),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -340,12 +340,12 @@ internal fun ShareTargetChooserDialog(
                         }
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import_to_read),
+                                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_import_to_read),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read_with_tts_narration_word_tracking_and_study_tools),
+                                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_read_with_tts_narration_word_tracking_and_study_tools),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -385,12 +385,12 @@ internal fun ShareTargetChooserDialog(
                         }
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_add_to_notes),
+                                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_notes),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save_to_your_notebook_as_a_reference_checklist_or_study_note),
+                                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_your_notebook_as_a_reference_checklist_or_study_note),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -402,7 +402,7 @@ internal fun ShareTargetChooserDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel))
             }
         },
         shape = RoundedCornerShape(24.dp)

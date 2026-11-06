@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="filter_all_notes">"Todas las notas"</string>
+    <string name="filter_voice_memos">"Notas de voz"</string>
+    <string name="filter_reminders">"Recordatorios"</string>
+    <string name="filter_overview">"Resumen"</string>
+    <string name="filter_history">"Historial"</string>
+    <string name="filter_updated">"Última actualización"</string>
+    <string name="filter_type">"Tipo"</string>
+    <string name="filter_featured">"Destacados"</string>
+    <string name="filter_shortest">"Más cortos"</string>
+    <string name="filter_family_youth">"Familia y juventud"</string>
+    <string name="filter_mystery">"Misterio"</string>
+    <string name="filter_adventure">"Aventura"</string>
+    <string name="filter_romance_drama">"Romance y drama"</string>
+    <string name="filter_life_habits">"Vida y hábitos"</string>
+    <string name="filter_quick_reads">"Lecturas cortas"</string>
+    <string name="filter_epic_classics">"Clásicos épicos"</string>
+    <string name="filter_faith_spirit">"Fe y espiritualidad"</string>
+    <string name="filter_search_classics">"Buscar libros o autores"</string>
+    <string name="filter_count">"%1$s (%2$s)"</string>
+</resources>

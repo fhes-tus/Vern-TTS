@@ -569,7 +569,7 @@ internal fun ActualDocumentView(
                     image != null -> {
                         Image(
                             bitmap = image.asImageBitmap(),
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_rendered_original_document),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_rendered_original_document),
                             colorFilter = darkThemeColorFilter,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Fit
@@ -733,13 +733,13 @@ internal fun ActualDocumentView(
                 paperToneMode = newMode
                 val curSettings = repository.loadReaderSettings()
                 repository.saveReaderSettings(curSettings.copy(paperToneMode = newMode.name.lowercase()))
-                val toneLabel = when (newMode) {
-                    PaperToneMode.ACTIVE_THEME -> "Default"
-                    PaperToneMode.DARK -> "Dark slate"
-                    PaperToneMode.NATURAL_WHITE -> "Bone"
-                    PaperToneMode.WARM_SEPIA -> "Sepia"
-                }
-                android.widget.Toast.makeText(context, "Paper tone: $toneLabel", android.widget.Toast.LENGTH_SHORT).show()
+                val toneLabel = context.getString(when (newMode) {
+                    PaperToneMode.ACTIVE_THEME -> R.string.ui_default
+                    PaperToneMode.DARK -> R.string.ui_dark_slate
+                    PaperToneMode.NATURAL_WHITE -> R.string.ui_bone
+                    PaperToneMode.WARM_SEPIA -> R.string.ui_sepia
+                })
+                android.widget.Toast.makeText(context, context.getString(R.string.reader_paper_tone_selected, toneLabel), android.widget.Toast.LENGTH_SHORT).show()
                 onPaperToneModeChange?.invoke(newMode)
             },
             showMenu = showMenu,

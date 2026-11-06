@@ -82,9 +82,9 @@ internal fun PdfImportOptionsDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back))
                     }
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_pdf_import_tools), style = MaterialTheme.typography.titleLarge)
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_pdf_import_tools), style = MaterialTheme.typography.titleLarge)
                 }
             LazyColumn(
                 modifier = Modifier
@@ -95,7 +95,7 @@ internal fun PdfImportOptionsDialog(
             ) {
                 item {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_control_how_pdfs_and_text_files_are_imported_before_they_enter_th),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_control_how_pdfs_and_text_files_are_imported_before_they_enter_th),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -110,7 +110,7 @@ internal fun PdfImportOptionsDialog(
                                         startPage = startPageDraft.toIntOrNull()?.takeIf { it > 0 })
                                 )
                             },
-                            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_start_page)) },
+                            label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_start_page)) },
                             singleLine = true,
                             modifier = Modifier.weight(1f)
                         )
@@ -123,7 +123,7 @@ internal fun PdfImportOptionsDialog(
                                         endPage = endPageDraft.toIntOrNull()?.takeIf { it > 0 })
                                 )
                             },
-                            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_end_page)) },
+                            label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_end_page)) },
                             singleLine = true,
                             modifier = Modifier.weight(1f)
                         )
@@ -131,14 +131,14 @@ internal fun PdfImportOptionsDialog(
                 }
                 item {
                     Column {
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_extraction_mode), fontWeight = FontWeight.Bold)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_extraction_mode), fontWeight = FontWeight.Bold)
                         Box {
                             OutlinedButton(
                                 onClick = { modeExpanded = true },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
-                                    com.veritas.reader.ui.screens.localizedSettingsOption(options.extractionMode.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_html_with_images) }),
+                                    com.veritas.reader.ui.screens.localizedSettingsOption(options.extractionMode.ifBlank { com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_html_with_images) }),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -167,7 +167,7 @@ internal fun PdfImportOptionsDialog(
                 }
                 item {
                     Column {
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text_encoding), fontWeight = FontWeight.Bold)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_text_encoding), fontWeight = FontWeight.Bold)
                         Box {
                             OutlinedButton(
                                 onClick = { encodingExpanded = true },
@@ -197,56 +197,56 @@ internal fun PdfImportOptionsDialog(
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_clean_repeated_headers_and_footers),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_clean_repeated_headers_and_footers),
                         checked = options.cleanupRepeatedLines,
                         onCheckedChange = { onOptionsChange(options.copy(cleanupRepeatedLines = it)) }
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_remove_page_numbers),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_remove_page_numbers),
                         checked = options.removePageNumbers,
                         onCheckedChange = { onOptionsChange(options.copy(removePageNumbers = it)) }
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_repair_hyphenated_line_breaks),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_repair_hyphenated_line_breaks),
                         checked = options.repairHyphenation,
                         onCheckedChange = { onOptionsChange(options.copy(repairHyphenation = it)) }
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_include_page_markers),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_include_page_markers),
                         checked = options.includePageMarkers,
                         onCheckedChange = { onOptionsChange(options.copy(includePageMarkers = it)) }
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_match_original_layout_where_possible),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_match_original_layout_where_possible),
                         checked = options.markPdfLinesForCanvas,
                         onCheckedChange = { onOptionsChange(options.copy(markPdfLinesForCanvas = it)) }
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_remove_top_page_noise),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_remove_top_page_noise),
                         checked = options.removeTopPageNoise,
                         onCheckedChange = { onOptionsChange(options.copy(removeTopPageNoise = it)) }
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_remove_bottom_page_noise),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_remove_bottom_page_noise),
                         checked = options.removeBottomPageNoise,
                         onCheckedChange = { onOptionsChange(options.copy(removeBottomPageNoise = it)) }
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_manual_crop_before_extract),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_manual_crop_before_extract),
                         checked = options.manualCropBeforeExtract,
                         onCheckedChange = { onOptionsChange(options.copy(manualCropBeforeExtract = it)) }
                     )
@@ -259,34 +259,34 @@ internal fun PdfImportOptionsDialog(
                                 .take(6).ifBlank { "0.1" }))
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_minimum_word_gap)) },
+                        label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_minimum_word_gap)) },
                         singleLine = true
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_separate_words_when_font_changes),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_separate_words_when_font_changes),
                         checked = options.separateWordsOnFontChange,
                         onCheckedChange = { onOptionsChange(options.copy(separateWordsOnFontChange = it)) }
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_prefer_ocr_when_pdf_text_is_weak),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_prefer_ocr_when_pdf_text_is_weak),
                         checked = options.preferOcrWhenLowText,
                         onCheckedChange = { onOptionsChange(options.copy(preferOcrWhenLowText = it)) }
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_force_ocr_for_pdf_import),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_force_ocr_for_pdf_import),
                         checked = options.forceOcr,
                         onCheckedChange = { onOptionsChange(options.copy(forceOcr = it)) }
                     )
                 }
                 item {
                     PdfImportToggleRow(
-                        title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_force_fresh_extraction),
+                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_force_fresh_extraction),
                         checked = options.forceFreshExtraction,
                         onCheckedChange = { onOptionsChange(options.copy(forceFreshExtraction = it)) }
                     )
@@ -299,9 +299,9 @@ internal fun PdfImportOptionsDialog(
                         .padding(horizontal = 18.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done)) }
+                    TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_done)) }
                     Spacer(modifier = Modifier.weight(1f))
-                    Button(onClick = onPickPdf, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_file_browser)) }
+                    Button(onClick = onPickPdf, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_file_browser)) }
                 }
             }
         }

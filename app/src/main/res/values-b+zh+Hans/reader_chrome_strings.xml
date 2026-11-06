@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reader_page_sentence_progress">"第 %1$d 页，共 %2$d 页 • 句子 %3$d/%4$d"</string>
+    <string name="reader_paper_tone_selected">"纸张色调：%1$s"</string>
+    <string name="pdf_swipe_pages">"滑动翻页"</string>
+    <string name="pdf_scroll_pages">"滚动浏览页面"</string>
+    <string name="pdf_fit_current_page">"调整当前页以适应屏幕"</string>
+    <string name="pdf_switch_orientation">"切换屏幕方向"</string>
+    <string name="pdf_outline_count">"章节与小节：%1$d"</string>
+    <string name="pdf_outline_description">"章节、小节和链接"</string>
+    <string name="pdf_first_page">"首页（%1$d）"</string>
+    <string name="pdf_last_page">"末页（%1$d）"</string>
+    <string name="pdf_jump_beginning">"跳到开头"</string>
+    <string name="pdf_jump_end">"跳到文档末尾"</string>
+    <string name="pdf_live_sync">"实时同步"</string>
+    <string name="pdf_sync_off">"同步已关闭"</string>
+    <string name="pdf_sync_enabled">"实时同步（已开启）"</string>
+    <string name="pdf_sync_disabled">"实时同步（已关闭）"</string>
+    <string name="pdf_pause_highlight">"点按暂停自动高亮"</string>
+    <string name="pdf_enable_sync">"点按将朗读与 PDF 同步"</string>
+    <string name="pdf_share_missing">"找不到要分享的 PDF 文件。"</string>
+    <string name="pdf_share_document">"分享 PDF 文档"</string>
+    <string name="pdf_document_format">"格式"</string>
+    <string name="pdf_original_format">"PDF（原始文档）"</string>
+    <string name="pdf_total_sentences">"句子总数"</string>
+    <string name="pdf_estimated_reading_time">"预计阅读时间"</string>
+    <string name="pdf_added_date">"添加日期"</string>
+    <string name="pdf_ready_to_read">"准备阅读"</string>
+    <string name="pdf_preparing_reading">"正在准备朗读…"</string>
+    <string name="pdf_cancel_preparing">"正在准备播放。点按取消"</string>
+    <string name="pdf_back_to_vern">"返回 Vern"</string>
+    <string name="pdf_speed_value">"速度 %1$.2f×"</string>
+    <string name="pdf_pitch_value">"音高 %1$.2f"</string>
+    <string name="pdf_queue_count">"队列（%1$d）"</string>
+    <string name="pdf_continue_queue">"继续队列（%1$d）"</string>
+    <string name="pdf_file_share">"文件与分享"</string>
+</resources>

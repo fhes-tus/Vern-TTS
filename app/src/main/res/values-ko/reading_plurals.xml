@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="reading_minutes">
+        <item quantity="other">"%1$d분"</item>
+    </plurals>
+    <plurals name="reading_minutes_daily">
+        <item quantity="other">"하루 %1$d분"</item>
+    </plurals>
+    <plurals name="reading_minutes_to_goal">
+        <item quantity="other">"목표까지 %1$d분"</item>
+    </plurals>
+    <plurals name="reading_days">
+        <item quantity="other">"%1$d일"</item>
+    </plurals>
+    <plurals name="reading_days_this_week">
+        <item quantity="other">"이번 주 %1$d일 읽음"</item>
+    </plurals>
+</resources>

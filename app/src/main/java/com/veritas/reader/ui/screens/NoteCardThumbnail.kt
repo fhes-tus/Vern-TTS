@@ -51,13 +51,13 @@ internal fun NoteCardThumbnail(note: GeneralNote) {
         contentAlignment = Alignment.Center) {
         val loaded = bitmap
         if (loaded != null) {
-            Image(loaded.asImageBitmap(), if (media.second) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_video_preview) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_image_preview),
+            Image(loaded.asImageBitmap(), if (media.second) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_video_preview) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_image_preview),
                 Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         } else {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Icon(if (media.second) Icons.Outlined.Videocam else Icons.Outlined.Image, null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(if (media.second) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_video_attachment) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_image_attachment), style = MaterialTheme.typography.labelSmall,
+                Text(if (media.second) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_video_attachment) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_image_attachment), style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }

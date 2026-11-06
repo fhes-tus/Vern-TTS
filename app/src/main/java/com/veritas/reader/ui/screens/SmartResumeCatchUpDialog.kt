@@ -74,9 +74,9 @@ fun SmartResumeCatchUpDialog(
                     )
                 }
                 Column {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_smart_resume_catch_up), style = MaterialTheme.typography.titleLarge)
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_smart_resume_catch_up), style = MaterialTheme.typography.titleLarge)
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_178, com.veritas.reader.ui.screens.localizedUiValue(timeAgoText), com.veritas.reader.ui.screens.localizedUiValue(((lastIndex + 1) * 100 / document.chunkCount.coerceAtLeast(1)))),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_178, com.veritas.reader.ui.screens.localizedUiValue(timeAgoText), com.veritas.reader.ui.screens.localizedUiValue(((lastIndex + 1) * 100 / document.chunkCount.coerceAtLeast(1)))),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -117,14 +117,14 @@ fun SmartResumeCatchUpDialog(
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_179, com.veritas.reader.ui.screens.localizedUiValue(lastIndex + 1)),
+                                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_179, com.veritas.reader.ui.screens.localizedUiValue(lastIndex + 1)),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
 
                         Text(
-                            text = if (recapText.isNotBlank()) "“$recapText”" else document.preview.ifBlank { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ready_to_resume) },
+                            text = if (recapText.isNotBlank()) "“$recapText”" else document.preview.ifBlank { com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ready_to_resume) },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -142,12 +142,12 @@ fun SmartResumeCatchUpDialog(
             ) {
                 Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_resume_reading_ba8c6b6))
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_resume_reading_ba8c6b6))
             }
         },
         dismissButton = {
             OutlinedButton(onClick = onDismiss, shape = RoundedCornerShape(12.dp)) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close))
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close))
             }
         }
     )

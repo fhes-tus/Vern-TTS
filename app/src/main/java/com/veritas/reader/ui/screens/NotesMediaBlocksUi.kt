@@ -130,7 +130,7 @@ internal fun NoteLiveRecordingBar(
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_recording_voice_memo),
+                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_recording_voice_memo),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -150,7 +150,7 @@ internal fun NoteLiveRecordingBar(
                 ) {
                     Icon(
                         Icons.Outlined.Delete,
-                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_discard),
+                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_discard),
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(18.dp)
                     )
@@ -164,7 +164,7 @@ internal fun NoteLiveRecordingBar(
                 ) {
                     Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_insert), style = MaterialTheme.typography.labelMedium)
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_insert), style = MaterialTheme.typography.labelMedium)
                 }
             }
 
@@ -244,13 +244,13 @@ internal fun NoteImageBlockItem(
             if (bitmap != null) {
                 Image(
                     bitmap = bitmap.asImageBitmap(),
-                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_inline_note_image),
+                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_inline_note_image),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_error_loading_image), color = onCardColor)
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_error_loading_image), color = onCardColor)
                 }
             }
             Surface(
@@ -267,11 +267,11 @@ internal fun NoteImageBlockItem(
                 ) {
                     Icon(
                         Icons.Filled.Visibility,
-                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_view_image),
+                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_view_image),
                         tint = Color.White,
                         modifier = Modifier.size(14.dp)
                     )
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tap_to_view), style = MaterialTheme.typography.labelSmall, color = Color.White)
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_tap_to_view), style = MaterialTheme.typography.labelSmall, color = Color.White)
                 }
             }
             Row(
@@ -400,7 +400,7 @@ internal fun NoteVideoBlockItem(
             if (videoThumbnail != null) {
                 Image(
                     bitmap = videoThumbnail.asImageBitmap(),
-                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_video_thumbnail),
+                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_video_thumbnail),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -431,7 +431,7 @@ internal fun NoteVideoBlockItem(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         Icons.Filled.PlayArrow,
-                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_play_video),
+                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_play_video),
                         tint = Color.White,
                         modifier = Modifier.size(30.dp)
                     )
@@ -456,7 +456,7 @@ internal fun NoteVideoBlockItem(
                         tint = Color.White,
                         modifier = Modifier.size(14.dp)
                     )
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tap_to_play), style = MaterialTheme.typography.labelSmall, color = Color.White)
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_tap_to_play), style = MaterialTheme.typography.labelSmall, color = Color.White)
                 }
             }
 
@@ -566,7 +566,7 @@ internal fun NoteFileBlockItem(
                         color = onCardColor.copy(alpha = 0.6f)
                     )
                     Text(
-                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_tap_to_open),
+                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_tap_to_open),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -580,7 +580,7 @@ internal fun NoteFileBlockItem(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Share,
-                        contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_file),
+                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_share_file),
                         tint = onCardColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(16.dp)
                     )

@@ -55,27 +55,27 @@ internal fun CustomAccentControl(value: String, themeId: String, onSave: (String
     val selected = normalizeCustomAccent(value)
     val swatch = if (selected.isEmpty()) MaterialTheme.colorScheme.primary else Color(0xFF000000L or selected.drop(1).toLong(16))
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_custom_accent), style = MaterialTheme.typography.titleMedium)
-        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_any_colour_for_buttons_highlights_and_matching_tints_it_fo),
+        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_custom_accent), style = MaterialTheme.typography.titleMedium)
+        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_choose_any_colour_for_buttons_highlights_and_matching_tints_it_fo),
             style = MaterialTheme.typography.bodyMedium)
-        if (themeId.contains("high_contrast")) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_high_contrast_keeps_its_accessibility_colours_your_custom_accent),
+        if (themeId.contains("high_contrast")) Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_high_contrast_keeps_its_accessibility_colours_your_custom_accent),
             style = MaterialTheme.typography.bodySmall)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.size(32.dp).background(swatch, CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape))
             OutlinedButton(onClick = {
                 select(AccentHsv.fromHex(selected.ifEmpty { fallback }, hue) ?: AccentHsv(210f, 1f, 1f))
                 open = true
-            }, modifier = Modifier.testTag("choose-custom-accent")) { Text(if (selected.isEmpty()) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_colour) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_change_colour)) }
+            }, modifier = Modifier.testTag("choose-custom-accent")) { Text(if (selected.isEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_choose_colour) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_change_colour)) }
         }
         if (selected.isNotEmpty()) TextButton({ onSave("") }, Modifier.testTag("reset-custom-accent"),
-            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_use_theme_colours)) }
+            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_use_theme_colours)) }
     }
     if (open) {
-        val selectedColourLabel = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected_colour)
+        val selectedColourLabel = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_selected_colour)
         val selectedColourName = localizedSettingsOption(hsv.colourName())
         AlertDialog(
             onDismissRequest = { open = false },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_choose_accent_colour)) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_choose_accent_colour)) },
             text = {
                 Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -87,23 +87,23 @@ internal fun CustomAccentControl(value: String, themeId: String, onSave: (String
                                 contentDescription = selectedColourLabel
                                 stateDescription = selectedColourName
                             })
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_selected_colour), style = MaterialTheme.typography.labelLarge)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_selected_colour), style = MaterialTheme.typography.labelLarge)
                     }
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_text_adjusts_to_contrast_with_your_colour), style = MaterialTheme.typography.bodySmall,
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_text_adjusts_to_contrast_with_your_colour), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Column(Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SaturationValueField(hsv, { x, y -> select(AccentHsv(hue, saturation, brightness).atFieldPosition(x, y)) })
                         HueStrip(hsv.hue, { select(AccentHsv(it, saturation, brightness)) })
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_quick_colours), style = MaterialTheme.typography.labelLarge)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_quick_colours), style = MaterialTheme.typography.labelLarge)
                         FlowRow(Modifier.fillMaxWidth(), maxItemsInEachRow = 5,
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             accentSwatches.forEach { (label, hex) ->
                                 val isSelected = hex == chosenColour
                                 val colourLabel = localizedSettingsOption(label)
-                                val swatchDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_swatch_colour, colourLabel)
-                                val chooseDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_choose_swatch, colourLabel)
+                                val swatchDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_swatch_colour, colourLabel)
+                                val chooseDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_choose_swatch, colourLabel)
                                 Box(Modifier.size(48.dp)
                                     .testTag("custom-accent-preset-${label.lowercase()}")
                                     .semantics { contentDescription = swatchDescription; this.selected = isSelected }
@@ -125,9 +125,9 @@ internal fun CustomAccentControl(value: String, themeId: String, onSave: (String
             },
             confirmButton = { TextButton({ onSave(AccentHsv(hue, saturation, brightness).toHex()); open = false },
                 modifier = Modifier.testTag("apply-custom-accent"),
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_apply)) } },
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_apply)) } },
             dismissButton = { TextButton({ open = false },
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } }
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } }
         )
     }
 }
@@ -139,12 +139,12 @@ private val accentSwatches = listOf(
 
 @Composable
 private fun SaturationValueField(hsv: AccentHsv, onChange: (Float, Float) -> Unit) {
-    val shadeLabel = localizedSettingsOption(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_colour_shade))
-    val colourState = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_colour_state, (hsv.saturation * 100).roundToInt(), (hsv.value * 100).roundToInt())
-    val moreSaturated = localizedSettingsOption(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_more_saturated))
-    val lessSaturated = localizedSettingsOption(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_less_saturated))
-    val brighter = localizedSettingsOption(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_brighter))
-    val darker = localizedSettingsOption(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_darker))
+    val shadeLabel = localizedSettingsOption(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_option_colour_shade))
+    val colourState = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_colour_state, (hsv.saturation * 100).roundToInt(), (hsv.value * 100).roundToInt())
+    val moreSaturated = localizedSettingsOption(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_option_more_saturated))
+    val lessSaturated = localizedSettingsOption(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_option_less_saturated))
+    val brighter = localizedSettingsOption(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_option_brighter))
+    val darker = localizedSettingsOption(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_option_darker))
     var focused by remember { mutableStateOf(false) }
     val latestChange by rememberUpdatedState(onChange)
     val hueColour = Color(AccentHsv(hsv.hue, 1f, 1f).toArgb())
@@ -194,8 +194,8 @@ private fun SaturationValueField(hsv: AccentHsv, onChange: (Float, Float) -> Uni
 
 @Composable
 private fun HueStrip(hue: Float, onChange: (Float) -> Unit) {
-    val hueLabel = localizedSettingsOption(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_option_hue))
-    val hueState = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.settings_hue_degrees, hue.roundToInt())
+    val hueLabel = localizedSettingsOption(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_option_hue))
+    val hueState = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_hue_degrees, hue.roundToInt())
     var focused by remember { mutableStateOf(false) }
     val latestChange by rememberUpdatedState(onChange)
     val rainbow = remember { Brush.horizontalGradient(listOf(Color.Red, Color.Yellow, Color.Green, Color.Cyan, Color.Blue, Color.Magenta, Color.Red)) }

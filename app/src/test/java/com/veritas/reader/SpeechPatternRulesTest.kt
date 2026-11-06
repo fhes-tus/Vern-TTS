@@ -6,6 +6,11 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class SpeechPatternRulesTest {
+    @Test fun syntaxGuideExamplesKeepTheCapturedDigits() {
+        assertEquals("12", apply("[12]", rule("[{number}]", "\$1", SpeechRuleKind.PATTERN)))
+        assertEquals("12", apply("[12]", rule("""\[([0-9]+)\]""", "\$1", SpeechRuleKind.REGEX)))
+    }
+
     private fun rule(find: String, replacement: String = "", kind: SpeechRuleKind = SpeechRuleKind.PATTERN,
         case: Boolean = false, enabled: Boolean = true) = PronunciationRule(find, find, replacement,
         enabled = enabled, matchKind = kind, caseSensitive = case)

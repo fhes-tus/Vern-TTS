@@ -232,8 +232,8 @@ internal fun MainIntentAndRoutingEffects(
     if (uiState.showExitConfirmationDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.updateState { it.copy(showExitConfirmationDialog = false) } },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_exit_vern)) },
-            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_are_you_sure_you_want_to_close_vern)) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_exit_vern)) },
+            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_are_you_sure_you_want_to_close_vern)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -241,14 +241,14 @@ internal fun MainIntentAndRoutingEffects(
                         (context as? ComponentActivity)?.finish()
                     }
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_exit))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_exit))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { viewModel.updateState { it.copy(showExitConfirmationDialog = false) } }
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel))
                 }
             }
         )

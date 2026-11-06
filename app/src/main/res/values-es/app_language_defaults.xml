@@ -2,4 +2,20 @@
 <resources>
     <string name="language_follow_device_named">"Usar idioma del dispositivo · %1$s"</string>
     <string name="language_device_behavior" formatted="false">"Esta opción elimina el idioma propio de Vern y sigue las preferencias compatibles del teléfono. Si Vern no dispone de ninguna, usa inglés. Los futuros cambios de idioma del teléfono se siguen automáticamente."</string>
+    <string name="menu_translation_explanation">"Traduce las pantallas y los menús de Vern en este dispositivo si el Traductor de Google admite el idioma del teléfono. La primera descarga del modelo suele ocupar unos 30 MB. Google ML Kit recopila métricas de uso y rendimiento."</string>
+    <string name="menu_translation_preparing">"Preparando la descarga del modelo. Los ajustes conservan su idioma mientras esperas."</string>
+    <string name="menu_translation_failed">"No se pudo preparar el modelo. Comprueba tu conexión e inténtalo de nuevo."</string>
+    <string name="menu_translation_mobile">"Permitir datos móviles para descargar modelos"</string>
+    <string name="menu_translation_enable">"Traducir con Google"</string>
+    <string name="menu_translation_disable">"Desactivar la traducción de ajustes"</string>
+    <string name="menu_translation_attribution">"Traducción proporcionada por el Traductor de Google"</string>
+    <string name="menu_translation_about">"Acerca del Traductor de Google"</string>
+    <string name="menu_translation_disclaimer">"Google proporciona estas traducciones tal cual, sin garantías de exactitud, fiabilidad, comerciabilidad, idoneidad para un fin concreto o no infracción."</string>
+    <string name="menu_translation_thermal">"Android pone en espera la descarga del modelo si el teléfono está demasiado caliente. Vern continuará cuando Android lo permita."</string>
+    <string name="menu_translation_model_name">"Modelo de traducción para %1$s"</string>
+    <string name="menu_translation_waiting_network">"Esperando una conexión a Internet. Vern iniciará la descarga cuando se conecte."</string>
+    <string name="menu_translation_waiting_wifi">"Esperando Wi-Fi. Puedes permitir los datos móviles abajo."</string>
+    <string name="menu_translation_downloading">"Descargando el modelo de Google."</string>
+    <string name="menu_translation_applying">"Modelo listo. Traduciendo la interfaz en este teléfono."</string>
+    <string name="menu_translation_ready">"Modelo listo para traducir la interfaz sin conexión."</string>
 </resources>

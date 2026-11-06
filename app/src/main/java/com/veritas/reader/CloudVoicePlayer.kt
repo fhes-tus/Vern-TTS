@@ -4,8 +4,6 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.PlaybackParams
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import kotlinx.coroutines.*
 import java.io.File
 
@@ -110,10 +108,7 @@ internal class CloudVoicePlayer(private val context: Context, private val scope:
                 }
                 target.delete()
             }
-            val network = context.getSystemService(ConnectivityManager::class.java)
-            val capabilities = network.getNetworkCapabilities(network.activeNetwork)
-            if (config.wifiOnly && capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) != true)
-                throw CloudSpeechException(R.string.cloud_error_wifi)
+            CloudVoiceConnection.checkNetwork(context, config)
             if (config.provider != CloudVoiceProvider.CUSTOM && credential.isBlank()) throw CloudSpeechException(R.string.cloud_error_key)
             val audio = transport.fetch(config,text,credential)
             checkActive()

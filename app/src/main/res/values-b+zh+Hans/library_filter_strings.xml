@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="filter_all_notes">"所有笔记"</string>
+    <string name="filter_voice_memos">"语音备忘录"</string>
+    <string name="filter_reminders">"提醒"</string>
+    <string name="filter_overview">"概览"</string>
+    <string name="filter_history">"历史记录"</string>
+    <string name="filter_updated">"最近更新"</string>
+    <string name="filter_type">"类型"</string>
+    <string name="filter_featured">"精选"</string>
+    <string name="filter_shortest">"最短"</string>
+    <string name="filter_family_youth">"家庭与青少年"</string>
+    <string name="filter_mystery">"悬疑"</string>
+    <string name="filter_adventure">"冒险"</string>
+    <string name="filter_romance_drama">"爱情与戏剧"</string>
+    <string name="filter_life_habits">"生活与习惯"</string>
+    <string name="filter_quick_reads">"短篇阅读"</string>
+    <string name="filter_epic_classics">"史诗经典"</string>
+    <string name="filter_faith_spirit">"信仰与心灵"</string>
+    <string name="filter_search_classics">"搜索书籍或作者"</string>
+    <string name="filter_count">"%1$s（%2$s）"</string>
+</resources>

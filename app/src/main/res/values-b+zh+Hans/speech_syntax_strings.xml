@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="speech_syntax_example_result">"示例输入 → 朗读结果"</string>
+    <string name="speech_syntax_digits">"匹配一个或多个数字。"</string>
+    <string name="speech_syntax_word">"匹配一个词。"</string>
+    <string name="speech_syntax_text">"匹配单行文字。"</string>
+    <string name="speech_syntax_braces">"连续输入两个花括号可匹配一个字面花括号。"</string>
+    <string name="speech_syntax_capture">"圆括号捕获文本，供替换时使用。"</string>
+    <string name="speech_syntax_brackets">"反斜杠让方括号按字面匹配。"</string>
+    <string name="speech_syntax_first_group">"在替换朗读中插入第一个捕获组。后续捕获组依次编号。"</string>
+    <string name="speech_syntax_whole_match">"在替换朗读中插入完整匹配内容。"</string>
+    <string name="speech_syntax_dollar">"在替换朗读中插入一个美元符号。"</string>
+    <string name="speech_syntax_skip">"选择跳过可在朗读中省略完整匹配内容。"</string>
+    <string name="speech_syntax_re2_limits">"正则表达式使用 RE2。匹配模式不支持环视和组反向引用。至少匹配一个字符。"</string>
+    <string name="speech_syntax_walkthrough">"试用只朗读方括号内数字的示例"</string>
+    <string name="speech_syntax_step_pattern">"将上面的代码填入匹配模式。方括号按原样匹配，标记会保留其中的数字。"</string>
+    <string name="speech_syntax_step_regex">"将上面的代码填入匹配模式。反斜杠表示匹配实际的方括号，圆括号会保留其中的数字。"</string>
+    <string name="speech_syntax_step_say">"选择替换朗读为并输入上面的值。Vern 会朗读匹配时保留的第一部分，也就是这里的数字。"</string>
+    <string name="speech_syntax_step_try">"将示例填入原始段落。查看朗读结果或点按收听。效果合适后保存规则。"</string>
+    <string name="speech_syntax_use_example">"填入此示例"</string>
+</resources>

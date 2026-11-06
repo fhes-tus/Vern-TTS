@@ -1,7 +1,6 @@
 package com.veritas.reader.ui.screens
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import com.veritas.reader.R
 
 /** Display labels for app-owned enums only; identifiers and serialized values remain unchanged. */
@@ -27,6 +26,41 @@ internal fun localizedCatalogLabel(label: String): String {
         "Bilingual full document" -> R.string.l10n_bilingual_full_document
         "Bilingual current section" -> R.string.l10n_catalog_13
         "ALL" -> R.string.ui_all
+        "All" -> R.string.ui_all
+        "All Notes" -> R.string.filter_all_notes
+        "Pinned" -> R.string.ui_pinned
+        "Voice Memos" -> R.string.filter_voice_memos
+        "Checklists" -> R.string.settings_checklists
+        "Reminders" -> R.string.filter_reminders
+        "Highlights" -> R.string.ui_highlights
+        "In progress" -> R.string.l10n_in_progress
+        "Unread" -> R.string.l10n_unread
+        "Completed" -> R.string.ui_completed
+        "Favorites" -> R.string.ui_favorites
+        "Queue" -> R.string.ui_queue
+        "Overview" -> R.string.filter_overview
+        "Bookmarks" -> R.string.ui_bookmarks
+        "Booknotes" -> R.string.ui_booknotes
+        "Vocab" -> R.string.ui_vocabulary
+        "Quizzes" -> R.string.ui_quizzes
+        "History" -> R.string.filter_history
+        "Last edited" -> R.string.settings_last_edited
+        "Newest" -> R.string.settings_newest
+        "Updated" -> R.string.filter_updated
+        "Title" -> R.string.ui_title
+        "Author" -> R.string.ui_author
+        "Progress" -> R.string.ui_progress
+        "Type" -> R.string.filter_type
+        "Featured" -> R.string.filter_featured
+        "Shortest" -> R.string.filter_shortest
+        "Family & Youth" -> R.string.filter_family_youth
+        "Mystery" -> R.string.filter_mystery
+        "Adventure" -> R.string.filter_adventure
+        "Romance & Drama" -> R.string.filter_romance_drama
+        "Life & Habits" -> R.string.filter_life_habits
+        "Quick Reads" -> R.string.filter_quick_reads
+        "Epic Classics" -> R.string.filter_epic_classics
+        "Faith & Spirit" -> R.string.filter_faith_spirit
         "EPUB" -> R.string.ui_epub
         "PDF" -> R.string.ui_pdf
         "DOCX" -> R.string.ui_docx
@@ -49,5 +83,5 @@ internal fun localizedCatalogLabel(label: String): String {
         "Choose when I share" -> R.string.l10n_catalog_28
         else -> return localizedSettingsOption(label)
     }
-    return stringResource(resource)
+    return menuString(resource)
 }

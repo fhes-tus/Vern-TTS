@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="speech_syntax_example_result">"Exemple de texte → résultat lu"</string>
+    <string name="speech_syntax_digits">"Correspond à un ou plusieurs chiffres."</string>
+    <string name="speech_syntax_word">"Correspond à un mot."</string>
+    <string name="speech_syntax_text">"Correspond à du texte sur une ligne."</string>
+    <string name="speech_syntax_braces">"Doublez une accolade pour la traiter comme un caractère littéral."</string>
+    <string name="speech_syntax_capture">"Les parenthèses capturent du texte pour le remplacement."</string>
+    <string name="speech_syntax_brackets">"Une barre oblique inverse rend le crochet littéral."</string>
+    <string name="speech_syntax_first_group">"Dans Dire à la place, insère la première capture. Continuez la numérotation pour les suivantes."</string>
+    <string name="speech_syntax_whole_match">"Dans Dire à la place, insère tout le texte trouvé."</string>
+    <string name="speech_syntax_dollar">"Dans Dire à la place, insère un signe dollar."</string>
+    <string name="speech_syntax_skip">"Choisissez Ignorer pour omettre le texte trouvé dans la narration."</string>
+    <string name="speech_syntax_re2_limits">"Les expressions régulières utilisent RE2. Les assertions avant ou arrière et les références aux groupes dans le motif ne sont pas prises en charge. Faites correspondre au moins un caractère."</string>
+    <string name="speech_syntax_walkthrough">"Essayez une règle qui lit le nombre entre crochets"</string>
+    <string name="speech_syntax_step_pattern">"Saisissez le code ci-dessus dans Motif à rechercher. Les crochets sont recherchés tels quels. Le marqueur retient les chiffres qu’ils entourent."</string>
+    <string name="speech_syntax_step_regex">"Saisissez le code ci-dessus dans Motif à rechercher. Les barres obliques inverses indiquent des crochets littéraux. Les parenthèses retiennent les chiffres à l’intérieur."</string>
+    <string name="speech_syntax_step_say">"Choisissez Dire à la place et saisissez la valeur ci-dessus. Vern lit le premier élément retenu, ici le nombre."</string>
+    <string name="speech_syntax_step_try">"Saisissez l’exemple dans Passage original. Vérifiez le Résultat prononcé ou touchez Écouter. Enregistrez la règle si le résultat vous convient."</string>
+    <string name="speech_syntax_use_example">"Remplir avec cet exemple"</string>
+</resources>

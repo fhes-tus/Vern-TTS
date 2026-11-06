@@ -171,14 +171,14 @@ internal fun FloatingRecordOverlay(
                 ) {
                     RecordPillDot(inProgress = inProgress)
                     if (fileReady) {
-                        TextButton(onClick = onSave) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_save)) }
-                        TextButton(onClick = onDiscard) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_discard)) }
+                        TextButton(onClick = onSave) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save)) }
+                        TextButton(onClick = onDiscard) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_discard)) }
                     } else {
                         Text(
-                            if (inProgress) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_finishing) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_audio_yet),
+                            if (inProgress) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_finishing) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_audio_yet),
                             style = MaterialTheme.typography.bodySmall
                         )
-                        TextButton(onClick = onDiscard) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_discard)) }
+                        TextButton(onClick = onDiscard) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_discard)) }
                     }
                 }
             } else {
@@ -251,8 +251,8 @@ internal fun AppHealthDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close)) } },
-        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_app_health)) },
+        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close)) } },
+        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_app_health)) },
         text = {
             Column(
                 modifier = Modifier
@@ -274,7 +274,7 @@ internal fun AppHealthDialog(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_vern),
                             style = MaterialTheme.typography.titleMedium)
                         val context = LocalContext.current
                         val appVersion = remember(context) {
@@ -283,22 +283,22 @@ internal fun AppHealthDialog(
                             }.getOrNull() ?: "2.0.0"
                         }
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_004, com.veritas.reader.ui.screens.localizedUiValue(appVersion)),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_004, com.veritas.reader.ui.screens.localizedUiValue(appVersion)),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_193, com.veritas.reader.ui.screens.localizedUiValue(documentCount), com.veritas.reader.ui.screens.localizedUiValue(queueCount)),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_193, com.veritas.reader.ui.screens.localizedUiValue(documentCount), com.veritas.reader.ui.screens.localizedUiValue(queueCount)),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_005, com.veritas.reader.ui.screens.localizedUiValue(themePackName), com.veritas.reader.ui.screens.localizedUiValue(themeName)),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_005, com.veritas.reader.ui.screens.localizedUiValue(themePackName), com.veritas.reader.ui.screens.localizedUiValue(themeName)),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
                 ReadinessBlock(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_permissions_review),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_permissions_review),
                     items = listOf(
                         "Notifications are only used for media playback controls.",
                         "Foreground service is used for reading aloud while the app is outside the screen.",
@@ -308,7 +308,7 @@ internal fun AppHealthDialog(
                 )
 
                 ReadinessBlock(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_before_sharing_an_apk),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_before_sharing_an_apk),
                     items = listOf(
                         "Run the final QA checklist on a physical phone.",
                         "Test import, playback, background controls, OCR, export, sync pack merge, notes export, and AI handoff.",
@@ -318,7 +318,7 @@ internal fun AppHealthDialog(
                 )
 
                 ReadinessBlock(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_current_limits),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_current_limits),
                     items = listOf(
                         "Google Drive login is planned for a later OAuth pass.",
                         "Long scanned PDFs and WAV exports may be slow on low-memory phones.",

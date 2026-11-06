@@ -165,8 +165,8 @@ internal fun BookmarkDocumentCard(
     if (showDeleteConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
-            title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_all_bookmarks)) },
-            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_083, com.veritas.reader.ui.screens.localizedUiValue(groups.size), com.veritas.reader.ui.screens.localizedUiValue(document.title))) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_all_bookmarks)) },
+            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_083, com.veritas.reader.ui.screens.localizedUiValue(groups.size), com.veritas.reader.ui.screens.localizedUiValue(document.title))) },
             confirmButton = {
                 Button(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
@@ -175,12 +175,12 @@ internal fun BookmarkDocumentCard(
                         showDeleteConfirmDialog = false
                     }
                 ) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_all))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_all))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel))
                 }
             }
         )
@@ -222,7 +222,7 @@ internal fun BookmarkDocumentCard(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_203, com.veritas.reader.ui.screens.localizedUiValue(groups.size)),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_203, com.veritas.reader.ui.screens.localizedUiValue(groups.size)),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -234,7 +234,7 @@ internal fun BookmarkDocumentCard(
                     IconButton(onClick = { showBatchMenu = true }) {
                         Icon(
                             imageVector = Icons.Filled.MoreVert,
-                            contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_batch_actions),
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_batch_actions),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -243,7 +243,7 @@ internal fun BookmarkDocumentCard(
                         onDismissRequest = { showBatchMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_as_pdf)) },
+                            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_share_as_pdf)) },
                             onClick = {
                                 showBatchMenu = false
                                 val allBookmarks = groups.flatMap { it.annotations }
@@ -260,7 +260,7 @@ internal fun BookmarkDocumentCard(
                             leadingIcon = { Icon(Icons.Outlined.Bookmark, contentDescription = null) }
                         )
                         DropdownMenuItem(
-                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy_all)) },
+                            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_copy_all)) },
                             onClick = {
                                 showBatchMenu = false
                                 val allText = groups.joinToString("\n\n") { g ->
@@ -272,7 +272,7 @@ internal fun BookmarkDocumentCard(
                             leadingIcon = { Icon(Icons.Filled.ContentPaste, contentDescription = null) }
                         )
                         DropdownMenuItem(
-                            text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_all_0817058)) },
+                            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_all_0817058)) },
                             onClick = {
                                 showBatchMenu = false
                                 showDeleteConfirmDialog = true
@@ -285,7 +285,7 @@ internal fun BookmarkDocumentCard(
                 IconButton(onClick = { expanded = !expanded }) {
                     Icon(
                         imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                        contentDescription = if (expanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
+                        contentDescription = if (expanded) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collapse) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_expand),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -382,7 +382,7 @@ internal fun BookmarkGroupCard(
 
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_collapse) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_expand),
+                    contentDescription = if (expanded) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collapse) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_expand),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -438,7 +438,7 @@ internal fun BookmarkGroupCard(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_in_document),
+                                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_in_document),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary)
                         }
@@ -447,7 +447,7 @@ internal fun BookmarkGroupCard(
                             IconButton(onClick = { showMenu = true }) {
                                 Icon(
                                     imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_actions),
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_actions),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -457,7 +457,7 @@ internal fun BookmarkGroupCard(
                                 onDismissRequest = { showMenu = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_as_text)) },
+                                    text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_share_as_text)) },
                                     onClick = {
                                         showMenu = false
                                         val fullText = sentencesText.joinToString(" ")
@@ -470,7 +470,7 @@ internal fun BookmarkGroupCard(
                                     leadingIcon = { Icon(Icons.Filled.Share, contentDescription = null) }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share_as_image)) },
+                                    text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_share_as_image)) },
                                     onClick = {
                                         showMenu = false
                                         val fullText = sentencesText.joinToString(" ")
@@ -485,7 +485,7 @@ internal fun BookmarkGroupCard(
                                     leadingIcon = { Icon(Icons.Filled.Image, contentDescription = null) }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy)) },
+                                    text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_copy)) },
                                     onClick = {
                                         showMenu = false
                                         val fullText = sentencesText.joinToString(" ")
@@ -494,7 +494,7 @@ internal fun BookmarkGroupCard(
                                     leadingIcon = { Icon(Icons.Filled.ContentPaste, contentDescription = null) }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) },
+                                    text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) },
                                     onClick = {
                                         showMenu = false
                                         onDeleteGroup()

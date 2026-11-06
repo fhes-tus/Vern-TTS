@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="filter_all_notes">"كل الملاحظات"</string>
+    <string name="filter_voice_memos">"المذكرات الصوتية"</string>
+    <string name="filter_reminders">"التذكيرات"</string>
+    <string name="filter_overview">"نظرة عامة"</string>
+    <string name="filter_history">"السجل"</string>
+    <string name="filter_updated">"آخر تحديث"</string>
+    <string name="filter_type">"النوع"</string>
+    <string name="filter_featured">"مختارات"</string>
+    <string name="filter_shortest">"الأقصر"</string>
+    <string name="filter_family_youth">"الأسرة والشباب"</string>
+    <string name="filter_mystery">"الغموض"</string>
+    <string name="filter_adventure">"المغامرة"</string>
+    <string name="filter_romance_drama">"الرومانسية والدراما"</string>
+    <string name="filter_life_habits">"الحياة والعادات"</string>
+    <string name="filter_quick_reads">"قراءات قصيرة"</string>
+    <string name="filter_epic_classics">"كلاسيكيات ملحمية"</string>
+    <string name="filter_faith_spirit">"الإيمان والروحانيات"</string>
+    <string name="filter_search_classics">"ابحث عن كتب أو مؤلفين"</string>
+    <string name="filter_count">"%1$s (%2$s)"</string>
+</resources>

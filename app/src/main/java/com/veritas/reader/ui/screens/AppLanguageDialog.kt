@@ -23,7 +23,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
@@ -38,14 +37,21 @@ fun AppLanguageDialog(onDismiss: () -> Unit) {
     var selected by rememberSaveable(current) { mutableStateOf(current) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.app_language)) },
+        title = { Text(menuString(R.string.app_language)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.language_explanation))
-                Text(stringResource(R.string.language_device_behavior),style = MaterialTheme.typography.bodySmall)
-                Text(stringResource(R.string.language_preview_notice), style = MaterialTheme.typography.bodySmall)
+                Text(menuString(R.string.language_explanation))
+                Text(menuString(R.string.language_device_behavior),style = MaterialTheme.typography.bodySmall)
+                Text(menuString(R.string.language_preview_notice), style = MaterialTheme.typography.bodySmall)
                 Column(Modifier.selectableGroup()) {
                     LanguageChoice("", deviceLanguageChoiceLabel(), selected) { selected = it }
+                    if (selected.isEmpty()) LocalSettingsTranslation.current?.let { translation ->
+                        SettingsTranslationStatus()
+                        SettingsTranslationControls(translation, current.isEmpty()) {
+                            translation.enable()
+                            if (current.isNotEmpty()) AppLanguages.select(context, "")
+                        }
+                    }
                     AppLanguageCatalog.choices.forEach { choice ->
                         LanguageChoice(choice.tag, choice.nativeName, selected) { selected = it }
                     }
@@ -56,9 +62,9 @@ fun AppLanguageDialog(onDismiss: () -> Unit) {
             TextButton(onClick = {
                 onDismiss()
                 if(selected.isEmpty() || selected != current) AppLanguages.select(context, selected)
-            }) { Text(stringResource(R.string.language_apply)) }
+            }) { Text(menuString(R.string.ui_save_changes)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(menuString(R.string.action_cancel)) } }
     )
 }
 

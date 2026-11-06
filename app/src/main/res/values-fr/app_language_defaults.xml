@@ -2,4 +2,20 @@
 <resources>
     <string name="language_follow_device_named">"Utiliser la langue du téléphone · %1$s"</string>
     <string name="language_device_behavior" formatted="false">"Cette option efface la langue propre à Vern et suit les préférences du téléphone prises en charge. Si aucune n’est disponible dans Vern, l’anglais est utilisé. Les changements de langue du téléphone sont ensuite suivis automatiquement."</string>
+    <string name="menu_translation_explanation">"Traduisez les écrans et menus de Vern sur cet appareil si Google Traduction prend en charge la langue du téléphone. Le premier téléchargement du modèle fait généralement environ 30 Mo. Google ML Kit recueille des données d’utilisation et de performance."</string>
+    <string name="menu_translation_preparing">"Préparation du téléchargement du modèle. Les réglages gardent leur langue actuelle pendant l’attente."</string>
+    <string name="menu_translation_failed">"Impossible de préparer le modèle. Vérifiez votre connexion et réessayez."</string>
+    <string name="menu_translation_mobile">"Autoriser les données mobiles pour les téléchargements de modèles"</string>
+    <string name="menu_translation_enable">"Traduire avec Google"</string>
+    <string name="menu_translation_disable">"Désactiver la traduction des réglages"</string>
+    <string name="menu_translation_attribution">"Traduction fournie par Google Traduction"</string>
+    <string name="menu_translation_about">"À propos de Google Traduction"</string>
+    <string name="menu_translation_disclaimer">"Google fournit ces traductions en l’état, sans garantie d’exactitude, de fiabilité, de qualité marchande, d’adéquation à un usage particulier ou de non-contrefaçon."</string>
+    <string name="menu_translation_thermal">"Android suspend le téléchargement du modèle si le téléphone est trop chaud. Vern reprendra dès qu’Android l’autorisera."</string>
+    <string name="menu_translation_model_name">"Modèle de traduction pour %1$s"</string>
+    <string name="menu_translation_waiting_network">"En attente d’une connexion Internet. Vern lancera le téléchargement une fois connecté."</string>
+    <string name="menu_translation_waiting_wifi">"En attente du Wi-Fi. Vous pouvez autoriser les données mobiles ci-dessous."</string>
+    <string name="menu_translation_downloading">"Téléchargement du modèle depuis Google."</string>
+    <string name="menu_translation_applying">"Modèle prêt. Traduction de l’interface sur ce téléphone."</string>
+    <string name="menu_translation_ready">"Modèle prêt pour la traduction de l’interface hors connexion."</string>
 </resources>

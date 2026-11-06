@@ -84,4 +84,13 @@
     <string name="voice_explore" formatted="false">"استكشاف الأصوات"</string>
     <string name="voice_connection_help_button" formatted="false">"مساعدة الاتصال"</string>
     <string name="voice_connection_help" formatted="false">"استخدم مفتاح حسابك الذي يسمح بتوليد الكلام. ترسل المعاينة والقراءة نص المقطع إلى المزوّد وقد تُحتسب رسوم. للخادم المخصص، أدخل عنوان HTTPS الكامل ومعرّفَي النموذج والصوت. يجب أن يقبل طلبات صوت متوافقة مع OpenAI ويعيد MP3 أو WAV. تحتاج الصيغ الأخرى إلى موائم خاص. اتصل فقط بخادم تثق به لمعالجة نصك ومفتاحك."</string>
+    <string name="cloud_about_azure">"أدخل مفتاح مورد Azure Speech ومنطقته، مثل eastus. حمّل قائمة الأصوات للعثور على لغتك. تستخدم المعاينات والقراءة حساب Azure الخاص بك."</string>
+    <string name="cloud_about_google">"فعّل واجهة Cloud Text-to-Speech والفوترة في مشروع Google Cloud. استخدم مفتاح API مقيّدًا بخدمة Cloud Text-to-Speech. تستخدم المعاينات والقراءة هذا المشروع."</string>
+    <string name="cloud_azure_region">"منطقة مورد Speech"</string>
+    <string name="cloud_catalog_key_hint">"اترك الحقل فارغًا لاستخدام المفتاح المحفوظ لهذا الاتصال."</string>
+    <string name="cloud_choose_voice">"اختر صوتًا سحابيًا"</string>
+    <string name="cloud_catalog_search">"ابحث حسب اللغة أو الصوت"</string>
+    <string name="cloud_catalog_empty">"لا توجد أصوات مطابقة لبحثك."</string>
+    <string name="cloud_catalog_error">"تعذّر على Vern تحميل قائمة الأصوات. تحقّق من اتصالك وإعدادات المزوّد."</string>
+    <string name="cloud_catalog_voice_missing">"هذا الصوت غير متاح لهذا الاتصال. اختر صوتًا آخر."</string>
 </resources>

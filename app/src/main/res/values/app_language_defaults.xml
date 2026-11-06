@@ -2,4 +2,20 @@
 <resources>
     <string name="language_follow_device_named">"Use device language · %1$s"</string>
     <string name="language_device_behavior" formatted="false">"This clears Vern’s language override and follows your phone’s supported language preferences. If none are available in Vern, it uses English. Future phone-language changes are followed automatically."</string>
+    <string name="menu_translation_explanation">"Translate Vern’s screens and menus on this device when Google Translate supports the phone’s language. The first model download is usually around 30 MB. Google ML Kit collects usage and performance metrics."</string>
+    <string name="menu_translation_preparing">"Preparing the model download. Settings keep their current language while you wait."</string>
+    <string name="menu_translation_failed">"The model couldn’t be prepared. Check your connection and try again."</string>
+    <string name="menu_translation_mobile">"Allow mobile data for model downloads"</string>
+    <string name="menu_translation_enable">"Translate with Google"</string>
+    <string name="menu_translation_disable">"Turn off settings translation"</string>
+    <string name="menu_translation_attribution">"Powered by Google Translate"</string>
+    <string name="menu_translation_about">"About Google Translate"</string>
+    <string name="menu_translation_disclaimer">"Google provides these translations as is, without warranties of accuracy, reliability, merchantability, fitness for a particular purpose, or noninfringement."</string>
+    <string name="menu_translation_thermal">"Android is holding the model download while the phone is too warm. Vern will continue when Android allows it."</string>
+    <string name="menu_translation_model_name">"%1$s translation model"</string>
+    <string name="menu_translation_waiting_network">"Waiting for an internet connection. Vern will start the download when connected."</string>
+    <string name="menu_translation_waiting_wifi">"Waiting for Wi-Fi. You can allow mobile data below."</string>
+    <string name="menu_translation_downloading">"Downloading the model from Google."</string>
+    <string name="menu_translation_applying">"Model ready. Translating the interface on this phone."</string>
+    <string name="menu_translation_ready">"Model ready for offline interface translation."</string>
 </resources>

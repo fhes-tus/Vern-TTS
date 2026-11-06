@@ -90,11 +90,11 @@ internal fun TranslationToolsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done)) } },
+        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_done)) } },
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Outlined.Translate, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_translation_handoff))
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_translation_handoff))
             }
         },
         text = {
@@ -106,14 +106,14 @@ internal fun TranslationToolsDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_send_structured_translation_prompts_to_priority_translator_ai_app),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_send_structured_translation_prompts_to_priority_translator_ai_app),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 // Priority Apps Quick Actions
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_priority_translation_targets),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_priority_translation_targets),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -141,7 +141,7 @@ internal fun TranslationToolsDialog(
                     ) {
                         Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_all_apps), style = MaterialTheme.typography.labelMedium)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_all_apps), style = MaterialTheme.typography.labelMedium)
                     }
                 }
 
@@ -158,7 +158,7 @@ internal fun TranslationToolsDialog(
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                             Text(
-                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_spoken_audio_read_out),
+                                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_spoken_audio_read_out),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -173,7 +173,7 @@ internal fun TranslationToolsDialog(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_060, com.veritas.reader.ui.screens.localizedUiValue(currentIndex + 1)),
+                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_060, com.veritas.reader.ui.screens.localizedUiValue(currentIndex + 1)),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -193,7 +193,7 @@ internal fun TranslationToolsDialog(
                                         )
                                     }
                                 ) {
-                                    Icon(Icons.Filled.PlayArrow, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read_original), tint = MaterialTheme.colorScheme.primary)
+                                    Icon(Icons.Filled.PlayArrow, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_read_original), tint = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         }
@@ -202,7 +202,7 @@ internal fun TranslationToolsDialog(
 
                         // Play Spoken Translation
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_translated_text_type_or_paste_to_listen),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_translated_text_type_or_paste_to_listen),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -210,7 +210,7 @@ internal fun TranslationToolsDialog(
                             value = translatedTextInput,
                             onValueChange = { translatedTextInput = it },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_paste_translated_result_here)) },
+                            placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_translated_result_here)) },
                             maxLines = 3,
                             shape = RoundedCornerShape(8.dp)
                         )
@@ -231,13 +231,13 @@ internal fun TranslationToolsDialog(
                         ) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_read_out_translation))
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_read_out_translation))
                         }
                     }
                 }
 
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_target_language),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_target_language),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -263,7 +263,7 @@ internal fun TranslationToolsDialog(
                 OutlinedTextField(
                     value = targetLanguage,
                     onValueChange = { targetLanguage = it },
-                    label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_language_name_or_code)) },
+                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_language_name_or_code)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -273,14 +273,14 @@ internal fun TranslationToolsDialog(
                 )
 
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_translation_scope_mode),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_translation_scope_mode),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
                 // Mode 1: Current Sentence
                 TranslationModeCard(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_translate_current_sentence),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_translate_current_sentence),
                     description = "Accurate translation of sentence ${currentIndex + 1} into $targetLanguage.",
                     icon = Icons.Outlined.Translate,
                     isSelected = selectedMode == TranslationLauncher.Mode.CURRENT_SECTION,
@@ -292,7 +292,7 @@ internal fun TranslationToolsDialog(
 
                 // Mode 2: Full Document
                 TranslationModeCard(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_translate_full_document),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_translate_full_document),
                     description = "Extract and send all ${document.chunks.size} sentences formatted for translation.",
                     icon = Icons.AutoMirrored.Outlined.Article,
                     isSelected = selectedMode == TranslationLauncher.Mode.DOCUMENT,
@@ -304,7 +304,7 @@ internal fun TranslationToolsDialog(
 
                 // Mode 3: Bilingual Sentence
                 TranslationModeCard(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_bilingual_current_sentence),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_bilingual_current_sentence),
                     description = "Side-by-side parallel text comparing original with $targetLanguage.",
                     icon = Icons.Outlined.Language,
                     isSelected = selectedMode == TranslationLauncher.Mode.BILINGUAL_SECTION,
@@ -316,8 +316,8 @@ internal fun TranslationToolsDialog(
 
                 // Mode 4: Bilingual Full Document
                 TranslationModeCard(
-                    title = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_bilingual_full_document),
-                    description = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_structured_interlinear_lines_for_the_entire_document),
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_bilingual_full_document),
+                    description = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_structured_interlinear_lines_for_the_entire_document),
                     icon = Icons.AutoMirrored.Filled.MenuBook,
                     isSelected = selectedMode == TranslationLauncher.Mode.BILINGUAL_DOCUMENT,
                     onClick = {

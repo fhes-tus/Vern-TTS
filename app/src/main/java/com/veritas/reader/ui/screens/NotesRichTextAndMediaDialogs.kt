@@ -109,7 +109,7 @@ internal fun NoteImageViewerDialog(
             if (bitmap != null) {
                 Image(
                     bitmap = bitmap.asImageBitmap(),
-                    contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_full_view_image),
+                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_full_view_image),
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxSize()
@@ -134,7 +134,7 @@ internal fun NoteImageViewerDialog(
                 )
             } else {
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cannot_load_image),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cannot_load_image),
                     color = Color.White,
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -155,7 +155,7 @@ internal fun NoteImageViewerDialog(
                         .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                         .size(40.dp)
                 ) {
-                    Icon(Icons.Filled.Close, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close), tint = Color.White)
+                    Icon(Icons.Filled.Close, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close), tint = Color.White)
                 }
 
                 IconButton(
@@ -164,7 +164,7 @@ internal fun NoteImageViewerDialog(
                         .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                         .size(40.dp)
                 ) {
-                    Icon(Icons.Filled.Share, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share), tint = Color.White)
+                    Icon(Icons.Filled.Share, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_share), tint = Color.White)
                 }
             }
         }
@@ -219,7 +219,7 @@ internal fun NoteVideoViewerDialog(
                         .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                         .size(40.dp)
                 ) {
-                    Icon(Icons.Filled.Close, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_close), tint = Color.White)
+                    Icon(Icons.Filled.Close, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close), tint = Color.White)
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -229,7 +229,7 @@ internal fun NoteVideoViewerDialog(
                             .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                             .size(40.dp)
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Launch, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open_in_player), tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.Launch, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_in_player), tint = Color.White)
                     }
                     IconButton(
                         onClick = { onShare(path) },
@@ -237,7 +237,7 @@ internal fun NoteVideoViewerDialog(
                             .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                             .size(40.dp)
                     ) {
-                        Icon(Icons.Filled.Share, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_share), tint = Color.White)
+                        Icon(Icons.Filled.Share, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_share), tint = Color.White)
                     }
                 }
             }
@@ -296,7 +296,7 @@ internal fun NoteTextBlockItem(
             Box(Modifier.fillMaxWidth().defaultMinSize(minHeight = if (isOnlyBlock) 200.dp else 24.dp)
                 .notesTextPaper(paperTemplate, onCardColor.copy(alpha = .10f), layout)) {
                 if (isOnlyBlock && textValue.text.isEmpty()) {
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_note), style = MaterialTheme.typography.bodyLarge, color = onCardColor.copy(alpha = .4f))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_note), style = MaterialTheme.typography.bodyLarge, color = onCardColor.copy(alpha = .4f))
                 }
                 innerTextField()
             }
@@ -511,7 +511,7 @@ internal fun NoteAttachmentMenu(
         ) {
             Icon(
                 Icons.Filled.MoreVert,
-                contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_attachment_options),
+                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_attachment_options),
                 tint = Color.White,
                 modifier = Modifier.size(18.dp)
             )
@@ -521,7 +521,7 @@ internal fun NoteAttachmentMenu(
             onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
-                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_copy_path)) },
+                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_copy_path)) },
                 leadingIcon = { Icon(Icons.Outlined.ContentCopy, contentDescription = null) },
                 onClick = {
                     expanded = false
@@ -530,7 +530,7 @@ internal fun NoteAttachmentMenu(
             )
             if (canMoveUp) {
                 DropdownMenuItem(
-                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_up)) },
+                    text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_up)) },
                     leadingIcon = { Icon(Icons.Outlined.ArrowUpward, contentDescription = null) },
                     onClick = {
                         expanded = false
@@ -540,7 +540,7 @@ internal fun NoteAttachmentMenu(
             }
             if (canMoveDown) {
                 DropdownMenuItem(
-                    text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_move_down)) },
+                    text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_down)) },
                     leadingIcon = { Icon(Icons.Outlined.ArrowDownward, contentDescription = null) },
                     onClick = {
                         expanded = false
@@ -549,7 +549,7 @@ internal fun NoteAttachmentMenu(
                 )
             }
             DropdownMenuItem(
-                text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete), color = MaterialTheme.colorScheme.error) },
+                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete), color = MaterialTheme.colorScheme.error) },
                 leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
                 onClick = {
                     expanded = false
@@ -567,8 +567,8 @@ internal fun ExactAlarmPermissionDialog(
     val context = LocalContext.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.reminder_exact_title)) },
-        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.reminder_exact_message)) },
+        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.reminder_exact_title)) },
+        text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.reminder_exact_message)) },
         confirmButton = {
             TextButton(onClick = {
                 onDismiss()
@@ -581,11 +581,11 @@ internal fun ExactAlarmPermissionDialog(
                         )
                     }
                 }
-            }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.reminder_exact_allow)) }
+            }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.reminder_exact_allow)) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.reminder_exact_later))
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.reminder_exact_later))
             }
         }
     )
@@ -598,19 +598,19 @@ internal fun DeleteNoteConfirmDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.delete_note_title)) },
-        text = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.delete_note_message)) },
+        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.delete_note_title)) },
+        text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.delete_note_message)) },
         confirmButton = {
             TextButton(onClick = onConfirmDelete) {
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.action_delete),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.action_delete),
                     color = MaterialTheme.colorScheme.error
                 )
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.action_cancel))
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.action_cancel))
             }
         }
     )

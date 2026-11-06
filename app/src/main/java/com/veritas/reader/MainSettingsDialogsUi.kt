@@ -233,7 +233,7 @@ internal fun MainSettingsDialogsHost(
                     TextButton(
                         onClick = { userManualTipText = null }
                     ) {
-                        Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_got_it))
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_got_it))
                     }
                 }
             )

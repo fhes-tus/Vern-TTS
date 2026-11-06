@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reader_page_sentence_progress">"%2$d쪽 중 %1$d쪽 • 문장 %3$d/%4$d"</string>
+    <string name="reader_paper_tone_selected">"종이 색조: %1$s"</string>
+    <string name="pdf_swipe_pages">"밀어서 페이지를 넘기세요"</string>
+    <string name="pdf_scroll_pages">"페이지를 스크롤하세요"</string>
+    <string name="pdf_fit_current_page">"현재 페이지를 화면에 맞추기"</string>
+    <string name="pdf_switch_orientation">"화면 방향 전환"</string>
+    <string name="pdf_outline_count">"장 및 섹션: %1$d개"</string>
+    <string name="pdf_outline_description">"장, 섹션 및 링크"</string>
+    <string name="pdf_first_page">"첫 페이지 (%1$d)"</string>
+    <string name="pdf_last_page">"마지막 페이지 (%1$d)"</string>
+    <string name="pdf_jump_beginning">"처음으로 이동"</string>
+    <string name="pdf_jump_end">"문서 끝으로 이동"</string>
+    <string name="pdf_live_sync">"실시간 동기화"</string>
+    <string name="pdf_sync_off">"동기화 꺼짐"</string>
+    <string name="pdf_sync_enabled">"실시간 동기화 (켜짐)"</string>
+    <string name="pdf_sync_disabled">"실시간 동기화 (꺼짐)"</string>
+    <string name="pdf_pause_highlight">"탭하여 자동 강조 표시 일시 중지"</string>
+    <string name="pdf_enable_sync">"탭하여 낭독과 PDF 동기화"</string>
+    <string name="pdf_share_missing">"공유할 PDF 파일을 찾을 수 없습니다."</string>
+    <string name="pdf_share_document">"PDF 문서 공유"</string>
+    <string name="pdf_document_format">"형식"</string>
+    <string name="pdf_original_format">"PDF (원본 문서)"</string>
+    <string name="pdf_total_sentences">"전체 문장 수"</string>
+    <string name="pdf_estimated_reading_time">"예상 읽기 시간"</string>
+    <string name="pdf_added_date">"추가한 날짜"</string>
+    <string name="pdf_ready_to_read">"읽기 준비 완료"</string>
+    <string name="pdf_preparing_reading">"낭독 준비 중…"</string>
+    <string name="pdf_cancel_preparing">"재생 준비 중입니다. 탭하여 취소"</string>
+    <string name="pdf_back_to_vern">"Vern으로 돌아가기"</string>
+    <string name="pdf_speed_value">"속도 %1$.2f×"</string>
+    <string name="pdf_pitch_value">"음높이 %1$.2f"</string>
+    <string name="pdf_queue_count">"대기열 (%1$d)"</string>
+    <string name="pdf_continue_queue">"대기열 이어서 재생 (%1$d)"</string>
+    <string name="pdf_file_share">"파일 및 공유"</string>
+</resources>

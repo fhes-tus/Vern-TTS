@@ -102,7 +102,7 @@ class VoiceAcceptanceInstrumentedTest {
         }
     }
 
-    @Test fun actualWifiDownloadsVerifyAndInstallBothPackagesInIsolation() = runBlocking {
+    @Test fun actualWifiDownloadsVerifyAndInstallLiteStudioAndKittenInIsolation() = runBlocking {
         val network = context.getSystemService(android.net.ConnectivityManager::class.java)
         org.junit.Assume.assumeTrue("Model network acceptance requires Wi-Fi",
             network.getNetworkCapabilities(network.activeNetwork)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) == true)
@@ -113,7 +113,7 @@ class VoiceAcceptanceInstrumentedTest {
             override fun getApplicationContext(): Context = this
         }
         withContext(Dispatchers.IO) {
-            for(id in listOf("piper_en_us_ryan","kitten_0")) {
+            for (id in listOf("piper_en_us_ryan", "kokoro_af_heart", "kitten_0")) {
                 val voice = VoiceModelManager.availableVoices.first { it.id == id }
                 assertTrue("Public model download failed: $id",VoiceModelManager.downloadVoice(downloadContext,voice))
                 assertTrue(VoiceModelManager.isVoiceInstalled(downloadContext,id))

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="filter_all_notes">"सभी नोट"</string>
+    <string name="filter_voice_memos">"वॉइस मेमो"</string>
+    <string name="filter_reminders">"रिमाइंडर"</string>
+    <string name="filter_overview">"अवलोकन"</string>
+    <string name="filter_history">"इतिहास"</string>
+    <string name="filter_updated">"अंतिम अपडेट"</string>
+    <string name="filter_type">"प्रकार"</string>
+    <string name="filter_featured">"चुनिंदा"</string>
+    <string name="filter_shortest">"सबसे छोटे"</string>
+    <string name="filter_family_youth">"परिवार और युवा"</string>
+    <string name="filter_mystery">"रहस्य"</string>
+    <string name="filter_adventure">"साहसिक"</string>
+    <string name="filter_romance_drama">"प्रेम और नाटक"</string>
+    <string name="filter_life_habits">"जीवन और आदतें"</string>
+    <string name="filter_quick_reads">"छोटी रचनाएँ"</string>
+    <string name="filter_epic_classics">"महाकाव्य और क्लासिक्स"</string>
+    <string name="filter_faith_spirit">"आस्था और आध्यात्म"</string>
+    <string name="filter_search_classics">"किताबें या लेखक खोजें"</string>
+    <string name="filter_count">"%1$s (%2$s)"</string>
+</resources>

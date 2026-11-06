@@ -24,9 +24,9 @@ internal fun NoteLabelsDialog(labels: List<NoteNotebook>, assigned: List<String>
     var creating by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-    AlertDialog(onDismissRequest = onDismiss, title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_notebooks)) },
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_notebooks)) },
         text = { Column {
-            OutlinedTextField(query, { query = it.take(60); error = null }, label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_find_or_create_a_notebook)) },
+            OutlinedTextField(query, { query = it.take(60); error = null }, label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_find_or_create_a_notebook)) },
                 singleLine = true, enabled = !creating, isError = error != null,
                 supportingText = { error?.let { Text(it) } }, modifier = Modifier.fillMaxWidth())
             Column(Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState())) {
@@ -51,13 +51,13 @@ internal fun NoteLabelsDialog(labels: List<NoteNotebook>, assigned: List<String>
                             finally { creating = false }
                         }
                     }, enabled = !creating) {
-                        Text(if (!creating) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_122, com.veritas.reader.ui.screens.localizedUiValue(query.trim())) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_creating_notebook))
+                        Text(if (!creating) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_122, com.veritas.reader.ui.screens.localizedUiValue(query.trim())) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_creating_notebook))
                     }
-                } else if (labels.isEmpty()) Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_create_notebooks_to_organise_your_notes_a_note_can_belong_to_more), Modifier.padding(top = 12.dp))
+                } else if (labels.isEmpty()) Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_notebooks_to_organise_your_notes_a_note_can_belong_to_more), Modifier.padding(top = 12.dp))
             }
         } },
-        confirmButton = { TextButton({ onSave(labels.map { it.id }.filter { it in selected }) }, enabled = !creating) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_done)) } },
-        dismissButton = { TextButton(onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) } })
+        confirmButton = { TextButton({ onSave(labels.map { it.id }.filter { it in selected }) }, enabled = !creating) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_done)) } },
+        dismissButton = { TextButton(onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } })
 }
 
 @OptIn(ExperimentalLayoutApi::class)

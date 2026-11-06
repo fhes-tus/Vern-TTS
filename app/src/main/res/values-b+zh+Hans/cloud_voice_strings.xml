@@ -84,4 +84,13 @@
     <string name="voice_explore" formatted="false">"浏览语音"</string>
     <string name="voice_connection_help_button" formatted="false">"连接帮助"</string>
     <string name="voice_connection_help" formatted="false">"请使用自己账户中具有语音生成权限的密钥。试听和朗读会将文本发送给提供商，并可能产生费用。自定义服务器需填写完整的 HTTPS 语音接口、模型和语音 ID。服务器必须接受 OpenAI 兼容的语音请求，并返回 MP3 或 WAV。其他 API 格式需要专用适配器。请只连接您信任其处理文本和密钥的服务器。"</string>
+    <string name="cloud_about_azure">"请输入 Azure Speech 资源密钥及其区域，例如 eastus。加载语音列表以查找所需语言。试听和朗读会使用你的 Azure 帐号。"</string>
+    <string name="cloud_about_google">"在 Google Cloud 项目中启用 Cloud Text-to-Speech API 和结算功能。请使用仅限 Cloud Text-to-Speech 的 API 密钥。试听和朗读会使用该项目。"</string>
+    <string name="cloud_azure_region">"Speech 资源区域"</string>
+    <string name="cloud_catalog_key_hint">"留空即可使用为此连接保存的密钥。"</string>
+    <string name="cloud_choose_voice">"选择云端语音"</string>
+    <string name="cloud_catalog_search">"按语言或语音搜索"</string>
+    <string name="cloud_catalog_empty">"没有匹配的语音。"</string>
+    <string name="cloud_catalog_error">"Vern 无法加载语音列表。请检查网络连接和服务商设置。"</string>
+    <string name="cloud_catalog_voice_missing">"此连接无法使用该语音。请选择其他语音。"</string>
 </resources>

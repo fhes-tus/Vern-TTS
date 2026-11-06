@@ -49,6 +49,77 @@ class CloudSpeechTransportTest {
         assertTrue(reply.closed)
     }
 
+    @Test fun azureCatalogAndSpeechStayOnTheResourceRegionAndEscapePassageMarkup() = runTest {
+        val config = CloudVoiceConfig(provider = CloudVoiceProvider.AZURE, region = "westus2")
+        val catalog = Reply(bytes = """[{"ShortName":"en-US-JennyNeural","Locale":"en-US","DisplayName":"Jenny"}]""".toByteArray(),
+            mime = "application/json")
+        val speech = Reply(mime = "audio/mpeg")
+        val urls = mutableListOf<String>()
+        var submissions = 0
+        val transport = CloudSpeechTransport(open = { url -> urls += url.toString(); if (urls.size == 1) catalog else speech },
+            onSubmission = { _, _ -> submissions++ })
+        assertEquals(listOf(CatalogVoice("en-US-JennyNeural", "en-US", "Jenny")),
+            transport.listVoices(config, "azure-test-key"))
+        assertEquals(0, submissions)
+        assertArrayEquals(speech.bytes, transport.fetch(config, "Fish & <prosody> 🐟\u0000", "azure-test-key"))
+        assertEquals(listOf("https://westus2.tts.speech.microsoft.com/cognitiveservices/voices/list",
+            "https://westus2.tts.speech.microsoft.com/cognitiveservices/v1"), urls)
+        assertEquals("GET", catalog.requestMethod)
+        assertEquals(0, catalog.sent.size())
+        assertEquals("application/ssml+xml", speech.getRequestProperty("Content-Type"))
+        assertEquals("audio-24khz-96kbitrate-mono-mp3", speech.getRequestProperty("X-Microsoft-OutputFormat"))
+        for (reply in listOf(catalog, speech)) {
+            assertEquals("azure-test-key", reply.getRequestProperty("Ocp-Apim-Subscription-Key"))
+            assertNull(reply.getRequestProperty("Authorization"))
+            assertFalse(reply.instanceFollowRedirects)
+        }
+        assertTrue(speech.sent.toString("UTF-8").contains("Fish &amp; &lt;prosody&gt; 🐟</voice>"))
+        assertFalse(speech.sent.toString("UTF-8").contains("azure-test-key"))
+        assertEquals(1, submissions)
+    }
+
+    @Test fun googleCatalogSelectsLanguageAndSynthesisDecodesBase64Mp3() = runTest {
+        val config = CloudVoiceConfig(provider = CloudVoiceProvider.GOOGLE_CLOUD, language = "fr-FR", voice = "fr-FR-Neural2-A")
+        val mp3 = Reply().bytes
+        val encoded = java.util.Base64.getEncoder().encodeToString(mp3)
+        val speech = Reply(bytes = """{"audioContent":"$encoded"}""".toByteArray(), mime = "application/json; charset=UTF-8")
+        val catalog = Reply(bytes = """{"voices":[{"name":"fr-FR-Neural2-A","languageCodes":["fr-FR","fr-CA"]},
+            {"name":"invalid id","languageCodes":["fr-FR"]}]}""".toByteArray(), mime = "application/json")
+        val urls = mutableListOf<String>()
+        val transport = CloudSpeechTransport(open = { url -> urls += url.toString(); if (urls.size == 1) catalog else speech })
+        assertEquals(listOf("fr-CA", "fr-FR"), transport.listVoices(config, "google-test-key").map { it.language })
+        assertArrayEquals(mp3, transport.fetch(config, "Bonjour", "google-test-key"))
+        assertEquals(listOf("https://texttospeech.googleapis.com/v1/voices",
+            "https://texttospeech.googleapis.com/v1/text:synthesize"), urls)
+        for (reply in listOf(catalog, speech)) {
+            assertEquals("google-test-key", reply.getRequestProperty("X-Goog-Api-Key"))
+            assertNull(reply.getRequestProperty("Authorization"))
+        }
+        val body = org.json.JSONObject(speech.sent.toString("UTF-8"))
+        assertEquals("Bonjour", body.getJSONObject("input").getString("text"))
+        assertEquals("fr-FR", body.getJSONObject("voice").getString("languageCode"))
+        assertEquals("fr-FR-Neural2-A", body.getJSONObject("voice").getString("name"))
+        assertEquals("MP3", body.getJSONObject("audioConfig").getString("audioEncoding"))
+        assertFalse(body.toString().contains("google-test-key"))
+    }
+
+    @Test fun cloudCatalogErrorsNeverReadRedirectOrCredentialErrorBodies() = runTest {
+        val config = CloudVoiceConfig(provider = CloudVoiceProvider.GOOGLE_CLOUD)
+        for (code in listOf(302, 400, 401, 403)) {
+            val reply = Reply(status = code, bytes = "sensitive echo".toByteArray())
+            val error = runCatching { CloudSpeechTransport(open = { reply }).listVoices(config, "key") }
+                .exceptionOrNull() as CloudSpeechException
+            if (code != 302) assertEquals(R.string.cloud_error_key, error.messageId)
+            assertFalse(reply.responseRead)
+            assertFalse(reply.instanceFollowRedirects)
+            assertNull(error.message)
+        }
+        val malformed = Reply(bytes = """{"error":"echo"}""".toByteArray(), mime = "application/json")
+        val error = runCatching { CloudSpeechTransport(open = { malformed }).listVoices(config, "key") }
+            .exceptionOrNull() as CloudSpeechException
+        assertEquals(R.string.cloud_catalog_error, error.messageId)
+    }
+
     @Test fun redirectsAndAuthenticationFailuresNeverReadOrExposeResponseBodies() = runTest {
         for(code in listOf(301,302,307,308,401,403)) {
             val reply = Reply(code,"sensitive error echo".toByteArray())

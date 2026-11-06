@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="speech_syntax_example_result">"Entrada de ejemplo → resultado leído"</string>
+    <string name="speech_syntax_digits">"Coincide con uno o más dígitos."</string>
+    <string name="speech_syntax_word">"Coincide con una palabra."</string>
+    <string name="speech_syntax_text">"Coincide con texto en una línea."</string>
+    <string name="speech_syntax_braces">"Escribe dos llaves para buscar una llave literal."</string>
+    <string name="speech_syntax_capture">"Los paréntesis capturan texto para usarlo en el reemplazo."</string>
+    <string name="speech_syntax_brackets">"Una barra invertida hace que el corchete se busque literalmente."</string>
+    <string name="speech_syntax_first_group">"En Decir en su lugar, inserta la primera captura. Numera igual las capturas siguientes."</string>
+    <string name="speech_syntax_whole_match">"En Decir en su lugar, inserta toda la coincidencia."</string>
+    <string name="speech_syntax_dollar">"En Decir en su lugar, inserta un signo de dólar."</string>
+    <string name="speech_syntax_skip">"Elige Omitir para saltar toda la coincidencia en la narración."</string>
+    <string name="speech_syntax_re2_limits">"Regex usa RE2. No admite aserciones de búsqueda hacia delante o atrás ni referencias a grupos dentro del patrón. Busca al menos un carácter."</string>
+    <string name="speech_syntax_walkthrough">"Prueba una regla que lee el número entre corchetes"</string>
+    <string name="speech_syntax_step_pattern">"Introduce el código de arriba en Patrón de coincidencia. Los corchetes se buscan tal como están. El marcador conserva los dígitos que encierran."</string>
+    <string name="speech_syntax_step_regex">"Introduce el código de arriba en Patrón de coincidencia. Las barras invertidas buscan corchetes literales. Los paréntesis conservan los dígitos que hay dentro."</string>
+    <string name="speech_syntax_step_say">"Selecciona Decir en su lugar e introduce el valor de arriba. Vern lee la primera parte que se conservó, que aquí es el número."</string>
+    <string name="speech_syntax_step_try">"Introduce la muestra en Pasaje original. Comprueba el Resultado hablado o toca Escuchar. Guarda la regla cuando el resultado sea el que quieres."</string>
+    <string name="speech_syntax_use_example">"Rellenar con este ejemplo"</string>
+</resources>

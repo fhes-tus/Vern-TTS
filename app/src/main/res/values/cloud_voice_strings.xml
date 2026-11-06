@@ -84,4 +84,13 @@
     <string name="voice_explore" formatted="false">"Explore voices"</string>
     <string name="voice_connection_help_button" formatted="false">"Connection help"</string>
     <string name="voice_connection_help" formatted="false">"Use your own account key with permission to generate speech. Previews and reading send passage text to that provider and may incur charges. For a custom server, enter its full HTTPS speech endpoint, model and voice IDs. It must accept OpenAI-compatible speech requests and return MP3 or WAV. Other API formats need a dedicated adapter. Connect only to a server you trust with your text and key."</string>
+    <string name="cloud_about_azure">"Enter your Azure Speech resource key and its region, such as eastus. Load voices to find the language you want. Previews and reading use your Azure account."</string>
+    <string name="cloud_about_google">"Enable the Cloud Text-to-Speech API and billing in your Google Cloud project. Use an API key restricted to Cloud Text-to-Speech. Previews and reading use that project."</string>
+    <string name="cloud_azure_region">"Speech resource region"</string>
+    <string name="cloud_catalog_key_hint">"Leave blank to use the saved key for this connection."</string>
+    <string name="cloud_choose_voice">"Choose a cloud voice"</string>
+    <string name="cloud_catalog_search">"Search by language or voice"</string>
+    <string name="cloud_catalog_empty">"No voices match your search."</string>
+    <string name="cloud_catalog_error">"Vern couldn’t load the provider’s voice list. Check your connection and provider settings."</string>
+    <string name="cloud_catalog_voice_missing">"This voice is unavailable for this connection. Choose another voice."</string>
 </resources>

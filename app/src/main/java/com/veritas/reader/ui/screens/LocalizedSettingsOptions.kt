@@ -1,7 +1,6 @@
 package com.veritas.reader.ui.screens
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import com.veritas.reader.R
 
 /** Translate fixed legacy catalogue labels only at display time; stored IDs and values stay intact. */
@@ -72,5 +71,5 @@ internal fun localizedSettingsOption(label: String): String {
         "12 UK and US voices, about 20MB each. Select several to download together; additional downloads wait their turn." -> R.string.settings_option_12_uk_and_us_voices_about_20mb_each_select_several_to_download_to
         else -> return label
     }
-    return stringResource(resource)
+    return menuString(resource)
 }

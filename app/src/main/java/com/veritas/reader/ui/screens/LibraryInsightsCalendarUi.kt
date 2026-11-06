@@ -145,7 +145,7 @@ internal fun CalendarHeatMap(
                         modifier = Modifier.size(22.dp)
                     )
                     Text(
-                        text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_activity),
+                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_activity),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -164,7 +164,7 @@ internal fun CalendarHeatMap(
                             color = if (!isYearView) MaterialTheme.colorScheme.primary else Color.Transparent
                         ) {
                             Text(
-                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_month),
+                                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_month),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = if (!isYearView) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -176,7 +176,7 @@ internal fun CalendarHeatMap(
                             color = if (isYearView) MaterialTheme.colorScheme.primary else Color.Transparent
                         ) {
                             Text(
-                                androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_year),
+                                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_year),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = if (isYearView) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -212,7 +212,7 @@ internal fun CalendarHeatMap(
                         },
                         modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(Icons.Filled.ChevronLeft, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_previous_month))
+                        Icon(Icons.Filled.ChevronLeft, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous_month))
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -223,7 +223,7 @@ internal fun CalendarHeatMap(
                         )
                         if (selectedMonthIndex != currentMonth || selectedYear != currentYear) {
                             Text(
-                                text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_097, com.veritas.reader.ui.screens.localizedUiValue(monthNames[currentMonth])),
+                                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_097, com.veritas.reader.ui.screens.localizedUiValue(monthNames[currentMonth])),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.clickable {
@@ -243,7 +243,7 @@ internal fun CalendarHeatMap(
                         },
                         modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(Icons.Filled.ChevronRight, contentDescription = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next_month))
+                        Icon(Icons.Filled.ChevronRight, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next_month))
                     }
                 }
 
@@ -262,12 +262,12 @@ internal fun CalendarHeatMap(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = if (activeDaysInMonth > 0) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_098, com.veritas.reader.ui.screens.localizedUiValue(activeDaysInMonth), com.veritas.reader.ui.screens.localizedUiValue(currentMonthData.name)) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_099, com.veritas.reader.ui.screens.localizedUiValue(currentMonthData.name)),
+                            text = if (activeDaysInMonth > 0) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_098, com.veritas.reader.ui.screens.localizedUiValue(activeDaysInMonth), com.veritas.reader.ui.screens.localizedUiValue(currentMonthData.name)) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_099, com.veritas.reader.ui.screens.localizedUiValue(currentMonthData.name)),
                             style = MaterialTheme.typography.labelSmall,
                             color = if (activeDaysInMonth > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_100, com.veritas.reader.ui.screens.localizedUiValue(percentage)),
+                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_100, com.veritas.reader.ui.screens.localizedUiValue(percentage)),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -421,9 +421,9 @@ internal fun CalendarHeatMap(
                                 )
                                 Text(
                                     text = when {
-                                        isInspectedActive -> readingMillisByDate[inspectedDay.dateKey]?.takeIf { it > 0L }?.let { androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_101, com.veritas.reader.ui.screens.localizedUiValue(it / 60_000L)) } ?: androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_reading_recorded_duration_not_available)
-                                        isInspectedOpened -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern_opened)
-                                        else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_reading_activity_recorded)
+                                        isInspectedActive -> readingMillisByDate[inspectedDay.dateKey]?.takeIf { it > 0L }?.let { com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_101, com.veritas.reader.ui.screens.localizedUiValue(it / 60_000L)) } ?: com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_recorded_duration_not_available)
+                                        isInspectedOpened -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_vern_opened)
+                                        else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_reading_activity_recorded)
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant

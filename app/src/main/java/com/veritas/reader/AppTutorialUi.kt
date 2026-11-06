@@ -185,11 +185,11 @@ internal fun TutorialDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_vern_setup),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_vern_setup),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.weight(1f)
                     )
-                    TextButton(onClick = { onDismiss(nameDraft) }) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_skip)) }
+                    TextButton(onClick = { onDismiss(nameDraft) }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_skip)) }
                 }
                 Column(
                     modifier = Modifier
@@ -217,32 +217,32 @@ internal fun TutorialDialog(
                             }
                         }
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_welcome_to_vern),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_welcome_to_vern),
                             style = MaterialTheme.typography.headlineMedium,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_transform_your_research_documents_and_reading_materials_into_high),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_transform_your_research_documents_and_reading_materials_into_high),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
                     } else if (stepIndex == 1) {
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_what_should_we_call_you),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_what_should_we_call_you),
                             style = MaterialTheme.typography.headlineMedium)
                         OutlinedTextField(
                             value = nameDraft,
                             onValueChange = { nameDraft = it.take(48) },
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_your_preferred_name)) },
-                            placeholder = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_name_for_the_home_tab_welcome)) },
+                            label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_your_preferred_name)) },
+                            placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_name_for_the_home_tab_welcome)) },
                             singleLine = true,
                             shape = RoundedCornerShape(50)
                         )
                         Text(
-                            androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_this_is_used_to_personalize_your_home_tab_and_reading_experience),
+                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_this_is_used_to_personalize_your_home_tab_and_reading_experience),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -295,7 +295,7 @@ internal fun TutorialDialog(
                         enabled = stepIndex > 0,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(50)
-                    ) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_back)) }
+                    ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back)) }
                     Button(
                         onClick = {
                             if (stepIndex >= steps.lastIndex) onDismiss(nameDraft) else stepIndex += 1
@@ -303,7 +303,7 @@ internal fun TutorialDialog(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(50)
                     ) {
-                        Text(if (stepIndex >= steps.lastIndex) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_go_to_home) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_next))
+                        Text(if (stepIndex >= steps.lastIndex) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_go_to_home) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next))
                     }
                 }
             }
@@ -372,7 +372,7 @@ internal fun TutorialStage(frame: TutorialFrame, progress: Float, pulse: Float) 
                 style = MaterialTheme.typography.titleMedium)
             Text(frame.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (frame.action != null) {
-                Button(onClick = frame.action, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open)) }
+                Button(onClick = frame.action, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open)) }
             }
         }
     }
@@ -432,7 +432,7 @@ internal fun TutorialStep(
                 Text(body, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (action != null) {
-                Button(onClick = action, shape = RoundedCornerShape(50)) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open)) }
+                Button(onClick = action, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open)) }
             }
         }
     }

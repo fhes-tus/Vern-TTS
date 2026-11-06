@@ -2,4 +2,20 @@
 <resources>
     <string name="language_follow_device_named">"डिवाइस की भाषा उपयोग करें · %1$s"</string>
     <string name="language_device_behavior" formatted="false">"यह Vern की अलग भाषा का चयन हटाकर फ़ोन की समर्थित भाषा प्राथमिकताओं का पालन करता है। कोई भाषा उपलब्ध न हो तो अंग्रेज़ी उपयोग होती है। आगे फ़ोन की भाषा बदलने पर ऐप अपने आप उसका पालन करता है।"</string>
+    <string name="menu_translation_explanation">"अगर Google अनुवाद फ़ोन की भाषा का समर्थन करता है, तो इस डिवाइस पर Vern की स्क्रीन और मेनू का अनुवाद करें। मॉडल का पहला डाउनलोड आम तौर पर करीब 30 एमबी का है। Google ML Kit इस्तेमाल और प्रदर्शन से जुड़े आँकड़े इकट्ठा करता है।"</string>
+    <string name="menu_translation_preparing">"मॉडल डाउनलोड की तैयारी हो रही है। इंतज़ार के दौरान सेटिंग अपनी मौजूदा भाषा में रहेगी।"</string>
+    <string name="menu_translation_failed">"मॉडल तैयार नहीं हो सका। अपना कनेक्शन जाँचें और फिर कोशिश करें।"</string>
+    <string name="menu_translation_mobile">"मॉडल डाउनलोड के लिए मोबाइल डेटा की अनुमति दें"</string>
+    <string name="menu_translation_enable">"Google से अनुवाद करें"</string>
+    <string name="menu_translation_disable">"सेटिंग का अनुवाद बंद करें"</string>
+    <string name="menu_translation_attribution">"Google अनुवाद की मदद से"</string>
+    <string name="menu_translation_about">"Google अनुवाद के बारे में"</string>
+    <string name="menu_translation_disclaimer">"Google ये अनुवाद जैसे हैं वैसे देता है और सटीकता, विश्वसनीयता, व्यापार-योग्यता, किसी विशेष उद्देश्य के लिए उपयुक्तता या अधिकारों का उल्लंघन न होने की गारंटी नहीं देता।"</string>
+    <string name="menu_translation_thermal">"फ़ोन बहुत गर्म होने पर Android मॉडल डाउनलोड रोक देता है। Android की अनुमति मिलने पर Vern जारी रखेगा।"</string>
+    <string name="menu_translation_model_name">"%1$s अनुवाद मॉडल"</string>
+    <string name="menu_translation_waiting_network">"इंटरनेट कनेक्शन का इंतज़ार है। कनेक्शन मिलने पर Vern डाउनलोड शुरू करेगा।"</string>
+    <string name="menu_translation_waiting_wifi">"वाई-फ़ाई का इंतज़ार है। नीचे मोबाइल डेटा की अनुमति दे सकते हैं।"</string>
+    <string name="menu_translation_downloading">"Google से मॉडल डाउनलोड हो रहा है।"</string>
+    <string name="menu_translation_applying">"मॉडल तैयार है। इस फ़ोन पर इंटरफ़ेस का अनुवाद हो रहा है।"</string>
+    <string name="menu_translation_ready">"ऑफ़लाइन इंटरफ़ेस अनुवाद के लिए मॉडल तैयार है।"</string>
 </resources>

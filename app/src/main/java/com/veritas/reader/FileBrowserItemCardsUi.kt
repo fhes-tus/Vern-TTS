@@ -220,11 +220,11 @@ internal fun FileBrowserFileRow(
                 }
                 Text(
                     text = when {
-                        file.name == GO_UP_FILE_NAME -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_go_up_one_folder_level)
-                        file.isDirectory && file.targetLocation != null -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_015, com.veritas.reader.ui.screens.localizedUiValue(formatBrowserModified(file.modifiedAt)))
-                        file.isDirectory -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_protected_folder_android_may_block_this_path)
+                        file.name == GO_UP_FILE_NAME -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_go_up_one_folder_level)
+                        file.isDirectory && file.targetLocation != null -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_015, com.veritas.reader.ui.screens.localizedUiValue(formatBrowserModified(file.modifiedAt)))
+                        file.isDirectory -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_protected_folder_android_may_block_this_path)
                         file.isSupported -> "${formatBrowserFileSize(file.sizeBytes)} • ${formatBrowserModified(file.modifiedAt)}"
-                        else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_016, com.veritas.reader.ui.screens.localizedUiValue(formatBrowserFileSize(file.sizeBytes)))
+                        else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_016, com.veritas.reader.ui.screens.localizedUiValue(formatBrowserFileSize(file.sizeBytes)))
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -243,7 +243,7 @@ internal fun FileBrowserFileRow(
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = if (file.isDirectory) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open) else if (file.isSupported) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unsupported),
+                    text = if (file.isDirectory) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open) else if (file.isSupported) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_import) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_unsupported),
                     color = if (buttonEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     style = MaterialTheme.typography.labelMedium)
             }
@@ -334,11 +334,11 @@ internal fun FileBrowserFileTileCard(
             )
             Text(
                 text = when {
-                    file.name == GO_UP_FILE_NAME -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_parent_directory)
-                    file.isDirectory && file.targetLocation != null -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_017, com.veritas.reader.ui.screens.localizedUiValue(formatBrowserModified(file.modifiedAt)))
-                    file.isDirectory -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_protected_folder)
+                    file.name == GO_UP_FILE_NAME -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_parent_directory)
+                    file.isDirectory && file.targetLocation != null -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_017, com.veritas.reader.ui.screens.localizedUiValue(formatBrowserModified(file.modifiedAt)))
+                    file.isDirectory -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_protected_folder)
                     file.isSupported -> "${formatBrowserFileSize(file.sizeBytes)} • ${formatBrowserModified(file.modifiedAt)}"
-                    else -> androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unsupported_file)
+                    else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_unsupported_file)
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -362,7 +362,7 @@ internal fun FileBrowserFileTileCard(
                         .padding(horizontal = 14.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = if (file.name == GO_UP_FILE_NAME) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_go_up) else if (file.isDirectory) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_open) else if (file.isSupported) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_import) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_unsupported),
+                        text = if (file.name == GO_UP_FILE_NAME) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_go_up) else if (file.isDirectory) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open) else if (file.isSupported) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_import) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_unsupported),
                         color = if (buttonEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         style = MaterialTheme.typography.labelMedium)
                 }
@@ -381,8 +381,8 @@ internal fun FileBrowserSortDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ok)) } },
-        title = { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_sort_files_by)) },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ok)) } },
+        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_sort_files_by)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 VeritasBrowserSort.entries.forEach { option ->
@@ -400,7 +400,7 @@ internal fun FileBrowserSortDialog(
                     }
                 }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_order), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_order), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -409,7 +409,7 @@ internal fun FileBrowserSortDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(selected = sortAscending, onClick = { onSortAscendingChange(true) })
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_ascending), modifier = Modifier.weight(1f))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ascending), modifier = Modifier.weight(1f))
                 }
                 Row(
                     modifier = Modifier
@@ -421,7 +421,7 @@ internal fun FileBrowserSortDialog(
                     RadioButton(
                         selected = !sortAscending,
                         onClick = { onSortAscendingChange(false) })
-                    Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_descending), modifier = Modifier.weight(1f))
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_descending), modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -547,14 +547,14 @@ internal fun FileBrowserDeleteConfirmationDialog(
         },
         title = {
             Text(
-                if (doomedFiles.size == 1) androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete_this_file) else androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_018, com.veritas.reader.ui.screens.localizedUiValue(doomedFiles.size)),
+                if (doomedFiles.size == 1) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_this_file) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_018, com.veritas.reader.ui.screens.localizedUiValue(doomedFiles.size)),
                 fontWeight = FontWeight.Bold
             )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_this_removes_the_file_from_your_phone_s_storage_not_just_from_ver),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_this_removes_the_file_from_your_phone_s_storage_not_just_from_ver),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Column(
@@ -567,7 +567,7 @@ internal fun FileBrowserDeleteConfirmationDialog(
                 }
                 if (doomedFiles.size > 5) {
                     Text(
-                        androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.l10n_dynamic_019, com.veritas.reader.ui.screens.localizedUiValue(doomedFiles.size - 5)),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_019, com.veritas.reader.ui.screens.localizedUiValue(doomedFiles.size - 5)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -581,10 +581,10 @@ internal fun FileBrowserDeleteConfirmationDialog(
                     containerColor = MaterialTheme.colorScheme.error,
                     contentColor = MaterialTheme.colorScheme.onError
                 )
-            ) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_delete)) }
+            ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_cancel)) }
+            TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
         }
     )
 }
@@ -607,20 +607,20 @@ internal fun FileBrowserEmptyState(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_no_file_access_yet),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_file_access_yet),
                     style = MaterialTheme.typography.titleMedium)
                 Text(
-                    androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_grant_all_files_access_for_broad_phone_storage_browsing_or_choose),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_grant_all_files_access_for_broad_phone_storage_browsing_or_choose),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Button(
                     onClick = onRequestAllFilesAccess,
                     modifier = Modifier.fillMaxWidth()
-                ) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_grant_all_files_access)) }
+                ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_grant_all_files_access)) }
                 Button(
                     onClick = onPickFolder,
                     modifier = Modifier.fillMaxWidth()
-                ) { Text(androidx.compose.ui.res.stringResource(com.veritas.reader.R.string.ui_folders_to_scan)) }
+                ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_folders_to_scan)) }
             }
         }
     }

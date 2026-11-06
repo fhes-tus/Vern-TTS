@@ -247,11 +247,11 @@ fun ReaderModeToggle(
                 ReaderMode.LISTEN -> Icons.Filled.Headphones
                 ReaderMode.ORIGINAL -> Icons.Filled.Description
             }
-            val modeLabel = when (mode) {
-                ReaderMode.TEXT -> "Text"
-                ReaderMode.LISTEN -> "Listen"
-                ReaderMode.ORIGINAL -> "Original"
-            }
+            val modeLabel = com.veritas.reader.ui.screens.menuString(when (mode) {
+                ReaderMode.TEXT -> R.string.ui_text
+                ReaderMode.LISTEN -> R.string.ui_listen
+                ReaderMode.ORIGINAL -> R.string.ui_original
+            })
             Box(
                 modifier = Modifier
                     .weight(1f)
