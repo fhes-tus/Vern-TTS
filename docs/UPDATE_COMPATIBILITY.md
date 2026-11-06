@@ -15,7 +15,7 @@ Existing installations signed with the upload key need their own migration decis
 
 The in-app updater checks package name, newer version code and compatible verified signing history before launching Android's installer. A mismatch is reported without uninstalling the current app. Android still performs its own final verification and requires installation consent.
 
-Current source is 2.6.2 / code 42. Local release assembly is authorized. Play upload and rollout remain pending. Compare the eventual code with the latest uploaded Play build and verify track eligibility before release. Internal App Sharing uses its own signing mechanism and should not be used to establish normal track compatibility.
+Current source is 2.8.0 / code 47. Local release assembly is authorized. Play upload and rollout remain pending. Compare the eventual code with the latest uploaded Play build and verify track eligibility before release. Internal App Sharing uses its own signing mechanism and should not be used to establish normal track compatibility.
 
 References: [Google Play app signing and cross-store APK distribution](https://support.google.com/googleplay/android-developer/answer/9842756), [Android app signing](https://developer.android.com/studio/publish/app-signing).
 

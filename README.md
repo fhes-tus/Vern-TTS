@@ -6,7 +6,7 @@
 
 ### *Your intelligent, private reading workstation, neural audiobook studio, and active-recall study suite for Android.*
 
-[![Source Version](https://img.shields.io/badge/Source-v2.7.1-orange.svg)](RELEASE_NOTES_v2.7.1.md)
+[![Source Version](https://img.shields.io/badge/Source-v2.8.0-orange.svg)](RELEASE_NOTES_v2.8.0.md)
 [![Target Platform](https://img.shields.io/badge/Platform-Android%2016%20(API%2036)-3DDC84.svg?logo=android&logoColor=white)](https://developer.android.com/)
 [![Minimum SDK](https://img.shields.io/badge/Min%20SDK-Android%209.0%20(API%2028)-blue.svg)](https://developer.android.com/)
 [![Language](https://img.shields.io/badge/Kotlin-2.4.0-7F52FF.svg?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
@@ -58,16 +58,29 @@ Designed with an **offline-first, privacy-respecting philosophy**, your library,
 
 ---
 
-## What's new in 2.7.1
+## What's new in 2.8.0
+
+- Added preview interface translations: Korean, Brazilian Portuguese, Russian, and German, joining Arabic, Simplified Chinese, Spanish, French, and Hindi.
+- Optional on-device translation powered by Google ML Kit for supported phone languages without shipped packs, with localized Library filter chips and settings.
+- Added step-by-step walkthroughs and instant examples for Pattern and Regex pronunciation rules, with collapsible saved rule groups.
+- Searchable voice catalogs for Azure Speech and Google Cloud Text-to-Speech, with inline HTTPS custom endpoint configuration and hardened credential handling.
+- Localized reader controls, reading summaries, and native PDF viewer chrome across all ten languages.
+- Completed books stay at the end of Library; pick any custom accent in Display & theme using a colour field, hue strip and quick swatches with a live preview.
+
+Source is **2.8.0 / code 47**. [Full notes](RELEASE_NOTES_v2.8.0.md) · [Verification](progress.md).
+
+## Previous updates
+
+### 2.7.1
 
 - Completed books stay at the end of Library in every sort, including custom ordering.
-- Pick any custom accent in Display & theme using a colour field, hue strip and quick swatches, with a live circle preview. Matching accents and tints follow all four theme packs and the selected light, dark or system mode.
-- Pronunciation rules have wider fields, grouped matching controls and a clearer spoken preview, with extra examples and syntax help available when needed.
-- Reset to the theme's colours at any time. High-contrast presets retain their accessibility colours.
+- Pick any custom accent in Display & theme using a colour field, hue strip and quick swatches, with a live circle preview.
+- Pronunciation rules have wider fields, grouped matching controls and a clearer spoken preview, with extra examples and syntax help.
+- Fixed startup and WorkManager input-merger crashes on minified release builds.
 
-Source is **2.7.1 / code 46**. [Full notes](RELEASE_NOTES_v2.7.1.md) · [Verification](progress.md).
+[2.7.1 notes](RELEASE_NOTES_v2.7.1.md).
 
-## Previous update: 2.7.0
+### 2.7.0
 
 - Take a photo or choose one for on-device Scan / OCR.
 - Share up to five Listen sentences as a quote image, with 14 colours, a preview and an editable author or character credit.
@@ -180,7 +193,7 @@ Suggestions, bug reports, and pull requests are welcome! Feel free to open an is
 
 ## Current development milestone
 
-Source is **2.7.1 / build 46**. This source update has not been published to Google Play or Telegram. See [2.7.1 notes](RELEASE_NOTES_v2.7.1.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and the verification snapshots under `docs/verification/`.
+Source is **2.8.0 / build 47**. This source update has not been published to Google Play or Telegram. See [2.8.0 notes](RELEASE_NOTES_v2.8.0.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and the verification snapshots under `docs/verification/`.
 
 ### Desktop implementation
 

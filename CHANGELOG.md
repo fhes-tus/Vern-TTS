@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.8.0] - 2026-11-06 - internationalization and speech studio release (code 47)
+
+- **On-Device Menu Translation**: Integrate Google ML Kit on-device translation for settings and app language selection for non-packaged system locales, with offline model downloads and thermal guards.
+- **Interface Translations**: Bundle four new language packs (German, Korean, Brazilian Portuguese, Russian) with full reading plural support, alongside Arabic, Simplified Chinese, Spanish, French, and Hindi.
+- **Reader & PDF Localization**: Localize reading controls, Listen summaries, and native PDF viewer chrome across all ten languages.
+- **Pronunciation Syntax Walkthrough**: Add step-by-step walkthroughs and instant examples for Pattern and Regex rules, with collapsible saved rule groups.
+- **Personal Cloud & Custom Voices**: Searchable voice catalogs for Azure Speech and Google Cloud Text-to-Speech, with inline HTTPS custom endpoint support and hardened credential handling.
+- **Library Organization**: Localized Library filter chips and sorted finished books below unfinished books.
+- Full notes: [RELEASE_NOTES_v2.8.0.md](RELEASE_NOTES_v2.8.0.md) · [Observed verification](progress.md).
+
+## [2.7.1] - 2026-11-02 - stability and voice release (code 46)
+
+- Keep completed books at the end of the Library in all sort configurations.
+- Add visual accent picker across all theme packs with persistent custom colours.
+- Refresh pronunciation rules with grouped match controls and spoken preview.
+- Fix startup and WorkManager input-merger crashes on minified release builds.
+- Full notes: [RELEASE_NOTES_v2.7.1.md](RELEASE_NOTES_v2.7.1.md).
+
 ## [2.7.0] - 2026-10-28 - release preparation (code 45)
 
 - Add camera/photo-picker Scan / OCR and reject unsupported or corrupt imports safely.

@@ -1,0 +1,6 @@
+Added preview interface translations, including Korean, Brazilian Portuguese, Russian and German.
+Added optional on-device translation for supported phone languages and localized Library filters.
+Improved voice downloads, narration and custom server controls.
+Added Pattern and Regex pronunciation examples.
+Fixed startup, imports and the Reading Tracker widget.
+Added custom accent colours and moved finished books below unfinished books.
