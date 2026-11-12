@@ -11,6 +11,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -32,6 +38,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +50,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
+import kotlin.math.roundToInt
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -137,25 +152,35 @@ internal fun FloatingRecordOverlay(
 ) {
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
+    var pillSize by remember { mutableStateOf(IntSize.Zero) }
+    val density = LocalDensity.current
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val elapsed = formatRecordElapsed(elapsedSeconds)
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .navigationBarsPadding()
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(22.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
+        val travelX = (with(density) { maxWidth.toPx() } - pillSize.width).coerceAtLeast(0f)
+        val travelY = (with(density) { maxHeight.toPx() } - pillSize.height).coerceAtLeast(0f)
+        val minX = if (rtl) 0f else -travelX
+        val maxX = if (rtl) travelX else 0f
+        LaunchedEffect(minX, maxX, travelY) {
+            offsetX = offsetX.coerceIn(minX, maxX)
+            offsetY = offsetY.coerceIn(-travelY, 0f)
+        }
         Surface(
             modifier = Modifier
-                .graphicsLayer {
-                    translationX = offsetX
-                    translationY = offsetY
-                }
-                .pointerInput(Unit) {
+                .absoluteOffset { IntOffset(offsetX.coerceIn(minX, maxX).roundToInt(), offsetY.coerceIn(-travelY, 0f).roundToInt()) }
+                .onSizeChanged { pillSize = it }
+                .testTag("recording-floater")
+                .pointerInput(minX, maxX, travelY) {
                     detectDragGestures { change, dragAmount ->
                         change.consume()
-                        offsetX += dragAmount.x
-                        offsetY += dragAmount.y
+                        offsetX = (offsetX + dragAmount.x).coerceIn(minX, maxX)
+                        offsetY = (offsetY + dragAmount.y).coerceIn(-travelY, 0f)
                     }
                 },
             shape = if (awaitingDecision) MaterialTheme.shapes.large else MaterialTheme.shapes.medium,
@@ -164,9 +189,8 @@ internal fun FloatingRecordOverlay(
             shadowElevation = 8.dp
         ) {
             if (awaitingDecision) {
-                Row(
+                FlowRow(
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     RecordPillDot(inProgress = inProgress)

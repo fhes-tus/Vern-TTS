@@ -1,0 +1,19 @@
+<resources>
+    <string name="menu_translation_feature_title">"Автоматический перевод интерфейса"</string>
+    <string name="menu_translation_on_demand_notice">"Встроенные языки доступны сразу. При включении автоматического перевода из Google Play загружается дополнительный движок, а затем языковая модель."</string>
+    <string name="menu_translation_engine_downloading">"Загрузка движка перевода из Google Play…"</string>
+    <string name="menu_translation_engine_installing">"Установка дополнительного движка перевода…"</string>
+    <string name="menu_translation_engine_confirmation">"Для загрузки движка перевода Google Play требуется ваше подтверждение."</string>
+    <string name="menu_translation_confirm_download">"Подтвердить в Google Play"</string>
+    <string name="menu_translation_engine_unavailable">"Движок перевода недоступен в Google Play для этой установки. Встроенные языки по-прежнему доступны."</string>
+    <string name="voice_delete_title">"Удалить %1$s?"</string>
+    <string name="voice_delete_notice">"Удалить этот загруженный голос из памяти устройства? Позже его можно загрузить снова."</string>
+    <string name="voice_delete_shared_notice">"Все восемь голосов Kitten используют общую модель. Удаление пакета удалит из памяти все восемь голосов. Позже их можно загрузить снова."</string>
+    <string name="voice_delete_studio_notice">"Все голоса Studio используют общую модель. Удаление пакета удалит из памяти все голоса Studio. Позже их можно загрузить снова."</string>
+    <string name="voice_delete_failed">"Не удалось удалить голос. Приостановите чтение, дождитесь завершения прослушивания образца или экспорта аудио и отмените загрузку голоса перед повторной попыткой."</string>
+    <string name="voice_cancel_download">"Отменить загрузку"</string>
+    <string name="voice_shared_package_size">"Всего %1$s МБ · включает все голоса (%2$d)"</string>
+    <string name="voice_download_package">"Загрузить пакет"</string>
+    <string name="voice_individual_downloads">"Каждый голос загружается отдельно"</string>
+    <string name="voice_choose_individual">"Выбрать голос"</string>
+</resources>

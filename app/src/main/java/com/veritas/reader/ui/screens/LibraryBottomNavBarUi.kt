@@ -49,7 +49,14 @@ internal fun LibraryBottomNavBar(
     val isGlass = VeritasPackStyle.glassChromeEnabled() &&
         isDeviceGlassCapable() && LocalVeritasBackdrop.current != null
     val opaqueGlassFallback = VeritasPackStyle.currentPackId() == "liquid_glass" && !isGlass
-    Box(modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 36.dp, vertical = 10.dp),
+    BoxWithConstraints(modifier.fillMaxWidth().navigationBarsPadding()) {
+    val largeText = androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.3f
+    val sideGutter = when {
+        largeText && maxWidth < 400.dp -> 4.dp
+        maxWidth < 360.dp -> 12.dp
+        else -> 36.dp
+    }
+    Box(Modifier.fillMaxWidth().padding(horizontal = sideGutter, vertical = 10.dp),
         contentAlignment = Alignment.Center) {
         Row(Modifier.widthIn(max = 420.dp).fillMaxWidth()
             .height(VeritasPackStyle.navigationHeight(showNavLabels))) {
@@ -73,7 +80,7 @@ internal fun LibraryBottomNavBar(
                         NavigationTab(tab, activeNavTab, showNavLabels, onNavigateToTab)
                     }
                 }
-                Spacer(Modifier.width(12.dp * split))
+                Spacer(Modifier.width((if (largeText) 4.dp else 12.dp) * split))
                 NavigationCapsule(
                     RoundedCornerShape(topStart = innerRadius, bottomStart = innerRadius, topEnd = radius, bottomEnd = radius),
                     isGlass, opaqueGlassFallback, Modifier.weight(1f).fillMaxHeight().testTag("navigation-notes-capsule"),
@@ -81,6 +88,7 @@ internal fun LibraryBottomNavBar(
                 ) { NavigationTab(VeritasHomeTab.NOTES, activeNavTab, showNavLabels, onNavigateToTab) }
             }
         }
+    }
     }
 }
 
@@ -100,7 +108,9 @@ private fun NavigationCapsule(shape: Shape, glass: Boolean, opaqueFallback: Bool
         shadowElevation = if (glass) 0.dp else VeritasPackStyle.chromeElevation(VeritasPackStyle.currentPackId())) {
         BoxWithConstraints(Modifier.fillMaxSize().then(if (glass || opaqueFallback) Modifier else Modifier.background(VeritasPackStyle.navigationBrush(scheme)))) {
             val pillWidth = minOf(if (labels) 64.dp else 54.dp, maxWidth / tabs.size)
-            Box(Modifier.align(Alignment.CenterStart).width(pillWidth).height(if (labels) 48.dp else 42.dp)
+            val largeLabelHeight = with(androidx.compose.ui.platform.LocalDensity.current) { MaterialTheme.typography.labelSmall.lineHeight.toDp() } + 30.dp
+            val pillHeight = if (labels && androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.3f) minOf(maxHeight - 4.dp, largeLabelHeight) else if (labels) 48.dp else 42.dp
+            Box(Modifier.align(Alignment.CenterStart).width(pillWidth).height(pillHeight)
                 .testTag("navigation-selection-${tabs.first().name}")
                 .graphicsLayer {
                     val distance = maxWidth.toPx() * position - pillWidth.toPx() / 2f

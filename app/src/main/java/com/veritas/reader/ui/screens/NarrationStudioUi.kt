@@ -23,7 +23,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.RecordVoiceOver
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -76,15 +76,19 @@ fun NarrationStudioDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    var draft by remember(settings) { mutableStateOf(settings) }
-    var sample by remember { mutableStateOf(sampleText.take(600).ifBlank { "Alice said, \"Are you ready to begin?\"" }) }
+    val draftSaver = androidx.compose.runtime.saveable.Saver<NarrationSettings, String>(
+        save = { it.toJson().toString() },
+        restore = { runCatching { NarrationSettings.fromJson(org.json.JSONObject(it)) }.getOrNull() }
+    )
+    var draft by androidx.compose.runtime.saveable.rememberSaveable(settings, stateSaver = draftSaver) { mutableStateOf(settings) }
+    var sample by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(sampleText.take(600).ifBlank { "Alice said, \"Are you ready to begin?\"" }) }
     var voices by remember(availableVoices, voiceSettings.enginePackage) { mutableStateOf(availableVoices) }
     var voiceError by remember { mutableStateOf<String?>(null) }
-    var selectedRole by remember { mutableStateOf("narrator") }
+    var selectedRole by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("narrator") }
     var chooseVoice by remember { mutableStateOf(false) }
     var voiceSearch by remember { mutableStateOf("") }
     var addRole by remember { mutableStateOf(false) }
-    var roleName by remember { mutableStateOf("") }
+    var roleName by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
     var discard by remember { mutableStateOf(false) }
     var previewing by remember { mutableStateOf(false) }
     var previewError by remember { mutableStateOf<String?>(null) }
@@ -141,7 +145,7 @@ fun NarrationStudioDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(voiceSearch, { voiceSearch = it }, label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_search_voices)) }, singleLine = true,
                     modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.compactShape())
-                androidx.compose.foundation.lazy.LazyColumn(Modifier.height(300.dp)) {
+                androidx.compose.foundation.lazy.LazyColumn(Modifier.weight(1f, fill = false)) {
                     item { TextButton(onClick = { editRole { it.copy(voiceName = null, enginePackage = null, localeTag = "") }; chooseVoice = false }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_use_reading_voice, localizedSettingsOption(voiceSettings.displayName))) } }
                     items(voices.filter { it.label.contains(voiceSearch, true) || it.localeTag.contains(voiceSearch, true) }.size) { index ->
                         val voice = voices.filter { it.label.contains(voiceSearch, true) || it.localeTag.contains(voiceSearch, true) }[index]

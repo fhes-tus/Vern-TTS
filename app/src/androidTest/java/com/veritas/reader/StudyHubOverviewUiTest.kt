@@ -1,4 +1,5 @@
 package com.veritas.reader
+import androidx.test.platform.app.InstrumentationRegistry
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
@@ -33,7 +34,7 @@ class StudyHubOverviewUiTest {
                 }
             }
         }
-        rule.onNodeWithText("1 card ready").assertExists()
+        rule.onNodeWithText(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.l10n_dynamic_208, "1")).assertExists()
         rule.onNodeWithText("1 card").assertExists()
         rule.onNodeWithText("5 words").assertExists()
         listOf("Flashcards", "Quizzes", "Vocabulary", "Bookmarks", "Booknotes", "History").forEach { title ->

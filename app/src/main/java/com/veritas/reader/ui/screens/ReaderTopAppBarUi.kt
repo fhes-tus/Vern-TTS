@@ -1,5 +1,15 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.platform.LocalDensity
+
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
@@ -125,39 +135,19 @@ internal fun ReaderTopAppBar(
             tonalElevation = 0.dp,
             shadowElevation = if (topBarVisible) 3.dp else 0.dp
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onBackToLibrary) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            document.title,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface)
-                        Text(
-                            "${document.sourceLabel} • $progressLabel",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+            BoxWithConstraints(Modifier.widthIn(max = 760.dp).fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+                .padding(horizontal = 12.dp, vertical = 6.dp)) {
+                // Keep the original single row when back + four actions and a title preview fit.
+                val inlineControlsWidth = 48.dp * 5 + 4.dp
+                val compactHeader = maxWidth - inlineControlsWidth < 64.dp ||
+                    (LocalDensity.current.fontScale >= 1.3f && maxWidth < 600.dp)
+                val actions: @Composable () -> Unit = {
                     val context = LocalContext.current
                     IconButton(
-                        onClick = { onToggleSearch(!showSearch) }
+                        onClick = { onToggleSearch(!showSearch) },
+                        modifier = Modifier.testTag("reader-header-search")
                     ) { Icon(Icons.Outlined.Search, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_search), tint = MaterialTheme.colorScheme.onSurface) }
                     IconButton(
                         onClick = onOpenOutline,
@@ -247,11 +237,40 @@ onOpenAskAi = onOpenAskAi,
                         )
                     }
                 }
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onBackToLibrary) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Column(modifier = Modifier.weight(1f).testTag("reader-header-document")) {
+                        Text(
+                            document.title,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            "${document.sourceLabel} • $progressLabel",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    if (!compactHeader) actions()
+                }
+                if (compactHeader) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { actions() }
                 Spacer(modifier = Modifier.height(4.dp))
                 ReaderModeToggle(
                     currentMode = state.readerMode,
                     onModeSelected = onReaderModeChange,
                     hasCanvas = hasCanvas,
+                    showIcons = !compactHeader,
                     modifier = Modifier
                         .fillMaxWidth()
                         .onGloballyPositioned { OnboardingController.updateBounds("reader_mode_toggle", it) }
@@ -280,6 +299,8 @@ onOpenAskAi = onOpenAskAi,
                 } else {
                     LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
                 }
+            }
+            }
             }
         }
 

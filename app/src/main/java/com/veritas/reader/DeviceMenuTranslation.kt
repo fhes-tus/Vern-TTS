@@ -4,40 +4,72 @@ import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import com.google.android.gms.tasks.Task
-import com.google.mlkit.common.model.DownloadConditions
-import com.google.mlkit.common.model.RemoteModelManager
-import com.google.mlkit.nl.translate.TranslateLanguage
-import com.google.mlkit.nl.translate.Translation
-import com.google.mlkit.nl.translate.TranslateRemoteModel
-import com.google.mlkit.nl.translate.Translator
-import com.google.mlkit.nl.translate.TranslatorOptions
+import com.google.android.play.core.splitcompat.SplitCompat
+import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
+import com.google.android.play.core.splitinstall.SplitInstallRequest
+import com.google.android.play.core.splitinstall.SplitInstallSessionState
+import com.google.android.play.core.splitinstall.SplitInstallException
+import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 internal object DeviceMenuTranslation {
+    const val MODULE = "menu_translation"
+    // ML Kit 17.0.3's supported tags; usable before loading the optional SDK.
+    private val supported = ("af ar be bg bn ca cs cy da de el en eo es et fa fi fr ga gl gu he hi hr ht hu " +
+        "id is it ja ka kn ko lt lv mk mr ms mt nl no pl pt ro ru sk sl sq sv sw ta te th tl tr uk ur vi zh").split(' ').toSet()
+
     fun target(device: Locale, override: String): String? {
         val tag = device.toLanguageTag()
         if (override.isNotEmpty() || AppLanguageCatalog.canonicalTag(tag) != null) return null
         // The SDK advertises one Chinese model and doesn't distinguish Traditional Chinese.
         if (device.language == "zh") return null
-        return TranslateLanguage.fromLanguageTag(tag.substringBefore('-'))
+        return device.language.takeIf { it in supported }
     }
 
-    fun client(target: String): Translator = Translation.getClient(TranslatorOptions.Builder()
-        .setSourceLanguage(TranslateLanguage.ENGLISH).setTargetLanguage(target).build())
+    private fun engine(): MenuTranslationEngine = Class.forName(
+        "com.veritas.reader.menutranslation.MlKitMenuTranslationEngine"
+    ).getDeclaredConstructor().newInstance() as MenuTranslationEngine
 
-    suspend fun isDownloaded(target: String): Boolean = RemoteModelManager.getInstance()
-        .isModelDownloaded(TranslateRemoteModel.Builder(target).build()).awaitResult()
+    fun client(target: String): MenuTranslator = engine().client(target)
+    suspend fun isDownloaded(target: String): Boolean = engine().isDownloaded(target)
+    suspend fun prepare(client: MenuTranslator, allowMobile: Boolean) = client.prepare(allowMobile)
+    suspend fun translate(client: MenuTranslator, source: String): String = client.translate(source)
 
-    suspend fun prepare(client: Translator, allowMobile: Boolean) {
-        val conditions = DownloadConditions.Builder()
-        if (!allowMobile) conditions.requireWifi()
-        client.downloadModelIfNeeded(conditions.build()).awaitResult()
+    fun installed(context: Context): Boolean = MODULE in SplitInstallManagerFactory.create(context).installedModules
+
+    /** Called exclusively by the enabled automatic-translation session. */
+    suspend fun install(context: Context, progress: (SplitInstallSessionState) -> Unit) {
+        if (installed(context)) { SplitCompat.install(context); return }
+        val manager = SplitInstallManagerFactory.create(context)
+        val terminal = setOf(SplitInstallSessionStatus.FAILED, SplitInstallSessionStatus.CANCELED, SplitInstallSessionStatus.INSTALLED)
+        val existing = manager.sessionStates.awaitResult().firstOrNull {
+            MODULE in it.moduleNames() && it.status() !in terminal
+        }
+        val request = if (existing == null) manager.startInstall(SplitInstallRequest.newBuilder().addModule(MODULE).build()) else null
+        var sessionId = existing?.sessionId()
+        try {
+            if (sessionId == null) sessionId = requireNotNull(request).awaitResult()
+            while (true) {
+                val state = manager.getSessionState(sessionId).awaitResult()
+                progress(state)
+                when (state.status()) {
+                    SplitInstallSessionStatus.INSTALLED -> { SplitCompat.install(context); return }
+                    SplitInstallSessionStatus.CANCELED -> throw IllegalStateException("Translation installation cancelled")
+                    SplitInstallSessionStatus.FAILED -> throw SplitInstallException(state.errorCode())
+                }
+                delay(500)
+            }
+        } catch (cancelled: CancellationException) {
+            if (sessionId != null) manager.cancelInstall(sessionId)
+            else request?.addOnSuccessListener { manager.cancelInstall(it) }
+            throw cancelled
+        }
     }
-
-    suspend fun translate(client: Translator, source: String): String = client.translate(source).awaitResult()
 
     data class Transfer(val running: Boolean, val percent: Int?)
 

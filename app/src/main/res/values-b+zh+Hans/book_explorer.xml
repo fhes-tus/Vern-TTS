@@ -1,0 +1,9 @@
+<resources>
+    <string name="book_explorer_title">"好书探索"</string>
+    <string name="book_explorer_intro_title">"寻找下一本好书"</string>
+    <string name="book_explorer_intro_message">"想找这份书单以外的书吗？使用%1$s在线查找书籍。"</string>
+    <string name="book_explorer_open">"打开%1$s"</string>
+    <string name="book_explorer_keep_browsing">"继续浏览"</string>
+    <string name="book_explorer_description">"选择一个网站来浏览或搜索书籍。"</string>
+    <string name="book_explorer_search">"使用%2$s搜索“%1$s”"</string>
+</resources>

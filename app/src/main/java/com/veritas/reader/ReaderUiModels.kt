@@ -1,10 +1,16 @@
 package com.veritas.reader
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,17 +22,21 @@ import androidx.compose.material.icons.outlined.Psychology
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
@@ -226,19 +236,39 @@ fun ReaderModeToggle(
     currentMode: ReaderMode,
     onModeSelected: (ReaderMode) -> Unit,
     hasCanvas: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showIcons: Boolean = true
 ) {
     val modes = remember(hasCanvas) {
         if (hasCanvas) ReaderMode.values().toList() else listOf(ReaderMode.TEXT, ReaderMode.LISTEN)
     }
-    Row(
+    val labels = modes.map { mode ->
+        com.veritas.reader.ui.screens.menuString(when (mode) {
+            ReaderMode.TEXT -> R.string.ui_text
+            ReaderMode.LISTEN -> R.string.ui_listen
+            ReaderMode.ORIGINAL -> R.string.ui_original
+        })
+    }
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
+    val labelStyle = LocalTextStyle.current.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold)
+    BoxWithConstraints(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), shape = RoundedCornerShape(12.dp))
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
+            .padding(3.dp)
+    ) {
+    val minimumTabWidthPx = maxOf(with(density) { 48.dp.roundToPx() },
+        labels.maxOf { textMeasurer.measure(it, style = labelStyle, maxLines = 1, softWrap = false).size.width } +
+            with(density) { (8.dp + if (showIcons) 16.dp else 0.dp).roundToPx() })
+    val equalWidths = constraints.hasBoundedWidth &&
+        minimumTabWidthPx * modes.size + with(density) { 3.dp.roundToPx() } * (modes.size - 1) <= constraints.maxWidth
+    Row(
+        modifier = Modifier.fillMaxWidth().then(
+            if (constraints.hasBoundedWidth && !equalWidths) Modifier.horizontalScroll(rememberScrollState()) else Modifier),
+        horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        modes.forEach { mode ->
+        modes.forEachIndexed { index, mode ->
             val selected = mode == currentMode
             val background = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent
             val textColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
@@ -247,14 +277,11 @@ fun ReaderModeToggle(
                 ReaderMode.LISTEN -> Icons.Filled.Headphones
                 ReaderMode.ORIGINAL -> Icons.Filled.Description
             }
-            val modeLabel = com.veritas.reader.ui.screens.menuString(when (mode) {
-                ReaderMode.TEXT -> R.string.ui_text
-                ReaderMode.LISTEN -> R.string.ui_listen
-                ReaderMode.ORIGINAL -> R.string.ui_original
-            })
+            val modeLabel = labels[index]
             Box(
                 modifier = Modifier
-                    .weight(1f)
+                    .then(if (equalWidths) Modifier.weight(1f) else Modifier.widthIn(min = with(density) { minimumTabWidthPx.toDp() }))
+                    .testTag("reader-mode-${mode.name}")
                     .clip(RoundedCornerShape(9.dp))
                     .background(background)
                     .clickable { onModeSelected(mode) }
@@ -265,7 +292,7 @@ fun ReaderModeToggle(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
-                    Icon(
+                    if (showIcons) Icon(
                         imageVector = icon,
                         contentDescription = null,
                         tint = textColor,
@@ -284,6 +311,7 @@ fun ReaderModeToggle(
             }
         }
     }
+}
 }
 
 data class VocabularyEntry(

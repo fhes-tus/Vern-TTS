@@ -1,5 +1,23 @@
 package com.veritas.reader
 
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.window.DialogWindowProvider
+
 import android.content.Context
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
@@ -60,7 +78,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.ui.screens.FeatureDropdownMenuItem
 import java.util.Locale
@@ -87,9 +105,10 @@ internal fun FileBrowserDialog(
     onRemoveAllAccess: () -> Unit,
     onImportFile: (VeritasBrowserFile) -> Unit,
     onImportMultipleFiles: (List<VeritasBrowserFile>, Boolean) -> Unit,
-    onDeleteFiles: (List<VeritasBrowserFile>) -> Unit = {}
+    onDeleteFiles: (List<VeritasBrowserFile>) -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
-    val selectedFiles = remember { mutableStateListOf<VeritasBrowserFile>() }
+    val selectedFiles = rememberSaveable(saver = BrowserSelectionSaver) { mutableStateListOf<VeritasBrowserFile>() }
     // Deleting reaches the user's own storage and cannot be undone, so nothing is removed
     // until this is confirmed with the files named.
     var pendingDelete by remember { mutableStateOf<List<VeritasBrowserFile>>(emptyList()) }
@@ -104,14 +123,16 @@ internal fun FileBrowserDialog(
         onDismiss = { pendingDelete = emptyList() }
     )
 
+    var selectionLocation by rememberSaveable { mutableStateOf(location.toString()) }
     LaunchedEffect(location) {
-        selectedFiles.clear()
+        if (selectionLocation != location.toString()) selectedFiles.clear()
+        selectionLocation = location.toString()
     }
 
-    var query by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf(VeritasBrowserTab.ALL) }
-    var sortMode by remember { mutableStateOf(VeritasBrowserSort.NAME) }
-    var sortAscending by remember { mutableStateOf(true) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var selectedTab by rememberSaveable { mutableStateOf(VeritasBrowserTab.ALL) }
+    var sortMode by rememberSaveable { mutableStateOf(VeritasBrowserSort.NAME) }
+    var sortAscending by rememberSaveable { mutableStateOf(true) }
     var showMoreMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val browserPrefs = remember { context.getSharedPreferences("veritas_library_settings", Context.MODE_PRIVATE) }
@@ -127,14 +148,6 @@ internal fun FileBrowserDialog(
     var showSortDialog by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
     var showViewMenu by remember { mutableStateOf(false) }
-    val windowWidthDp = with(androidx.compose.ui.platform.LocalDensity.current) {
-        androidx.compose.ui.platform.LocalWindowInfo.current.containerSize.width.toDp()
-    }
-    val columnCount = when {
-        windowWidthDp >= 840.dp -> 4
-        windowWidthDp >= 600.dp -> 3
-        else -> 2
-    }
     val browserFeatures = remember(roots, allFilesAccessGranted) {
         VeritasFeatureRegistry.resolve(
             VeritasFeatureSurface.FILE_BROWSER_OVERFLOW,
@@ -217,22 +230,42 @@ internal fun FileBrowserDialog(
             decorFitsSystemWindows = false
         )
     ) {
+        val dialogView = LocalView.current
+        val lightBars = MaterialTheme.colorScheme.background.luminance() > .45f
+        SideEffect {
+            (dialogView.parent as? DialogWindowProvider)?.window?.let { window ->
+                androidx.core.view.WindowCompat.getInsetsController(window, dialogView).apply {
+                    isAppearanceLightStatusBars = lightBars
+                    isAppearanceLightNavigationBars = lightBars
+                }
+            }
+        }
         androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
         VeritasBackdropProvider(fileBackdrop) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))
+                .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme)),
+            contentAlignment = Alignment.TopCenter
         ) {
+                BoxWithConstraints(
+                    modifier.widthIn(max = 960.dp).fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
+                ) {
+                val columnCount = when { maxWidth >= 840.dp -> 4; maxWidth >= 600.dp -> 3; else -> 2 }
+                val density = LocalDensity.current
+                val headerHeightLimit = maxHeight * .5f
+                var browseHeight by remember { mutableIntStateOf(0) }
+                val browseClearance = with(density) { browseHeight.toDp() } + 44.dp
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .recordVeritasBackdrop(fileBackdrop, floatingGlass)
                         .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))
-                        .statusBarsPadding()
-                        .navigationBarsPadding()
+                        .testTag("file-browser-content")
                 ) {
+                    Column(Modifier.fillMaxWidth().heightIn(max = headerHeightLimit)
+                        .verticalScroll(rememberScrollState()).testTag("file-browser-header")) {
                     if (selectedFiles.isNotEmpty()) {
                         Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -250,9 +283,9 @@ internal fun FileBrowserDialog(
                                     Icon(Icons.Outlined.Delete, "Delete ${selectedFiles.size} files", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                            FlowRow(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                TextButton(onClick = toggleSelectAllForActiveFilter, modifier = Modifier.weight(1f), enabled = !importing) {
+                                TextButton(onClick = toggleSelectAllForActiveFilter, modifier = Modifier, enabled = !importing) {
                                     Text(if (allVisibleSelected) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_deselect_tab) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_023, com.veritas.reader.ui.screens.localizedUiValue(files.size)),
                                         maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 }
@@ -602,6 +635,7 @@ internal fun FileBrowserDialog(
                         }
                     }
 
+                    }
                     when {
                         roots.isEmpty() && !allFilesAccessGranted -> FileBrowserEmptyState(
                             onPickFolder = onPickFolder,
@@ -637,9 +671,10 @@ internal fun FileBrowserDialog(
                         else -> LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
+                                .testTag("file-browser-files")
                                 .padding(horizontal = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(vertical = 12.dp)
+                            contentPadding = PaddingValues(top = 12.dp, bottom = if (selectedFiles.isEmpty()) browseClearance.coerceAtLeast(12.dp) else 12.dp)
                         ) {
 
                             if (scanning) {
@@ -818,6 +853,8 @@ internal fun FileBrowserDialog(
                         .align(Alignment.BottomEnd)
                         .navigationBarsPadding()
                         .padding(22.dp)
+                        .onSizeChanged { browseHeight = it.height }
+                        .testTag("file-browser-browse")
                         .veritasGlassBackdrop(VeritasPackStyle.chipShape(), floatingGlass, surfaceOpacity = .36f),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = if (floatingGlass) androidx.compose.ui.graphics.Color.Transparent else MaterialTheme.colorScheme.primary,
@@ -837,6 +874,7 @@ internal fun FileBrowserDialog(
                         onSortAscendingChange = { sortAscending = it },
                         onDismiss = { showSortDialog = false }
                     )
+                }
                 }
             }
         }

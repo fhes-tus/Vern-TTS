@@ -1,4 +1,5 @@
 package com.veritas.reader.ui.screens
+import com.veritas.reader.VernAlertDialog as AlertDialog
 
 import android.graphics.BitmapFactory
 import androidx.compose.animation.*
@@ -28,6 +29,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.pointer.pointerInput
@@ -44,7 +46,6 @@ import com.veritas.reader.ui.VeritasMotion
 import com.veritas.reader.ui.VeritasSleekSlider
 import com.veritas.reader.ui.pressScale
 import com.veritas.reader.ui.rememberVeritasHaptics
-import kotlinx.coroutines.delay
 import java.io.File
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -143,13 +144,24 @@ fun AudioModeScreen(
                     drawRect(Brush.linearGradient(listOf(Color.Transparent, scheme.tertiary.copy(alpha = .10f), Color.Transparent)))
                 }
             }
-            Column(Modifier.fillMaxSize().windowInsetsPadding(contentWindowInsets).padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (!fullScreenRead) {
+            BoxWithConstraints(
+                Modifier.align(Alignment.TopCenter).widthIn(max = 1000.dp).fillMaxSize()
+                    .windowInsetsPadding(contentWindowInsets).padding(horizontal = 20.dp, vertical = 12.dp)
+            ) {
+                val twoPane = maxWidth >= 600.dp && maxHeight < 600.dp
+                val scrollBody = maxHeight < 620.dp || LocalDensity.current.fontScale >= 1.3f
+                val compactHeader = maxWidth < 360.dp || LocalDensity.current.fontScale >= 1.3f
+                val mediaHeight = (maxHeight * .45f).coerceIn(180.dp, 320.dp)
+                val header: @Composable () -> Unit = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ListenControl(Icons.AutoMirrored.Filled.ArrowBack, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back), glass, Modifier.size(48.dp), onClick = onDismiss)
-                    ReaderModeToggle(readerMode, onReaderModeChange, hasCanvas, Modifier.weight(1f))
+                    if (compactHeader) Spacer(Modifier.weight(1f))
+                    else Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        ReaderModeToggle(readerMode, onReaderModeChange, hasCanvas,
+                            Modifier.widthIn(max = 360.dp).fillMaxWidth().testTag("listen-mode-toggle"))
+                    }
                     Box {
                         ListenControl(Icons.Default.MoreVert, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_more_options_86c0a35), glass, Modifier.size(48.dp), onClick = { toolsExpanded = true })
                         DropdownMenu(toolsExpanded, { toolsExpanded = false }) {
@@ -174,13 +186,20 @@ fun AudioModeScreen(
                         }
                     }
                 }
-                Row(Modifier.align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (compactHeader) ReaderModeToggle(readerMode, onReaderModeChange, hasCanvas,
+                            Modifier.align(Alignment.CenterHorizontally).widthIn(max = 360.dp).fillMaxWidth()
+                                .testTag("listen-mode-toggle"), showIcons = false)
+                    }
+                }
+                val viewTabs: @Composable () -> Unit = {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)) {
                     FilterChip(selected = !showRead, onClick = { showRead = false; quoteSelection = emptyList(); showQuotePreview = false }, label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_player)) })
                     FilterChip(selected = showRead, onClick = { showRead = true }, label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_read)) })
 
                 }
                 }
-                AnimatedContent(showRead, modifier = Modifier.weight(1f).fillMaxWidth(),
+                val media: @Composable (Modifier) -> Unit = { mediaModifier ->
+                AnimatedContent(showRead, modifier = mediaModifier,
                     transitionSpec = {
                         (fadeIn(effects) + slideInVertically(spatial) { it / 12 }) togetherWith
                             (fadeOut(effects) + slideOutVertically(spatial) { -it / 12 })
@@ -201,12 +220,16 @@ fun AudioModeScreen(
                     else ListenArtwork(title, documentId, coverFile, if (totalChunks > 0) (index + 1f) / totalChunks else 0f,
                         { haptics.select(); onNext() }, { haptics.select(); onPrevious() })
                 }
+                }
+                val quoteActions: @Composable () -> Unit = {
                 if (quoteSelection.isNotEmpty()) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_064, com.veritas.reader.ui.screens.localizedUiValue(quoteSelection.size)), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                     TextButton(onClick = { quoteSelection = emptyList(); showQuotePreview = false }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
                     Button(onClick = { showQuotePreview = true }, enabled = quoteText.isNotBlank()) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_preview)) }
                 }
+                }
+                val controls: @Composable () -> Unit = {
                 AnimatedVisibility(visible = !fullScreenRead && quoteSelection.isEmpty(),
                     enter = if (VeritasMotion.scheme.reduceMotion) EnterTransition.None else fadeIn(effects) + expandVertically(),
                     exit = if (VeritasMotion.scheme.reduceMotion) ExitTransition.None else fadeOut(effects) + shrinkVertically()) {
@@ -249,15 +272,17 @@ fun AudioModeScreen(
                             style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                     }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
                     ListenControl(Icons.Default.SkipPrevious, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous_sentence), glass, Modifier.size(60.dp), onClick = { haptics.select(); onPrevious() })
                     ListenControl(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         if (preparing) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_cancel_starting_playback) else if (isPlaying) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_pause) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_play), glass,
-                        Modifier.weight(1f).height(64.dp), label = if (preparing) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_starting) else if (isPlaying) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_pause) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_play),
+                        Modifier.weight(1f, fill = false).widthIn(max = 240.dp).fillMaxWidth().height(64.dp), label = if (preparing) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_starting) else if (isPlaying) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_pause) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_play),
                         playback = true, preparing = preparing, emphasized = true, onClick = { haptics.toggle(!isPlaying); onPlayPause() })
                     ListenControl(Icons.Default.SkipNext, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next_sentence), glass, Modifier.size(60.dp), onClick = { haptics.select(); onNext() })
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    maxItemsInEachRow = if (LocalDensity.current.fontScale >= 1.5f) 1 else 3) {
                     Box(Modifier.weight(1f)) {
                         ListenControl(Icons.Outlined.Speed, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_playback_speed), glass, Modifier.fillMaxWidth().height(48.dp),
                             label = String.format(Locale.US, "%.2f", rate).trimEnd('0').trimEnd('.') + "×", onClick = { ratesExpanded = true })
@@ -274,6 +299,45 @@ fun AudioModeScreen(
                     ListenControl(Icons.Outlined.Timer, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_sleep_timer), glass, Modifier.weight(1f).height(48.dp), label = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_timer), onClick = onOpenSleepTimer)
                 }
                 }
+                }
+                }
+                Column(Modifier.align(Alignment.TopCenter).widthIn(max = if (twoPane) 1000.dp else 600.dp).fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (!fullScreenRead) header()
+                    when {
+                        fullScreenRead -> {
+                            media(Modifier.weight(1f).fillMaxWidth())
+                            quoteActions()
+                        }
+                        twoPane && quoteSelection.isEmpty() -> Row(
+                            Modifier.weight(1f).fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(24.dp)
+                        ) {
+                            Column(Modifier.weight(1f).fillMaxHeight(),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                viewTabs()
+                                media(Modifier.weight(1f).fillMaxWidth())
+                            }
+                            Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())) {
+                                controls()
+                            }
+                        }
+                        scrollBody -> Column(
+                            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).testTag("listen-scroll-body"),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            viewTabs()
+                            media(Modifier.fillMaxWidth().height(mediaHeight))
+                            quoteActions()
+                            controls()
+                        }
+                        else -> {
+                            viewTabs()
+                            media(Modifier.weight(1f).fillMaxWidth())
+                            quoteActions()
+                            controls()
+                        }
+                    }
                 }
             }
         }
@@ -333,13 +397,14 @@ private fun ListenArtwork(title: String, documentId: String?, coverFile: File?, 
             color = scheme.surfaceContainer, shadowElevation = 12.dp) {
             Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(cardStart, cardEnd))), contentAlignment = Alignment.Center) {
                 if (bitmap != null) {
-                    val available = side - 28.dp
+                    val available = (side - 28.dp).coerceAtLeast(1.dp)
                     val ratio = bitmap.width.toFloat() / bitmap.height.coerceAtLeast(1)
                     val width = if (ratio < 1f) available * ratio else available
                     val height = if (ratio < 1f) available else available / ratio
                     Image(bitmap.asImageBitmap(), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_book_cover), Modifier.size(width, height).clip(RoundedCornerShape(24.dp)), contentScale = ContentScale.Fit)
                 } else {
-                    VeritasCoverPlaceholder(documentId ?: title, title, "", Modifier.width((side - 28.dp) * 2f / 3f).height(side - 28.dp))
+                    val available = (side - 28.dp).coerceAtLeast(1.dp)
+                    VeritasCoverPlaceholder(documentId ?: title, title, "", Modifier.width(available * 2f / 3f).height(available))
                 }
                 Surface(Modifier.align(Alignment.BottomEnd).padding(14.dp), shape = RoundedCornerShape(50),
                     color = scheme.surface.copy(alpha = .85f), contentColor = scheme.onSurface) {
@@ -359,17 +424,15 @@ private fun ListenSentenceList(chunks: List<String>, currentIndex: Int, onSenten
     val scheme = MaterialTheme.colorScheme
     val reducedMotion = VeritasMotion.scheme.reduceMotion
     val density = LocalDensity.current
-    LaunchedEffect(currentIndex, chunks.size, reducedMotion, fontSizeSp, quoteSelection.isNotEmpty()) {
-        if (quoteSelection.isNotEmpty() || currentIndex !in chunks.indices) return@LaunchedEffect
-        repeat(15) {
-            if (state.layoutInfo.viewportEndOffset <= 0) delay(30)
-        }
-        val viewport = state.layoutInfo.viewportEndOffset - state.layoutInfo.viewportStartOffset
-        val offset = -(viewport * .14f).toInt()
+    var viewportHeight by remember { mutableIntStateOf(0) }
+    LaunchedEffect(currentIndex, chunks.size, reducedMotion, fontSizeSp, density.fontScale, viewportHeight, quoteSelection.isNotEmpty()) {
+        if (viewportHeight <= 0 || quoteSelection.isNotEmpty() || currentIndex !in chunks.indices) return@LaunchedEffect
+        val offset = -(viewportHeight * .14f).toInt()
         if (reducedMotion) state.scrollToItem(currentIndex, offset) else state.animateScrollToItem(currentIndex, offset)
     }
     Box(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.fillMaxSize().testTag("listen-sentences")
+            .onSizeChanged { viewportHeight = it.height }
             .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
             .drawWithContent {
                 drawContent()

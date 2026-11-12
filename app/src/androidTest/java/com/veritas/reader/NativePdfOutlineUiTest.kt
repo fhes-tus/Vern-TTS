@@ -20,7 +20,7 @@ class NativePdfOutlineUiTest {
     @Test fun pdfOutlineClosesBackToTheSameNativeViewportAndNavigatesNestedDestinations() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
-        check(context.packageName.endsWith(".outline.checks"))
+        check(context.packageName.endsWith(".checks"))
         val repository = DocumentRepository(context)
         val old = repository.loadReaderSettings()
         val file = File(context.cacheDir, "outline-navigation.pdf")

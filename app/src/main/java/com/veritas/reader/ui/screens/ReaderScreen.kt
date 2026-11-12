@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.ui.layout.onSizeChanged
+
 import com.veritas.reader.recordVeritasBackdrop
 
 import android.widget.TextView
@@ -554,25 +556,35 @@ fun ReaderScreen(
     val effectiveTopBarVisible = !isCollapsible || topBarVisible
     val effectiveBottomBarVisible = !isCollapsible || bottomBarVisible
 
+    var topChromeHeightPx by remember { mutableStateOf(0) }
+    var bottomChromeHeightPx by remember { mutableStateOf(0) }
+    var collapsedPlayerHeightPx by remember { mutableStateOf(0) }
+    val chromeDensity = androidx.compose.ui.platform.LocalDensity.current
+
     val topBarOffset by animateFloatAsState(
-        targetValue = if (effectiveTopBarVisible) 0f else -650f,
+        targetValue = if (effectiveTopBarVisible) 0f else -topChromeHeightPx.coerceAtLeast(1).toFloat(),
         animationSpec = VeritasMotion.spatial(),
         label = "readerTopBarOffset"
     )
     val bottomBarOffset by animateFloatAsState(
-        targetValue = if (effectiveBottomBarVisible) 0f else 450f,
+        targetValue = if (effectiveBottomBarVisible) 0f else bottomChromeHeightPx.coerceAtLeast(1).toFloat(),
         animationSpec = VeritasMotion.spatial(),
         label = "readerBottomBarOffset"
     )
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val animatedTopPadding by animateDpAsState(
-        targetValue = if (effectiveTopBarVisible) topInset + 114.dp else topInset + 8.dp,
+        targetValue = if (effectiveTopBarVisible) {
+            if (topChromeHeightPx > 0) with(chromeDensity) { topChromeHeightPx.toDp() } + 8.dp else topInset + 114.dp
+        } else topInset + 8.dp,
         animationSpec = VeritasMotion.spatial(),
         label = "animatedTopPadding"
     )
     val animatedBottomPadding by animateDpAsState(
-        targetValue = if (effectiveBottomBarVisible) bottomInset + 64.dp else bottomInset + 12.dp,
+        targetValue = if (effectiveBottomBarVisible) {
+            val playerHeight = if (collapsedPlayerHeightPx > 0) with(chromeDensity) { collapsedPlayerHeightPx.toDp() } else 72.dp
+            bottomInset + 64.dp + (playerHeight - 72.dp).coerceAtLeast(0.dp)
+        } else bottomInset + 12.dp,
         animationSpec = VeritasMotion.spatial(),
         label = "animatedBottomPadding"
     )
@@ -594,6 +606,7 @@ fun ReaderScreen(
                 .recordVeritasBackdrop(readerBackdrop, glassEnabled)
                 .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))
                 .padding(top = animatedTopPadding, bottom = animatedBottomPadding)
+                .testTag("reader-viewport")
         ) {
             if (document.chunks.isEmpty()) {
                 Box(
@@ -730,7 +743,7 @@ ReaderPageItemView(
         // 2. Docked Top app bar (Collapsible)
         ReaderTopAppBar(
             onReadingSettingsChange = onReadingSettingsChange,
-            modifier = Modifier.align(Alignment.TopCenter),
+            modifier = Modifier.align(Alignment.TopCenter).onSizeChanged { topChromeHeightPx = it.height },
             document = document,
             progressLabel = progressLabel,
             topBarOffset = topBarOffset,
@@ -824,6 +837,7 @@ ReaderPageItemView(
                 .fillMaxWidth()
                 .graphicsLayer { translationY = bottomBarOffset }
                 .testTag("reader-bottom-controls")
+                .onSizeChanged { bottomChromeHeightPx = it.height }
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -871,6 +885,7 @@ ReaderPageItemView(
                 }
 
                 PlayerPanel(
+                    onCollapsedHeightMeasured = { collapsedPlayerHeightPx = it },
                     isPlaying = isPlaying,
                     isBackgroundActive = isBackgroundActive,
                     statusMessage = statusMessage,

@@ -22,6 +22,7 @@ internal class NativeModelResources(
     val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 ) {
     val admission = ModelAdmission(policy, clock, capacity, mayAddSecond)
+    private val fileMutation = Mutex()
     @Volatile internal var retirementFailed = false
     suspend fun acquire(owner: ModelAdmission.Owner) {
         val queuedAt = clock.nowMs()
@@ -29,12 +30,27 @@ internal class NativeModelResources(
         try {
             while (true) {
                 currentCoroutineContext().ensureActive()
-                if (admission.tryAcquire(owner)) return
+                if (fileMutation.withLock { admission.tryAcquire(owner) }) return
                 if (retirementFailed) throw SpeechModelBusyException("A voice could not be released safely. Restart Vern and try again.")
                 if (!owner.live && clock.expired(queuedAt, policy.admissionWaitMs)) throw SpeechModelBusyException()
                 delay(25)
             }
         } finally { admission.waiting(owner, false) }
+    }
+
+    /** No inference may start while idle graphs retire and their backing files are removed. */
+    suspend fun mutateModelFiles(action: () -> Boolean): Boolean = fileMutation.withLock {
+        val state = admission.snapshot()
+        if (state.busy > 0 || state.pinned > 0) return@withLock false
+        admission.trim(true)
+        val released = withTimeoutOrNull(5_000) {
+            while (admission.snapshot().resident > 0) {
+                if (retirementFailed) return@withTimeoutOrNull false
+                delay(25)
+            }
+            true
+        } == true
+        released && action()
     }
     companion object {
         @Volatile private var process: NativeModelResources? = null

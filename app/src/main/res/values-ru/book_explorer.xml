@@ -1,0 +1,9 @@
+<resources>
+    <string name="book_explorer_title">"Поиск книг"</string>
+    <string name="book_explorer_intro_title">"Найдите следующую книгу"</string>
+    <string name="book_explorer_intro_message">"Ищете книгу за пределами этой коллекции? Используйте %1$s, чтобы находить книги в интернете."</string>
+    <string name="book_explorer_open">"Открыть %1$s"</string>
+    <string name="book_explorer_keep_browsing">"Продолжить просмотр"</string>
+    <string name="book_explorer_description">"Выберите сайт для просмотра или поиска книг."</string>
+    <string name="book_explorer_search">"Искать «%1$s» через %2$s"</string>
+</resources>

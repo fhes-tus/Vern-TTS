@@ -23,6 +23,9 @@ class ClassicArchiveLinksUiTest {
                     onBrowse = { url, title, query -> routed = routed.withBookArchive(url, title, query) }, headerState = controls)
             }
         }
+        rule.onAllNodesWithTag("book_explorer_intro_dismiss").fetchSemanticsNodes().firstOrNull()?.let {
+            rule.onNodeWithTag("book_explorer_intro_dismiss").performClick()
+        }
         for (site in FREE_BOOK_SITES) {
             rule.onNodeWithTag("classics_catalog").performScrollToNode(hasTestTag("classic_archive_${site.name}"))
             rule.onNodeWithTag("classic_archive_${site.name}").performClick()

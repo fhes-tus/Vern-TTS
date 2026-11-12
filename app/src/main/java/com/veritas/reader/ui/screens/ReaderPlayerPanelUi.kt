@@ -20,6 +20,8 @@ import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -65,9 +67,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.BrandMark
@@ -111,7 +116,8 @@ internal fun PlayerPanel(
     voiceSettings: VoiceSettings,
     onVoiceSelected: (TtsVoiceOption) -> Unit,
     documentId: String? = null,
-    onToggleDocumentMode: () -> Unit = {}
+    onToggleDocumentMode: () -> Unit = {},
+    onCollapsedHeightMeasured: (Int) -> Unit = {}
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -141,7 +147,6 @@ internal fun PlayerPanel(
 
     val currentOffset = if (draggableState.offset.isNaN()) maxOffsetPx else draggableState.requireOffset()
     val progress = (1f - (currentOffset / maxOffsetPx)).coerceIn(0f, 1f)
-    val heightDp = 72.dp + (218.dp * progress)
 
     val currentLocaleTag = voiceSettings.localeTag
     val availableVoices = remember(voices, currentLocaleTag) {
@@ -168,19 +173,39 @@ internal fun PlayerPanel(
 
     val cornerRadius = androidx.compose.ui.unit.lerp(34.dp, 24.dp, progress)
     val capsuleShape = RoundedCornerShape(cornerRadius)
+    val rateLabel = "${"%.2f".format(rate).trimEnd('0').trimEnd('.')}x"
+    val rateLabelWidth = rememberTextMeasurer().measure(rateLabel,
+        style = MaterialTheme.typography.labelSmall, maxLines = 1, softWrap = false).size.width
+    val requiredHeaderWidth = with(density) {
+        val leading = 36.dp.roundToPx() + 4.dp.roundToPx() + 2 * 7.dp.roundToPx() + rateLabelWidth
+        val transport = 2 * 38.dp.roundToPx() + 46.dp.roundToPx() + 2 * 8.dp.roundToPx()
+        val trailing = 38.dp.roundToPx() + 32.dp.roundToPx() + 2.dp.roundToPx()
+        leading + transport + trailing + 2 * 14.dp.roundToPx()
+    }
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(horizontal = 20.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
+        val compactHeader = minOf(constraints.maxWidth, with(density) { 580.dp.roundToPx() }) < requiredHeaderWidth ||
+            density.fontScale >= 1.3f
+        val headerHeight = if (compactHeader) 112.dp else 56.dp
+        val collapsedHeight = headerHeight + 16.dp
+        val expandedHeight = minOf(collapsedHeight + 218.dp, maxHeight).coerceAtLeast(collapsedHeight)
+        val heightDp = collapsedHeight + (expandedHeight - collapsedHeight) * progress
         Surface(
             modifier = Modifier
                 .widthIn(max = 580.dp)
                 .fillMaxWidth()
                 .height(heightDp)
+                .onSizeChanged { size ->
+                    val expansionPx = with(density) { (heightDp - collapsedHeight).roundToPx() }
+                    onCollapsedHeightMeasured((size.height - expansionPx).coerceAtLeast(0))
+                }
+                .testTag("reader-player-panel")
                 .veritasGlassBackdrop(capsuleShape, isGlass, surfaceOpacity = .36f)
                 .anchoredDraggable(
                     state = draggableState,
@@ -206,15 +231,18 @@ internal fun PlayerPanel(
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
             // Header Row (Capsule Main Controls)
-            Row(
+            FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .height(headerHeight),
+                verticalArrangement = if (compactHeader) Arrangement.SpaceBetween else Arrangement.Center,
+                itemVerticalAlignment = Alignment.CenterVertically,
+                maxItemsInEachRow = if (compactHeader) 2 else 3,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // Left: Book Cover / Veritas Mode Toggle & 1-tap Speed Cycler Pill
                 Row(
+                    modifier = Modifier.testTag("reader-player-leading"),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -256,7 +284,7 @@ internal fun PlayerPanel(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "${"%.2f".format(rate).trimEnd('0').trimEnd('.')}x",
+                            text = rateLabel,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -265,6 +293,7 @@ internal fun PlayerPanel(
 
                 // Center: Previous, Morphing Play/Pause, Next
                 Row(
+                    modifier = Modifier.testTag("reader-player-transport"),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -310,7 +339,9 @@ internal fun PlayerPanel(
                 }
 
                 // Right: Audio Immersion Button & Expand Chevron
+                if (compactHeader) Spacer(Modifier.weight(1f))
                 Row(
+                    modifier = Modifier.testTag("reader-player-trailing"),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {

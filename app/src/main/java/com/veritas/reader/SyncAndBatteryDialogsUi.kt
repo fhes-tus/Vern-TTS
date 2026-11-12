@@ -25,7 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.PowerSettingsNew
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -47,7 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.ui.VeritasSwitch
 
@@ -376,14 +376,25 @@ fun rememberBatteryOptimizationIgnored(): Boolean {
 }
 
 @Composable
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 fun UnrestrictedBatteryDialog(
     onDismiss: () -> Unit,
     onOpenSettings: () -> Unit,
-    onNeverAskAgain: (() -> Unit)? = null
+    onNeverAskAgain: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
+    androidx.compose.material3.BasicAlertDialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = modifier.vernDialogPane(),
+            shape = androidx.compose.material3.AlertDialogDefaults.shape,
+            color = androidx.compose.material3.AlertDialogDefaults.containerColor,
+            tonalElevation = androidx.compose.material3.AlertDialogDefaults.TonalElevation
+        ) {
+        Column(
+            modifier = Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             Box(
                 modifier = Modifier
                     .size(52.dp)
@@ -400,16 +411,12 @@ fun UnrestrictedBatteryDialog(
                     modifier = Modifier.size(28.dp)
                 )
             }
-        },
-        title = {
             Text(
                 text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_unrestricted_battery_playback),
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
-        },
-        text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -441,8 +448,11 @@ fun UnrestrictedBatteryDialog(
                     }
                 }
             }
-        },
-        confirmButton = {
+        androidx.compose.foundation.layout.FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Button(
                 onClick = {
                     onOpenSettings()
@@ -452,9 +462,6 @@ fun UnrestrictedBatteryDialog(
             ) {
                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_turn_on_unrestricted))
             }
-        },
-        dismissButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (onNeverAskAgain != null) {
                     TextButton(
                         onClick = {
@@ -468,7 +475,8 @@ fun UnrestrictedBatteryDialog(
                 TextButton(onClick = onDismiss) {
                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_not_now))
                 }
-            }
         }
-    )
+        }
+        }
+    }
 }

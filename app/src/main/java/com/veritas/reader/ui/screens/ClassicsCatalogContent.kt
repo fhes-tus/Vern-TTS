@@ -1,7 +1,11 @@
 package com.veritas.reader.ui.screens
+import com.veritas.reader.VernAlertDialog as AlertDialog
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -9,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,14 +22,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.*
+import com.veritas.reader.R
 import kotlinx.coroutines.launch
 
 /** Embedded discovery shelves share Library's card and cover treatment, without dialog chrome. */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ClassicsCatalogContent(
     documents: List<SavedDocument>,
@@ -43,7 +51,23 @@ fun ClassicsCatalogContent(
     var genre by rememberSaveable { mutableStateOf("All") }
     var sort by rememberSaveable { mutableStateOf("Featured") }
     var previewId by rememberSaveable { mutableStateOf<String?>(null) }
-    var showArchives by rememberSaveable { mutableStateOf(false) }
+    var showExplorer by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val discoveryPreferences = remember(context) {
+        context.getSharedPreferences("vern_classics_discovery", Context.MODE_PRIVATE)
+    }
+    var showDiscoveryTip by rememberSaveable {
+        mutableStateOf(!discoveryPreferences.getBoolean("book_explorer_tip_seen", false))
+    }
+    val explorerTitle = menuString(R.string.book_explorer_title)
+    fun dismissDiscoveryTip() {
+        discoveryPreferences.edit().putBoolean("book_explorer_tip_seen", true).apply()
+        showDiscoveryTip = false
+    }
+    fun openExplorer() {
+        focusManager.clearFocus()
+        showExplorer = true
+    }
     val listState = rememberLazyListState()
     val genres = remember { listOf("All") + CURATED_CLASSICS.map { it.genre }.distinct() }
     val filtered = remember(controls.query, genre, sort) {
@@ -88,14 +112,22 @@ fun ClassicsCatalogContent(
             }
         }
         item("sort") {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_069, com.veritas.reader.ui.screens.localizedUiValue(filtered.size)), Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                TextButton(::openExplorer, Modifier.testTag("book_explorer_open"),
+                    contentPadding = PaddingValues(vertical = 8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(Icons.Filled.Search, null, Modifier.size(18.dp))
+                        Text(explorerTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    }
+                }
                 var expanded by remember { mutableStateOf(false) }
                 Box {
                     TextButton({ expanded = true }, Modifier.testTag("classics_sort")) { Text(menuString(com.veritas.reader.R.string.l10n_dynamic_070, localizedCatalogLabel(sort))) }
                     DropdownMenu(expanded, { expanded = false }) {
                         listOf("Featured", "Title", "Author", "Shortest").forEach { value ->
-                            DropdownMenuItem({ Text(localizedCatalogLabel(value)) }, { sort = value; expanded = false })
+                            DropdownMenuItem({ Text(localizedCatalogLabel(value)) }, { sort = value; expanded = false },
+                                modifier = Modifier.testTag("classics_sort_$value"))
                         }
                     }
                 }
@@ -122,7 +154,7 @@ fun ClassicsCatalogContent(
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_books_found), style = MaterialTheme.typography.titleMedium)
                     if (controls.query.isNotBlank()) {
-                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_072, com.veritas.reader.ui.screens.localizedUiValue(controls.query.trim())), style = MaterialTheme.typography.bodyMedium)
+                        Text(menuString(R.string.book_explorer_search, controls.query.trim(), explorerTitle), style = MaterialTheme.typography.bodyMedium)
                         FREE_BOOK_SITES.forEach { site ->
                             OutlinedButton({ onBrowse(site.url, site.name, controls.query.trim()) }, Modifier.fillMaxWidth()
                                 .testTag("classic_archive_${site.name}"), shape = VeritasPackStyle.chipShape()) {
@@ -165,9 +197,46 @@ fun ClassicsCatalogContent(
         }
         item("archives") {
             Column(Modifier.padding(horizontal = 16.dp)) {
-                TextButton({ showArchives = !showArchives }) { Text(if (showArchives) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_hide_book_archives) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_explore_more_book_archives)) }
-                if (showArchives) FREE_BOOK_SITES.forEach { site ->
-                    TextButton({ onBrowse(site.url, site.name, controls.query) }, Modifier.fillMaxWidth()) { Text(site.name) }
+                TextButton(::openExplorer, Modifier.testTag("book_explorer_footer_open")) {
+                    Text(menuString(R.string.book_explorer_open, explorerTitle))
+                }
+            }
+        }
+    }
+    if (showDiscoveryTip && com.veritas.reader.ui.OnboardingController.activeStep == null && !showExplorer) {
+        AlertDialog(onDismissRequest = ::dismissDiscoveryTip, modifier = Modifier.testTag("book_explorer_intro"),
+            title = { Text(menuString(R.string.book_explorer_intro_title)) },
+            text = { Text(menuString(R.string.book_explorer_intro_message, explorerTitle)) },
+            confirmButton = {
+                TextButton({ dismissDiscoveryTip(); openExplorer() }, Modifier.testTag("book_explorer_intro_open")) {
+                    Text(menuString(R.string.book_explorer_open, explorerTitle))
+                }
+            },
+            dismissButton = {
+                TextButton(::dismissDiscoveryTip, Modifier.testTag("book_explorer_intro_dismiss")) {
+                    Text(menuString(R.string.book_explorer_keep_browsing))
+                }
+            })
+    }
+    if (showExplorer) {
+        ModalBottomSheet(onDismissRequest = { showExplorer = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            shape = VeritasPackStyle.sheetShape(), containerColor = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.testTag("book_explorer_sheet")) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 16.dp)) {
+                Text(explorerTitle, Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.titleLarge)
+                Text(menuString(R.string.book_explorer_description), Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (controls.query.isNotBlank()) Text(menuString(R.string.book_explorer_search, controls.query.trim(), explorerTitle),
+                    Modifier.padding(horizontal = 24.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge)
+                FREE_BOOK_SITES.forEach { site ->
+                    ListItem(headlineContent = { Text(site.name) },
+                        trailingContent = { Icon(Icons.Filled.OpenInNew, null) },
+                        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+                        modifier = Modifier.fillMaxWidth().testTag("book_explorer_site_${site.name}").clickable {
+                            showExplorer = false
+                            onBrowse(site.url, site.name, controls.query.trim())
+                        })
                 }
             }
         }

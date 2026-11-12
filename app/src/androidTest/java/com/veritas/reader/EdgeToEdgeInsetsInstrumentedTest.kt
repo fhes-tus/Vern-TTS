@@ -55,7 +55,9 @@ class EdgeToEdgeInsetsInstrumentedTest {
                             assertTrue(root.paddingTop >= safe.top)
                             assertTrue(root.paddingRight >= safe.right)
                             assertTrue(root.paddingBottom >= safe.bottom)
-                            val button = root.getChildAt(2)
+                            val buttons = arrayListOf<android.view.View>()
+                            root.findViewsWithText(buttons, context.getString(R.string.pdf_back_to_vern), android.view.View.FIND_VIEWS_WITH_TEXT)
+                            val button = buttons.single()
                             val visible = Rect()
                             assertTrue(button.getGlobalVisibleRect(visible))
                             assertEquals(button.width, visible.width())
@@ -72,11 +74,9 @@ class EdgeToEdgeInsetsInstrumentedTest {
                                 .outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG, 100, it) }
                         } finally { screenshot.recycle() }
                         // Exercise actual touch dispatch through the protection overlay.
-                        val downTime = SystemClock.uptimeMillis()
-                        for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
-                            val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, tapX, tapY, 0)
-                            try { instrumentation.sendPointerSync(event) } finally { event.recycle() }
-                        }
+                        androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText(
+                            context.getString(R.string.pdf_back_to_vern)
+                        )).perform(androidx.test.espresso.action.ViewActions.click())
                         instrumentation.waitForIdleSync()
                         // finish() completes through the activity manager after input dispatch.
                         for (attempt in 0 until 40) {

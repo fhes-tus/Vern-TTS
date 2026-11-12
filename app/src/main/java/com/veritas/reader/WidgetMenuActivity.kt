@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,10 +45,11 @@ class WidgetMenuActivity : AppCompatActivity() {
         
         setContent {
             VeritasTheme {
+                VernFoldAwarePane(Modifier.fillMaxSize()) {
                 WidgetMenuDialog(
                     onDismiss = { finish() },
                     onActionSelected = { action ->
-                        val intent = Intent(this, MainActivity::class.java).apply {
+                        val intent = Intent(this@WidgetMenuActivity, MainActivity::class.java).apply {
                             action?.let { putExtra(MainActivity.EXTRA_WIDGET_ACTION, it) }
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                         }
@@ -52,6 +57,7 @@ class WidgetMenuActivity : AppCompatActivity() {
                         finish()
                     }
                 )
+                }
             }
         }
     }
@@ -65,11 +71,13 @@ fun WidgetMenuDialog(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .safeDrawingPadding()
             .clickable(onClick = onDismiss),
         contentAlignment = Alignment.BottomCenter
     ) {
         Card(
             modifier = Modifier
+                .widthIn(max = 480.dp)
                 .fillMaxWidth()
                 .padding(16.dp)
                 .clickable(enabled = false, onClick = {}),
@@ -79,6 +87,7 @@ fun WidgetMenuDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {

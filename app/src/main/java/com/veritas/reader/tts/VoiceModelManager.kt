@@ -117,6 +117,37 @@ object VoiceModelManager {
     private val downloadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val requestLock = Any()
     private val inFlight = mutableMapOf<String, Deferred<Boolean>>()
+    private val transfers = ConcurrentHashMap<String, com.veritas.reader.VoiceArchiveDownload>()
+
+    private fun packageKey(voice: OfflineVoiceDescriptor): String =
+        if (voice.engineType == OfflineEngineType.PIPER) voice.id else voice.engineType.name
+
+    fun stateFor(voiceId: String, states: Map<String, DownloadState> = downloadState.value): DownloadState? {
+        val voice = availableVoices.firstOrNull { it.id == voiceId } ?: return null
+        return states[packageKey(voice)] ?: states[voiceId]
+    }
+
+    fun downloadSizeMb(voice: OfflineVoiceDescriptor): Float =
+        if (voice.engineType == OfflineEngineType.PIPER) voice.downloadSizeMb
+        else availableVoices.filter { it.engineType == voice.engineType }.maxOf { it.downloadSizeMb }
+
+    suspend fun cancelDownload(context: Context, voiceId: String) = withContext(Dispatchers.IO) {
+        val voice = availableVoices.firstOrNull { it.id == voiceId } ?: return@withContext
+        val key = packageKey(voice)
+        val task = synchronized(requestLock) { inFlight[key]?.also { it.cancel() } }
+        transfers[key]?.cancel()
+        task?.join() // The row becomes idle only after streams and staging files are gone.
+        synchronized(requestLock) {
+            // A failure can finish between the tap and this IO task. Discard its
+            // resumable bytes too, without touching a newly started request.
+            if (inFlight[key]?.isCompleted != false) {
+                val partial = File(File(getTtsDirectory(context), "downloads"), key + ".part")
+                partial.delete()
+                File(partial.path + ".validator").delete()
+                updateState(voiceId, if (isVoiceInstalled(context, voiceId)) DownloadState.Completed else DownloadState.Idle)
+            }
+        }
+    }
 
     val availablePackages = listOf(
         NeuralPackageDescriptor(
@@ -414,13 +445,14 @@ object VoiceModelManager {
     }
 
     suspend fun downloadVoice(context: Context, voice: OfflineVoiceDescriptor): Boolean {
+        val key = packageKey(voice)
         val task = synchronized(requestLock) {
-            inFlight[voice.id]?.takeIf { it.isActive } ?: downloadScope.async(start = CoroutineStart.LAZY) {
+            inFlight[key]?.takeIf { !it.isCompleted } ?: downloadScope.async(start = CoroutineStart.LAZY) {
                 runDownload(context.applicationContext, voice)
             }.also { pending ->
-                inFlight[voice.id] = pending
+                inFlight[key] = pending
                 pending.invokeOnCompletion {
-                    synchronized(requestLock) { if (inFlight[voice.id] === pending) inFlight.remove(voice.id) }
+                    synchronized(requestLock) { if (inFlight[key] === pending) inFlight.remove(key) }
                 }
                 pending.start()
             }
@@ -430,7 +462,7 @@ object VoiceModelManager {
 
     private suspend fun runDownload(context: Context, voice: OfflineVoiceDescriptor): Boolean {
         // Kokoro catalog entries all install one shared package; Piper entries are independent.
-        val packageKey = if (voice.engineType == OfflineEngineType.PIPER) voice.id else voice.engineType.name
+        val packageKey = packageKey(voice)
         updateState(voice.id, DownloadState.Downloading(0, 0, 0, queued = true))
         try {
             return packageLocks.computeIfAbsent(packageKey) { Mutex() }.withLock {
@@ -449,6 +481,9 @@ object VoiceModelManager {
         val attempt = "${voice.id}_${UUID.randomUUID()}"
         val targetFile = File(baseDir, "${attempt}_archive.tmp")
         val staging = File(baseDir, "${attempt}_staging")
+        val partial = File(File(baseDir, "downloads"), packageKey(voice) + ".part")
+        val downloader = com.veritas.reader.VoiceArchiveDownload()
+        transfers[packageKey(voice)] = downloader
         synchronized(transientLock) {
             activeTransientPaths.add(targetFile.absolutePath)
             activeTransientPaths.add(staging.absolutePath)
@@ -462,9 +497,7 @@ object VoiceModelManager {
             require(voice.modelUrl.endsWith(".tar.bz2")) { "Unsupported offline voice archive." }
             updateState(voice.id, DownloadState.Downloading(0, 0, 0))
             val downloadContext = coroutineContext
-            val partial = File(File(baseDir,"downloads").apply { mkdirs() },
-                (if(voice.engineType == OfflineEngineType.PIPER) voice.id else voice.engineType.name)+".part")
-            com.veritas.reader.VoiceArchiveDownload().download(voice.modelUrl,partial,
+            downloader.download(voice.modelUrl,partial,
                 com.veritas.reader.ResourceLimits.MODEL_DOWNLOAD_BYTES,voice.expectedChecksum,
                 checkActive = { downloadContext.ensureActive() }) { bytesRead, totalBytes, retrying ->
                 downloadContext.ensureActive()
@@ -496,16 +529,22 @@ object VoiceModelManager {
             val saved = pruneNonEnglishAssets(staging)
             if (saved > 0) Log.i(TAG, "Pruned ${saved / (1024 * 1024)}MB of unused language data")
 
-            if (voice.engineType == OfflineEngineType.PIPER) {
-                hoistSharedEspeak(context, staging)
-                PiperModelFiles.publishQuality(staging, voiceDir, requireNotNull(voice.modelBaseName))
-            } else {
-                voiceDir.deleteRecursively()
-                if (!staging.renameTo(voiceDir)) {
-                    staging.deleteRecursively()
-                    updateState(voice.id, DownloadState.Failed("",com.veritas.reader.R.string.voice_download_storage))
-                    return false
+            // Serialize the final commit with cancel/delete/new requests. Cancellation
+            // before this boundary never publishes an incomplete or unwanted package.
+            val published = synchronized(requestLock) {
+                downloadContext.ensureActive()
+                if (voice.engineType == OfflineEngineType.PIPER) {
+                    hoistSharedEspeak(context, staging)
+                    PiperModelFiles.publishQuality(staging, voiceDir, requireNotNull(voice.modelBaseName))
+                    true
+                } else {
+                    voiceDir.deleteRecursively()
+                    staging.renameTo(voiceDir)
                 }
+            }
+            if (!published) {
+                updateState(voice.id, DownloadState.Failed("",com.veritas.reader.R.string.voice_download_storage))
+                return false
             }
 
             if (!isVoiceInstalled(context, voice.id)) {
@@ -515,6 +554,8 @@ object VoiceModelManager {
             updateState(voice.id, DownloadState.Completed)
             return true
         } catch (cancelled: CancellationException) {
+            partial.delete()
+            File(partial.path + ".validator").delete()
             throw cancelled
         } catch (e: com.veritas.reader.VoiceDownloadException) {
             updateState(voice.id, DownloadState.Failed("",e.messageId))
@@ -524,6 +565,7 @@ object VoiceModelManager {
             updateState(voice.id, DownloadState.Failed(e.localizedMessage ?: "Download failed"))
             return false
         } finally {
+            transfers.remove(packageKey(voice), downloader)
             synchronized(transientLock) {
                 targetFile.delete()
                 staging.deleteRecursively()
@@ -584,25 +626,41 @@ object VoiceModelManager {
         }
     }
 
-    fun deleteVoice(context: Context, voiceId: String): Boolean {
-        val voice = availableVoices.firstOrNull { it.id == voiceId } ?: return false
+    suspend fun deleteVoice(context: Context, voiceId: String): Boolean = withContext(Dispatchers.IO) {
+        val voice = availableVoices.firstOrNull { it.id == voiceId } ?: return@withContext false
+        packageLocks.computeIfAbsent(packageKey(voice)) { Mutex() }.withLock {
+        NativeModelResources.get(context).mutateModelFiles {
+        synchronized(requestLock) {
         val affected = availableVoices.filter {
             it.id == voiceId || (voice.engineType != OfflineEngineType.PIPER && it.engineType == voice.engineType)
         }
-        if (affected.any { _downloadState.value[it.id] is DownloadState.Downloading }) return false
-        getVoiceDirectory(context, voice.engineType, voice.id).deleteRecursively()
+        if (inFlight[packageKey(voice)]?.isCompleted == false) return@synchronized false
+        val dir = getVoiceDirectory(context, voice.engineType, voice.id)
+        if (dir.exists() && !dir.deleteRecursively()) return@synchronized false
+        val partial = File(File(getTtsDirectory(context), "downloads"), packageKey(voice) + ".part")
+        partial.delete()
+        File(partial.path + ".validator").delete()
+        if (voice.engineType == OfflineEngineType.PIPER && availableVoices.none {
+                it.engineType == OfflineEngineType.PIPER &&
+                    (isVoiceInstalled(context, it.id) || inFlight[packageKey(it)]?.isCompleted == false)
+            }) synchronized(espeakInstallLock) { sharedEspeakDirectory(context).deleteRecursively() }
 
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val currentSet = prefs.getStringSet(KEY_INSTALLED_VOICES, emptySet())?.toMutableSet() ?: mutableSetOf()
-        currentSet.remove(voiceId)
+        currentSet.removeAll(affected.map { it.id }.toSet())
         prefs.edit().putStringSet(KEY_INSTALLED_VOICES, currentSet).apply()
 
-        updateState(voiceId, DownloadState.Idle)
-        return true
+        affected.forEach { updateState(it.id, DownloadState.Idle) }
+        true
+        }
+        }
+        }
     }
 
     private fun updateState(voiceId: String, state: DownloadState) {
-        _downloadState.update { it + (voiceId to state) }
+        val voice = availableVoices.firstOrNull { it.id == voiceId }
+        val key = voice?.let(::packageKey) ?: voiceId
+        _downloadState.update { it + (key to state) + (voiceId to state) }
     }
 
 }

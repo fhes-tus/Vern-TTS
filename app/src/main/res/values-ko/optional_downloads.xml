@@ -1,0 +1,19 @@
+<resources>
+    <string name="menu_translation_feature_title">"자동 인터페이스 번역"</string>
+    <string name="menu_translation_on_demand_notice">"내장 언어는 즉시 사용할 수 있습니다. 자동 번역을 켜면 Google Play에서 선택적 번역 엔진을 다운로드한 후 언어 모델을 다운로드합니다."</string>
+    <string name="menu_translation_engine_downloading">"Google Play에서 번역 엔진을 다운로드하는 중…"</string>
+    <string name="menu_translation_engine_installing">"선택적 번역 엔진을 설치하는 중…"</string>
+    <string name="menu_translation_engine_confirmation">"번역 엔진을 다운로드하려면 Google Play에서 확인이 필요합니다."</string>
+    <string name="menu_translation_confirm_download">"Google Play에서 확인"</string>
+    <string name="menu_translation_engine_unavailable">"이 설치에서는 Google Play에서 번역 엔진을 받을 수 없습니다. 내장 언어는 계속 사용할 수 있습니다."</string>
+    <string name="voice_delete_title">"%1$s을(를) 삭제할까요?"</string>
+    <string name="voice_delete_notice">"다운로드한 이 음성을 저장 공간에서 삭제할까요? 나중에 다시 다운로드할 수 있습니다."</string>
+    <string name="voice_delete_shared_notice">"Kitten 음성 8개는 하나의 모델을 공유합니다. 이 패키지를 삭제하면 음성 8개가 모두 저장 공간에서 제거됩니다. 나중에 다시 다운로드할 수 있습니다."</string>
+    <string name="voice_delete_studio_notice">"모든 Studio 음성은 하나의 모델을 공유합니다. 이 패키지를 삭제하면 모든 Studio 음성이 저장 공간에서 제거됩니다. 나중에 다시 다운로드할 수 있습니다."</string>
+    <string name="voice_delete_failed">"음성을 삭제할 수 없습니다. 읽기를 일시 중지하고 음성 미리 듣기나 내보내기가 끝날 때까지 기다린 다음, 다운로드를 취소하고 다시 시도하세요."</string>
+    <string name="voice_cancel_download">"다운로드 취소"</string>
+    <string name="voice_shared_package_size">"총 %1$s MB · 음성 %2$d개 모두 포함"</string>
+    <string name="voice_download_package">"패키지 다운로드"</string>
+    <string name="voice_individual_downloads">"각 음성은 개별적으로 다운로드됩니다"</string>
+    <string name="voice_choose_individual">"음성 선택"</string>
+</resources>

@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.ui.platform.testTag
+
 import android.content.Context
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -233,6 +235,7 @@ internal fun LibraryBooksTab(
 
                                     LazyColumn(
                                         modifier = Modifier
+                                            .testTag("library-books-list")
                                             .staggeredEntrance(1)
                                             .fillMaxSize()
                                             .pointerInput(libraryListState) {

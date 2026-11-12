@@ -48,7 +48,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -74,7 +73,7 @@ import com.veritas.reader.VoiceNamingRegistry
 import com.veritas.reader.VoiceSettings
 import com.veritas.reader.voicePresets
 import com.veritas.reader.R
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.ui.semantics.stateDescription
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -105,11 +104,35 @@ fun VoiceStudioDialog(
     val downloadContext = LocalContext.current
     val downloadScope = rememberCoroutineScope()
     var pendingDownload by remember { mutableStateOf<com.veritas.reader.tts.OfflineVoiceDescriptor?>(null) }
+    var pendingDelete by remember { mutableStateOf<com.veritas.reader.tts.OfflineVoiceDescriptor?>(null) }
+    pendingDelete?.let { voice ->
+        AlertDialog(onDismissRequest = { pendingDelete = null },
+            title = { Text(menuString(R.string.voice_delete_title, voice.name)) },
+            text = { Text(menuString(when (voice.engineType) {
+                com.veritas.reader.tts.OfflineEngineType.KITTEN -> R.string.voice_delete_shared_notice
+                com.veritas.reader.tts.OfflineEngineType.KOKORO -> R.string.voice_delete_studio_notice
+                else -> R.string.voice_delete_notice
+            })) },
+            confirmButton = { TextButton(onClick = {
+                pendingDelete = null
+                VoiceManager.releasePreviewEngine()
+                downloadScope.launch {
+                    if (!com.veritas.reader.tts.VoiceModelManager.deleteVoice(downloadContext, voice.id)) {
+                        android.widget.Toast.makeText(downloadContext, R.string.voice_delete_failed, android.widget.Toast.LENGTH_LONG).show()
+                    }
+                    onRefreshEngines(); onLoadVoices()
+                }
+            }) { Text(menuString(R.string.ui_delete_voice_model)) } },
+            dismissButton = { TextButton(onClick = { pendingDelete = null }) { Text(menuString(R.string.ui_cancel)) } })
+    }
     pendingDownload?.let { voice ->
         AlertDialog(onDismissRequest = { pendingDownload = null },
-            title = { Text(menuString(R.string.voice_download_title,voice.name)) },
+            title = { Text(menuString(R.string.voice_download_title,
+                if (voice.engineType == com.veritas.reader.tts.OfflineEngineType.PIPER) voice.name
+                else com.veritas.reader.tts.VoiceModelManager.availablePackages.first { it.engineType == voice.engineType }.title)) },
             text = { Text(menuString(R.string.voice_download_notice,
-                java.text.NumberFormat.getNumberInstance(LocalConfiguration.current.locales[0]).apply { maximumFractionDigits = 1 }.format(voice.downloadSizeMb),
+                java.text.NumberFormat.getNumberInstance(LocalConfiguration.current.locales[0]).apply { maximumFractionDigits = 1 }
+                    .format(com.veritas.reader.tts.VoiceModelManager.downloadSizeMb(voice)),
                 menuString(when(voice.engineType) {
                     com.veritas.reader.tts.OfflineEngineType.KOKORO -> R.string.voice_studio_help
                     com.veritas.reader.tts.OfflineEngineType.KITTEN -> R.string.voice_kitten_help
@@ -446,17 +469,27 @@ fun VoiceStudioDialog(
         val groupTitle = engines.firstOrNull { it.packageName == engine }?.label?.let { localizedSettingsOption(it) }
             ?: menuString(R.string.cloud_phone)
         val expandedLabel = menuString(if(expanded) R.string.voice_list_expanded else R.string.voice_list_collapsed)
-        Row(Modifier.fillMaxWidth().semantics { stateDescription = expandedLabel }.clickable { expanded = !expanded }
+        val groupModel = group.firstNotNullOfOrNull { option ->
+            com.veritas.reader.tts.VoiceModelManager.availableVoices.firstOrNull { it.id == option.name }
+        }?.takeIf { it.engineType != com.veritas.reader.tts.OfflineEngineType.PIPER }
+        Row(Modifier.fillMaxWidth().testTag("voice-group-$engine").semantics { stateDescription = expandedLabel }.clickable { expanded = !expanded }
             .padding(vertical = 12.dp),verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(groupTitle,style = MaterialTheme.typography.titleSmall)
                 Text(menuString(R.string.voice_list_count,group.size),style = MaterialTheme.typography.bodySmall)
+                if (groupModel != null) Text(
+                    menuString(R.string.voice_shared_package_size,
+                        java.text.NumberFormat.getNumberInstance(currentLocale).apply { maximumFractionDigits = 1 }
+                            .format(com.veritas.reader.tts.VoiceModelManager.downloadSizeMb(groupModel)),
+                        com.veritas.reader.tts.VoiceModelManager.availableVoices.count { it.engineType == groupModel.engineType }),
+                    modifier = Modifier.testTag("voice-package-summary-$engine"),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Icon(Icons.Default.ArrowDropDown,null,Modifier.graphicsLayer { rotationZ = if(expanded) 180f else 0f })
         }
         group.filter { expanded || voiceSearchQuery.isNotBlank() ||
-            voiceDownloadStates[it.name] is com.veritas.reader.tts.DownloadState.Downloading ||
-            voiceDownloadStates[it.name] is com.veritas.reader.tts.DownloadState.Failed }.forEach { voice ->
+            com.veritas.reader.tts.VoiceModelManager.stateFor(it.name, voiceDownloadStates) is com.veritas.reader.tts.DownloadState.Downloading ||
+            com.veritas.reader.tts.VoiceModelManager.stateFor(it.name, voiceDownloadStates) is com.veritas.reader.tts.DownloadState.Failed }.forEach { voice ->
             val isCurrent = voice.name == settings.voiceName
             val offlineVoice = com.veritas.reader.tts.VoiceModelManager.availableVoices
                 .firstOrNull { it.id == voice.name }
@@ -464,7 +497,7 @@ fun VoiceStudioDialog(
                 !com.veritas.reader.tts.VoiceModelManager.isVoiceInstalled(voiceRowContext, voice.name)
             val needsQualityUpgrade = offlineVoice != null &&
                 com.veritas.reader.tts.VoiceModelManager.needsQualityUpgrade(voiceRowContext, voice.name)
-            val voiceDownload = voiceDownloadStates[voice.name]
+            val voiceDownload = com.veritas.reader.tts.VoiceModelManager.stateFor(voice.name, voiceDownloadStates)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -503,7 +536,14 @@ fun VoiceStudioDialog(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    if (offlineVoice != null && (needsDownload || needsQualityUpgrade)) {
+                    if (offlineVoice != null && voiceDownload is com.veritas.reader.tts.DownloadState.Downloading) {
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(downloadStateLabel(voiceDownload), style = MaterialTheme.typography.labelSmall)
+                            TextButton(onClick = { voiceRowScope.launch {
+                                com.veritas.reader.tts.VoiceModelManager.cancelDownload(voiceRowContext, voice.name)
+                            } }) { Text(menuString(R.string.voice_cancel_download)) }
+                        }
+                    } else if (offlineVoice != null && (needsDownload || needsQualityUpgrade)) {
                         when (val state = voiceDownload) {
                             is com.veritas.reader.tts.DownloadState.Downloading ->
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -514,13 +554,20 @@ fun VoiceStudioDialog(
                                 pendingDownload = offlineVoice
                             }) {
                                 Text(
-                                    com.veritas.reader.ui.screens.menuString(if (needsQualityUpgrade) com.veritas.reader.R.string.settings_update_voice_size else com.veritas.reader.R.string.settings_get_voice_size, offlineVoice.downloadSizeMb.toInt()),
+                                    if (offlineVoice.engineType != com.veritas.reader.tts.OfflineEngineType.PIPER)
+                                        menuString(R.string.voice_download_package)
+                                    else menuString(if (needsQualityUpgrade) R.string.settings_update_voice_size else R.string.settings_get_voice_size, offlineVoice.downloadSizeMb.toInt()),
                                     style = MaterialTheme.typography.labelMedium)
                             }
                         }
                     } else {
                         IconButton(onClick = { onPreviewVoice(voice) }) {
                             Icon(Icons.Outlined.GraphicEq, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_preview_voice), tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    if (offlineVoice != null && !needsDownload && voiceDownload !is com.veritas.reader.tts.DownloadState.Downloading) {
+                        IconButton(onClick = { pendingDelete = offlineVoice }) {
+                            Icon(Icons.Outlined.Delete, contentDescription = menuString(R.string.ui_delete_voice_model))
                         }
                     }
                 }
@@ -554,7 +601,6 @@ fun VoiceStudioDialog(
             val context = LocalContext.current
             val coroutineScope = rememberCoroutineScope()
             val downloadStates by com.veritas.reader.tts.VoiceModelManager.downloadState.collectAsState()
-            var refreshTrigger by remember { mutableIntStateOf(0) }
 
             Column(
                 modifier = Modifier.padding(14.dp),
@@ -569,7 +615,7 @@ fun VoiceStudioDialog(
                     val isInstalled = com.veritas.reader.tts.VoiceModelManager.isVoiceInstalled(context, pkg.targetVoiceId)
                     val targetVoice = com.veritas.reader.tts.VoiceModelManager.availableVoices.firstOrNull { it.id == pkg.targetVoiceId }
                     val relatedStates = com.veritas.reader.tts.VoiceModelManager.availableVoices.filter { it.engineType == pkg.engineType }
-                        .mapNotNull { downloadStates[it.id] }
+                        .mapNotNull { com.veritas.reader.tts.VoiceModelManager.stateFor(it.id, downloadStates) }
                     val state = relatedStates.firstOrNull { it is com.veritas.reader.tts.DownloadState.Downloading }
                         ?: relatedStates.firstOrNull { it is com.veritas.reader.tts.DownloadState.Failed }
                         ?: downloadStates[pkg.targetVoiceId] ?: com.veritas.reader.tts.DownloadState.Idle
@@ -585,8 +631,12 @@ fun VoiceStudioDialog(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(pkg.title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
-                                java.text.NumberFormat.getNumberInstance(currentLocale).apply { maximumFractionDigits = 1 }
-                                    .format(targetVoice?.downloadSizeMb ?: 0f) + " MB · " + voiceLanguageLabel("en",currentLocale),
+                                if (targetVoice != null && pkg.engineType != com.veritas.reader.tts.OfflineEngineType.PIPER)
+                                    menuString(R.string.voice_shared_package_size,
+                                        java.text.NumberFormat.getNumberInstance(currentLocale).apply { maximumFractionDigits = 1 }
+                                            .format(com.veritas.reader.tts.VoiceModelManager.downloadSizeMb(targetVoice)),
+                                        com.veritas.reader.tts.VoiceModelManager.availableVoices.count { it.engineType == pkg.engineType })
+                                else menuString(R.string.voice_individual_downloads),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -606,22 +656,27 @@ fun VoiceStudioDialog(
                         Spacer(modifier = Modifier.width(8.dp))
 
                         Box(Modifier.width(148.dp), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
-                        if (isInstalled) {
+                        if (state is com.veritas.reader.tts.DownloadState.Downloading) {
+                            TextButton(onClick = { coroutineScope.launch {
+                                com.veritas.reader.tts.VoiceModelManager.availableVoices.filter { it.engineType == pkg.engineType }
+                                    .forEach { com.veritas.reader.tts.VoiceModelManager.cancelDownload(context, it.id) }
+                            } }) { Text(menuString(R.string.voice_cancel_download)) }
+                        } else if (pkg.engineType == com.veritas.reader.tts.OfflineEngineType.PIPER) {
+                            TextButton(onClick = {
+                                onEngineSelected(TtsEngineOption(VoiceManager.VERITAS_LITE, "Vern Lite"))
+                                onLoadVoices()
+                            }) { Text(menuString(R.string.voice_choose_individual)) }
+                        } else if (isInstalled) {
                             Row(modifier = Modifier.graphicsLayer { alpha = installedAlpha },
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Icon(Icons.Filled.CheckCircle, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_installed), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_installed), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
                                 IconButton(onClick = {
-                                    com.veritas.reader.tts.VoiceModelManager.deleteVoice(context, pkg.targetVoiceId)
-                                    refreshTrigger++
-                                    onRefreshEngines()
-                                    onLoadVoices()
+                                    pendingDelete = targetVoice
                                 }) {
                                     Icon(Icons.Outlined.Delete, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete_voice_model), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                                 }
                             }
-                        } else if (state is com.veritas.reader.tts.DownloadState.Downloading) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         } else {
                             Button(
                                 onClick = {

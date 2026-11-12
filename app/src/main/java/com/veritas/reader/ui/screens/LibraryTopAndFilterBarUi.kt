@@ -275,16 +275,18 @@ internal fun LibraryTopAndFilterBar(
                                 }
                                 VeritasHomeTab.STUDY -> {
                                     Row(
-                                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
                                             com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_study_hub),
+                                            modifier = Modifier.testTag("study-title"),
                                             style = MaterialTheme.typography.titleLarge,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Surface(
+                                            modifier = Modifier.testTag("study-streak"),
                                             shape = RoundedCornerShape(50),
                                             color = MaterialTheme.colorScheme.primaryContainer,
                                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer

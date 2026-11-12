@@ -7,6 +7,8 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.key
 import androidx.compose.foundation.background
@@ -58,7 +60,7 @@ import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -205,7 +207,10 @@ internal fun LibraryNotesTab(
     LaunchedEffect(uiState.noteNotebooks, selectedNotebookId) {
         if (selectedNotebookId != null && uiState.noteNotebooks.none { it.id == selectedNotebookId }) onSelectedNotebookChange(null)
     }
-                                Column(modifier = modifier.fillMaxSize()) {
+                                BoxWithConstraints(modifier.fillMaxSize()) {
+                                val columns = if (isGridView) vernCollectionColumns(maxWidth.value - 36f,
+                                    if (maxWidth < 600.dp) 156f else 220f, LocalDensity.current.fontScale) else 1
+                                Column(Modifier.fillMaxSize().testTag("notes-layout-$columns")) {
                                     Spacer(Modifier.height(8.dp))
                                     if (createNotebookDialog && collectionActions != null) {
                                         NotebookNameDialog(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_new_notebook), notebookName, { notebookName = it }, uiState.noteNotebooks,
@@ -245,7 +250,7 @@ internal fun LibraryNotesTab(
                                     } else LazyColumn(
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .padding(horizontal = 18.dp),
+                                            .padding(horizontal = 18.dp).testTag("notes-list"),
                                         state = notesListState,
                                         contentPadding = PaddingValues(top = 8.dp, bottom = floatingBottomPadding + 92.dp),
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -877,31 +882,7 @@ internal fun LibraryNotesTab(
                                                 }
                                                 if (isGridView) {
                                                     item(key = "general-notes-grid-pinned") {
-                                                        Row(
-                                                            modifier = Modifier.animateItem().fillMaxWidth(),
-                                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                                        ) {
-                                                            val leftNotes = pinnedNotes.filterIndexed { index, _ -> index % 2 == 0 }
-                                                            val rightNotes = pinnedNotes.filterIndexed { index, _ -> index % 2 == 1 }
-
-                                                            Column(
-                                                                modifier = Modifier.weight(1f),
-                                                                verticalArrangement = Arrangement.spacedBy(0.dp)
-                                                            ) {
-                                                                leftNotes.forEach { note ->
-                                                                    key(note.id) { NoteCardItem(note) }
-                                                                }
-                                                            }
-
-                                                            Column(
-                                                                modifier = Modifier.weight(1f),
-                                                                verticalArrangement = Arrangement.spacedBy(0.dp)
-                                                            ) {
-                                                                rightNotes.forEach { note ->
-                                                                    key(note.id) { NoteCardItem(note) }
-                                                                }
-                                                            }
-                                                        }
+                                                        AdaptiveNoteColumns(pinnedNotes, columns, Modifier.animateItem()) { note -> NoteCardItem(note) }
                                                     }
                                                 } else {
                                                     itemsIndexed(pinnedNotes, key = { _, note -> "pinned-${note.id}" }) { _, note ->
@@ -922,32 +903,8 @@ internal fun LibraryNotesTab(
                                                     }
                                                 }
                                                 if (isGridView) {
-                                                    item(key = "general-notes-grid-others") {
-                                                        Row(
-                                                            modifier = Modifier.animateItem().fillMaxWidth(),
-                                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                                        ) {
-                                                            val leftNotes = otherNotes.filterIndexed { index, _ -> index % 2 == 0 }
-                                                            val rightNotes = otherNotes.filterIndexed { index, _ -> index % 2 == 1 }
-
-                                                            Column(
-                                                                modifier = Modifier.weight(1f),
-                                                                verticalArrangement = Arrangement.spacedBy(0.dp)
-                                                            ) {
-                                                                leftNotes.forEach { note ->
-                                                                    key(note.id) { NoteCardItem(note) }
-                                                                }
-                                                            }
-
-                                                            Column(
-                                                                modifier = Modifier.weight(1f),
-                                                                verticalArrangement = Arrangement.spacedBy(0.dp)
-                                                            ) {
-                                                                rightNotes.forEach { note ->
-                                                                    key(note.id) { NoteCardItem(note) }
-                                                                }
-                                                            }
-                                                        }
+                                                    item(key = "general-notes-grid-other") {
+                                                        AdaptiveNoteColumns(otherNotes, columns, Modifier.animateItem()) { note -> NoteCardItem(note) }
                                                     }
                                                 } else {
                                                     itemsIndexed(otherNotes, key = { _, note -> "other-${note.id}" }) { _, note ->
@@ -959,4 +916,5 @@ internal fun LibraryNotesTab(
                                     }
                                 }
 
+}
 }

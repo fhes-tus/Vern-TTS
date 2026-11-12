@@ -1,0 +1,19 @@
+<resources>
+    <string name="menu_translation_feature_title">"Automatische Übersetzung der Oberfläche"</string>
+    <string name="menu_translation_on_demand_notice">"Integrierte Sprachen sind sofort verfügbar. Beim Aktivieren der automatischen Übersetzung wird eine optionale Engine von Google Play heruntergeladen, danach das Sprachmodell."</string>
+    <string name="menu_translation_engine_downloading">"Übersetzungsengine wird von Google Play heruntergeladen…"</string>
+    <string name="menu_translation_engine_installing">"Optionale Übersetzungsengine wird installiert…"</string>
+    <string name="menu_translation_engine_confirmation">"Google Play benötigt deine Bestätigung zum Herunterladen der Übersetzungsengine."</string>
+    <string name="menu_translation_confirm_download">"Mit Google Play bestätigen"</string>
+    <string name="menu_translation_engine_unavailable">"Die Übersetzungsengine ist für diese Installation nicht über Google Play verfügbar. Integrierte Sprachen bleiben verfügbar."</string>
+    <string name="voice_delete_title">"%1$s löschen?"</string>
+    <string name="voice_delete_notice">"Diese heruntergeladene Stimme aus dem Speicher entfernen? Du kannst sie später erneut herunterladen."</string>
+    <string name="voice_delete_shared_notice">"Alle acht Kitten-Stimmen verwenden ein gemeinsames Modell. Beim Löschen dieses Pakets werden alle acht Stimmen aus dem Speicher entfernt. Du kannst sie später erneut herunterladen."</string>
+    <string name="voice_delete_studio_notice">"Alle Studio-Stimmen verwenden ein gemeinsames Modell. Beim Löschen dieses Pakets werden alle Studio-Stimmen aus dem Speicher entfernt. Du kannst sie später erneut herunterladen."</string>
+    <string name="voice_delete_failed">"Die Stimme konnte nicht gelöscht werden. Pausiere das Lesen, warte auf das Ende von Sprachvorschau oder Audioexport und brich den Download vor einem erneuten Versuch ab."</string>
+    <string name="voice_cancel_download">"Download abbrechen"</string>
+    <string name="voice_shared_package_size">"Insgesamt %1$s MB · enthält alle %2$d Stimmen"</string>
+    <string name="voice_download_package">"Paket herunterladen"</string>
+    <string name="voice_individual_downloads">"Jede Stimme wird einzeln heruntergeladen"</string>
+    <string name="voice_choose_individual">"Stimme auswählen"</string>
+</resources>

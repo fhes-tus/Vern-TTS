@@ -1,4 +1,5 @@
 package com.veritas.reader.ui.screens
+import com.veritas.reader.VernAlertDialog as AlertDialog
 
 import com.veritas.reader.vernScatteredCard
 
@@ -47,10 +48,18 @@ internal fun StudyHubOverview(
         StudyCollection("Booknotes", state.allAnnotations.count { it.type == AnnotationType.NOTE } + state.documentNotes.values.count { it.isNotBlank() }, "notes", Icons.AutoMirrored.Outlined.MenuBook),
         StudyCollection("History", state.readingHistory.size, "recent books", Icons.Outlined.History)
     )
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        StudyDailyReviewHeroCard(review.dueCards.size, onStartReview)
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+    val usePanels = maxWidth >= 840.dp && androidx.compose.ui.platform.LocalDensity.current.fontScale < 1.3f
+    val panelWidth = if (usePanels) with(androidx.compose.ui.platform.LocalDensity.current) {
+        ((constraints.maxWidth - 20.dp.roundToPx()) / 2).toDp()
+    } else maxWidth
+    val materialColumns = vernCollectionColumns(panelWidth.value, if (panelWidth < 600.dp) 168f else 236f,
+        androidx.compose.ui.platform.LocalDensity.current.fontScale, gapDp = 12f, maximum = 3)
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp), maxItemsInEachRow = if (usePanels) 2 else 1) {
+        StudyDailyReviewHeroCard(review.dueCards.size, onStartReview, Modifier.width(panelWidth).testTag("study-review-panel"))
         if (sets.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.width(panelWidth).testTag("study-decks-panel"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_your_decks), style = MaterialTheme.typography.titleMedium, color = colors.onSurface, modifier = Modifier.weight(1f))
                     TextButton(onClick = { onSelectSection("Flashcards") }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_see_all_2941c5c)) }
@@ -60,9 +69,9 @@ internal fun StudyHubOverview(
                 }
             }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.width(panelWidth).testTag("study-materials-panel"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_your_study_material), style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
-            collections.chunked(2).forEach { pair ->
+            collections.chunked(materialColumns).forEach { pair ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     pair.forEach { collection ->
                         TextButton(onClick = { onSelectSection(collection.section) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)
@@ -85,7 +94,7 @@ internal fun StudyHubOverview(
             }
         }
         Card(
-            modifier = Modifier.fillMaxWidth().vernScatteredCard("study-create", amount = .45f),
+            modifier = Modifier.width(panelWidth).vernScatteredCard("study-create", amount = .45f),
             shape = VeritasPackStyle.cardShape(),
             colors = CardDefaults.cardColors(containerColor = VeritasPackStyle.panelColor(colors)),
             border = BorderStroke(1.dp, colors.outlineVariant.copy(alpha = .5f))
@@ -93,7 +102,8 @@ internal fun StudyHubOverview(
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_something_new), style = MaterialTheme.typography.titleMedium)
                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_start_with_your_own_cards_or_questions_or_build_a_set_from_a_book), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    maxItemsInEachRow = if (materialColumns == 1) 1 else 2) {
                     OutlinedButton(onClick = onImportFlashcards, modifier = Modifier.weight(1f)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_cards)) }
                     OutlinedButton(onClick = onImportQuiz, modifier = Modifier.weight(1f)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_quiz)) }
                 }
@@ -112,6 +122,8 @@ internal fun StudyHubOverview(
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_export_study_guide_pdf))
         }
     }
+}
+
 }
 
 @Composable

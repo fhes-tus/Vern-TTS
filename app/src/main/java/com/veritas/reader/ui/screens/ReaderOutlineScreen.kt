@@ -7,6 +7,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,7 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import com.veritas.reader.VeritasThemeState
@@ -81,9 +84,9 @@ internal fun ReaderOutlineScreen(
     showLinks: Boolean = false,
     onOpenLink: (Int) -> Unit = {}
 ) {
-    var query by remember { mutableStateOf("") }
-    var jumpPage by remember { mutableStateOf("") }
-    var linkTab by remember { mutableStateOf(false) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var jumpPage by rememberSaveable { mutableStateOf("") }
+    var linkTab by rememberSaveable { mutableStateOf(false) }
     var collapsed by remember { mutableStateOf(emptySet<Int>()) }
     val rows = remember(entries) { buildOutlineHierarchy(entries.map { it.level }) }
     val branches = remember(rows) { rows.filter { it.hasChildren }.map { it.entryIndex }.toSet() }
@@ -157,7 +160,10 @@ internal fun ReaderOutlineScreen(
                 .semantics { paneTitle = title },
             color = MaterialTheme.colorScheme.surface
         ) {
-            Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
+            BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
+            val headerLimit = maxHeight * .55f
+            Column(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxWidth().heightIn(max = headerLimit).verticalScroll(rememberScrollState()).testTag("outline-header")) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { close(onDismiss) }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back_to_reader)) }
                     Column(Modifier.weight(1f)) {
@@ -197,6 +203,7 @@ internal fun ReaderOutlineScreen(
                             TextButton(onClick = { collapsed = branches }, enabled = query.isBlank() && collapsed != branches) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collapse_all)) }
                         }
                     }
+                }
                 }
                 HorizontalDivider()
                 if (loading) {
@@ -256,4 +263,5 @@ internal fun ReaderOutlineScreen(
             }
         }
     }
+}
 }

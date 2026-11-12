@@ -48,7 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
+import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -426,7 +426,7 @@ fun BookCatalogBrowserDialog(
         }
     }
     pendingDownload?.let { download ->
-        androidx.compose.material3.AlertDialog(
+        com.veritas.reader.VernAlertDialog(
             onDismissRequest = { pendingDownload = null },
             title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_download_and_add_this_book)) },
             text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_068, com.veritas.reader.ui.screens.localizedUiValue(Uri.parse(download.url).host))) },

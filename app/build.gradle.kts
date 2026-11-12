@@ -46,6 +46,7 @@ android {
     }
 
     namespace = "com.veritas.reader"
+    dynamicFeatures += setOf(":menu_translation")
     compileSdk = 37
 
     defaultConfig {
@@ -53,29 +54,23 @@ android {
         minSdk = 28
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 47
-        versionName = "2.8.0"
+        versionCode = 48
+        versionName = "2.8.1"
 
         ndk {
             abiFilters.addAll(setOf("armeabi-v7a", "arm64-v8a"))
         }
     }
 
-    splits {
-        abi {
-            val isBundleTask = gradle.startParameter.taskNames.any { it.contains("bundle", ignoreCase = true) }
-            isEnable = !isBundleTask
-            reset()
-            include("arm64-v8a", "armeabi-v7a")
-            isUniversalApk = true
-        }
-    }
 
     buildFeatures {
         compose = true
         resValues = true
         buildConfig = true
     }
+
+    // Every built-in interface language is available before an optional download.
+    bundle { language { enableSplit = false } }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -121,6 +116,7 @@ dependencies {
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation(platform("androidx.compose:compose-bom:2026.05.00"))
     implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.window:window:1.5.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     implementation("androidx.compose.ui:ui")
@@ -136,7 +132,15 @@ dependencies {
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
     implementation("com.google.android.gms:play-services-mlkit-language-id:17.0.0")
-    implementation("com.google.mlkit:translate:17.0.3")
+    implementation("com.google.android.play:feature-delivery:2.1.0")
+    // Shared classes are supplied by base even after a feature is installed.
+    // Match translate:17.0.3's runtime so its registrar can resolve CloseGuard.Factory.
+    implementation("com.google.mlkit:common:18.11.0")
+    implementation("com.google.mlkit:playstore-dynamic-feature-support:16.0.0-beta2") {
+        // The support bridge predates the separate delivery libraries. Use the
+        // maintained feature-delivery API instead of its old monolithic Play Core.
+        exclude(group = "com.google.android.play", module = "core")
+    }
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("org.apache.commons:commons-compress:1.26.1")
     implementation("com.google.re2j:re2j:1.8")

@@ -8,10 +8,10 @@
     <LinearLayout
         android:id="@+id/widget_root"
         android:layout_width="match_parent"
-        android:layout_height="76dp"
+        android:layout_height="match_parent"
         android:layout_gravity="center"
         android:background="@drawable/widget_veritas_background"
-        android:gravity="center_vertical"
+        android:gravity="center"
         android:orientation="horizontal"
         android:paddingStart="14dp"
         android:paddingEnd="14dp"
@@ -25,7 +25,9 @@
             android:contentDescription="@string/app_name"
             android:src="@drawable/veritas_reader_icon" />
 
+    <!-- Loading placeholder only. Glance supplies the allocated-size player and actions. -->
     <LinearLayout
+        android:visibility="gone"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
@@ -58,6 +60,7 @@
 
     <ImageView
         android:id="@+id/widget_previous"
+        android:visibility="gone"
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:background="@drawable/widget_veritas_button_soft"
@@ -68,6 +71,7 @@
 
     <ImageView
         android:id="@+id/widget_play_pause"
+        android:visibility="gone"
         android:layout_width="44dp"
         android:layout_height="44dp"
         android:layout_marginStart="6dp"
@@ -80,6 +84,7 @@
 
     <ImageView
         android:id="@+id/widget_next"
+        android:visibility="gone"
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:background="@drawable/widget_veritas_button_soft"

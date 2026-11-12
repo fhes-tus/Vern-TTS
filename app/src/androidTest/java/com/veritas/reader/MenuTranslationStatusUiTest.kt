@@ -34,5 +34,9 @@ class MenuTranslationStatusUiTest {
         rule.onNodeWithText(context.getString(R.string.menu_translation_downloading)).assertIsDisplayed()
         rule.onNode(SemanticsMatcher.expectValue(SemanticsProperties.ProgressBarRangeInfo,
             ProgressBarRangeInfo(0.37f, 0f..1f))).assertIsDisplayed()
+        rule.runOnIdle { status.value = SettingsTranslation.Status.ENGINE_DOWNLOADING }
+        rule.onNodeWithText(context.getString(R.string.menu_translation_engine_downloading)).assertIsDisplayed()
+        rule.runOnIdle { status.value = SettingsTranslation.Status.ENGINE_UNAVAILABLE }
+        rule.onNodeWithText(context.getString(R.string.menu_translation_engine_unavailable)).assertIsDisplayed()
     }
 }

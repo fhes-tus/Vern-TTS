@@ -6,6 +6,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -28,7 +35,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -49,6 +56,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,12 +64,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlin.math.roundToInt
 
@@ -70,8 +79,8 @@ internal fun PasteFlashcardsDialog(
     onImport: (String, List<Flashcard>) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var pasted by remember { mutableStateOf("") }
-    var setName by remember { mutableStateOf("") }
+    var pasted by rememberSaveable { mutableStateOf("") }
+    var setName by rememberSaveable { mutableStateOf("") }
     val parsed = remember(pasted) { AiResultParser.parseFlashcards(pasted) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -83,7 +92,7 @@ internal fun PasteFlashcardsDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = setName,
                     onValueChange = { setName = it },
@@ -124,8 +133,8 @@ internal fun PasteQuizDialog(
     onSaveQuiz: ((QuizSet) -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
-    var pasted by remember { mutableStateOf("") }
-    var quizSet by remember { mutableStateOf<QuizSet?>(null) }
+    var pasted by rememberSaveable { mutableStateOf("") }
+    var quizSet by rememberSaveable(stateSaver = PastedQuizSaver) { mutableStateOf<QuizSet?>(null) }
     val parsed = remember(pasted) { AiResultParser.parseQuiz(pasted) }
 
     quizSet?.let { qSet ->
@@ -157,7 +166,7 @@ internal fun PasteQuizDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_the_ai_app_s_quiz_reply_below_q_a_b_c_d_answer_format),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -194,13 +203,13 @@ internal fun QuizPlayerDialog(
     onQuestionsChange: ((List<QuizQuestion>) -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
-    var editableQuestions by remember(questions) { mutableStateOf(questions) }
-    var index by remember { mutableIntStateOf(0) }
-    val userAnswers = remember { mutableStateMapOf<Int, String>() }
-    val flagged = remember { mutableStateSetOf<Int>() }
-    val skipped = remember { mutableStateSetOf<Int>() }
-    var finished by remember { mutableStateOf(false) }
-    var hasSavedScore by remember { mutableStateOf(false) }
+    var editableQuestions by rememberSaveable(questions, stateSaver = QuizQuestionsSaver) { mutableStateOf(questions) }
+    var index by rememberSaveable { mutableIntStateOf(0) }
+    val userAnswers = rememberSaveable(saver = QuizAnswersSaver) { mutableStateMapOf<Int, String>() }
+    val flagged = rememberSaveable(saver = QuizIndicesSaver) { mutableStateSetOf<Int>() }
+    val skipped = rememberSaveable(saver = QuizIndicesSaver) { mutableStateSetOf<Int>() }
+    var finished by rememberSaveable { mutableStateOf(false) }
+    var hasSavedScore by rememberSaveable { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
 
     if (editableQuestions.isEmpty() || editableQuestions.any { !it.isPlayable }) {
@@ -232,11 +241,14 @@ internal fun QuizPlayerDialog(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
+            BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+            val scrollWholeQuiz = maxHeight < 480.dp || LocalDensity.current.fontScale >= 1.3f
             Column(
                 modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = 840.dp)
                     .fillMaxSize()
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
+                    .then(if (scrollWholeQuiz) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -372,8 +384,7 @@ internal fun QuizPlayerDialog(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState()),
+                            .then(if (scrollWholeQuiz) Modifier else Modifier.weight(1f).verticalScroll(rememberScrollState())),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -442,7 +453,7 @@ internal fun QuizPlayerDialog(
                                 finished = false
                                 index = 0
                             },
-                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                             shape = RoundedCornerShape(50)
                         ) {
                             Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -454,7 +465,7 @@ internal fun QuizPlayerDialog(
 
                         Button(
                             onClick = onDismiss,
-                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                             shape = RoundedCornerShape(50)
                         ) {
                             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_done), fontWeight = FontWeight.Bold)
@@ -465,8 +476,7 @@ internal fun QuizPlayerDialog(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState()),
+                            .then(if (scrollWholeQuiz) Modifier else Modifier.weight(1f).verticalScroll(rememberScrollState())),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         // Question Card
@@ -613,18 +623,19 @@ internal fun QuizPlayerDialog(
                     }
 
                     // Bottom Exam Action Controls
-                    Row(
+                    FlowRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                        maxItemsInEachRow = if (scrollWholeQuiz) 1 else 3,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         OutlinedButton(
                             onClick = { if (safeIndex > 0) index = safeIndex - 1 },
                             enabled = safeIndex > 0,
                             shape = RoundedCornerShape(50),
-                            modifier = Modifier.weight(1f).height(48.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp)
                         ) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous_question), modifier = Modifier.size(16.dp))
@@ -643,7 +654,7 @@ internal fun QuizPlayerDialog(
                                     }
                                 },
                                 shape = RoundedCornerShape(50),
-                                modifier = Modifier.weight(1f).height(48.dp),
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                                 contentPadding = PaddingValues(horizontal = 8.dp)
                             ) {
                                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_skip), maxLines = 1)
@@ -659,17 +670,18 @@ internal fun QuizPlayerDialog(
                                 }
                             },
                             shape = RoundedCornerShape(50),
-                            modifier = Modifier.weight(1.3f).height(48.dp),
+                            modifier = Modifier.weight(1.3f).heightIn(min = 48.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp)
                         ) {
                             Text(
                                 text = if (safeIndex + 1 >= editableQuestions.size) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_056, com.veritas.reader.ui.screens.localizedUiValue(userAnswers.size), com.veritas.reader.ui.screens.localizedUiValue(editableQuestions.size)) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next_2f04eb1),
                                 fontWeight = FontWeight.Bold,
-                                maxLines = 1
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
                 }
+            }
             }
         }
     }

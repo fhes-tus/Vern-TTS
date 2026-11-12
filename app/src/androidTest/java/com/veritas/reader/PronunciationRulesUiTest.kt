@@ -26,7 +26,7 @@ class PronunciationRulesUiTest {
     @androidx.test.filters.SdkSuppress(minSdkVersion = 29)
     @Test fun examplesEditingAndPreviewStayUsableInLightDarkAndLargeType() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        check(context.packageName == "com.veritas.reader.appearance.checks")
+        check(context.packageName.endsWith(".checks"))
         var settings by mutableStateOf(ReaderSettings(themeId = "midnight_dark", customAccentColor = "#12ABEF"))
         var largeType by mutableStateOf(false)
         var rules by mutableStateOf(emptyList<PronunciationRule>())

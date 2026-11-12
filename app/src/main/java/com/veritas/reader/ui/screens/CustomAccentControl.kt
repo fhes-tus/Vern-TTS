@@ -1,4 +1,5 @@
 package com.veritas.reader.ui.screens
+import com.veritas.reader.VernAlertDialog as AlertDialog
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background

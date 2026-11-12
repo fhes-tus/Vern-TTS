@@ -8,6 +8,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -47,7 +53,7 @@ import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.TheaterComedy
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -67,13 +73,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.ResolvedVeritasFeature
 import com.veritas.reader.SavedDocument
@@ -610,9 +618,21 @@ internal fun FullScreenSettingsScaffold(
     title: String,
     onBack: () -> Unit,
     scrollable: Boolean = true,
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Dialog(onDismissRequest = onBack, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        val dialogView = androidx.compose.ui.platform.LocalView.current
+        val background = MaterialTheme.colorScheme.background
+        androidx.compose.runtime.SideEffect {
+            (dialogView.parent as? androidx.compose.ui.window.DialogWindowProvider)?.window?.let { window ->
+                androidx.core.view.WindowCompat.getInsetsController(window, dialogView).apply {
+                    val light = background.luminance() > .45f
+                    isAppearanceLightStatusBars = light
+                    isAppearanceLightNavigationBars = light
+                }
+            }
+        }
         androidx.compose.runtime.CompositionLocalProvider(
             androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onBackground,
             com.veritas.reader.LocalVernCardEntrance provides androidx.compose.runtime.remember(title) { android.os.SystemClock.uptimeMillis() }
@@ -623,7 +643,12 @@ internal fun FullScreenSettingsScaffold(
                 .background(MaterialTheme.colorScheme.background)
                 .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier
+                .align(Alignment.TopCenter)
+                .then(modifier)
+                .widthIn(max = 840.dp)
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -640,9 +665,11 @@ internal fun FullScreenSettingsScaffold(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .testTag("settings-content")
                         .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                         .padding(horizontal = 18.dp, vertical = 8.dp)
-                        .navigationBarsPadding(),
+                        .navigationBarsPadding()
+                        .imePadding(),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     content = content
                 )

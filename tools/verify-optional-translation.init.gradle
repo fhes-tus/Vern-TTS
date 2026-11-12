@@ -1,0 +1,51 @@
+// Run after :app:bundleDebug or :app:bundleRelease; never builds or publishes.
+gradle.rootProject { root ->
+    root.tasks.register('verifyOptionalTranslationBundle') {
+        doLast {
+            def bundle = root.file(root.findProperty('vernBundlePath') ?: 'app/build/outputs/bundle/debug/app-debug.aab')
+            def loader = root.project(':app').extensions.getByName('android').class.classLoader
+            def commandType = loader.loadClass('com.android.tools.build.bundletool.commands.ValidateBundleCommand')
+            def builderType = loader.loadClass('com.android.tools.build.bundletool.commands.ValidateBundleCommand$Builder')
+            def builder = commandType.getMethod('builder').invoke(null)
+            builderType.getMethod('setBundlePath', java.nio.file.Path).invoke(builder, bundle.toPath())
+            builderType.getMethod('setPrintOutput', Boolean.TYPE).invoke(builder, false)
+            commandType.getMethod('execute').invoke(builderType.getMethod('build').invoke(builder))
+            def dumpType = loader.loadClass('com.android.tools.build.bundletool.commands.DumpCommand')
+            def dumpBuilderType = loader.loadClass('com.android.tools.build.bundletool.commands.DumpCommand$Builder')
+            def targetType = loader.loadClass('com.android.tools.build.bundletool.commands.DumpCommand$DumpTarget')
+            def dump = dumpType.getMethod('builder').invoke(null)
+            dumpBuilderType.getMethod('setBundlePath', java.nio.file.Path).invoke(dump, bundle.toPath())
+            dumpBuilderType.getMethod('setDumpTarget', targetType).invoke(dump, targetType.getField('MANIFEST').get(null))
+            dumpBuilderType.getMethod('setModuleName', String).invoke(dump, 'menu_translation')
+            def manifestBytes = new ByteArrayOutputStream()
+            new PrintStream(manifestBytes, true, 'UTF-8').withCloseable { output ->
+                dumpBuilderType.getMethod('setOutputStream', PrintStream).invoke(dump, output)
+                dumpType.getMethod('execute').invoke(dumpBuilderType.getMethod('build').invoke(dump))
+            }
+            def featureManifest = manifestBytes.toString('UTF-8')
+            assert featureManifest.contains('<dist:on-demand') : 'Translation feature must use on-demand delivery.'
+            assert !featureManifest.contains('MlKitComponentDiscoveryService') : 'ML Kit discovery must stay in base.'
+            def baseDump = dumpType.getMethod('builder').invoke(null)
+            dumpBuilderType.getMethod('setBundlePath', java.nio.file.Path).invoke(baseDump, bundle.toPath())
+            dumpBuilderType.getMethod('setDumpTarget', targetType).invoke(baseDump, targetType.getField('MANIFEST').get(null))
+            dumpBuilderType.getMethod('setModuleName', String).invoke(baseDump, 'base')
+            def baseBytes = new ByteArrayOutputStream()
+            new PrintStream(baseBytes, true, 'UTF-8').withCloseable { output ->
+                dumpBuilderType.getMethod('setOutputStream', PrintStream).invoke(baseDump, output)
+                dumpType.getMethod('execute').invoke(dumpBuilderType.getMethod('build').invoke(baseDump))
+            }
+            def baseManifest = baseBytes.toString('UTF-8')
+            def discovery = (baseManifest =~ /<service[^>]*android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"[^>]*>/)
+            assert discovery.find() : 'Shared ML Kit discovery service is missing from base.'
+            assert !discovery.group().contains('splitName=') : 'Base ML Kit discovery must not depend on the optional split.'
+            new java.util.zip.ZipFile(bundle).withCloseable { zip ->
+                def libraries = zip.entries().toList().findAll { it.name.endsWith('/libtranslate_jni.so') }*.name.toSet()
+                def expected = ['arm64-v8a', 'armeabi-v7a'].collect {
+                    'menu_translation/lib/' + it + '/libtranslate_jni.so'
+                }.toSet()
+                assert libraries == expected : "Translation binaries must be feature-only: ${libraries}"
+                println('Verified translation engine is absent from base and present in the on-demand feature for both ARM ABIs.')
+            }
+        }
+    }
+}

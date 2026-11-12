@@ -1,0 +1,9 @@
+<resources>
+    <string name="book_explorer_title">"Bücherfinder"</string>
+    <string name="book_explorer_intro_title">"Finde deine nächste Lektüre"</string>
+    <string name="book_explorer_intro_message">"Suchst du ein Buch außerhalb dieser Sammlung? Nutze %1$s, um Bücher online zu finden."</string>
+    <string name="book_explorer_open">"%1$s öffnen"</string>
+    <string name="book_explorer_keep_browsing">"Weiter stöbern"</string>
+    <string name="book_explorer_description">"Wähle eine Website, um Bücher zu entdecken oder zu suchen."</string>
+    <string name="book_explorer_search">"Mit %2$s nach „%1$s“ suchen"</string>
+</resources>

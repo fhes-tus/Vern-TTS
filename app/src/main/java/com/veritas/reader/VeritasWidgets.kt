@@ -79,6 +79,7 @@ class VeritasPlayerWidget : GlanceAppWidget() {
             val document = state.document
             val compact = size.width < 320.dp
             val short = size.height < 84.dp
+            val largeText = context.resources.configuration.fontScale >= 1.3f
             val title = document?.title ?: "Your next read"
             val subtitle = when {
                 document == null -> "Open your library to get started"
@@ -103,9 +104,11 @@ class VeritasPlayerWidget : GlanceAppWidget() {
                     }
                     Column(GlanceModifier.defaultWeight().clickable(open)) {
                         Text(title, style = TextStyle(color = VeritasWidgetColors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold), maxLines = 1)
-                        Spacer(GlanceModifier.height(3.dp))
-                        Text(subtitle, style = TextStyle(color = VeritasWidgetColors.textMuted, fontSize = 11.sp), maxLines = 1)
-                        if (!short && document != null && !compact) {
+                        if (!short || !largeText) {
+                            Spacer(GlanceModifier.height(3.dp))
+                            Text(subtitle, style = TextStyle(color = VeritasWidgetColors.textMuted, fontSize = 11.sp), maxLines = 1)
+                        }
+                        if (!short && !largeText && document != null && !compact) {
                             Spacer(GlanceModifier.height(3.dp))
                             Text(widgetFormat(document), style = TextStyle(color = VeritasWidgetColors.primaryAccent, fontSize = 10.sp), maxLines = 1)
                         }

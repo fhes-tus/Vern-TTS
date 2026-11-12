@@ -1,0 +1,9 @@
+<resources>
+    <string name="book_explorer_title">"مستكشف الكتب"</string>
+    <string name="book_explorer_intro_title">"اعثر على كتابك القادم"</string>
+    <string name="book_explorer_intro_message">"هل تبحث عن كتاب خارج هذه المجموعة؟ استخدم %1$s للعثور على كتب عبر الإنترنت."</string>
+    <string name="book_explorer_open">"فتح %1$s"</string>
+    <string name="book_explorer_keep_browsing">"متابعة التصفح"</string>
+    <string name="book_explorer_description">"اختر موقعًا لتصفح الكتب أو البحث عن كتاب."</string>
+    <string name="book_explorer_search">"البحث عن «%1$s» باستخدام %2$s"</string>
+</resources>

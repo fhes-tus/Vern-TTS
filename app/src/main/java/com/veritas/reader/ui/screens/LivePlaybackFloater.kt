@@ -1,5 +1,12 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.offset
+
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -45,14 +52,19 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
     val density = androidx.compose.ui.platform.LocalDensity.current
     val isGlassCapable = isDeviceGlassCapable() && LocalVeritasBackdrop.current != null
     val isLiquidGlass = VeritasPackStyle.glassChromeEnabled() && isGlassCapable
-    BoxWithConstraints(Modifier.padding(horizontal = 16.dp, vertical = 8.dp).widthIn(max = 728.dp).fillMaxWidth().height(playerHeight)) {
-    val fullWidth = maxWidth
+    BoxWithConstraints(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+        .padding(horizontal = 16.dp, vertical = 8.dp)) {
+    val fullWidth = minOf(maxWidth, 728.dp)
+    val regularStart = (maxWidth - fullWidth) / 2f
+    val compactDock = regularStart >= 52.dp
     val packCorner = packShape.topStart.toPx(androidx.compose.ui.geometry.Size(
         with(density) { fullWidth.toPx() }, with(density) { playerHeight.toPx() }), density) / density.density
-    val collapsedSize = playerHeight
+    val collapsedSize = if (compactDock) 48.dp else playerHeight
+    val surfaceHeight = collapsedSize + (playerHeight - collapsedSize) * progress
+    val start = if (compactDock) regularStart * progress else regularStart
     val corner = (collapsedSize.value / 2f + (packCorner.coerceAtMost(collapsedSize.value / 2f) - collapsedSize.value / 2f) * progress).dp
     val playerShape = androidx.compose.foundation.shape.RoundedCornerShape(corner)
-    Surface(Modifier.width(collapsedSize + (fullWidth - collapsedSize) * progress).height(playerHeight)
+    Surface(Modifier.offset(x = start).width(collapsedSize + (fullWidth - collapsedSize) * progress).height(surfaceHeight)
         .veritasGlassBackdrop(playerShape, isLiquidGlass, surfaceOpacity = .36f)
         .testTag("live_playback_floater"),
         shape = playerShape,

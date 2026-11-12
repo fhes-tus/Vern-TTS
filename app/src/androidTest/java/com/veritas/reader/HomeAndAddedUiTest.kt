@@ -1,4 +1,5 @@
 package com.veritas.reader
+import androidx.test.platform.app.InstrumentationRegistry
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -75,8 +76,9 @@ class HomeAndAddedUiTest {
         }
         rule.onNodeWithText("Set a goal").performClick()
         rule.onNodeWithText("15 minutes a day").performClick()
-        rule.onNodeWithText("1 min").assertExists()
-        rule.onNodeWithText("15 min target").assertExists()
+        val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
+        rule.onNodeWithText(resources.getQuantityString(R.plurals.reading_minutes, 1, 1)).assertExists()
+        rule.onNodeWithText(resources.getString(R.string.reading_goal_target, resources.getQuantityString(R.plurals.reading_minutes, 15, 15))).assertExists()
         rule.onNodeWithText("Edit goal").performClick()
         rule.onNodeWithText("30 minutes a day").performClick()
         assertEquals(30, goal)
@@ -136,7 +138,7 @@ class HomeAndAddedUiTest {
         rule.onNodeWithText("0 of 1 items").assertExists()
         rule.onNodeWithText("No results for “missing”").assertExists()
         rule.onNodeWithText("Reset").performClick()
-        rule.onNodeWithText("1 saved item").assertExists()
+        rule.onNodeWithText(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.l10n_dynamic_204, "1")).assertExists()
         rule.onNodeWithText(book.title).assertExists()
         assertEquals(listOf("", "All", "All", "All", "All"), listOf(query, status, source, collection, readingList))
     }

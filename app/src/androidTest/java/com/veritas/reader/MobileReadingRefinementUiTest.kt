@@ -87,7 +87,7 @@ class MobileReadingRefinementUiTest {
             rule.onNodeWithTag("listen-text-size").fetchSemanticsNode().boundsInRoot.top, 1f)
         rule.onNodeWithTag("listen-fullscreen").assertIsDisplayed().performClick()
         rule.onNodeWithTag("listen-exit-fullscreen").assertIsDisplayed().performClick()
-        rule.onNodeWithContentDescription("Sleep timer").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Sleep timer").performScrollTo().assertIsDisplayed()
         capture("listen-refined-large")
     }
 

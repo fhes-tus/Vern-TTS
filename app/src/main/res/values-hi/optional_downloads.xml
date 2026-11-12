@@ -1,0 +1,19 @@
+<resources>
+    <string name="menu_translation_feature_title">"स्वचालित इंटरफ़ेस अनुवाद"</string>
+    <string name="menu_translation_on_demand_notice">"पहले से शामिल भाषाएँ तुरंत उपलब्ध हैं। स्वचालित अनुवाद चालू करने पर Google Play से वैकल्पिक इंजन और फिर भाषा मॉडल डाउनलोड होता है।"</string>
+    <string name="menu_translation_engine_downloading">"Google Play से अनुवाद इंजन डाउनलोड हो रहा है…"</string>
+    <string name="menu_translation_engine_installing">"वैकल्पिक अनुवाद इंजन इंस्टॉल हो रहा है…"</string>
+    <string name="menu_translation_engine_confirmation">"अनुवाद इंजन डाउनलोड करने के लिए Google Play को आपकी पुष्टि चाहिए।"</string>
+    <string name="menu_translation_confirm_download">"Google Play में पुष्टि करें"</string>
+    <string name="menu_translation_engine_unavailable">"इस इंस्टॉलेशन के लिए Google Play पर अनुवाद इंजन उपलब्ध नहीं है। पहले से शामिल भाषाएँ उपलब्ध रहेंगी।"</string>
+    <string name="voice_delete_title">"%1$s मिटाएँ?"</string>
+    <string name="voice_delete_notice">"इस डाउनलोड की गई आवाज़ को स्टोरेज से मिटाएँ? आप इसे बाद में फिर डाउनलोड कर सकते हैं।"</string>
+    <string name="voice_delete_shared_notice">"Kitten की आठों आवाज़ें एक मॉडल साझा करती हैं। यह पैकेज मिटाने से आठों आवाज़ें स्टोरेज से हट जाएँगी। आप इन्हें बाद में फिर डाउनलोड कर सकते हैं।"</string>
+    <string name="voice_delete_studio_notice">"Studio की सभी आवाज़ें एक मॉडल साझा करती हैं। यह पैकेज मिटाने से Studio की सभी आवाज़ें स्टोरेज से हट जाएँगी। आप इन्हें बाद में फिर डाउनलोड कर सकते हैं।"</string>
+    <string name="voice_delete_failed">"आवाज़ नहीं मिटाई जा सकी। पढ़ना रोकें, आवाज़ का पूर्वावलोकन या निर्यात पूरा होने दें और दोबारा कोशिश करने से पहले इसका डाउनलोड रद्द करें।"</string>
+    <string name="voice_cancel_download">"डाउनलोड रद्द करें"</string>
+    <string name="voice_shared_package_size">"कुल %1$s MB · सभी %2$d आवाज़ें शामिल हैं"</string>
+    <string name="voice_download_package">"पैकेज डाउनलोड करें"</string>
+    <string name="voice_individual_downloads">"हर आवाज़ अलग से डाउनलोड होती है"</string>
+    <string name="voice_choose_individual">"आवाज़ चुनें"</string>
+</resources>

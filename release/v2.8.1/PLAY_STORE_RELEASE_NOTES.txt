@@ -1,0 +1,1 @@
+Vern now adapts better to different screen sizes and rotation. Notes and Study use flexible columns, and the Add menu fits more actions in landscape. Improved large-text layouts, scrolling, keyboard clearance and PDF controls help keep actions reachable. Covered reading, draft and selection states are retained as layouts change.

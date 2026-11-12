@@ -1,0 +1,19 @@
+<resources>
+    <string name="menu_translation_feature_title">"Traduction automatique de l’interface"</string>
+    <string name="menu_translation_on_demand_notice">"Les langues intégrées sont disponibles immédiatement. Activer la traduction automatique télécharge un moteur facultatif depuis Google Play, puis le modèle linguistique."</string>
+    <string name="menu_translation_engine_downloading">"Téléchargement du moteur de traduction depuis Google Play…"</string>
+    <string name="menu_translation_engine_installing">"Installation du moteur de traduction facultatif…"</string>
+    <string name="menu_translation_engine_confirmation">"Google Play demande votre confirmation pour télécharger le moteur de traduction."</string>
+    <string name="menu_translation_confirm_download">"Confirmer avec Google Play"</string>
+    <string name="menu_translation_engine_unavailable">"Le moteur de traduction est indisponible sur Google Play pour cette installation. Les langues intégrées restent disponibles."</string>
+    <string name="voice_delete_title">"Supprimer %1$s ?"</string>
+    <string name="voice_delete_notice">"Supprimer cette voix téléchargée du stockage ? Vous pourrez la télécharger à nouveau."</string>
+    <string name="voice_delete_shared_notice">"Les huit voix Kitten partagent un modèle. Supprimer ce pack retire les huit voix du stockage. Vous pourrez les télécharger à nouveau."</string>
+    <string name="voice_delete_studio_notice">"Toutes les voix Studio partagent un modèle. Supprimer ce pack retire toutes les voix Studio du stockage. Vous pourrez les télécharger à nouveau."</string>
+    <string name="voice_delete_failed">"Impossible de supprimer la voix. Mettez la lecture en pause, attendez la fin des aperçus ou exports audio et annulez son téléchargement avant de réessayer."</string>
+    <string name="voice_cancel_download">"Annuler le téléchargement"</string>
+    <string name="voice_shared_package_size">"%1$s Mo au total · comprend les %2$d voix"</string>
+    <string name="voice_download_package">"Télécharger le pack"</string>
+    <string name="voice_individual_downloads">"Chaque voix se télécharge séparément"</string>
+    <string name="voice_choose_individual">"Choisir une voix"</string>
+</resources>

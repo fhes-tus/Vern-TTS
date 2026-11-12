@@ -1,5 +1,10 @@
 # Application-specific R8 rules for Veritas Reader
 
+# The base loads the optional implementation after Play Feature Delivery installs it.
+-keep class com.veritas.reader.menutranslation.MlKitMenuTranslationEngine { public <init>(); *; }
+-keep interface com.veritas.reader.MenuTranslationEngine { *; }
+-keep interface com.veritas.reader.MenuTranslator { *; }
+
 # 1. Native methods and Sherpa JNI bindings
 -keepclasseswithmembernames class * {
     native <methods>;
