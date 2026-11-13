@@ -87,7 +87,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.R
 import com.veritas.reader.VeritasPackStyle

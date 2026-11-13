@@ -39,6 +39,7 @@
         <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <application
+        android:name="com.google.android.play.core.splitcompat.SplitCompatApplication"
         android:allowBackup="true"
         android:largeHeap="true"
         android:fullBackupContent="@xml/backup_rules"
@@ -49,6 +50,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Vern">
+
+        <!-- Keep one discovery service in base. The ML Kit dynamic-loading bridge
+             retries the optional registrar after its Play feature is installed. -->
+        <service
+            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
+            android:exported="false">
+            <meta-data
+                android:name="com.google.firebase.components:com.google.mlkit.nl.translate.NaturalLanguageTranslateRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+        </service>
 
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
@@ -61,13 +72,13 @@
             android:name=".VeritasPdfViewerActivity"
             android:exported="false"
             android:theme="@style/Theme.VernPdfViewer"
-            android:configChanges="keyboardHidden|orientation|screenSize" />
+            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" />
 
         <activity
             android:name=".WidgetMenuActivity"
             android:exported="true"
             android:theme="@style/Theme.Vern.TranslucentDialog"
-            android:configChanges="keyboardHidden|orientation|screenSize" />
+            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" />
 
         <activity
             android:name=".MainActivity"

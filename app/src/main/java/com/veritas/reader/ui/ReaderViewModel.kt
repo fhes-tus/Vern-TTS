@@ -40,7 +40,7 @@ import com.veritas.reader.loadPronunciationRules
 import com.veritas.reader.loadQueueDocuments
 import com.veritas.reader.loadReaderTrackerSnapshot
 import com.veritas.reader.loadReadingHistory
-import com.veritas.reader.loadTrashedGeneralNotes
+import com.veritas.reader.loadGeneralNotesSnapshot
 import com.veritas.reader.loadNoteNotebooks
 import com.veritas.reader.loadReadingListCatalog
 import com.veritas.reader.recordAppOpen
@@ -189,8 +189,9 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             val documentTitles = repository.loadAllDocumentTitles()
             val annotationCount = repository.loadAnnotationCount()
             val fileBrowserRoots = VeritasFileBrowserScanner.persistedRoots(application)
-            val generalNotes = repository.loadGeneralNotes()
-            val trashedGeneralNotes = repository.loadTrashedGeneralNotes()
+            val notesSnapshot = repository.loadGeneralNotesSnapshot()
+            val generalNotes = notesSnapshot.active
+            val trashedGeneralNotes = notesSnapshot.trashed
             val noteNotebooks = repository.loadNoteNotebooks()
             val userName = repository.loadUserName()
             val readingInterest = repository.loadReadingInterest()

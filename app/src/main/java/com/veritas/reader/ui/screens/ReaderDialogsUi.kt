@@ -25,7 +25,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.BookmarkRemove
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card

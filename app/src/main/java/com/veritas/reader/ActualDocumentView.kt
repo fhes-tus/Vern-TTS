@@ -44,10 +44,20 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.TouchApp
+import androidx.compose.material.icons.outlined.ZoomIn
 import com.veritas.reader.ui.screens.KeepScreenAwake
 import com.veritas.reader.ui.screens.SmartOutlineDialog
+import com.veritas.reader.ui.screens.VernActionHintManager
+import com.veritas.reader.ui.screens.VernGesturePopupCard
+import com.veritas.reader.ui.screens.VernHintGestureItem
 import com.veritas.reader.ui.screens.monitorReadingActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -841,6 +851,51 @@ internal fun ActualDocumentView(
             onClose = onClose,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+
+        // 4. Gesture Tips Popup centered on the screen, decoupled from the playback bar
+        val context = LocalContext.current
+        var showDocGestures by remember {
+            mutableStateOf(!VernActionHintManager.isDismissed(context, "actual_doc_gestures_hint"))
+        }
+        if (showDocGestures) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+                    .zIndex(10f),
+                contentAlignment = Alignment.Center
+            ) {
+                VernGesturePopupCard(
+                    title = "Document Gestures",
+                    items = listOf(
+                        VernHintGestureItem(
+                            icon = Icons.Outlined.TouchApp,
+                            title = "Single tap",
+                            description = "Collapse or expand reading bars and controls"
+                        ),
+                        VernHintGestureItem(
+                            icon = Icons.Outlined.ZoomIn,
+                            title = "Pinch in / out",
+                            description = "Zoom in or out on the document"
+                        ),
+                        VernHintGestureItem(
+                            icon = Icons.AutoMirrored.Outlined.MenuBook,
+                            title = "Swipe horizontally",
+                            description = "Turn to the previous or next page"
+                        )
+                    ),
+                    onDismissCurrent = {
+                        VernActionHintManager.dismissForSession("actual_doc_gestures_hint")
+                        showDocGestures = false
+                    },
+                    onDismissPermanently = {
+                        VernActionHintManager.dismissPermanently(context, "actual_doc_gestures_hint")
+                        showDocGestures = false
+                    },
+                    modifier = Modifier.widthIn(max = 420.dp)
+                )
+            }
+        }
     }
 }
 }

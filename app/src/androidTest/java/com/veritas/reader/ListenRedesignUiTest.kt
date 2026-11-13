@@ -59,7 +59,7 @@ class ListenRedesignUiTest {
 
     @Test fun glassModesRetainToolsScrubbingAndSmoothSentenceSelection() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        check(context.packageName.endsWith(".checks") || context.packageName.endsWith(".iconcheck"))
+        check(context.packageName.endsWith(".checks") || context.packageName.endsWith(".iconcheck") || context.packageName.endsWith(".responsiveaudit"))
         val cover = File(context.cacheDir, "listen-cover-fixture.jpg")
         context.assets.open("covers/classic_pilgrims_progress.jpg").use { input -> cover.outputStream().use { input.copyTo(it) } }
         val oldGlass = VeritasThemeState.glassFloatingControls
@@ -107,14 +107,14 @@ class ListenRedesignUiTest {
                 assertEquals(1, index)
                 rule.onNodeWithContentDescription("Previous sentence").performClick()
                 assertEquals(0, index)
-                rule.onNodeWithContentDescription("Reading position").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.SetProgress) { it(2f) }
+                rule.onNodeWithContentDescription(context.getString(R.string.ui_reading_progress)).performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.SetProgress) { it(2f) }
                 assertEquals(2, index)
-                rule.onNodeWithContentDescription("Add bookmark").performClick()
-                rule.onNodeWithContentDescription("Remove bookmark").performClick()
-                rule.onNodeWithContentDescription("Playback speed").performClick()
+                rule.onNodeWithContentDescription(context.getString(R.string.ui_add_bookmark)).performClick()
+                rule.onNodeWithContentDescription(context.getString(R.string.l10n_remove_bookmark)).performClick()
+                rule.onNodeWithContentDescription(context.getString(R.string.l10n_playback_speed)).performClick()
                 rule.onNodeWithText("1.5×").performClick()
                 assertEquals(1.5f, speed)
-                rule.onNodeWithContentDescription("Voice & language").performClick()
+                rule.onNodeWithContentDescription(context.getString(R.string.l10n_voice_language)).performClick()
                 rule.onNodeWithContentDescription("Sleep timer").performClick()
                 rule.onNodeWithContentDescription("More options").performClick()
                 rule.onNodeWithText("Narration mode").performClick()
@@ -133,8 +133,9 @@ class ListenRedesignUiTest {
             }
             assertEquals(2, voices); assertEquals(2, timers); assertEquals(2, narration); assertEquals(2, exports)
             rule.runOnIdle { compact = true; reduced = true; VeritasThemeState.reduceTransparency = true }
-            rule.onNodeWithContentDescription("Play").assertIsDisplayed().performClick()
-            rule.onNodeWithContentDescription("Sleep timer").assertIsDisplayed()
+            rule.onNodeWithContentDescription("Play").performScrollTo().assertIsDisplayed().performClick()
+            rule.onNodeWithContentDescription("Sleep timer").performScrollTo().assertIsDisplayed()
+            rule.onNodeWithText("Read", useUnmergedTree = true).performScrollTo()
             rule.onNodeWithText("Read", useUnmergedTree = true).performClick()
             rule.runOnIdle { index = 2 }
             rule.onNodeWithText(sentences[2]).assertIsSelected().assertIsDisplayed()

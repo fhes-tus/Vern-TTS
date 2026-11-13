@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.ui.platform.testTag
+
 import android.content.Context
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -233,6 +235,7 @@ internal fun LibraryBooksTab(
 
                                     LazyColumn(
                                         modifier = Modifier
+                                            .testTag("library-books-list")
                                             .staggeredEntrance(1)
                                             .fillMaxSize()
                                             .pointerInput(libraryListState) {
@@ -257,7 +260,7 @@ internal fun LibraryBooksTab(
                                             .padding(horizontal = 18.dp),
                                         state = libraryListState,
                                         contentPadding = PaddingValues(top = 0.dp, bottom = floatingBottomPadding + 92.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
                                         item("library_filters") { filters() }
         if (!selectionMode && documents.isNotEmpty()) item("library-results-summary") {
@@ -328,7 +331,7 @@ internal fun LibraryBooksTab(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_to_collection)) },
+                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_collection)) },
                                 onClick = {
 
                                     showBatchMenu = false
@@ -530,7 +533,7 @@ internal fun LibraryBooksTab(
                 }
                 }
             } else {
-                itemsIndexed(localDocuments, key = { _, doc -> doc.id }) { _, doc ->
+                itemsIndexed(localDocuments, key = { _, doc -> doc.id }) { index, doc ->
                     val isDragging = doc.id == draggingDocId
                     val dragScale by animateFloatAsState(
                         targetValue = if (isDragging) 1.04f else 1f,
@@ -538,6 +541,25 @@ internal fun LibraryBooksTab(
                         label = "listDragScale"
                     )
                     val listThresholdPx = with(density) { 90.dp.toPx() }
+
+                    if (index > 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 2.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .width(36.dp)
+                                    .height(1.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                        shape = CircleShape
+                                    )
+                            )
+                        }
+                    }
 
                     DocumentCard(
                         document = doc,

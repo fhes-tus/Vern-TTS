@@ -1,7 +1,12 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.Canvas
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -177,10 +182,32 @@ internal fun LibraryTopAndFilterBar(
                                     }
                                     val indicatorColor = MaterialTheme.colorScheme.primary
                                     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-                                    Canvas(Modifier.fillMaxWidth().height(3.dp).testTag("library_section_indicator")
-                                        .semantics { this[LibraryTabProgress] = libraryTabProgress() }) {
-                                        val progress = libraryTabProgress().coerceIn(0f, 1f)
-                                        drawRect(indicatorColor, Offset(size.width / 2f * (if (rtl) 1f - progress else progress), 0f), Size(size.width / 2f, size.height))
+                                    val targetProgress = libraryTabProgress().coerceIn(0f, 1f)
+                                    val animatedProgress by animateFloatAsState(
+                                        targetValue = targetProgress,
+                                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioLowBouncy),
+                                        label = "library_tab_indicator_anim"
+                                    )
+                                    Canvas(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(3.5.dp)
+                                            .testTag("library_section_indicator")
+                                            .semantics { this[LibraryTabProgress] = targetProgress }
+                                    ) {
+                                        val progress = if (rtl) 1f - animatedProgress else animatedProgress
+                                        val tabWidth = size.width / 2f
+                                        val indicatorWidth = 56.dp.toPx()
+                                        val indicatorHeight = size.height
+                                        val cornerRadius = CornerRadius(indicatorHeight / 2f, indicatorHeight / 2f)
+                                        val centerX = tabWidth * 0.5f + (tabWidth * progress)
+                                        val left = (centerX - indicatorWidth / 2f).coerceIn(0f, size.width - indicatorWidth)
+                                        drawRoundRect(
+                                            color = indicatorColor,
+                                            topLeft = Offset(left, 0f),
+                                            size = Size(indicatorWidth, indicatorHeight),
+                                            cornerRadius = cornerRadius
+                                        )
                                     }
                                 }
                                 VeritasHomeTab.NOTES -> {
@@ -199,92 +226,21 @@ internal fun LibraryTopAndFilterBar(
                                     headerActions()
                                     }
                                     notesSearch()
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .horizontalScroll(rememberScrollState()),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        val noteFilterOptions = remember(uiState.generalNotes, uiState.allAnnotations) {
-                                            buildList {
-                                                add("All Notes")
-                                                if (uiState.generalNotes.any { it.pinned }) add("Pinned")
-                                                if (uiState.generalNotes.any { it.allAudioUrls.isNotEmpty() }) add("Voice Memos")
-                                                if (uiState.generalNotes.any { it.isChecklist }) add("Checklists")
-                                                if (uiState.generalNotes.any { it.reminderAt != null }) add("Reminders")
-                                                if (uiState.allAnnotations.isNotEmpty()) add("Highlights")
-                                            }
-                                        }
-                                        noteFilterOptions.forEach { option ->
-                                            val active = when (option) {
-                                                "All Notes" -> selectedGeneralNoteTag == "All"
-                                                "Pinned" -> selectedGeneralNoteTag == "Pinned"
-                                                "Voice Memos" -> selectedGeneralNoteTag == "Audio"
-                                                "Checklists" -> selectedGeneralNoteTag == "Checklists"
-                                                "Reminders" -> selectedGeneralNoteTag == "Reminders"
-                                                "Highlights" -> selectedGeneralNoteTag == "Highlights"
-                                                else -> selectedGeneralNoteTag == option
-                                            }
-                                            if (active) {
-                                                Button(
-                                                    onClick = {
-                                                        onSelectedGeneralNoteTagChange(when (option) {
-                                                            "All Notes" -> "All"
-                                                            "Pinned" -> "Pinned"
-                                                            "Voice Memos" -> "Audio"
-                                                            "Checklists" -> "Checklists"
-                                                            "Reminders" -> "Reminders"
-                                                            "Highlights" -> "Highlights"
-                                                            else -> option
-                                                        })
-                                                    },
-                                                    shape = VeritasPackStyle.chipShape(),
-                                                    colors = ButtonDefaults.buttonColors(
-                                                        containerColor = VeritasPackStyle.filterContainerColor(MaterialTheme.colorScheme),
-                                                        contentColor = VeritasPackStyle.onFilterContainerColor(MaterialTheme.colorScheme)
-                                                    ),
-                                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
-                                                ) {
-                                                    Text(localizedCatalogLabel(option), style = MaterialTheme.typography.labelMedium)
-                                                }
-                                            } else {
-                                                OutlinedButton(
-                                                    onClick = {
-                                                        onSelectedGeneralNoteTagChange(when (option) {
-                                                            "All Notes" -> "All"
-                                                            "Pinned" -> "Pinned"
-                                                            "Voice Memos" -> "Audio"
-                                                            "Checklists" -> "Checklists"
-                                                            "Reminders" -> "Reminders"
-                                                            "Highlights" -> "Highlights"
-                                                            else -> option
-                                                        })
-                                                    },
-                                                    shape = VeritasPackStyle.chipShape(),
-                                                    border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
-                                                    colors = ButtonDefaults.outlinedButtonColors(
-                                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                                    ),
-                                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
-                                                ) {
-                                                    Text(localizedCatalogLabel(option), style = MaterialTheme.typography.labelMedium)
-                                                }
-                                            }
-                                        }
-                                    }
                                 }
                                 VeritasHomeTab.STUDY -> {
                                     Row(
-                                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
                                             com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_study_hub),
+                                            modifier = Modifier.testTag("study-title"),
                                             style = MaterialTheme.typography.titleLarge,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Surface(
+                                            modifier = Modifier.testTag("study-streak"),
                                             shape = RoundedCornerShape(50),
                                             color = MaterialTheme.colorScheme.primaryContainer,
                                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -349,12 +305,15 @@ internal fun LibraryDocumentFilters(
     collectionFilter: String, onCollectionFilterChange: (String) -> Unit,
     readingListFilter: String, onReadingListFilterChange: (String) -> Unit
 ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .horizontalScroll(rememberScrollState()),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
+    androidx.compose.runtime.CompositionLocalProvider(
+        androidx.compose.material3.LocalMinimumInteractiveComponentSize provides androidx.compose.ui.unit.Dp.Unspecified
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
                                         // Dynamic filters based on actual available document states and collections
                                         val hasFavorites = remember(documents) { documents.any { it.favorite } }
                                         val hasUnread = remember(documents) { documents.any { it.currentIndex <= 0 } }
@@ -444,7 +403,7 @@ internal fun LibraryDocumentFilters(
 
                                             readingLists.forEach { readingList ->
                                                 val count = documents.count { readingList.contains(it.id) }
-                                                add(LibraryChip("≡ ${readingList.title}", readingListFilter == readingList.id, count, catalog = false) {
+                                                add(LibraryChip(readingList.title, readingListFilter == readingList.id, count, catalog = false) {
                                                     if (readingListFilter == readingList.id) reset() else { reset(); onReadingListFilterChange(readingList.id) }
                                                 })
                                             }
@@ -487,5 +446,5 @@ internal fun LibraryDocumentFilters(
                                             }
                                         }
                                     }
-
+    }
 }

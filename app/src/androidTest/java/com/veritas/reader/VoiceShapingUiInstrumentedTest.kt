@@ -23,6 +23,9 @@ class VoiceShapingUiInstrumentedTest {
                     { _, _, _ -> }, {}, {}, {}, {}, {}, onVoiceShapingChange = { settings = settings.copy(voiceShaping = it) })
             }
         }
+        // A fresh isolated install shows the cloud-voice explanation above Voice Studio.
+        val explore = ui.onAllNodesWithText(context.getString(R.string.voice_explore))
+        if (explore.fetchSemanticsNodes().isNotEmpty()) explore.onFirst().performClick()
         ui.onNodeWithTag("voice-shaping-toggle").performScrollTo().assertContentDescriptionEquals("Voice shaping")
             .assertIsOn().performClick().assertIsOff()
         val file = File(context.filesDir, "voice-shaping-control.png")

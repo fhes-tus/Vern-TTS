@@ -9,7 +9,8 @@ import java.net.URI
 import java.net.URLEncoder
 import java.util.Locale
 
-internal data class VocabularyDefinition(val definition: String, val pronunciation: String? = null, val sourceUrl: String? = null)
+internal data class VocabularyDefinition(val definition: String, val pronunciation: String? = null, val sourceUrl: String? = null,
+    val examples: List<String> = emptyList(), val senses: List<DictionarySense> = emptyList())
 
 internal object VocabularyLookup {
     const val PENDING = "Looking up meaning… Waiting for a connection if offline."
@@ -31,6 +32,7 @@ internal object VocabularyLookup {
     fun parse(json: String): VocabularyDefinition? {
         val entries = JSONArray(json)
         val definitions = linkedSetOf<String>()
+        val senses = mutableListOf<DictionarySense>()
         var pronunciation: String? = null
         var sourceUrl: String? = null
         for (i in 0 until entries.length()) {
@@ -53,18 +55,22 @@ internal object VocabularyLookup {
                     val text = items.optJSONObject(d)?.text("definition") ?: continue
                     val pos = meaning.text("partOfSpeech")
                     definitions.add(if (pos != null) "($pos) $text" else text)
+                    val examples = listOfNotNull(items.optJSONObject(d)?.text("example"))
+                    senses.add(DictionarySense(pos.orEmpty(), text, examples, emptyList()))
                     break // One usable definition per sense, rather than only the first JSON slot.
                 }
             }
         }
         return definitions.takeIf { it.isNotEmpty() }?.let {
-            VocabularyDefinition(it.take(3).joinToString("; "), pronunciation, sourceUrl)
+            VocabularyDefinition(it.take(3).joinToString("; "), pronunciation, sourceUrl,
+                senses.take(3).flatMap { sense -> sense.examples }.distinct().take(4), senses.take(3))
         }
     }
 
     fun parseWiktionary(json: String, word: String): VocabularyDefinition? {
         val entries = JSONObject(json).optJSONArray("en") ?: return null
         val definitions = linkedSetOf<String>()
+        val senses = mutableListOf<DictionarySense>()
         for (i in 0 until entries.length()) {
             val entry = entries.optJSONObject(i) ?: continue
             val items = entry.optJSONArray("definitions") ?: continue
@@ -74,13 +80,24 @@ internal object VocabularyLookup {
                 if (text.isEmpty()) continue
                 val pos = entry.text("partOfSpeech")?.lowercase(Locale.ROOT)
                 definitions.add(if (pos == null) text else "($pos) $text")
+                val rawExamples = items.optJSONObject(d)?.optJSONArray("examples")
+                val examples = if (rawExamples == null) emptyList() else (0 until minOf(rawExamples.length(), 4)).mapNotNull { e ->
+                    val example = when (val item = rawExamples.opt(e)) {
+                        is String -> item
+                        is JSONObject -> item.text("text") ?: item.text("example")
+                        else -> null
+                    }
+                    example?.let(::definitionText)?.takeIf { it.isNotBlank() }
+                }
+                senses.add(DictionarySense(pos.orEmpty(), text, examples, emptyList()))
                 if (definitions.size == 3) break
             }
             if (definitions.size == 3) break
         }
         val path = URLEncoder.encode(word, "UTF-8").replace("+", "%20")
         return definitions.takeIf { it.isNotEmpty() }?.let {
-            VocabularyDefinition(it.joinToString("; "), sourceUrl = "https://en.wiktionary.org/wiki/$path")
+            VocabularyDefinition(it.joinToString("; "), sourceUrl = "https://en.wiktionary.org/wiki/$path",
+                examples = senses.flatMap { sense -> sense.examples }.distinct().take(4), senses = senses.take(3))
         }
     }
 
@@ -145,11 +162,14 @@ internal object VocabularyLookup {
         }
     }
 
-    suspend fun resolve(context: Context, word: String, explanation: String, sentence: String?, title: String): VocabularyDefinition {
+    suspend fun resolve(context: Context, word: String, explanation: String, sentence: String?, title: String,
+        lookupSource: DictionaryLookupSource = DictionaryLookupSource.AUTOMATIC): VocabularyDefinition {
         val placeholder = needsDefinition(explanation)
         if (!placeholder) return VocabularyDefinition(explanation)
-        // A web lookup must not depend on a configured or responsive AI provider.
-        fetch(word)?.let { return it }
+        lookupSource.resolve(
+            offline = { runCatching { OfflineDictionaryStore.lookup(context, word) }.getOrNull()?.vocabularyMeaning() },
+            online = { fetch(word) })?.let { return it }
+        if (lookupSource != DictionaryLookupSource.AUTOMATIC) return VocabularyDefinition(UNAVAILABLE)
         val apiKey = GeminiStudyService.getApiKey(context)
         if (apiKey.isNotBlank() && !sentence.isNullOrBlank()) {
             val contextual = GeminiStudyService.defineInContext(apiKey, word, sentence, title).getOrNull()

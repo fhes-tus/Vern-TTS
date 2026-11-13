@@ -18,8 +18,18 @@ import kotlinx.coroutines.withContext
 internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view.ActionMode?) {
                 val menu = mode?.menu ?: return
 
-        val readItem = menu.findItem(1001) ?: menu.add(0, 1001, 1, "Read from here")
-        readItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
+        // Retain the PDF viewer's Select all item and its own click listener. Its items may
+        // share Menu.NONE IDs, so identify Select all by its localized platform title too.
+        menu.removeItem(android.R.id.textAssist)
+        val selectAllTitle = (pdfView?.context ?: this).getString(android.R.string.selectAll)
+        for (index in 0 until menu.size()) {
+            val item = menu.getItem(index)
+            item.setShowAsAction(if (item.itemId == android.R.id.selectAll || item.title == selectAllTitle)
+                android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM else android.view.MenuItem.SHOW_AS_ACTION_NEVER)
+        }
+
+        val readItem = menu.findItem(1001) ?: menu.add(0, 1001, 4, "Read from here")
+        readItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
         readItem.titleCondensed = "Read"
         readItem.isVisible = true
         readItem.isEnabled = true
@@ -30,8 +40,8 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
             true
         }
 
-        val fixPronunciationItem = menu.findItem(1002) ?: menu.add(0, 1002, 2, "Fix pronunciation")
-        fixPronunciationItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
+        val fixPronunciationItem = menu.findItem(1002) ?: menu.add(0, 1002, 7, "Fix pronunciation")
+        fixPronunciationItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
         fixPronunciationItem.isVisible = true
         fixPronunciationItem.isEnabled = true
         fixPronunciationItem.setOnMenuItemClickListener {
@@ -46,8 +56,8 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
             true
         }
 
-        val bookmarkItem = menu.findItem(1003) ?: menu.add(0, 1003, 3, "Add bookmark")
-        bookmarkItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
+        val bookmarkItem = menu.findItem(1003) ?: menu.add(0, 1003, 0, getString(R.string.ui_bookmark))
+        bookmarkItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
         bookmarkItem.isVisible = true
         bookmarkItem.isEnabled = true
         bookmarkItem.setOnMenuItemClickListener {
@@ -64,8 +74,8 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
             true
         }
 
-        val noteItem = menu.findItem(1004) ?: menu.add(0, 1004, 4, "Add note")
-        noteItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
+        val noteItem = menu.findItem(1004) ?: menu.add(0, 1004, 1, getString(R.string.ui_note))
+        noteItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
         noteItem.isVisible = true
         noteItem.isEnabled = true
         noteItem.setOnMenuItemClickListener {
@@ -76,8 +86,8 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
             true
         }
 
-        val askAiItem = menu.findItem(1005) ?: menu.add(0, 1005, 5, "Ask AI")
-        askAiItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
+        val askAiItem = menu.findItem(1005) ?: menu.add(0, 1005, 8, "Ask AI")
+        askAiItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
         askAiItem.isVisible = true
         askAiItem.isEnabled = true
         askAiItem.setOnMenuItemClickListener {
@@ -94,7 +104,7 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
             true
         }
 
-        val copyItem = menu.findItem(1006) ?: menu.add(0, 1006, 6, "Copy")
+        val copyItem = menu.findItem(1006) ?: menu.add(0, 1006, 5, "Copy")
         copyItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
         copyItem.isVisible = true
         copyItem.isEnabled = true
@@ -105,7 +115,7 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
             true
         }
 
-        val shareItem = menu.findItem(1007) ?: menu.add(0, 1007, 7, "Share")
+        val shareItem = menu.findItem(1007) ?: menu.add(0, 1007, 6, "Share")
         shareItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
         shareItem.isVisible = true
         shareItem.isEnabled = true
@@ -116,14 +126,13 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
             true
         }
 
-        val lookupItem = menu.findItem(1008) ?: menu.add(0, 1008, 8, "Web lookup")
-        lookupItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
+        val lookupItem = menu.findItem(1008) ?: menu.add(0, 1008, 2, getString(R.string.ui_search_definitions))
+        lookupItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
         lookupItem.setOnMenuItemClickListener {
             performActionOnCopiedSelection(menu, mode) { text ->
-                lifecycleScope.launch {
-                    appendVocabularyWord(text, "Looked up definition / web references.")?.join()
-                    openGoogleSearch(activity, "$text meaning")
-                }
+                val index = findSentenceIndexForText(text)
+                showDictionaryLookup(activity, text, DictionaryLookupAnchor(document?.id, index,
+                    readerTextModel?.sentences?.getOrNull(index)?.text))
             }
             true
         }
@@ -136,6 +145,13 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
         mode: android.view.ActionMode,
         onTextRetrieved: (String) -> Unit
     ) {
+        // Public PDF selection avoids depending on duplicate Menu.NONE IDs for Copy.
+        val selected = (pdfView?.currentSelection as? androidx.pdf.selection.model.TextSelection)?.text?.toString()
+        if (!selected.isNullOrBlank()) {
+            mode.finish()
+            onTextRetrieved(selected)
+            return
+        }
         val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val oldClip = clipboard.primaryClip
         val sentinel = "vern-pdf-selection-${System.nanoTime()}"

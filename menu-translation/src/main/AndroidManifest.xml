@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:dist="http://schemas.android.com/apk/distribution"
+    xmlns:tools="http://schemas.android.com/tools">
+    <dist:module dist:instant="false" dist:title="@string/menu_translation_feature_title">
+        <dist:delivery><dist:on-demand /></dist:delivery>
+        <dist:fusing dist:include="true" />
+    </dist:module>
+    <!-- A duplicate Android service in a split replaces the base service metadata
+         on installation. Its optional registrar is declared by base instead. -->
+    <application>
+        <service android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
+            tools:node="remove" />
+    </application>
+</manifest>

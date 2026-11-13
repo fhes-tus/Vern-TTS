@@ -38,7 +38,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -336,7 +336,7 @@ private fun DonutChartDetailDialog(
     onSliceClick: ((DonutSlice) -> Unit)?,
     onDismiss: () -> Unit
 ) {
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+    com.veritas.reader.VernDialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = MaterialTheme.colorScheme.surface,

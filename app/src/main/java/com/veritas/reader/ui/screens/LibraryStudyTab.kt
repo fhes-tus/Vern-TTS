@@ -50,6 +50,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -190,9 +193,9 @@ internal fun LibraryStudyTab(
                 val docId = note.title.removePrefix("__vocab__")
                 val doc = uiState.documents.firstOrNull { it.id == docId } ?: SavedDocument(
                     id = docId,
-                    title = uiState.documentTitles[docId] ?: "Deleted Book",
+                    title = if (docId == com.veritas.reader.DICTIONARY_VOCAB_ID) "Dictionary" else uiState.documentTitles[docId] ?: "Deleted Book",
                     fileName = "",
-                    sourceLabel = "Deleted",
+                    sourceLabel = if (docId == com.veritas.reader.DICTIONARY_VOCAB_ID) "Dictionary" else "Deleted",
                     createdAt = 0,
                     updatedAt = 0,
                     currentIndex = 0,
@@ -270,9 +273,13 @@ internal fun LibraryStudyTab(
         filteredAnnotatedDocuments.filter { markedDoc -> markedDoc.annotations.any { it.type == AnnotationType.NOTE } || markedDoc.documentNote.isNotBlank() }
     }
 
+                                BoxWithConstraints(modifier.fillMaxSize()) {
+                                val columns = vernCollectionColumns(maxWidth.value - 36f,
+                                    if (maxWidth < 600.dp) 168f else 236f, LocalDensity.current.fontScale, gapDp = 12f)
                                 LazyColumn(
                                     modifier = Modifier
                                         .fillMaxSize()
+                                        .testTag("study-layout-$columns")
                                         .pointerInput(studyListState) {
                                             var pullDistance = 0f
                                             detectVerticalDragGestures(
@@ -395,7 +402,7 @@ internal fun LibraryStudyTab(
                                             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            val filterOptions = listOf("Overview", "Bookmarks", "Booknotes", "Vocab", "Flashcards", "Quizzes", "History")
+                                            val filterOptions = listOf("Overview", "Bookmarks", "Booknotes", "Vocab", "Dictionary", "Flashcards", "Quizzes", "History")
                                             filterOptions.forEach { option ->
                                                 FilterChip(
                                                     selected = annotationFilter == option,
@@ -437,6 +444,9 @@ internal fun LibraryStudyTab(
                                     }
 
                                     when (annotationFilter) {
+                "Dictionary" -> item(key = "study-dictionary") {
+                    OfflineDictionaryPanel(onSaved = { onRefreshMainPage() })
+                }
                 "Bookmarks" -> {
                     if (bookmarksOnly.isEmpty()) {
                         item {
@@ -706,9 +716,8 @@ internal fun LibraryStudyTab(
                                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_ai_reply_add_cards))
                             }
                         }
-                        // Two set tiles per row, styled like the old deck card.
-                        items(flashcardSets.chunked(2), key = { row -> row.first().setId }) { row ->
-                            // Match the library cover grid: 2 columns, 12dp gap, 10dp row gap.
+                        // Tile width follows the available pane and text size.
+                        items(flashcardSets.chunked(columns), key = { row -> row.first().setId }) { row ->
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -716,7 +725,7 @@ internal fun LibraryStudyTab(
                                 row.forEach { set ->
                                     FlashcardSetTile(
                                         set = set,
-                                        modifier = Modifier.weight(1f),
+                                        modifier = Modifier.weight(1f).testTag("study-deck-${set.setId}"),
                                         onOpen = {
                                             onOpenFlashcardViewer(set.name, set.cards)
                                         },
@@ -727,7 +736,7 @@ internal fun LibraryStudyTab(
                                         onDelete = { onDeleteFlashcardSet(set.setId) }
                                     )
                                 }
-                                if (row.size == 1) Spacer(modifier = Modifier.weight(1f))
+                                repeat(columns - row.size) { Spacer(modifier = Modifier.weight(1f)) }
                             }
                         }
                     }
@@ -735,4 +744,5 @@ internal fun LibraryStudyTab(
             }
         }
 
+}
 }

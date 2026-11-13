@@ -20,6 +20,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +29,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -67,8 +72,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -76,7 +79,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.veritas.reader.ui.NotesSettings
 import com.veritas.reader.AiResultParser
-import com.veritas.reader.DocumentRepository
 import com.veritas.reader.Flashcard
 import com.veritas.reader.FlashcardProgress
 import com.veritas.reader.FlashcardSet
@@ -89,7 +91,6 @@ import com.veritas.reader.ReaderAnnotation
 import com.veritas.reader.ReaderSettings
 import com.veritas.reader.ResolvedVeritasFeature
 import com.veritas.reader.SavedDocument
-import com.veritas.reader.TextChunker
 import com.veritas.reader.VeritasFeatureContext
 import com.veritas.reader.VeritasFeatureId
 import com.veritas.reader.VeritasFeatureRegistry
@@ -214,12 +215,6 @@ fun LibraryScreen(
 ) {
 
     val documents = uiState.documents
-    val windowWidthDp = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
-    val columnCount = when {
-        windowWidthDp >= 840.dp -> 4
-        windowWidthDp >= 600.dp -> 3
-        else -> 2
-    }
     val queuedDocuments = uiState.queuedDocuments
     val draftText = uiState.draftText
     var librarySection by rememberSaveable { mutableStateOf(LibrarySection.MY_LIBRARY) }
@@ -276,30 +271,6 @@ fun LibraryScreen(
     var showBatchCollectionDialog by remember { mutableStateOf(false) }
     var batchCollectionDraft by rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
-    val repository = remember(context) { DocumentRepository(context) }
-    var loadedDocSentences by remember { mutableStateOf(emptyMap<String, List<String>>()) }
-    val docIdsWithAnnotations = remember(uiState.allAnnotations) {
-        uiState.allAnnotations.map { it.documentId }.toSet()
-    }
-    LaunchedEffect(docIdsWithAnnotations, uiState.documents) {
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            val neededIds = docIdsWithAnnotations.filter { it !in loadedDocSentences }
-            if (neededIds.isNotEmpty()) {
-                val newMap = neededIds.associateWith { docId ->
-                    val docMetadata = uiState.documents.firstOrNull { it.id == docId }
-                    if (docMetadata != null) {
-                        val text = repository.readText(docMetadata)
-                        TextChunker.chunk(text)
-                    } else {
-                        emptyList()
-                    }
-                }
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    loadedDocSentences = loadedDocSentences + newMap
-                }
-            }
-        }
-    }
     val libraryPrefs = remember { context.getSharedPreferences("veritas_library_settings", Context.MODE_PRIVATE) }
     var isHomeGridView by rememberSaveable { mutableStateOf(libraryPrefs.getBoolean("is_home_grid_view", true)) }
     var libraryViewMode by rememberSaveable {
@@ -786,10 +757,14 @@ fun LibraryScreen(
                     ),
                 contentAlignment = Alignment.TopCenter
             ) {
+                val contentWidth = 760.dp
+                BoxWithConstraints(Modifier.widthIn(max = contentWidth).fillMaxSize().testTag("library-content")) {
+                // Use the capped content column, including after a live window resize.
+                // Add columns when 160 dp tiles and 12 dp gaps fit within the 36 dp list gutters.
+                val columnCount = ((maxWidth - 24.dp) / 172.dp).toInt().coerceIn(2, 4)
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .widthIn(max = 760.dp),
+                        .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     LibraryTopAndFilterBar(
@@ -992,6 +967,7 @@ fun LibraryScreen(
                                     notesListState = notesListState,
                                     annotationFilter = annotationFilter,
                                     selectedGeneralNoteTag = selectedGeneralNoteTag,
+                                    onSelectedGeneralNoteTagChange = { selectedGeneralNoteTag = it },
                                     selectedAnnotationKeys = selectedAnnotationKeys,
                                     onSelectedAnnotationKeysChange = { selectedAnnotationKeys = it },
                                     onConfirmAnnotationDelete = { confirmAnnotationDelete = true },
@@ -1063,11 +1039,16 @@ fun LibraryScreen(
 }
                 }
 
+                }
                 BatchImportFloater(
                     visible = uiState.isBatchImporting,
                     current = uiState.batchImportCurrent,
                     total = uiState.batchImportTotal,
-                    failed = uiState.batchImportFailed
+                    failed = uiState.batchImportFailed,
+                    modifier = Modifier
+                        .padding(bottom = homePadding.calculateBottomPadding())
+                        .consumeWindowInsets(homePadding)
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
                 )
             }
             }

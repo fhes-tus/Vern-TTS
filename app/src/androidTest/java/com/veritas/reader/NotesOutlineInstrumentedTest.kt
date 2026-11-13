@@ -57,9 +57,11 @@ class NotesOutlineInstrumentedTest {
         } }
         rule.waitUntil(10_000) { rule.onAllNodesWithText("VII").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("VII").assertExists()
-        rule.onNodeWithText("Jump to page (1–12)").performTextInput("13")
+        val pageLabel = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+            .getString(R.string.l10n_dynamic_145, "12")
+        rule.onNodeWithText(pageLabel).performTextInput("13")
         rule.onNodeWithText("Go").assertIsNotEnabled()
-        rule.onNodeWithText("Jump to page (1–12)").performTextReplacement("12")
+        rule.onNodeWithText(pageLabel).performTextReplacement("12")
         rule.onNodeWithText("Go").performClick()
         rule.runOnIdle { assertEquals(12, page) }
     }

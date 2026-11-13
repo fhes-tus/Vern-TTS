@@ -275,7 +275,7 @@ open class MainActivity : AppCompatActivity() {
             VeritasTheme {
                 // Screens own top/bottom chrome insets. Consume horizontal safe insets
                 // here so cutouts and landscape navigation cannot cover any screen.
-                Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                VernFoldAwarePane(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
                     com.veritas.reader.ui.screens.TranslatedAppMenus {
                     VeritasReaderApp(

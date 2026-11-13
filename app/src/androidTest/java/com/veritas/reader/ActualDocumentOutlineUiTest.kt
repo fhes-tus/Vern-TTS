@@ -16,7 +16,7 @@ class ActualDocumentOutlineUiTest {
 
     @Test fun closingOutlinePreservesOriginalDocumentAndPageAndJumpStaysInOriginalView() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        check(context.packageName.endsWith(".outline.checks"))
+        check(context.packageName.endsWith(".checks"))
         val repository = DocumentRepository(context)
         val source = File(context.cacheDir, "original-outline.pdf")
         val pdf = PdfDocument()

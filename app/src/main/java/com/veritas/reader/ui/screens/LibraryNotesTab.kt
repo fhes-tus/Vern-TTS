@@ -7,6 +7,8 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.key
 import androidx.compose.foundation.background
@@ -58,13 +60,16 @@ import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -141,24 +146,6 @@ private fun extractPathFromTag(tag: String): String {
     return tag
 }
 
-private fun formatMediaDuration(path: String): String {
-    if (path.isBlank()) return ""
-    return try {
-        val file = java.io.File(path)
-        if (file.exists()) {
-            val retriever = android.media.MediaMetadataRetriever()
-            retriever.setDataSource(path)
-            val durStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
-            val durMs = durStr?.toLongOrNull() ?: 0L
-            val totalSec = durMs / 1000
-            retriever.release()
-            if (totalSec > 0) String.format(java.util.Locale.US, "%02d:%02d", totalSec / 60, totalSec % 60) else ""
-        } else ""
-    } catch (_: Exception) {
-        ""
-    }
-}
-
 @Composable
 internal fun LibraryNotesTab(
     documents: List<SavedDocument>,
@@ -166,6 +153,7 @@ internal fun LibraryNotesTab(
     notesListState: LazyListState,
     annotationFilter: String,
     selectedGeneralNoteTag: String,
+    onSelectedGeneralNoteTagChange: (String) -> Unit = {},
     selectedAnnotationKeys: Set<String>,
     onSelectedAnnotationKeysChange: (Set<String>) -> Unit,
     onConfirmAnnotationDelete: () -> Unit,
@@ -205,7 +193,10 @@ internal fun LibraryNotesTab(
     LaunchedEffect(uiState.noteNotebooks, selectedNotebookId) {
         if (selectedNotebookId != null && uiState.noteNotebooks.none { it.id == selectedNotebookId }) onSelectedNotebookChange(null)
     }
-                                Column(modifier = modifier.fillMaxSize()) {
+                                BoxWithConstraints(modifier.fillMaxSize()) {
+                                val columns = if (isGridView) vernCollectionColumns(maxWidth.value - 36f,
+                                    if (maxWidth < 600.dp) 156f else 220f, LocalDensity.current.fontScale) else 1
+                                Column(Modifier.fillMaxSize().testTag("notes-layout-$columns")) {
                                     Spacer(Modifier.height(8.dp))
                                     if (createNotebookDialog && collectionActions != null) {
                                         NotebookNameDialog(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_new_notebook), notebookName, { notebookName = it }, uiState.noteNotebooks,
@@ -240,12 +231,62 @@ internal fun LibraryNotesTab(
                                             editingId = notebook.id, onDismiss = { notebookToRename = null },
                                             onSave = { collectionActions?.renameNotebook?.invoke(notebook.id, renamedNotebook.trim()); notebookToRename = null })
                                     }
+
+                                    if (!showTrash) {
+                                        val noteFilterOptions = remember(uiState.generalNotes, uiState.allAnnotations) {
+                                            buildList {
+                                                add("All Notes")
+                                                if (uiState.generalNotes.any { it.pinned }) add("Pinned")
+                                                if (uiState.generalNotes.any { it.allAudioUrls.isNotEmpty() }) add("Voice Memos")
+                                                if (uiState.generalNotes.any { it.isChecklist }) add("Checklists")
+                                                if (uiState.generalNotes.any { it.reminderAt != null }) add("Reminders")
+                                                if (uiState.allAnnotations.isNotEmpty()) add("Highlights")
+                                            }
+                                        }
+                                        LazyRow(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 18.dp, vertical = 4.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            items(noteFilterOptions, key = { it }) { option ->
+                                                val active = when (option) {
+                                                    "All Notes" -> selectedGeneralNoteTag == "All"
+                                                    "Pinned" -> selectedGeneralNoteTag == "Pinned"
+                                                    "Voice Memos" -> selectedGeneralNoteTag == "Audio"
+                                                    "Checklists" -> selectedGeneralNoteTag == "Checklists"
+                                                    "Reminders" -> selectedGeneralNoteTag == "Reminders"
+                                                    "Highlights" -> selectedGeneralNoteTag == "Highlights"
+                                                    else -> selectedGeneralNoteTag == option
+                                                }
+                                                FilterChip(
+                                                    selected = active,
+                                                    onClick = {
+                                                        onSelectedGeneralNoteTagChange(when (option) {
+                                                            "All Notes" -> "All"
+                                                            "Pinned" -> "Pinned"
+                                                            "Voice Memos" -> "Audio"
+                                                            "Checklists" -> "Checklists"
+                                                            "Reminders" -> "Reminders"
+                                                            "Highlights" -> "Highlights"
+                                                            else -> option
+                                                        })
+                                                    },
+                                                    label = { Text(localizedCatalogLabel(option)) },
+                                                    shape = VeritasPackStyle.chipShape(),
+                                                    colors = VeritasPackStyle.filterChipColors(MaterialTheme.colorScheme),
+                                                    modifier = Modifier.testTag("note_filter_$option")
+                                                )
+                                            }
+                                        }
+                                    }
+
                                     if (!showTrash && selectedGeneralNoteTag == "Highlights") {
                                         NotesHighlights(documents, uiState.allAnnotations, noteSearchQuery, onOpenDocumentAt, onDeleteAnnotations)
                                     } else LazyColumn(
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .padding(horizontal = 18.dp),
+                                            .padding(horizontal = 18.dp).testTag("notes-list"),
                                         state = notesListState,
                                         contentPadding = PaddingValues(top = 8.dp, bottom = floatingBottomPadding + 92.dp),
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -267,6 +308,13 @@ internal fun LibraryNotesTab(
                                             "title" -> filteredNotes.sortedWith(compareByDescending<GeneralNote> { it.pinned }.thenBy { it.title.lowercase() })
                                             "created" -> filteredNotes.sortedWith(compareByDescending<GeneralNote> { it.pinned }.thenByDescending { it.createdAt })
                                             else -> filteredNotes.sortedWith(compareByDescending<GeneralNote> { it.pinned }.thenByDescending { it.updatedAt })
+                                        }
+
+                                        item("notes_action_hint") {
+                                            VernActionHintBanner(
+                                                hintKey = "notes_tab_hint",
+                                                message = "• Tap + to create a new note\n• Tap tags to filter your notes\n• Tap any note to edit or share"
+                                            )
                                         }
 
                                         if (finalNotes.isEmpty()) {
@@ -500,9 +548,9 @@ internal fun LibraryNotesTab(
                                                                     ?: NOTE_AUDIO_TAG_REGEX.find(generalNote.content)?.value?.let { extractPathFromTag(it) }
                                                                     ?: ""
                                                             }
-                                                            val audioDur = remember(firstAudioPath) {
-                                                                formatMediaDuration(firstAudioPath)
-                                                            }
+                                                            val audioDuration = rememberNoteAudioDurationMillis(firstAudioPath, revision = generalNote.updatedAt)
+                                                            val audioDur = audioDuration?.takeIf { it >= 1000 }
+                                                                ?.let { formatNoteAudioDuration(it, padMinutes = true) }.orEmpty()
                                                             val noteBlocks = remember(generalNote.content) { VeritasNoteEditing.parseNoteBlocks(NoteLinks.strip(generalNote.content)) }
                                                             val fileAttachments = noteBlocks.filterIsInstance<NoteBlock.File>()
                                                             val fileBadgeLabel = fileAttachments.firstOrNull()?.fileName?.substringAfterLast('.', "")?.uppercase()?.take(4)?.ifBlank { "File" } ?: "File"
@@ -877,31 +925,7 @@ internal fun LibraryNotesTab(
                                                 }
                                                 if (isGridView) {
                                                     item(key = "general-notes-grid-pinned") {
-                                                        Row(
-                                                            modifier = Modifier.animateItem().fillMaxWidth(),
-                                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                                        ) {
-                                                            val leftNotes = pinnedNotes.filterIndexed { index, _ -> index % 2 == 0 }
-                                                            val rightNotes = pinnedNotes.filterIndexed { index, _ -> index % 2 == 1 }
-
-                                                            Column(
-                                                                modifier = Modifier.weight(1f),
-                                                                verticalArrangement = Arrangement.spacedBy(0.dp)
-                                                            ) {
-                                                                leftNotes.forEach { note ->
-                                                                    key(note.id) { NoteCardItem(note) }
-                                                                }
-                                                            }
-
-                                                            Column(
-                                                                modifier = Modifier.weight(1f),
-                                                                verticalArrangement = Arrangement.spacedBy(0.dp)
-                                                            ) {
-                                                                rightNotes.forEach { note ->
-                                                                    key(note.id) { NoteCardItem(note) }
-                                                                }
-                                                            }
-                                                        }
+                                                        AdaptiveNoteColumns(pinnedNotes, columns, Modifier.animateItem()) { note -> NoteCardItem(note) }
                                                     }
                                                 } else {
                                                     itemsIndexed(pinnedNotes, key = { _, note -> "pinned-${note.id}" }) { _, note ->
@@ -922,32 +946,8 @@ internal fun LibraryNotesTab(
                                                     }
                                                 }
                                                 if (isGridView) {
-                                                    item(key = "general-notes-grid-others") {
-                                                        Row(
-                                                            modifier = Modifier.animateItem().fillMaxWidth(),
-                                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                                        ) {
-                                                            val leftNotes = otherNotes.filterIndexed { index, _ -> index % 2 == 0 }
-                                                            val rightNotes = otherNotes.filterIndexed { index, _ -> index % 2 == 1 }
-
-                                                            Column(
-                                                                modifier = Modifier.weight(1f),
-                                                                verticalArrangement = Arrangement.spacedBy(0.dp)
-                                                            ) {
-                                                                leftNotes.forEach { note ->
-                                                                    key(note.id) { NoteCardItem(note) }
-                                                                }
-                                                            }
-
-                                                            Column(
-                                                                modifier = Modifier.weight(1f),
-                                                                verticalArrangement = Arrangement.spacedBy(0.dp)
-                                                            ) {
-                                                                rightNotes.forEach { note ->
-                                                                    key(note.id) { NoteCardItem(note) }
-                                                                }
-                                                            }
-                                                        }
+                                                    item(key = "general-notes-grid-other") {
+                                                        AdaptiveNoteColumns(otherNotes, columns, Modifier.animateItem()) { note -> NoteCardItem(note) }
                                                     }
                                                 } else {
                                                     itemsIndexed(otherNotes, key = { _, note -> "other-${note.id}" }) { _, note ->
@@ -959,4 +959,5 @@ internal fun LibraryNotesTab(
                                     }
                                 }
 
+}
 }

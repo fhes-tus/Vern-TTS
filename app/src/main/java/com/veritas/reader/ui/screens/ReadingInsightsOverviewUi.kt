@@ -4,6 +4,7 @@ import com.veritas.reader.vernScatteredCard
 
 import androidx.compose.animation.core.*
 import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -48,9 +49,9 @@ internal fun InsightsStreaksCard(snapshot: ReaderTrackerSnapshot, weekKeys: List
     val current by animateIntAsState(snapshot.currentStreak, VeritasMotion.effectsSlow(), label = "insightsStreak")
     val best by animateIntAsState(snapshot.longestStreak, VeritasMotion.effectsSlow(), label = "insightsBest")
     Card(Modifier.fillMaxWidth().vernScatteredCard("insights-streaks", amount = .45f), shape = VeritasPackStyle.cardShape(),
-        colors = CardDefaults.cardColors(containerColor = scheme.primaryContainer.copy(alpha = .42f)), border = VeritasPackStyle.cardBorder(scheme)) {
-        Column(Modifier.background(Brush.linearGradient(listOf(scheme.primaryContainer.copy(alpha = .65f), scheme.tertiaryContainer.copy(alpha = .28f))))
-            .insightsCardGraphic(scheme.primary, scheme.tertiary, phase)
+        colors = CardDefaults.cardColors(containerColor = scheme.tertiaryContainer.copy(alpha = .42f)), border = null) {
+        Column(Modifier.background(Brush.linearGradient(listOf(scheme.tertiaryContainer.copy(alpha = .65f), scheme.tertiary.copy(alpha = .22f))))
+            .insightsCardGraphic(scheme.tertiary, scheme.primary, phase)
             .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_streaks), style = MaterialTheme.typography.titleMedium)
@@ -72,9 +73,9 @@ internal fun InsightsStreaksCard(snapshot: ReaderTrackerSnapshot, weekKeys: List
                     val date = LocalDate.parse(key)
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp),
                         modifier = Modifier.semantics { contentDescription = "$key: " + if (active) "reading day" else "no reading recorded" }) {
-                        Surface(shape = CircleShape, color = if (active) scheme.primary else scheme.surfaceContainerHigh, modifier = Modifier.size(30.dp)) {
+                        Surface(shape = CircleShape, color = if (active) scheme.tertiary else scheme.surfaceContainerHigh, modifier = Modifier.size(30.dp)) {
                             Box(contentAlignment = Alignment.Center) {
-                                if (active) Icon(Icons.Default.Check, null, Modifier.size(18.dp), tint = scheme.onPrimary)
+                                if (active) Icon(Icons.Default.Check, null, Modifier.size(18.dp), tint = scheme.onTertiary)
                                 else Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                             }
                         }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.CornerBasedShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -96,23 +97,32 @@ internal fun Modifier.veritasGlassBackdrop(
     val density = LocalDensity.current
     val blurPx = with(density) { (blurRadiusDp * .8f).dp.toPx() }
 
+    val cornerShape = shape as? CornerBasedShape
+    val safeBackdropShape: Shape = cornerShape ?: RoundedCornerShape(8.dp)
+
     val effects: BackdropEffectScope.() -> Unit = {
         vibrancy()
         colorControls(brightness = .05f, contrast = 1f, saturation = 1.5f)
         blur(blurPx)
-        // A capsule uses LastWave's half-height lens. Expanded rectangular
-        // panels keep the same material, bounded by their actual corner radius.
-        val radius = minOf(size.minDimension / 2f, (shape as? CornerBasedShape)?.let {
-            maxOf(it.topStart.toPx(size, density), it.topEnd.toPx(size, density),
-                it.bottomStart.toPx(size, density), it.bottomEnd.toPx(size, density))
-        } ?: size.minDimension / 2f)
-        if (radius > 0f) lens(radius / 2f, radius, false)
+        // com.kyant.backdrop lens shader strictly requires a CornerBasedShape or
+        // RoundedRectangularShape to compute signed distance fields (SDF).
+        // Only apply lens if the shape is corner-based, and catch any runtime SDF exceptions.
+        if (cornerShape != null) {
+            val radius = minOf(size.minDimension / 2f,
+                maxOf(cornerShape.topStart.toPx(size, density), cornerShape.topEnd.toPx(size, density),
+                    cornerShape.bottomStart.toPx(size, density), cornerShape.bottomEnd.toPx(size, density)))
+            if (radius > 0f) {
+                runCatching {
+                    lens(radius / 2f, radius, false)
+                }
+            }
+        }
     }
     val surface: DrawScope.() -> Unit = {
         drawRect(material.copy(alpha = (surfaceOpacity * .78f).coerceIn(.18f, .38f)))
     }
     this.drawBackdrop(
-        backdrop = backdrop, shape = { shape }, highlight = { Highlight(width = 1.dp) },
+        backdrop = backdrop, shape = { safeBackdropShape }, highlight = { Highlight(width = 1.dp) },
         effects = effects, onDrawSurface = surface
     )
 }

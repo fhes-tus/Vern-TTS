@@ -1,0 +1,19 @@
+<resources>
+    <string name="menu_translation_feature_title">Automatic interface translation</string>
+    <string name="menu_translation_on_demand_notice">Built-in languages work immediately. Enabling automatic translation downloads an optional engine from Google Play, followed by the language model.</string>
+    <string name="menu_translation_engine_downloading">Downloading the translation engine from Google Play…</string>
+    <string name="menu_translation_engine_installing">Installing the optional translation engine…</string>
+    <string name="menu_translation_engine_confirmation">Google Play needs your confirmation to download the translation engine.</string>
+    <string name="menu_translation_confirm_download">Confirm with Google Play</string>
+    <string name="menu_translation_engine_unavailable">The translation engine is unavailable from Google Play for this installation. Built-in languages remain available.</string>
+    <string name="voice_delete_title">Delete %1$s?</string>
+    <string name="voice_delete_notice">Remove this downloaded voice from storage? You can download it again later.</string>
+    <string name="voice_delete_shared_notice">All eight Kitten voices share one model. Deleting this package removes all eight voices from storage. You can download them again later.</string>
+    <string name="voice_delete_studio_notice">All Studio voices share one model. Deleting this package removes all Studio voices from storage. You can download them again later.</string>
+    <string name="voice_delete_failed">Could not delete the voice. Pause reading, wait for any voice preview or export to finish, and cancel its download before trying again.</string>
+    <string name="voice_cancel_download">Cancel download</string>
+    <string name="voice_shared_package_size">%1$s MB total · includes all %2$d voices</string>
+    <string name="voice_download_package">Download package</string>
+    <string name="voice_individual_downloads">Each voice downloads separately</string>
+    <string name="voice_choose_individual">Choose a voice</string>
+</resources>

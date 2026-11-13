@@ -27,12 +27,21 @@ import kotlinx.coroutines.isActive
 /** Keeps native PDF controls and fragment routing; only their material is Compose. */
 internal fun VeritasPdfViewerActivity.installPdfPlayerMaterial(controls: View, width: Int): FrameLayout {
     val fallback = controls.background
-    val frame = FrameLayout(this).apply {
+    val frame = object : FrameLayout(this) {
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            val maxWidth = (480f * resources.displayMetrics.density).toInt()
+            val mode = View.MeasureSpec.getMode(widthMeasureSpec)
+            val available = if (mode == View.MeasureSpec.UNSPECIFIED) maxWidth else View.MeasureSpec.getSize(widthMeasureSpec)
+            val bounded = View.MeasureSpec.makeMeasureSpec(minOf(available, maxWidth),
+                if (mode == View.MeasureSpec.UNSPECIFIED) View.MeasureSpec.AT_MOST else mode)
+            super.onMeasure(bounded, heightMeasureSpec)
+        }
+    }.apply {
         layoutParams = android.widget.LinearLayout.LayoutParams(width, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT)
         clipToOutline = true
         outlineProvider = object : ViewOutlineProvider() {
             override fun getOutline(view: View, outline: Outline) {
-                outline.setRoundRect(0, 0, view.width, view.height, 32f * resources.displayMetrics.density)
+                outline.setRoundRect(0, 0, view.width, view.height, 28f * resources.displayMetrics.density)
             }
         }
     }

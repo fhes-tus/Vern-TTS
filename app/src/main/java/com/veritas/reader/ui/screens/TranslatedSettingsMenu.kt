@@ -39,7 +39,14 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.google.mlkit.nl.translate.Translator
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
+import com.google.android.play.core.splitinstall.SplitInstallSessionState
+import com.google.android.play.core.splitinstall.SplitInstallException
+import com.google.android.play.core.splitinstall.model.SplitInstallErrorCode
+import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
+import com.veritas.reader.MenuTranslator
 import com.veritas.reader.AppLanguages
 import com.veritas.reader.DeviceMenuTranslation
 import com.veritas.reader.MenuTranslationTemplate
@@ -70,12 +77,15 @@ internal class SettingsTranslation(private val context: Context, val target: Str
         private set
     var percent by mutableStateOf<Int?>(null)
         private set
+    var confirmation by mutableStateOf<SplitInstallSessionState?>(null)
+        private set
     private val results = mutableStateMapOf<String, String>()
     private val pending = Channel<String>(Channel.UNLIMITED)
     private val requested = mutableSetOf<String>()
     private val failed = mutableSetOf<String>()
 
-    enum class Status { CHECKING, WAITING_NETWORK, WAITING_WIFI, WAITING_HEAT, QUEUED, DOWNLOADING, APPLYING, READY, FAILED }
+    enum class Status { CHECKING, WAITING_NETWORK, WAITING_WIFI, WAITING_HEAT, ENGINE_DOWNLOADING, ENGINE_INSTALLING,
+        ENGINE_CONFIRMATION, ENGINE_UNAVAILABLE, QUEUED, DOWNLOADING, APPLYING, READY, FAILED }
 
     fun enable() {
         preferences.edit().putBoolean("enabled", true).apply()
@@ -112,6 +122,29 @@ internal class SettingsTranslation(private val context: Context, val target: Str
     suspend fun run() {
         status = Status.CHECKING
         percent = null
+        confirmation = null
+        try {
+            if (!DeviceMenuTranslation.installed(context)) {
+                waitForDownload()
+                DeviceMenuTranslation.install(context) { state ->
+                    val total = state.totalBytesToDownload()
+                    percent = if (total > 0) (state.bytesDownloaded() * 100 / total).toInt().coerceIn(0, 100) else null
+                    confirmation = state.takeIf { it.status() == SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION }
+                    status = when (state.status()) {
+                        SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION -> Status.ENGINE_CONFIRMATION
+                        SplitInstallSessionStatus.DOWNLOADING -> Status.ENGINE_DOWNLOADING
+                        else -> Status.ENGINE_INSTALLING
+                    }
+                }
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            status = if (failure is SplitInstallException && failure.errorCode in setOf(
+                    SplitInstallErrorCode.API_NOT_AVAILABLE, SplitInstallErrorCode.MODULE_UNAVAILABLE,
+                    SplitInstallErrorCode.APP_NOT_OWNED)) Status.ENGINE_UNAVAILABLE else Status.FAILED
+            return
+        } finally { confirmation = null; percent = null }
         val client = try { DeviceMenuTranslation.client(target) } catch (_: Exception) {
             status = Status.FAILED
             return
@@ -119,12 +152,7 @@ internal class SettingsTranslation(private val context: Context, val target: Str
         try {
             val downloaded = withTimeoutOrNull(8_000) { DeviceMenuTranslation.isDownloaded(target) } == true
             if (!downloaded) {
-                var blocked = downloadBlock()
-                while (blocked != null) {
-                    status = blocked
-                    delay(2_000)
-                    blocked = downloadBlock()
-                }
+                waitForDownload()
                 prepare(client)
             }
             status = if (results.isEmpty()) Status.APPLYING else Status.READY
@@ -156,6 +184,15 @@ internal class SettingsTranslation(private val context: Context, val target: Str
         }
     }
 
+    private suspend fun waitForDownload() {
+        var blocked = downloadBlock()
+        while (blocked != null) {
+            status = blocked
+            delay(2_000)
+            blocked = downloadBlock()
+        }
+    }
+
     private fun downloadBlock(): Status? {
         if (Build.VERSION.SDK_INT >= 29 && context.getSystemService(PowerManager::class.java)
                 .currentThermalStatus >= PowerManager.THERMAL_STATUS_SEVERE) return Status.WAITING_HEAT
@@ -166,7 +203,7 @@ internal class SettingsTranslation(private val context: Context, val target: Str
         return null
     }
 
-    private suspend fun prepare(client: Translator) = coroutineScope {
+    private suspend fun prepare(client: MenuTranslator) = coroutineScope {
         val download = async { DeviceMenuTranslation.prepare(client, allowMobile) }
         while (!download.isCompleted) {
             val blocked = downloadBlock()
@@ -248,9 +285,14 @@ internal fun SettingsTranslationStatus(target: String, status: SettingsTranslati
             SettingsTranslation.Status.APPLYING -> R.string.menu_translation_applying
             SettingsTranslation.Status.READY -> R.string.menu_translation_ready
             SettingsTranslation.Status.FAILED -> R.string.menu_translation_failed
+            SettingsTranslation.Status.ENGINE_DOWNLOADING -> R.string.menu_translation_engine_downloading
+            SettingsTranslation.Status.ENGINE_INSTALLING -> R.string.menu_translation_engine_installing
+            SettingsTranslation.Status.ENGINE_CONFIRMATION -> R.string.menu_translation_engine_confirmation
+            SettingsTranslation.Status.ENGINE_UNAVAILABLE -> R.string.menu_translation_engine_unavailable
         }
         Text(if (hasTranslations) menuString(message) else stringResource(message), style = MaterialTheme.typography.bodySmall)
-        if (status == SettingsTranslation.Status.DOWNLOADING) {
+        if (status == SettingsTranslation.Status.DOWNLOADING || status == SettingsTranslation.Status.ENGINE_DOWNLOADING ||
+            status == SettingsTranslation.Status.ENGINE_INSTALLING) {
             if (percent == null) LinearProgressIndicator(Modifier.fillMaxWidth())
             else LinearProgressIndicator(progress = { percent / 100f }, modifier = Modifier.fillMaxWidth())
         }
@@ -274,7 +316,10 @@ private fun MenuTranslationBadge() {
 @Composable
 internal fun SettingsTranslationControls(session: SettingsTranslation, activeSelection: Boolean, onEnable: () -> Unit) {
     val uri = LocalUriHandler.current
+    val context = LocalContext.current
+    val confirmationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { }
     Column(Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.menu_translation_on_demand_notice), style = MaterialTheme.typography.bodySmall)
         Text(stringResource(R.string.menu_translation_explanation), style = MaterialTheme.typography.bodySmall)
         if (!session.enabled || !activeSelection) {
             val model = Locale.forLanguageTag(session.target).getDisplayName(LocalConfiguration.current.locales[0])
@@ -284,7 +329,13 @@ internal fun SettingsTranslationControls(session: SettingsTranslation, activeSel
             Checkbox(checked = session.allowMobile, onCheckedChange = session::useMobileData)
             Text(stringResource(R.string.menu_translation_mobile))
         }
-        if (!session.enabled || !activeSelection || session.status == SettingsTranslation.Status.FAILED) {
+        session.confirmation?.let { state ->
+            TextButton(onClick = {
+                SplitInstallManagerFactory.create(context).startConfirmationDialogForResult(state, confirmationLauncher)
+            }) { Text(stringResource(R.string.menu_translation_confirm_download)) }
+        }
+        if (!session.enabled || !activeSelection || session.status == SettingsTranslation.Status.FAILED ||
+            session.status == SettingsTranslation.Status.ENGINE_UNAVAILABLE) {
             TextButton(onClick = onEnable) { Text(stringResource(R.string.menu_translation_enable)) }
         }
         if (session.enabled) {

@@ -12,9 +12,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -26,13 +27,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +42,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import kotlin.math.roundToInt
 
 /**
@@ -57,60 +60,66 @@ internal fun BatchImportFloater(
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
-    val config = LocalConfiguration.current
-    val screenWidthPx = with(density) { config.screenWidthDp.dp.toPx() }
-    val screenHeightPx = with(density) { config.screenHeightDp.dp.toPx() }
+    // A full-size host gives offsets a local top-left origin even inside a centered Box.
+    // The caller reserves its navigation/player and applies the remaining safe insets.
+    BoxWithConstraints(modifier.fillMaxSize()) {
+    val hostWidthPx = constraints.maxWidth.toFloat()
+    val hostHeightPx = constraints.maxHeight.toFloat()
     val floaterSizePx = with(density) { 50.dp.toPx() }
     val marginPx = with(density) { 16.dp.toPx() }
     val topSafePx = with(density) { 80.dp.toPx() }
-    val bottomSafePx = with(density) { 100.dp.toPx() }
-
-    val minX = marginPx
-    val maxX = (screenWidthPx - floaterSizePx - marginPx).coerceAtLeast(minX)
-    val minY = topSafePx
-    val maxY = (screenHeightPx - floaterSizePx - bottomSafePx).coerceAtLeast(minY)
+    val availableX = (hostWidthPx - floaterSizePx).coerceAtLeast(0f)
+    val availableY = (hostHeightPx - floaterSizePx).coerceAtLeast(0f)
+    val minX = marginPx.coerceAtMost(availableX / 2f)
+    val maxX = (availableX - marginPx).coerceAtLeast(minX)
+    val minY = topSafePx.coerceAtMost(availableY)
+    val maxY = (availableY - marginPx).coerceAtLeast(minY)
 
     val coroutineScope = rememberCoroutineScope()
-    val offsetX = remember { Animatable(maxX) }
+    var offsetX by remember { mutableFloatStateOf(maxX) }
+    val snapAnimation = remember { Animatable(maxX) }
+    var snapJob by remember { mutableStateOf<Job?>(null) }
     var offsetY by remember { mutableFloatStateOf(topSafePx + with(density) { 48.dp.toPx() }) }
+    var dockedRight by remember { mutableStateOf(true) }
 
     // Keep floater within bounds upon rotation or window dimension changes
-    LaunchedEffect(maxX, maxY) {
-        if (offsetX.value > maxX) offsetX.snapTo(maxX)
-        if (offsetY > maxY) offsetY = maxY
-        if (offsetY < minY) offsetY = minY
+    LaunchedEffect(minX, maxX, minY, maxY) {
+        snapJob?.cancel()
+        offsetX = if (dockedRight) maxX else minX
+        offsetY = offsetY.coerceIn(minY, maxY)
     }
 
     AnimatedVisibility(
         visible = visible,
         enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(),
         exit = scaleOut() + fadeOut(),
-        modifier = modifier
+        modifier = Modifier.align(AbsoluteAlignment.TopLeft)
+            .absoluteOffset { IntOffset(offsetX.coerceIn(minX, maxX).roundToInt(), offsetY.coerceIn(minY, maxY).roundToInt()) }
     ) {
         Box(
             modifier = Modifier
-                .offset { IntOffset(offsetX.value.roundToInt(), offsetY.roundToInt()) }
-                .pointerInput(Unit) {
+                .pointerInput(minX, maxX, minY, maxY) {
+                    fun snapToEdge() {
+                        dockedRight = offsetX + floaterSizePx / 2f >= hostWidthPx / 2f
+                        val target = if (dockedRight) maxX else minX
+                        snapJob = coroutineScope.launch {
+                            snapAnimation.snapTo(offsetX)
+                            snapAnimation.animateTo(target, spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )) { offsetX = value.coerceIn(minX, maxX) }
+                        }
+                    }
                     detectDragGestures(
+                        onDragStart = { snapJob?.cancel() },
                         onDrag = { change, dragAmount ->
                             change.consume()
-                            coroutineScope.launch {
-                                offsetX.snapTo((offsetX.value + dragAmount.x).coerceIn(0f, (screenWidthPx - floaterSizePx).coerceAtLeast(0f)))
-                            }
+                            // Update synchronously so the final event determines the docking edge.
+                            offsetX = (offsetX + dragAmount.x).coerceIn(minX, maxX)
                             offsetY = (offsetY + dragAmount.y).coerceIn(minY, maxY)
                         },
-                        onDragEnd = {
-                            val snapTargetX = if (offsetX.value + floaterSizePx / 2f < screenWidthPx / 2f) minX else maxX
-                            coroutineScope.launch {
-                                offsetX.animateTo(
-                                    targetValue = snapTargetX,
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessLow
-                                    )
-                                )
-                            }
-                        }
+                        onDragEnd = { snapToEdge() },
+                        onDragCancel = { snapToEdge() }
                     )
                 }
                 .testTag("batch_import_floater")
@@ -174,5 +183,6 @@ internal fun BatchImportFloater(
                 }
             }
         }
+    }
     }
 }

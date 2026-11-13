@@ -1,12 +1,10 @@
 package com.veritas.reader.ui.screens
 
-import com.veritas.reader.recordVeritasBackdrop
-
+import android.app.Activity
 import android.widget.TextView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import com.veritas.reader.ui.VeritasMotion
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -19,13 +17,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,25 +32,32 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.veritas.reader.AiAssistantOption
 import com.veritas.reader.AnnotationType
 import com.veritas.reader.AskAiSettings
@@ -78,12 +83,14 @@ import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.VeritasSleepTimerAction
 import com.veritas.reader.VeritasSleepTimerSnapshot
 import com.veritas.reader.VoiceSettings
+import com.veritas.reader.getCanvasColors
+import com.veritas.reader.recordVeritasBackdrop
+import com.veritas.reader.ui.VeritasMotion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
 
 data class ReaderScreenState(
     val document: ReaderDocument,
@@ -139,7 +146,6 @@ data class ReaderPageItem(
 fun ReaderScreen(
     state: ReaderScreenState,
     listState: LazyListState,
-
     hasCanvas: Boolean,
     onBackToLibrary: () -> Unit,
     onSentenceClick: (Int) -> Unit,
@@ -223,7 +229,7 @@ fun ReaderScreen(
     val searchCursor = state.searchCursor
     val hasCanvas = state.hasCanvas
     val context = LocalContext.current
-    LocalDensity.current
+    val density = LocalDensity.current
     LocalHapticFeedback.current
     var showTools by remember { mutableStateOf(false) }
     var showDocumentDetails by remember { mutableStateOf(false) }
@@ -235,7 +241,11 @@ fun ReaderScreen(
     var showJumpToPageDialog by remember(document.id) { mutableStateOf(false) }
     val showAudioMode = state.readerMode == ReaderMode.LISTEN
     LaunchedEffect(showAudioMode) {
-        if (showAudioMode) { showTools = false; showSearch = false; showBookmarks = false }
+        if (showAudioMode) {
+            showTools = false
+            showSearch = false
+            showBookmarks = false
+        }
     }
     var selectedTextSelection by remember(document.id) { mutableStateOf<ReaderTextSelection?>(null) }
     var selectedTextView by remember(document.id) { mutableStateOf<TextView?>(null) }
@@ -245,11 +255,8 @@ fun ReaderScreen(
     var showShareToAiSheet by remember { mutableStateOf(false) }
     var shareToAiSelection by remember { mutableStateOf<ReaderTextSelection?>(null) }
     var shareToAiNoPrompt by remember { mutableStateOf(false) }
-    var sessionGestureTipsDismissed by remember(document.id) { mutableStateOf(false) }
+    var sessionGestureTipsDismissed by rememberSaveable(document.id) { mutableStateOf(false) }
     val showGestureTips = readerSettings.showGestureTips && !sessionGestureTipsDismissed
-    // Bumped to force the auto-scroll effect to re-anchor the active sentence after events
-    // that otherwise leave its keys unchanged (bookmarking, switching reader modes), which
-    // previously left the page locked at the top of the section.
     var interactionTrigger by remember { mutableLongStateOf(0L) }
     LaunchedEffect(showShareToAi) {
         if (showShareToAi) {
@@ -363,10 +370,6 @@ fun ReaderScreen(
     val continuousSentenceOffsets = remember(document.id) { mutableMapOf<Int, Map<Int, Int>>() }
     val coroutineScope = rememberCoroutineScope()
 
-    // The swipe listener below is keyed on pagerState alone, whose identity never changes,
-    // so it launches once and keeps whatever it captured on that first pass forever. Reading
-    // playback state through these instead means it always sees the live values rather than
-    // the ones from when the reader opened.
     val latestIsPlaying = rememberUpdatedState(isPlaying)
     val latestCurrentIndex = rememberUpdatedState(currentIndex)
     val latestPageItems = rememberUpdatedState(pageItems)
@@ -396,13 +399,13 @@ fun ReaderScreen(
         }
     }
 
-    val pageSyncMotion = if (readerSettings.pageTurnStyle == "flip")
+    val pageSyncMotion = if (readerSettings.pageTurnStyle == "flip") {
         androidx.compose.animation.core.tween<Float>(1050, easing = androidx.compose.animation.core.CubicBezierEasing(.33f, 0f, .25f, 1f))
-        else VeritasMotion.spatialSlow<Float>()
-    // Page sync: whether playing TTS or user jumps to a section/sentence via outline/bookmarks/slider
+    } else {
+        VeritasMotion.spatialSlow<Float>()
+    }
+
     LaunchedEffect(currentPageNumber, pageItems.size, selectedTextSelection != null, continuous) {
-        // Reading may continue while the user selects a word on this page.
-        // Keep that page in place until the native selection is dismissed.
         if (selectedTextSelection != null || selectedTextView?.hasSelection() == true) return@LaunchedEffect
         val targetPage = (pageItems.indexOfFirst { it.pageNumber == currentPageNumber }.takeIf { it >= 0 } ?: (currentPageNumber - 1))
             .coerceIn(0, (pageItems.size - 1).coerceAtLeast(0))
@@ -410,11 +413,6 @@ fun ReaderScreen(
             if (manualScrollSentence != currentIndex) continuousState.scrollToItem(targetPage)
             return@LaunchedEffect
         }
-        // A sync landing mid-scroll used to be dropped outright, and because this effect only
-        // re-runs when the page number changes it never caught up — narration would carry on
-        // reading a page the pager was no longer showing. Wait the scroll out instead: at 380ms
-        // per page animation, consecutive short sentences cross boundaries faster than the
-        // previous flip settles.
         if (pagerState.isScrollInProgress) {
             androidx.compose.runtime.snapshotFlow { pagerState.isScrollInProgress }
                 .first { !it }
@@ -449,7 +447,6 @@ fun ReaderScreen(
         }
     }
 
-    // Prefetch images for adjacent pages in the background so they are instantly ready when swiping
     val docRepository = remember(context) { DocumentRepository(context.applicationContext) }
     val visibleReadingPage = if (continuous) continuousState.firstVisibleItemIndex else pagerState.currentPage
     LaunchedEffect(visibleReadingPage, document.id) {
@@ -469,20 +466,12 @@ fun ReaderScreen(
         }
     }
 
-    // Manual page swipe -> update playback sentence so it stays on the flipped page smoothly
     LaunchedEffect(pagerState, continuous) {
         if (continuous) return@LaunchedEffect
-        // settledPage can publish before isScrollInProgress becomes false.
-        // Observe both so that final position update is never dropped.
         androidx.compose.runtime.snapshotFlow { pagerState.settledPage to pagerState.isScrollInProgress }
             .collect { (pageIdx, scrolling) ->
                 if (!scrolling) {
                     val targetPageItem = latestPageItems.value.getOrNull(pageIdx)
-                    // Pages with no sentences of their own (image-only or genuinely blank) still
-                    // get a pager entry so they stay swipeable, but their sentence range is
-                    // zero-width and holds the *next* page's first index. Moving the reader there
-                    // would land it on a different page, and the sync effect above would then
-                    // immediately flip away from the blank page the user just swiped to.
                     val hasOwnSentences = targetPageItem != null && targetPageItem.sentenceRanges.isNotEmpty()
                     if (!continuous && targetPageItem != null && hasOwnSentences && !latestIsPlaying.value) {
                         val activeIdx = latestCurrentIndex.value
@@ -497,7 +486,6 @@ fun ReaderScreen(
             }
     }
 
-    // Dismiss active text selection and drop view focus whenever the page changes or swiping begins
     LaunchedEffect(pagerState) {
         androidx.compose.runtime.snapshotFlow { pagerState.currentPage }
             .collect {
@@ -529,8 +517,13 @@ fun ReaderScreen(
     val progressLabel = if (document.chunks.isEmpty()) {
         "${localizedUiValue(0)} / ${localizedUiValue(0)}"
     } else {
-        menuString(R.string.reader_page_sentence_progress,
-            currentPageNumber, totalPages, currentIndex + 1, document.chunks.size)
+        menuString(
+            R.string.reader_page_sentence_progress,
+            currentPageNumber,
+            totalPages,
+            currentIndex + 1,
+            document.chunks.size
+        )
     }
     annotations.count { it.type == AnnotationType.BOOKMARK }
     annotations.count { it.type == AnnotationType.NOTE }
@@ -548,11 +541,32 @@ fun ReaderScreen(
     }
 
     val isCollapsible = state.readerSettings.collapsibleReaderBars
-    var topBarVisible by remember(isCollapsible) { mutableStateOf(true) }
-    var bottomBarVisible by remember(isCollapsible) { mutableStateOf(true) }
+    var topBarVisible by rememberSaveable(isCollapsible) { mutableStateOf(true) }
+    var bottomBarVisible by rememberSaveable(isCollapsible) { mutableStateOf(true) }
 
     val effectiveTopBarVisible = !isCollapsible || topBarVisible
     val effectiveBottomBarVisible = !isCollapsible || bottomBarVisible
+    val isImmersiveTextReading = !showAudioMode && !effectiveTopBarVisible && !effectiveBottomBarVisible
+
+    // Synchronize Android status and navigation bars with immersive reading mode in both portrait and landscape,
+    // allowing normal Android edge swipe gestures to temporarily reveal system bars.
+    val view = LocalView.current
+    LaunchedEffect(isImmersiveTextReading, view) {
+        val window = (context as? Activity)?.window ?: return@LaunchedEffect
+        val controller = WindowCompat.getInsetsController(window, view)
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if (isImmersiveTextReading) {
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+        } else {
+            controller.show(WindowInsetsCompat.Type.systemBars())
+        }
+    }
+    DisposableEffect(view) {
+        onDispose {
+            val window = (context as? Activity)?.window ?: return@onDispose
+            WindowCompat.getInsetsController(window, view).show(WindowInsetsCompat.Type.systemBars())
+        }
+    }
 
     val topBarOffset by animateFloatAsState(
         targetValue = if (effectiveTopBarVisible) 0f else -650f,
@@ -564,371 +578,447 @@ fun ReaderScreen(
         animationSpec = VeritasMotion.spatial(),
         label = "readerBottomBarOffset"
     )
+
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    var measuredTopBarHeightPx by remember { mutableIntStateOf(0) }
+    val measuredTopBarDp = if (measuredTopBarHeightPx > 0) {
+        with(density) { measuredTopBarHeightPx.toDp() }
+    } else {
+        topInset + 92.dp
+    }
+    // When top controls collapse, remove all reserved top layout height (0.dp) so the reading surface
+    // truly expands edge-to-edge without an invisible spacer.
     val animatedTopPadding by animateDpAsState(
-        targetValue = if (effectiveTopBarVisible) topInset + 114.dp else topInset + 8.dp,
+        targetValue = if (effectiveTopBarVisible) measuredTopBarDp else 0.dp,
         animationSpec = VeritasMotion.spatial(),
         label = "animatedTopPadding"
     )
-    val animatedBottomPadding by animateDpAsState(
-        targetValue = if (effectiveBottomBarVisible) bottomInset + 64.dp else bottomInset + 12.dp,
-        animationSpec = VeritasMotion.spatial(),
-        label = "animatedBottomPadding"
-    )
 
+    val paperTone = PaperToneMode.fromString(readerSettings.paperToneMode)
+    val (canvasBg, _) = getCanvasColors(paperTone)
     val glassEnabled = VeritasPackStyle.glassChromeEnabled() && com.veritas.reader.isDeviceGlassCapable()
     val readerBackdrop = if (glassEnabled) com.veritas.reader.rememberVeritasLayerBackdrop() else null
+
     if (!showAudioMode) {
-    com.veritas.reader.VeritasBackdropProvider(readerBackdrop) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))
-            .monitorReadingActivity { interactionTrigger = System.currentTimeMillis() }
-    ) {
-        // 1. Full-screen Reading Content (Animated padding gives smooth toolbar transitions)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .recordVeritasBackdrop(readerBackdrop, glassEnabled)
-                .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))
-                .padding(top = animatedTopPadding, bottom = animatedBottomPadding)
-        ) {
-            if (document.chunks.isEmpty()) {
+        com.veritas.reader.VeritasBackdropProvider(readerBackdrop) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(canvasBg)
+                    .monitorReadingActivity { interactionTrigger = System.currentTimeMillis() }
+            ) {
+                // 1. Full-bleed Reading Content Surface (extends to bottom edge behind the floating player)
                 Box(
                     modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                        .fillMaxSize()
+                        .recordVeritasBackdrop(readerBackdrop, glassEnabled)
+                        .background(canvasBg)
+                        .padding(top = animatedTopPadding.coerceAtLeast(0.dp))
                 ) {
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_readable_text_found))
-                }
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    val renderReadingPage: @Composable (Int) -> Unit = { pageIndex ->
-ReaderPageItemView(
-                            pageIndex = pageIndex,
-                            pageItems = pageItems,
-                            document = document,
-                            currentIndex = currentIndex,
-                            currentPageNumber = currentPageNumber,
-                            isPlaying = isPlaying,
-                            feedbackSentenceIndex = feedbackSentenceIndex,
-                            annotations = annotations,
-                            searchMatches = searchMatches,
-                            searchCursor = searchCursor,
-                            state = state,
-                            readerSettings = readerSettings,
-                            pagerState = pagerState,
-                            selectedTextView = selectedTextView,
-                            selectedTextSelection = selectedTextSelection,
-                            readerModel = readerModel,
-                            isCollapsible = isCollapsible,
-                            bottomBarVisible = bottomBarVisible,
-                            onToggleBars = {
-                                if (isCollapsible) {
-                                    topBarVisible = !topBarVisible
-                                    bottomBarVisible = topBarVisible
+                    if (document.chunks.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_readable_text_found))
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            val renderReadingPage: @Composable (Int) -> Unit = { pageIndex ->
+                                ReaderPageItemView(
+                                    pageIndex = pageIndex,
+                                    pageItems = pageItems,
+                                    document = document,
+                                    currentIndex = currentIndex,
+                                    currentPageNumber = currentPageNumber,
+                                    isPlaying = isPlaying,
+                                    feedbackSentenceIndex = feedbackSentenceIndex,
+                                    annotations = annotations,
+                                    searchMatches = searchMatches,
+                                    searchCursor = searchCursor,
+                                    state = state,
+                                    readerSettings = readerSettings,
+                                    pagerState = pagerState,
+                                    selectedTextView = selectedTextView,
+                                    selectedTextSelection = selectedTextSelection,
+                                    readerModel = readerModel,
+                                    isCollapsible = isCollapsible,
+                                    bottomBarVisible = effectiveBottomBarVisible,
+                                    onToggleBars = {
+                                        if (isCollapsible) {
+                                            topBarVisible = !topBarVisible
+                                            bottomBarVisible = topBarVisible
+                                        }
+                                    },
+                                    onHideBars = {
+                                        topBarVisible = false
+                                        bottomBarVisible = false
+                                    },
+                                    onSentenceClick = handleSentenceClick,
+                                    onSentenceDoubleTap = handleSentenceDoubleTap,
+                                    onSentenceLongPress = { },
+                                    onToggleBookmark = onToggleBookmark,
+                                    onEditNotes = onEditNotes,
+                                    onTranslateSelection = onTranslateSelection,
+                                    onCopySelection = onCopySelection,
+                                    onGoogleSelection = onGoogleSelection,
+                                    onShareSelection = onShareSelection,
+                                    onEditSpeechSelection = onEditSpeechSelection,
+                                    onEditExtractedSelection = onEditExtractedSelection,
+                                    onAskAiSelection = onAskAiSelection,
+                                    onReadSelection = onReadSelection,
+                                    onSearchTriggered = { q ->
+                                        onSearchQueryChange(q)
+                                        showSearch = true
+                                    },
+                                    onSelectionChanged = { selectedTextSelection = it },
+                                    onTextViewBound = { selectedTextView = it },
+                                    onOpenColorPalette = { colorPaletteTargetIndexes = it },
+                                    onOpenShareToAi = { sel, noPrompt ->
+                                        shareToAiSelection = sel
+                                        shareToAiNoPrompt = noPrompt
+                                        showShareToAiSheet = true
+                                    },
+                                    onFontSizeChange = onFontSizeChange,
+                                    onPinchChanged = { pinchInProgress = it },
+                                    continuous = continuous,
+                                    onSentenceOffsets = { continuousSentenceOffsets[pageIndex] = it },
+                                    onActiveOffset = { offset ->
+                                        if (continuous && manualScrollSentence != currentIndex && !continuousState.isScrollInProgress && selectedTextSelection == null) {
+                                            coroutineScope.launch {
+                                                continuousState.scrollToItem(pageIndex, offset)
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                            if (continuous) {
+                                LazyColumn(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .testTag("reader-continuous-scroll"),
+                                    state = continuousState
+                                ) {
+                                    itemsIndexed(pageItems, key = { _, page -> page.pageNumber }) { pageIndex, _ ->
+                                        renderReadingPage(pageIndex)
+                                    }
                                 }
-                            },
-                            onHideBars = {
-                                topBarVisible = false
-                                bottomBarVisible = false
-                            },
-                            onSentenceClick = handleSentenceClick,
-                            onSentenceDoubleTap = handleSentenceDoubleTap,
-                            onSentenceLongPress = { },
-                            onToggleBookmark = onToggleBookmark,
-                            onEditNotes = onEditNotes,
-                            onTranslateSelection = onTranslateSelection,
-                            onCopySelection = onCopySelection,
-                            onGoogleSelection = onGoogleSelection,
-                            onShareSelection = onShareSelection,
-                            onEditSpeechSelection = onEditSpeechSelection,
-                            onEditExtractedSelection = onEditExtractedSelection,
-                            onAskAiSelection = onAskAiSelection,
-                            onReadSelection = onReadSelection,
-                            onSearchTriggered = { q ->
-                                onSearchQueryChange(q)
-                                showSearch = true
-                            },
-                            onSelectionChanged = { selectedTextSelection = it },
-                            onTextViewBound = { selectedTextView = it },
-                            onOpenColorPalette = { colorPaletteTargetIndexes = it },
-                            onOpenShareToAi = { sel, noPrompt ->
-                                shareToAiSelection = sel
-                                shareToAiNoPrompt = noPrompt
-                                showShareToAiSheet = true
-                            },
-                            onFontSizeChange = onFontSizeChange,
-                            onPinchChanged = { pinchInProgress = it },
-                            continuous = continuous,
-                            onSentenceOffsets = { continuousSentenceOffsets[pageIndex] = it },
-                            onActiveOffset = { offset ->
-                                if (continuous && manualScrollSentence != currentIndex && !continuousState.isScrollInProgress && selectedTextSelection == null) coroutineScope.launch {
-                                    continuousState.scrollToItem(pageIndex, offset)
+                            } else {
+                                HorizontalPager(
+                                    state = pagerState,
+                                    modifier = Modifier.fillMaxSize(),
+                                    userScrollEnabled = selectedTextSelection == null && !pinchInProgress,
+                                    flingBehavior = androidx.compose.foundation.pager.PagerDefaults.flingBehavior(
+                                        state = pagerState,
+                                        snapAnimationSpec = if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion) {
+                                            androidx.compose.animation.core.tween(900, easing = androidx.compose.animation.core.CubicBezierEasing(.33f, 0f, .25f, 1f))
+                                        } else {
+                                            VeritasMotion.spatial<Float>()
+                                        }
+                                    ),
+                                    pageSpacing = 0.dp,
+                                    beyondViewportPageCount = 1,
+                                    key = { pageItems.getOrNull(it)?.pageNumber ?: it }
+                                ) { pageIndex ->
+                                    val flip = readerSettings.pageTurnStyle == "hinge" && !readerSettings.reduceMotion && pagerState.isScrollInProgress
+                                    Box(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .zIndex(
+                                                if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion && pagerState.isScrollInProgress) {
+                                                    val position = (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
+                                                    if (position > .001f && position < .999f) 2f else if (kotlin.math.abs(position) < .001f) 1f else 0f
+                                                } else if (pagerState.currentPage == pageIndex) {
+                                                    1f
+                                                } else {
+                                                    0f
+                                                }
+                                            )
+                                            .graphicsLayer {
+                                                if (flip) {
+                                                    val offset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
+                                                    translationX = offset * size.width
+                                                    rotationY = -offset * 90f
+                                                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(if (offset > 0f) 0f else 1f, .5f)
+                                                    cameraDistance = 18f * density.density
+                                                    shadowElevation = kotlin.math.abs(offset) * 10.dp.toPx()
+                                                }
+                                            }
+                                            .drawWithContent {
+                                                drawContent()
+                                                if (flip) {
+                                                    val fold = kotlin.math.abs((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(0f, 1f)
+                                                    drawRect(
+                                                        androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                                            listOf(
+                                                                androidx.compose.ui.graphics.Color.Black.copy(alpha = fold * .18f),
+                                                                androidx.compose.ui.graphics.Color.Transparent,
+                                                                androidx.compose.ui.graphics.Color.Black.copy(alpha = fold * .08f)
+                                                            )
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                    ) {
+                                        BookPageCurl(
+                                            readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion,
+                                            pagerState.isScrollInProgress,
+                                            { (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction },
+                                            canvasBg
+                                        ) {
+                                            renderReadingPage(pageIndex)
+                                        }
+                                    }
                                 }
                             }
-                        )
+                        }
                     }
-                    if (continuous) {
-                        LazyColumn(Modifier.fillMaxSize().testTag("reader-continuous-scroll"), state = continuousState) {
-                            itemsIndexed(pageItems, key = { _, page -> page.pageNumber }) { pageIndex, _ -> renderReadingPage(pageIndex) }
-                        }
-                    } else
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxSize(),
-                        userScrollEnabled = selectedTextSelection == null && !pinchInProgress,
-                        flingBehavior = androidx.compose.foundation.pager.PagerDefaults.flingBehavior(
-                            state = pagerState,
-                            snapAnimationSpec = if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion)
-                                androidx.compose.animation.core.tween(900, easing = androidx.compose.animation.core.CubicBezierEasing(.33f, 0f, .25f, 1f))
-                            else VeritasMotion.spatial<Float>()),
-                        pageSpacing = if (readerSettings.pageTurnStyle in listOf("flip", "hinge") && !readerSettings.reduceMotion) 0.dp else 16.dp,
-                        beyondViewportPageCount = 1,
-                        key = { pageItems.getOrNull(it)?.pageNumber ?: it }
-                    ) { pageIndex ->
-                        val flip = readerSettings.pageTurnStyle == "hinge" && !readerSettings.reduceMotion && pagerState.isScrollInProgress
-                        Box(Modifier.fillMaxSize().zIndex(if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion && pagerState.isScrollInProgress) {
-                            val position = (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
-                            if (position > .001f && position < .999f) 2f else if (kotlin.math.abs(position) < .001f) 1f else 0f
-                        } else if (pagerState.currentPage == pageIndex) 1f else 0f)
-                            .graphicsLayer {
-                                if (flip) {
-                                    val offset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
-                                    translationX = offset * size.width
-                                    rotationY = -offset * 90f
-                                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(if (offset > 0f) 0f else 1f, .5f)
-                                    cameraDistance = 18f * density
-                                    shadowElevation = kotlin.math.abs(offset) * 10.dp.toPx()
-                                }
-                            }.drawWithContent {
-                                drawContent()
-                                if (flip) {
-                                    val fold = kotlin.math.abs((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(0f, 1f)
-                                    drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(
-                                        androidx.compose.ui.graphics.Color.Black.copy(alpha = fold * .18f),
-                                        androidx.compose.ui.graphics.Color.Transparent,
-                                        androidx.compose.ui.graphics.Color.Black.copy(alpha = fold * .08f))))
-                                }
-                            }) {
-                        BookPageCurl(readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion,
-                            pagerState.isScrollInProgress,
-                            { (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction },
-                            com.veritas.reader.getCanvasColors(PaperToneMode.fromString(readerSettings.paperToneMode)).first) {
-                        renderReadingPage(pageIndex)
-                        }
-                        }
-            }
-        }
-    }
-}
-
-        // 2. Docked Top app bar (Collapsible)
-        ReaderTopAppBar(
-            onReadingSettingsChange = onReadingSettingsChange,
-            modifier = Modifier.align(Alignment.TopCenter),
-            document = document,
-            progressLabel = progressLabel,
-            topBarOffset = topBarOffset,
-            topBarVisible = topBarVisible,
-            onBackToLibrary = onBackToLibrary,
-            showSearch = showSearch,
-            onToggleSearch = { visible ->
-                showSearch = visible
-                if (!visible) {
-                    onSearchQueryChange("")
-                } else {
-                    topBarVisible = true
-                    bottomBarVisible = true
                 }
-            },
-            onOpenDocumentNotes = onOpenDocumentNotes,
-            onOpenOutline = { showOutline = true },
-            onOutlinePositioned = { outlineOrigin = it },
-            showTools = showTools,
-            onShowToolsChange = { showTools = it },
-            showBookmarks = showBookmarks,
-            onToggleBookmarks = { showBookmarks = it },
-            hasCanvas = hasCanvas,
-            noteCount = annotations.count { it.type == AnnotationType.NOTE },
-            narrationSettings = narrationSettings,
-            isQueued = isQueued,
-            queueCount = queueCount,
-            askAiSettings = askAiSettings,
-            onOpenCanvas = onOpenCanvas,
-            onOpenStudyTools = onOpenStudyTools,
-            onOpenTranslationTools = onOpenTranslationTools,
-            sleepTimerSnapshot = sleepTimerSnapshot,
-            onOpenSleepTimer = onOpenSleepTimer,
-            state = state,
-            onOpenReadingLists = onOpenReadingLists,
-            onOpenReadingHistory = onOpenReadingHistory,
-            onAskCurrentSection = onAskCurrentSection,
-            onOpenAskAi = { noPrompt ->
-                shareToAiSelection = null
-                shareToAiNoPrompt = noPrompt
-                showShareToAiSheet = true
-            },
-            onSelectAskAiAssistant = onSelectAskAiAssistant,
-            onOpenTextEditor = onOpenTextEditor,
-            onStartRecord = onStartRecord,
-            onOpenReaderSettings = onOpenReaderSettings,
-            onOpenVoiceStudio = onOpenVoiceStudio,
-            onOpenNarrationStudio = onOpenNarrationStudio,
-            onOpenPronunciationRules = onOpenPronunciationRules,
-            onExportAudio = onExportAudio,
-            onExportStudyGuidePdf = onExportStudyGuidePdf,
-            onToggleQueue = onToggleQueue,
-            onPlayQueue = onPlayQueue,
-            onOpenRsvpSpeedReader = { showRsvpSpeedReader = true },
-            onOpenDocumentDetails = { showDocumentDetails = true },
-            onOpenJumpToPage = { showJumpToPageDialog = true },
-            onAddGeneralNote = onAddGeneralNote,
-            onAddSentenceNote = { onEditNote(currentIndex) },
-            onOpenBookmarks = { showBookmarks = true },
-            onReaderModeChange = onReaderModeChange,
-            pageItems = pageItems,
-            pagerState = pagerState,
-            coroutineScope = coroutineScope,
-            progress = progress,
-            onSearchQueryChange = onSearchQueryChange,
-            onPaperToneModeChange = onPaperToneModeChange,
-            onSentenceClick = handleSentenceClick,
-            verticalPageIndex = if (continuous) visibleReadingPage else null,
-            onVerticalPageSelected = if (continuous) { target ->
-                coroutineScope.launch {
-                    continuousState.scrollToItem(target)
-                    pageItems.getOrNull(target)?.takeIf { it.sentenceRanges.isNotEmpty() }?.let { onSentenceClick(it.sentenceStartIndex) }
-                }
-            } else null
-        )
-        val currentChunkText = remember(currentIndex, document.chunks) {
-            document.chunks.getOrNull(currentIndex)?.trim().orEmpty()
-        }
-        val isTablePlaying = remember(currentChunkText) {
-            SpeechSanitizer.isTableRow(currentChunkText)
-        }
-        val isFigurePlaying = remember(currentChunkText) {
-            currentChunkText.startsWith("Figure", ignoreCase = true) ||
-                currentChunkText.startsWith("Fig.", ignoreCase = true)
-        }
 
-        // 3. Floating Bottom Player Panel (Collapsible)
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .graphicsLayer { translationY = bottomBarOffset }
-                .testTag("reader-bottom-controls")
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                ReaderGestureTipsBanner(
-                    visible = showGestureTips && !isPlaying,
-                    onDismissCurrent = { sessionGestureTipsDismissed = true },
-                    onDismissPermanently = {
-                        sessionGestureTipsDismissed = true
-                        onDismissGestureTipsPermanently()
-                    }
-                )
-                AnimatedVisibility(
-                    visible = isPlaying && (isTablePlaying || isFigurePlaying),
-                    enter = fadeIn() + slideInVertically { it / 2 },
-                    exit = fadeOut() + slideOutVertically { it / 2 }
-                ) {
-                    val label = if (isTablePlaying) "Skip Table ⏭" else "Skip Figure ⏭"
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shadowElevation = 6.dp,
-                        modifier = Modifier
-                            .padding(bottom = 6.dp)
-                            .clickable {
-                                val target = if (isTablePlaying) {
-                                    (currentIndex + 1 until document.chunks.size).firstOrNull { i ->
-                                        val t = document.chunks[i].trim()
-                                        !SpeechSanitizer.isTableRow(t) && !SpeechSanitizer.isTableSeparatorLine(t)
-                                    } ?: (document.chunks.size - 1)
-                                } else {
-                                    (currentIndex + 1).coerceAtMost(document.chunks.lastIndex)
-                                }
-                                handleSentenceClick(target)
+                // 2. Docked Top app bar (Collapsible; occupies 0 layout height when collapsed)
+                ReaderTopAppBar(
+                    onReadingSettingsChange = onReadingSettingsChange,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .onGloballyPositioned { coords ->
+                            if (coords.size.height > 0) {
+                                measuredTopBarHeightPx = coords.size.height
                             }
-                    ) {
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
-                        )
-                    }
-                }
-
-                PlayerPanel(
-                    isPlaying = isPlaying,
-                    isBackgroundActive = isBackgroundActive,
-                    statusMessage = statusMessage,
-                    rate = rate,
-                    pitch = pitch,
-                    fontSizeSp = readerSettings.fontSizeSp,
-                    sectionSpacingDp = readerSettings.sectionSpacingDp,
-                    queueCount = queueCount,
-                    canGoPrevious = currentIndex > 0,
-                    canGoNext = currentIndex < document.chunks.lastIndex || queueCount > 0,
-                    onPrevious = onPrevious,
-                    onPlayPause = onPlayPause,
-                    onStop = onStop,
-                    onNext = onNext,
-                    onRateChange = onRateChange,
-                    onPitchChange = onPitchChange,
-                    onFontSizeChange = onFontSizeChange,
-                    onSectionSpacingChange = onSectionSpacingChange,
-                    onOpenVoiceStudio = onOpenVoiceStudio,
-                    onPlayQueue = onPlayQueue,
-                    onOpenAudioMode = { onReaderModeChange(ReaderMode.LISTEN) },
-                    voices = state.voices,
-                    voiceSettings = state.voiceSettings,
-                    onVoiceSelected = onVoiceSelected,
-                    documentId = document.id,
-                    onToggleDocumentMode = {
-                        if (hasCanvas) {
-                            onOpenCanvas()
+                        },
+                        document = document,
+                        progressLabel = progressLabel,
+                        topBarOffset = topBarOffset,
+                        topBarVisible = topBarVisible,
+                        onBackToLibrary = onBackToLibrary,
+                        showSearch = showSearch,
+                        onToggleSearch = { visible ->
+                            showSearch = visible
+                            if (!visible) {
+                                onSearchQueryChange("")
+                            } else {
+                                topBarVisible = true
+                                bottomBarVisible = true
+                            }
+                        },
+                        onOpenDocumentNotes = onOpenDocumentNotes,
+                        onOpenOutline = { showOutline = true },
+                        onOutlinePositioned = { outlineOrigin = it },
+                        showTools = showTools,
+                        onShowToolsChange = { showTools = it },
+                        showBookmarks = showBookmarks,
+                        onToggleBookmarks = { showBookmarks = it },
+                        hasCanvas = hasCanvas,
+                        noteCount = annotations.count { it.type == AnnotationType.NOTE },
+                        narrationSettings = narrationSettings,
+                        isQueued = isQueued,
+                        queueCount = queueCount,
+                        askAiSettings = askAiSettings,
+                        onOpenCanvas = onOpenCanvas,
+                        onOpenStudyTools = onOpenStudyTools,
+                        onOpenTranslationTools = onOpenTranslationTools,
+                        sleepTimerSnapshot = sleepTimerSnapshot,
+                        onOpenSleepTimer = onOpenSleepTimer,
+                        state = state,
+                        onOpenReadingLists = onOpenReadingLists,
+                        onOpenReadingHistory = onOpenReadingHistory,
+                        onAskCurrentSection = onAskCurrentSection,
+                        onOpenAskAi = { noPrompt ->
+                            shareToAiSelection = null
+                            shareToAiNoPrompt = noPrompt
+                            showShareToAiSheet = true
+                        },
+                        onSelectAskAiAssistant = onSelectAskAiAssistant,
+                        onOpenTextEditor = onOpenTextEditor,
+                        onStartRecord = onStartRecord,
+                        onOpenReaderSettings = onOpenReaderSettings,
+                        onOpenVoiceStudio = onOpenVoiceStudio,
+                        onOpenNarrationStudio = onOpenNarrationStudio,
+                        onOpenPronunciationRules = onOpenPronunciationRules,
+                        onExportAudio = onExportAudio,
+                        onExportStudyGuidePdf = onExportStudyGuidePdf,
+                        onToggleQueue = onToggleQueue,
+                        onPlayQueue = onPlayQueue,
+                        onOpenRsvpSpeedReader = { showRsvpSpeedReader = true },
+                        onOpenDocumentDetails = { showDocumentDetails = true },
+                        onOpenJumpToPage = { showJumpToPageDialog = true },
+                        onAddGeneralNote = onAddGeneralNote,
+                        onAddSentenceNote = { onEditNote(currentIndex) },
+                        onOpenBookmarks = { showBookmarks = true },
+                        onReaderModeChange = onReaderModeChange,
+                        pageItems = pageItems,
+                        pagerState = pagerState,
+                        coroutineScope = coroutineScope,
+                        progress = progress,
+                        onSearchQueryChange = onSearchQueryChange,
+                        onPaperToneModeChange = onPaperToneModeChange,
+                        onSentenceClick = handleSentenceClick,
+                        verticalPageIndex = if (continuous) visibleReadingPage else null,
+                        onVerticalPageSelected = if (continuous) {
+                            { target ->
+                                coroutineScope.launch {
+                                    continuousState.scrollToItem(target)
+                                    pageItems.getOrNull(target)?.takeIf { it.sentenceRanges.isNotEmpty() }?.let { onSentenceClick(it.sentenceStartIndex) }
+                                }
+                            }
                         } else {
-                            onReaderModeChange(ReaderMode.ORIGINAL)
+                            null
                         }
+                    )
+                    val currentChunkText = remember(currentIndex, document.chunks) {
+                        document.chunks.getOrNull(currentIndex)?.trim().orEmpty()
                     }
-                )
+                    val isTablePlaying = remember(currentChunkText) {
+                        SpeechSanitizer.isTableRow(currentChunkText)
+                    }
+                    val isFigurePlaying = remember(currentChunkText) {
+                        currentChunkText.startsWith("Figure", ignoreCase = true) ||
+                            currentChunkText.startsWith("Fig.", ignoreCase = true)
+                    }
+
+                    // 3. Floating Bottom Player Panel (Collapsible overlay; does not reserve permanent layout height)
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .graphicsLayer { translationY = bottomBarOffset }
+                            .testTag("reader-bottom-controls")
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AnimatedVisibility(
+                                visible = isPlaying && (isTablePlaying || isFigurePlaying),
+                                enter = fadeIn() + slideInVertically { it / 2 },
+                                exit = fadeOut() + slideOutVertically { it / 2 }
+                            ) {
+                                val label = if (isTablePlaying) "Skip Table ⏭" else "Skip Figure ⏭"
+                                Surface(
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    shadowElevation = 6.dp,
+                                    modifier = Modifier
+                                        .padding(bottom = 6.dp)
+                                        .clickable {
+                                            val target = if (isTablePlaying) {
+                                                (currentIndex + 1 until document.chunks.size).firstOrNull { i ->
+                                                    val t = document.chunks[i].trim()
+                                                    !SpeechSanitizer.isTableRow(t) && !SpeechSanitizer.isTableSeparatorLine(t)
+                                                } ?: (document.chunks.size - 1)
+                                            } else {
+                                                (currentIndex + 1).coerceAtMost(document.chunks.lastIndex)
+                                            }
+                                            handleSentenceClick(target)
+                                        }
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        val curReadingPage = if (continuous) visibleReadingPage else pagerState.currentPage
+                        val totalPages = pageItems.size.coerceAtLeast(1)
+
+                        PlayerPanel(
+                            pageIndex = curReadingPage,
+                            pageCount = totalPages,
+                            onPageSelected = { targetPageIndex ->
+                                coroutineScope.launch {
+                                    val target = targetPageIndex.coerceIn(0, (pageItems.size - 1).coerceAtLeast(0))
+                                    if (continuous) {
+                                        continuousState.scrollToItem(target)
+                                    } else {
+                                        pagerState.animateScrollToPage(target)
+                                    }
+                                    pageItems.getOrNull(target)?.takeIf { it.sentenceRanges.isNotEmpty() }?.let {
+                                        handleSentenceClick(it.sentenceStartIndex)
+                                    }
+                                }
+                            },
+                            isPlaying = isPlaying,
+                            isBackgroundActive = isBackgroundActive,
+                            statusMessage = statusMessage,
+                            rate = rate,
+                            pitch = pitch,
+                            fontSizeSp = readerSettings.fontSizeSp,
+                            sectionSpacingDp = readerSettings.sectionSpacingDp,
+                            queueCount = queueCount,
+                            canGoPrevious = currentIndex > 0,
+                            canGoNext = currentIndex < document.chunks.lastIndex || queueCount > 0,
+                            onPrevious = onPrevious,
+                            onPlayPause = onPlayPause,
+                            onStop = onStop,
+                            onNext = onNext,
+                            onRateChange = onRateChange,
+                            onPitchChange = onPitchChange,
+                            onFontSizeChange = onFontSizeChange,
+                            onSectionSpacingChange = onSectionSpacingChange,
+                            onOpenVoiceStudio = onOpenVoiceStudio,
+                            onPlayQueue = onPlayQueue,
+                            onOpenAudioMode = { onReaderModeChange(ReaderMode.LISTEN) },
+                            voices = state.voices,
+                            voiceSettings = state.voiceSettings,
+                            onVoiceSelected = onVoiceSelected,
+                            documentId = document.id,
+                            onToggleDocumentMode = {
+                                if (hasCanvas) {
+                                    onOpenCanvas()
+                                } else {
+                                    onReaderModeChange(ReaderMode.ORIGINAL)
+                                }
+                            }
+                        )
+                    }
+
+                // 3.1 Gesture tips popup on the screen, decoupled from the playback bar
+                if (showGestureTips && !isPlaying) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 24.dp)
+                            .zIndex(10f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ReaderGestureTipsBanner(
+                            visible = true,
+                            onDismissCurrent = { sessionGestureTipsDismissed = true },
+                            onDismissPermanently = {
+                                sessionGestureTipsDismissed = true
+                                onDismissGestureTipsPermanently()
+                            },
+                            modifier = Modifier.widthIn(max = 420.dp)
+                        )
+                    }
+                }
+
+                // 4. Floating Search Panel (Anchored cleanly to IME keyboard)
+                if (showSearch) {
+                    SearchPanel(
+                        query = searchQuery,
+                        matchCount = searchMatches.size,
+                        currentMatch = if (searchMatches.isEmpty()) 0 else searchCursor + 1,
+                        onQueryChange = onSearchQueryChange,
+                        onPrevious = onPreviousSearchMatch,
+                        onNext = onNextSearchMatch,
+                        onClose = {
+                            showSearch = false
+                            onSearchQueryChange("")
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    )
+                }
             }
         }
-
-        // 4. Floating Search Panel (Anchored cleanly to IME keyboard)
-        if (showSearch) {
-            SearchPanel(
-                query = searchQuery,
-                matchCount = searchMatches.size,
-                currentMatch = if (searchMatches.isEmpty()) 0 else searchCursor + 1,
-                onQueryChange = onSearchQueryChange,
-                onPrevious = onPreviousSearchMatch,
-                onNext = onNextSearchMatch,
-                onClose = {
-                    showSearch = false
-                    onSearchQueryChange("")
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            )
-        }
     }
-
-    } // Reader backdrop provider
-    } // Listen owns its own controls; no hidden reader hit targets.
 
     ReaderDialogsAndSheetsHost(
         showAudioMode = showAudioMode,
@@ -997,7 +1087,9 @@ ReaderPageItemView(
                 if (continuous) {
                     continuousState.scrollToItem(target)
                     pageItems.getOrNull(target)?.takeIf { it.sentenceRanges.isNotEmpty() }?.let { onSentenceClick(it.sentenceStartIndex) }
-                } else pagerState.animateScrollToPage(target)
+                } else {
+                    pagerState.animateScrollToPage(target)
+                }
             }
         }
     )

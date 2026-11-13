@@ -72,7 +72,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.GeneralNote
 import com.veritas.reader.ReaderSettings

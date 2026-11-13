@@ -32,8 +32,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.NavigateBefore
-import androidx.compose.material.icons.automirrored.filled.NavigateNext
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
@@ -62,6 +62,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.veritas.reader.ui.VeritasSleekSlider
 import kotlin.math.roundToInt
 
@@ -118,7 +119,7 @@ internal fun DocPlayerPanel(
 
     val currentOffset = if (draggableState.offset.isNaN()) maxOffsetPx else draggableState.requireOffset()
     val progress = (1f - (currentOffset / maxOffsetPx)).coerceIn(0f, 1f)
-    val heightDp = 72.dp + (218.dp * progress)
+    val heightDp = 56.dp + (218.dp * progress)
 
     rememberCoroutineScope()
 
@@ -142,12 +143,12 @@ internal fun DocPlayerPanel(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 10.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
         Surface(
             modifier = Modifier
-                .widthIn(max = 580.dp)
+                .widthIn(max = 480.dp)
                 .fillMaxWidth()
                 .height(heightDp)
                 .veritasGlassBackdrop(capsuleShape, isGlass, surfaceOpacity = .36f)
@@ -170,14 +171,14 @@ internal fun DocPlayerPanel(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
             // Header Row — visible in both Collapsed and Expanded state
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(48.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -221,7 +222,7 @@ internal fun DocPlayerPanel(
                         enabled = canGoPrevious
                     ) {
                         Icon(
-                            Icons.AutoMirrored.Filled.NavigateBefore,
+                            Icons.Filled.FastRewind,
                             contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous),
                             tint = if (canGoPrevious) MaterialTheme.colorScheme.onSurface
                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
@@ -235,7 +236,7 @@ internal fun DocPlayerPanel(
                         enabled = canGoNext
                     ) {
                         Icon(
-                            Icons.AutoMirrored.Filled.NavigateNext,
+                            Icons.Filled.FastForward,
                             contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next),
                             tint = if (canGoNext) MaterialTheme.colorScheme.onSurface
                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
@@ -281,7 +282,7 @@ internal fun DocPlayerPanel(
                     ) {
                         Text(
                             com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_006, com.veritas.reader.ui.screens.localizedUiValue("%.2f".format(rate))),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
                             color = MaterialTheme.colorScheme.onSurface)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -298,7 +299,7 @@ internal fun DocPlayerPanel(
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("-", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
+                                Text("-", style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                             }
                             Box(
                                 modifier = Modifier
@@ -311,7 +312,7 @@ internal fun DocPlayerPanel(
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("+", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
+                                Text("+", style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     }
@@ -339,7 +340,7 @@ internal fun DocPlayerPanel(
                             ) {
                                 Text(
                                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_007, com.veritas.reader.ui.screens.localizedUiValue("%.2f".format(pitch))),
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
                                     color = MaterialTheme.colorScheme.onSurface)
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -347,7 +348,7 @@ internal fun DocPlayerPanel(
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .size(22.dp)
+                                            .size(24.dp)
                                             .clip(CircleShape)
                                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
                                             .clickable {
@@ -356,11 +357,11 @@ internal fun DocPlayerPanel(
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("-", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                                        Text("-", style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                                     }
                                     Box(
                                         modifier = Modifier
-                                            .size(22.dp)
+                                            .size(24.dp)
                                             .clip(CircleShape)
                                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
                                             .clickable {
@@ -369,7 +370,7 @@ internal fun DocPlayerPanel(
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("+", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                                        Text("+", style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 }
                             }
@@ -389,7 +390,7 @@ internal fun DocPlayerPanel(
                             ) {
                                 Text(
                                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_008, com.veritas.reader.ui.screens.localizedUiValue(fontSizeSp)),
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
                                     color = MaterialTheme.colorScheme.onSurface)
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -397,23 +398,23 @@ internal fun DocPlayerPanel(
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .size(22.dp)
+                                            .size(24.dp)
                                             .clip(CircleShape)
                                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
                                             .clickable { onFontSizeChange((fontSizeSp - 1).coerceIn(10, 28)) },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("-", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                                        Text("-", style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                                     }
                                     Box(
                                         modifier = Modifier
-                                            .size(22.dp)
+                                            .size(24.dp)
                                             .clip(CircleShape)
                                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
                                             .clickable { onFontSizeChange((fontSizeSp + 1).coerceIn(10, 28)) },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("+", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                                        Text("+", style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 }
                             }
@@ -443,7 +444,7 @@ internal fun DocPlayerPanel(
                         ) {
                             Text(
                                 com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_009, com.veritas.reader.ui.screens.localizedUiValue(sectionSpacingDp)),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
                                 color = MaterialTheme.colorScheme.onSurface)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -451,23 +452,23 @@ internal fun DocPlayerPanel(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(22.dp)
+                                        .size(24.dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
                                         .clickable { onSectionSpacingChange((sectionSpacingDp - 1).coerceIn(6, 24)) },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("-", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("-", style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                                 }
                                 Box(
                                     modifier = Modifier
-                                        .size(22.dp)
+                                        .size(24.dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
                                         .clickable { onSectionSpacingChange((sectionSpacingDp + 1).coerceIn(6, 24)) },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("+", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("+", style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                                 }
                             }
                         }
@@ -485,7 +486,7 @@ internal fun DocPlayerPanel(
                                 ) {
                                     Text(
                                         com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_010, com.veritas.reader.ui.screens.localizedUiValue(spacingPreset)),
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp),
                                         color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                     )
@@ -512,7 +513,7 @@ internal fun DocPlayerPanel(
                         Text(
                             com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_voice_3091c84),
                             modifier = Modifier.padding(horizontal = 8.dp),
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp)
                         )
                         Row(
                             modifier = Modifier
@@ -530,7 +531,7 @@ internal fun DocPlayerPanel(
                                         shape = RoundedCornerShape(50),
                                         modifier = Modifier.height(28.dp)
                                     ) {
-                                        Text(voice.name, style = MaterialTheme.typography.labelMedium)
+                                        Text(voice.name, style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp))
                                     }
                                 } else {
                                     OutlinedButton(
@@ -539,7 +540,7 @@ internal fun DocPlayerPanel(
                                         shape = RoundedCornerShape(50),
                                         modifier = Modifier.height(28.dp)
                                     ) {
-                                        Text(voice.name, style = MaterialTheme.typography.labelMedium)
+                                        Text(voice.name, style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp))
                                     }
                                 }
                             }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -650,11 +651,14 @@ fun GeneralNotesEditor(
             )
         }
     ) { padding ->
+        androidx.compose.foundation.layout.Box(
+            Modifier.fillMaxSize().padding(padding).background(cardBgColor),
+            contentAlignment = androidx.compose.ui.Alignment.TopCenter
+        ) {
         Column(
             modifier = Modifier
+                .widthIn(max = 900.dp)
                 .fillMaxSize()
-                .padding(padding)
-                .background(cardBgColor)
                 .padding(horizontal = 8.dp, vertical = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -807,6 +811,8 @@ fun GeneralNotesEditor(
                 })
             }
         }
+    }
+
     }
 
     if (showNotesSettings) NotesSettingsSheet(notesSettings, onSaveNotesSettings) { showNotesSettings = false }

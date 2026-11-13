@@ -17,5 +17,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "VeritasReaderAndroid"
 include(":app")
+include(":menu_translation")
+project(":menu_translation").projectDir = file("menu-translation")
 include(":veritas-pc")
 

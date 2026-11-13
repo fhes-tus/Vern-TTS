@@ -25,6 +25,36 @@ class VoiceArchiveDownloadTest {
     }
     private fun partial() = Files.createTempDirectory("vern-voice-download-test").toFile().let { File(it,"voice.part") }
 
+    @Test fun cancellingMidTransferDeletesPartialBytesAndValidator() = runTest {
+        val file = partial()
+        var cancelled = false
+        val reply = Reply(200, "ABCD")
+        try {
+            val error = runCatching {
+                VoiceArchiveDownload(open = { reply }).download(url, file, 100,
+                    checkActive = { if (cancelled) throw kotlinx.coroutines.CancellationException() },
+                    progress = { _, _, _ -> cancelled = true })
+            }.exceptionOrNull()
+            assertTrue(error is kotlinx.coroutines.CancellationException)
+            assertTrue(reply.closed)
+            assertFalse(file.exists())
+            assertFalse(File(file.path + ".validator").exists())
+        } finally { file.parentFile.deleteRecursively() }
+    }
+
+    @Test fun cancellingDuringRetryDeletesResumableDownload() = runTest {
+        val file = partial()
+        try {
+            val error = runCatching {
+                VoiceArchiveDownload(open = { Reply(200, "AB", 4) },
+                    waitBeforeRetry = { throw kotlinx.coroutines.CancellationException() }).download(url, file, 100)
+            }.exceptionOrNull()
+            assertTrue(error is kotlinx.coroutines.CancellationException)
+            assertFalse(file.exists())
+            assertFalse(File(file.path + ".validator").exists())
+        } finally { file.parentFile.deleteRecursively() }
+    }
+
     @Test fun interruptedGetResumesOnlyWithValidatorAndCorrectContentRange() = runTest {
         val file = partial()
         val first = Reply(200,"AB",4)

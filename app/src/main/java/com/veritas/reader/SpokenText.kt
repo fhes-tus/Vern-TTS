@@ -2,8 +2,6 @@ package com.veritas.reader
 
 import java.text.BreakIterator
 import java.text.Normalizer
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /** Spoken replacements retain their original character positions for range callbacks and resume. */
@@ -34,6 +32,19 @@ class SpokenText private constructor(
     /** Edits are evaluated against the input once; replacement output is never re-matched. */
     internal fun applyRules(rules: List<DocumentRepository.CompiledPronunciationRule>): SpokenText {
         return edited(PronunciationRulesEngine.edits(text, rules).map { Edit(it.range.first, it.range.last + 1, it.replacement) })
+    }
+
+    /** Remove presentation markers while retaining exact positions of the enclosed words. */
+    internal fun omit(ranges: List<IntRange>): SpokenText {
+        val merged = mutableListOf<Edit>()
+        ranges.filterNot { it.isEmpty() }.sortedBy { it.first }.forEach { range ->
+            require(range.first >= 0 && range.last < text.length)
+            val previous = merged.lastOrNull()
+            if (previous != null && range.first <= previous.end) {
+                merged[merged.lastIndex] = previous.copy(end = maxOf(previous.end, range.last + 1))
+            } else merged.add(Edit(range.first, range.last + 1, ""))
+        }
+        return edited(merged)
     }
 
     private fun edited(edits: List<Edit>): SpokenText {
@@ -146,9 +157,7 @@ object ReadingSymbols {
         val ligatures = mapOf("ﬁ" to "fi", "ﬂ" to "fl", "ﬀ" to "ff", "ﬃ" to "ffi", "ﬄ" to "ffl")
         spoken = spoken.replace(Regex("[ﬁﬂﬀﬃﬄ]")) { ligatures.getValue(it.value) }
         if (!english) return spoken
-        spoken = spoken.replace(Regex("\\b\\d{4}-\\d{2}-\\d{2}\\b")) { match ->
-            runCatching { LocalDate.parse(match.value).format(DateTimeFormatter.ofPattern("MMMM d, uuuu", Locale.ENGLISH)) }.getOrDefault(match.value)
-        }
+        spoken = SpeechDates.expand(spoken)
         spoken = spoken.replace(Regex("\\b(?:chapter|part|book|section|volume|act|world war)\\s+([IVXLCDM]+)\\b", RegexOption.IGNORE_CASE)) { match ->
             val numeral = match.groupValues[1]
             romanValue(numeral.uppercase(Locale.ROOT))?.let { match.value.dropLast(numeral.length) + it } ?: match.value
@@ -201,8 +210,139 @@ object ReadingSymbols {
         spoken = spoken.replace(Regex("\\b(?:e\\.g\\.|i\\.e\\.|et al\\.)(?=\\s|[,;:]|$)", RegexOption.IGNORE_CASE)) { match ->
             when (match.value.lowercase(Locale.ROOT)) { "e.g." -> "for example"; "i.e." -> "that is"; else -> "and others" }
         }
+
+        // Bible citations: e.g. "Matt 4:5-9" -> "Matthew 4 verse 5 to 9", "1 Cor 2:3" or "I Cor 2:3" -> "First Corinthians 2 verse 3"
+        spoken = spoken.replace(Regex("\\b((?:[123I]{1,3}\\s+)?[A-Za-z]+)\\.?\\s+(\\d+)[:.](\\d+)(?:[-–](\\d+))?\\b")) { match ->
+            val bookKey = match.groupValues[1].lowercase(Locale.ROOT).replace(Regex("\\s+"), " ").trim()
+            val bookName = bibleBooks[bookKey]
+            if (bookName != null) {
+                val chapter = match.groupValues[2]
+                val startVerse = match.groupValues[3]
+                val endVerse = match.groupValues[4]
+                if (endVerse.isNotEmpty()) {
+                    "$bookName $chapter verse $startVerse to $endVerse"
+                } else {
+                    "$bookName $chapter verse $startVerse"
+                }
+            } else {
+                match.value
+            }
+        }
+
+        // Honorifics and title abbreviations with trailing dots: convert to full words without dots
+        // so the TTS engine doesn't pause or articulate a full stop
+        spoken = spoken.replace(Regex("\\b(Mr|Mrs|Ms|Dr|Prof|Sr|Jr|Gen|Col|Capt|Lt|Sgt|Rev|Hon|Gov|Sen|Rep)\\.\\s*(?=[A-Z])")) { match ->
+            when (match.groupValues[1].lowercase(Locale.ROOT)) {
+                "mr" -> "Mister "
+                "mrs" -> "Missus "
+                "ms" -> "Miz "
+                "dr" -> "Doctor "
+                "prof" -> "Professor "
+                "sr" -> "Senior "
+                "jr" -> "Junior "
+                "gen" -> "General "
+                "col" -> "Colonel "
+                "capt" -> "Captain "
+                "lt" -> "Lieutenant "
+                "sgt" -> "Sergeant "
+                "rev" -> "Reverend "
+                "hon" -> "Honorable "
+                "gov" -> "Governor "
+                "sen" -> "Senator "
+                "rep" -> "Representative "
+                else -> match.value
+            }
+        }
+        spoken = spoken.replace(Regex("\\bSt\\.\\s*(?=[A-Z])")) { "Saint " }
+        spoken = spoken.replace(Regex("\\bvs\\.\\b", RegexOption.IGNORE_CASE)) { "versus " }
+
         return spoken
     }
+
+    private val bibleBooks = mapOf(
+        "gen" to "Genesis", "ge" to "Genesis", "genesis" to "Genesis",
+        "ex" to "Exodus", "exod" to "Exodus", "exodus" to "Exodus",
+        "lev" to "Leviticus", "le" to "Leviticus", "leviticus" to "Leviticus",
+        "num" to "Numbers", "nu" to "Numbers", "numbers" to "Numbers",
+        "deut" to "Deuteronomy", "de" to "Deuteronomy", "deuteronomy" to "Deuteronomy",
+        "josh" to "Joshua", "jos" to "Joshua", "joshua" to "Joshua",
+        "judg" to "Judges", "jdg" to "Judges", "judges" to "Judges",
+        "ruth" to "Ruth", "ru" to "Ruth",
+        "1 sam" to "First Samuel", "2 sam" to "Second Samuel",
+        "1sam" to "First Samuel", "2sam" to "Second Samuel",
+        "i sam" to "First Samuel", "ii sam" to "Second Samuel",
+        "1 samuel" to "First Samuel", "2 samuel" to "Second Samuel",
+        "i samuel" to "First Samuel", "ii samuel" to "Second Samuel",
+        "1 kings" to "First Kings", "2 kings" to "Second Kings",
+        "1 kgs" to "First Kings", "2 kgs" to "Second Kings",
+        "1ki" to "First Kings", "2ki" to "Second Kings",
+        "i kings" to "First Kings", "ii kings" to "Second Kings",
+        "1 chron" to "First Chronicles", "2 chron" to "Second Chronicles",
+        "1 chr" to "First Chronicles", "2 chr" to "Second Chronicles",
+        "1ch" to "First Chronicles", "2ch" to "Second Chronicles",
+        "i chron" to "First Chronicles", "ii chron" to "Second Chronicles",
+        "ezra" to "Ezra", "ezr" to "Ezra",
+        "neh" to "Nehemiah", "ne" to "Nehemiah", "nehemiah" to "Nehemiah",
+        "esth" to "Esther", "es" to "Esther", "esther" to "Esther",
+        "job" to "Job", "jb" to "Job",
+        "ps" to "Psalm", "psa" to "Psalm", "psalm" to "Psalm", "psalms" to "Psalms",
+        "prov" to "Proverbs", "pr" to "Proverbs", "proverbs" to "Proverbs",
+        "eccles" to "Ecclesiastes", "eccl" to "Ecclesiastes", "ecclesiastes" to "Ecclesiastes",
+        "song" to "Song of Solomon", "song of solomon" to "Song of Solomon",
+        "isa" to "Isaiah", "is" to "Isaiah", "isaiah" to "Isaiah",
+        "jer" to "Jeremiah", "je" to "Jeremiah", "jeremiah" to "Jeremiah",
+        "lam" to "Lamentations", "lamentations" to "Lamentations",
+        "ezek" to "Ezekiel", "eze" to "Ezekiel", "ezekiel" to "Ezekiel",
+        "dan" to "Daniel", "da" to "Daniel", "daniel" to "Daniel",
+        "hos" to "Hosea", "hosea" to "Hosea",
+        "joel" to "Joel", "joe" to "Joel",
+        "amos" to "Amos", "am" to "Amos",
+        "obad" to "Obadiah", "obadiah" to "Obadiah",
+        "jonah" to "Jonah", "jon" to "Jonah",
+        "mic" to "Micah", "micah" to "Micah",
+        "nah" to "Nahum", "nahum" to "Nahum",
+        "hab" to "Habakkuk", "habakkuk" to "Habakkuk",
+        "zeph" to "Zephaniah", "zephaniah" to "Zephaniah",
+        "hag" to "Haggai", "haggai" to "Haggai",
+        "zech" to "Zechariah", "zechariah" to "Zechariah",
+        "mal" to "Malachi", "malachi" to "Malachi",
+        "matt" to "Matthew", "mat" to "Matthew", "mt" to "Matthew", "matthew" to "Matthew",
+        "mark" to "Mark", "mk" to "Mark",
+        "luke" to "Luke", "lk" to "Luke",
+        "john" to "John", "jn" to "John",
+        "acts" to "Acts", "ac" to "Acts",
+        "rom" to "Romans", "ro" to "Romans", "romans" to "Romans",
+        "1 cor" to "First Corinthians", "2 cor" to "Second Corinthians",
+        "1cor" to "First Corinthians", "2cor" to "Second Corinthians",
+        "i cor" to "First Corinthians", "ii cor" to "Second Corinthians",
+        "1 corinthians" to "First Corinthians", "2 corinthians" to "Second Corinthians",
+        "i corinthians" to "First Corinthians", "ii corinthians" to "Second Corinthians",
+        "gal" to "Galatians", "ga" to "Galatians", "galatians" to "Galatians",
+        "eph" to "Ephesians", "ep" to "Ephesians", "ephesians" to "Ephesians",
+        "phil" to "Philippians", "php" to "Philippians", "philippians" to "Philippians",
+        "col" to "Colossians", "colossians" to "Colossians",
+        "1 thess" to "First Thessalonians", "2 thess" to "Second Thessalonians",
+        "1th" to "First Thessalonians", "2th" to "Second Thessalonians",
+        "i thess" to "First Thessalonians", "ii thess" to "Second Thessalonians",
+        "1 thessalonians" to "First Thessalonians", "2 thessalonians" to "Second Thessalonians",
+        "1 tim" to "First Timothy", "2 tim" to "Second Timothy",
+        "1ti" to "First Timothy", "2ti" to "Second Timothy",
+        "i tim" to "First Timothy", "ii tim" to "Second Timothy",
+        "1 timothy" to "First Timothy", "2 timothy" to "Second Timothy",
+        "titus" to "Titus", "tit" to "Titus",
+        "philem" to "Philemon", "phm" to "Philemon", "philemon" to "Philemon",
+        "heb" to "Hebrews", "he" to "Hebrews", "hebrews" to "Hebrews",
+        "james" to "James", "jas" to "James", "jm" to "James",
+        "1 pet" to "First Peter", "2 pet" to "Second Peter",
+        "1pe" to "First Peter", "2pe" to "Second Peter",
+        "i pet" to "First Peter", "ii pet" to "Second Peter",
+        "1 peter" to "First Peter", "2 peter" to "Second Peter",
+        "1 john" to "First John", "2 john" to "Second John", "3 john" to "Third John",
+        "1jn" to "First John", "2jn" to "Second John", "3jn" to "Third John",
+        "i john" to "First John", "ii john" to "Second John", "iii john" to "Third John",
+        "jude" to "Jude", "jud" to "Jude",
+        "rev" to "Revelation", "re" to "Revelation", "revelation" to "Revelation", "revelations" to "Revelation"
+    )
 
     private fun hasExponentBase(text: String, offset: Int): Boolean {
         val before = text.substring(0, offset)

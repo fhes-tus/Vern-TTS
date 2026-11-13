@@ -1,4 +1,5 @@
 package com.veritas.reader.ui.screens
+import com.veritas.reader.VernAlertDialog as AlertDialog
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

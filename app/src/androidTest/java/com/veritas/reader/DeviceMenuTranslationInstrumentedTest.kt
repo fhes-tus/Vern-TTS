@@ -37,6 +37,7 @@ class DeviceMenuTranslationInstrumentedTest {
         })
         val labels = listOf(R.string.ui_settings, R.string.app_language, R.string.language_follow_device, R.string.ui_save_changes)
             .map(english::getString)
+        withTimeout(180_000) { DeviceMenuTranslation.install(context) { } }
         val client = DeviceMenuTranslation.client(target)
         try {
             reportModelDownloads(context)

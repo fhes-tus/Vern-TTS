@@ -17,17 +17,25 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,6 +58,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,6 +66,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -65,7 +75,10 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.withSaveLayer
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -88,6 +101,7 @@ fun OnboardingSpotlightOverlay(
     isTransitioning: Boolean = false
 ) {
     val targetBounds = OnboardingController.componentBounds[step.targetKey ?: ""]
+    var overlayOrigin by remember { mutableStateOf(Offset.Zero) }
 
     var lastNonNullBounds by remember { mutableStateOf<Rect?>(null) }
     LaunchedEffect(targetBounds) {
@@ -96,7 +110,7 @@ fun OnboardingSpotlightOverlay(
         }
     }
 
-    val baseBounds = targetBounds ?: lastNonNullBounds
+    val baseBounds = (targetBounds ?: lastNonNullBounds)?.translate(-overlayOrigin)
     val hasTarget = step.targetKey != null && baseBounds != null
 
     // Animate the cutout alpha to fade out during step transitions
@@ -140,14 +154,11 @@ fun OnboardingSpotlightOverlay(
     }
 
     val density = LocalDensity.current
-    val screenHeightPx = LocalWindowInfo.current.containerSize.height.toFloat()
 
     // Convert dimensions outside the canvas to be safe
     val paddingPx = with(density) { 8.dp.toPx() }
     val cornerRadiusPx = with(density) { 16.dp.toPx() }
     val cardSpacingPx = with(density) { 20.dp.toPx() }
-    val cardHeightEstPx = with(density) { 200.dp.toPx() }
-    val minTopMarginPx = with(density) { 10.dp.toPx() }
 
     // Pulsing cutout glow effect
     val infiniteTransition = rememberInfiniteTransition(label = "glow")
@@ -162,7 +173,7 @@ fun OnboardingSpotlightOverlay(
     )
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().onGloballyPositioned { overlayOrigin = it.positionInRoot() }
     ) {
         // Fullscreen touch barrier to prevent clicks from bleeding through to underlying home screen tabs and buttons
         Box(
@@ -227,7 +238,7 @@ fun OnboardingSpotlightOverlay(
 
             Box(
                 modifier = Modifier
-                    .offset(
+                    .absoluteOffset(
                         x = with(density) { (baseRect.left - dx).toDp() },
                         y = with(density) { (baseRect.top - dy).toDp() }
                     )
@@ -250,45 +261,46 @@ fun OnboardingSpotlightOverlay(
             )
         }
 
-        // Display explanation card
-        val isCardBelow = if (animBounds != null) {
-            animBounds.center.y < screenHeightPx / 2
-        } else {
-            true // centered default fallback
-        }
-
-        Box(
+        // Measure the actual safe viewport and card; anchors are recorded in root coordinates.
+        var safeOrigin by remember { mutableStateOf(Offset.Zero) }
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding(),
+                .windowInsetsPadding(WindowInsets.safeDrawing.union(WindowInsets.ime))
+                .padding(horizontal = 24.dp, vertical = 10.dp)
+                .onGloballyPositioned { safeOrigin = it.positionInRoot() },
             contentAlignment = Alignment.TopCenter
         ) {
-            val targetYOffset = if (animBounds != null) {
-                if (isCardBelow) {
-                    val bottomPx = animBounds.bottom + cardSpacingPx
-                    with(density) { bottomPx.toDp() }
-                } else {
-                    val topPx = animBounds.top - cardHeightEstPx
-                    with(density) { topPx.coerceAtLeast(minTopMarginPx).toDp() }
-                }
-            } else {
-                // Center it vertically when there is no target
-                val estCardHeightDp = 220.dp
-                val screenHeightDp = with(density) { screenHeightPx.toDp() }
-                ((screenHeightDp - estCardHeightDp) / 2f).coerceAtLeast(0.dp)
-            }
+            val heightPx = constraints.maxHeight.toFloat()
+            val localTarget = animBounds?.translate(overlayOrigin - safeOrigin)
+            val above = ((localTarget?.top ?: 0f) - cardSpacingPx).coerceIn(0f, heightPx)
+            val below = (heightPx - (localTarget?.bottom ?: heightPx) - cardSpacingPx).coerceIn(0f, heightPx)
+            val belowTarget = below >= above
+            val availableSide = maxOf(above, below)
+            // If neither side provides a useful reading area, use the whole safe viewport.
+            val heightLimitPx = if (localTarget != null && availableSide >= with(density) { 240.dp.toPx() }) availableSide else heightPx
+            var cardHeight by remember(step, maxWidth, density.fontScale) { mutableIntStateOf(0) }
+            val maxY = (heightPx - cardHeight).coerceAtLeast(0f)
+            val targetY = when {
+                localTarget == null -> maxY / 2f
+                belowTarget -> localTarget.bottom + cardSpacingPx
+                else -> localTarget.top - cardSpacingPx - cardHeight
+            }.coerceIn(0f, maxY)
             val yOffset by animateDpAsState(
-                targetValue = targetYOffset,
+                targetValue = with(density) { targetY.toDp() },
                 animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
                 label = "yOffset"
             )
 
             Box(
                 modifier = Modifier
-                    .padding(horizontal = 24.dp)
-                    .offset { IntOffset(0, yOffset.roundToPx()) }
-                    .graphicsLayer { alpha = cutoutAlpha }
+                    .widthIn(max = 380.dp)
+                    .fillMaxWidth()
+                    .heightIn(max = with(density) { heightLimitPx.toDp() })
+                    .offset { IntOffset(0, yOffset.roundToPx().coerceIn(0, maxY.toInt())) }
+                    .onSizeChanged { cardHeight = it.height }
+                    .graphicsLayer { alpha = if (cardHeight > 0) cutoutAlpha else 0f }
+                    .testTag("spotlight-card")
             ) {
                 OnboardingInfoCard(
                     step = step,
@@ -321,8 +333,8 @@ fun OnboardingInfoCard(
 ) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
             .widthIn(max = 380.dp)
+            .fillMaxWidth()
             .shadow(16.dp, RoundedCornerShape(24.dp)),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
@@ -332,6 +344,7 @@ fun OnboardingInfoCard(
     ) {
         Column(
             modifier = Modifier
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp)
                 .fillMaxWidth()
         ) {
@@ -353,12 +366,13 @@ fun OnboardingInfoCard(
             ) {
                 Text(
                     text = step.title,
+                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
                 IconButton(
                     onClick = onDismiss,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
@@ -424,10 +438,10 @@ fun OnboardingInfoCard(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Row(
+            androidx.compose.foundation.layout.FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 // Back button
                 if (step != OnboardingStep.WELCOME) {
@@ -450,6 +464,7 @@ fun OnboardingInfoCard(
                 // Next / Finish button
                 Button(
                     onClick = onNext,
+                    modifier = Modifier.testTag("spotlight-next"),
                     enabled = !isTransitioning,
                     shape = RoundedCornerShape(50)
                 ) {

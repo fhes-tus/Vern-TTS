@@ -17,20 +17,34 @@ internal class VoiceArchiveDownload(
     private val open: (URL) -> HttpURLConnection = { it.openConnection() as HttpURLConnection },
     private val waitBeforeRetry: suspend (Long) -> Unit = { delay(it) }
 ) {
+    @Volatile private var cancelled = false
+    @Volatile private var connection: HttpURLConnection? = null
+
+    /** Call off the main thread: disconnect wakes a blocked network read. */
+    fun cancel() {
+        cancelled = true
+        connection?.disconnect()
+    }
+
     suspend fun download(url: String, partial: File, limit: Long, checksum: String? = null,
         checkActive: () -> Unit = {}, progress: (Long, Long, Boolean) -> Unit = { _, _, _ -> }) {
         partial.parentFile?.mkdirs()
         val metadata = File(partial.path+".validator")
+        val active = {
+            if (cancelled) throw CancellationException("Voice download cancelled")
+            checkActive()
+        }
+        try {
         var last: Exception? = null
         repeat(3) { attempt ->
-            checkActive()
+            active()
             try {
-                transfer(url,partial,metadata,limit,checkActive) { bytes,total -> progress(bytes,total,false) }
+                transfer(url,partial,metadata,limit,active) { bytes,total -> progress(bytes,total,false) }
                 if(checksum != null) {
                     val digest = MessageDigest.getInstance("SHA-256")
                     partial.inputStream().use { input ->
                         val block = ByteArray(65536)
-                        while(true) { checkActive(); val n = input.read(block); if(n < 0) break; digest.update(block,0,n) }
+                        while(true) { active(); val n = input.read(block); if(n < 0) break; digest.update(block,0,n) }
                     }
                     if(digest.digest().joinToString("") { "%02x".format(it) } != checksum.lowercase()) {
                         partial.delete(); metadata.delete(); throw VoiceDownloadException(R.string.voice_download_integrity)
@@ -40,6 +54,7 @@ internal class VoiceArchiveDownload(
                 return
             } catch(cancelled: CancellationException) { throw cancelled }
             catch(error: Exception) {
+                active()
                 last = error
                 val retry = error !is VoiceDownloadException || error.status == 429 || error.status in 500..599
                 if(!retry || attempt == 2) throw safe(error)
@@ -48,6 +63,11 @@ internal class VoiceArchiveDownload(
             }
         }
         throw safe(requireNotNull(last))
+        } catch (cancelled: CancellationException) {
+            partial.delete()
+            metadata.delete()
+            throw cancelled
+        }
     }
 
     private fun safe(error: Exception): VoiceDownloadException = when(error) {
@@ -67,7 +87,9 @@ internal class VoiceArchiveDownload(
         repeat(6) {
             checkActive()
             val connection = open(current)
+            this.connection = connection
             try {
+                checkActive()
                 connection.instanceFollowRedirects = false
                 connection.connectTimeout = 25_000; connection.readTimeout = 60_000
                 connection.setRequestProperty("User-Agent","VernReader")
@@ -133,7 +155,7 @@ internal class VoiceArchiveDownload(
                     if(received == 0L || (total > 0 && received != total)) throw EOFException()
                     return
                 }
-            } finally { connection.disconnect() }
+            } finally { connection.disconnect(); this.connection = null }
         }
         throw VoiceDownloadException(R.string.voice_download_source)
     }

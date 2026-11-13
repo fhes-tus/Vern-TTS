@@ -18,6 +18,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -43,7 +44,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Book
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -78,7 +79,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.FlashcardProgress
 import com.veritas.reader.FlashcardSet
@@ -688,7 +689,7 @@ internal fun StudyDailyReviewHeroCard(
             Text(if (cardsToReview > 0) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_pick_up_where_you_left_off_with_a_short_review) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_cards_are_due_you_can_still_browse_your_flashcards),
                 style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
             Button(onClick = onStartReview, shape = VeritasPackStyle.chipShape(),
-                modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                 Icon(Icons.Filled.PlayArrow, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(if (cardsToReview > 0) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_start_review) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_browse_cards), style = MaterialTheme.typography.labelLarge)

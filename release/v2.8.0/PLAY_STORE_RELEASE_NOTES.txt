@@ -1,6 +1,5 @@
-Added preview interface translations, including Korean, Brazilian Portuguese, Russian and German.
-Added optional on-device translation for supported phone languages and localized Library filters.
-Improved voice downloads, narration and custom server controls.
-Added Pattern and Regex pronunciation examples.
-Fixed startup, imports and the Reading Tracker widget.
-Added custom accent colours and moved finished books below unfinished books.
+• Use Vern in 10 languages, now including German, Korean, Brazilian Portuguese, and Russian.
+• Reader tabs, PDF tools, and Library filters follow your chosen language.
+• Turn on menu translation for more languages. It runs right on your phone.
+• Listen with Azure, Google Cloud, ElevenLabs, and more, or connect your own speech server.
+• Try interactive Pattern and Regex examples and manage your saved pronunciation rules.

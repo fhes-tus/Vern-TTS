@@ -90,7 +90,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.SavedDocument
 import com.veritas.reader.ui.OnboardingController
@@ -134,11 +134,11 @@ data class FreeBookSite(
 )
 
 val FREE_BOOK_SITES = listOf(
+    FreeBookSite("Ocean of PDF", "Comprehensive search for books & manuscripts", "🌊", "https://oceanofpdf.com"),
     FreeBookSite("Project Gutenberg", "70,000+ public domain classics & epubs", "🏛️", "https://www.gutenberg.org"),
     FreeBookSite("Standard Ebooks", "Beautifully typeset, modern public domain releases", "✨", "https://standardebooks.org"),
     FreeBookSite("Open Library", "Over 3 million books to borrow & read online", "📖", "https://openlibrary.org"),
-    FreeBookSite("ManyBooks", "50,000+ free digital titles across all genres", "📚", "https://manybooks.net"),
-    FreeBookSite("Ocean of PDF", "Comprehensive search for books & manuscripts", "🌊", "https://oceanofpdf.com")
+    FreeBookSite("ManyBooks", "50,000+ free digital titles across all genres", "📚", "https://manybooks.net")
 )
 
 val CURATED_CLASSICS = listOf(

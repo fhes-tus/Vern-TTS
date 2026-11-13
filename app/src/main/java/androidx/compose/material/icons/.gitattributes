@@ -1,0 +1,2 @@
+# Preserve the exact upstream source bytes and manifest hashes on Windows checkouts.
+*.kt text eol=lf

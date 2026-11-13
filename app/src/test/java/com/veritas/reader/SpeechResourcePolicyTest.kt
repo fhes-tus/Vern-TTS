@@ -8,6 +8,32 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SpeechResourcePolicyTest {
+    @Test fun modelFileDeletionRetiresIdleGraphsBeforeRemovingTheirFiles() = runTest {
+        val resources = NativeModelResources(scope = backgroundScope)
+        var freed = 0
+        val model = NativeModel(resources, SpeechModelRole.PREVIEW, { Any() }, { freed++ })
+        model.use { }
+        var removed = false
+        assertTrue(resources.mutateModelFiles {
+            assertEquals(1, freed)
+            assertEquals(0, resources.admission.snapshot().resident)
+            removed = true
+            true
+        })
+        assertTrue(removed)
+    }
+
+    @Test fun modelFileDeletionCannotRemoveAPinnedPlaybackModel() = runTest {
+        val resources = NativeModelResources(scope = backgroundScope)
+        val model = NativeModel(resources, SpeechModelRole.LIVE, { Any() }, {})
+        model.use { }
+        model.setPlaybackActive(true)
+        var removed = false
+        assertFalse(resources.mutateModelFiles { removed = true; true })
+        assertFalse(removed)
+        model.setPlaybackActive(false)
+        assertTrue(resources.mutateModelFiles { true })
+    }
     private class Clock(var time: Long = 0) : SpeechClock { override fun nowMs() = time }
     @Test fun futurePcmExpiresAtBoundaryButPromotedCurrentDoesNot() {
         val clock = Clock()

@@ -7,6 +7,10 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -318,7 +322,10 @@ internal fun RowScope.BottomNavItem(
 
     val selectionSize = pillProgress.coerceIn(0f, 1.12f)
     val pillWidth = if (showLabel) (60f + 4f * selectionSize).dp else (50f + 4f * selectionSize).dp
-    val pillHeight = if (showLabel) (46f + 2f * selectionSize).dp else (40f + 2f * selectionSize).dp
+    val defaultPillHeight = if (showLabel) (46f + 2f * selectionSize).dp else (40f + 2f * selectionSize).dp
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val pillHeight = if (showLabel && density.fontScale >= 1.3f) maxOf(defaultPillHeight,
+        with(density) { MaterialTheme.typography.labelSmall.lineHeight.toDp() } + 30.dp) else defaultPillHeight
     val pillShape = VeritasPackStyle.chipShape()
 
     Box(
@@ -381,7 +388,8 @@ internal fun RowScope.BottomNavItem(
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                     ),
                     color = contentColor,
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
             }
         } else {
@@ -397,63 +405,63 @@ internal fun RowScope.BottomNavItem(
 @Composable
 internal fun ImportSheetMenu(
     onSelectOption: (ImportOption) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    val window = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val windowHeight = with(density) { window.height.toDp() }
+    androidx.compose.foundation.layout.BoxWithConstraints(
+        modifier.fillMaxWidth().heightIn(max = windowHeight).navigationBarsPadding()
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_something), style = MaterialTheme.typography.titleLarge)
-            IconButton(onClick = onDismiss) {
-                Icon(imageVector = Icons.Filled.Close, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close))
-            }
+        val columns = if (maxWidth >= 560.dp || (window.width > window.height && maxWidth >= 480.dp)) 2 else 1
+        val compact = columns == 2 && maxHeight < 420.dp && density.fontScale < 1.5f
+        // Divide measured pixels so rounding cannot push the last tile onto another row.
+        val tileWidth = with(density) {
+            ((constraints.maxWidth - 2 * 20.dp.roundToPx() - 12.dp.roundToPx() * (columns - 1)) / columns)
+                .coerceAtLeast(0).toDp()
         }
-
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            ImportSheetOptionCard(
-                icon = Icons.Filled.FolderOpen,
-                title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_file_browser),
-                subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_browse_and_batch_import_local_files),
-                onClick = { onSelectOption(ImportOption.BROWSE) }
-            )
-            ImportSheetOptionCard(
-                icon = Icons.Filled.ContentPaste,
-                title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_text_e6f8612),
-                subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_copy_and_paste_any_content),
-                onClick = { onSelectOption(ImportOption.PASTE) }
-            )
-            ImportSheetOptionCard(
-                icon = Icons.Filled.Language,
-                title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_from_web),
-                subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_paste_a_link_to_an_article),
-                onClick = { onSelectOption(ImportOption.WEB) }
-            )
-            ImportSheetOptionCard(
-                icon = Icons.Filled.PhotoCamera,
-                title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_scan_ocr),
-                subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_capture_or_choose_a_photo_to_extract_text),
-                onClick = { onSelectOption(ImportOption.SCAN) }
-            )
-            ImportSheetOptionCard(
-                icon = Icons.Filled.Description,
-                title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_browse_phone_folders),
-                subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_open_system_file_chooser),
-                onClick = { onSelectOption(ImportOption.FILE) }
-            )
-            ImportSheetOptionCard(
-                icon = Icons.Filled.EditNote,
-                title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_write_note_96dcbf1),
-                subtitle = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_create_a_freeform_reading_note),
-                onClick = { onSelectOption(ImportOption.WRITE_NOTE) }
-            )
+        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_something),
+                    Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Filled.Close, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close))
+                }
+            }
+            androidx.compose.foundation.layout.FlowRow(
+                Modifier.fillMaxWidth().weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState()).testTag("add-options-$columns"),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp), maxItemsInEachRow = columns
+            ) {
+                ImportSheetOptionCard(Icons.Filled.FolderOpen,
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_file_browser),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_browse_and_batch_import_local_files),
+                    { onSelectOption(ImportOption.BROWSE) }, Modifier.width(tileWidth), compact = compact)
+                ImportSheetOptionCard(Icons.Filled.ContentPaste,
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_text_e6f8612),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_copy_and_paste_any_content),
+                    { onSelectOption(ImportOption.PASTE) }, Modifier.width(tileWidth), compact = compact)
+                ImportSheetOptionCard(Icons.Filled.Language,
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_from_web),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_paste_a_link_to_an_article),
+                    { onSelectOption(ImportOption.WEB) }, Modifier.width(tileWidth), compact = compact)
+                ImportSheetOptionCard(Icons.Filled.PhotoCamera,
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_scan_ocr),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_capture_or_choose_a_photo_to_extract_text),
+                    { onSelectOption(ImportOption.SCAN) }, Modifier.width(tileWidth), compact = compact)
+                ImportSheetOptionCard(Icons.Filled.Description,
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_browse_phone_folders),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_open_system_file_chooser),
+                    { onSelectOption(ImportOption.FILE) }, Modifier.width(tileWidth), compact = compact)
+                ImportSheetOptionCard(Icons.Filled.EditNote,
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_write_note_96dcbf1),
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_create_a_freeform_reading_note),
+                    { onSelectOption(ImportOption.WRITE_NOTE) }, Modifier.width(tileWidth), compact = compact)
+            }
         }
     }
 }
@@ -463,7 +471,9 @@ internal fun ImportSheetOptionCard(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -474,12 +484,12 @@ internal fun ImportSheetOptionCard(
     Card(
         onClick = onClick,
         interactionSource = interaction,
-        modifier = Modifier.fillMaxWidth().graphicsLayer { scaleX = if (pressed) 0.98f else 1f; scaleY = scaleX },
+        modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).graphicsLayer { scaleX = if (pressed) 0.98f else 1f; scaleY = scaleX },
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = pressedColor)
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -489,9 +499,9 @@ internal fun ImportSheetOptionCard(
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(26.dp)
             )
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.bodyLarge)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (!compact) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

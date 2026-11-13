@@ -1,4 +1,5 @@
 package com.veritas.reader.ui.screens
+import com.veritas.reader.VernAlertDialog as AlertDialog
 
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi

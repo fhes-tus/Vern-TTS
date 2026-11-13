@@ -5,7 +5,7 @@ import com.veritas.reader.ui.currentReaderIndex
 import com.veritas.reader.ui.withVisibility
 
 import android.content.Context
-import androidx.compose.material3.AlertDialog
+import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton

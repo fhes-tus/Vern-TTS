@@ -1,0 +1,19 @@
+<resources>
+    <string name="menu_translation_feature_title">"Traducción automática de la interfaz"</string>
+    <string name="menu_translation_on_demand_notice">"Los idiomas integrados están disponibles desde el inicio. Al activar la traducción automática, se descarga un motor opcional de Google Play y después el modelo de idioma."</string>
+    <string name="menu_translation_engine_downloading">"Descargando el motor de traducción de Google Play…"</string>
+    <string name="menu_translation_engine_installing">"Instalando el motor de traducción opcional…"</string>
+    <string name="menu_translation_engine_confirmation">"Google Play necesita tu confirmación para descargar el motor de traducción."</string>
+    <string name="menu_translation_confirm_download">"Confirmar con Google Play"</string>
+    <string name="menu_translation_engine_unavailable">"El motor de traducción no está disponible en Google Play para esta instalación. Los idiomas integrados siguen disponibles."</string>
+    <string name="voice_delete_title">"¿Eliminar %1$s?"</string>
+    <string name="voice_delete_notice">"¿Eliminar esta voz descargada del almacenamiento? Podrás descargarla de nuevo."</string>
+    <string name="voice_delete_shared_notice">"Las ocho voces de Kitten comparten un modelo. Eliminar este paquete borra las ocho voces del almacenamiento. Podrás descargarlas de nuevo."</string>
+    <string name="voice_delete_studio_notice">"Todas las voces de Studio comparten un modelo. Eliminar este paquete borra todas las voces de Studio del almacenamiento. Podrás descargarlas de nuevo."</string>
+    <string name="voice_delete_failed">"No se pudo eliminar la voz. Pausa la lectura, espera a que terminen las muestras o exportaciones de voz y cancela su descarga antes de volver a intentarlo."</string>
+    <string name="voice_cancel_download">"Cancelar descarga"</string>
+    <string name="voice_shared_package_size">"%1$s MB en total · incluye las %2$d voces"</string>
+    <string name="voice_download_package">"Descargar paquete"</string>
+    <string name="voice_individual_downloads">"Cada voz se descarga por separado"</string>
+    <string name="voice_choose_individual">"Elegir una voz"</string>
+</resources>

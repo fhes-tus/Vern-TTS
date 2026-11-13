@@ -1,0 +1,8 @@
+Material Icons Extended 1.7.8
+
+Copyright 2025 The Android Open Source Project
+
+Selected Kotlin icon definitions are copied unchanged from AndroidX.
+Licensed under the Apache License, Version 2.0.
+Original notices remain in each source file.
+https://developer.android.com/jetpack/androidx/releases/compose-material

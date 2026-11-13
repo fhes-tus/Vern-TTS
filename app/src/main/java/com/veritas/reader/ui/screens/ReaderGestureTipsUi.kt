@@ -19,7 +19,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.TouchApp
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -129,6 +131,18 @@ internal fun ReaderGestureTipsBanner(
                     icon = Icons.Outlined.TouchApp,
                     title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_long_press_text),
                     description = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_select_words_for_translation_notes_or_search)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                GestureTipRow(
+                    icon = Icons.Outlined.Tune,
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_gesture_slider_seek),
+                    description = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_gesture_slider_seek_desc)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                GestureTipRow(
+                    icon = Icons.Outlined.KeyboardArrowUp,
+                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_gesture_slide_up_controls),
+                    description = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_gesture_slide_up_controls_desc)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))

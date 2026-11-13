@@ -1,0 +1,19 @@
+<resources>
+    <string name="menu_translation_feature_title">"自动翻译界面"</string>
+    <string name="menu_translation_on_demand_notice">"内置语言可立即使用。启用自动翻译后，将先从 Google Play 下载可选的翻译引擎，再下载语言模型。"</string>
+    <string name="menu_translation_engine_downloading">"正在从 Google Play 下载翻译引擎…"</string>
+    <string name="menu_translation_engine_installing">"正在安装可选的翻译引擎…"</string>
+    <string name="menu_translation_engine_confirmation">"Google Play 需要您确认下载翻译引擎。"</string>
+    <string name="menu_translation_confirm_download">"前往 Google Play 确认"</string>
+    <string name="menu_translation_engine_unavailable">"此安装版本无法从 Google Play 获取翻译引擎。内置语言仍然可用。"</string>
+    <string name="voice_delete_title">"删除 %1$s？"</string>
+    <string name="voice_delete_notice">"要从存储空间中删除已下载的语音吗？以后可以重新下载。"</string>
+    <string name="voice_delete_shared_notice">"Kitten 的八种语音共用一个模型。删除此语音包会从存储空间中移除全部八种语音，以后可以重新下载。"</string>
+    <string name="voice_delete_studio_notice">"所有 Studio 语音共用一个模型。删除此语音包会从存储空间中移除全部 Studio 语音，以后可以重新下载。"</string>
+    <string name="voice_delete_failed">"无法删除语音。请暂停朗读，等待语音试听或导出结束，并取消该语音的下载后重试。"</string>
+    <string name="voice_cancel_download">"取消下载"</string>
+    <string name="voice_shared_package_size">"总计 %1$s MB · 包含全部 %2$d 种语音"</string>
+    <string name="voice_download_package">"下载语音包"</string>
+    <string name="voice_individual_downloads">"每种语音单独下载"</string>
+    <string name="voice_choose_individual">"选择语音"</string>
+</resources>

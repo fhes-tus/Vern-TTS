@@ -193,7 +193,7 @@ Suggestions, bug reports, and pull requests are welcome! Feel free to open an is
 
 ## Current development milestone
 
-Source is **2.8.0 / build 47**. This source update has not been published to Google Play or Telegram. See [2.8.0 notes](RELEASE_NOTES_v2.8.0.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and the verification snapshots under `docs/verification/`.
+Source is **2.8.1 / build 48**. See [2.8.1 notes](RELEASE_NOTES_v2.8.1.md), the [release handoff](release/v2.8.1/README.md), [APK/Play signing compatibility](docs/UPDATE_COMPATIBILITY.md) and [verification progress](progress.md). Publication status is recorded in the release handoff.
 
 ### Desktop implementation
 

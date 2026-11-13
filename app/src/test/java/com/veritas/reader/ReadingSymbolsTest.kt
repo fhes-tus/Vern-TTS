@@ -26,7 +26,7 @@ class ReadingSymbolsTest {
         assertEquals("1930 to 1940", ReadingSymbols.prepare("1930-1940").text)
         assertEquals("5 minus 2", ReadingSymbols.prepare("5 - 2").text)
         assertEquals("Temperature minus 4", ReadingSymbols.prepare("Temperature -4").text)
-        assertEquals("A well-known name on 01/02/2026.", ReadingSymbols.prepare("A well-known name on 01/02/2026.").text)
+        assertEquals("A well-known name on February 1, 2026.", ReadingSymbols.prepare("A well-known name on 01/02/2026.").text)
         assertEquals("2026-13-35", ReadingSymbols.prepare("2026-13-35").text) // invalid ISO dates stay intact
     }
     @Test fun chemistryRequiresAFormulaOrExplicitChemicalContext() {

@@ -46,7 +46,8 @@ class StudyHierarchyUiTest {
                 }
             }
         }
-        rule.onNodeWithText("8 cards ready").assertIsDisplayed()
+        val readyLabel = InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.l10n_dynamic_208, "8")
+        rule.onNodeWithText(readyLabel).performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Not due").assertDoesNotExist()
         rule.onNodeWithText("0%").assertDoesNotExist()
         rule.onNodeWithText("Start review").performClick()
@@ -64,7 +65,7 @@ class StudyHierarchyUiTest {
         rule.setContent {
             val colors = veritasDarkSurfaceScheme(darkColorScheme(), false)
             val density = LocalDensity.current
-            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.5f),
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 2f),
                 LocalVeritasPackId provides "material_you", LocalVeritasMotion provides VeritasMotionScheme(true)) {
                 MaterialTheme(colorScheme = colors, typography = veritasTypography(VeritasUiFont.CRISP)) {
                     Column(Modifier.width(320.dp).background(colors.background).verticalScroll(rememberScrollState()).padding(16.dp)) {

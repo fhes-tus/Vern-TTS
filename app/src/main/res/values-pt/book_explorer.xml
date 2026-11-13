@@ -1,0 +1,9 @@
+<resources>
+    <string name="book_explorer_title">"Explorador de livros"</string>
+    <string name="book_explorer_intro_title">"Encontre sua próxima leitura"</string>
+    <string name="book_explorer_intro_message">"Procurando um livro fora desta coleção? Use %1$s para encontrar livros na internet."</string>
+    <string name="book_explorer_open">"Abrir %1$s"</string>
+    <string name="book_explorer_keep_browsing">"Continuar explorando"</string>
+    <string name="book_explorer_description">"Escolha um site para explorar ou pesquisar um livro."</string>
+    <string name="book_explorer_search">"Pesquisar “%1$s” com %2$s"</string>
+</resources>

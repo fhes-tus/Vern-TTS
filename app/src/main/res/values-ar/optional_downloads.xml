@@ -1,0 +1,19 @@
+<resources>
+    <string name="menu_translation_feature_title">"الترجمة التلقائية للواجهة"</string>
+    <string name="menu_translation_on_demand_notice">"اللغات المدمجة متاحة فورًا. يؤدي تفعيل الترجمة التلقائية إلى تنزيل محرك اختياري من Google Play، ثم نموذج اللغة."</string>
+    <string name="menu_translation_engine_downloading">"جارٍ تنزيل محرك الترجمة من Google Play…"</string>
+    <string name="menu_translation_engine_installing">"جارٍ تثبيت محرك الترجمة الاختياري…"</string>
+    <string name="menu_translation_engine_confirmation">"يحتاج Google Play إلى تأكيدك لتنزيل محرك الترجمة."</string>
+    <string name="menu_translation_confirm_download">"التأكيد عبر Google Play"</string>
+    <string name="menu_translation_engine_unavailable">"محرك الترجمة غير متاح من Google Play لهذا التثبيت. تظل اللغات المدمجة متاحة."</string>
+    <string name="voice_delete_title">"هل تريد حذف %1$s؟"</string>
+    <string name="voice_delete_notice">"هل تريد إزالة هذا الصوت المنزّل من مساحة التخزين؟ يمكنك تنزيله مجددًا لاحقًا."</string>
+    <string name="voice_delete_shared_notice">"تشترك أصوات Kitten الثمانية في نموذج واحد. يؤدي حذف هذه الحزمة إلى إزالة الأصوات الثمانية من مساحة التخزين. يمكنك تنزيلها مجددًا لاحقًا."</string>
+    <string name="voice_delete_studio_notice">"تشترك جميع أصوات Studio في نموذج واحد. يؤدي حذف هذه الحزمة إلى إزالة جميع أصوات Studio من مساحة التخزين. يمكنك تنزيلها مجددًا لاحقًا."</string>
+    <string name="voice_delete_failed">"تعذّر حذف الصوت. أوقف القراءة مؤقتًا وانتظر انتهاء معاينة الصوت أو تصديره، ثم ألغِ تنزيله قبل المحاولة مجددًا."</string>
+    <string name="voice_cancel_download">"إلغاء التنزيل"</string>
+    <string name="voice_shared_package_size">"%1$s ميغابايت إجمالًا · تشمل جميع الأصوات وعددها %2$d"</string>
+    <string name="voice_download_package">"تنزيل الحزمة"</string>
+    <string name="voice_individual_downloads">"يُنزّل كل صوت على حدة"</string>
+    <string name="voice_choose_individual">"اختيار صوت"</string>
+</resources>

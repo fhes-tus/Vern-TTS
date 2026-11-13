@@ -1,0 +1,9 @@
+<resources>
+    <string name="book_explorer_title">"도서 탐색"</string>
+    <string name="book_explorer_intro_title">"다음에 읽을 책을 찾아보세요"</string>
+    <string name="book_explorer_intro_message">"이 목록에 없는 책을 찾고 있나요? %1$s에서 온라인으로 책을 찾아보세요."</string>
+    <string name="book_explorer_open">"%1$s 열기"</string>
+    <string name="book_explorer_keep_browsing">"계속 둘러보기"</string>
+    <string name="book_explorer_description">"책을 둘러보거나 검색할 웹사이트를 선택하세요."</string>
+    <string name="book_explorer_search">"%2$s에서 “%1$s” 검색"</string>
+</resources>

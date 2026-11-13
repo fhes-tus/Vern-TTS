@@ -42,6 +42,7 @@ import com.veritas.reader.loadAllDocumentNotes
 import com.veritas.reader.loadAnnotations
 import com.veritas.reader.loadDocumentNote
 import com.veritas.reader.loadGeneralNotes
+import com.veritas.reader.loadGeneralNotesSnapshot
 import com.veritas.reader.parseVocabularyNoteContent
 import com.veritas.reader.removeAnnotation
 import com.veritas.reader.removeAnnotations
@@ -325,21 +326,22 @@ fun ReaderViewModel.saveGeneralNote(
         var effectiveNote = savedNote
         val updated = withContext(Dispatchers.IO) {
             synchronized(com.veritas.reader.DocumentRepository.LIBRARY_WRITE_LOCK) {
-            check(repository.loadTrashedGeneralNotes().none { it.id == target.id }) { "This note is in Trash." }
-            val existingNotes = repository.loadGeneralNotes()
+            val notesSnapshot = repository.loadGeneralNotesSnapshot()
+            check(notesSnapshot.trashed.none { it.id == target.id }) { "This note is in Trash." }
+            val existingNotes = notesSnapshot.active
             val existing = existingNotes.firstOrNull { it.id == target.id }
             val availableLabels = repository.loadNoteNotebooks().map { it.id }.toSet()
             effectiveNote = savedNote.withLabels((notebookIds ?: existing?.allLabelIds ?: savedNote.allLabelIds).filter { it in availableLabels })
             if (existing != null && effectiveNote.copy(updatedAt = existing.updatedAt) == existing) {
                 effectiveNote = existing
-                existingNotes
+                notesSnapshot
             } else {
                 if (existing != null) repository.archiveGeneralNoteRevision(existing)
                 repository.mutateGeneralNotes { notes -> listOf(effectiveNote) + notes.filterNot { it.id == target.id } }
+                repository.loadGeneralNotesSnapshot()
             }
             }
         }
-        val trashed = withContext(Dispatchers.IO) { repository.loadTrashedGeneralNotes() }
         // (Re)schedule or clear the note's reminder alarm.
         val app = getApplication<Application>()
         val reminderBody = title.ifBlank { content.take(80) }.ifBlank { "Note reminder" }
@@ -354,15 +356,15 @@ fun ReaderViewModel.saveGeneralNote(
             _uiState.update {
                 if (closeEditor) {
                     it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, false).copy(
-                        generalNotes = updated,
-                        trashedGeneralNotes = trashed,
+                        generalNotes = updated.active,
+                        trashedGeneralNotes = updated.trashed,
                         generalNoteSaveStatus = "Saved",
                         generalNoteEditorTarget = null
                     )
                 } else {
                     it.copy(
-                        generalNotes = updated,
-                        trashedGeneralNotes = trashed,
+                        generalNotes = updated.active,
+                        trashedGeneralNotes = updated.trashed,
                         generalNoteSaveStatus = "Saved",
                         generalNoteEditorTarget = effectiveNote
                     )
@@ -444,13 +446,12 @@ fun ReaderViewModel.deleteGeneralNote(noteId: String) {
         generalNoteSaveJob?.join()
         repository.moveGeneralNoteToTrash(noteId)
         NoteReminderScheduler.cancel(getApplication(), noteId)
-        val updated = repository.loadGeneralNotes()
-        val trashed = repository.loadTrashedGeneralNotes()
+        val notesSnapshot = repository.loadGeneralNotesSnapshot()
         withContext(Dispatchers.Main) {
             _uiState.update {
                 it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, false).copy(
-                    generalNotes = updated,
-                    trashedGeneralNotes = trashed,
+                    generalNotes = notesSnapshot.active,
+                    trashedGeneralNotes = notesSnapshot.trashed,
                     generalNoteEditorTarget = null
                 )
             }
@@ -460,14 +461,14 @@ fun ReaderViewModel.deleteGeneralNote(noteId: String) {
 
 fun ReaderViewModel.restoreTrashedGeneralNote(noteId: String) {
     launchNoteCollectionAction {
-        val active = repository.restoreGeneralNote(noteId)
-        val trashed = repository.loadTrashedGeneralNotes()
-        val restored = active.firstOrNull { it.id == noteId }
+        repository.restoreGeneralNote(noteId)
+        val notesSnapshot = repository.loadGeneralNotesSnapshot()
+        val restored = notesSnapshot.active.firstOrNull { it.id == noteId }
         if (restored?.reminderAt != null && restored.reminderAt > System.currentTimeMillis()) {
             NoteReminderScheduler.ensureChannel(getApplication())
             NoteReminderScheduler.schedule(getApplication(), restored.id, restored.title.ifBlank { "Vern note" }, restored.content.take(80).ifBlank { "Note reminder" }, restored.reminderAt)
         }
-        withContext(Dispatchers.Main) { _uiState.update { it.copy(generalNotes = active, trashedGeneralNotes = trashed) } }
+        withContext(Dispatchers.Main) { _uiState.update { it.copy(generalNotes = notesSnapshot.active, trashedGeneralNotes = notesSnapshot.trashed) } }
     }
 }
 
@@ -532,10 +533,9 @@ suspend fun ReaderViewModel.createNoteLabel(name: String): NoteNotebook = withCo
 fun ReaderViewModel.deleteNoteNotebook(notebookId: String) {
     launchNoteCollectionAction {
         repository.deleteNoteNotebook(notebookId)
-        val active = repository.loadGeneralNotes()
+        val notesSnapshot = repository.loadGeneralNotesSnapshot()
         val notebooks = repository.loadNoteNotebooks()
-        val trash = repository.loadTrashedGeneralNotes()
-        _uiState.update { it.copy(noteNotebooks = notebooks, generalNotes = active, trashedGeneralNotes = trash) }
+        _uiState.update { it.copy(noteNotebooks = notebooks, generalNotes = notesSnapshot.active, trashedGeneralNotes = notesSnapshot.trashed) }
     }
 }
 

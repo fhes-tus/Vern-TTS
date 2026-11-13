@@ -188,7 +188,6 @@ internal fun RecentImportItem(
                     onDismissRequest = { showActions = false },
                     modifier = Modifier.width(240.dp)
                 ) {
-                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_reading)) }, onClick = { showActions = false; onOpen() })
                     DropdownMenuItem(text = { Text(if (document.favorite) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_favorites) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_favorites)) }, onClick = { showActions = false; onToggleFavorite() })
                     DropdownMenuItem(text = { Text(if (isQueued) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_queue) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_queue)) }, onClick = { showActions = false; onToggleQueue() })
                     if (isQueued) {
@@ -203,8 +202,7 @@ internal fun RecentImportItem(
                             onClick = { showActions = false; onMoveQueueDown() }
                         )
                     }
-                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_to_collection)) }, onClick = { showActions = false; onSetCollection() })
-                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_lists)) }, onClick = { showActions = false; onManageLists() })
+                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_collection)) }, onClick = { showActions = false; onManageLists() })
                     DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_rename)) }, onClick = { showActions = false; onRename() })
                     DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_phone)) }, onClick = { showActions = false; saveBookToPhone() })
                     DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_details)) }, onClick = { showActions = false; onShowDetails() })
@@ -366,8 +364,9 @@ fun DocumentCard(
     // detectTapGestures, so the press flag is tracked here rather than
     // observed from an InteractionSource.
     var pressed by remember { mutableStateOf(false) }
+    val isNonTile = viewMode != LibraryViewMode.TILES
     Card(
-        modifier = modifier.vernScatteredCard(document.id, !selectionMode && com.veritas.reader.VeritasThemeState.scatteredCards)
+        modifier = modifier.vernScatteredCard(document.id, !selectionMode && com.veritas.reader.VeritasThemeState.scatteredCards && !isNonTile)
             .fillMaxWidth()
             .graphicsLayer(scaleX = selectionScale, scaleY = selectionScale)
             .pressScale(pressed)
@@ -384,19 +383,23 @@ fun DocumentCard(
                     }
                 )
             },
-        shape = VeritasPackStyle.compactShape(),
+        shape = if (isNonTile) RoundedCornerShape(8.dp) else VeritasPackStyle.compactShape(),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme),
+        border = if (isNonTile) {
+            if (selected) VeritasPackStyle.cardBorder(MaterialTheme.colorScheme) else null
+        } else {
+            VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
+        },
         colors = CardDefaults.cardColors(
-            containerColor = if (selected) {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = VeritasPackStyle.surfaceAlpha())
-            } else {
-                com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
+            containerColor = when {
+                selected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = VeritasPackStyle.surfaceAlpha())
+                isNonTile -> Color.Transparent
+                else -> com.veritas.reader.VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
             }
         )
     ) {
         Row(
-            modifier = Modifier.padding(if (viewMode == LibraryViewMode.LIST) 10.dp else 14.dp),
+            modifier = Modifier.padding(if (isNonTile) 8.dp else 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -493,7 +496,7 @@ fun DocumentCard(
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(0.dp)
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 if (selectionMode) {
                     Box(
@@ -509,36 +512,33 @@ fun DocumentCard(
                         Text(if (selected) "✓" else "+", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 } else {
-                    IconButton(onClick = onShowDetails, modifier = Modifier.size(48.dp)) {
+                    IconButton(onClick = onShowDetails, modifier = Modifier.size(34.dp)) {
                         Icon(
                             imageVector = Icons.Outlined.Info,
                             contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_book_summary_details),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                     Box {
-                        IconButton(onClick = { showActions = true }, modifier = Modifier.size(48.dp)) {
+                        IconButton(onClick = { showActions = true }, modifier = Modifier.size(34.dp)) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
                                 contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_document_actions),
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                             )
                         }
                         DropdownMenu(
                             expanded = showActions,
                             onDismissRequest = { showActions = false },
-                            modifier = Modifier.width(260.dp)
+                            modifier = Modifier.width(240.dp)
                         ) {
-                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_reading)) }, onClick = { showActions = false; onOpen() })
                             DropdownMenuItem(text = { Text(if (document.favorite) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_favorites) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_favorites)) }, onClick = { showActions = false; onToggleFavorite() })
                             DropdownMenuItem(text = { Text(if (isQueued) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_queue) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_queue)) }, onClick = { showActions = false; onToggleQueue() })
-                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_to_collection)) }, onClick = { showActions = false; onSetCollection() })
-                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_lists)) }, onClick = { showActions = false; onManageLists() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_collection)) }, onClick = { showActions = false; onManageLists() })
                             DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_rename)) }, onClick = { showActions = false; onRename() })
                             DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_phone)) }, onClick = { showActions = false; saveBookToPhone() })
-                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_details)) }, onClick = { showActions = false; onShowDetails() })
                             DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) }, onClick = { showActions = false; onDelete() })
                         }
                     }
@@ -733,14 +733,12 @@ fun DocumentTileCard(
                             )
                         }
                         DropdownMenu(expanded = showActions, onDismissRequest = { showActions = false }) {
-                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_reading)) }, onClick = { showActions = false; onOpen() })
                             DropdownMenuItem(text = { Text(if (document.favorite) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_favorite) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_favorite)) }, onClick = { showActions = false; onToggleFavorite() })
                             DropdownMenuItem(text = { Text(if (isQueued) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_from_queue) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_to_queue)) }, onClick = { showActions = false; onToggleQueue() })
-                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_to_collection)) }, onClick = { showActions = false; onSetCollection() })
-                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_lists)) }, onClick = { showActions = false; onManageLists() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_collection)) }, onClick = { showActions = false; onManageLists() })
                             DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_rename)) }, onClick = { showActions = false; onRename() })
                             DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_phone)) }, onClick = { showActions = false; saveBookToPhone() })
-                    DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_details)) }, onClick = { showActions = false; onShowDetails() })
+                            DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_details)) }, onClick = { showActions = false; onShowDetails() })
                             DropdownMenuItem(text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) }, onClick = { showActions = false; onDelete() })
                         }
                     }
