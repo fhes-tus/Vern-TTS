@@ -148,7 +148,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         val controlsOuter = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(20.dp, 6.dp, 20.dp, 10.dp)
+            setPadding(16.dp, 4.dp, 16.dp, 6.dp)
             setBackgroundColor(Color.TRANSPARENT)
             elevation = 0f
             layoutParams = FrameLayout.LayoutParams(
@@ -168,7 +168,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             clipToOutline = true
             background = GradientDrawable().apply {
                 setColor(colorPlayerSurface)
-                cornerRadius = 32.dp.toFloat()
+                cornerRadius = 28.dp.toFloat()
                 setStroke(1.dp, colorOutline)
             }
             elevation = if (!isLightTheme) 10.dp.toFloat() else 8.dp.toFloat()
@@ -183,24 +183,24 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         // Progress strip (thin coloured bar at top of panel)
         val progressStrip = View(this).apply {
             setBackgroundColor(if (PlaybackStateStore.isPlaying) colorActiveStrip else colorOutline)
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 3.dp)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2.dp)
         }
 
         // ── Header row (always visible) ─────────────────────────────────────
         val controlRow = VernPdfControlsHeader(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(10.dp, 8.dp, 8.dp, 8.dp)
+            setPadding(8.dp, 4.dp, 6.dp, 4.dp)
         }
 
         // Brand tile — tap to expand/collapse
         val brand = FrameLayout(this).apply {
-            background = rounded(colorSyncBackground, 12.dp)
-            layoutParams = LinearLayout.LayoutParams(50.dp, 50.dp)
+            background = rounded(colorSyncBackground, 10.dp)
+            layoutParams = LinearLayout.LayoutParams(38.dp, 38.dp)
             addView(ImageView(context).apply {
                 setImageResource(R.drawable.veritas_reader_icon)
                 scaleType = ImageView.ScaleType.FIT_CENTER
-                setPadding(5.dp, 5.dp, 5.dp, 5.dp)
+                setPadding(4.dp, 4.dp, 4.dp, 4.dp)
             }, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
             setOnClickListener { togglePanelExpand() }
         }
@@ -222,7 +222,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         controlRow.summary.addView(panelStatusLabel)
 
         // Playback controls
-        controlRow.transport.addView(iconButton(R.drawable.ic_m3_chevron_left) { sendPlaybackIntent(this, PlaybackActions.ACTION_PREVIOUS) })
+        controlRow.transport.addView(iconButton(R.drawable.ic_m3_fast_rewind) { sendPlaybackIntent(this, PlaybackActions.ACTION_PREVIOUS) })
         playPauseControl = prominentButton("") {
             val preparing = PlaybackStateStore.isPreparingFor(document?.id)
             sendPlaybackIntent(this, if (PlaybackStateStore.isPlaying || preparing) PlaybackActions.ACTION_PAUSE else PlaybackActions.ACTION_PLAY,
@@ -231,7 +231,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         }
         applyPlayPauseIcon(PlaybackStateStore.isPlaying)
         controlRow.transport.addView(requireNotNull(playPauseControl))
-        controlRow.transport.addView(iconButton(R.drawable.ic_m3_chevron_right) { sendPlaybackIntent(this, PlaybackActions.ACTION_NEXT) })
+        controlRow.transport.addView(iconButton(R.drawable.ic_m3_fast_forward) { sendPlaybackIntent(this, PlaybackActions.ACTION_NEXT) })
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         val rotateIcon = if (isLandscape) R.drawable.ic_m3_stay_primary_portrait else R.drawable.ic_m3_stay_primary_landscape
         val rotBtn = iconButton(rotateIcon) { rotateViewer() }
@@ -241,7 +241,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         // Expand arrow indicator
         panelExpandArrow = TextView(this).apply {
             gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(48.dp, 48.dp)
+            layoutParams = LinearLayout.LayoutParams(38.dp, 38.dp)
             setOnClickListener { togglePanelExpand() }
         }
         panelExpandArrow?.let { arrow ->
@@ -490,9 +490,9 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         return TextView(this).apply {
             text = label
             setTextColor(colorTextPrimary)
-            textSize = 25f
+            textSize = 20f
             gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(48.dp, 48.dp)
+            layoutParams = LinearLayout.LayoutParams(38.dp, 38.dp)
             setOnClickListener {
                 action()
                 if (chromeVisible && !chromeMenuOpen) scheduleChromeAutoHide()
@@ -525,17 +525,17 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         return TextView(this).apply {
             text = label
             setTextColor(if (isLightTheme) Color.WHITE else Color.rgb(8, 34, 40))
-            textSize = 20f
+            textSize = 17f
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
-            background = rounded(colorAccentButton, 22.dp)
-            minimumWidth = if (label.isBlank()) 56.dp else 170.dp
-            minimumHeight = 48.dp
-            setPadding(12.dp, 8.dp, 12.dp, 8.dp)
-            val targetWidth = if (label.isBlank()) 56.dp else LinearLayout.LayoutParams.WRAP_CONTENT
+            background = rounded(colorAccentButton, 19.dp)
+            minimumWidth = if (label.isBlank()) 40.dp else 130.dp
+            minimumHeight = 38.dp
+            setPadding(10.dp, 4.dp, 10.dp, 4.dp)
+            val targetWidth = if (label.isBlank()) 40.dp else LinearLayout.LayoutParams.WRAP_CONTENT
             layoutParams = LinearLayout.LayoutParams(targetWidth, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                marginStart = 4.dp
-                marginEnd = 4.dp
+                marginStart = 3.dp
+                marginEnd = 3.dp
             }
             setOnClickListener {
                 action()
@@ -546,12 +546,12 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
 
     internal fun VeritasPdfViewerActivity.brandTile(): View {
         return FrameLayout(this).apply {
-            background = rounded(colorSyncBackground, 12.dp)
-            layoutParams = LinearLayout.LayoutParams(50.dp, 50.dp)
+            background = rounded(colorSyncBackground, 10.dp)
+            layoutParams = LinearLayout.LayoutParams(38.dp, 38.dp)
             addView(ImageView(context).apply {
                 setImageResource(R.drawable.veritas_reader_icon)
                 scaleType = ImageView.ScaleType.FIT_CENTER
-                setPadding(5.dp, 5.dp, 5.dp, 5.dp)
+                setPadding(4.dp, 4.dp, 4.dp, 4.dp)
             }, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         }
     }

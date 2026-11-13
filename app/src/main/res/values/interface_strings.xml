@@ -1277,6 +1277,7 @@
     <string name="ui_volume" formatted="false">"Volume"</string>
     <string name="ui_waiting_for_pasted_text" formatted="false">"Waiting for pasted text…"</string>
     <string name="ui_web_lookup" formatted="false">"Web lookup"</string>
+    <string name="ui_search_definitions" translatable="false" formatted="false">"Search definitions"</string>
     <string name="ui_weekly_app_activity" formatted="false">"Weekly App Activity"</string>
     <string name="ui_weekly_reading" formatted="false">"Weekly reading"</string>
     <string name="ui_welcome_to_vern" formatted="false">"Welcome to Vern"</string>
@@ -1318,4 +1319,17 @@
     <string name="ui_your_saved_narration_settings_will_stay_as_they_are" formatted="false">"Your saved narration settings will stay as they are."</string>
     <string name="ui_your_studio_profile_neural_narration_and_reading_rhythms_have_bee" formatted="false">"Your studio profile, neural narration, and reading rhythms have been calibrated for effortless immersion."</string>
     <string name="ui_your_study_material" formatted="false">"Your study material"</string>
+    <string name="ui_gesture_slider_seek" translatable="false" formatted="false">"Use slider to seek page"</string>
+    <string name="ui_gesture_slider_seek_desc" translatable="false" formatted="false">"Scrub left or right to quickly jump across pages"</string>
+    <string name="ui_gesture_slide_up_controls" translatable="false" formatted="false">"Slide up on playback bar"</string>
+    <string name="ui_gesture_slide_up_controls_desc" translatable="false" formatted="false">"Show speed presets, voice, and pitch controls"</string>
+    <string name="ui_save_to_collection" translatable="false" formatted="false">"Save to collection"</string>
+    <string name="ui_choose_collections_desc" translatable="false" formatted="false">"Choose collections for this book to organize and filter your library."</string>
+    <string name="ui_new_collection_name" translatable="false" formatted="false">"New collection name"</string>
+    <string name="ui_create_collection" translatable="false" formatted="false">"Create collection"</string>
+    <string name="ui_no_collections_yet" translatable="false" formatted="false">"No collections yet"</string>
+    <string name="ui_sentence_actions" translatable="false" formatted="false">"Sentence Actions"</string>
+    <string name="ui_create_quote_card" translatable="false" formatted="false">"Create Quote Card"</string>
+    <string name="ui_copy_sentence" translatable="false" formatted="false">"Copy sentence"</string>
+    <string name="ui_sentence_copied" translatable="false" formatted="false">"Sentence copied to clipboard"</string>
 </resources>

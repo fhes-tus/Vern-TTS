@@ -93,6 +93,16 @@ internal fun StudyHubOverview(
                 }
             }
         }
+        TextButton(onClick = { onSelectSection("Dictionary") }, modifier = Modifier.width(panelWidth).heightIn(min = 56.dp)
+            .testTag("study-dictionary-entry")) {
+            Icon(Icons.AutoMirrored.Outlined.MenuBook, null, Modifier.size(22.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
+                Text("Dictionary", style = MaterialTheme.typography.titleMedium)
+                Text("Definitions, examples & an optional offline English pack", style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant)
+            }
+        }
         Card(
             modifier = Modifier.width(panelWidth).vernScatteredCard("study-create", amount = .45f),
             shape = VeritasPackStyle.cardShape(),

@@ -93,7 +93,15 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
             }
         }
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                Column(
+                    Modifier
+                        .widthIn(max = 760.dp)
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                        .navigationBarsPadding(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_insights), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
                     IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_insights)) }
@@ -218,6 +226,7 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                 }
             }
         }
+    }
     }
     if (manual || edit != null) {
         SessionEditor(documents, edit, onDismiss = { manual = false; edit = null }, onReset = {

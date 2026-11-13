@@ -1,0 +1,1401 @@
+{
+  "artifact": "androidx.compose.material:material-icons-extended-android:1.7.8",
+  "sourceJarSha256": "77b7e782a519a3e074fc91e09d59334ac1b815edd87d2e89c0c9ca7c95678e93",
+  "coreArtifact": "androidx.compose.material:material-icons-core-android:1.7.8",
+  "selection": "Explicit imports, direct references, conservative wildcard matches, and upstream definition dependencies across Android source sets.",
+  "icons": [
+    {
+      "icon": "automirrored.filled.FormatIndentDecrease",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/FormatIndentDecrease.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/FormatIndentDecrease.kt",
+      "bytes": 2688,
+      "sha256": "9838547ba68ea3670c00b30ac4ed8996b817bba2ca1a7d35124d16976ebabfe6"
+    },
+    {
+      "icon": "automirrored.filled.FormatIndentIncrease",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/FormatIndentIncrease.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/FormatIndentIncrease.kt",
+      "bytes": 2699,
+      "sha256": "01fb5417d1cb059ef6d440a3e9ad77505c58500731e746b8b23cb1965d7fb307"
+    },
+    {
+      "icon": "automirrored.filled.FormatListBulleted",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/FormatListBulleted.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/FormatListBulleted.kt",
+      "bytes": 3017,
+      "sha256": "9e4adfd5a9930232a576f5475ba94bce6c1e2327da753984e24270dc8ce21636"
+    },
+    {
+      "icon": "automirrored.filled.Launch",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/Launch.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/Launch.kt",
+      "bytes": 2390,
+      "sha256": "d34e716d85ebda31b96d5b8919565142b34a7c7ae04c97b0d0227c607206b95e"
+    },
+    {
+      "icon": "automirrored.filled.LibraryBooks",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/LibraryBooks.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/LibraryBooks.kt",
+      "bytes": 2840,
+      "sha256": "bb5956baba7e9e94bd7f05375edf16b158a5a0a4fc9dcfce1741224c96a7be5e"
+    },
+    {
+      "icon": "automirrored.filled.ListAlt",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/ListAlt.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/ListAlt.kt",
+      "bytes": 3204,
+      "sha256": "6e9a9be63e7c83983b5acfa2f881774581944ed6d15f0bba0cea8f235ea77a8a"
+    },
+    {
+      "icon": "automirrored.filled.MenuBook",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/MenuBook.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/MenuBook.kt",
+      "bytes": 4176,
+      "sha256": "a1ce5538c5c2a1f8fe33273b1d76d350d03a2565717c39e510515af6da80bfec"
+    },
+    {
+      "icon": "automirrored.filled.NavigateBefore",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/NavigateBefore.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/NavigateBefore.kt",
+      "bytes": 1576,
+      "sha256": "6500ed96633cfab32598c695d09a376db0562c62e6c9cd7c5c2578efadc79607"
+    },
+    {
+      "icon": "automirrored.filled.NavigateNext",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/NavigateNext.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/NavigateNext.kt",
+      "bytes": 1539,
+      "sha256": "4d966b89acb8e7d390cfd2cfe3565b9abe97b077671675299680e631972c2d22"
+    },
+    {
+      "icon": "automirrored.filled.NoteAdd",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/NoteAdd.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/NoteAdd.kt",
+      "bytes": 2479,
+      "sha256": "6dda98530a3766769e02391db7ff96d9a5b09fa3186fc2ce31ab9c11340f8a1e"
+    },
+    {
+      "icon": "automirrored.filled.OpenInNew",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/OpenInNew.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/OpenInNew.kt",
+      "bytes": 2411,
+      "sha256": "f98c5372e3f65c5f7688444761b13a4fd012dfd9a0d309064c4e63753de41743"
+    },
+    {
+      "icon": "automirrored.filled.PlaylistPlay",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/PlaylistPlay.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/PlaylistPlay.kt",
+      "bytes": 2151,
+      "sha256": "72e88579a25fbdfe2f8ef8f167bc38b254cb0dedbc68b358f53ba410debd7083"
+    },
+    {
+      "icon": "automirrored.filled.Redo",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/Redo.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/Redo.kt",
+      "bytes": 1772,
+      "sha256": "ceaa652fc0ff65ad5543b200ecc63ab146467a11c4bc69877346f8ead23564e7"
+    },
+    {
+      "icon": "automirrored.filled.RotateRight",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/RotateRight.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/RotateRight.kt",
+      "bytes": 2751,
+      "sha256": "4ecd2709b8b7ab2569c3a7ed2320baee55f2a66e74876412b6f01a0fe13f4282"
+    },
+    {
+      "icon": "automirrored.filled.Sort",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/Sort.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/Sort.kt",
+      "bytes": 1913,
+      "sha256": "5f463c600135ce8f9cffb0d8da017b5c03a60272240cfe1c74d1798b83a3322c"
+    },
+    {
+      "icon": "automirrored.filled.Undo",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/Undo.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/Undo.kt",
+      "bytes": 1790,
+      "sha256": "b7a5ebec02a4cb2a742852567beed5025db21d37b93d75d6c2614ae2d56d80d6"
+    },
+    {
+      "icon": "automirrored.filled.VolumeOff",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/VolumeOff.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/VolumeOff.kt",
+      "bytes": 2925,
+      "sha256": "72436387769866cc40a5b257bf08569f769af7c45bfcb04c9a92f4c38d4f3f18"
+    },
+    {
+      "icon": "automirrored.filled.VolumeUp",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/filled/VolumeUp.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/filled/VolumeUp.kt",
+      "bytes": 2252,
+      "sha256": "af385520b7e356d24b27da9cc5df2909030498b45bae6905e1a06bff8210ed69"
+    },
+    {
+      "icon": "automirrored.outlined.Article",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/outlined/Article.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/outlined/Article.kt",
+      "bytes": 2698,
+      "sha256": "039311cc29361a6eb9cebfd3ab482797a5e200350ee180ea225465df5c85c91c"
+    },
+    {
+      "icon": "automirrored.outlined.HelpOutline",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/outlined/HelpOutline.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/outlined/HelpOutline.kt",
+      "bytes": 2772,
+      "sha256": "6da6347e719e040d8632eefa0edc5392ac2c2d23c8ec01fdf1f313f3552336a5"
+    },
+    {
+      "icon": "automirrored.outlined.MenuBook",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/outlined/MenuBook.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/outlined/MenuBook.kt",
+      "bytes": 4182,
+      "sha256": "807daf314bf39de5d014388a018a0aa7cab6038016381acd6cce15b0684e5aba"
+    },
+    {
+      "icon": "automirrored.outlined.VolumeUp",
+      "source": "commonMain/androidx/compose/material/icons/automirrored/outlined/VolumeUp.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/automirrored/outlined/VolumeUp.kt",
+      "bytes": 2573,
+      "sha256": "b6232d71a4c78095a7764f590182c8818a9efd3ba01b531594c30272bb4baf56"
+    },
+    {
+      "icon": "filled.AddBox",
+      "source": "commonMain/androidx/compose/material/icons/filled/AddBox.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/AddBox.kt",
+      "bytes": 2283,
+      "sha256": "bc2c8b9144fb4f34cab5342d77149e2e91cb060f7bccbb8caf26633c955bbfc2"
+    },
+    {
+      "icon": "filled.Archive",
+      "source": "commonMain/androidx/compose/material/icons/filled/Archive.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Archive.kt",
+      "bytes": 2509,
+      "sha256": "0d81c0ddd40e4f1ac5eae114a99262a38e0b3fbda07c7b4e3ed2ba840b4fe146"
+    },
+    {
+      "icon": "filled.ArrowDropUp",
+      "source": "commonMain/androidx/compose/material/icons/filled/ArrowDropUp.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/ArrowDropUp.kt",
+      "bytes": 1359,
+      "sha256": "1fa8704d131e75aa7c2315307d0203aa48ef56997d1ce1f14a1356bcc4e457d6"
+    },
+    {
+      "icon": "filled.AttachFile",
+      "source": "commonMain/androidx/compose/material/icons/filled/AttachFile.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/AttachFile.kt",
+      "bytes": 2522,
+      "sha256": "0e58f2c3afdf720d2c5a6e779fa0cef50d50b8032ce298d0c7c65e93769f3fad"
+    },
+    {
+      "icon": "filled.AutoAwesome",
+      "source": "commonMain/androidx/compose/material/icons/filled/AutoAwesome.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/AutoAwesome.kt",
+      "bytes": 2364,
+      "sha256": "ff6c962954eebe4b4f50c02751aa0ff5472f157c09b2dfd79ee96ee148a4bce8"
+    },
+    {
+      "icon": "filled.AutoGraph",
+      "source": "commonMain/androidx/compose/material/icons/filled/AutoGraph.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/AutoGraph.kt",
+      "bytes": 2727,
+      "sha256": "1c3c3e4b6dba5d2d18709a1ee9c4525049ca86931717048b89695c67d2f278b5"
+    },
+    {
+      "icon": "filled.Autorenew",
+      "source": "commonMain/androidx/compose/material/icons/filled/Autorenew.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Autorenew.kt",
+      "bytes": 2339,
+      "sha256": "939d59f8424a3d3037cea48e3cbd7d147f9bbb852b3263898fb9bf20f22c59c8"
+    },
+    {
+      "icon": "filled.AutoStories",
+      "source": "commonMain/androidx/compose/material/icons/filled/AutoStories.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/AutoStories.kt",
+      "bytes": 2747,
+      "sha256": "2e051eeb2d5ea4030733ba55cc1ae080efc4b970f98f64c1628b5dd8d00a500e"
+    },
+    {
+      "icon": "filled.Bolt",
+      "source": "commonMain/androidx/compose/material/icons/filled/Bolt.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Bolt.kt",
+      "bytes": 1902,
+      "sha256": "17c951153c7e0c3f581a1000f6e0ebba06e87c4c34a494d967f0edaae56cf830"
+    },
+    {
+      "icon": "filled.Book",
+      "source": "commonMain/androidx/compose/material/icons/filled/Book.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Book.kt",
+      "bytes": 1944,
+      "sha256": "f2bc431e754c4804d66a5ef66f471d638fb936b7bd2d5a4e51143e63ffefc253"
+    },
+    {
+      "icon": "filled.Bookmark",
+      "source": "commonMain/androidx/compose/material/icons/filled/Bookmark.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Bookmark.kt",
+      "bytes": 1596,
+      "sha256": "d113d318d5c56f39f54a431c7a25188d493c390cfb05b64ae720b11029ce091f"
+    },
+    {
+      "icon": "filled.BookmarkAdd",
+      "source": "commonMain/androidx/compose/material/icons/filled/BookmarkAdd.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/BookmarkAdd.kt",
+      "bytes": 2351,
+      "sha256": "e708fa06eec5617d2849041efcf3b7e3559efffa34e2988903c43ce6e256e76d"
+    },
+    {
+      "icon": "filled.BrightnessAuto",
+      "source": "commonMain/androidx/compose/material/icons/filled/BrightnessAuto.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/BrightnessAuto.kt",
+      "bytes": 2539,
+      "sha256": "f208add9c475a7fe9373a97b7b1ef31bbad8c66b8e5563d2ed5891328cbcac2e"
+    },
+    {
+      "icon": "filled.Brush",
+      "source": "commonMain/androidx/compose/material/icons/filled/Brush.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Brush.kt",
+      "bytes": 1977,
+      "sha256": "b6ad9fe06cf2dc91aa4cff76b2310658e2c57f4a80280e6eb832e1ed5e0be8d5"
+    },
+    {
+      "icon": "filled.CalendarMonth",
+      "source": "commonMain/androidx/compose/material/icons/filled/CalendarMonth.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/CalendarMonth.kt",
+      "bytes": 3693,
+      "sha256": "6a7b7e1c61e38eb85d88d2efaf3076e0692e66db90ff625c652be0ef35e00e0d"
+    },
+    {
+      "icon": "filled.CheckBox",
+      "source": "commonMain/androidx/compose/material/icons/filled/CheckBox.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/CheckBox.kt",
+      "bytes": 2018,
+      "sha256": "83fee22cb48ff9531a952733b35ad3fbb9f4772f1edc23794027a929903994b9"
+    },
+    {
+      "icon": "filled.CheckBoxOutlineBlank",
+      "source": "commonMain/androidx/compose/material/icons/filled/CheckBoxOutlineBlank.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/CheckBoxOutlineBlank.kt",
+      "bytes": 2001,
+      "sha256": "c50592119ef4ea36f9da0ccd4752b2bb4dc27b081fa30e092df0088b484d8e44"
+    },
+    {
+      "icon": "filled.Checklist",
+      "source": "commonMain/androidx/compose/material/icons/filled/Checklist.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Checklist.kt",
+      "bytes": 2307,
+      "sha256": "7667ecd829786ad871ae95a35984616242e761ccb1500afb32751fe1858db2ef"
+    },
+    {
+      "icon": "filled.ChevronLeft",
+      "source": "commonMain/androidx/compose/material/icons/filled/ChevronLeft.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/ChevronLeft.kt",
+      "bytes": 1481,
+      "sha256": "eb7949f1b502a4eecfe3048d6bed1d00d3fb4454e6cb65a41592752c4662d81c"
+    },
+    {
+      "icon": "filled.ChevronRight",
+      "source": "commonMain/androidx/compose/material/icons/filled/ChevronRight.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/ChevronRight.kt",
+      "bytes": 1481,
+      "sha256": "79590609bb2498dd9d7fb71806e644df168725d032a1f8be9ef05ceee12b302d"
+    },
+    {
+      "icon": "filled.CleaningServices",
+      "source": "commonMain/androidx/compose/material/icons/filled/CleaningServices.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/CleaningServices.kt",
+      "bytes": 3152,
+      "sha256": "a9896d2629ef6704edeb3345e3e0bc6494e6f18437ad39516d8b16e79fb7b453"
+    },
+    {
+      "icon": "filled.Code",
+      "source": "commonMain/androidx/compose/material/icons/filled/Code.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Code.kt",
+      "bytes": 1787,
+      "sha256": "56a70aff884e51266b859866709f2b0ded2bfa4e0dc04bdf660f4cd26676fb9a"
+    },
+    {
+      "icon": "filled.CollectionsBookmark",
+      "source": "commonMain/androidx/compose/material/icons/filled/CollectionsBookmark.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/CollectionsBookmark.kt",
+      "bytes": 2469,
+      "sha256": "c57f0f08d860c761e70eddf2af38b2d38aa9e3df6d53b51f93d64cb3c6f0bfe7"
+    },
+    {
+      "icon": "filled.ContentCopy",
+      "source": "commonMain/androidx/compose/material/icons/filled/ContentCopy.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/ContentCopy.kt",
+      "bytes": 2323,
+      "sha256": "de2609e1fead4dd88dc2b9ebbce72e653ac54cee1dedb9ab90cb4518cdcac7ee"
+    },
+    {
+      "icon": "filled.ContentPaste",
+      "source": "commonMain/androidx/compose/material/icons/filled/ContentPaste.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/ContentPaste.kt",
+      "bytes": 2652,
+      "sha256": "8c2dc1a829aa76237e82ab92d03c484b90d78e3bef89b95c99ce488ae63f37aa"
+    },
+    {
+      "icon": "filled.DarkMode",
+      "source": "commonMain/androidx/compose/material/icons/filled/DarkMode.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/DarkMode.kt",
+      "bytes": 1865,
+      "sha256": "e5afe008dc49e24321a138b623354260e26f31617f49975e67788de54588499b"
+    },
+    {
+      "icon": "filled.DeleteOutline",
+      "source": "commonMain/androidx/compose/material/icons/filled/DeleteOutline.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/DeleteOutline.kt",
+      "bytes": 2172,
+      "sha256": "d60a25a0257a60b58d97ff14b530af7cc70497ec462e52e2f0f1ba2a090a8fd3"
+    },
+    {
+      "icon": "filled.Description",
+      "source": "commonMain/androidx/compose/material/icons/filled/Description.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Description.kt",
+      "bytes": 2312,
+      "sha256": "088f286598c441a973a24446f54f46b6a3283fbf3a755c3c70b318ff159c1d80"
+    },
+    {
+      "icon": "filled.Download",
+      "source": "commonMain/androidx/compose/material/icons/filled/Download.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Download.kt",
+      "bytes": 1769,
+      "sha256": "101ba73be15cc1acf76b247269630aa01ccb9461a9c298dfdc87fab12833ed50"
+    },
+    {
+      "icon": "filled.DragHandle",
+      "source": "commonMain/androidx/compose/material/icons/filled/DragHandle.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/DragHandle.kt",
+      "bytes": 1665,
+      "sha256": "014c3e59f8519fb7da850db3720a95e8fb9cb26d50ca444d0774148e1dc08ddf"
+    },
+    {
+      "icon": "filled.EditCalendar",
+      "source": "commonMain/androidx/compose/material/icons/filled/EditCalendar.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/EditCalendar.kt",
+      "bytes": 2948,
+      "sha256": "e32d83b72d0806e83e3070c53215b0900bc413f53bc33c3d868f9f7777818ce2"
+    },
+    {
+      "icon": "filled.EditNote",
+      "source": "commonMain/androidx/compose/material/icons/filled/EditNote.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/EditNote.kt",
+      "bytes": 2532,
+      "sha256": "df234d4b8ec06aa5102ef191947da88933e7a6359d1d235d3a2a8e1d12a72212"
+    },
+    {
+      "icon": "filled.EmojiEvents",
+      "source": "commonMain/androidx/compose/material/icons/filled/EmojiEvents.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/EmojiEvents.kt",
+      "bytes": 2790,
+      "sha256": "a75d143657effbdf999af6f98d92c9512c448c4edf1a0f19359e575b1d2be07f"
+    },
+    {
+      "icon": "filled.ExpandLess",
+      "source": "commonMain/androidx/compose/material/icons/filled/ExpandLess.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/ExpandLess.kt",
+      "bytes": 1474,
+      "sha256": "28d7509d1e6dfb10d8434e559eec6f284cd7f9a202107c558404eaa1d169e620"
+    },
+    {
+      "icon": "filled.ExpandMore",
+      "source": "commonMain/androidx/compose/material/icons/filled/ExpandMore.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/ExpandMore.kt",
+      "bytes": 1465,
+      "sha256": "a6051033fbe27548ceb443b44b2fdd045a038f66c04b3612c6962dcd6961589d"
+    },
+    {
+      "icon": "filled.Explore",
+      "source": "commonMain/androidx/compose/material/icons/filled/Explore.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Explore.kt",
+      "bytes": 2081,
+      "sha256": "1c142dd47db9b257e0e6259183da0912770524cde4c0338b1def1e0e26a215e1"
+    },
+    {
+      "icon": "filled.FastForward",
+      "source": "commonMain/androidx/compose/material/icons/filled/FastForward.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FastForward.kt",
+      "bytes": 1583,
+      "sha256": "e1a9b32470b1a1bba1a3eac9cac972ab8a5b00053c7151f5c1d0b2f9c5a18fd9"
+    },
+    {
+      "icon": "filled.FastRewind",
+      "source": "commonMain/androidx/compose/material/icons/filled/FastRewind.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FastRewind.kt",
+      "bytes": 1573,
+      "sha256": "596e5642635581a11221299465521dfe1b45562da9065b71ffe7da909f53fe9b"
+    },
+    {
+      "icon": "filled.FileDownload",
+      "source": "commonMain/androidx/compose/material/icons/filled/FileDownload.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FileDownload.kt",
+      "bytes": 1812,
+      "sha256": "8dfd02206dbe1b8750fdfa3abf405a9998655f698a0284ea979086caa2cb8e96"
+    },
+    {
+      "icon": "filled.FindReplace",
+      "source": "commonMain/androidx/compose/material/icons/filled/FindReplace.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FindReplace.kt",
+      "bytes": 2519,
+      "sha256": "0f5c9b391069a8f442cd9d4a5ff323f9b39251590f620c4f85b397f3f7d65cfe"
+    },
+    {
+      "icon": "filled.FirstPage",
+      "source": "commonMain/androidx/compose/material/icons/filled/FirstPage.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FirstPage.kt",
+      "bytes": 1659,
+      "sha256": "01ca772e487cd1e8fec3eba9067044b86831f4594c933701759fae72a13e9d23"
+    },
+    {
+      "icon": "filled.FitScreen",
+      "source": "commonMain/androidx/compose/material/icons/filled/FitScreen.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FitScreen.kt",
+      "bytes": 2978,
+      "sha256": "e65e4ee010a6c53ad4a3ceddb8543c8a2f3c3002e581dca5479c34a32fafacf7"
+    },
+    {
+      "icon": "filled.Flag",
+      "source": "commonMain/androidx/compose/material/icons/filled/Flag.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Flag.kt",
+      "bytes": 1611,
+      "sha256": "1579d2bef94955a401fc7a7e7e6560623510da06602961845c4c57ddc6bcda40"
+    },
+    {
+      "icon": "filled.FolderOpen",
+      "source": "commonMain/androidx/compose/material/icons/filled/FolderOpen.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FolderOpen.kt",
+      "bytes": 2023,
+      "sha256": "8502c5f72b8af9ae8060545c51d988e430d9b9a1ffce5eb017e991b60bda4dbf"
+    },
+    {
+      "icon": "filled.FormatBold",
+      "source": "commonMain/androidx/compose/material/icons/filled/FormatBold.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FormatBold.kt",
+      "bytes": 2370,
+      "sha256": "6af2256309c26d9a3688e1997705e1e7ebc8f141477e7841e5c7d23d379a42a2"
+    },
+    {
+      "icon": "filled.FormatItalic",
+      "source": "commonMain/androidx/compose/material/icons/filled/FormatItalic.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FormatItalic.kt",
+      "bytes": 1765,
+      "sha256": "36d691360dd8b989daa2950be10568e380667fef85ca3d1eacfe7e0f997e8362"
+    },
+    {
+      "icon": "filled.FormatListNumbered",
+      "source": "commonMain/androidx/compose/material/icons/filled/FormatListNumbered.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FormatListNumbered.kt",
+      "bytes": 3317,
+      "sha256": "4bac485f50fbbb250196c3324e51a7672db75c769b86f41473a7c291b5211c2d"
+    },
+    {
+      "icon": "filled.FormatQuote",
+      "source": "commonMain/androidx/compose/material/icons/filled/FormatQuote.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FormatQuote.kt",
+      "bytes": 1854,
+      "sha256": "d5d41a1e324be4d158b277392495fd839e7464069ca6cbc804fe9ce7a7859137"
+    },
+    {
+      "icon": "filled.FormatSize",
+      "source": "commonMain/androidx/compose/material/icons/filled/FormatSize.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FormatSize.kt",
+      "bytes": 2011,
+      "sha256": "9793b863179d39d03734765c41171a2ccdf9253b4c7b63cb12721416938431bb"
+    },
+    {
+      "icon": "filled.FormatUnderlined",
+      "source": "commonMain/androidx/compose/material/icons/filled/FormatUnderlined.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FormatUnderlined.kt",
+      "bytes": 2062,
+      "sha256": "72ee524e11706d5c5feb31b731cf2359d70058a606dc1eda43ef4746f54d2b73"
+    },
+    {
+      "icon": "filled.Fullscreen",
+      "source": "commonMain/androidx/compose/material/icons/filled/Fullscreen.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Fullscreen.kt",
+      "bytes": 2494,
+      "sha256": "4e988e5927ebe4f6834fdbc5b8330f8ab3de0e29f8551fa0997522424fbf00b4"
+    },
+    {
+      "icon": "filled.FullscreenExit",
+      "source": "commonMain/androidx/compose/material/icons/filled/FullscreenExit.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/FullscreenExit.kt",
+      "bytes": 2521,
+      "sha256": "0437a3715ff426ad17681fc6ebbc5c14688beeea64ceb90fc1c3f6892b965a89"
+    },
+    {
+      "icon": "filled.GraphicEq",
+      "source": "commonMain/androidx/compose/material/icons/filled/GraphicEq.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/GraphicEq.kt",
+      "bytes": 2378,
+      "sha256": "6393f799f5167f0bc85ba8a0833ec3d2bc99843675e871115c282ff8b7d87229"
+    },
+    {
+      "icon": "filled.GridView",
+      "source": "commonMain/androidx/compose/material/icons/filled/GridView.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/GridView.kt",
+      "bytes": 3159,
+      "sha256": "b2bfade7ea7cb1fb4080f7c4c2472f555fe628c0599ec2223bf532e98d7f2c4f"
+    },
+    {
+      "icon": "filled.Headphones",
+      "source": "commonMain/androidx/compose/material/icons/filled/Headphones.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Headphones.kt",
+      "bytes": 2135,
+      "sha256": "d40099ab023d7a985cfe4a75a8d393acf6a6a6934a9e13c2a998b9c90b9bfb08"
+    },
+    {
+      "icon": "filled.History",
+      "source": "commonMain/androidx/compose/material/icons/filled/History.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/History.kt",
+      "bytes": 2373,
+      "sha256": "bd13bdbc2b22e5b4c187e76c4a06f214c9ec3a80a7d36738656abff274c36d6a"
+    },
+    {
+      "icon": "filled.Image",
+      "source": "commonMain/androidx/compose/material/icons/filled/Image.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Image.kt",
+      "bytes": 1950,
+      "sha256": "7833665d0556c27449e2eca17d5340775a9aba147d8feebf8410420f32b94f32"
+    },
+    {
+      "icon": "filled.Insights",
+      "source": "commonMain/androidx/compose/material/icons/filled/Insights.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Insights.kt",
+      "bytes": 3214,
+      "sha256": "7935082a4fac7f982c8c3c06736a9a91e37e5a762b8aae6150a0e4f7a1f961c2"
+    },
+    {
+      "icon": "filled.InvertColors",
+      "source": "commonMain/androidx/compose/material/icons/filled/InvertColors.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/InvertColors.kt",
+      "bytes": 1977,
+      "sha256": "f59617209f0baebf712816e1f2ddac8aedaaef915ffb5ee797c59968be1840c3"
+    },
+    {
+      "icon": "filled.Language",
+      "source": "commonMain/androidx/compose/material/icons/filled/Language.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Language.kt",
+      "bytes": 4401,
+      "sha256": "d8dd35d2db9af174893d2f8fe61772ee9f0bbe8cee69db4b6688a103ee5efa0c"
+    },
+    {
+      "icon": "filled.Layers",
+      "source": "commonMain/androidx/compose/material/icons/filled/Layers.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Layers.kt",
+      "bytes": 1818,
+      "sha256": "8be48a01221fb364b626fc7a0ca07a76e43388e95f1feb23c46189384eb933ed"
+    },
+    {
+      "icon": "filled.LightMode",
+      "source": "commonMain/androidx/compose/material/icons/filled/LightMode.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/LightMode.kt",
+      "bytes": 5043,
+      "sha256": "57beda14475863e2bf70d38925e3d3d1b486415103c5bac286dbb5938a577864"
+    },
+    {
+      "icon": "filled.Link",
+      "source": "commonMain/androidx/compose/material/icons/filled/Link.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Link.kt",
+      "bytes": 2606,
+      "sha256": "9ae7ca8374451fffab376b8c4d73ad1f0e35dca8a03ec5ce1fd7a0629f2b763d"
+    },
+    {
+      "icon": "filled.LocalFireDepartment",
+      "source": "commonMain/androidx/compose/material/icons/filled/LocalFireDepartment.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/LocalFireDepartment.kt",
+      "bytes": 2603,
+      "sha256": "448232a640affcc094694b1364fad700474233ec5f588fa8685a185ff5a1f578"
+    },
+    {
+      "icon": "filled.MenuBook",
+      "source": "commonMain/androidx/compose/material/icons/filled/MenuBook.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/MenuBook.kt",
+      "bytes": 4364,
+      "sha256": "4fa9542f51272b49c04ec7fa179c0c0dd050e81e5dafa2d48b57bc7d9da64674"
+    },
+    {
+      "icon": "filled.Mic",
+      "source": "commonMain/androidx/compose/material/icons/filled/Mic.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Mic.kt",
+      "bytes": 2129,
+      "sha256": "75ccf9523454cf244045eafba49d938eb1a3a4e56d6b03e5c9a70e45b27bfde1"
+    },
+    {
+      "icon": "filled.Movie",
+      "source": "commonMain/androidx/compose/material/icons/filled/Movie.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Movie.kt",
+      "bytes": 2125,
+      "sha256": "e1d1d0fc2930a440e2997a0287f67f48587c21d175a567524a513e9ba880c251"
+    },
+    {
+      "icon": "filled.NotificationsActive",
+      "source": "commonMain/androidx/compose/material/icons/filled/NotificationsActive.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/NotificationsActive.kt",
+      "bytes": 3015,
+      "sha256": "2eda709122ba804cbc9b23587dddbb2774dce33aa4063ba989ba0f611f11816d"
+    },
+    {
+      "icon": "filled.NotificationsOff",
+      "source": "commonMain/androidx/compose/material/icons/filled/NotificationsOff.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/NotificationsOff.kt",
+      "bytes": 3008,
+      "sha256": "d63ddcbee424642bb340dbb0d2f2955b50412447e9a8c9bf17d2efbbcb9131a8"
+    },
+    {
+      "icon": "filled.Numbers",
+      "source": "commonMain/androidx/compose/material/icons/filled/Numbers.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Numbers.kt",
+      "bytes": 2722,
+      "sha256": "964da3548ac781f813e14a5aaba1a45dcdb42517b2557c98f6963fb7ff2de6f8"
+    },
+    {
+      "icon": "filled.OpenInNew",
+      "source": "commonMain/androidx/compose/material/icons/filled/OpenInNew.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/OpenInNew.kt",
+      "bytes": 2602,
+      "sha256": "b2bca1334f43f4d57097bfb4d0074028e8de41fac78306679448f4a942b8ef06"
+    },
+    {
+      "icon": "filled.Pause",
+      "source": "commonMain/androidx/compose/material/icons/filled/Pause.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Pause.kt",
+      "bytes": 1631,
+      "sha256": "dc09077e6071ef4f35bd5d0536185c81c1f18a8b939db8ab3d65d150a637878d"
+    },
+    {
+      "icon": "filled.PhotoCamera",
+      "source": "commonMain/androidx/compose/material/icons/filled/PhotoCamera.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/PhotoCamera.kt",
+      "bytes": 2482,
+      "sha256": "d3ebc23c5e0f1ad88d658be634bdd9c976f186cdee4ad4f56e91f14dbff59125"
+    },
+    {
+      "icon": "filled.PhotoLibrary",
+      "source": "commonMain/androidx/compose/material/icons/filled/PhotoLibrary.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/PhotoLibrary.kt",
+      "bytes": 2366,
+      "sha256": "3ed25ce90f05d9d319f72408bf067e20c4bcacbce0ab5ae42bdc3fdd2d778a32"
+    },
+    {
+      "icon": "filled.PieChart",
+      "source": "commonMain/androidx/compose/material/icons/filled/PieChart.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/PieChart.kt",
+      "bytes": 1895,
+      "sha256": "05d1e1d142dfe4a095aa677a81ff14a5387586b816e686e9eb77b4d67bd9a034"
+    },
+    {
+      "icon": "filled.PlayCircle",
+      "source": "commonMain/androidx/compose/material/icons/filled/PlayCircle.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/PlayCircle.kt",
+      "bytes": 1716,
+      "sha256": "a53370e00c4e532718ce266179fd8c5254f89526a6054d257b130b57bbb9d72e"
+    },
+    {
+      "icon": "filled.PushPin",
+      "source": "commonMain/androidx/compose/material/icons/filled/PushPin.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/PushPin.kt",
+      "bytes": 2501,
+      "sha256": "0e2191a4e90f31b8c9f8437510b76034444b84e0bc55009c719f20e2309427cd"
+    },
+    {
+      "icon": "filled.RadioButtonUnchecked",
+      "source": "commonMain/androidx/compose/material/icons/filled/RadioButtonUnchecked.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/RadioButtonUnchecked.kt",
+      "bytes": 1942,
+      "sha256": "e83f0213dea0513e8416456eb2de41ee13d177b7e973e5c80abbd379c59e0551"
+    },
+    {
+      "icon": "filled.Route",
+      "source": "commonMain/androidx/compose/material/icons/filled/Route.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Route.kt",
+      "bytes": 2581,
+      "sha256": "b395e1d26d56b33db377b162cd79368250c12aaadbd79bb0ff7e178bcba65033"
+    },
+    {
+      "icon": "filled.Schedule",
+      "source": "commonMain/androidx/compose/material/icons/filled/Schedule.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Schedule.kt",
+      "bytes": 2179,
+      "sha256": "d19836f5a9777c9ee13cb929d74d050ee51c5d57ba655ea00012ad9580deb3eb"
+    },
+    {
+      "icon": "filled.SearchOff",
+      "source": "commonMain/androidx/compose/material/icons/filled/SearchOff.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/SearchOff.kt",
+      "bytes": 2863,
+      "sha256": "8bc591a89cfc5f611c78bfcca153acae60c10cd33900ded3e700de99ae4e7a1a"
+    },
+    {
+      "icon": "filled.Security",
+      "source": "commonMain/androidx/compose/material/icons/filled/Security.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Security.kt",
+      "bytes": 1943,
+      "sha256": "060f6e941c3c985df73c4cfee3bf558dde7112661ddb664002599025d6469daf"
+    },
+    {
+      "icon": "filled.SelectAll",
+      "source": "commonMain/androidx/compose/material/icons/filled/SelectAll.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/SelectAll.kt",
+      "bytes": 5356,
+      "sha256": "38137b731be1785e63532e63715bfb14e9aed26820f5cde50d6425621089b300"
+    },
+    {
+      "icon": "filled.SkipNext",
+      "source": "commonMain/androidx/compose/material/icons/filled/SkipNext.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/SkipNext.kt",
+      "bytes": 1614,
+      "sha256": "9932d61e9ca3909cba0f598364c9d34c8334a9d963dbf862629db23412b09416"
+    },
+    {
+      "icon": "filled.SkipPrevious",
+      "source": "commonMain/androidx/compose/material/icons/filled/SkipPrevious.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/SkipPrevious.kt",
+      "bytes": 1546,
+      "sha256": "62f30325285c3c1e3552e280628da57eeb5930a006d0a6dfc91277f847de44b9"
+    },
+    {
+      "icon": "filled.Sort",
+      "source": "commonMain/androidx/compose/material/icons/filled/Sort.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Sort.kt",
+      "bytes": 2089,
+      "sha256": "5d9f1d56b545e8f77b46affacfb37737fd9800a7540ba76747d9c77c4ec1ee19"
+    },
+    {
+      "icon": "filled.SortByAlpha",
+      "source": "commonMain/androidx/compose/material/icons/filled/SortByAlpha.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/SortByAlpha.kt",
+      "bytes": 2654,
+      "sha256": "28461e9c7430e5617ca4e2c4a0d87f856f8f954957258cca42bafb4e50534854"
+    },
+    {
+      "icon": "filled.Spa",
+      "source": "commonMain/androidx/compose/material/icons/filled/Spa.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Spa.kt",
+      "bytes": 2922,
+      "sha256": "3ee4f1216eeb6b90761be63dd2da8c9429acbe7fea61c50170b8401c065e36fa"
+    },
+    {
+      "icon": "filled.StayCurrentLandscape",
+      "source": "commonMain/androidx/compose/material/icons/filled/StayCurrentLandscape.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/StayCurrentLandscape.kt",
+      "bytes": 2009,
+      "sha256": "cdf0b124ce826647d9da1a3c70d48864ca8f877132f94c0482bb38c89653cd5f"
+    },
+    {
+      "icon": "filled.StayCurrentPortrait",
+      "source": "commonMain/androidx/compose/material/icons/filled/StayCurrentPortrait.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/StayCurrentPortrait.kt",
+      "bytes": 2014,
+      "sha256": "3e9f3a96dae9905be66cbd10dec70dcc290b0437c150fe969d4cb69f527740c6"
+    },
+    {
+      "icon": "filled.Stop",
+      "source": "commonMain/androidx/compose/material/icons/filled/Stop.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Stop.kt",
+      "bytes": 1355,
+      "sha256": "2f83b8de4aefe9b7591516b820bd8c8e43b0461518c816bad142936f58ea23cf"
+    },
+    {
+      "icon": "filled.StrikethroughS",
+      "source": "commonMain/androidx/compose/material/icons/filled/StrikethroughS.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/StrikethroughS.kt",
+      "bytes": 2908,
+      "sha256": "cd3097eb585853b8c9a7aba8ae773b5baa352c6643634f3cdb9d4e49ba38fdf7"
+    },
+    {
+      "icon": "filled.Sync",
+      "source": "commonMain/androidx/compose/material/icons/filled/Sync.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Sync.kt",
+      "bytes": 2266,
+      "sha256": "e1dc93ea5f847533f47aba0242aa39e6b5879ac44a8807c23fc3f122040fe83c"
+    },
+    {
+      "icon": "filled.TextFields",
+      "source": "commonMain/androidx/compose/material/icons/filled/TextFields.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/TextFields.kt",
+      "bytes": 2031,
+      "sha256": "47be4af509ae7e5e05a06a379dd0eef477ec4ed45cb6a65064a8062fbb88b85f"
+    },
+    {
+      "icon": "filled.Timeline",
+      "source": "commonMain/androidx/compose/material/icons/filled/Timeline.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Timeline.kt",
+      "bytes": 3061,
+      "sha256": "6efa4e5d0fd69248d7255ddf3e901ada767572ef82df21a414515f441c2c2c92"
+    },
+    {
+      "icon": "filled.Timer",
+      "source": "commonMain/androidx/compose/material/icons/filled/Timer.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Timer.kt",
+      "bytes": 2221,
+      "sha256": "c617ac61fde6b7a3376f57a990846c3a7fe9e477397a813f9c9b62d2f3fad270"
+    },
+    {
+      "icon": "filled.Title",
+      "source": "commonMain/androidx/compose/material/icons/filled/Title.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Title.kt",
+      "bytes": 1528,
+      "sha256": "f33df2a52ab0e350cda2d600a659173d5b8f0cfd6aba08f35331060871ca67d9"
+    },
+    {
+      "icon": "filled.UploadFile",
+      "source": "commonMain/androidx/compose/material/icons/filled/UploadFile.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/UploadFile.kt",
+      "bytes": 2380,
+      "sha256": "66f6485eab8c00e845f0bf9389ba571fc7a68b3abce62eadd3e981719fad79b1"
+    },
+    {
+      "icon": "filled.Videocam",
+      "source": "commonMain/androidx/compose/material/icons/filled/Videocam.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Videocam.kt",
+      "bytes": 1892,
+      "sha256": "978a008128e6c53618e477087482f4c9ee2677d0d1dda3d70684fbd274beb587"
+    },
+    {
+      "icon": "filled.Visibility",
+      "source": "commonMain/androidx/compose/material/icons/filled/Visibility.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/Visibility.kt",
+      "bytes": 2228,
+      "sha256": "4f0492467b31ab8a690e33af6021b91c25976a82b2aaca78c54505251a66e53f"
+    },
+    {
+      "icon": "filled.WbSunny",
+      "source": "commonMain/androidx/compose/material/icons/filled/WbSunny.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/filled/WbSunny.kt",
+      "bytes": 3451,
+      "sha256": "4f412e3e399f233a36f5447d588ef0408ce910f144ede58909d5093a17fdda3b"
+    },
+    {
+      "icon": "outlined.Accessibility",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Accessibility.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Accessibility.kt",
+      "bytes": 2141,
+      "sha256": "03043cc1761411de00778fda642ddcacc0813535b9c5464c41bc619460050062"
+    },
+    {
+      "icon": "outlined.AddCircleOutline",
+      "source": "commonMain/androidx/compose/material/icons/outlined/AddCircleOutline.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/AddCircleOutline.kt",
+      "bytes": 2516,
+      "sha256": "31a73953d9c275060f084f5ea6e2086670282df32799e8d60567bad0fef2066b"
+    },
+    {
+      "icon": "outlined.ArrowDownward",
+      "source": "commonMain/androidx/compose/material/icons/outlined/ArrowDownward.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/ArrowDownward.kt",
+      "bytes": 1680,
+      "sha256": "f926fcdb31338848aa7932ae21d42a637cfc5de3bf0b6d6e290579b940db2e82"
+    },
+    {
+      "icon": "outlined.ArrowUpward",
+      "source": "commonMain/androidx/compose/material/icons/outlined/ArrowUpward.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/ArrowUpward.kt",
+      "bytes": 1654,
+      "sha256": "e59d426b9a93aa779634e7c2949866237d6d68bbf0509a38cb60aff860db4d54"
+    },
+    {
+      "icon": "outlined.AttachFile",
+      "source": "commonMain/androidx/compose/material/icons/outlined/AttachFile.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/AttachFile.kt",
+      "bytes": 2528,
+      "sha256": "cb3e6d9f807d1f8492d2eaf7228f11c67246b7b83b7dcd16579eb8aca842367f"
+    },
+    {
+      "icon": "outlined.AutoAwesome",
+      "source": "commonMain/androidx/compose/material/icons/outlined/AutoAwesome.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/AutoAwesome.kt",
+      "bytes": 2813,
+      "sha256": "1d5682bde420f4cbdaff4b07789b58a896154ebd8223f848bff082142605091f"
+    },
+    {
+      "icon": "outlined.AutoStories",
+      "source": "commonMain/androidx/compose/material/icons/outlined/AutoStories.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/AutoStories.kt",
+      "bytes": 3122,
+      "sha256": "ef54d32a6d42335180da9a06facd23294eca7ea59fe11cd0fef22c4166bd515f"
+    },
+    {
+      "icon": "outlined.Backup",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Backup.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Backup.kt",
+      "bytes": 2752,
+      "sha256": "466ffd41cfd12b139a8d3299a503ceb188d611c0de78585815fe10d0d64122c8"
+    },
+    {
+      "icon": "outlined.Bolt",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Bolt.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Bolt.kt",
+      "bytes": 1785,
+      "sha256": "24c16b1d90887f02dcd8eb19bc8e4da59ad5d6e09dad50c04370e2080e557d7b"
+    },
+    {
+      "icon": "outlined.Book",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Book.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Book.kt",
+      "bytes": 2378,
+      "sha256": "79ed83fb926017e64c8e5527057479fe666c355f22d55804c692c14bd8d44fd3"
+    },
+    {
+      "icon": "outlined.Bookmark",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Bookmark.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Bookmark.kt",
+      "bytes": 1610,
+      "sha256": "9464acac1eb480e49bec787e27b718cbd817b3f3d60a6e6fc3dff8e998c2818b"
+    },
+    {
+      "icon": "outlined.BookmarkAdd",
+      "source": "commonMain/androidx/compose/material/icons/outlined/BookmarkAdd.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/BookmarkAdd.kt",
+      "bytes": 2430,
+      "sha256": "998d9fde7cadddcbdf91c89afbdcfb0dc138ca6dfa87ca7961a77fe521945ad1"
+    },
+    {
+      "icon": "outlined.BookmarkBorder",
+      "source": "commonMain/androidx/compose/material/icons/outlined/BookmarkBorder.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/BookmarkBorder.kt",
+      "bytes": 1919,
+      "sha256": "43e9e1b32986df021ecd49cc981d0627e2d6ee01b9f26bce6f171fc50f5a2c6d"
+    },
+    {
+      "icon": "outlined.BookmarkRemove",
+      "source": "commonMain/androidx/compose/material/icons/outlined/BookmarkRemove.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/BookmarkRemove.kt",
+      "bytes": 2097,
+      "sha256": "1a4c34e19aa2484c93278625d4ddd4f5ab93f5153e348bfcf1d11839e9f68504"
+    },
+    {
+      "icon": "outlined.Bookmarks",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Bookmarks.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Bookmarks.kt",
+      "bytes": 2434,
+      "sha256": "4f793b7feacdac6508268681f05ebe9bf81d06e49f49830fc25ba633581cda66"
+    },
+    {
+      "icon": "outlined.BugReport",
+      "source": "commonMain/androidx/compose/material/icons/outlined/BugReport.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/BugReport.kt",
+      "bytes": 5071,
+      "sha256": "60b033d848b129093fe0f31852a96f826db70c826d8569ac742c4e55e81f8d5d"
+    },
+    {
+      "icon": "outlined.CheckBoxOutlineBlank",
+      "source": "commonMain/androidx/compose/material/icons/outlined/CheckBoxOutlineBlank.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/CheckBoxOutlineBlank.kt",
+      "bytes": 2007,
+      "sha256": "9bf890f2a79a59ebb067f09cbecbcbd46d8cb2a561e33c46968f77f30a2474c8"
+    },
+    {
+      "icon": "outlined.Checklist",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Checklist.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Checklist.kt",
+      "bytes": 2313,
+      "sha256": "af96e1e0b43f56659a45636b43a2e5f26d9db77f136599e24a183f9a721407ba"
+    },
+    {
+      "icon": "outlined.CollectionsBookmark",
+      "source": "commonMain/androidx/compose/material/icons/outlined/CollectionsBookmark.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/CollectionsBookmark.kt",
+      "bytes": 2859,
+      "sha256": "2759bc9b4bbbdb211264d0f3eb28ca13d0ceb112a40386c114ed74a21ff36a2b"
+    },
+    {
+      "icon": "outlined.ContentCopy",
+      "source": "commonMain/androidx/compose/material/icons/outlined/ContentCopy.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/ContentCopy.kt",
+      "bytes": 2329,
+      "sha256": "f7ab4cb944da672eead5eb93edf2aad51a7ca20ac1b8e1deb7d2de2e99328b73"
+    },
+    {
+      "icon": "outlined.ContentCut",
+      "source": "commonMain/androidx/compose/material/icons/outlined/ContentCut.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/ContentCut.kt",
+      "bytes": 3559,
+      "sha256": "c9759d8fdde82055483e8d1b5ea0386d01d0ddd774c5924515cc50ec85b2e8c0"
+    },
+    {
+      "icon": "outlined.Dashboard",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Dashboard.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Dashboard.kt",
+      "bytes": 2988,
+      "sha256": "f48ea01c23f523ef86486a6f2363c0e78441ee05d4a22245b9eb6b34ab098840"
+    },
+    {
+      "icon": "outlined.DeleteOutline",
+      "source": "commonMain/androidx/compose/material/icons/outlined/DeleteOutline.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/DeleteOutline.kt",
+      "bytes": 2226,
+      "sha256": "6031ce2aaa1a0b0cd1a120d2d3a167ededd40d0ec316f2f22412f438e4fb0c82"
+    },
+    {
+      "icon": "outlined.Description",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Description.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Description.kt",
+      "bytes": 2381,
+      "sha256": "1ef2e175e3b415c0bf29edf0e03fb8783bf0826a76e55e0acf709f67f6a1e7b0"
+    },
+    {
+      "icon": "outlined.EditNote",
+      "source": "commonMain/androidx/compose/material/icons/outlined/EditNote.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/EditNote.kt",
+      "bytes": 2538,
+      "sha256": "a36181edad5faac1e78b3d8568abf42d8682d69b7016ee96fdeb2be553e73d38"
+    },
+    {
+      "icon": "outlined.FileDownload",
+      "source": "commonMain/androidx/compose/material/icons/outlined/FileDownload.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/FileDownload.kt",
+      "bytes": 2202,
+      "sha256": "d8cacdd1d03f8fcf4c8673eaa327e787d5323425dcf5d15241ceb36cc2cb98cb"
+    },
+    {
+      "icon": "outlined.Flag",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Flag.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Flag.kt",
+      "bytes": 2048,
+      "sha256": "63c1e9b5c4090764088eb8add908b19df3bdcd355f549d72190d66b45b294f78"
+    },
+    {
+      "icon": "outlined.Folder",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Folder.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Folder.kt",
+      "bytes": 2069,
+      "sha256": "199f8215f021668ad20ddf6b2379db4dbf34b0e8a64de4b20c38e630bc4844f5"
+    },
+    {
+      "icon": "outlined.FormatQuote",
+      "source": "commonMain/androidx/compose/material/icons/outlined/FormatQuote.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/FormatQuote.kt",
+      "bytes": 2642,
+      "sha256": "4435e9aec616bf18788212c1d6a1ee0938db3f3c55c20113629c2e469b17bb7d"
+    },
+    {
+      "icon": "outlined.GraphicEq",
+      "source": "commonMain/androidx/compose/material/icons/outlined/GraphicEq.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/GraphicEq.kt",
+      "bytes": 2384,
+      "sha256": "9fd48e3ad02ed97f7facd756b88e40af884a5588fe14a2e88f8ce6469c09955a"
+    },
+    {
+      "icon": "outlined.History",
+      "source": "commonMain/androidx/compose/material/icons/outlined/History.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/History.kt",
+      "bytes": 2344,
+      "sha256": "3c463fb992f2a4f55912c6f9428dfcfa4b5f23513a9fec78d08a40fb5d85d272"
+    },
+    {
+      "icon": "outlined.Hub",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Hub.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Hub.kt",
+      "bytes": 5761,
+      "sha256": "e4863c347b69911d3477cab3ed248641c9ea197474b2a2f47de3698529a123e1"
+    },
+    {
+      "icon": "outlined.Image",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Image.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Image.kt",
+      "bytes": 2168,
+      "sha256": "acc769c5ab3546eabd5dd53e11eb2e4288867ac0449e254443b8b568a0d20255"
+    },
+    {
+      "icon": "outlined.Insights",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Insights.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Insights.kt",
+      "bytes": 3220,
+      "sha256": "64906f729060b1c60ded3eed93e68f5144f225f820a7c0134aeb34faadcc6f08"
+    },
+    {
+      "icon": "outlined.Language",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Language.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Language.kt",
+      "bytes": 4393,
+      "sha256": "202f08097a74d34a2bc7dc42f6b50c4e15e86f44740691c358b135734395d148"
+    },
+    {
+      "icon": "outlined.Layers",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Layers.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Layers.kt",
+      "bytes": 1987,
+      "sha256": "0cf7e5c6f5f8260ecd5f7a04210dd2b10d1131bdac44473bb125bd59af7ec54e"
+    },
+    {
+      "icon": "outlined.Lightbulb",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Lightbulb.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Lightbulb.kt",
+      "bytes": 2757,
+      "sha256": "0238f8e416462226b655fa77796c1221c97cef58213a161867a37ba3f3a01187"
+    },
+    {
+      "icon": "outlined.Link",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Link.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Link.kt",
+      "bytes": 2571,
+      "sha256": "7f3f8da12f1584f936d01c22c6427a223ceb764363c73afb33efffb0911cb469"
+    },
+    {
+      "icon": "outlined.LocalFireDepartment",
+      "source": "commonMain/androidx/compose/material/icons/outlined/LocalFireDepartment.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/LocalFireDepartment.kt",
+      "bytes": 3122,
+      "sha256": "8adb3a040fbed17c79bc52591a6a2c1827c223b2a4bbdaead9901080000a1eaf"
+    },
+    {
+      "icon": "outlined.Mail",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Mail.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Mail.kt",
+      "bytes": 2129,
+      "sha256": "7ac29dfb6a5b4bc5869bdaefdd26f9ab5aa9868c9d2a7df050eb8d6365e51dc0"
+    },
+    {
+      "icon": "outlined.MenuBook",
+      "source": "commonMain/androidx/compose/material/icons/outlined/MenuBook.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/MenuBook.kt",
+      "bytes": 4376,
+      "sha256": "601e3a6391bbbd006d223150fa2e1af74158ec90aa79e8302164653f57e6a6a0"
+    },
+    {
+      "icon": "outlined.Mic",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Mic.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Mic.kt",
+      "bytes": 2181,
+      "sha256": "83091ad4e5aabfd9d19d9026aef80794a21d6088e246e53feaae995d27098ef7"
+    },
+    {
+      "icon": "outlined.NotificationAdd",
+      "source": "commonMain/androidx/compose/material/icons/outlined/NotificationAdd.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/NotificationAdd.kt",
+      "bytes": 3191,
+      "sha256": "7af300524eb7e1b171f7ad66b60a328544aa2de401a346bd6a99fe77d461f575"
+    },
+    {
+      "icon": "outlined.Palette",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Palette.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Palette.kt",
+      "bytes": 3598,
+      "sha256": "8908ef0e8fc1f978bbe23d93f43d7aba93617d3c4d6d20a06c564d48be2dd830"
+    },
+    {
+      "icon": "outlined.PhotoCamera",
+      "source": "commonMain/androidx/compose/material/icons/outlined/PhotoCamera.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/PhotoCamera.kt",
+      "bytes": 2919,
+      "sha256": "0900ec3be111f80cef76ae6d6e5502149ad45b24af4f94c773cc9dbec4343970"
+    },
+    {
+      "icon": "outlined.PictureAsPdf",
+      "source": "commonMain/androidx/compose/material/icons/outlined/PictureAsPdf.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/PictureAsPdf.kt",
+      "bytes": 4112,
+      "sha256": "df89958a2b68985f2624b6be0380fdb690e45022cc2e283fa66c509156faf810"
+    },
+    {
+      "icon": "outlined.PictureInPicture",
+      "source": "commonMain/androidx/compose/material/icons/outlined/PictureInPicture.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/PictureInPicture.kt",
+      "bytes": 2467,
+      "sha256": "bbb8fee0c1cacbe0c812d4cc88dac7e7ee4580d38ae6c064994081729e3f374b"
+    },
+    {
+      "icon": "outlined.PowerSettingsNew",
+      "source": "commonMain/androidx/compose/material/icons/outlined/PowerSettingsNew.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/PowerSettingsNew.kt",
+      "bytes": 2202,
+      "sha256": "12609a641e2837674ddf46ae57bef1c155464528b668d27da5e225b18c09930b"
+    },
+    {
+      "icon": "outlined.Psychology",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Psychology.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Psychology.kt",
+      "bytes": 5339,
+      "sha256": "740fe34acb978c167c0c6cad2552a792f00a51b958f0cba2973fa89ddd952c2c"
+    },
+    {
+      "icon": "outlined.PushPin",
+      "source": "commonMain/androidx/compose/material/icons/outlined/PushPin.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/PushPin.kt",
+      "bytes": 2811,
+      "sha256": "ca254250021a3c72b81206678ce16af5f53e68745df64fae5f9930aa80cea2a4"
+    },
+    {
+      "icon": "outlined.Quiz",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Quiz.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Quiz.kt",
+      "bytes": 3449,
+      "sha256": "de464d48944549686064819b303705943c99684e3daebb59514ad2614fd0d3ec"
+    },
+    {
+      "icon": "outlined.RecordVoiceOver",
+      "source": "commonMain/androidx/compose/material/icons/outlined/RecordVoiceOver.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/RecordVoiceOver.kt",
+      "bytes": 3100,
+      "sha256": "751b849177420b087db3ae1f5d978eb15127e79cfbf43b1156ad6f3c681e05ed"
+    },
+    {
+      "icon": "outlined.Restore",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Restore.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Restore.kt",
+      "bytes": 2298,
+      "sha256": "980877027844217e5b38ccc1172dfe1fbf68e24be05909b646860c038de89a8b"
+    },
+    {
+      "icon": "outlined.School",
+      "source": "commonMain/androidx/compose/material/icons/outlined/School.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/School.kt",
+      "bytes": 2233,
+      "sha256": "63db8ea8c3c43cd858cac901a6dc61c61c029b3b819775abe70f133df409e1e4"
+    },
+    {
+      "icon": "outlined.Slideshow",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Slideshow.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Slideshow.kt",
+      "bytes": 2131,
+      "sha256": "c3f79ee0dd21ff83b6ff3307f5a6fcaa39780789b4ae03e6709e5839137ff0c6"
+    },
+    {
+      "icon": "outlined.Spa",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Spa.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Spa.kt",
+      "bytes": 4008,
+      "sha256": "76a39097b252261e5bd43e1b242c35365b8894011452a354a01cd294561a85cf"
+    },
+    {
+      "icon": "outlined.Speed",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Speed.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Speed.kt",
+      "bytes": 2211,
+      "sha256": "74055d7163346af65b3827977aac604445b030764f1747431843f3603024ac04"
+    },
+    {
+      "icon": "outlined.Spellcheck",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Spellcheck.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Spellcheck.kt",
+      "bytes": 2108,
+      "sha256": "8edc533e7264236687c19ff63247a96a5d016c9b964c609917213ad71b9e24a3"
+    },
+    {
+      "icon": "outlined.Start",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Start.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Start.kt",
+      "bytes": 1847,
+      "sha256": "d77948293c227e4e5be42b755cd131def4c8031d71a33bdcd5485345558633c7"
+    },
+    {
+      "icon": "outlined.Storage",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Storage.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Storage.kt",
+      "bytes": 2572,
+      "sha256": "4457421a13efce503169e51baa4dea8d2ee35f020accd61153b6207f7869e52a"
+    },
+    {
+      "icon": "outlined.Style",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Style.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Style.kt",
+      "bytes": 3075,
+      "sha256": "615e5720581e14f95b4af6022582112994e4c344f336d0496dd5920da8950cae"
+    },
+    {
+      "icon": "outlined.Summarize",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Summarize.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Summarize.kt",
+      "bytes": 2958,
+      "sha256": "91ccbbb55d4b26643494573f3d5ce215fb962dfe54d0f97b0ae0123b00494ed4"
+    },
+    {
+      "icon": "outlined.Swipe",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Swipe.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Swipe.kt",
+      "bytes": 3687,
+      "sha256": "19e6867f046a20e495e969858227a4ad029df12330a223604c2e8664f68ebeb0"
+    },
+    {
+      "icon": "outlined.Sync",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Sync.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Sync.kt",
+      "bytes": 2272,
+      "sha256": "187147e4cd2811e8ce5600afedd418cfa1bbb8d816fed863a9f4e06d2d2995f9"
+    },
+    {
+      "icon": "outlined.TheaterComedy",
+      "source": "commonMain/androidx/compose/material/icons/outlined/TheaterComedy.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/TheaterComedy.kt",
+      "bytes": 4255,
+      "sha256": "d2757cba39950c2f2a02552266272504ff7136395d145d1272f8664e95e0c40b"
+    },
+    {
+      "icon": "outlined.Timer",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Timer.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Timer.kt",
+      "bytes": 2547,
+      "sha256": "6bb7b25911c90a3438116bf6753dc81e516d7342c0d8fc4c3800b1b526eea96c"
+    },
+    {
+      "icon": "outlined.TouchApp",
+      "source": "commonMain/androidx/compose/material/icons/outlined/TouchApp.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/TouchApp.kt",
+      "bytes": 3468,
+      "sha256": "95339680d2413635e0fe972c2e9554a0f14eebfc0c9c94518a97653c379263bd"
+    },
+    {
+      "icon": "outlined.Translate",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Translate.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Translate.kt",
+      "bytes": 2885,
+      "sha256": "6228623962545561716426d8c624f313f490b6eecb9df0a2ebe83c4db69b75ea"
+    },
+    {
+      "icon": "outlined.Tune",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Tune.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Tune.kt",
+      "bytes": 3094,
+      "sha256": "e9d2c8c63428cf7c05b0ab500753d3b216c3d5891b648b9170f479640f431a16"
+    },
+    {
+      "icon": "outlined.VerticalAlignBottom",
+      "source": "commonMain/androidx/compose/material/icons/outlined/VerticalAlignBottom.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/VerticalAlignBottom.kt",
+      "bytes": 1878,
+      "sha256": "bedad9759096815d99bedc9377e493cda00fe0fe49e49188c05b4272e77b7de9"
+    },
+    {
+      "icon": "outlined.VerticalAlignTop",
+      "source": "commonMain/androidx/compose/material/icons/outlined/VerticalAlignTop.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/VerticalAlignTop.kt",
+      "bytes": 1855,
+      "sha256": "7a42b45a2d61b53ac89ca7a81fcfd629383dee971323e088855490a45f54058f"
+    },
+    {
+      "icon": "outlined.Videocam",
+      "source": "commonMain/androidx/compose/material/icons/outlined/Videocam.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/Videocam.kt",
+      "bytes": 2110,
+      "sha256": "ba59bc2531078ac4b0e229cefbe571cced86feac3f18bd39b2320b04f7fa8f48"
+    },
+    {
+      "icon": "outlined.VideoLibrary",
+      "source": "commonMain/androidx/compose/material/icons/outlined/VideoLibrary.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/VideoLibrary.kt",
+      "bytes": 2480,
+      "sha256": "20c7b9359a7487f2f5a90ea8ddba096f7b1082c4924d24977bcd8b709817a991"
+    },
+    {
+      "icon": "outlined.ViewCarousel",
+      "source": "commonMain/androidx/compose/material/icons/outlined/ViewCarousel.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/ViewCarousel.kt",
+      "bytes": 2141,
+      "sha256": "8fac785c94f3e82c953a53b7c4f855634deee39980180e44bd338a3a60c3a764"
+    },
+    {
+      "icon": "outlined.ViewStream",
+      "source": "commonMain/androidx/compose/material/icons/outlined/ViewStream.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/ViewStream.kt",
+      "bytes": 2172,
+      "sha256": "d90e36f7dd1965048b49c0ab75a2bcb0faa8f8ca5855d2a4c68ac2880d5bd0e0"
+    },
+    {
+      "icon": "outlined.ZoomIn",
+      "source": "commonMain/androidx/compose/material/icons/outlined/ZoomIn.kt",
+      "path": "app/src/main/java/androidx/compose/material/icons/outlined/ZoomIn.kt",
+      "bytes": 2728,
+      "sha256": "0322dae4425c420a0ce90ba4a8d1c76cc957e3e99c759a4adc5706c072f37617"
+    }
+  ]
+}

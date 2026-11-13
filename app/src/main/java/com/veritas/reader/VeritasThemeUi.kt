@@ -41,7 +41,7 @@ internal val LocalVeritasPackId = staticCompositionLocalOf { "vern_media" }
 object VeritasPackStyle {
     /** Shared layout identity used by real screens as well as the pack previews. */
     fun navigationHeight(packId: String, showLabels: Boolean): androidx.compose.ui.unit.Dp {
-        return if (showLabels) 66.dp else 62.dp
+        return if (showLabels) 60.dp else 54.dp
     }
 
     @Composable
@@ -56,10 +56,10 @@ object VeritasPackStyle {
     }
 
     fun playerHeight(packId: String): androidx.compose.ui.unit.Dp = when (VeritasThemePackCatalog.normalizePackId(packId)) {
-        "one_ui" -> 76.dp
-        "material_you" -> 72.dp
-        "liquid_glass" -> 70.dp
-        else -> 66.dp
+        "one_ui" -> 68.dp
+        "material_you" -> 64.dp
+        "liquid_glass" -> 62.dp
+        else -> 58.dp
     }
 
     fun chromeElevation(packId: String): androidx.compose.ui.unit.Dp = when (VeritasThemePackCatalog.normalizePackId(packId)) {

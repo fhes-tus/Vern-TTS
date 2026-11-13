@@ -29,7 +29,7 @@ internal fun VeritasPdfViewerActivity.installPdfPlayerMaterial(controls: View, w
     val fallback = controls.background
     val frame = object : FrameLayout(this) {
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-            val maxWidth = (580f * resources.displayMetrics.density).toInt()
+            val maxWidth = (480f * resources.displayMetrics.density).toInt()
             val mode = View.MeasureSpec.getMode(widthMeasureSpec)
             val available = if (mode == View.MeasureSpec.UNSPECIFIED) maxWidth else View.MeasureSpec.getSize(widthMeasureSpec)
             val bounded = View.MeasureSpec.makeMeasureSpec(minOf(available, maxWidth),
@@ -41,7 +41,7 @@ internal fun VeritasPdfViewerActivity.installPdfPlayerMaterial(controls: View, w
         clipToOutline = true
         outlineProvider = object : ViewOutlineProvider() {
             override fun getOutline(view: View, outline: Outline) {
-                outline.setRoundRect(0, 0, view.width, view.height, 32f * resources.displayMetrics.density)
+                outline.setRoundRect(0, 0, view.width, view.height, 28f * resources.displayMetrics.density)
             }
         }
     }

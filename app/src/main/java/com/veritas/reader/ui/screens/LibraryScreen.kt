@@ -79,7 +79,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.veritas.reader.ui.NotesSettings
 import com.veritas.reader.AiResultParser
-import com.veritas.reader.DocumentRepository
 import com.veritas.reader.Flashcard
 import com.veritas.reader.FlashcardProgress
 import com.veritas.reader.FlashcardSet
@@ -92,7 +91,6 @@ import com.veritas.reader.ReaderAnnotation
 import com.veritas.reader.ReaderSettings
 import com.veritas.reader.ResolvedVeritasFeature
 import com.veritas.reader.SavedDocument
-import com.veritas.reader.TextChunker
 import com.veritas.reader.VeritasFeatureContext
 import com.veritas.reader.VeritasFeatureId
 import com.veritas.reader.VeritasFeatureRegistry
@@ -273,30 +271,6 @@ fun LibraryScreen(
     var showBatchCollectionDialog by remember { mutableStateOf(false) }
     var batchCollectionDraft by rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
-    val repository = remember(context) { DocumentRepository(context) }
-    var loadedDocSentences by remember { mutableStateOf(emptyMap<String, List<String>>()) }
-    val docIdsWithAnnotations = remember(uiState.allAnnotations) {
-        uiState.allAnnotations.map { it.documentId }.toSet()
-    }
-    LaunchedEffect(docIdsWithAnnotations, uiState.documents) {
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            val neededIds = docIdsWithAnnotations.filter { it !in loadedDocSentences }
-            if (neededIds.isNotEmpty()) {
-                val newMap = neededIds.associateWith { docId ->
-                    val docMetadata = uiState.documents.firstOrNull { it.id == docId }
-                    if (docMetadata != null) {
-                        val text = repository.readText(docMetadata)
-                        TextChunker.chunk(text)
-                    } else {
-                        emptyList()
-                    }
-                }
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    loadedDocSentences = loadedDocSentences + newMap
-                }
-            }
-        }
-    }
     val libraryPrefs = remember { context.getSharedPreferences("veritas_library_settings", Context.MODE_PRIVATE) }
     var isHomeGridView by rememberSaveable { mutableStateOf(libraryPrefs.getBoolean("is_home_grid_view", true)) }
     var libraryViewMode by rememberSaveable {
@@ -783,11 +757,7 @@ fun LibraryScreen(
                     ),
                 contentAlignment = Alignment.TopCenter
             ) {
-                val contentWidth = when (activeNavTab) {
-                    VeritasHomeTab.NOTES -> 1200.dp
-                    VeritasHomeTab.STUDY -> 1040.dp
-                    else -> 760.dp
-                }
+                val contentWidth = 760.dp
                 BoxWithConstraints(Modifier.widthIn(max = contentWidth).fillMaxSize().testTag("library-content")) {
                 // Use the capped content column, including after a live window resize.
                 // Add columns when 160 dp tiles and 12 dp gaps fit within the 36 dp list gutters.
@@ -997,6 +967,7 @@ fun LibraryScreen(
                                     notesListState = notesListState,
                                     annotationFilter = annotationFilter,
                                     selectedGeneralNoteTag = selectedGeneralNoteTag,
+                                    onSelectedGeneralNoteTagChange = { selectedGeneralNoteTag = it },
                                     selectedAnnotationKeys = selectedAnnotationKeys,
                                     onSelectedAnnotationKeysChange = { selectedAnnotationKeys = it },
                                     onConfirmAnnotationDelete = { confirmAnnotationDelete = true },

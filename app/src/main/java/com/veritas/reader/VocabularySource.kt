@@ -25,6 +25,7 @@ internal fun formatVocabularyEntry(entry: VocabularyEntry, timestamp: String? = 
     entry.pronunciation?.takeIf { it.isNotBlank() }?.let { appendLine("  pronunciation: ${oneLine(it)}") }
     entry.lookupId?.let { appendLine("  lookup: ${oneLine(it)}") }
     entry.meaningSourceUrl?.let { appendLine("  meaning-source: ${oneLine(it)}") }
+    entry.examples.distinct().take(4).forEach { appendLine("  example: ${oneLine(it)}") }
 }.trimEnd()
 
 /** Replace only the requested entry, retaining its original timestamp and source. */
@@ -36,8 +37,10 @@ internal fun updateVocabularyMeaning(content: String, lookupId: String, meaning:
                 lines[1] = "  " + meaning.definition.replace(Regex("\\s+"), " ").trim()
                 lines.removeAll { it.trim().startsWith("pronunciation:", ignoreCase = true) }
                 lines.removeAll { it.trim().startsWith("meaning-source:", ignoreCase = true) }
+                lines.removeAll { it.trim().startsWith("example:", ignoreCase = true) }
                 meaning.pronunciation?.let { lines.add("  pronunciation: ${it.replace(Regex("\\s+"), " ").trim()}") }
                 meaning.sourceUrl?.let { lines.add("  meaning-source: $it") }
+                meaning.examples.distinct().take(4).forEach { lines.add("  example: ${it.replace(Regex("\\s+"), " ").trim()}") }
                 lines.joinToString("\n")
             }
         }

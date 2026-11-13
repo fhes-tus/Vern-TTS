@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -55,7 +54,6 @@ import com.veritas.reader.R
 import com.veritas.reader.ReaderDocument
 import com.veritas.reader.ReaderMode
 import com.veritas.reader.ReaderModeToggle
-import com.veritas.reader.SlimPageSlider
 import com.veritas.reader.VeritasSleepTimerSnapshot
 import com.veritas.reader.ui.OnboardingController
 import kotlinx.coroutines.CoroutineScope
@@ -275,30 +273,6 @@ onOpenAskAi = onOpenAskAi,
                         .fillMaxWidth()
                         .onGloballyPositioned { OnboardingController.updateBounds("reader_mode_toggle", it) }
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                if (pageItems.size > 1) {
-                    SlimPageSlider(
-                        pageIndex = verticalPageIndex ?: pagerState.currentPage,
-                        pageCount = pageItems.size,
-                        onPageSelected = { targetPage ->
-                            if (onVerticalPageSelected != null) onVerticalPageSelected(targetPage)
-                            else
-                            coroutineScope.launch {
-                                if (verticalPageIndex == null) pagerState.animateScrollToPage(targetPage)
-                                val pageItem = pageItems.getOrNull(targetPage)
-                                if (pageItem != null && pageItem.sentenceRanges.isNotEmpty()) {
-                                    onSentenceClick(pageItem.sentenceStartIndex)
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(18.dp)
-                            .padding(horizontal = 4.dp)
-                    )
-                } else {
-                    LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
-                }
             }
             }
             }

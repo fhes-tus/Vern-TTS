@@ -154,26 +154,11 @@ internal fun NoteGroupCard(
         }
     }
 
-    val memoDuration = remember(group.audioPath, group.audioDurationSeconds) {
-        if (group.audioDurationSeconds > 0) {
-            String.format(Locale.US, "%02d:%02d", group.audioDurationSeconds / 60, group.audioDurationSeconds % 60)
-        } else if (!group.audioPath.isNullOrBlank()) {
-            try {
-                val file = java.io.File(group.audioPath)
-                if (file.exists()) {
-                    val retriever = android.media.MediaMetadataRetriever()
-                    retriever.setDataSource(group.audioPath)
-                    val durStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
-                    val durMs = durStr?.toLongOrNull() ?: 0L
-                    val totalSec = durMs / 1000
-                    retriever.release()
-                    String.format(Locale.US, "%02d:%02d", totalSec / 60, totalSec % 60)
-                } else "0:00"
-            } catch (_: Exception) {
-                "0:00"
-            }
-        } else ""
-    }
+    val duration = rememberNoteAudioDurationMillis(group.audioPath,
+        knownMillis = group.audioDurationSeconds.toLong() * 1000,
+        revision = group.annotations.maxOfOrNull { it.updatedAt } ?: 0)
+    val memoDuration = duration?.let { formatNoteAudioDuration(it, padMinutes = true) }
+        ?: if (group.audioPath.isNullOrBlank()) "" else "0:00"
 
     val recordingState by com.veritas.reader.VoiceNoteRecorder.recordingState.collectAsState()
     val activeAudioPath by com.veritas.reader.VoiceNoteRecorder.activeAudioPath.collectAsState()

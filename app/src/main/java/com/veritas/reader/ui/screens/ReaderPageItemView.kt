@@ -1,6 +1,5 @@
 package com.veritas.reader.ui.screens
 
-
 import android.annotation.SuppressLint
 import android.graphics.Paint
 import android.view.GestureDetector
@@ -10,22 +9,28 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -46,21 +51,24 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,8 +78,8 @@ import com.veritas.reader.AnnotationPill
 import com.veritas.reader.AnnotationType
 import com.veritas.reader.CoverExtractor
 import com.veritas.reader.DocumentPageImageLoader
-import com.veritas.reader.InlineIllustrationPlanner
 import com.veritas.reader.DocumentRepository
+import com.veritas.reader.InlineIllustrationPlanner
 import com.veritas.reader.PaperToneMode
 import com.veritas.reader.PlaybackStateStore
 import com.veritas.reader.ReaderAnnotation
@@ -89,7 +97,7 @@ import kotlinx.coroutines.coroutineScope
 
 @SuppressLint("WrongConstant")
 private fun TextView.useNaturalWordSpacing() {
-    // Justification stretches spaces unevenly on narrow reader pages.
+    // Justification stretches spaces unevenly on narrow reader pages. Keep left-aligned natural word spacing.
     justificationMode = android.text.Layout.JUSTIFICATION_MODE_NONE
 }
 
@@ -161,531 +169,583 @@ internal fun ReaderPageItemView(
     val haptics = LocalHapticFeedback.current
     androidx.compose.ui.platform.LocalDensity.current
 
-                    val pageItem = pageItems.getOrNull(pageIndex)
-                    if (pageItem == null) {
-                        Box(modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()), contentAlignment = Alignment.Center) {
-                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_page_not_found), style = MaterialTheme.typography.bodyMedium)
-                        }
-                    } else {
-                        val pageNumber = pageItem.pageNumber
-                        val part = remember(pageItem) { pageItem.toReaderPart(pageIndex) }
+    val pageItem = pageItems.getOrNull(pageIndex)
+    if (pageItem == null) {
+        Box(
+            modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_page_not_found),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    } else {
+        val pageNumber = pageItem.pageNumber
+        val part = remember(pageItem) { pageItem.toReaderPart(pageIndex) }
 
-                        val docRepository = remember(context) {
-                            DocumentRepository(context.applicationContext)
+        val docRepository = remember(context) {
+            DocumentRepository(context.applicationContext)
+        }
+        var pageMedia by remember(document.id, pageNumber) {
+            mutableStateOf(
+                DocumentPageImageLoader.getCachedPageMedia(document.id.orEmpty(), pageNumber)
+                    ?: com.veritas.reader.DocumentPageMedia(emptyList())
+            )
+        }
+        val pageBitmaps = pageMedia.bitmaps
+        var inlineFollowingTexts by remember(document.id, pageNumber) { mutableStateOf(pageMedia.followingTexts) }
+        var pageMediaReady by remember(document.id, pageNumber) {
+            mutableStateOf(DocumentPageImageLoader.getCachedPageImages(document.id.orEmpty(), pageNumber) != null)
+        }
+        LaunchedEffect(document.id, pageNumber) {
+            if (!pageMediaReady) {
+                try {
+                    coroutineScope {
+                        val loading = async { DocumentPageImageLoader.loadPageMedia(context, docRepository, document.id.orEmpty(), pageNumber) }
+                        val early = kotlinx.coroutines.withTimeoutOrNull(300L) { loading.await() }
+                        if (early != null) {
+                            pageMedia = early
+                            inlineFollowingTexts = early.followingTexts
                         }
-                        var pageMedia by remember(document.id, pageNumber) {
-                            mutableStateOf(DocumentPageImageLoader.getCachedPageMedia(document.id.orEmpty(), pageNumber)
-                                ?: com.veritas.reader.DocumentPageMedia(emptyList()))
-                        }
-                        val pageBitmaps = pageMedia.bitmaps
-                        var inlineFollowingTexts by remember(document.id, pageNumber) { mutableStateOf(pageMedia.followingTexts) }
-                        var pageMediaReady by remember(document.id, pageNumber) {
-                            mutableStateOf(DocumentPageImageLoader.getCachedPageImages(document.id.orEmpty(), pageNumber) != null)
-                        }
-                        LaunchedEffect(document.id, pageNumber) {
-                            if (!pageMediaReady) {
-                                // Freeze placement when prose becomes visible. Slow media
-                                // falls below this visit's text; cached revisits can use its
-                                // inline anchors without inserting height during reading.
-                                try {
-                                    coroutineScope {
-                                        val loading = async { DocumentPageImageLoader.loadPageMedia(context, docRepository, document.id.orEmpty(), pageNumber) }
-                                        val early = kotlinx.coroutines.withTimeoutOrNull(300L) { loading.await() }
-                                        if (early != null) {
-                                            pageMedia = early
-                                            inlineFollowingTexts = early.followingTexts
-                                        }
-                                        pageMediaReady = true
-                                        if (early == null) pageMedia = loading.await()
-                                    }
-                                } finally {
-                                    pageMediaReady = true
-                                }
-                            }
-                        }
+                        pageMediaReady = true
+                        if (early == null) pageMedia = loading.await()
+                    }
+                } finally {
+                    pageMediaReady = true
+                }
+            }
+        }
 
-                        val paperTone = PaperToneMode.fromString(readerSettings.paperToneMode)
-                        val (canvasBg, canvasTextColor) = getCanvasColors(paperTone)
-                        val paperAccent = com.veritas.reader.readableDocumentInk(MaterialTheme.colorScheme.primary, canvasBg)
+        val paperTone = PaperToneMode.fromString(readerSettings.paperToneMode)
+        val (canvasBg, canvasTextColor) = getCanvasColors(paperTone)
+        val paperAccent = com.veritas.reader.readableDocumentInk(MaterialTheme.colorScheme.primary, canvasBg)
 
-                        val sentenceBackground =
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)
-                        val highlightBackground = MaterialTheme.colorScheme.tertiaryContainer
-                        val feedbackBackground =
-                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.18f)
-                        val textColor = canvasTextColor.toArgb()
-                        val activeSentenceColor = sentenceBackground.toArgb()
-                        val highlightColor = highlightBackground.toArgb()
-                        val feedbackColor = feedbackBackground.toArgb()
-                        val searchMatchColor = Color(0xFFFFD54F).copy(alpha = 0.65f).toArgb()
-                        val activeSearchMatchColor = Color(0xFFFFB300).toArgb()
+        val sentenceBackground = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)
+        val highlightBackground = MaterialTheme.colorScheme.tertiaryContainer
+        val feedbackBackground = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.18f)
+        val textColor = canvasTextColor.toArgb()
 
-                        val bookmarkedSentenceIndexes = remember(annotations) {
-                            annotations
-                                .filter { it.type == AnnotationType.BOOKMARK }
-                                .map { it.chunkIndex }
-                                .toSet()
-                        }
-                        val bookmarkedSentences = remember(annotations) {
-                            annotations
-                                .filter { it.type == AnnotationType.BOOKMARK }
-                                .associate { it.chunkIndex to (it.highlightColor ?: "#FFE082") }
-                        }
-                        val bookmarked =
-                            annotations.any { it.type == AnnotationType.BOOKMARK && it.chunkIndex in part.sentenceStartIndex until part.sentenceEndIndexExclusive }
-                        val note =
-                            annotations.firstOrNull { it.type == AnnotationType.NOTE && it.chunkIndex == currentIndex }
+        val activeSentenceColor = sentenceBackground.toArgb()
+        val highlightColor = highlightBackground.toArgb()
+        val feedbackColor = feedbackBackground.toArgb()
+        val searchMatchColor = Color(0xFFFFFD54F).copy(alpha = 0.65f).toArgb()
+        val activeSearchMatchColor = Color(0xFFFFFB300).toArgb()
 
-                        val imageAnchors = remember(part, inlineFollowingTexts) {
-                            InlineIllustrationPlanner.anchors(part, inlineFollowingTexts)
-                        }
-                        val placedImageIndexes = imageAnchors.map { it.imageIndex }.toSet()
-                        val unplacedBitmaps = pageBitmaps.filterIndexed { index, _ -> index !in placedImageIndexes }.filterNotNull()
+        val bookmarkedSentenceIndexes = remember(annotations) {
+            annotations
+                .filter { it.type == AnnotationType.BOOKMARK }
+                .map { it.chunkIndex }
+                .toSet()
+        }
+        val bookmarkedSentences = remember(annotations) {
+            annotations
+                .filter { it.type == AnnotationType.BOOKMARK }
+                .associate { it.chunkIndex to (it.highlightColor ?: "#FFE082") }
+        }
+        val bookmarked =
+            annotations.any { it.type == AnnotationType.BOOKMARK && it.chunkIndex in part.sentenceStartIndex until part.sentenceEndIndexExclusive }
+        val note =
+            annotations.firstOrNull { it.type == AnnotationType.NOTE && it.chunkIndex == currentIndex }
 
-                        val latestToggleBars by rememberUpdatedState(onToggleBars)
-                        Box(
-                            modifier = Modifier
-                                .then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
-                                .padding(horizontal = 4.dp, vertical = 4.dp)
-                                .pointerInput(isCollapsible) {
-                                    if (!isCollapsible) return@pointerInput
-                                    awaitEachGesture {
-                                        val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                                        val origin = down.position
-                                        var eligible = true
-                                        var released = false
-                                        do {
-                                            val event = awaitPointerEvent(PointerEventPass.Final)
-                                            val change = event.changes.firstOrNull { it.id == down.id }
-                                            if (event.changes.size > 1 || change == null) eligible = false
-                                            if (change != null) {
-                                                if (change.isConsumed || (change.position - origin).getDistance() > viewConfiguration.touchSlop ||
-                                                    change.uptimeMillis - down.uptimeMillis >= viewConfiguration.longPressTimeoutMillis) eligible = false
-                                                released = !change.pressed
-                                            }
-                                        } while (event.changes.any { it.pressed })
-                                        if (eligible && released) latestToggleBars()
-                                    }
-                                }
-                                .readerFontPinch(readerSettings.fontSizeSp, onFontSizeChange, onPinchChanged)
-                        ) {
-                            Surface(
-                                modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()).testTag("reader-paper-$pageNumber"),
-                                shape = RoundedCornerShape(14.dp),
-                                color = canvasBg,
-                                border = androidx.compose.foundation.BorderStroke(
-                                    1.dp,
-                                    if (paperTone == PaperToneMode.WARM_SEPIA) {
-                                        Color(0xFF8D6E63).copy(alpha = 0.25f)
-                                    } else {
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
-                                    }
-                                ),
-                                tonalElevation = 0.dp,
-                                shadowElevation = 3.dp
-                            ) {
-                                Box(
-                                    modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
+        val imageAnchors = remember(part, inlineFollowingTexts) {
+            InlineIllustrationPlanner.anchors(part, inlineFollowingTexts)
+        }
+        val placedImageIndexes = imageAnchors.map { it.imageIndex }.toSet()
+        val unplacedBitmaps = pageBitmaps.filterIndexed { index, _ -> index !in placedImageIndexes }.filterNotNull()
+
+        val layoutDirection = LocalLayoutDirection.current
+        val horizontalCutoutValues = WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal).asPaddingValues()
+        val startCutoutPad = horizontalCutoutValues.calculateLeftPadding(layoutDirection)
+        val endCutoutPad = horizontalCutoutValues.calculateRightPadding(layoutDirection)
+        val topSafeValues = WindowInsets.statusBars.union(WindowInsets.displayCutout.only(WindowInsetsSides.Top)).asPaddingValues()
+        val topCutoutClearance = topSafeValues.calculateTopPadding()
+        val bottomNavInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        // Ensure final lines of text can always scroll completely clear of the floating bottom player.
+        val floatingPlayerClearance = if (bottomBarVisible) bottomNavInset + 84.dp else bottomNavInset + 24.dp
+
+        val latestToggleBars by rememberUpdatedState(onToggleBars)
+        // Full-bleed edge-to-edge rectangular page: 0.dp outer margins, RectangleShape (0.dp radius),
+        // no border, no shadow/elevation, and no decorative spine overlay.
+        Box(
+            modifier = Modifier
+                .then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
+                .pointerInput(isCollapsible) {
+                    if (!isCollapsible) return@pointerInput
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                        val origin = down.position
+                        var eligible = true
+                        var released = false
+                        do {
+                            val event = awaitPointerEvent(PointerEventPass.Final)
+                            val change = event.changes.firstOrNull { it.id == down.id }
+                            if (event.changes.size > 1 || change == null) eligible = false
+                            if (change != null) {
+                                if (change.isConsumed || (change.position - origin).getDistance() > viewConfiguration.touchSlop ||
+                                    change.uptimeMillis - down.uptimeMillis >= viewConfiguration.longPressTimeoutMillis
                                 ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
-                                            .padding(horizontal = 10.dp, vertical = 8.dp)
-                                    ) {
-                                    // Page Top Header (Tappable to toggle collapsible bars)
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = null
-                                            ) {
-                                                if (isCollapsible) onToggleBars()
-                                            },
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = document.title,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = canvasTextColor.copy(alpha = 0.7f),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.weight(1f).padding(end = 8.dp)
-                                        )
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            if (bookmarked) {
-                                                AnnotationPill(Icons.Filled.Bookmark, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_bookmarked))
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                            }
-                                            Text(
-                                                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_150, com.veritas.reader.ui.screens.localizedUiValue(pageNumber), com.veritas.reader.ui.screens.localizedUiValue(pageItems.size)),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = if (paperTone == PaperToneMode.WARM_SEPIA) Color(0xFF6D4C41) else paperAccent
-                                            )
-                                        }
-                                    }
-
-                                    HorizontalDivider(
-                                        modifier = Modifier.padding(vertical = 6.dp),
-                                        color = if (paperTone == PaperToneMode.WARM_SEPIA) Color(0xFF8D6E63).copy(alpha = 0.2f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
-                                    )
-
-                                    // Scrollable content on page
-                                    val pageScrollState = rememberScrollState()
-                                    val pageDragged by pageScrollState.interactionSource.collectIsDraggedAsState()
-                                    val latestHideBars by rememberUpdatedState(onHideBars)
-                                    LaunchedEffect(pageScrollState, pagerState, pageIndex, isCollapsible) {
-                                        if (!isCollapsible || continuous) return@LaunchedEffect
-                                        // Automatic sentence following also scrolls this column.
-                                        // It must not undo a tap that just revealed the controls.
-                                        snapshotFlow {
-                                            pageDragged && pageScrollState.value > 60 && pagerState.currentPage == pageIndex
-                                        }.collect { hide -> if (hide) latestHideBars() }
-                                    }
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .then(if (continuous) Modifier else Modifier.weight(1f))
-                                            .testTag("reader-page-scroll-$pageNumber")
-                                            .then(if (continuous) Modifier else Modifier.verticalScroll(pageScrollState))
-                                            .padding(bottom = 16.dp)
-                                    ) pageContent@{
-                                        if (!pageMediaReady) {
-                                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_preparing_page_illustrations), color = canvasTextColor,
-                                                modifier = Modifier.padding(vertical = 24.dp))
-                                            return@pageContent
-                                        }
-                                        if (pageItem.text.isBlank()) {
-                                            Text(
-                                                text = if (document.partial) {
-                                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_only_part_of_this_document_has_been_extracted_no_text_is_availabl)
-                                                } else {
-                                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_readable_text_was_extracted_for_this_page)
-                                                },
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = canvasTextColor.copy(alpha = 0.7f),
-                                                modifier = Modifier.padding(vertical = 24.dp)
-                                            )
-                                        }
-                                        if (pageNumber == 1) {
-                                            val context = LocalContext.current
-                                            val coverFile = remember(document.id) { CoverExtractor.coverFile(context, document.id.orEmpty()) }
-                                            val coverBitmap = remember(coverFile, document.id, document.title) {
-                                                coverFile?.takeIf { it.exists() }?.let { file ->
-                                                    runCatching { android.graphics.BitmapFactory.decodeFile(file.absolutePath) }.getOrNull()
-                                                } ?: run {
-                                                    val classic = CURATED_CLASSICS.firstOrNull { c ->
-                                                        document.title.contains(c.title, ignoreCase = true) ||
-                                                        (document.id?.contains(c.id, ignoreCase = true) == true)
-                                                    }
-                                                    if (classic != null) {
-                                                        runCatching {
-                                                            context.assets.open("covers/${classic.id}.jpg").use { stream ->
-                                                                android.graphics.BitmapFactory.decodeStream(stream)
-                                                            }
-                                                        }.getOrNull()
-                                                    } else if (document.title.contains("Who Moved My Cheese", ignoreCase = true)) {
-                                                        runCatching {
-                                                            context.assets.open("covers/who_moved_my_cheese.jpg").use { stream ->
-                                                                android.graphics.BitmapFactory.decodeStream(stream)
-                                                            }
-                                                        }.getOrNull()
-                                                    } else null
-                                                }
-                                            }
-                                            if (coverBitmap != null) {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(vertical = 10.dp),
-                                                    horizontalArrangement = Arrangement.Center
-                                                ) {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .width(72.dp)
-                                                            .height(100.dp)
-                                                            .clip(RoundedCornerShape(8.dp))
-                                                    ) {
-                                                        androidx.compose.foundation.Image(
-                                                            bitmap = coverBitmap.asImageBitmap(),
-                                                            contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_cover),
-                                                            modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()),
-                                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        val currentFontId = readerSettings.uiFontId
-                                        val uiFont = remember(currentFontId) { VeritasUiFont.fromId(currentFontId) }
-                                        val boldTypeface = remember(uiFont, context) {
-                                            uiFont.asTypeface(context, weight = 700, isBold = true)
-                                        }
-
-                                        val isCurrentOnThisPage = currentIndex in part.sentenceStartIndex until part.sentenceEndIndexExclusive
-                                        val activeSentenceOnThisPage = if (isCurrentOnThisPage) currentIndex else -1
-                                        val segments = remember(part, imageAnchors) { parsePageContentSegments(part, imageAnchors) }
-                                        val segmentTopPx = remember { mutableStateMapOf<Int, Float>() }
-                                        val segmentTextViews = remember { mutableMapOf<Int, TextView>() }
-                                        var activeTextView by remember { mutableStateOf<TextView?>(null) }
-                                        var textViewContentTopPx by remember { mutableFloatStateOf(0f) }
-                                        fun reportSentenceOffsets() {
-                                            if (!continuous) return
-                                            val offsets = mutableMapOf<Int, Int>()
-                                            segments.forEach { segment ->
-                                                val top = segmentTopPx[segment.segmentIndex] ?: return@forEach
-                                                when (segment) {
-                                                    is PageContentSegment.Prose -> {
-                                                        val view = segmentTextViews[segment.segmentIndex] ?: return@forEach
-                                                        val layout = view.layout ?: return@forEach
-                                                        segment.subPart.sentenceRanges.forEach { range ->
-                                                            val line = layout.getLineForOffset(range.start.coerceIn(0, view.text.length))
-                                                            offsets[range.sentenceIndex] = (top + layout.getLineTop(line)).toInt()
-                                                        }
-                                                    }
-                                                    is PageContentSegment.Table -> offsets[segment.sentenceStartIndex] = top.toInt()
-                                                    is PageContentSegment.Image -> Unit
-                                                }
-                                            }
-                                            onSentenceOffsets(offsets)
-                                        }
-
-                                        LaunchedEffect(activeSentenceOnThisPage, readerSettings.fontSizeSp, segmentTopPx.toMap()) {
-                                            if (selectedTextSelection != null || segmentTextViews.values.any { it.hasSelection() }) return@LaunchedEffect
-                                            if (activeSentenceOnThisPage >= 0) {
-                                                val activeSegment = segments.firstOrNull { segment ->
-                                                    when (segment) {
-                                                        is PageContentSegment.Prose -> activeSentenceOnThisPage in segment.subPart.sentenceStartIndex until segment.subPart.sentenceEndIndexExclusive
-                                                        is PageContentSegment.Table -> activeSentenceOnThisPage in segment.sentenceStartIndex until segment.sentenceEndIndexExclusive
-                                                        is PageContentSegment.Image -> false
-                                                    }
-                                                }
-                                                if (activeSegment is PageContentSegment.Table) {
-                                                    val tableTop = segmentTopPx[activeSegment.segmentIndex] ?: 0f
-                                                    val currentScroll = pageScrollState.value
-                                                    val viewportHeight = pageScrollState.viewportSize
-                                                    val isVisible = viewportHeight > 0 && tableTop >= currentScroll && tableTop <= (currentScroll + viewportHeight - 80)
-                                                    if (continuous) onActiveOffset((tableTop + 40).toInt().coerceAtLeast(0))
-                                                    else if (!isVisible) {
-                                                        pageScrollState.animateScrollTo((tableTop - 60).toInt().coerceAtLeast(0))
-                                                    }
-                                                } else if (activeSegment is PageContentSegment.Prose) {
-                                                    val tv = segmentTextViews[activeSegment.segmentIndex] ?: return@LaunchedEffect
-                                                    var attempts = 0
-                                                    while (tv.layout == null && attempts < 10) {
-                                                        kotlinx.coroutines.delay(30)
-                                                        attempts++
-                                                    }
-                                                    val layout = tv.layout ?: return@LaunchedEffect
-                                                    val range = activeSegment.subPart.sentenceRanges.firstOrNull { it.sentenceIndex == activeSentenceOnThisPage } ?: return@LaunchedEffect
-                                                    val safeOffset = range.start.coerceIn(0, (tv.text?.length ?: 1) - 1)
-                                                    val line = layout.getLineForOffset(safeOffset)
-                                                    val lineTop = layout.getLineTop(line)
-                                                    val lineBottom = layout.getLineBottom(line)
-                                                    val segmentTop = segmentTopPx[activeSegment.segmentIndex] ?: textViewContentTopPx
-                                                    val sentenceY = (segmentTop + lineTop).toInt()
-                                                    val currentScroll = pageScrollState.value
-                                                    val viewportHeight = pageScrollState.viewportSize
-                                                    val isVisible = viewportHeight > 0 &&
-                                                        sentenceY >= currentScroll &&
-                                                        (sentenceY + (lineBottom - lineTop)) <= (currentScroll + viewportHeight - 80)
-                                                    if (continuous) onActiveOffset(sentenceY.coerceAtLeast(0))
-                                                    else if (!isVisible) {
-                                                        val targetY = (sentenceY - 60).coerceAtLeast(0)
-                                                        pageScrollState.animateScrollTo(targetY)
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        segments.forEach { segment ->
-                                            androidx.compose.runtime.key(segment.segmentIndex, segment::class) {
-                                            when (segment) {
-                                                is PageContentSegment.Image -> ReaderInlineIllustration(pageBitmaps.getOrNull(segment.imageIndex), segment.imageIndex)
-                                                is PageContentSegment.Prose -> {
-                                                    ReaderProseBlock(
-                                                        subPart = segment.subPart,
-                                                        segmentIndex = segment.segmentIndex,
-                                                        activeSentenceOnThisPage = activeSentenceOnThisPage,
-                                                        isPlaying = isPlaying,
-                                                        feedbackSentenceIndex = feedbackSentenceIndex,
-                                                        bookmarkedSentences = bookmarkedSentences,
-                                                        searchMatches = searchMatches,
-                                                        searchCursor = searchCursor,
-                                                        activeSentenceColor = activeSentenceColor,
-                                                        highlightColor = highlightColor,
-                                                        feedbackColor = feedbackColor,
-                                                        searchMatchColor = searchMatchColor,
-                                                        activeSearchMatchColor = activeSearchMatchColor,
-                                                        state = state,
-                                                        readerSettings = readerSettings,
-                                                        paperTone = paperTone,
-                                                        pageBitmaps = pageBitmaps,
-                                                        textColor = textColor,
-                                                        boldTypeface = boldTypeface,
-                                                        currentPageNumber = currentPageNumber,
-                                                        isVisiblePage = if (continuous) currentPageNumber == pageNumber else pagerState.currentPage == pageIndex,
-                                                        pageNumber = pageNumber,
-                                                        document = document,
-                                                        bookmarkedSentenceIndexes = bookmarkedSentenceIndexes,
-                                                        isCollapsible = isCollapsible,
-                                                        onToggleBars = onToggleBars,
-                                                        onSentenceDoubleTap = onSentenceDoubleTap,
-                                                        onTextViewBound = onTextViewBound,
-                                                        onSelectionChanged = onSelectionChanged,
-                                                        onSearchTriggered = onSearchTriggered,
-                                                        onToggleBookmark = onToggleBookmark,
-                                                        onOpenColorPalette = onOpenColorPalette,
-                                                        onEditNotes = onEditNotes,
-                                                        onTranslateSelection = onTranslateSelection,
-                                                        onCopySelection = onCopySelection,
-                                                        onGoogleSelection = onGoogleSelection,
-                                                        onShareSelection = onShareSelection,
-                                                        onOpenShareToAi = onOpenShareToAi,
-                                                        onEditSpeechSelection = onEditSpeechSelection,
-                                                        onEditExtractedSelection = onEditExtractedSelection,
-                                                        onAskAiSelection = onAskAiSelection,
-                                                        onReadSelection = onReadSelection,
-                                                        onGloballyPositionedTop = { top ->
-                                                            segmentTopPx[segment.segmentIndex] = top
-                                                            if (segment.segmentIndex == 0) textViewContentTopPx = top
-                                                            reportSentenceOffsets()
-                                                        },
-                                                        onTextViewActive = { tv ->
-                                                            activeTextView = tv
-                                                            segmentTextViews[segment.segmentIndex] = tv
-                                                        }
-                                                    )
-                                                }
-                                                is PageContentSegment.Table -> {
-                                                    ReaderComposeTableCard(
-                                                        table = segment,
-                                                        activeSentenceIndex = activeSentenceOnThisPage,
-                                                        paperTone = paperTone,
-                                                        canvasTextColor = canvasTextColor,
-                                                        onSentenceClick = onSentenceClick,
-                                                        onSentenceDoubleTap = onSentenceDoubleTap,
-                                                        onSkipTable = {
-                                                            onSentenceClick(segment.sentenceEndIndexExclusive.coerceAtMost((document.chunks.size - 1).coerceAtLeast(0)))
-                                                        },
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .onGloballyPositioned {
-                                                                segmentTopPx[segment.segmentIndex] = it.positionInParent().y + pageScrollState.value
-                                                                reportSentenceOffsets()
-                                                            }
-                                                    )
-                                                }
-                                            }
-                                        }
-
-                                        }
-
-                                        if (unplacedBitmaps.isNotEmpty()) {
-                                            unplacedBitmaps.forEachIndexed { imgIdx, bmp ->
-                                                Spacer(modifier = Modifier.height(14.dp))
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
-                                                        .padding(vertical = 4.dp),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    androidx.compose.foundation.Image(
-                                                        bitmap = bmp.asImageBitmap(),
-                                                        contentDescription = "Illustration ${imgIdx + 1}",
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .heightIn(max = 320.dp),
-                                                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
-                                                    )
-                                                }
-                                                Spacer(modifier = Modifier.height(14.dp))
-                                            }
-                                        }
-
-                                        if (!note?.note.isNullOrBlank()) {
-                                            Spacer(modifier = Modifier.height(10.dp))
-                                            Card(
-                                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                                                shape = MaterialTheme.shapes.small
-                                            ) {
-                                                Column(
-                                                    modifier = Modifier.padding(12.dp),
-                                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                                ) {
-                                                    Text(
-                                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_note),
-                                                        style = MaterialTheme.typography.labelMedium,
-                                                        fontWeight = FontWeight.Bold
-                                                    )
-                                                    Text(
-                                                        note.note,
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        maxLines = 3,
-                                                        overflow = TextOverflow.Ellipsis
-                                                    )
-                                                }
-                                            }
-                                        }
-
-                                        Spacer(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .heightIn(min = if (continuous) 80.dp else 450.dp)
-                                                .clickable(
-                                                    interactionSource = remember { MutableInteractionSource() },
-                                                    indication = null
-                                                ) {
-                                                    if (isCollapsible) onToggleBars()
-                                                }
-                                        )
-                                    }
+                                    eligible = false
                                 }
+                                released = !change.pressed
+                            }
+                        } while (event.changes.any { it.pressed })
+                        if (eligible && released) latestToggleBars()
+                    }
+                }
+                .readerFontPinch(readerSettings.fontSizeSp, onFontSizeChange, onPinchChanged)
+        ) {
+            Surface(
+                modifier = Modifier
+                    .then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
+                    .testTag("reader-paper-$pageNumber"),
+                shape = RectangleShape,
+                color = canvasBg,
+                border = null,
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp
+            ) {
+                BoxWithConstraints(
+                    modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    // Modest responsive inner horizontal gutters (~20.dp on phones, respecting horizontal cutouts).
+                    // On very wide displays (tablets/desktops), apply a comfortable max reading line width
+                    // scaled with the user's chosen fontSizeSp without making phone landscape columns narrow.
+                    val baseInnerHorizontalPad = 20.dp
+                    val startPad = baseInnerHorizontalPad + startCutoutPad
+                    val endPad = baseInnerHorizontalPad + endCutoutPad
+                    val availableInnerWidth = (maxWidth - startPad - endPad).coerceAtLeast(240.dp)
+                    val strategicMaxLineWidth = (readerSettings.fontSizeSp * 44).coerceIn(720, 1040).dp
+                    val topHeaderClearance = if (!continuous && !bottomBarVisible && isCollapsible) {
+                        topCutoutClearance.coerceAtLeast(8.dp)
+                    } else {
+                        8.dp
+                    }
 
-                                // A spine belongs to paginated paper, not the scrolling flow.
-                                if (!continuous) Box(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterStart)
-                                        .width(10.dp)
-                                        .fillMaxHeight()
-                                        .background(
-                                            Brush.horizontalGradient(
-                                                listOf(
-                                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f),
-                                                    Color.Transparent
-                                                )
-                                            )
-                                        )
+                    Column(
+                        modifier = Modifier
+                            .then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
+                            .padding(
+                                start = startPad,
+                                end = endPad,
+                                top = topHeaderClearance,
+                                bottom = 0.dp
+                            )
+                            .then(
+                                if (availableInnerWidth > strategicMaxLineWidth) {
+                                    Modifier.widthIn(max = strategicMaxLineWidth)
+                                } else {
+                                    Modifier
+                                }
+                            )
+                    ) {
+                        // Page Top Header Strip (Book title & page number inside the reading surface, tappable to toggle bars)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) {
+                                    if (isCollapsible) onToggleBars()
+                                },
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = document.title,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = canvasTextColor.copy(alpha = 0.7f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 8.dp)
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (bookmarked) {
+                                    AnnotationPill(
+                                        Icons.Filled.Bookmark,
+                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_bookmarked)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                }
+                                Text(
+                                    text = com.veritas.reader.ui.screens.menuString(
+                                        com.veritas.reader.R.string.l10n_dynamic_150,
+                                        com.veritas.reader.ui.screens.localizedUiValue(pageNumber),
+                                        com.veritas.reader.ui.screens.localizedUiValue(pageItems.size)
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (paperTone == PaperToneMode.WARM_SEPIA) Color(0xFF6D4C41) else paperAccent
                                 )
                             }
                         }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 6.dp),
+                            color = if (paperTone == PaperToneMode.WARM_SEPIA) {
+                                Color(0xFF8D6E63).copy(alpha = 0.2f)
+                            } else {
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
+                            }
+                        )
+
+                        // Scrollable content on page
+                        val pageScrollState = rememberScrollState()
+                        val pageDragged by pageScrollState.interactionSource.collectIsDraggedAsState()
+                        val latestHideBars by rememberUpdatedState(onHideBars)
+                        LaunchedEffect(pageScrollState, pagerState, pageIndex, isCollapsible) {
+                            if (!isCollapsible || continuous) return@LaunchedEffect
+                            // Automatic sentence following also scrolls this column.
+                            // It must not undo a tap that just revealed the controls.
+                            snapshotFlow {
+                                pageDragged && pageScrollState.value > 60 && pagerState.currentPage == pageIndex
+                            }.collect { hide -> if (hide) latestHideBars() }
+                        }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .then(if (continuous) Modifier else Modifier.weight(1f))
+                                .testTag("reader-page-scroll-$pageNumber")
+                                .then(if (continuous) Modifier else Modifier.verticalScroll(pageScrollState))
+                                .padding(bottom = floatingPlayerClearance)
+                        ) pageContent@{
+                            if (!pageMediaReady) {
+                                Text(
+                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_preparing_page_illustrations),
+                                    color = canvasTextColor,
+                                    modifier = Modifier.padding(vertical = 24.dp)
+                                )
+                                return@pageContent
+                            }
+                            if (pageItem.text.isBlank()) {
+                                Text(
+                                    text = if (document.partial) {
+                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_only_part_of_this_document_has_been_extracted_no_text_is_availabl)
+                                    } else {
+                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_readable_text_was_extracted_for_this_page)
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = canvasTextColor.copy(alpha = 0.7f),
+                                    modifier = Modifier.padding(vertical = 24.dp)
+                                )
+                            }
+                            if (pageNumber == 1) {
+                                val coverFile = remember(document.id) { CoverExtractor.coverFile(context, document.id.orEmpty()) }
+                                val coverBitmap = remember(coverFile, document.id, document.title) {
+                                    coverFile?.takeIf { it.exists() }?.let { file ->
+                                        runCatching { android.graphics.BitmapFactory.decodeFile(file.absolutePath) }.getOrNull()
+                                    } ?: run {
+                                        val classic = CURATED_CLASSICS.firstOrNull { c ->
+                                            document.title.contains(c.title, ignoreCase = true) ||
+                                                (document.id?.contains(c.id, ignoreCase = true) == true)
+                                        }
+                                        if (classic != null) {
+                                            runCatching {
+                                                context.assets.open("covers/${classic.id}.jpg").use { stream ->
+                                                    android.graphics.BitmapFactory.decodeStream(stream)
+                                                }
+                                            }.getOrNull()
+                                        } else if (document.title.contains("Who Moved My Cheese", ignoreCase = true)) {
+                                            runCatching {
+                                                context.assets.open("covers/who_moved_my_cheese.jpg").use { stream ->
+                                                    android.graphics.BitmapFactory.decodeStream(stream)
+                                                }
+                                            }.getOrNull()
+                                        } else null
+                                    }
+                                }
+                                if (coverBitmap != null) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 10.dp),
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(72.dp)
+                                                .height(100.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                        ) {
+                                            androidx.compose.foundation.Image(
+                                                bitmap = coverBitmap.asImageBitmap(),
+                                                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_cover),
+                                                modifier = Modifier.then(if (continuous) Modifier.fillMaxWidth() else Modifier.fillMaxSize()),
+                                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            val currentFontId = readerSettings.uiFontId
+                            val uiFont = remember(currentFontId) { VeritasUiFont.fromId(currentFontId) }
+                            val boldTypeface = remember(uiFont, context) {
+                                uiFont.asTypeface(context, weight = 700, isBold = true)
+                            }
+
+                            val isCurrentOnThisPage = currentIndex in part.sentenceStartIndex until part.sentenceEndIndexExclusive
+                            val activeSentenceOnThisPage = if (isCurrentOnThisPage) currentIndex else -1
+                            val segments = remember(part, imageAnchors) { parsePageContentSegments(part, imageAnchors) }
+                            val segmentTopPx = remember { mutableStateMapOf<Int, Float>() }
+                            val segmentTextViews = remember { mutableMapOf<Int, TextView>() }
+                            var activeTextView by remember { mutableStateOf<TextView?>(null) }
+                            var textViewContentTopPx by remember { mutableFloatStateOf(0f) }
+                            fun reportSentenceOffsets() {
+                                if (!continuous) return
+                                val offsets = mutableMapOf<Int, Int>()
+                                segments.forEach { segment ->
+                                    val top = segmentTopPx[segment.segmentIndex] ?: return@forEach
+                                    when (segment) {
+                                        is PageContentSegment.Prose -> {
+                                            val view = segmentTextViews[segment.segmentIndex] ?: return@forEach
+                                            val layout = view.layout ?: return@forEach
+                                            segment.subPart.sentenceRanges.forEach { range ->
+                                                val line = layout.getLineForOffset(range.start.coerceIn(0, view.text.length))
+                                                offsets[range.sentenceIndex] = (top + layout.getLineTop(line)).toInt()
+                                            }
+                                        }
+                                        is PageContentSegment.Table -> offsets[segment.sentenceStartIndex] = top.toInt()
+                                        is PageContentSegment.Image -> Unit
+                                    }
+                                }
+                                onSentenceOffsets(offsets)
+                            }
+
+                            LaunchedEffect(activeSentenceOnThisPage, readerSettings.fontSizeSp, segmentTopPx.toMap()) {
+                                if (selectedTextSelection != null || segmentTextViews.values.any { it.hasSelection() }) return@LaunchedEffect
+                                if (activeSentenceOnThisPage >= 0) {
+                                    val activeSegment = segments.firstOrNull { segment ->
+                                        when (segment) {
+                                            is PageContentSegment.Prose -> activeSentenceOnThisPage in segment.subPart.sentenceStartIndex until segment.subPart.sentenceEndIndexExclusive
+                                            is PageContentSegment.Table -> activeSentenceOnThisPage in segment.sentenceStartIndex until segment.sentenceEndIndexExclusive
+                                            is PageContentSegment.Image -> false
+                                        }
+                                    }
+                                    if (activeSegment is PageContentSegment.Table) {
+                                        val tableTop = segmentTopPx[activeSegment.segmentIndex] ?: 0f
+                                        val currentScroll = pageScrollState.value
+                                        val viewportHeight = pageScrollState.viewportSize
+                                        val isVisible = viewportHeight > 0 && tableTop >= currentScroll && tableTop <= (currentScroll + viewportHeight - 80)
+
+                                        if (continuous) onActiveOffset((tableTop + 40).toInt().coerceAtLeast(0))
+                                        else if (!isVisible) {
+                                            pageScrollState.animateScrollTo((tableTop - 60).toInt().coerceAtLeast(0))
+                                        }
+                                    } else if (activeSegment is PageContentSegment.Prose) {
+                                        val tv = segmentTextViews[activeSegment.segmentIndex] ?: return@LaunchedEffect
+                                        var attempts = 0
+                                        while (tv.layout == null && attempts < 10) {
+                                            kotlinx.coroutines.delay(30)
+                                            attempts++
+                                        }
+                                        val layout = tv.layout ?: return@LaunchedEffect
+                                        val range = activeSegment.subPart.sentenceRanges.firstOrNull { it.sentenceIndex == activeSentenceOnThisPage } ?: return@LaunchedEffect
+                                        val safeOffset = range.start.coerceIn(0, (tv.text?.length ?: 1) - 1)
+                                        val line = layout.getLineForOffset(safeOffset)
+                                        val lineTop = layout.getLineTop(line)
+                                        val lineBottom = layout.getLineBottom(line)
+                                        val segmentTop = segmentTopPx[activeSegment.segmentIndex] ?: textViewContentTopPx
+                                        val sentenceY = (segmentTop + lineTop).toInt()
+                                        val currentScroll = pageScrollState.value
+                                        val viewportHeight = pageScrollState.viewportSize
+                                        val isVisible = viewportHeight > 0 &&
+                                            sentenceY >= currentScroll &&
+                                            (sentenceY + (lineBottom - lineTop)) <= (currentScroll + viewportHeight - 80)
+                                        if (continuous) onActiveOffset(sentenceY.coerceAtLeast(0))
+                                        else if (!isVisible) {
+                                            val targetY = (sentenceY - 60).coerceAtLeast(0)
+                                            pageScrollState.animateScrollTo(targetY)
+                                        }
+                                    }
+                                }
+                            }
+
+                            segments.forEach { segment ->
+                                androidx.compose.runtime.key(segment.segmentIndex, segment::class) {
+                                    when (segment) {
+                                        is PageContentSegment.Image -> ReaderInlineIllustration(pageBitmaps.getOrNull(segment.imageIndex), segment.imageIndex)
+                                        is PageContentSegment.Prose -> {
+                                            ReaderProseBlock(
+                                                subPart = segment.subPart,
+                                                segmentIndex = segment.segmentIndex,
+                                                activeSentenceOnThisPage = activeSentenceOnThisPage,
+                                                isPlaying = isPlaying,
+                                                feedbackSentenceIndex = feedbackSentenceIndex,
+                                                bookmarkedSentences = bookmarkedSentences,
+                                                searchMatches = searchMatches,
+                                                searchCursor = searchCursor,
+                                                activeSentenceColor = activeSentenceColor,
+                                                highlightColor = highlightColor,
+                                                feedbackColor = feedbackColor,
+                                                searchMatchColor = searchMatchColor,
+                                                activeSearchMatchColor = activeSearchMatchColor,
+                                                state = state,
+                                                readerSettings = readerSettings,
+                                                paperTone = paperTone,
+                                                pageBitmaps = pageBitmaps,
+                                                textColor = textColor,
+                                                boldTypeface = boldTypeface,
+                                                currentPageNumber = currentPageNumber,
+                                                isVisiblePage = if (continuous) currentPageNumber == pageNumber else pagerState.currentPage == pageIndex,
+                                                pageNumber = pageNumber,
+                                                document = document,
+                                                bookmarkedSentenceIndexes = bookmarkedSentenceIndexes,
+                                                isCollapsible = isCollapsible,
+                                                onToggleBars = onToggleBars,
+                                                onSentenceDoubleTap = onSentenceDoubleTap,
+                                                onTextViewBound = onTextViewBound,
+                                                onSelectionChanged = onSelectionChanged,
+                                                onSearchTriggered = onSearchTriggered,
+                                                onToggleBookmark = onToggleBookmark,
+                                                onOpenColorPalette = onOpenColorPalette,
+                                                onEditNotes = onEditNotes,
+                                                onTranslateSelection = onTranslateSelection,
+                                                onCopySelection = onCopySelection,
+                                                onGoogleSelection = onGoogleSelection,
+                                                onShareSelection = onShareSelection,
+                                                onOpenShareToAi = onOpenShareToAi,
+                                                onEditSpeechSelection = onEditSpeechSelection,
+                                                onEditExtractedSelection = onEditExtractedSelection,
+                                                onAskAiSelection = onAskAiSelection,
+                                                onReadSelection = onReadSelection,
+                                                onGloballyPositionedTop = { top ->
+                                                    segmentTopPx[segment.segmentIndex] = top
+                                                    if (segment.segmentIndex == 0) textViewContentTopPx = top
+                                                    reportSentenceOffsets()
+                                                },
+                                                onTextViewActive = { tv ->
+                                                    activeTextView = tv
+                                                    segmentTextViews[segment.segmentIndex] = tv
+                                                }
+                                            )
+                                        }
+                                        is PageContentSegment.Table -> {
+                                            ReaderComposeTableCard(
+                                                table = segment,
+                                                activeSentenceIndex = activeSentenceOnThisPage,
+                                                paperTone = paperTone,
+                                                canvasTextColor = canvasTextColor,
+                                                onSentenceClick = onSentenceClick,
+                                                onSentenceDoubleTap = onSentenceDoubleTap,
+                                                onSkipTable = {
+                                                    onSentenceClick(segment.sentenceEndIndexExclusive.coerceAtMost((document.chunks.size - 1).coerceAtLeast(0)))
+                                                },
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .onGloballyPositioned {
+                                                        segmentTopPx[segment.segmentIndex] = it.positionInParent().y + pageScrollState.value
+                                                        reportSentenceOffsets()
+                                                    }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (unplacedBitmaps.isNotEmpty()) {
+                                unplacedBitmaps.forEachIndexed { imgIdx, bmp ->
+                                    Spacer(modifier = Modifier.height(14.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                                            .padding(vertical = 4.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        androidx.compose.foundation.Image(
+                                            bitmap = bmp.asImageBitmap(),
+                                            contentDescription = "Illustration ${imgIdx + 1}",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .heightIn(max = 320.dp),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(14.dp))
+                                }
+                            }
+
+                            if (!note?.note.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                                    shape = MaterialTheme.shapes.small
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_note),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            note.note,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            maxLines = 3,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Extra scrollable tail spacer inside the scroll container so final lines can be scrolled
+                            // comfortably above the floating bottom player and tapped to toggle bars.
+                            Spacer(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(if (continuous) 36.dp else 72.dp)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) {
+                                        if (isCollapsible) onToggleBars()
+                                    }
+                            )
+                        }
                     }
                 }
-
+            }
+        }
+    }
 }
 
 @Composable
 internal fun ReaderInlineIllustration(bitmap: android.graphics.Bitmap?, imageIndex: Int) {
     // The frame exists before decoding and keeps the same height afterwards.
     Box(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp).height(280.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp)
+            .height(280.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
         contentAlignment = Alignment.Center
     ) {
         if (bitmap != null) {
             androidx.compose.foundation.Image(
-                bitmap = bitmap.asImageBitmap(), contentDescription = "Illustration ${imageIndex + 1}",
-                modifier = Modifier.fillMaxSize().padding(6.dp),
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "Illustration ${imageIndex + 1}",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(6.dp),
                 contentScale = androidx.compose.ui.layout.ContentScale.Fit
             )
         } else {
-            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_151, com.veritas.reader.ui.screens.localizedUiValue(imageIndex + 1)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                com.veritas.reader.ui.screens.menuString(
+                    com.veritas.reader.R.string.l10n_dynamic_151,
+                    com.veritas.reader.ui.screens.localizedUiValue(imageIndex + 1)
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -779,7 +839,6 @@ private fun parseTableContentSegments(part: ReaderPart): List<PageContentSegment
                 if (isTableLine(nextTrimmed) || isTableSeparator(nextTrimmed)) {
                     endIdx++
                 } else if (nextTrimmed.isEmpty()) {
-                    // Check if there is another table line or separator after empty lines
                     var lookAhead = endIdx + 1
                     while (lookAhead < lines.size && lines[lookAhead].text.trim().isEmpty()) {
                         lookAhead++
@@ -894,8 +953,12 @@ private fun createSubPart(part: ReaderPart, startOffset: Int, endOffset: Int, se
             val shiftedStart = (r.start - startOffset).coerceIn(0, subText.length)
             val shiftedEnd = (r.endExclusive - startOffset).coerceIn(shiftedStart, subText.length)
             if (shiftedEnd > shiftedStart) {
-                ReaderPartSentenceRange(r.sentenceIndex, shiftedStart, shiftedEnd,
-                    r.sentenceCharOffset + (startOffset - r.start).coerceAtLeast(0))
+                ReaderPartSentenceRange(
+                    r.sentenceIndex,
+                    shiftedStart,
+                    shiftedEnd,
+                    r.sentenceCharOffset + (startOffset - r.start).coerceAtLeast(0)
+                )
             } else null
         }
     }
@@ -957,7 +1020,9 @@ internal fun ReaderComposeTableCard(
         tonalElevation = 1.dp
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 6.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -967,7 +1032,10 @@ internal fun ReaderComposeTableCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_152, com.veritas.reader.ui.screens.localizedUiValue(table.rows.size)),
+                    text = com.veritas.reader.ui.screens.menuString(
+                        com.veritas.reader.R.string.l10n_dynamic_152,
+                        com.veritas.reader.ui.screens.localizedUiValue(table.rows.size)
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = paperAccent
@@ -989,7 +1057,7 @@ internal fun ReaderComposeTableCard(
                             color = paperAccent
                         )
                         Text(
-                            text = "⏭",
+                            text = "\u23ed\ufe0f",
                             style = MaterialTheme.typography.labelSmall,
                             color = paperAccent
                         )
@@ -1253,8 +1321,6 @@ private fun ReaderProseBlock(
                                 val dx = kotlin.math.abs(event.x - downX)
                                 val dy = kotlin.math.abs(event.y - downY)
                                 if (this.hasSelection()) {
-                                    // Dragging a selection handle horizontally must not turn
-                                    // into a page swipe or discard the selected phrase.
                                     v.parent?.requestDisallowInterceptTouchEvent(true)
                                 } else {
                                     if (dx > touchSlop || dy > touchSlop) {
@@ -1264,14 +1330,10 @@ private fun ReaderProseBlock(
                             }
                             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                                 holder.touchInProgress = false
-                                // Ownership applies to this gesture only. Keeping
-                                // it after UP blocks the next swipe after dismissal.
                                 v.parent?.requestDisallowInterceptTouchEvent(false)
                             }
                         }
-
                         detector.onTouchEvent(event)
-
                         doubleTapHandled
                     }
                 }

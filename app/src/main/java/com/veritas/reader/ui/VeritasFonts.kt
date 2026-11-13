@@ -118,21 +118,21 @@ fun VeritasUiFont.asTypeface(
 private data class Step(val size: Int, val lineHeight: Int, val weight: FontWeight)
 
 private val RAMP = mapOf(
-    "displayLarge" to Step(36, 44, FontWeight.SemiBold),
-    "displayMedium" to Step(32, 40, FontWeight.SemiBold),
-    "displaySmall" to Step(28, 36, FontWeight.SemiBold),
-    "headlineLarge" to Step(26, 34, FontWeight.SemiBold),
-    "headlineMedium" to Step(24, 32, FontWeight.SemiBold),
-    "headlineSmall" to Step(22, 29, FontWeight.SemiBold),
-    "titleLarge" to Step(22, 28, FontWeight.SemiBold),
-    "titleMedium" to Step(17, 24, FontWeight.Medium),
-    "titleSmall" to Step(15, 21, FontWeight.Medium),
-    "bodyLarge" to Step(16, 24, FontWeight.Normal),
-    "bodyMedium" to Step(14, 21, FontWeight.Normal),
-    "bodySmall" to Step(12, 18, FontWeight.Normal),
-    "labelLarge" to Step(14, 20, FontWeight.Medium),
-    "labelMedium" to Step(12, 16, FontWeight.Medium),
-    "labelSmall" to Step(11, 16, FontWeight.Medium)
+    "displayLarge" to Step(32, 40, FontWeight.SemiBold),
+    "displayMedium" to Step(28, 36, FontWeight.SemiBold),
+    "displaySmall" to Step(24, 32, FontWeight.SemiBold),
+    "headlineLarge" to Step(23, 30, FontWeight.SemiBold),
+    "headlineMedium" to Step(21, 28, FontWeight.SemiBold),
+    "headlineSmall" to Step(19, 26, FontWeight.SemiBold),
+    "titleLarge" to Step(19, 26, FontWeight.SemiBold),
+    "titleMedium" to Step(16, 22, FontWeight.Medium),
+    "titleSmall" to Step(14, 20, FontWeight.Medium),
+    "bodyLarge" to Step(15, 22, FontWeight.Normal),
+    "bodyMedium" to Step(13, 19, FontWeight.Normal),
+    "bodySmall" to Step(11, 16, FontWeight.Normal),
+    "labelLarge" to Step(13, 18, FontWeight.Medium),
+    "labelMedium" to Step(11, 15, FontWeight.Medium),
+    "labelSmall" to Step(10, 14, FontWeight.Medium)
 )
 
 private fun TextStyle.step(role: String, family: FontFamily?): TextStyle {

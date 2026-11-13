@@ -53,13 +53,13 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
     val isGlassCapable = isDeviceGlassCapable() && LocalVeritasBackdrop.current != null
     val isLiquidGlass = VeritasPackStyle.glassChromeEnabled() && isGlassCapable
     BoxWithConstraints(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
-        .padding(horizontal = 16.dp, vertical = 8.dp)) {
+        .padding(horizontal = 16.dp, vertical = 4.dp)) {
     val fullWidth = minOf(maxWidth, 728.dp)
     val regularStart = (maxWidth - fullWidth) / 2f
     val compactDock = regularStart >= 52.dp
     val packCorner = packShape.topStart.toPx(androidx.compose.ui.geometry.Size(
         with(density) { fullWidth.toPx() }, with(density) { playerHeight.toPx() }), density) / density.density
-    val collapsedSize = if (compactDock) 48.dp else playerHeight
+    val collapsedSize = if (compactDock) 44.dp else playerHeight
     val surfaceHeight = collapsedSize + (playerHeight - collapsedSize) * progress
     val start = if (compactDock) regularStart * progress else regularStart
     val corner = (collapsedSize.value / 2f + (packCorner.coerceAtMost(collapsedSize.value / 2f) - collapsedSize.value / 2f) * progress).dp
@@ -78,22 +78,22 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
             .graphicsLayer { alpha = ((progress - .25f) / .75f).coerceIn(0f, 1f) }
             .then(if (collapsed || progress < 1f) Modifier.clearAndSetSemantics {} else Modifier)) {
             Row(Modifier.fillMaxWidth().height(playerHeight - 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onToggleCollapsed, Modifier.width(32.dp).height(48.dp).testTag("floater_collapse"), enabled = !collapsed) {
+                IconButton(onToggleCollapsed, Modifier.width(28.dp).height(40.dp).testTag("floater_collapse"), enabled = !collapsed) {
                     val chevronTint = if (VeritasPackStyle.currentPackId() == "material_you") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
-                    Icon(Icons.Default.ChevronLeft, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collapse_player), Modifier.size(20.dp), tint = chevronTint)
+                    Icon(Icons.Default.ChevronLeft, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collapse_player), Modifier.size(18.dp), tint = chevronTint)
                 }
                 Row(Modifier.weight(1f).testTag("floater_open_book").clickable(role = Role.Button, onClickLabel = "Open ${document.title}", onClick = onOpen)
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DocumentArtwork(document, Modifier.size(46.dp).clearAndSetSemantics {}, compact = true)
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    DocumentArtwork(document, Modifier.size(38.dp).clearAndSetSemantics {}, compact = true)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(document.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(if (count > 0 && !needsStatus) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_214, com.veritas.reader.ui.screens.localizedUiValue(if (playing) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_fragment_listening) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_fragment_paused)), com.veritas.reader.ui.screens.localizedUiValue(index + 1), com.veritas.reader.ui.screens.localizedUiValue(count)) else status,
                             style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 IconButton({ if (PlaybackStateStore.activeDocumentId == document.id) sendPlaybackIntent(context, PlaybackActions.ACTION_PREVIOUS) },
-                    Modifier.size(40.dp).testTag("floater_previous"), enabled = count > 0 && index > 0) {
+                    Modifier.size(36.dp).testTag("floater_previous"), enabled = count > 0 && index > 0) {
                     val isMaterialYou = VeritasPackStyle.currentPackId() == "material_you"
                     val btnBg = if (isMaterialYou) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.16f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .65f)
                     val iconTint = if (isMaterialYou) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant

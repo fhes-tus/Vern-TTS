@@ -860,7 +860,8 @@ internal fun readerSelectionActionModeCallback(
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
             menu.clear()
             onSelectionChanged(currentSelection())
-            menu.add(0, android.R.id.selectAll, 3, "Select all")
+            menu.add(0, android.R.id.selectAll, 3, context.getString(com.veritas.reader.R.string.ui_select_all))
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
             val selectionFeatures = VeritasFeatureRegistry.resolve(
                 VeritasFeatureSurface.SELECTION_OVERFLOW,
                 VeritasFeatureContext(
@@ -869,31 +870,34 @@ internal fun readerSelectionActionModeCallback(
                     hasSavedDocument = !documentId.isNullOrBlank()
                 )
             ).associateBy { it.definition.id }
-            menu.add(0, READER_SELECTION_READ_FROM_HERE, 0, "Read from here")
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
             menu.addReaderSelectionFeature(
                 itemId = READER_SELECTION_BOOKMARK,
-                order = 1,
-                title = "Bookmark",
+                order = 0,
+                title = context.getString(com.veritas.reader.R.string.ui_bookmark),
                 feature = selectionFeatures.requireResolvedFeature(VeritasFeatureId.BOOKMARKS_AND_NOTES),
-                showAsAction = MenuItem.SHOW_AS_ACTION_IF_ROOM
+                showAsAction = MenuItem.SHOW_AS_ACTION_ALWAYS
             )
             menu.addReaderSelectionFeature(
                 itemId = READER_SELECTION_NOTE,
-                order = 2,
-                title = "Note",
+                order = 1,
+                title = context.getString(com.veritas.reader.R.string.ui_note),
                 feature = selectionFeatures.requireResolvedFeature(VeritasFeatureId.BOOKMARKS_AND_NOTES),
-                showAsAction = MenuItem.SHOW_AS_ACTION_IF_ROOM
+                showAsAction = MenuItem.SHOW_AS_ACTION_ALWAYS
             )
-            menu.add(0, READER_SELECTION_COPY, 4, "Copy")
-            menu.add(0, READER_SELECTION_SEARCH, 5, "Search")
+            menu.add(0, READER_SELECTION_GOOGLE, 2, context.getString(com.veritas.reader.R.string.ui_search_definitions))
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            menu.add(0, READER_SELECTION_READ_FROM_HERE, 4, "Read from here")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            menu.add(0, READER_SELECTION_COPY, 5, "Copy")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            menu.add(0, READER_SELECTION_SEARCH, 6, "Search")
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
             menu.addReaderSelectionFeature(
                 itemId = READER_SELECTION_TRANSLATE,
-                order = 6,
+                order = 7,
                 title = "Translate",
                 feature = selectionFeatures.requireResolvedFeature(VeritasFeatureId.TRANSLATION_HANDOFF)
             )
-            menu.add(0, READER_SELECTION_GOOGLE, 8, "Web lookup")
             menu.addReaderSelectionFeature(
                 itemId = READER_SELECTION_EDIT_TEXT,
                 order = 9,
@@ -918,7 +922,10 @@ internal fun readerSelectionActionModeCallback(
 
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
             onSelectionChanged(currentSelection())
-            return false
+            // TextClassifier can inject an assist action after creation; Android pins it first.
+            val hasAssist = menu.findItem(android.R.id.textAssist) != null
+            menu.removeItem(android.R.id.textAssist)
+            return hasAssist
         }
 
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {

@@ -269,6 +269,14 @@ fun DocumentRepository.loadGeneralNotes(): List<GeneralNote> {
     return loadStoredGeneralNotes().filter { it.deletedAt == null }.sortedByDescending { it.updatedAt }
 }
 
+internal data class GeneralNotesSnapshot(val active: List<GeneralNote>, val trashed: List<GeneralNote>)
+
+/** A fresh, consistent read of both lists; never retained as a repository cache. */
+internal fun DocumentRepository.loadGeneralNotesSnapshot(): GeneralNotesSnapshot = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+    val (active, trashed) = loadStoredGeneralNotes().partition { it.deletedAt == null }
+    GeneralNotesSnapshot(active.sortedByDescending { it.updatedAt }, trashed.sortedByDescending { it.deletedAt })
+}
+
 private fun DocumentRepository.loadStoredGeneralNotes(): List<GeneralNote> {
     val array = readResilientJsonArray("general_notes")
     val notes = mutableListOf<GeneralNote>()

@@ -193,9 +193,9 @@ internal fun LibraryStudyTab(
                 val docId = note.title.removePrefix("__vocab__")
                 val doc = uiState.documents.firstOrNull { it.id == docId } ?: SavedDocument(
                     id = docId,
-                    title = uiState.documentTitles[docId] ?: "Deleted Book",
+                    title = if (docId == com.veritas.reader.DICTIONARY_VOCAB_ID) "Dictionary" else uiState.documentTitles[docId] ?: "Deleted Book",
                     fileName = "",
-                    sourceLabel = "Deleted",
+                    sourceLabel = if (docId == com.veritas.reader.DICTIONARY_VOCAB_ID) "Dictionary" else "Deleted",
                     createdAt = 0,
                     updatedAt = 0,
                     currentIndex = 0,
@@ -402,7 +402,7 @@ internal fun LibraryStudyTab(
                                             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            val filterOptions = listOf("Overview", "Bookmarks", "Booknotes", "Vocab", "Flashcards", "Quizzes", "History")
+                                            val filterOptions = listOf("Overview", "Bookmarks", "Booknotes", "Vocab", "Dictionary", "Flashcards", "Quizzes", "History")
                                             filterOptions.forEach { option ->
                                                 FilterChip(
                                                     selected = annotationFilter == option,
@@ -444,6 +444,9 @@ internal fun LibraryStudyTab(
                                     }
 
                                     when (annotationFilter) {
+                "Dictionary" -> item(key = "study-dictionary") {
+                    OfflineDictionaryPanel(onSaved = { onRefreshMainPage() })
+                }
                 "Bookmarks" -> {
                     if (bookmarksOnly.isEmpty()) {
                         item {

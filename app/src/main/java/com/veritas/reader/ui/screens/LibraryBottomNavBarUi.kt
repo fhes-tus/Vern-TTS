@@ -56,9 +56,9 @@ internal fun LibraryBottomNavBar(
         maxWidth < 360.dp -> 12.dp
         else -> 36.dp
     }
-    Box(Modifier.fillMaxWidth().padding(horizontal = sideGutter, vertical = 10.dp),
+    Box(Modifier.fillMaxWidth().padding(horizontal = sideGutter, vertical = 6.dp),
         contentAlignment = Alignment.Center) {
-        Row(Modifier.widthIn(max = 420.dp).fillMaxWidth()
+        Row(Modifier.widthIn(max = 370.dp).fillMaxWidth()
             .height(VeritasPackStyle.navigationHeight(showNavLabels))) {
             if (split < .001f) {
                 NavigationCapsule(RoundedCornerShape(radius), isGlass, opaqueGlassFallback, Modifier.fillMaxSize(),
@@ -107,9 +107,9 @@ private fun NavigationCapsule(shape: Shape, glass: Boolean, opaqueFallback: Bool
         border = if (glass) null else androidx.compose.foundation.BorderStroke(1.dp, VeritasPackStyle.navigationBorderBrush(scheme)),
         shadowElevation = if (glass) 0.dp else VeritasPackStyle.chromeElevation(VeritasPackStyle.currentPackId())) {
         BoxWithConstraints(Modifier.fillMaxSize().then(if (glass || opaqueFallback) Modifier else Modifier.background(VeritasPackStyle.navigationBrush(scheme)))) {
-            val pillWidth = minOf(if (labels) 64.dp else 54.dp, maxWidth / tabs.size)
-            val largeLabelHeight = with(androidx.compose.ui.platform.LocalDensity.current) { MaterialTheme.typography.labelSmall.lineHeight.toDp() } + 30.dp
-            val pillHeight = if (labels && androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.3f) minOf(maxHeight - 4.dp, largeLabelHeight) else if (labels) 48.dp else 42.dp
+            val pillWidth = minOf(if (labels) 58.dp else 48.dp, maxWidth / tabs.size)
+            val largeLabelHeight = with(androidx.compose.ui.platform.LocalDensity.current) { MaterialTheme.typography.labelSmall.lineHeight.toDp() } + 26.dp
+            val pillHeight = if (labels && androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.3f) minOf(maxHeight - 4.dp, largeLabelHeight) else if (labels) 42.dp else 36.dp
             Box(Modifier.align(Alignment.CenterStart).width(pillWidth).height(pillHeight)
                 .testTag("navigation-selection-${tabs.first().name}")
                 .graphicsLayer {

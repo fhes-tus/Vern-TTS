@@ -295,8 +295,12 @@ internal fun VocabularyEntryRow(
                 }
             }
             Text(entry.explanation, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            entry.examples.forEach { example ->
+                Text("“$example”", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             entry.meaningSourceUrl?.let { url ->
-                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_definition_wiktionary), style = MaterialTheme.typography.labelSmall,
+                Text(if (url.startsWith("https://en-word.net/")) "Definition: Open English WordNet" else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_definition_wiktionary), style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable {
                         runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) }
                     })

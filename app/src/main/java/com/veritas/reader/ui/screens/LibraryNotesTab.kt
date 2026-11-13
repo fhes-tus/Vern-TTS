@@ -67,6 +67,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -143,24 +146,6 @@ private fun extractPathFromTag(tag: String): String {
     return tag
 }
 
-private fun formatMediaDuration(path: String): String {
-    if (path.isBlank()) return ""
-    return try {
-        val file = java.io.File(path)
-        if (file.exists()) {
-            val retriever = android.media.MediaMetadataRetriever()
-            retriever.setDataSource(path)
-            val durStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
-            val durMs = durStr?.toLongOrNull() ?: 0L
-            val totalSec = durMs / 1000
-            retriever.release()
-            if (totalSec > 0) String.format(java.util.Locale.US, "%02d:%02d", totalSec / 60, totalSec % 60) else ""
-        } else ""
-    } catch (_: Exception) {
-        ""
-    }
-}
-
 @Composable
 internal fun LibraryNotesTab(
     documents: List<SavedDocument>,
@@ -168,6 +153,7 @@ internal fun LibraryNotesTab(
     notesListState: LazyListState,
     annotationFilter: String,
     selectedGeneralNoteTag: String,
+    onSelectedGeneralNoteTagChange: (String) -> Unit = {},
     selectedAnnotationKeys: Set<String>,
     onSelectedAnnotationKeysChange: (Set<String>) -> Unit,
     onConfirmAnnotationDelete: () -> Unit,
@@ -245,6 +231,56 @@ internal fun LibraryNotesTab(
                                             editingId = notebook.id, onDismiss = { notebookToRename = null },
                                             onSave = { collectionActions?.renameNotebook?.invoke(notebook.id, renamedNotebook.trim()); notebookToRename = null })
                                     }
+
+                                    if (!showTrash) {
+                                        val noteFilterOptions = remember(uiState.generalNotes, uiState.allAnnotations) {
+                                            buildList {
+                                                add("All Notes")
+                                                if (uiState.generalNotes.any { it.pinned }) add("Pinned")
+                                                if (uiState.generalNotes.any { it.allAudioUrls.isNotEmpty() }) add("Voice Memos")
+                                                if (uiState.generalNotes.any { it.isChecklist }) add("Checklists")
+                                                if (uiState.generalNotes.any { it.reminderAt != null }) add("Reminders")
+                                                if (uiState.allAnnotations.isNotEmpty()) add("Highlights")
+                                            }
+                                        }
+                                        LazyRow(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 18.dp, vertical = 4.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            items(noteFilterOptions, key = { it }) { option ->
+                                                val active = when (option) {
+                                                    "All Notes" -> selectedGeneralNoteTag == "All"
+                                                    "Pinned" -> selectedGeneralNoteTag == "Pinned"
+                                                    "Voice Memos" -> selectedGeneralNoteTag == "Audio"
+                                                    "Checklists" -> selectedGeneralNoteTag == "Checklists"
+                                                    "Reminders" -> selectedGeneralNoteTag == "Reminders"
+                                                    "Highlights" -> selectedGeneralNoteTag == "Highlights"
+                                                    else -> selectedGeneralNoteTag == option
+                                                }
+                                                FilterChip(
+                                                    selected = active,
+                                                    onClick = {
+                                                        onSelectedGeneralNoteTagChange(when (option) {
+                                                            "All Notes" -> "All"
+                                                            "Pinned" -> "Pinned"
+                                                            "Voice Memos" -> "Audio"
+                                                            "Checklists" -> "Checklists"
+                                                            "Reminders" -> "Reminders"
+                                                            "Highlights" -> "Highlights"
+                                                            else -> option
+                                                        })
+                                                    },
+                                                    label = { Text(localizedCatalogLabel(option)) },
+                                                    shape = VeritasPackStyle.chipShape(),
+                                                    colors = VeritasPackStyle.filterChipColors(MaterialTheme.colorScheme),
+                                                    modifier = Modifier.testTag("note_filter_$option")
+                                                )
+                                            }
+                                        }
+                                    }
+
                                     if (!showTrash && selectedGeneralNoteTag == "Highlights") {
                                         NotesHighlights(documents, uiState.allAnnotations, noteSearchQuery, onOpenDocumentAt, onDeleteAnnotations)
                                     } else LazyColumn(
@@ -272,6 +308,13 @@ internal fun LibraryNotesTab(
                                             "title" -> filteredNotes.sortedWith(compareByDescending<GeneralNote> { it.pinned }.thenBy { it.title.lowercase() })
                                             "created" -> filteredNotes.sortedWith(compareByDescending<GeneralNote> { it.pinned }.thenByDescending { it.createdAt })
                                             else -> filteredNotes.sortedWith(compareByDescending<GeneralNote> { it.pinned }.thenByDescending { it.updatedAt })
+                                        }
+
+                                        item("notes_action_hint") {
+                                            VernActionHintBanner(
+                                                hintKey = "notes_tab_hint",
+                                                message = "• Tap + to create a new note\n• Tap tags to filter your notes\n• Tap any note to edit or share"
+                                            )
                                         }
 
                                         if (finalNotes.isEmpty()) {
@@ -505,9 +548,9 @@ internal fun LibraryNotesTab(
                                                                     ?: NOTE_AUDIO_TAG_REGEX.find(generalNote.content)?.value?.let { extractPathFromTag(it) }
                                                                     ?: ""
                                                             }
-                                                            val audioDur = remember(firstAudioPath) {
-                                                                formatMediaDuration(firstAudioPath)
-                                                            }
+                                                            val audioDuration = rememberNoteAudioDurationMillis(firstAudioPath, revision = generalNote.updatedAt)
+                                                            val audioDur = audioDuration?.takeIf { it >= 1000 }
+                                                                ?.let { formatNoteAudioDuration(it, padMinutes = true) }.orEmpty()
                                                             val noteBlocks = remember(generalNote.content) { VeritasNoteEditing.parseNoteBlocks(NoteLinks.strip(generalNote.content)) }
                                                             val fileAttachments = noteBlocks.filterIsInstance<NoteBlock.File>()
                                                             val fileBadgeLabel = fileAttachments.firstOrNull()?.fileName?.substringAfterLast('.', "")?.uppercase()?.take(4)?.ifBlank { "File" } ?: "File"

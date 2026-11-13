@@ -2,7 +2,6 @@ package com.veritas.reader.ui.screens
 
 import com.veritas.reader.ui.NotesPaperTemplate
 
-import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
 import android.provider.MediaStore
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -312,22 +311,8 @@ internal fun NoteAudioBlockItem(
 ) {
     val audioPath = block.path
     val isThisPlaying = isPlaying && activePlayingAudioPath == audioPath
-    val memoTotalDur = remember(audioPath) {
-        try {
-            val file = File(audioPath)
-            if (file.exists()) {
-                val retriever = MediaMetadataRetriever()
-                retriever.setDataSource(audioPath)
-                val durStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                val durMs = durStr?.toLongOrNull() ?: 0L
-                val totalSec = durMs / 1000
-                retriever.release()
-                String.format(Locale.US, "%d:%02d", totalSec / 60, totalSec % 60)
-            } else "0:00"
-        } catch (_: Exception) {
-            "0:00"
-        }
-    }
+    val duration = rememberNoteAudioDurationMillis(audioPath)
+    val memoTotalDur = duration?.let { formatNoteAudioDuration(it) } ?: "0:00"
     val dynamicDurationLabel = if (isThisPlaying) "$currentPosition / $memoTotalDur" else memoTotalDur
 
     Row(

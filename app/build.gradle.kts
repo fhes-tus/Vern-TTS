@@ -54,8 +54,8 @@ android {
         minSdk = 28
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 48
-        versionName = "2.8.1"
+        versionCode = 49
+        versionName = "2.8.2"
 
         ndk {
             abiFilters.addAll(setOf("armeabi-v7a", "arm64-v8a"))
@@ -122,8 +122,9 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    // Used extended icons are copied unchanged under src/main/java/androidx/compose/material/icons.
+    // Core retains Icons, ImageVector helpers and the standard small icon set.
     implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.core:core-ktx:1.18.0")
     implementation("androidx.palette:palette-ktx:1.0.0")
     implementation("androidx.appcompat:appcompat:1.7.1")

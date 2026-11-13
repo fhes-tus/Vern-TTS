@@ -192,11 +192,12 @@ object SpeechSanitizer {
 
     internal fun forSpeech(input: SpokenText): SpokenText {
         if (input.text.isEmpty()) return input
-        val raw = if (input.text.contains("[[VERITAS_")) {
+        val withoutMetadata = if (input.text.contains("[[VERITAS_")) {
             input.replace(Regex("""\[\[VERITAS_[^\]]+\]\]""")) { "" }.trim()
         } else {
             input
         }
+        val raw = ReadingTextCleanup.forSpeech(withoutMetadata)
         if (raw.text.isEmpty()) return raw
 
         // Mute table separator lines (e.g. | --- | --- |)

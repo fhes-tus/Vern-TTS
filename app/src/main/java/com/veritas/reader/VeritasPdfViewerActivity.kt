@@ -19,6 +19,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.TouchApp
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -172,8 +178,65 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
             }
             viewerFragment = fragment
             schedulePdfViewLookup(fragment)
+            showPdfGesturesPopupIfNeeded()
         }.onFailure { error ->
             showFallback("Vern could not open this PDF viewer: ${error.message ?: "unknown error"}")
+        }
+    }
+
+    private fun showPdfGesturesPopupIfNeeded() {
+        if (com.veritas.reader.ui.screens.VernActionHintManager.isDismissed(this, "pdf_gestures_hint")) return
+        val parent = findViewById<ViewGroup>(android.R.id.content) ?: return
+        val host = androidx.compose.ui.platform.ComposeView(this).apply {
+            setViewCompositionStrategy(androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        }
+        fun dismiss() {
+            parent.removeView(host)
+            host.disposeComposition()
+        }
+        parent.addView(host, ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+        host.setContent {
+            val settings = pdfChromeSettings
+            androidx.compose.material3.MaterialTheme(
+                colorScheme = veritasReaderColorScheme(settings, this),
+                typography = com.veritas.reader.ui.veritasTypography(com.veritas.reader.ui.VeritasUiFont.fromId(settings.uiFontId)),
+                shapes = veritasPackShapes(settings.themePackId)
+            ) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = androidx.compose.ui.Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    com.veritas.reader.ui.screens.VernGesturePopupCard(
+                        title = "PDF Gestures",
+                        items = listOf(
+                            com.veritas.reader.ui.screens.VernHintGestureItem(
+                                icon = androidx.compose.material.icons.Icons.Outlined.TouchApp,
+                                title = "Single tap",
+                                description = "Collapse or expand the bars"
+                            ),
+                            com.veritas.reader.ui.screens.VernHintGestureItem(
+                                icon = androidx.compose.material.icons.Icons.Outlined.TouchApp,
+                                title = "Long press on word or sentence",
+                                description = "Select word and choose 'Read from here' to read"
+                            )
+                        ),
+                        onDismissCurrent = {
+                            com.veritas.reader.ui.screens.VernActionHintManager.dismissForSession("pdf_gestures_hint")
+                            dismiss()
+                        },
+                        onDismissPermanently = {
+                            com.veritas.reader.ui.screens.VernActionHintManager.dismissPermanently(this@VeritasPdfViewerActivity, "pdf_gestures_hint")
+                            dismiss()
+                        },
+                        modifier = androidx.compose.ui.Modifier.widthIn(max = 420.dp)
+                    )
+                }
+            }
         }
     }
 

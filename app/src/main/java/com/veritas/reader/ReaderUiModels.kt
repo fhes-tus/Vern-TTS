@@ -322,7 +322,8 @@ data class VocabularyEntry(
     val contextSentence: String? = null,
     val pronunciation: String? = null,
     val lookupId: String? = null,
-    val meaningSourceUrl: String? = null
+    val meaningSourceUrl: String? = null,
+    val examples: List<String> = emptyList()
 )
 
 fun parseVocabularyNoteContent(content: String): List<VocabularyEntry> {
@@ -343,6 +344,7 @@ fun parseVocabularyNoteContent(content: String): List<VocabularyEntry> {
         var pron: String? = null
         var lookupId: String? = null
         var meaningSourceUrl: String? = null
+        val examples = mutableListOf<String>()
         for (i in 3 until lines.size) {
             val line = lines[i]
             if (line.startsWith("context:", ignoreCase = true)) {
@@ -353,10 +355,12 @@ fun parseVocabularyNoteContent(content: String): List<VocabularyEntry> {
                 lookupId = line.substringAfter("lookup:").trim().takeIf { it.isNotBlank() }
             } else if (line.startsWith("meaning-source:", ignoreCase = true)) {
                 meaningSourceUrl = line.substringAfter("meaning-source:").trim()
-                    .takeIf { it.startsWith("https://en.wiktionary.org/") }
+                    .takeIf { it.startsWith("https://en.wiktionary.org/") || it.startsWith("https://en-word.net/") }
+            } else if (line.startsWith("example:", ignoreCase = true)) {
+                line.substringAfter(":").trim().takeIf { it.isNotBlank() }?.let { examples.add(it) }
             }
         }
-        VocabularyEntry(word, explanation, source, sentenceIndex, context, pron, lookupId, meaningSourceUrl)
+        VocabularyEntry(word, explanation, source, sentenceIndex, context, pron, lookupId, meaningSourceUrl, examples.distinct().take(4))
     }
 }
 

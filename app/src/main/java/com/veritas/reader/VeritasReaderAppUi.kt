@@ -772,10 +772,9 @@ internal fun VeritasReaderApp(
                         onCopySelection = { copyTextToClipboard(context, "Vern selection", it) },
                         onShareSelection = { sharePlainText(context, "Vern selection", it) },
                         onGoogleSelection = { selection ->
-                            coroutineScope.launch {
-                                viewModel.appendVocabularyWord(selection.text, "Looked up definition / web references.", selectedSentenceIndex = selection.firstSentenceIndex)?.join()
-                                openGoogleSearch(context, "${selection.text} meaning")
-                            }
+                            showDictionaryLookup(context, selection.text, DictionaryLookupAnchor(
+                                uiState.activeDocument?.id, selection.firstSentenceIndex,
+                                uiState.activeDocument?.chunks?.getOrNull(selection.firstSentenceIndex)))
                         },
                         onTranslateSelection = {
                             viewModel.appendVocabularyWord(it.text, "Looked up translation.", selectedSentenceIndex = it.firstSentenceIndex)

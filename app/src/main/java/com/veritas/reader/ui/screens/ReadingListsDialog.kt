@@ -313,7 +313,7 @@ fun ManageDocumentListsDialog(
         },
         title = {
             Text(
-                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_lists),
+                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_collection),
                 style = MaterialTheme.typography.titleLarge)
         },
         text = {
@@ -324,14 +324,14 @@ fun ManageDocumentListsDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_172, com.veritas.reader.ui.screens.localizedUiValue(document.title)),
+                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_choose_collections_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 if (activeLists.isEmpty()) {
                     Text(
-                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_reading_lists_yet),
+                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_collections_yet),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
@@ -400,11 +400,11 @@ fun ManageDocumentListsDialog(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_new_reading_list), style = MaterialTheme.typography.titleLarge)
+                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_new_collection_name), style = MaterialTheme.typography.titleLarge)
                         OutlinedTextField(
                             value = newListTitle,
                             onValueChange = { newListTitle = it },
-                            label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_list_title)) },
+                            label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_new_collection_name)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(50)
@@ -418,7 +418,7 @@ fun ManageDocumentListsDialog(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(50)
                         ) {
-                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_list))
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_collection))
                         }
                     }
                 }
