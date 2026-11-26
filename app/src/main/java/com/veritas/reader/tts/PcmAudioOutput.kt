@@ -1,6 +1,6 @@
 package com.veritas.reader.tts
 
-import android.media.AudioAttributes
+import com.veritas.reader.readerPlaybackAudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
 import android.media.PlaybackParams
@@ -109,8 +109,7 @@ class PcmAudioOutput {
     private fun createTrack(sampleRate: Int): AudioTrack {
         val minimum = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)
         val track = AudioTrack.Builder()
-            .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+            .setAudioAttributes(readerPlaybackAudioAttributes())
             .setAudioFormat(AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                 .setSampleRate(sampleRate).setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
             .setBufferSizeInBytes(minimum.coerceAtLeast(sampleRate))

@@ -5,10 +5,18 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.media.AudioAttributes
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+
+internal fun readerPlaybackAudioAttributes(): AudioAttributes =
+    AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_MEDIA)
+        // Android exempts CONTENT_TYPE_SPEECH players from automatic ducking.
+        .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+        .build()
 
 internal fun PlaybackService.requestAudioFocus(): Boolean {
     // Reuse the same focus client. A new listener on every Play competes with
@@ -28,12 +36,6 @@ internal fun PlaybackService.requestAudioFocus(): Boolean {
                     pauseSpeechTransiently("Paused - interrupted.")
                 }
             }
-            android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                if (PlaybackStateStore.isPlaying) {
-                    pausedDueToTransientFocusLoss = true
-                    pauseSpeechTransiently("Paused - another app needs audio.")
-                }
-            }
             android.media.AudioManager.AUDIOFOCUS_GAIN -> {
                 if (pausedDueToTransientFocusLoss) {
                     pausedDueToTransientFocusLoss = false
@@ -43,13 +45,8 @@ internal fun PlaybackService.requestAudioFocus(): Boolean {
         }
     }
     req = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-        .setAudioAttributes(
-            android.media.AudioAttributes.Builder()
-                .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
-                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
-                .build()
-        )
-        .setWillPauseWhenDucked(true)
+        .setAudioAttributes(readerPlaybackAudioAttributes())
+        .setWillPauseWhenDucked(false)
         .setOnAudioFocusChangeListener(focusChangeListener, mainHandler)
         .build()
     audioFocusRequest = req

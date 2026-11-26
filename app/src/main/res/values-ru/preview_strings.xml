@@ -2178,4 +2178,6 @@
     <string name="speech_syntax_step_say">"Выберите Произносить вместо и введите значение выше. Vern прочитает первую сохранённую часть, в этом примере число."</string>
     <string name="speech_syntax_step_try">"Введите пример в поле Исходный отрывок. Проверьте Результат озвучивания или нажмите Прослушать. Сохраните правило, если результат подходит."</string>
     <string name="speech_syntax_use_example">"Заполнить по этому примеру"</string>
+    <string name="play_update_available">В Google Play доступно обновление</string>
+    <string name="play_update_description">Доступна новая версия Vern. Откройте Google Play, чтобы обновить приложение.</string>
 </resources>

@@ -471,6 +471,8 @@
     <string name="ui_good" formatted="false">"Good"</string>
     <string name="ui_good_effort_keep_reviewing" formatted="false">"Good Effort — Keep Reviewing!"</string>
     <string name="ui_google_play" formatted="false">"Google Play"</string>
+    <string name="play_update_available">Update available on Google Play</string>
+    <string name="play_update_description">A new version of Vern is available. Open Google Play to update.</string>
     <string name="ui_got_it" formatted="false">"Got it"</string>
     <string name="ui_grant_all_files_access" formatted="false">"Grant all files access"</string>
     <string name="ui_grant_all_files_access_for_broad_phone_storage_browsing_or_choose" formatted="false">"Grant All Files access for broad phone storage browsing, or choose specific folders to scan."</string>

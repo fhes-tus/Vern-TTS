@@ -56,8 +56,8 @@ android {
         minSdk = 28
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 54
-        versionName = "3.0.0"
+        versionCode = 55
+        versionName = "3.0.1"
 
         ndk {
             abiFilters.addAll(setOf("armeabi-v7a", "arm64-v8a"))
@@ -136,6 +136,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
     implementation("com.google.android.gms:play-services-mlkit-language-id:17.0.0")
     implementation("com.google.android.play:feature-delivery:2.1.0")
+    implementation("com.google.android.play:app-update:2.1.0")
     // Shared classes are supplied by base even after a feature is installed.
     // Match translate:17.0.3's runtime so its registrar can resolve CloseGuard.Factory.
     implementation("com.google.mlkit:common:18.11.0")

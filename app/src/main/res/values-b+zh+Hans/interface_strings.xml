@@ -331,4 +331,6 @@
     <string name="ui_your_next_read_starts_here" formatted="false">"在这里开启下一次阅读"</string>
     <string name="ui_your_reading_today" formatted="false">"今天的阅读"</string>
     <string name="widget_ready" formatted="false">"就绪"</string>
+    <string name="play_update_available">Google Play 上有可用更新</string>
+    <string name="play_update_description">Vern 有新版本。打开 Google Play 进行更新。</string>
 </resources>

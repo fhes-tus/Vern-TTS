@@ -1,0 +1,9 @@
+<en-US>
+Vern 3.0.1
+
+• Find answers in the refreshed offline manual with new screenshots and search that understands everyday phrases.
+• Find and replace text more easily when correcting an imported reading.
+• Share quote images that preserve the passage’s formatting.
+• Vern lowers narration volume for short interruptions when Android allows it.
+• Check for Google Play updates from Vern or open its Play listing from About.
+</en-US>

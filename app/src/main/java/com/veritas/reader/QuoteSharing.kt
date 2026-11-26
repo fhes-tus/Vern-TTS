@@ -10,12 +10,14 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.net.Uri
 import android.text.Layout
+import android.text.SpannableString
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.content.ContextCompat
 import com.veritas.reader.ui.screens.CURATED_CLASSICS
+import com.veritas.reader.ui.screens.applyMarkdownFormatting
 import com.tom_roush.pdfbox.io.MemoryUsageSetting
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import java.io.File
@@ -124,16 +126,18 @@ internal object QuoteCardRenderer {
             typeface = Typeface.create(runCatching { ResourcesCompat.getFont(context, R.font.bitter_variable) }.getOrNull() ?: Typeface.SERIF, 500, false)
         }
         val sans = runCatching { ResourcesCompat.getFont(context, R.font.outfit) }.getOrNull() ?: Typeface.DEFAULT
-        fun layout(text: String, paint: TextPaint, maxWidth: Int, maxLines: Int = Int.MAX_VALUE,
+        fun layout(text: CharSequence, paint: TextPaint, maxWidth: Int, maxLines: Int = Int.MAX_VALUE,
             alignment: Layout.Alignment = Layout.Alignment.ALIGN_NORMAL): StaticLayout =
             StaticLayout.Builder.obtain(text, 0, text.length, paint, maxWidth).setAlignment(alignment)
                 .setLineSpacing(8f, 1.12f).setIncludePad(false).setMaxLines(maxLines)
                 .apply { if (maxLines != Int.MAX_VALUE) setEllipsize(TextUtils.TruncateAt.END) }.build()
+        val formattedQuote = SpannableString(spec.text)
+        applyMarkdownFormatting(formattedQuote, spec.text, textColor = spec.palette.ink)
         var size = 64f
         var quoteLayout: StaticLayout
         do {
             quotePaint.textSize = size
-            quoteLayout = layout(spec.text, quotePaint, 888)
+            quoteLayout = layout(formattedQuote, quotePaint, 888)
             if (quoteLayout.height <= 900 || size <= 28f) break
             size -= 2f
         } while (true)

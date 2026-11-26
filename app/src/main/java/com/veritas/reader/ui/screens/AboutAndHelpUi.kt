@@ -65,6 +65,8 @@ import androidx.compose.ui.unit.sp
 import com.veritas.reader.R
 import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.ui.ReaderUiState
+import com.veritas.reader.ui.VERN_PLAY_LISTING
+import com.veritas.reader.ui.openGooglePlayStore
 
 private fun openUrl(context: Context, url: String) {
     runCatching {
@@ -120,32 +122,32 @@ val IconGithub: ImageVector
         }
     }.build()
 
-val IconX: ImageVector
+private val IconGooglePlay: ImageVector
     get() = ImageVector.Builder(
-        name = "X",
+        name = "Google Play",
         defaultWidth = 24.dp,
         defaultHeight = 24.dp,
         viewportWidth = 24f,
         viewportHeight = 24f
     ).apply {
         path(fill = SolidColor(Color.Black)) {
-            moveTo(18.244f, 2.25f)
-            lineTo(21.552f, 2.25f)
-            lineTo(14.325f, 10.51f)
-            lineTo(22.827f, 21.75f)
-            lineTo(16.17f, 21.75f)
-            lineTo(10.956f, 14.933f)
-            lineTo(4.99f, 21.75f)
-            lineTo(1.68f, 21.75f)
-            lineTo(9.41f, 12.915f)
-            lineTo(1.254f, 2.25f)
-            lineTo(8.08f, 2.25f)
-            lineTo(12.793f, 8.481f)
+            moveTo(3f, 2.5f)
+            lineTo(12.5f, 12f)
+            lineTo(3f, 21.5f)
             close()
-            moveTo(17.083f, 19.77f)
-            lineTo(18.916f, 19.77f)
-            lineTo(7.084f, 4.126f)
-            lineTo(5.117f, 4.126f)
+            moveTo(4.2f, 1.5f)
+            lineTo(16.3f, 8.2f)
+            lineTo(13.5f, 11f)
+            close()
+            moveTo(13.5f, 13f)
+            lineTo(16.3f, 15.8f)
+            lineTo(4.2f, 22.5f)
+            close()
+            moveTo(14.5f, 12f)
+            lineTo(17.6f, 8.9f)
+            lineTo(21.3f, 11f)
+            curveTo(22.4f, 11.6f, 22.4f, 12.4f, 21.3f, 13f)
+            lineTo(17.6f, 15.1f)
             close()
         }
     }.build()
@@ -395,11 +397,13 @@ fun AboutDialog(uiState: ReaderUiState? = null, onCheckForUpdates: () -> Unit = 
                     colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow)) {
                     Row(Modifier.fillMaxWidth().padding(vertical = 14.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
                         listOf(Triple(IconGithub, "GitHub", "https://github.com/fhes-tus/Vern-TTS"),
-                            Triple(IconX, "X", "https://x.com/_1st2us"),
+                            Triple(IconGooglePlay, menuString(com.veritas.reader.R.string.ui_google_play), VERN_PLAY_LISTING),
                             Triple(IconTelegram, "Telegram", "https://t.me/myreader_veritas"),
                             Triple(Icons.Outlined.Language, "Website", "https://fhes-tus.github.io/Vern-TTS/")).forEach { (icon, label, url) ->
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                SocialIconButton(icon, label, { openUrl(context, url) })
+                                SocialIconButton(icon, label, {
+                                    if (url == VERN_PLAY_LISTING) openGooglePlayStore(context) else openUrl(context, url)
+                                })
                                 Text(label, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                             }
                         }

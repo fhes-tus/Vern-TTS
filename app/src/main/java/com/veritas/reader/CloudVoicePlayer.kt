@@ -1,7 +1,6 @@
 package com.veritas.reader
 
 import android.content.Context
-import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.PlaybackParams
 import kotlinx.coroutines.*
@@ -53,7 +52,7 @@ internal class CloudVoicePlayer(private val context: Context, private val scope:
                 playbackFile = file
                 val media = MediaPlayer()
                 player = media
-                media.setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+                media.setAudioAttributes(readerPlaybackAudioAttributes())
                 media.setOnPreparedListener {
                     if (token != generation) return@setOnPreparedListener
                     runCatching {

@@ -100,6 +100,7 @@ internal fun PlaybackService.handleTtsInit(status: Int) {
         handleTtsFailure("The selected voice engine could not initialize. Open Voice Studio to choose another engine.")
         return
     }
+    tts?.setAudioAttributes(readerPlaybackAudioAttributes())
     ttsReady = true
     attachListener()
     resumeAfterEngineSetup()

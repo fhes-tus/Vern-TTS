@@ -44,6 +44,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.FindReplace
 import androidx.compose.material.icons.filled.FormatListNumbered
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
@@ -58,6 +60,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -71,11 +74,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalDensity
 import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.ui.VeritasMotion
@@ -102,19 +107,15 @@ internal fun textEditorDownloadName(
     return "${safeTitle}_$safeScope.txt"
 }
 
-internal fun countSearchOccurrences(source: String, query: String): Int {
-    val needle = query.trim()
-    if (source.isBlank() || needle.isBlank()) return 0
-    var count = 0
+private fun findSearchMatches(source: String, needle: String): List<Int> = buildList {
+    if (needle.isEmpty()) return@buildList
     var cursor = 0
     while (cursor <= source.length - needle.length) {
         val found = source.indexOf(needle, startIndex = cursor, ignoreCase = true)
         if (found < 0) break
-        count++
-        cursor = found + needle.length.coerceAtLeast(1)
-        if (count >= 500) break
+        add(found)
+        cursor = found + needle.length
     }
-    return count
 }
 
 @Composable
@@ -237,36 +238,46 @@ internal fun TextEditorDialog(
         commitValue(TextFieldValue(clean, selection = TextRange(clean.length)))
     }
 
-    fun findNextSearchMatch() {
-        val needle = searchQuery.trim()
-        if (needle.isBlank()) return
-        val start = editorValue.selection.max.coerceIn(0, editorValue.text.length)
-        val first = editorValue.text.indexOf(needle, startIndex = start, ignoreCase = true)
-        val match = if (first >= 0) first else editorValue.text.indexOf(needle, ignoreCase = true)
-        if (match >= 0) {
-            editorValue = editorValue.copy(selection = TextRange(match, match + needle.length))
+    val needle = searchQuery.trim()
+    val matches = remember(editorValue.text, needle) { findSearchMatches(editorValue.text, needle) }
+    var activeMatch by remember(currentPartIndex, editorValue.text, needle) { mutableStateOf<Int?>(null) }
+    var revealValue by remember(currentPartIndex) { mutableStateOf<TextFieldValue?>(null) }
+
+    fun revealSelection(value: TextFieldValue) {
+        editorFocus.requestFocus()
+        editorValue = value
+        revealValue = value
+    }
+
+    fun navigateSearch(previous: Boolean) {
+        if (matches.isEmpty()) return
+        val current = activeMatch
+        val index = when {
+            current == null -> if (previous) matches.lastIndex else 0
+            previous -> if (current == 0) matches.lastIndex else current - 1
+            current == matches.lastIndex -> 0
+            else -> current + 1
         }
+        val start = matches[index]
+        activeMatch = index
+        revealSelection(editorValue.copy(selection = TextRange(start, start + needle.length), composition = null))
     }
 
     fun replaceCurrentMatch() {
-        val needle = searchQuery.trim()
-        if (needle.isBlank()) return
         val value = editorValue
-        val start = value.selection.min.coerceIn(0, value.text.length)
-        val end = value.selection.max.coerceIn(0, value.text.length)
-        val selected = value.text.substring(start, end)
-        if (selected.equals(needle, ignoreCase = true)) {
-            val nextText = value.text.replaceRange(start, end, replaceQuery)
-            commitValue(TextFieldValue(nextText, selection = TextRange(start + replaceQuery.length)))
-            findNextSearchMatch()
+        val selection = value.selection
+        val start = activeMatch?.let(matches::get) ?: if (selection.length == needle.length && selection.min in matches) {
+            selection.min
         } else {
-            findNextSearchMatch()
-        }
+            matches.firstOrNull { it >= selection.max } ?: matches.firstOrNull()
+        } ?: return
+        val nextText = value.text.replaceRange(start, start + needle.length, replaceQuery)
+        activeMatch = null
+        commitValue(TextFieldValue(nextText, selection = TextRange(start + replaceQuery.length)))
+        revealSelection(editorValue)
     }
 
     fun replaceAllMatches() {
-        val needle = searchQuery.trim()
-        if (needle.isBlank()) return
         val nextText = editorValue.text.replace(needle, replaceQuery, ignoreCase = true)
         commitValue(TextFieldValue(nextText, selection = TextRange(nextText.length)))
     }
@@ -275,9 +286,6 @@ internal fun TextEditorDialog(
         editorValue.text.trim().split(Regex("\\s+")).count { it.isNotBlank() }
     }
     val charCount = editorValue.text.length
-    val searchMatches = remember(editorValue.text, searchQuery) {
-        countSearchOccurrences(editorValue.text, searchQuery)
-    }
 
     Dialog(
         onDismissRequest = ::closeEditor,
@@ -468,16 +476,19 @@ internal fun TextEditorDialog(
                             )
                             Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.primaryContainer) {
                                 Text(
-                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_058, com.veritas.reader.ui.screens.localizedUiValue(searchMatches)),
+                                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_058, com.veritas.reader.ui.screens.localizedUiValue(matches.size)),
                                     style = MaterialTheme.typography.labelSmall,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
                                 )
                             }
-                            Button(
-                                onClick = ::findNextSearchMatch,
-                                enabled = showSearch && searchMatches > 0,
-                                shape = RoundedCornerShape(50)
-                            ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next)) }
+                            IconButton(onClick = { navigateSearch(previous = true) },
+                                enabled = showSearch && !isSaving && matches.isNotEmpty()) {
+                                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = com.veritas.reader.ui.screens.menuString(R.string.ui_previous_match))
+                            }
+                            IconButton(onClick = { navigateSearch(previous = false) },
+                                enabled = showSearch && !isSaving && matches.isNotEmpty()) {
+                                Icon(Icons.Filled.KeyboardArrowDown, contentDescription = com.veritas.reader.ui.screens.menuString(R.string.ui_next_match))
+                            }
                         }
                     }
                 }
@@ -525,10 +536,10 @@ internal fun TextEditorDialog(
                                 horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                TextButton(onClick = ::replaceCurrentMatch, enabled = showReplace && searchQuery.isNotBlank()) {
+                                TextButton(onClick = ::replaceCurrentMatch, enabled = showReplace && !isSaving && matches.isNotEmpty()) {
                                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_replace_next))
                                 }
-                                Button(onClick = ::replaceAllMatches, enabled = showReplace && searchQuery.isNotBlank(), shape = RoundedCornerShape(50)) {
+                                Button(onClick = ::replaceAllMatches, enabled = showReplace && !isSaving && matches.isNotEmpty(), shape = RoundedCornerShape(50)) {
                                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_replace_all))
                                 }
                             }
@@ -555,11 +566,31 @@ internal fun TextEditorDialog(
                 val editorScrollState = rememberScrollState()
                 val editorColor = MaterialTheme.colorScheme.onBackground
                 val editorTransformation = remember(editorColor) { RichTextVisualTransformation(editorColor) }
+                var editorLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+                val editorPadding = with(LocalDensity.current) { 8.dp.roundToPx() }
+                LaunchedEffect(revealValue, editorLayout, editorScrollState.viewportSize) {
+                    val value = revealValue ?: return@LaunchedEffect
+                    val layout = editorLayout ?: return@LaunchedEffect
+                    if (value.text != editorValue.text || editorScrollState.viewportSize <= 0) return@LaunchedEffect
+                    val display = editorTransformation.filter(androidx.compose.ui.text.AnnotatedString(value.text))
+                    if (layout.layoutInput.text != display.text) return@LaunchedEffect
+                    val cursor = layout.getCursorRect(display.offsetMapping.originalToTransformed(value.selection.min))
+                    val top = cursor.top.toInt()
+                    val bottom = cursor.bottom.toInt() + editorPadding * 2
+                    val current = editorScrollState.value
+                    val viewport = editorScrollState.viewportSize
+                    when {
+                        top < current -> editorScrollState.scrollTo(top.coerceAtLeast(0))
+                        bottom > current + viewport -> editorScrollState.scrollTo((bottom - viewport).coerceAtLeast(0))
+                    }
+                    revealValue = null
+                }
                 BasicTextField(
                     value = editorValue,
                     visualTransformation = editorTransformation,
                     readOnly = isSaving,
                     onValueChange = { next -> commitValue(next) },
+                    onTextLayout = { editorLayout = it },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
                         color = MaterialTheme.colorScheme.onBackground,
                         lineHeight = (MaterialTheme.typography.bodyLarge.fontSize.value + 8).sp

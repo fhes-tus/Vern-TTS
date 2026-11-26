@@ -1,4 +1,11 @@
 {
+  "3.0.1": [
+    "Search the refreshed offline user manual in your own words and follow updated screenshots and instructions.",
+    "Move between matches and replace one or all occurrences in Edit extracted text.",
+    "Share quote images that preserve formatting from the selected passage.",
+    "Let Android lower narration volume during short interruptions that allow it.",
+    "Check for Google Play updates and open Vern’s Play listing from About."
+  ],
   "3.0.0": [
     "Organize your library in Collections. Add, remove, or move files, and turn a collection into a listening queue.",
     "Use Pronunciation Rules to teach Vern how to read recurring patterns, and use Narration Studio to tune voices for dialogue and narration.",

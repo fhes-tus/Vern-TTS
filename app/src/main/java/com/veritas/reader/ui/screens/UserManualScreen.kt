@@ -113,15 +113,8 @@ data class ManualSection(
     val chapters: List<ManualChapter>
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun UserManualDialog(
-    onDismiss: () -> Unit,
-    onNavigateToSetting: (String) -> Unit
-) {
-    var searchQuery by remember { mutableStateOf("") }
-
-    val allSections = remember {
+internal fun vernManualSections(): List<ManualSection> {
+    return run {
         listOf(
             ManualSection(
                 title = "Home & Navigation",
@@ -138,25 +131,25 @@ fun UserManualDialog(
                         flowSteps = listOf(
                             "Learn with synchronized text and audio",
                             "Keep your library and reading statistics locally; optional online features and SDK diagnostics are explained in the privacy policy",
-                            "Personalize voices, appearance, and study workflows"
+                            "Open Settings → Help to find the User manual, Tutorial, and About screens"
                         ),
-                        imageResId = R.drawable.manual_home_dashboard,
+                        imageResId = R.drawable.manual_settings_hub,
                         tags = listOf("vern", "about", "origin", "philosophy", "privacy", "vernehmen", "vernemen")
                     ),
                     ManualChapter(
-                        title = "Home Dashboard & Quests",
+                        title = "Home & First Chapter",
                         icon = Icons.Outlined.Dashboard,
-                        subtitle = "Daily targets, reading streak, and instant resume",
-                        content = "The Home tab is your daily reading companion. View your active book with a quick 'Continue' button, track daily reading minutes toward your goal ring, see weekly reading bar charts, and conquer fun daily reading quests.",
+                        subtitle = "Resume reading, set a goal, or take the tour",
+                        content = "Home shows recent books, reading activity, and a Continue reading card when a book is in progress. First Chapter introduces importing, narration speed, bookmarks, and notes.",
                         ctaText = "Go to Settings",
                         ctaAction = "settings_hub",
                         flowSteps = listOf(
-                            "Tap 'Home' on the bottom navigation bar",
-                            "Tap 'Continue' on the hero banner to resume your current book",
-                            "Check off your daily reading goals and track streaks"
+                            "Tap Continue to pick up where you left off",
+                            "Tap Set a daily reading goal or open Reading Insights",
+                            "Open First Chapter when it appears and tap Take a tour through Vern"
                         ),
-                        imageResId = R.drawable.manual_home_dashboard,
-                        tags = listOf("home", "dashboard", "quest", "goal", "streak", "continue reading", "hero")
+                        imageResId = R.drawable.manual_first_chapter,
+                        tags = listOf("home", "dashboard", "quest", "goal", "streak", "continue reading", "hero", "getting started walkthrough", "resume where i left off")
                     ),
                     ManualChapter(
                         title = "Four Main Workspaces",
@@ -170,7 +163,7 @@ fun UserManualDialog(
                             "Enjoy fluid animated transitions between all four tabs",
                             "Access Settings and tools via the top header bar"
                         ),
-                        imageResId = R.drawable.manual_settings_hub,
+                        imageResId = R.drawable.manual_home_dashboard,
                         tags = listOf("tabs", "navigation", "workspaces", "home", "library", "study", "notes", "settings hub")
                     ),
                     ManualChapter(
@@ -185,7 +178,6 @@ fun UserManualDialog(
                             "Enjoy side-by-side split panels and expanded reading margins",
                             "Use compact two-column menus on shorter window heights"
                         ),
-                        imageResId = R.drawable.manual_settings_hub,
                         tags = listOf("adaptive", "tablet", "foldable", "landscape", "rotation", "large screen", "split pane", "multi-window")
                     )
                 )
@@ -196,19 +188,19 @@ fun UserManualDialog(
                 description = "Manage your books, documents, and web imports",
                 chapters = listOf(
                     ManualChapter(
-                        title = "Library Dashboard & Shelf",
+                        title = "My Library",
                         icon = Icons.Outlined.CollectionsBookmark,
-                        subtitle = "Catalog, category chips, and preloaded books",
-                        content = "The Library dashboard compiles all your imported books, documents, and web articles, alongside preloaded classics like 'Who Moved My Cheese?'. Use category filter chips (All, Reading, Finished, Unread, Audio, Favorites) and instant search to find any title in seconds.",
-                        ctaText = "Manage Collections",
-                        ctaAction = "reading_lists",
+                        subtitle = "Find and sort saved readings",
+                        content = "Open Added to find saved readings. Use the filter chips to narrow the shelf, Sort to change the order, the magnifying glass to search, or the layout icon to switch views.",
+                        ctaText = "Open My Library",
+                        ctaAction = "library",
                         flowSteps = listOf(
-                            "Tap the 'Library' tab on the bottom bar",
-                            "Filter by status using the category chips under the search bar",
-                            "Tap any book card to open the reader canvas instantly"
+                            "Open My Library and select Added",
+                            "Tap a filter chip or use Search",
+                            "Tap a book to open it or use its three-dot menu"
                         ),
                         imageResId = R.drawable.manual_library_main,
-                        tags = listOf("dashboard", "library", "books", "documents", "articles", "lists", "shelf", "who moved my cheese", "filter")
+                        tags = listOf("dashboard", "library", "books", "documents", "articles", "lists", "shelf", "who moved my cheese", "filter", "find my books", "change library layout", "sort by title")
                     ),
                     ManualChapter(
                         title = "Document Actions & Metadata",
@@ -237,23 +229,22 @@ fun UserManualDialog(
                             "Select multiple items to categorize or delete in bulk",
                             "Drag the import progress floater to either edge of the screen as files load"
                         ),
-                        imageResId = R.drawable.manual_library_batch,
                         tags = listOf("batch", "bulk", "multi-select", "select all", "delete multiple", "organize", "import floater")
                     ),
                     ManualChapter(
-                        title = "Adding Content & Formats",
+                        title = "Import Files, Text & Web Articles",
                         icon = Icons.Outlined.AddCircleOutline,
-                        subtitle = "Import EPUB, PDF, DOCX, PPTX, TXT, and Web links",
-                        content = "Tap the floating '+' action button to import content. Vern supports universal document parsing for EPUB eBooks, PDF papers, Word DOCX files, PowerPoint PPTX presentations, plain text TXT files, and instant web article scraping.",
+                        subtitle = "Add a document, article, or scanned text",
+                        content = "In My Library, tap Add. Choose File browser for local files, Browse phone folders for Android’s file picker, Paste text for copied content, From web for a link, or Scan / OCR for a photo.",
                         ctaText = "Open File Browser",
                         ctaAction = "file_browser",
                         flowSteps = listOf(
-                            "Tap the '+' floating button in the Library",
-                            "Select file import, web URL, or scratch text",
-                            "Confirm the selection to add it to your library"
+                            "Tap Add in My Library",
+                            "Choose an import method",
+                            "Follow the prompt and open the saved reading from Added"
                         ),
                         imageResId = R.drawable.manual_add_sheet,
-                        tags = listOf("add", "import", "plus", "url", "web", "scrape", "link", "new", "epub", "pdf", "docx", "pptx", "txt")
+                        tags = listOf("add", "import", "plus", "url", "web", "scrape", "link", "new", "epub", "pdf", "docx", "pptx", "txt", "add a book", "open a file from downloads", "copy and paste a document", "read a website article", "turn a photo into text")
                     ),
                     ManualChapter(
                         title = "Integrated File Browser",
@@ -271,34 +262,34 @@ fun UserManualDialog(
                         tags = listOf("file browser", "storage", "directory", "folder", "epub", "pdf", "docx", "txt", "import")
                     ),
                     ManualChapter(
-                        title = "PDF & Text Extraction Settings",
+                        title = "PDF & Import Tools",
                         icon = Icons.Outlined.Description,
-                        subtitle = "Manage layout conversion settings",
-                        content = "Fine-tune how documents are parsed during import. Tweak image OCR recognition thresholds, set default character encodings for TXT files, and enable automatic page header or footer cleanup to strip out page numbers and running titles.",
+                        subtitle = "Choose an extraction mode or fix garbled text",
+                        content = "In Settings → PDF and import tools, choose an extraction mode, page range, and cleanup options. Try Prefer OCR when text is poor for weak text layers, or Force OCR for scans. Use Text encoding when an imported text file shows garbled characters.",
                         ctaText = "Configure PDF Import",
                         ctaAction = "pdf_tools",
                         flowSteps = listOf(
-                            "Access PDF Tools from Settings or Import",
-                            "Adjust cleanup toggles and OCR settings",
-                            "Save preferences to apply to future imports"
+                            "Open Settings → PDF and import tools",
+                            "Choose Extraction mode or Text encoding",
+                            "Tap Open file browser to select a file"
                         ),
                         imageResId = R.drawable.manual_import_settings,
-                        tags = listOf("pdf", "ocr", "extraction", "encoding", "header", "footer", "cleanup", "page numbers")
+                        tags = listOf("pdf", "ocr", "extraction", "encoding", "header", "footer", "cleanup", "page numbers", "pdf is blank", "scanned pdf has no text", "garbled characters when importing")
                     ),
                     ManualChapter(
-                        title = "Classic Books Catalog & Archives",
+                        title = "Classics & Book Explorer",
                         icon = Icons.Outlined.Book,
-                        subtitle = "Public domain masterpieces & in-app book repos",
-                        content = "Browse curated classic titles (Meditations, The Art of War, Self-Reliance, Alice in Wonderland) directly in the 'Classics' tab of My Library. Explore genres like Family & Youth, Mystery, and Adventure, or browse external repos (Project Gutenberg, Standard Ebooks, Open Library) with automatic download interception.",
+                        subtitle = "Browse the catalog or open a book website",
+                        content = "The Classics tab in My Library shows a featured pick and books by category. Book Explorer opens external book websites. Downloading from those websites requires a connection.",
                         ctaText = "Browse Classics",
                         ctaAction = "classics_catalog",
                         flowSteps = listOf(
-                            "Tap the 'Classics' tab in My Library",
-                            "Explore 'Today's Pick' and genre shelves",
-                            "Tap 'Add to library' to download and start reading immediately"
+                            "Open My Library and select Classics",
+                            "Tap Add to library or open the featured pick to preview it",
+                            "Tap Book Explorer to choose an external website"
                         ),
                         imageResId = R.drawable.manual_classics_catalog,
-                        tags = listOf("classics", "public domain", "gutenberg", "standard ebooks", "ocean of pdf", "open library", "manybooks", "download", "free books")
+                        tags = listOf("classics", "public domain", "gutenberg", "standard ebooks", "ocean of pdf", "open library", "manybooks", "download", "free books", "find free books", "public domain books", "project gutenberg")
                     )
                 )
             ),
@@ -308,25 +299,25 @@ fun UserManualDialog(
                 description = "Reflowed text, bionic reading, theme packs, and PDF zoom",
                 chapters = listOf(
                     ManualChapter(
-                        title = "Reader Screen & Page Swiping",
+                        title = "Reader Views & Navigation",
                         icon = Icons.AutoMirrored.Outlined.Article,
-                        subtitle = "Reflowed layout and smooth page navigation",
-                        content = "Open any book in Text Mode to view clean, reflowed paragraphs with fluid horizontal swipe transitions. Text matches your theme colors, font size and section spacing adjust dynamically, and tapping any sentence starts audio playback.",
+                        subtitle = "Switch between Text, Listen, and Original where available",
+                        content = "Text opens Vern’s reader. Listen opens the full player. For supported documents, Original opens the source layout. The search and contents icons help you navigate the current reading.",
                         ctaText = "Select Text Tip",
                         ctaAction = "text_selection",
                         flowSteps = listOf(
-                            "Open a document card from your Library",
-                            "Swipe left and right to navigate smoothly between pages",
-                            "Double-tap any word to select it or tap play to listen"
+                            "Open a reading and choose Text, Listen, or Original",
+                            "Tap the magnifying glass to find text in the document",
+                            "Tap the contents icon to filter the outline or jump to a page where available"
                         ),
                         imageResId = R.drawable.manual_reader_screen,
-                        tags = listOf("reflow", "text mode", "canvas", "paragraphs", "font size", "margin", "padding", "swipe", "pages")
+                        tags = listOf("reflow", "text mode", "canvas", "paragraphs", "font size", "margin", "padding", "swipe", "pages", "find a chapter", "table of contents", "skip to a page", "search inside a book", "find a word in my book")
                     ),
                     ManualChapter(
                         title = "Bionic Reading Mode",
                         icon = Icons.Outlined.Bolt,
-                        subtitle = "Enhanced visual fixation for faster comprehension",
-                        content = "Enable Bionic Reading in the reader settings toolbar to emphasize the initial letters of each word. This guides your eyes across the text, dramatically boosting reading speed and cognitive retention.",
+                        subtitle = "Emphasize the first letters of each word",
+                        content = "Turn on Bionic reading in Settings → Accessibility to emphasize the first letters of each word.",
                         ctaText = "Reader Settings",
                         ctaAction = "reader_settings",
                         flowSteps = listOf(
@@ -335,6 +326,18 @@ fun UserManualDialog(
                             "Experience fast, effortless eye tracking across paragraphs"
                         ),
                         tags = listOf("bionic", "speed reading", "fixation", "eye tracking", "font", "focus")
+                    ),
+                    ManualChapter(
+                        title = "RSVP Speed Reader",
+                        icon = Icons.Outlined.Info,
+                        subtitle = "Read one word at a time",
+                        content = "RSVP Speed Reader displays one word at a time. Adjust the words-per-minute slider and turn on Silent visual RSVP to read without audio.",
+                        flowSteps = listOf(
+                            "Open Reader tools → RSVP Speed Reader",
+                            "Set your pace and tap Play"
+                        ),
+                        imageResId = R.drawable.manual_rsvp,
+                        tags = listOf("words flash one at a time", "speed reading", "words per minute")
                     ),
                     ManualChapter(
                         title = "Original PDF Layout Mode",
@@ -352,10 +355,21 @@ fun UserManualDialog(
                         tags = listOf("pdf", "original", "fixed layout", "columns", "zoom", "pan", "textbook")
                     ),
                     ManualChapter(
+                        title = "Edit Extracted Text",
+                        icon = Icons.Outlined.Info,
+                        subtitle = "Fix OCR errors or replace words",
+                        content = "Use the search and replace controls to find a mistake or fix repeated text. Tap Save to keep your changes to Vern’s extracted text.",
+                        flowSteps = listOf(
+                            "Open a reading and choose Reader tools → Edit extracted text",
+                            "Use search or replace, review the changes, and tap Save"
+                        ),
+                        tags = listOf("fix a typo in a book", "find and replace words", "correct extracted text", "edit ocr errors")
+                    ),
+                    ManualChapter(
                         title = "Theme Packs & Paired Colours",
                         icon = Icons.Outlined.Palette,
                         subtitle = "Liquid Glass, One UI, Material You, and Dark palettes",
-                        content = "Personalize the entire app interface. Choose between 4 distinct Theme Packs (Vern Media, Liquid Glass, One UI, Material You) and comprehensive paired color schemes (Light, Dark, Dracula Light/Dark, Midnight Light/Dark, One Light/Dark Pro, GitHub Light/Dark, Neon, and Blue High Contrast).",
+                        content = "Open Display & theme to select a theme pack, a colour palette, and System, Light, or Dark appearance. Custom accent changes the colour used for buttons and highlights.",
                         ctaText = "Configure Appearance",
                         ctaAction = "reader_settings",
                         flowSteps = listOf(
@@ -364,37 +378,45 @@ fun UserManualDialog(
                             "Enjoy a cohesive visual style with dedicated card surfaces and container tones"
                         ),
                         imageResId = R.drawable.manual_reader_settings,
-                        tags = listOf("theme", "theme packs", "liquid glass", "one ui", "material you", "dark", "dracula", "dracula light", "midnight light", "midnight dark", "one light", "github", "neon")
+                        tags = listOf("theme", "theme packs", "liquid glass", "one ui", "material you", "dark", "make the screen dark", "night mode", "dracula", "dracula light", "midnight light", "midnight dark", "one light", "github", "neon")
                     ),
                     ManualChapter(
-                        title = "Reader Tools Overflow",
+                        title = "Reading Layout & Accessibility",
+                        icon = Icons.Outlined.Info,
+                        subtitle = "Change page movement, contrast, or motion",
+                        content = "Display & theme offers Page swipe or Vertical scroll and separate Original PDF navigation. Accessibility offers Collapsible reader bars, Bionic reading, Reduce motion, Reduce transparency, and high-contrast presets.",
+                        flowSteps = listOf(
+                            "Open Settings → Display & theme to choose a layout or swipe effect",
+                            "Open Settings → Accessibility for reading focus and visibility options"
+                        ),
+                        tags = listOf("scroll instead of swiping", "hide reader controls", "turn off animations", "make text easier to see", "high contrast")
+                    ),
+                    ManualChapter(
+                        title = "Reader Tools",
                         icon = Icons.Outlined.Tune,
-                        subtitle = "Bookmarks, in-book search, and notes export",
-                        content = "Tap the options overflow in the reader to access extra tools. This menu houses quick bookmark creation, instant word search inside the active book, reader progress resets, and options to export highlighted notes to external Markdown files.",
+                        subtitle = "Find bookmarks, notes, timers, and study tools",
+                        content = "Tap the three-dot menu in the reader. Available actions depend on the reading. In Text view you can change Reading layout, jump to a page, or open Bookmarks and Document notes.",
                         ctaText = "Reader Options Tip",
                         ctaAction = "reader_tools",
                         flowSteps = listOf(
-                            "Tap the three-dot tools icon in the reader header",
-                            "Choose an action such as search or export notes",
-                            "Select the target option to perform the action"
+                            "Open a reading and tap the three-dot menu",
+                            "Choose a tool under Read, Notes and bookmarks, or Study"
                         ),
                         imageResId = R.drawable.manual_reader_tools_menu,
-                        tags = listOf("bookmark", "search text", "export notes", "markdown", "reset progress")
+                        tags = listOf("bookmark", "search text", "export notes", "markdown", "reset progress", "three dot menu", "reader overflow", "find my bookmarks")
                     ),
                     ManualChapter(
-                        title = "On-Device Translation & Languages",
+                        title = "Translation Handoff",
                         icon = Icons.Outlined.Translate,
-                        subtitle = "Private offline sentence, paragraph, and word translation",
-                        content = "Translate foreign languages on the fly directly inside the reader without sending book text to external cloud servers. Vern leverages local machine translation models to provide private, rapid translation popups for selected words, sentences, or paragraphs.",
-                        ctaText = "Configure Languages",
-                        ctaAction = "reader_settings",
+                        subtitle = "Send text to a translator and listen to the result",
+                        content = "Translation handoff opens an external translator or assistant with text from your reading. You can also listen to the original sentence or paste a translation into Vern and have it read aloud.",
                         flowSteps = listOf(
-                            "Highlight a word or sentence in the reader",
-                            "Select 'Translate' from the text action bar",
-                            "View instant on-device translation in a floating sheet"
+                            "Open the reader menu and choose Translation handoff",
+                            "Choose a target language and a translator or assistant",
+                            "Paste the result into Translated Text and tap Read Out Translation to listen"
                         ),
-                        imageResId = R.drawable.manual_text_selection_bar,
-                        tags = listOf("translate", "translation", "language", "offline translation", "multilingual", "dictionary", "on-device")
+                        imageResId = R.drawable.manual_translation_handoff,
+                        tags = listOf("translate", "translation", "language", "multilingual", "read aloud", "translator")
                     )
                 )
             ),
@@ -404,25 +426,25 @@ fun UserManualDialog(
                 description = "Vern Studio & Lite offline neural voices, narration studio, and sleep timer",
                 chapters = listOf(
                     ManualChapter(
-                        title = "Audio Player & Transport Controls",
+                        title = "Listen & Playback Controls",
                         icon = Icons.Outlined.GraphicEq,
-                        subtitle = "Wavy seekbar, transport controls, and playback speed",
-                        content = "Control playback using the liquid glass bottom bar. Enjoy smooth animated transport controls, a modern wavy seekbar that reflects audio cadence, quick 10-second skip buttons, sentence-by-sentence jumps, fine-grained playback speeds from 0.5x to 4.0x, and persistent media notification controls.",
+                        subtitle = "Play, skip, and adjust narration speed",
+                        content = "Tap Listen to open the full player. The speed, Voice, and Timer controls are below the playback controls. In Text view, expand the compact player using its chevron to adjust settings.",
                         ctaText = "Configure Sleep Timer",
                         ctaAction = "sleep_timer",
                         flowSteps = listOf(
-                            "Tap play on any sentence in the book",
-                            "Use the wavy seekbar to scrub through paragraphs",
-                            "Adjust speed, skip back/forward, or set a sleep timer"
+                            "Open a reading and tap Listen",
+                            "Tap Play or move through the reading with the progress slider",
+                            "Tap the speed control to change the narration pace"
                         ),
                         imageResId = R.drawable.manual_audio_mode,
-                        tags = listOf("audio", "tts", "play", "pause", "speed", "playback", "listen", "narrate", "wavy seekbar", "transport")
+                        tags = listOf("audio", "tts", "play", "pause", "speed", "playback", "listen", "narrate", "wavy seekbar", "transport", "read out loud", "make the voice slower", "make narration faster", "speed up audio")
                     ),
                     ManualChapter(
                         title = "Voice Studio & Offline Neural Voices",
                         icon = Icons.Outlined.RecordVoiceOver,
                         subtitle = "Vern Studio (Kokoro) & Vern Lite (Piper)",
-                        content = "Enjoy ultra-high-quality offline speech synthesis with zero cloud dependency. Download Vern Studio (Kokoro neural voices) for studio-grade narration or Vern Lite (Piper) for ultra-fast, lightweight playback.",
+                        content = "Use your phone’s text-to-speech or choose a Vern voice. In Voice and language, expand Vern voice models to download a model for offline reading. Use Sample to hear the active voice.",
                         ctaText = "Manage Voice Settings",
                         ctaAction = "voice_studio",
                         flowSteps = listOf(
@@ -437,7 +459,7 @@ fun UserManualDialog(
                         title = "Personal Cloud Voices (BYOK)",
                         icon = Icons.Outlined.RecordVoiceOver,
                         subtitle = "OpenAI, ElevenLabs, Gemini & Custom Endpoints",
-                        content = "Connect your personal API keys for cloud-grade narration. Vern supports OpenAI TTS (tts-1, tts-1-hd), ElevenLabs voices, Google Gemini speech, and custom OpenAI-compatible audio endpoints. Your keys stay securely on your device, and generated audio is cached locally for instant replay.",
+                        content = "Choose Connect my cloud voice account in Voice and language and enter the settings required by your provider. Reading and previews send text to that provider, and a preview may incur a charge. Vern keeps the API key encrypted on this device and excludes it from backups. Keep cloud audio for repeat reading is optional.",
                         ctaText = "Configure Cloud Voices",
                         ctaAction = "voice_studio",
                         flowSteps = listOf(
@@ -445,22 +467,21 @@ fun UserManualDialog(
                             "Enter your API key (OpenAI, ElevenLabs, Gemini, or custom)",
                             "Audition available voices and start streaming speech"
                         ),
-                        imageResId = R.drawable.manual_voice_language,
+                        imageResId = R.drawable.manual_cloud_voice,
                         tags = listOf("cloud voice", "openai", "elevenlabs", "gemini", "tts", "byok", "api key", "custom endpoint")
                     ),
                     ManualChapter(
                         title = "Speech Syntax & Pronunciation Guide",
                         icon = Icons.Outlined.Spellcheck,
-                        subtitle = "Pause tags, speech cadence, and phonetics",
-                        content = "Fine-tune pronunciation and pacing with custom rules and syntax tags. Use pause markup (e.g. [pause=500ms] or ellipses) to add dramatic timing, define phonetic replacements for medical or technical terms, and customize character dialogue speech patterns.",
+                        subtitle = "Choose what Vern skips or says aloud",
+                        content = "Open Pronunciation rules to control how Vern reads words, abbreviations, and recurring patterns. Start with an example or create a Text, Pattern, or Regex rule.",
                         ctaText = "Configure Pronunciation",
                         ctaAction = "pronunciation",
                         flowSteps = listOf(
                             "Open Settings -> Speech Edits",
-                            "Tap '+' to add replacement or phonetic rules",
-                            "Use pause tags and cadence markup in text or notes"
+                            "Choose Text, Pattern, or Regex to specify what to match",
+                            "Choose Skip or Say instead and save the rule"
                         ),
-                        imageResId = R.drawable.manual_pronunciation_rules,
                         tags = listOf("pronunciation", "phonetics", "acronyms", "syntax", "pause", "cadence", "speech edits", "markup")
                     ),
                     ManualChapter(
@@ -475,7 +496,6 @@ fun UserManualDialog(
                             "Enable Full-cast multi-voice mode",
                             "Create character profiles and customize pitch/speed"
                         ),
-                        imageResId = R.drawable.manual_narration_studio,
                         tags = listOf("full-cast", "character", "multi-voice", "pitch", "narration", "dialogue", "speech")
                     ),
                     ManualChapter(
@@ -494,6 +514,18 @@ fun UserManualDialog(
                         tags = listOf("pronunciation", "phonetics", "acronyms", "mispronounce", "dictionary", "replace word", "speech edits")
                     ),
                     ManualChapter(
+                        title = "Background Playback & Battery",
+                        icon = Icons.Outlined.Info,
+                        subtitle = "Keep listening when the screen locks",
+                        content = "If Android stops playback when the screen locks, use the Unrestricted Battery Playback prompt or open Vern’s App info → Battery and choose Unrestricted if available.",
+                        flowSteps = listOf(
+                            "Tap Turn On Unrestricted when prompted",
+                            "Choose Allow if Android asks"
+                        ),
+                        imageResId = R.drawable.manual_battery_playback,
+                        tags = listOf("audio stops when i lock my phone", "audio stop when i lock my phone", "read with screen off", "playback pauses in background")
+                    ),
+                    ManualChapter(
                         title = "Sleep Timer Settings",
                         icon = Icons.Outlined.Timer,
                         subtitle = "Automatically pause playback",
@@ -505,7 +537,6 @@ fun UserManualDialog(
                             "Tap clock timer icon in the audio bar",
                             "Select duration limit and click 'Start'"
                         ),
-                        imageResId = R.drawable.manual_sleep_timer,
                         tags = listOf("sleep timer", "timer", "countdown", "night", "auto pause", "stop audio")
                     )
                 )
@@ -516,19 +547,19 @@ fun UserManualDialog(
                 description = "Track reading history, streak insights, study cards, and notes",
                 chapters = listOf(
                     ManualChapter(
-                        title = "Offline Dictionary & WordNet",
+                        title = "Dictionary & Vocabulary",
                         icon = Icons.AutoMirrored.Outlined.MenuBook,
-                        subtitle = "150,000+ definitions, word browser, and examples offline",
-                        content = "Vern features a full offline English dictionary powered by Princeton WordNet. Browse words by letter (A-Z) or search prefixes instantly. Each entry includes definitions, parts of speech, usage examples, and clickable synonym chips. Opened definitions can be saved to your Vocabulary list with one tap. Access the dictionary from Study Hub or directly from the reader selection sheet.",
+                        subtitle = "Find definitions with the optional offline English pack",
+                        content = "Open Dictionary in Study Hub and choose Offline or Online. Browse or filter the offline word list, then open an entry and tap Save to vocabs to keep it.",
                         ctaText = "Open Study Hub",
                         ctaAction = "study_general",
                         flowSteps = listOf(
-                            "Open Study Hub -> Dictionary, or highlight a word in the reader",
-                            "Browse words alphabetically or search any term",
-                            "Explore definitions, pronunciations, synonyms, and examples"
+                            "Open Study Hub → Dictionary",
+                            "Open the three-dot menu and choose Offline dictionary to manage the English pack",
+                            "Open a word and tap Save to vocabs"
                         ),
-                        imageResId = R.drawable.manual_study_general,
-                        tags = listOf("dictionary", "wordnet", "offline dictionary", "definitions", "vocab", "vocabulary", "synonyms", "examples")
+                        imageResId = R.drawable.manual_dictionary,
+                        tags = listOf("dictionary", "wordnet", "offline dictionary", "definitions", "vocab", "vocabulary", "synonyms", "examples", "what does this word mean", "look up a word without internet", "save a definition")
                     ),
                     ManualChapter(
                         title = "Study General & Vocabulary",
@@ -546,19 +577,19 @@ fun UserManualDialog(
                         tags = listOf("study", "vocabulary", "highlights", "notes", "bookmarks", "words", "saved")
                     ),
                     ManualChapter(
-                        title = "Reading History Tracking",
+                        title = "Reading History & Daily Goals",
                         icon = Icons.Outlined.History,
-                        subtitle = "Trace past reading sessions",
-                        content = "View detailed reading logs in the History tab. Vern tracks when you open books, progress percentages, and active reading times. Select any entry in the log to instantly jump back and resume reading.",
+                        subtitle = "Review sessions, set a goal, or manage the reading timer",
+                        content = "Open Reading Insights → History to review activity, set a daily goal, add a manual session, or export sessions as CSV when available. Automatic reading tracks visible reader time after interaction.",
                         ctaText = "View Reading History",
                         ctaAction = "history",
                         flowSteps = listOf(
-                            "Navigate to Study Hub screen",
-                            "Select History tab at top",
-                            "Tap a recent session log to open that book"
+                            "Open Reading Insights and select History",
+                            "Choose a Daily goal or adjust the Reading timer",
+                            "To time a particular reading, open Books and tap Start timer on that book"
                         ),
                         imageResId = R.drawable.manual_study_history,
-                        tags = listOf("history", "recent", "log", "reading session", "timeline", "resume")
+                        tags = listOf("history", "recent", "log", "reading session", "timeline", "resume", "how long did i read", "set reading timer", "track minutes read", "export reading sessions")
                     ),
                     ManualChapter(
                         title = "Reading Insights & Streaks",
@@ -587,8 +618,20 @@ fun UserManualDialog(
                             "Tap 'Review Now' to start a session",
                             "Rate your recall to update the card's interval"
                         ),
-                        imageResId = R.drawable.manual_ai_handoff,
                         tags = listOf("flashcards", "anki", "sm2", "spaced repetition", "quiz", "memorize", "card review", "deck")
+                    ),
+                    ManualChapter(
+                        title = "AI Study Studio & Ask AI",
+                        icon = Icons.Outlined.Info,
+                        subtitle = "Study a passage or send it to another app",
+                        content = "Choose a study focus and a prompt for flashcards, a practice quiz, or a summary. In-app generation requires a provider API key. You can also use an external assistant and import supported cards or quizzes from the clipboard.",
+                        flowSteps = listOf(
+                            "Open Study Hub → Choose a book to study, or Reader tools → AI Study tools",
+                            "Choose a focus and a prompt or assistant",
+                            "Copy supported cards or a quiz back and tap Check clipboard for cards or a quiz"
+                        ),
+                        imageResId = R.drawable.manual_ai_study,
+                        tags = listOf("summarize a chapter", "make flashcards from a book", "send a passage to chatgpt")
                     ),
                     ManualChapter(
                         title = "Quiz Lab & Performance",
@@ -602,7 +645,6 @@ fun UserManualDialog(
                             "Select a book quiz to begin answering questions",
                             "Review detailed score breakdown and retention gauge"
                         ),
-                        imageResId = R.drawable.manual_quiz_lab,
                         tags = listOf("quiz", "quiz lab", "exam", "score", "retention", "mastery", "practice")
                     ),
                     ManualChapter(
@@ -632,7 +674,6 @@ fun UserManualDialog(
                             "Record voice memos or type rich markdown reflections",
                             "Share text or attachments from another app to Share to Notes"
                         ),
-                        imageResId = R.drawable.manual_note_editor,
                         tags = listOf("note editor", "voice memo", "waveform", "tags", "link preview", "bible.com", "audio notes")
                     )
                 )
@@ -646,30 +687,31 @@ fun UserManualDialog(
                         title = "Storage Manager & Smart Cleanup",
                         icon = Icons.Outlined.Storage,
                         subtitle = "Inspect file sizes and clear cached TTS audio",
-                        content = "Monitor disk usage from Settings -> Storage Manager. View storage consumed by your library books, extracted PDFs, downloaded voice models, and generated speech cache, with one-tap smart cache clearing.",
+                        content = "Monitor disk usage from Settings → Storage. View storage consumed by your library books, extracted PDFs, downloaded voice models, and generated speech cache, with one-tap smart cache clearing.",
                         ctaText = "Open Storage Manager",
                         ctaAction = "storage_manager",
                         flowSteps = listOf(
-                            "Go to Settings -> Storage Manager",
+                            "Go to Settings → Storage",
                             "Inspect breakdown of documents and voice models",
-                            "Tap 'Clear Cache' to free up disk space safely"
+                            "Tap Clear temporary cache to free up space"
                         ),
-                        tags = listOf("storage", "cache", "cleanup", "disk", "free space", "delete voice", "audio cache")
+                        imageResId = R.drawable.manual_storage,
+                        tags = listOf("storage", "cache", "cleanup", "disk", "free space", "delete voice", "audio cache", "app taking up space", "clear cache")
                     ),
                     ManualChapter(
-                        title = "Interactive Text Selection",
+                        title = "Select Text, Bookmark & Annotate",
                         icon = Icons.Outlined.ContentCut,
-                        subtitle = "Standard copy, select, and read commands",
-                        content = "Use the floating text action bar for standard text management. Copy selection to clipboard, select entire document text, or tap 'Read from here' to resume speech playback starting directly from your highlighted sentence.",
+                        subtitle = "Use the floating menu for actions on a passage",
+                        content = "Press and hold text in the reader and drag the selection handles. The floating menu can offer Bookmark, Note, and Search definitions. Open its three-dot menu for more actions where available.",
                         ctaText = "Text Selection Tip",
                         ctaAction = "text_selection",
                         flowSteps = listOf(
-                            "Double-tap or drag-highlight a sentence in the book",
-                            "Wait for text selection bar to appear",
-                            "Tap 'Read from here' to begin audio narration from that point"
+                            "Press and hold a word and drag the handles",
+                            "Tap Bookmark to save the passage or Note to write about it",
+                            "Tap Search definitions to look up a word"
                         ),
                         imageResId = R.drawable.manual_text_selection_bar,
-                        tags = listOf("copy", "select text", "highlight", "read from here", "clipboard", "selection bar")
+                        tags = listOf("copy", "select text", "highlight", "read from here", "clipboard", "selection bar", "highlight a passage", "save a quote for later", "write a note on a sentence", "copy text")
                     ),
                     ManualChapter(
                         title = "Portable Backup & Restore",
@@ -679,27 +721,27 @@ fun UserManualDialog(
                         ctaText = "Manage Sync Center",
                         ctaAction = "sync_center",
                         flowSteps = listOf(
-                            "Open Settings -> Sync Center",
-                            "Export a portable backup and transfer the archive",
-                            "On the receiving device, back up first, then import the archive"
+                            "Open Settings → Sync & Backup Center",
+                            "Choose the JSON backup for text and settings or the ZIP backup to include media",
+                            "On the receiving device, back up first, then tap Import Sync / Backup Pack"
                         ),
                         imageResId = R.drawable.manual_sync_center,
-                        tags = listOf("sync", "portable", "transfer", "cross device", "backup", "restore")
+                        tags = listOf("sync", "portable", "transfer", "backup", "restore", "move my books to a new phone", "transfer library to another device", "export notes with attachments")
                     ),
                     ManualChapter(
                         title = "Backup & Recovery",
                         icon = Icons.Outlined.Backup,
-                        subtitle = "Create backup database archives",
-                        content = "Export settings and reading database to a backup archive to protect against data loss. These `.vern` / `.veritas` archives can be stored on external cloud accounts or local drives, and restored at any time.",
-                        ctaText = "Configure Backups",
-                        ctaAction = "backup_tools",
+                        subtitle = "Keep recent local backups and save a copy elsewhere",
+                        content = "Automatic Weekly Backups keeps the four latest data backups on your device. Save a copy outside Vern if you want to keep it after uninstalling. For original files and media, export a full ZIP backup.",
+                        ctaText = "Open Sync & Backup Center",
+                        ctaAction = "sync_center",
                         flowSteps = listOf(
-                            "Select Backup & Restore under Settings",
-                            "Choose 'Export Backup' and save archive file",
-                            "Use 'Import Backup' to restore data on a new device"
+                            "Open Settings → Sync & Backup Center",
+                            "Turn on Automatic Weekly Backups or tap Back up now",
+                            "Tap Show saved backups to find your local copies"
                         ),
                         imageResId = R.drawable.manual_backup_restore,
-                        tags = listOf("backup", "export database", "restore", "vern archive", "veritas archive", "recovery", "data loss")
+                        tags = listOf("backup", "export database", "restore", "recovery", "data loss", "automatic weekly backups", "find saved backups", "back up before uninstalling")
                     ),
                     ManualChapter(
                         title = "About Vern & Community",
@@ -720,47 +762,18 @@ fun UserManualDialog(
             )
         )
     }
+}
 
-    // Smart Fuzzy & Intent Search Matcher
-    val filteredSections = remember(searchQuery, allSections) {
-        val rawQuery = searchQuery.trim().lowercase()
-        if (rawQuery.isBlank()) {
-            allSections
-        } else {
-            val queryTokens = rawQuery.split(Regex("\\s+")).filter { it.length > 1 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UserManualDialog(
+    onDismiss: () -> Unit,
+    onNavigateToSetting: (String) -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
 
-            // Synonym dictionary mapping user intent words to semantic tags
-            val semanticSynonyms = mapOf(
-                "speak" to listOf("tts", "speech", "voice", "audio", "narrate", "listen", "read loud", "sound", "cadence", "cloud voice", "wavy"),
-                "read" to listOf("reader", "book", "text", "page", "font", "display", "mode", "reflow", "original", "adaptive"),
-                "dark" to listOf("theme", "mode", "color", "background", "black", "palette", "night", "sepia"),
-                "quiz" to listOf("flashcard", "card", "anki", "sm2", "study", "memory", "review", "vocab", "deck"),
-                "pdf" to listOf("document", "file", "ocr", "layout", "original", "import", "scan"),
-                "save" to listOf("backup", "sync", "export", "restore", "drive", "webdav", "archive"),
-                "fast" to listOf("speed", "rate", "pitch", "narration", "cadence", "pause"),
-                "dict" to listOf("dictionary", "wordnet", "definition", "vocab", "word", "meaning", "synonym", "lookup"),
-                "translate" to listOf("translation", "language", "multilingual", "locale", "foreign", "on-device"),
-                "cloud" to listOf("cloud voice", "openai", "elevenlabs", "gemini", "api key", "byok", "endpoint")
-            )
-
-            allSections.mapNotNull { section ->
-                val matchingChapters = section.chapters.filter { chapter ->
-                    val targetText = (chapter.title + " " + chapter.subtitle + " " + chapter.content + " " + chapter.tags.joinToString(" ") + " " + section.title + " " + section.description).lowercase()
-
-                    // Direct substring match
-                    if (targetText.contains(rawQuery)) return@filter true
-
-                    // Token matching with semantic synonyms
-                    if (queryTokens.isNotEmpty()) {
-                        queryTokens.all { token ->
-                            targetText.contains(token) || semanticSynonyms[token]?.any { syn -> targetText.contains(syn) } == true
-                        }
-                    } else false
-                }
-                if (matchingChapters.isNotEmpty()) section.copy(chapters = matchingChapters) else null
-            }
-        }
-    }
+    val allSections = remember { vernManualSections() }
+    val filteredSections = remember(searchQuery, allSections) { searchManual(allSections, searchQuery) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -865,7 +878,7 @@ fun UserManualDialog(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        items(filteredSections) { section ->
+                        items(filteredSections, key = { it.title }) { section ->
                             SectionCard(
                                 section = section,
                                 searchQuery = searchQuery,
@@ -957,10 +970,9 @@ fun SectionCard(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     section.chapters.forEach { chapter ->
-                        ChapterCard(
-                            chapter = chapter,
-                            onNavigateToSetting = onNavigateToSetting
-                        )
+                        androidx.compose.runtime.key(chapter.title) {
+                            ChapterCard(chapter = chapter, onNavigateToSetting = onNavigateToSetting)
+                        }
                     }
                 }
             }

@@ -2178,4 +2178,6 @@
     <string name="speech_syntax_step_say">"Selecione Dizer no lugar e digite o valor acima. O Vern lê a primeira parte que o padrão guardou, que aqui é o número."</string>
     <string name="speech_syntax_step_try">"Digite a amostra em Trecho original. Confira o Resultado da narração ou toque em Ouvir. Salve a regra quando o resultado estiver certo."</string>
     <string name="speech_syntax_use_example">"Preencher com este exemplo"</string>
+    <string name="play_update_available">Atualização disponível no Google Play</string>
+    <string name="play_update_description">Há uma nova versão do Vern. Abra o Google Play para atualizar.</string>
 </resources>

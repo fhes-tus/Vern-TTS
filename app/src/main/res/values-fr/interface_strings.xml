@@ -331,4 +331,6 @@
     <string name="ui_your_next_read_starts_here" formatted="false">"Votre prochaine lecture commence ici"</string>
     <string name="ui_your_reading_today" formatted="false">"Votre lecture aujourd’hui"</string>
     <string name="widget_ready" formatted="false">"Prêt"</string>
+    <string name="play_update_available">Mise à jour disponible sur Google Play</string>
+    <string name="play_update_description">Une nouvelle version de Vern est disponible. Ouvrez Google Play pour la mettre à jour.</string>
 </resources>

@@ -34,7 +34,7 @@ fun UpdateAvailableDialog(
     isDownloading: Boolean,
     downloadProgress: Float,
     downloadError: String?,
-    isPlayStoreInstall: Boolean = false,
+    isGooglePlayUpdate: Boolean = false,
     onUpdate: () -> Unit,
     onOpenPlayStore: () -> Unit = {},
     onCancelDownload: () -> Unit,
@@ -54,7 +54,11 @@ fun UpdateAvailableDialog(
         textContentColor = MaterialTheme.colorScheme.onSurface,
         title = {
             Text(
-                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_182, com.veritas.reader.ui.screens.localizedUiValue(versionName)),
+                text = if (isGooglePlayUpdate) {
+                    menuString(com.veritas.reader.R.string.play_update_available)
+                } else {
+                    menuString(com.veritas.reader.R.string.l10n_dynamic_182, localizedUiValue(versionName))
+                },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -83,8 +87,8 @@ fun UpdateAvailableDialog(
                     )
                 } else {
                     Text(
-                        text = if (isPlayStoreInstall) {
-                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_a_new_version_of_veritas_reader_is_available_on_google_play_and_g)
+                        text = if (isGooglePlayUpdate) {
+                            menuString(com.veritas.reader.R.string.play_update_description)
                         } else {
                             com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_a_new_version_of_veritas_reader_is_ready_with_latest_enhancements)
                         },
@@ -134,7 +138,7 @@ fun UpdateAvailableDialog(
         },
         confirmButton = {
             if (!isDownloading) {
-                if (isPlayStoreInstall) {
+                if (isGooglePlayUpdate) {
                     Button(
                         onClick = {
                             onOpenPlayStore()
@@ -157,11 +161,7 @@ fun UpdateAvailableDialog(
                 }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (isPlayStoreInstall) {
-                        TextButton(onClick = onUpdate) {
-                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_direct_apk), style = MaterialTheme.typography.labelMedium)
-                        }
-                    } else {
+                    if (!isGooglePlayUpdate) {
                         TextButton(
                             onClick = {
                                 onOpenPlayStore()

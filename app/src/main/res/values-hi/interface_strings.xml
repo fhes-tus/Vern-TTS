@@ -331,4 +331,6 @@
     <string name="ui_your_next_read_starts_here" formatted="false">"आपका अगला पठन यहाँ से शुरू होता है"</string>
     <string name="ui_your_reading_today" formatted="false">"आज आपका पठन"</string>
     <string name="widget_ready" formatted="false">"तैयार"</string>
+    <string name="play_update_available">Google Play पर अपडेट उपलब्ध है</string>
+    <string name="play_update_description">Vern का नया संस्करण उपलब्ध है। अपडेट करने के लिए Google Play खोलें।</string>
 </resources>

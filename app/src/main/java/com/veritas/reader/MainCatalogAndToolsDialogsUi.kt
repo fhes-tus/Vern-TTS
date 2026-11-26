@@ -45,7 +45,7 @@ import com.veritas.reader.ui.generateInAppFlashcards
 import com.veritas.reader.ui.generateInAppQuiz
 import com.veritas.reader.ui.importDownloadedBook
 import com.veritas.reader.ui.importFlashcards
-import com.veritas.reader.ui.isInstalledFromGooglePlay
+import com.veritas.reader.ui.VERN_PLAY_LISTING
 import com.veritas.reader.ui.loadStudyDocument
 import com.veritas.reader.ui.moveReadingListDocument
 import com.veritas.reader.ui.openGooglePlayStore
@@ -327,14 +327,13 @@ internal fun MainCatalogAndToolsDialogsHost(
 
     if (uiState.showUpdateDialog) {
         val context = LocalContext.current
-        val isPlayStore = remember(context) { isInstalledFromGooglePlay(context) }
         UpdateAvailableDialog(
             versionName = uiState.updateVersionName,
             changelog = uiState.updateChangelog,
             isDownloading = uiState.isDownloadingUpdate,
             downloadProgress = uiState.updateDownloadProgress,
             downloadError = uiState.updateDownloadError,
-            isPlayStoreInstall = isPlayStore,
+            isGooglePlayUpdate = uiState.updateUrl == VERN_PLAY_LISTING,
             onUpdate = {
                 if (uiState.updateApkUrl.isNotEmpty()) {
                     viewModel.startUpdateDownload(uiState.updateApkUrl)

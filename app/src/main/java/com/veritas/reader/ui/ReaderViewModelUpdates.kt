@@ -5,6 +5,8 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.lifecycle.viewModelScope
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.install.model.UpdateAvailability
 import com.veritas.reader.BuildConfig
 import com.veritas.reader.isInstalledUpgrade
 import com.veritas.reader.releaseNotesForVersion
@@ -12,15 +14,38 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
+import kotlin.coroutines.resume
 
 private const val LAST_RUN_VERSION_NAME = "last_run_version_name"
 private const val LAST_RUN_VERSION_CODE = "last_run_version_code"
 private const val LEGACY_UNVERSIONED_CHANGELOG = "last_downloaded_changelog"
+private const val GOOGLE_PLAY_PACKAGE = "com.android.vending"
+private const val VERN_PLAY_ID = "com.veritas.reader"
+internal const val VERN_PLAY_LISTING = "https://play.google.com/store/apps/details?id=$VERN_PLAY_ID"
+
+private suspend fun checkGooglePlayUpdate(context: android.content.Context): Boolean? =
+    withTimeoutOrNull(5_000L) {
+        suspendCancellableCoroutine { continuation ->
+            AppUpdateManagerFactory.create(context).appUpdateInfo.addOnCompleteListener { task ->
+                val available = if (task.isSuccessful) {
+                    when (task.result.updateAvailability()) {
+                        UpdateAvailability.UPDATE_AVAILABLE,
+                        UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS -> true
+                        UpdateAvailability.UPDATE_NOT_AVAILABLE -> false
+                        else -> null
+                    }
+                } else null
+                continuation.resume(available)
+            }
+        }
+    }
 
 fun ReaderViewModel.checkForUpdates(isManual: Boolean = false) {
     viewModelScope.launch(Dispatchers.Main.immediate) {
@@ -33,6 +58,42 @@ fun ReaderViewModel.checkForUpdates(isManual: Boolean = false) {
         }
         try {
             val context = getApplication<Application>()
+            val playInstall = isInstalledFromGooglePlay(context)
+            val checkPlay = context.packageName == VERN_PLAY_ID && (isManual || playInstall)
+            val playUpdate = if (checkPlay) {
+                try {
+                    checkGooglePlayUpdate(context)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    android.util.Log.w("ReaderViewModel", "Could not check Google Play for updates", failure)
+                    null
+                }
+            } else null
+            if (playUpdate == true) {
+                _uiState.update {
+                    if (it.isDownloadingUpdate) it else it.copy(
+                        showUpdateDialog = true,
+                        updateVersionName = "",
+                        updateUrl = VERN_PLAY_LISTING,
+                        updateApkUrl = "",
+                        updateChangelog = "",
+                        updateDownloadError = null,
+                        updateStatusMessage = context.getString(com.veritas.reader.R.string.play_update_available)
+                    )
+                }
+                return@launch
+            }
+            if (playInstall) {
+                if (isManual) _uiState.update {
+                    it.copy(updateStatusMessage = if (playUpdate == false) {
+                        "Vern is up to date on Google Play"
+                    } else {
+                        "Could not check for updates on Google Play"
+                    })
+                }
+                return@launch
+            }
             val (release, localVersion) = withContext(Dispatchers.IO) {
                 val connection = java.net.URI("https://api.github.com/repos/fhes-tus/Vern-TTS/releases/latest")
                     .toURL().openConnection() as HttpURLConnection
@@ -69,7 +130,11 @@ fun ReaderViewModel.checkForUpdates(isManual: Boolean = false) {
                 }
             } else if (isManual) {
                 _uiState.update {
-                    it.copy(updateStatusMessage = if (release == null) "Could not check for updates" else "Vern is up to date (v$localVersion)")
+                    it.copy(updateStatusMessage = when {
+                        release == null -> "Could not check for GitHub updates"
+                        checkPlay && playUpdate == null -> "No GitHub update found. Google Play could not be checked."
+                        else -> "Vern is up to date (v$localVersion)"
+                    })
                 }
             }
         } catch (cancelled: CancellationException) {
@@ -235,7 +300,7 @@ fun ReaderViewModel.dismissReleaseNotes() {
     }
 }
 
-fun isInstalledFromGooglePlay(context: android.content.Context): Boolean {
+private fun isInstalledFromGooglePlay(context: android.content.Context): Boolean {
     return runCatching {
         val pm = context.packageManager
         val installer = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
@@ -244,19 +309,20 @@ fun isInstalledFromGooglePlay(context: android.content.Context): Boolean {
             @Suppress("DEPRECATION")
             pm.getInstallerPackageName(context.packageName)
         }
-        installer == "com.android.vending"
+        installer == GOOGLE_PLAY_PACKAGE
     }.getOrDefault(false)
 }
 
 fun openGooglePlayStore(context: android.content.Context) {
-    val pkg = context.packageName
-    try {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg")).apply {
+    val opened = runCatching {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$VERN_PLAY_ID")).apply {
+            setPackage(GOOGLE_PLAY_PACKAGE)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(intent)
-    } catch (_: Exception) {
-        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$pkg")).apply {
+    }
+    if (opened.isFailure) runCatching {
+        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(VERN_PLAY_LISTING)).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(webIntent)

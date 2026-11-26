@@ -2178,4 +2178,6 @@
     <string name="speech_syntax_step_say">"대신 읽을 내용을 선택하고 위의 값을 입력하세요. Vern은 일치한 내용에서 기억한 첫 부분을 읽습니다. 이 예에서는 숫자입니다."</string>
     <string name="speech_syntax_step_try">"예시를 원문에 입력하세요. 낭독 결과를 확인하거나 듣기를 누르세요. 결과가 맞으면 규칙을 저장하세요."</string>
     <string name="speech_syntax_use_example">"이 예시로 채우기"</string>
+    <string name="play_update_available">Google Play에서 업데이트 가능</string>
+    <string name="play_update_description">Vern의 새 버전이 있습니다. 업데이트하려면 Google Play를 여세요.</string>
 </resources>

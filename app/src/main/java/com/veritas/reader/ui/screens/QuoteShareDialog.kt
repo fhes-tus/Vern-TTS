@@ -142,6 +142,8 @@ internal fun QuoteShareDialog(visible: Boolean, quote: String, title: String, do
     }
     if (!visible) return
     val palette = quotePalettes.firstOrNull { it.id == paletteId } ?: quotePalettes.first()
+    val quoteTransformation = remember { RichTextVisualTransformation(Color.Unspecified) }
+    val displayedQuote = remember(activeQuote) { RichTextFormatter.transform(activeQuote).text.text }
     val spec = QuoteCardSpec(activeQuote, book?.title ?: getBookAndAuthor(title).first, credit, palette, book?.cover)
     val preview by produceState<QuotePreview?>(null, spec) {
         value = try {
@@ -173,7 +175,7 @@ internal fun QuoteShareDialog(visible: Boolean, quote: String, title: String, do
                 }
                 Box(Modifier.weight(1f, fill = false).fillMaxWidth().heightIn(min = 120.dp), contentAlignment = Alignment.Center) {
                     if (current?.image != null) Image(current.image.asImageBitmap(),
-                        contentDescription = "Quote image preview: $activeQuote. Source: ${credit.ifBlank { spec.title }}",
+                        contentDescription = "Quote image preview: $displayedQuote. Source: ${credit.ifBlank { spec.title }}",
                         modifier = Modifier.fillMaxSize().testTag("quote-image-preview"), contentScale = ContentScale.Fit)
                     else if (current?.error != null) Text(current.error, color = MaterialTheme.colorScheme.error)
                     else CircularProgressIndicator()
@@ -217,6 +219,7 @@ internal fun QuoteShareDialog(visible: Boolean, quote: String, title: String, do
                 OutlinedTextField(
                     value = activeQuote,
                     onValueChange = { onTextEdited(it) },
+                    visualTransformation = quoteTransformation,
                     label = { Text(menuString(R.string.quote_text_subtraction)) },
                     supportingText = { Text(menuString(R.string.quote_subtraction_hint)) },
                     maxLines = 3,

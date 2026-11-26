@@ -2178,4 +2178,6 @@
     <string name="speech_syntax_step_say">"Wähle Stattdessen sagen und gib den obigen Wert ein. Vern liest den ersten erfassten Teil vor, hier also die Zahl."</string>
     <string name="speech_syntax_step_try">"Gib das Beispiel in Originalpassage ein. Prüfe das gesprochene Ergebnis oder tippe auf Anhören. Speichere die Regel, wenn das Ergebnis passt."</string>
     <string name="speech_syntax_use_example">"Beispiel eintragen"</string>
+    <string name="play_update_available">Update bei Google Play verfügbar</string>
+    <string name="play_update_description">Eine neue Version von Vern ist verfügbar. Öffne Google Play, um sie zu installieren.</string>
 </resources>
