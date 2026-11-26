@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_voice_not_installed_title">الصوت غير مثبت</string>
+    <string name="playback_voice_not_installed_message">ثبّت الصوت المحدد أو اختر صوتًا مثبّتًا بالفعل.</string>
+</resources>

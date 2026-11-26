@@ -592,6 +592,7 @@ internal fun SelectedTextToolbar(
 
 @Composable
 internal fun SearchPanel(
+    visible: Boolean,
     query: String,
     matchCount: Int,
     currentMatch: Int,
@@ -604,9 +605,13 @@ internal fun SearchPanel(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-        keyboardController?.show()
+    LaunchedEffect(visible) {
+        if (visible) {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        } else {
+            keyboardController?.hide()
+        }
     }
 
     Card(
@@ -630,6 +635,7 @@ internal fun SearchPanel(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             IconButton(
+                enabled = visible,
                 onClick = {
                     keyboardController?.hide()
                     onClose()
@@ -644,6 +650,7 @@ internal fun SearchPanel(
 
             OutlinedTextField(
                 value = query,
+                enabled = visible,
                 onValueChange = onQueryChange,
                 modifier = Modifier
                     .weight(1f)

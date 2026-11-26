@@ -5,23 +5,21 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
- * Evening streak-protection nudge: fires around 19:00 daily; notifies only when
- * the daily reading goal isn't met yet AND there is a streak (2+ days) worth
- * protecting. Silent otherwise — a retention loop, not a nag machine.
+ * Evening reminder for an unfinished daily goal and a streak of at least two
+ * consecutive days that would end without qualifying activity today.
  */
 class StreakReminderWorker(
     appContext: Context,
@@ -33,14 +31,10 @@ class StreakReminderWorker(
         val settings = repository.loadReaderSettings()
         if (!settings.streakReminderEnabled) return Result.success()
 
-        val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        val todayMinutes = (repository.loadTrackerDays()[todayKey]?.usageMillis ?: 0L) / 60_000L
-        if (todayMinutes >= settings.dailyGoalMinutes) return Result.success()
-
-        val streak = repository.loadReaderTrackerSnapshot().currentStreak
-        if (streak < 2) return Result.success()
-
-        val remaining = (settings.dailyGoalMinutes - todayMinutes).coerceAtLeast(1L)
+        val now = System.currentTimeMillis()
+        val today = Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()).toLocalDate()
+        val snapshot = repository.loadReaderTrackerSnapshot(now)
+        val reminder = streakReminderFor(today, snapshot, settings.dailyGoalMinutes) ?: return Result.success()
         val manager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(
             NotificationChannel(CHANNEL_ID, "Reading reminders", NotificationManager.IMPORTANCE_DEFAULT)
@@ -57,8 +51,8 @@ class StreakReminderWorker(
                 NOTIFICATION_ID,
                 NotificationCompat.Builder(applicationContext, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_stat_veritas)
-                    .setContentTitle("Your $streak-day streak ends at midnight")
-                    .setContentText("$remaining more minute${if (remaining == 1L) "" else "s"} of reading keeps it alive.")
+                    .setContentTitle("Your ${reminder.streakDays}-day streak is at risk")
+                    .setContentText("Read or listen today to keep it going. ${reminder.remainingMinutes} min left toward your daily goal.")
                     .setContentIntent(pending)
                     .setAutoCancel(true)
                     .build()
@@ -89,4 +83,20 @@ class StreakReminderWorker(
                 .enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
         }
     }
+}
+
+internal data class StreakReminder(val streakDays: Int, val remainingMinutes: Long)
+
+internal fun streakReminderFor(
+    today: LocalDate,
+    snapshot: ReaderTrackerSnapshot,
+    dailyGoalMinutes: Int
+): StreakReminder? {
+    val todayKey = today.toString()
+    if (todayKey in snapshot.activeDateKeys) return null
+    val todayMinutes = (snapshot.readingMillisByDate[todayKey] ?: 0L) / 60_000L
+    val remainingMinutes = dailyGoalMinutes - todayMinutes
+    if (remainingMinutes <= 0L) return null
+    val streak = ReaderTrackerMath.currentStreak(snapshot.activeDateKeys, today.minusDays(1).toString())
+    return if (streak >= 2) StreakReminder(streak, remainingMinutes) else null
 }

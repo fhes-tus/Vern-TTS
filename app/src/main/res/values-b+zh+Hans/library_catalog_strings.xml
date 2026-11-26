@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="classic_add_to_library">添加到书库</string>
+    <string name="classic_waiting_for_download">等待下载</string>
+    <string name="classic_downloading">正在下载…</string>
+    <string name="classic_download_progress">正在下载 %1$s</string>
+    <string name="classic_adding_to_library">正在添加到书库…</string>
+    <string name="classic_retry_download">重试下载</string>
+    <string name="classic_download_again">重新下载</string>
+    <string name="classic_details_for_book">查看《%1$s》的详情</string>
+    <string name="library_read_percent">已读 %1$s</string>
+    <string name="library_read_not_started">未开始 · %1$s</string>
+    <string name="library_read_in_progress">已读 %1$s · 剩余 %2$s</string>
+    <string name="library_read_estimate_minutes">约 %1$d 分钟</string>
+    <string name="library_read_estimate_hours">约 %1$d 小时</string>
+    <string name="library_read_estimate_hours_minutes">约 %1$d 小时 %2$d 分钟</string>
+    <plurals name="library_page_count">
+        <item quantity="other">%1$d 页</item>
+    </plurals>
+    <plurals name="library_sentence_count">
+        <item quantity="other">%1$d 句</item>
+    </plurals>
+</resources>

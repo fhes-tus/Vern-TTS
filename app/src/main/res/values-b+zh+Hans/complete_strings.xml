@@ -337,7 +337,7 @@
     <string name="ui_new" formatted="false">"新"</string>
     <string name="ui_new_notebook" formatted="false">"新笔记本"</string>
     <string name="ui_new_quiz" formatted="false">"新测验"</string>
-    <string name="ui_new_reading_list" formatted="false">"新阅读列表"</string>
+    <string name="ui_new_reading_list" formatted="false">"新建合集"</string>
     <string name="ui_next_2f04eb1" formatted="false">"下一步 →"</string>
     <string name="ui_next_card" formatted="false">"下一张卡片"</string>
     <string name="ui_next_chapter" formatted="false">"下一章"</string>
@@ -375,7 +375,7 @@
     <string name="ui_no_readable_text_was_extracted_for_this_page" formatted="false">"未从此页提取到可读文本。"</string>
     <string name="ui_no_reading_activity_recorded" formatted="false">"未记录阅读活动"</string>
     <string name="ui_no_reading_history_yet" formatted="false">"暂无阅读历史。"</string>
-    <string name="ui_no_reading_lists_yet" formatted="false">"暂无阅读列表。"</string>
+    <string name="ui_no_reading_lists_yet" formatted="false">"暂无合集。"</string>
     <string name="ui_no_saved_highlights_yet" formatted="false">"暂无保存的高亮。"</string>
     <string name="ui_no_saved_readings_yet" formatted="false">"暂无保存的读物"</string>
     <string name="ui_no_sentence_notes_yet" formatted="false">"暂无句子笔记。"</string>
@@ -610,6 +610,7 @@
     <string name="ui_silent_rsvp_save_for_audio" formatted="false">"静默 RSVP · 保存以播放音频"</string>
     <string name="ui_silent_visual_rsvp" formatted="false">"静默视觉 RSVP"</string>
     <string name="ui_skip_table" formatted="false">"跳过表格"</string>
+    <string name="ui_skip_figure">跳过插图</string>
     <string name="ui_slides_options" formatted="false">"幻灯片选项"</string>
     <string name="ui_slower_0_05" formatted="false">"减速 −0.05×"</string>
     <string name="ui_smart_resume_catch_up" formatted="false">"智能续读回顾"</string>

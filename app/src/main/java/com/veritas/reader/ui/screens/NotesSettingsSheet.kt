@@ -54,7 +54,9 @@ fun NotesSettingsSheet(notesSettings: NotesSettings, onSaveNotesSettings: (Notes
                 IconButton(onDismiss) { Icon(Icons.Default.Close, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_notes_settings)) }
             }
             NotesSettingsGroup(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_notes_page)) {
-                NotesToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_display_rich_link_previews), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_show_website_cards_in_notes_and_on_the_notes_page), notesSettings.showRichLinkPreviews, icon = Icons.Outlined.Link) {
+                NotesToggle(menuString(com.veritas.reader.R.string.settings_display_rich_link_previews),
+                    menuString(com.veritas.reader.R.string.notes_link_cards_privacy), notesSettings.showRichLinkPreviews,
+                    icon = Icons.Outlined.Link) {
                     onSaveNotesSettings(notesSettings.copy(showRichLinkPreviews = it))
                 }
                 NotesChoices(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_layout), listOf(true to com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_grid), false to com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_list)), notesSettings.isGridView) {

@@ -47,6 +47,14 @@ class MathTextTest {
         assertEquals("E = mc²", MathText.beautify("\$E = mc^2\$"))
     }
 
+    @Test fun dollarPricesSurviveImportAlongsideInlineMath() {
+        val prose = "Pay \$59 or \$79.50."
+        assertEquals(prose, MathText.beautify(prose))
+        assertEquals("Pay \$59, then calculate x².",
+            MathText.beautify("Pay \$59, then calculate \$x^2\$."))
+        assertEquals("3 + 4", MathText.beautify("\$3 + 4\$"))
+    }
+
     @Test
     fun `unmappable superscript keeps legible fallback`() {
         // 'abc' has no superscript glyphs → parenthesised caret form, not a crash.

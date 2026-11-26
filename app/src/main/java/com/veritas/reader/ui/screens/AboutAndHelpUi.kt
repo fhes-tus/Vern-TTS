@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -310,13 +311,18 @@ fun OpenSourceLicensesDialog(onDismiss: () -> Unit) {
 @Composable
 fun AboutDialog(uiState: ReaderUiState? = null, onCheckForUpdates: () -> Unit = {}, onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scheme = MaterialTheme.colorScheme
     val palette = com.veritas.reader.VernCustomization.palette(com.veritas.reader.VeritasThemeState.launcherPalette, com.veritas.reader.VeritasThemeState.themeId, androidx.compose.foundation.isSystemInDarkTheme())
     var showLicensesDialog by remember { mutableStateOf(false) }
-    val version = remember(context) {
-        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).let { context.getString(com.veritas.reader.R.string.settings_version_build, it.versionName, it.longVersionCode) } }
-            .getOrDefault(context.getString(com.veritas.reader.R.string.settings_version, com.veritas.reader.BuildConfig.VERSION_NAME))
+    val packageInfo = remember(context) {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0) }.getOrNull()
     }
+    val version = packageInfo?.let {
+        runCatching {
+            resources.getString(com.veritas.reader.R.string.settings_version_build, it.versionName, it.longVersionCode)
+        }.getOrNull()
+    } ?: resources.getString(com.veritas.reader.R.string.settings_version, com.veritas.reader.BuildConfig.VERSION_NAME)
     FullScreenSettingsScaffold(title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_about), onBack = onDismiss) {
         Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(22.dp)) {
             Card(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(32.dp),

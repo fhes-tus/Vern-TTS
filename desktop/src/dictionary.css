@@ -1,0 +1,420 @@
+/* Offline WordNet Dictionary Styling */
+
+.dictionary-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--surface-bg, #fff);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.dictionary-header {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dictionary-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dictionary-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dictionary-title h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-color, #1a1a1a);
+}
+
+.dictionary-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  background: var(--card-bg, #fafafa);
+}
+
+.dictionary-banner.download-needed {
+  background: var(--accent-light, #f0f7ff);
+  border-color: var(--accent-border, #bfdbfe);
+}
+
+.dictionary-banner.installed {
+  background: var(--success-light, #f0fdf4);
+  border-color: var(--success-border, #bbf7d0);
+}
+
+.installed-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 4px;
+  background: var(--success-tag, #22c55e);
+  color: #fff;
+  margin-right: 8px;
+}
+
+.banner-text strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 3px;
+  color: var(--text-color, #1a1a1a);
+}
+
+.banner-text p,
+.banner-text .pack-details {
+  font-size: 0.85rem;
+  color: var(--text-muted, #555);
+  margin: 0;
+}
+
+.dictionary-progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  position: relative;
+  background: var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  overflow: hidden;
+  height: 32px;
+  padding: 0 12px;
+}
+
+.dictionary-progress-bar .progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--accent-color, #3b82f6);
+  opacity: 0.35;
+  width: 100%;
+  transform-origin: left;
+  transition: transform 240ms var(--motion-ease);
+}
+
+.dictionary-progress-bar span {
+  position: relative;
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 1;
+}
+
+.dictionary-search-box {
+  position: relative;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  background: var(--input-bg, #f8f9fa);
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: 8px;
+  padding: 4px 8px 4px 12px;
+  gap: 8px;
+}
+
+.search-input-wrapper input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px 0;
+  font-size: 1rem;
+  color: var(--text-color, #1a1a1a);
+  outline: none;
+}
+
+.clear-search {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-muted, #71717a);
+}
+
+.search-btn {
+  padding: 6px 14px;
+}
+
+.dictionary-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface-bg, #fff);
+  border: 1px solid var(--border-color, #e4e4e7);
+  border-radius: 8px;
+  margin-top: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 20;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-color, #f4f4f5);
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-color, #18181b);
+}
+
+.suggestion-item:hover {
+  background: var(--hover-bg, #f4f4f5);
+}
+
+/* Definition card */
+.entry-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--card-bg, #fafafa);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.entry-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  padding-bottom: 12px;
+}
+
+.entry-headword {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-color, #111827);
+  text-transform: capitalize;
+}
+
+.entry-query-alias {
+  font-size: 0.8rem;
+  color: var(--text-muted, #6b7280);
+}
+
+.entry-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.senses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sense-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border-color, #e5e7eb);
+}
+
+.sense-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sense-pos-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pos-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.pos-noun {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.pos-verb {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pos-adjective {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pos-adverb {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.sense-num {
+  font-size: 0.8rem;
+  color: var(--text-muted, #9ca3af);
+}
+
+.sense-def {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: var(--text-color, #1f2937);
+}
+
+.sense-examples {
+  margin: 4px 0 0 0;
+  padding-left: 20px;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--text-muted, #4b5563);
+}
+
+.sense-synonyms {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.synonyms-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted, #6b7280);
+}
+
+.synonym-pill {
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #d1d5db);
+  background: var(--surface-bg, #fff);
+  font-size: 0.8rem;
+  color: var(--accent-color, #2563eb);
+  cursor: pointer;
+}
+
+.synonym-pill:hover {
+  background: var(--hover-bg, #eff6ff);
+}
+
+/* Browse Alphabet & Grid */
+.dictionary-browse-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.alphabet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.alphabet-chips .chip {
+  padding: 4px 9px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  background: var(--surface-bg, #fff);
+  color: var(--text-color, #374151);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-feedback) ease-out,
+    border-color var(--motion-feedback) ease-out,
+    color var(--motion-feedback) ease-out;
+}
+
+.alphabet-chips .chip:hover {
+  background: var(--hover-bg, #f3f4f6);
+}
+
+.alphabet-chips .chip.active {
+  background: var(--accent-color, #2563eb);
+  color: #fff;
+  border-color: var(--accent-color, #2563eb);
+}
+
+.words-grid-wrapper {
+  min-height: 240px;
+}
+
+.words-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+
+.word-item-btn {
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  background: var(--surface-bg, #fff);
+  font-size: 0.9rem;
+  color: var(--text-color, #1f2937);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    background-color var(--motion-feedback) ease-out,
+    border-color var(--motion-feedback) ease-out,
+    color var(--motion-feedback) ease-out;
+}
+
+.word-item-btn:hover {
+  border-color: var(--accent-color, #3b82f6);
+  color: var(--accent-color, #2563eb);
+  background: var(--hover-bg, #eff6ff);
+}
+
+.browse-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+.page-indicator {
+  font-size: 0.85rem;
+  color: var(--text-muted, #6b7280);
+}
+
+.dictionary-loading,
+.dictionary-empty,
+.dictionary-error {
+  padding: 30px;
+  text-align: center;
+  color: var(--text-muted, #6b7280);
+}
+
+.dictionary-error {
+  color: #dc2626;
+}

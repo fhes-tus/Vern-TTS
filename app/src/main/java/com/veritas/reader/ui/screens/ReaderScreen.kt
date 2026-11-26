@@ -3,6 +3,7 @@ package com.veritas.reader.ui.screens
 import android.app.Activity
 import android.widget.TextView
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
@@ -77,6 +78,7 @@ import com.veritas.reader.ReaderTextIndex
 import com.veritas.reader.ReaderTextModelCache
 import com.veritas.reader.ShareScope
 import com.veritas.reader.SpeechSanitizer
+import com.veritas.reader.TrackReaderOverlay
 import com.veritas.reader.TtsVoiceOption
 import com.veritas.reader.VeritasDocumentOutlineEntry
 import com.veritas.reader.VeritasPackStyle
@@ -184,7 +186,7 @@ fun ReaderScreen(
     onExportAudio: () -> Unit,
     onCopySelection: (String) -> Unit,
     onShareSelection: (String) -> Unit,
-    onGoogleSelection: (ReaderTextSelection) -> Unit,
+    onDefineSelection: (ReaderTextSelection) -> Unit,
     onTranslateSelection: (ReaderTextSelection) -> Unit,
     onAskAiSelection: (String) -> Unit,
     onEditSpeechSelection: (String) -> Unit,
@@ -234,6 +236,9 @@ fun ReaderScreen(
     var showTools by remember { mutableStateOf(false) }
     var showDocumentDetails by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
+    LaunchedEffect(state.searchQuery) {
+        if (state.searchQuery.isNotBlank()) showSearch = true
+    }
     var showBookmarks by remember { mutableStateOf(false) }
     var showOutline by remember { mutableStateOf(false) }
     var outlineOrigin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Unspecified) }
@@ -255,6 +260,9 @@ fun ReaderScreen(
     var showShareToAiSheet by remember { mutableStateOf(false) }
     var shareToAiSelection by remember { mutableStateOf<ReaderTextSelection?>(null) }
     var shareToAiNoPrompt by remember { mutableStateOf(false) }
+    TrackReaderOverlay(if (showAudioMode) "listen" else "main",
+        showTools || showDocumentDetails || showBookmarks || showOutline || showJumpToPageDialog ||
+            showShareToAiSheet || colorPaletteTargetIndexes != null)
     var sessionGestureTipsDismissed by rememberSaveable(document.id) { mutableStateOf(false) }
     val showGestureTips = readerSettings.showGestureTips && !sessionGestureTipsDismissed
     var interactionTrigger by remember { mutableLongStateOf(0L) }
@@ -399,10 +407,24 @@ fun ReaderScreen(
         }
     }
 
-    val pageSyncMotion = if (readerSettings.pageTurnStyle == "flip") {
-        androidx.compose.animation.core.tween<Float>(1050, easing = androidx.compose.animation.core.CubicBezierEasing(.33f, 0f, .25f, 1f))
-    } else {
-        VeritasMotion.spatialSlow<Float>()
+    val curlPages = readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion
+    val pageSyncMotion = VeritasMotion.spatialSlow<Float>()
+
+    suspend fun navigateReaderPage(target: Int) {
+        when {
+            readerSettings.reduceMotion || readerSettings.pageTurnStyle == "none" ->
+                pagerState.scrollToPage(target)
+            curlPages && kotlin.math.abs(target - pagerState.settledPage) > 1 ->
+                pagerState.scrollToPage(target)
+            curlPages -> pagerState.animateScrollToPage(target, animationSpec = PageCurlSettle)
+            else -> pagerState.animateScrollToPage(target)
+        }
+    }
+
+    LaunchedEffect(pinchInProgress, curlPages, continuous) {
+        if (pinchInProgress && curlPages && !continuous && pagerState.currentPageOffsetFraction != 0f) {
+            pagerState.requestScrollToPage(pagerState.settledPage)
+        }
     }
 
     LaunchedEffect(currentPageNumber, pageItems.size, selectedTextSelection != null, continuous) {
@@ -414,11 +436,17 @@ fun ReaderScreen(
             return@LaunchedEffect
         }
         if (pagerState.isScrollInProgress) {
+            val pageBeforeScroll = pagerState.settledPage
             androidx.compose.runtime.snapshotFlow { pagerState.isScrollInProgress }
                 .first { !it }
+            // A manual page turn updates the sentence from the settled-page observer.
+            // An older sentence-follow request must not send the reader back.
+            if (!latestIsPlaying.value && pagerState.settledPage != pageBeforeScroll) return@LaunchedEffect
         }
         if (pagerState.currentPage != targetPage) {
-            if (!readerSettings.reduceMotion && readerSettings.pageTurnStyle != "none" && (latestIsPlaying.value || readerSettings.pageTurnStyle == "flip")) {
+            if (curlPages) {
+                navigateReaderPage(targetPage)
+            } else if (!readerSettings.reduceMotion && readerSettings.pageTurnStyle != "none" && latestIsPlaying.value) {
                 pagerState.animateScrollToPage(
                     page = targetPage,
                     animationSpec = pageSyncMotion
@@ -448,7 +476,7 @@ fun ReaderScreen(
     }
 
     val docRepository = remember(context) { DocumentRepository(context.applicationContext) }
-    val visibleReadingPage = if (continuous) continuousState.firstVisibleItemIndex else pagerState.currentPage
+    val visibleReadingPage = if (continuous) continuousState.firstVisibleItemIndex else pagerState.settledPage
     LaunchedEffect(visibleReadingPage, document.id) {
         val curPageIdx = visibleReadingPage
         val pagesToPrefetch = listOfNotNull(
@@ -596,11 +624,15 @@ fun ReaderScreen(
 
     val paperTone = PaperToneMode.fromString(readerSettings.paperToneMode)
     val (canvasBg, _) = getCanvasColors(paperTone)
+    val isTransitionSettled = animatedVisibilityScope?.transition?.let {
+        it.currentState == EnterExitState.Visible && it.targetState == EnterExitState.Visible
+    } ?: true
     val glassEnabled = VeritasPackStyle.glassChromeEnabled() && com.veritas.reader.isDeviceGlassCapable()
     val readerBackdrop = if (glassEnabled) com.veritas.reader.rememberVeritasLayerBackdrop() else null
+    val effectiveBackdrop = if (isTransitionSettled) readerBackdrop else null
 
     if (!showAudioMode) {
-        com.veritas.reader.VeritasBackdropProvider(readerBackdrop) {
+        com.veritas.reader.VeritasBackdropProvider(effectiveBackdrop) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -611,7 +643,7 @@ fun ReaderScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .recordVeritasBackdrop(readerBackdrop, glassEnabled)
+                        .recordVeritasBackdrop(effectiveBackdrop, isTransitionSettled && glassEnabled)
                         .background(canvasBg)
                         .padding(top = animatedTopPadding.coerceAtLeast(0.dp))
                 ) {
@@ -663,7 +695,7 @@ fun ReaderScreen(
                                     onEditNotes = onEditNotes,
                                     onTranslateSelection = onTranslateSelection,
                                     onCopySelection = onCopySelection,
-                                    onGoogleSelection = onGoogleSelection,
+                                    onDefineSelection = onDefineSelection,
                                     onShareSelection = onShareSelection,
                                     onEditSpeechSelection = onEditSpeechSelection,
                                     onEditExtractedSelection = onEditExtractedSelection,
@@ -699,7 +731,8 @@ fun ReaderScreen(
                                     Modifier
                                         .fillMaxSize()
                                         .testTag("reader-continuous-scroll"),
-                                    state = continuousState
+                                    state = continuousState,
+                                    overscrollEffect = rememberReaderEdgeStretch()
                                 ) {
                                     itemsIndexed(pageItems, key = { _, page -> page.pageNumber }) { pageIndex, _ ->
                                         renderReadingPage(pageIndex)
@@ -708,34 +741,32 @@ fun ReaderScreen(
                             } else {
                                 HorizontalPager(
                                     state = pagerState,
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier.fillMaxSize().let { if (curlPages) it.pageCurlDragLock() else it },
                                     userScrollEnabled = selectedTextSelection == null && !pinchInProgress,
-                                    flingBehavior = androidx.compose.foundation.pager.PagerDefaults.flingBehavior(
+                                    flingBehavior = if (curlPages) pageCurlFlingBehavior(pagerState)
+                                    else androidx.compose.foundation.pager.PagerDefaults.flingBehavior(
                                         state = pagerState,
-                                        snapAnimationSpec = if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion) {
-                                            androidx.compose.animation.core.tween(900, easing = androidx.compose.animation.core.CubicBezierEasing(.33f, 0f, .25f, 1f))
-                                        } else {
-                                            VeritasMotion.spatial<Float>()
-                                        }
+                                        snapAnimationSpec = VeritasMotion.spatial<Float>()
                                     ),
                                     pageSpacing = 0.dp,
                                     beyondViewportPageCount = 1,
                                     key = { pageItems.getOrNull(it)?.pageNumber ?: it }
                                 ) { pageIndex ->
+                                    if (curlPages) {
+                                        BookPageCurl(
+                                            enabled = true,
+                                            pager = pagerState,
+                                            page = pageIndex,
+                                            paper = canvasBg
+                                        ) {
+                                            renderReadingPage(pageIndex)
+                                        }
+                                    } else {
                                     val flip = readerSettings.pageTurnStyle == "hinge" && !readerSettings.reduceMotion && pagerState.isScrollInProgress
                                     Box(
                                         Modifier
                                             .fillMaxSize()
-                                            .zIndex(
-                                                if (readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion && pagerState.isScrollInProgress) {
-                                                    val position = (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
-                                                    if (position > .001f && position < .999f) 2f else if (kotlin.math.abs(position) < .001f) 1f else 0f
-                                                } else if (pagerState.currentPage == pageIndex) {
-                                                    1f
-                                                } else {
-                                                    0f
-                                                }
-                                            )
+                                            .zIndex(if (pagerState.currentPage == pageIndex) 1f else 0f)
                                             .graphicsLayer {
                                                 if (flip) {
                                                     val offset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
@@ -762,14 +793,8 @@ fun ReaderScreen(
                                                 }
                                             }
                                     ) {
-                                        BookPageCurl(
-                                            readerSettings.pageTurnStyle == "flip" && !readerSettings.reduceMotion,
-                                            pagerState.isScrollInProgress,
-                                            { (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction },
-                                            canvasBg
-                                        ) {
-                                            renderReadingPage(pageIndex)
-                                        }
+                                        renderReadingPage(pageIndex)
+                                    }
                                     }
                                 }
                             }
@@ -894,7 +919,8 @@ fun ReaderScreen(
                                 enter = fadeIn() + slideInVertically { it / 2 },
                                 exit = fadeOut() + slideOutVertically { it / 2 }
                             ) {
-                                val label = if (isTablePlaying) "Skip Table ⏭" else "Skip Figure ⏭"
+                                val label = if (isTablePlaying) menuString(com.veritas.reader.R.string.ui_skip_table)
+                                    else menuString(com.veritas.reader.R.string.ui_skip_figure)
                                 Surface(
                                     shape = RoundedCornerShape(16.dp),
                                     color = MaterialTheme.colorScheme.primaryContainer,
@@ -935,7 +961,7 @@ fun ReaderScreen(
                                     if (continuous) {
                                         continuousState.scrollToItem(target)
                                     } else {
-                                        pagerState.animateScrollToPage(target)
+                                        navigateReaderPage(target)
                                     }
                                     pageItems.getOrNull(target)?.takeIf { it.sentenceRanges.isNotEmpty() }?.let {
                                         handleSentenceClick(it.sentenceStartIndex)
@@ -999,8 +1025,16 @@ fun ReaderScreen(
                 }
 
                 // 4. Floating Search Panel (Anchored cleanly to IME keyboard)
-                if (showSearch) {
+                AnimatedVisibility(
+                    visible = showSearch,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    enter = fadeIn(VeritasMotion.effectsFast()) +
+                        slideInVertically(VeritasMotion.spatialFast()) { it / 5 },
+                    exit = fadeOut(VeritasMotion.effectsFast()) +
+                        slideOutVertically(VeritasMotion.spatialFast()) { it / 5 }
+                ) {
                     SearchPanel(
+                        visible = showSearch,
                         query = searchQuery,
                         matchCount = searchMatches.size,
                         currentMatch = if (searchMatches.isEmpty()) 0 else searchCursor + 1,
@@ -1011,9 +1045,7 @@ fun ReaderScreen(
                             showSearch = false
                             onSearchQueryChange("")
                         },
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                     )
                 }
             }
@@ -1088,7 +1120,7 @@ fun ReaderScreen(
                     continuousState.scrollToItem(target)
                     pageItems.getOrNull(target)?.takeIf { it.sentenceRanges.isNotEmpty() }?.let { onSentenceClick(it.sentenceStartIndex) }
                 } else {
-                    pagerState.animateScrollToPage(target)
+                    navigateReaderPage(target)
                 }
             }
         }

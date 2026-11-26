@@ -83,7 +83,7 @@
     <string name="ui_copy_text" formatted="false">"نسخ النص"</string>
     <string name="ui_create_backup" formatted="false">"إنشاء نسخة احتياطية"</string>
     <string name="ui_create_flashcard" formatted="false">"إنشاء بطاقة مراجعة"</string>
-    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"إنشاء قوائم محلية وإضافة القراءات المحفوظة"</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"أنشئ مجموعات وأضف القراءات المحفوظة"</string>
     <string name="ui_customization" formatted="false">"التخصيص"</string>
     <string name="ui_daily_goal" formatted="false">"الهدف اليومي"</string>
     <string name="ui_daily_goal_reached" formatted="false">"تم تحقيق الهدف اليومي"</string>
@@ -233,8 +233,8 @@
     <string name="ui_reading_goal" formatted="false">"هدف القراءة"</string>
     <string name="ui_reading_goal_reduce_motion_contrast" formatted="false">"هدف القراءة وتقليل الحركة والتباين"</string>
     <string name="ui_reading_insights_32f8941" formatted="false">"إحصاءات القراءة"</string>
-    <string name="ui_reading_list" formatted="false">"قائمة قراءة"</string>
-    <string name="ui_reading_lists" formatted="false">"قوائم القراءة"</string>
+    <string name="ui_reading_list" formatted="false">"مجموعة"</string>
+    <string name="ui_reading_lists" formatted="false">"المجموعات"</string>
     <string name="ui_reading_overview" formatted="false">"نظرة عامة على القراءة"</string>
     <string name="ui_reading_time" formatted="false">"وقت القراءة"</string>
     <string name="ui_ready" formatted="false">"جاهز"</string>

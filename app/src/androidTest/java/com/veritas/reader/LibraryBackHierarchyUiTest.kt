@@ -2,23 +2,18 @@ package com.veritas.reader
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.test.platform.app.InstrumentationRegistry
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.veritas.reader.ui.ReaderUiState
 import com.veritas.reader.ui.screens.LibraryScreen
 import org.junit.Rule
 import org.junit.Test
 
 class LibraryBackHierarchyUiTest {
-    @get:Rule val rule = createComposeRule()
+    @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
 
     @Test fun backReturnsToStudyAndNotesRootsBeforeHome() {
-        lateinit var activity: ComponentActivity
         rule.setContent {
-            activity = LocalContext.current as ComponentActivity
             MaterialTheme {
                 LibraryScreen(
                     uiState = ReaderUiState(), onDraftTextChange = {}, onCreateFromDraft = {},
@@ -33,8 +28,9 @@ class LibraryBackHierarchyUiTest {
                 )
             }
         }
+        val activity = rule.activity
         fun back() {
-            InstrumentationRegistry.getInstrumentation().runOnMainSync { activity.onBackPressedDispatcher.onBackPressed() }
+            rule.runOnIdle { activity.onBackPressedDispatcher.onBackPressed() }
             rule.waitForIdle()
         }
         rule.onNodeWithContentDescription("Study").performClick()

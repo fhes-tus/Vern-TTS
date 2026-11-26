@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_choose_flashcard_book">选择用于制作抽认卡的书籍</string>
+    <string name="study_flashcard_picker_empty">请先将书籍添加到书库。也可以在学习中心粘贴抽认卡。</string>
+    <string name="study_guide_picker_empty">将书籍添加到书库，然后将其笔记和高亮导出为学习指南。</string>
+</resources>

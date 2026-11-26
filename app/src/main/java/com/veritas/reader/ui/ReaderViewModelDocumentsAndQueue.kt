@@ -3,8 +3,10 @@ package com.veritas.reader.ui
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.PlaybackStateStore
 import com.veritas.reader.SavedDocument
+import com.veritas.reader.OriginalCleanupResult
 import com.veritas.reader.StorageBreakdown
 import com.veritas.reader.addToQueue
+import com.veritas.reader.addFilesToCollection
 import com.veritas.reader.clearQueue
 import com.veritas.reader.clearReadingHistory
 import com.veritas.reader.isQueued
@@ -73,13 +75,9 @@ fun ReaderViewModel.queueDocuments(ids: Set<String>) {
 
 fun ReaderViewModel.setCollectionForDocuments(ids: Set<String>, collection: String) {
     if (ids.isEmpty()) return
-    val cleanCollection = collection.trim()
-    viewModelScope.launch(Dispatchers.IO) {
-        ids.forEach { repository.setCollection(it, cleanCollection) }
-        val docs = repository.loadDocuments()
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(documents = docs) }
-        }
+    viewModelScope.launch {
+        val catalog = withContext(Dispatchers.IO) { repository.addFilesToCollection(collection, ids) }
+        _uiState.update { it.copy(readingListCatalog = catalog) }
     }
 }
 
@@ -95,12 +93,9 @@ fun ReaderViewModel.renameDocument(document: SavedDocument, newTitle: String) {
 }
 
 fun ReaderViewModel.setDocumentCollection(document: SavedDocument, collection: String) {
-    val cleanCollection = collection.trim()
-    viewModelScope.launch(Dispatchers.IO) {
-        val docs = repository.setCollection(document.id, cleanCollection)
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(documents = docs, collectionTarget = null, collectionDraft = "") }
-        }
+    viewModelScope.launch {
+        val catalog = withContext(Dispatchers.IO) { repository.addFilesToCollection(collection, setOf(document.id)) }
+        _uiState.update { it.copy(readingListCatalog = catalog, collectionTarget = null, collectionDraft = "") }
     }
 }
 
@@ -146,7 +141,7 @@ suspend fun ReaderViewModel.computeStorage(): Pair<StorageBreakdown, List<Pair<S
         repository.computeStorageBreakdown() to repository.findCleanupCandidates()
     }
 
-suspend fun ReaderViewModel.cleanupOriginals(ids: Set<String>): Long =
+suspend fun ReaderViewModel.cleanupOriginals(ids: Set<String>): OriginalCleanupResult =
     withContext(Dispatchers.IO) { repository.removeOriginals(ids) }.also { refreshAll() }
 
 suspend fun ReaderViewModel.clearAppCache(): Long =

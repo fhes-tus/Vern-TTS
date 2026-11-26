@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_tips_and_gestures">Dicas e gestos</string>
+    <string name="hint_notes_create">Toque em + para criar uma nota</string>
+    <string name="hint_notes_filter">Toque nas etiquetas para filtrar suas notas</string>
+    <string name="hint_notes_open">Toque em uma nota para editar ou compartilhar</string>
+    <string name="hint_document_gestures">Gestos no documento</string>
+    <string name="hint_pdf_gestures">Gestos em PDFs</string>
+    <string name="hint_single_tap">Toque único</string>
+    <string name="hint_toggle_reading_bars">Ocultar ou exibir as barras de leitura</string>
+    <string name="hint_zoom_document">Ampliar ou reduzir o documento</string>
+    <string name="hint_swipe_horizontally">Deslizar na horizontal</string>
+    <string name="hint_turn_page">Ir para a página anterior ou seguinte</string>
+    <string name="hint_long_press_passage">Pressionar uma palavra ou frase</string>
+    <string name="hint_read_from_selection">Selecione o texto e escolha Ler a partir daqui</string>
+</resources>

@@ -42,7 +42,8 @@ fun ClassicsCatalogContent(
     onOpen: (SavedDocument) -> Unit,
     onBrowse: (String, String, String) -> Unit,
     modifier: Modifier = Modifier,
-    headerState: ClassicsHeaderState? = null
+    headerState: ClassicsHeaderState? = null,
+    discoveryTipEnabled: Boolean = true
 ) {
     val floatingBottomPadding = LocalHomeBottomPadding.current
     val controls = headerState ?: rememberClassicsHeaderState()
@@ -52,6 +53,7 @@ fun ClassicsCatalogContent(
     var sort by rememberSaveable { mutableStateOf("Featured") }
     var previewId by rememberSaveable { mutableStateOf<String?>(null) }
     var showExplorer by rememberSaveable { mutableStateOf(false) }
+    var explorerQuery by rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     val discoveryPreferences = remember(context) {
         context.getSharedPreferences("vern_classics_discovery", Context.MODE_PRIVATE)
@@ -66,7 +68,18 @@ fun ClassicsCatalogContent(
     }
     fun openExplorer() {
         focusManager.clearFocus()
+        explorerQuery = controls.query.trim()
         showExplorer = true
+    }
+    fun downloadOrExplore(book: ClassicBookEntry) {
+        if (book.useBookExplorer) {
+            previewId = null
+            dismissDiscoveryTip()
+            openExplorer()
+            explorerQuery = "${book.title} ${book.author}"
+        } else {
+            onDownload(book)
+        }
     }
     val listState = rememberLazyListState()
     val genres = remember { listOf("All") + CURATED_CLASSICS.map { it.genre }.distinct() }
@@ -143,7 +156,7 @@ fun ClassicsCatalogContent(
                             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_this_week_s_pick), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                             Text(book.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text(book.author, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_071, com.veritas.reader.ui.screens.localizedUiValue(book.genre), com.veritas.reader.ui.screens.localizedUiValue(book.estimatedMinutes)), style = MaterialTheme.typography.labelSmall)
+                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_071, com.veritas.reader.ui.screens.localizedCatalogLabel(book.genre), com.veritas.reader.ui.screens.localizedUiValue(book.estimatedMinutes)), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
@@ -170,7 +183,7 @@ fun ClassicsCatalogContent(
             items(filtered, key = { "book_${it.id}" }) { book ->
                 ClassicCatalogRow(book, state(book), { previewId = book.id }, {
                     val installed = findCatalogDocument(book, documents)
-                    if (installed != null) onOpen(installed) else if (book.editions.isNotEmpty()) previewId = book.id else onDownload(book)
+                    if (installed != null) onOpen(installed) else if (book.editions.isNotEmpty()) previewId = book.id else downloadOrExplore(book)
                 }, { onCancel(book) })
             }
         } else {
@@ -179,7 +192,7 @@ fun ClassicsCatalogContent(
             item("shelf_$name") {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(Modifier.padding(horizontal = 16.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                        Text(localizedCatalogLabel(name), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                         Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_074, com.veritas.reader.ui.screens.localizedUiValue(books.size)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -187,7 +200,7 @@ fun ClassicsCatalogContent(
                         items(books, key = { it.id }) { book ->
                             ClassicShelfCard(book, state(book), { previewId = book.id }, {
                                 val installed = findCatalogDocument(book, documents)
-                                if (installed != null) onOpen(installed) else if (book.editions.isNotEmpty()) previewId = book.id else onDownload(book)
+                                if (installed != null) onOpen(installed) else if (book.editions.isNotEmpty()) previewId = book.id else downloadOrExplore(book)
                             }, { onCancel(book) })
                         }
                     }
@@ -203,7 +216,9 @@ fun ClassicsCatalogContent(
             }
         }
     }
-    if (showDiscoveryTip && com.veritas.reader.ui.OnboardingController.activeStep == null && !showExplorer) {
+    val pageVisible = LocalLibraryPageVisible.current
+    if (showDiscoveryTip && pageVisible && discoveryTipEnabled &&
+        com.veritas.reader.ui.OnboardingController.activeStep == null && !showExplorer) {
         AlertDialog(onDismissRequest = ::dismissDiscoveryTip, modifier = Modifier.testTag("book_explorer_intro"),
             title = { Text(menuString(R.string.book_explorer_intro_title)) },
             text = { Text(menuString(R.string.book_explorer_intro_message, explorerTitle)) },
@@ -218,42 +233,49 @@ fun ClassicsCatalogContent(
                 }
             })
     }
-    if (showExplorer) {
-        ModalBottomSheet(onDismissRequest = { showExplorer = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            shape = VeritasPackStyle.sheetShape(), containerColor = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.testTag("book_explorer_sheet")) {
-            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 16.dp)) {
-                Text(explorerTitle, Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.titleLarge)
-                Text(menuString(R.string.book_explorer_description), Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (controls.query.isNotBlank()) Text(menuString(R.string.book_explorer_search, controls.query.trim(), explorerTitle),
-                    Modifier.padding(horizontal = 24.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge)
-                FREE_BOOK_SITES.forEach { site ->
-                    ListItem(headlineContent = { Text(site.name) },
-                        trailingContent = { Icon(Icons.Filled.OpenInNew, null) },
-                        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
-                        modifier = Modifier.fillMaxWidth().testTag("book_explorer_site_${site.name}").clickable {
-                            showExplorer = false
-                            onBrowse(site.url, site.name, controls.query.trim())
-                        })
-                }
-            }
-        }
-    }
+    if (showExplorer) BookExplorerSheet(explorerQuery, { showExplorer = false }, onBrowse)
     CURATED_CLASSICS.firstOrNull { it.id == previewId }?.let { book ->
         ClassicBookDetailSheet(book, documents, state(book).busy,
-            onDismiss = { previewId = null }, onDownloadBook = onDownload, onOpenBook = onOpen,
+            onDismiss = { previewId = null }, onDownloadBook = ::downloadOrExplore, onOpenBook = onOpen,
             downloadState = state(book), onCancelDownload = { onCancel(book) },
             editionDownloadStates = downloads, onCancelEdition = onCancel)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun BookExplorerSheet(query: String, onDismiss: () -> Unit, onBrowse: (String, String, String) -> Unit) {
+    val title = menuString(R.string.book_explorer_title)
+    ModalBottomSheet(onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        shape = VeritasPackStyle.sheetShape(), containerColor = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.testTag("book_explorer_sheet")) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 16.dp)) {
+            Text(title, Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.titleLarge)
+            Text(menuString(R.string.book_explorer_description), Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (query.isNotBlank()) Text(menuString(R.string.book_explorer_search, query, title),
+                Modifier.padding(horizontal = 24.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge)
+            FREE_BOOK_SITES.forEach { site ->
+                ListItem(headlineContent = { Text(site.name) },
+                    trailingContent = { Icon(Icons.Filled.OpenInNew, null) },
+                    colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+                    modifier = Modifier.fillMaxWidth().testTag("book_explorer_site_${site.name}").clickable {
+                        onDismiss()
+                        onBrowse(site.url, site.name, query)
+                    })
+            }
+        }
+    }
+}
+
 @Composable
 private fun ClassicShelfCard(book: ClassicBookEntry, state: ClassicDownloadState, onPreview: () -> Unit, onAction: () -> Unit, onCancel: () -> Unit) {
+    val actionLabel = localizedClassicCatalogAction(book, state)
+    val previewLabel = menuString(R.string.classic_details_for_book, book.title)
     LibraryBookSurface(Modifier.width(LibraryShelfWidth).testTag("classic_card_${book.id}")) {
         Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Column(Modifier.clickable(onClickLabel = "Details for ${book.title}", onClick = onPreview)) {
+            Column(Modifier.clickable(onClickLabel = previewLabel, onClick = onPreview)) {
                 BookCoverStage(height = LibraryCoverHeight) { ClassicBookCover(book, width = LibraryArtworkWidth, height = LibraryArtworkHeight) }
                 Spacer(Modifier.height(6.dp))
                 Text(book.title, style = MaterialTheme.typography.titleSmall,
@@ -262,13 +284,16 @@ private fun ClassicShelfCard(book: ClassicBookEntry, state: ClassicDownloadState
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             if (state.busy) {
-                Text(state.actionLabel, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                Text(actionLabel, style = MaterialTheme.typography.labelSmall)
                 if (state.percent != null) LinearProgressIndicator(progress = { state.percent / 100f }, modifier = Modifier.fillMaxWidth())
                 else LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 TextButton(onCancel, Modifier.fillMaxWidth().heightIn(min = 40.dp)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
             } else {
                 FilledTonalButton(onAction, Modifier.fillMaxWidth().heightIn(min = 40.dp), shape = VeritasPackStyle.chipShape(), contentPadding = PaddingValues(horizontal = 8.dp)) {
-                    Text(if (state.phase == ClassicDownloadPhase.AVAILABLE || book.hasDirectTextDownload) state.actionLabel else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_visit_website), style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        actionLabel,
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 }
             }
             if (state.phase == ClassicDownloadPhase.FAILED) Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_download_failed_tap_retry), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
@@ -279,17 +304,19 @@ private fun ClassicShelfCard(book: ClassicBookEntry, state: ClassicDownloadState
 @Composable
 private fun ClassicCatalogRow(book: ClassicBookEntry, state: ClassicDownloadState,
     onPreview: () -> Unit, onAction: () -> Unit, onCancel: () -> Unit) {
+    val actionLabel = localizedClassicCatalogAction(book, state)
+    val previewLabel = menuString(R.string.classic_details_for_book, book.title)
     LibraryBookSurface(Modifier.padding(horizontal = 16.dp).fillMaxWidth().testTag("classic_row_${book.id}")) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(Modifier.clickable(onClickLabel = "Details for ${book.title}", onClick = onPreview)) {
+            Box(Modifier.clickable(onClickLabel = previewLabel, onClick = onPreview)) {
                 ClassicBookCover(book, width = 64.dp, height = 96.dp)
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Column(Modifier.clickable(onClick = onPreview)) {
                     Text(book.title, style = MaterialTheme.typography.titleSmall,
                         maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    Text("${book.author} · ${book.genre}", style = MaterialTheme.typography.labelSmall,
+                    Text("${book.author} · ${localizedCatalogLabel(book.genre)}", style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(book.description, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
@@ -297,12 +324,11 @@ private fun ClassicCatalogRow(book: ClassicBookEntry, state: ClassicDownloadStat
                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_076, com.veritas.reader.ui.screens.localizedUiValue(book.estimatedMinutes)), Modifier.weight(1f), style = MaterialTheme.typography.labelSmall)
                     FilledTonalButton(if (state.busy) onCancel else onAction, shape = VeritasPackStyle.chipShape(),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)) {
-                        Text(if (state.busy) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel) else if (state.phase == ClassicDownloadPhase.AVAILABLE || book.hasDirectTextDownload)
-                            state.actionLabel else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_visit_website), style = MaterialTheme.typography.labelSmall)
+                        Text(if (state.busy) menuString(R.string.ui_cancel) else actionLabel, style = MaterialTheme.typography.labelSmall)
                     }
                 }
                 if (state.busy) {
-                    Text(state.actionLabel, style = MaterialTheme.typography.labelSmall)
+                    Text(actionLabel, style = MaterialTheme.typography.labelSmall)
                     if (state.percent != null) LinearProgressIndicator(progress = { state.percent / 100f }, modifier = Modifier.fillMaxWidth())
                     else LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }

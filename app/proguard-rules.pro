@@ -70,3 +70,8 @@
 -keep class com.veritas.reader.**WidgetReceiver { *; }
 -keep class com.veritas.reader.VeritasPlayerWidgetProvider { *; }
 -keep class com.veritas.reader.**Callback { *; }
+
+# 8. Kyant Backdrop & Runtime Shaders
+-keep class com.kyant.backdrop.** { *; }
+-dontwarn com.kyant.backdrop.**
+

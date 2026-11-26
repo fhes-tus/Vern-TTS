@@ -57,6 +57,8 @@ export type Settings = {
   notes: NotesSettings;
   pdfImport: PdfImportSettings;
   aiAssistant: string;
+  cloudVoice: CloudVoiceConfig;
+  pauseOnDeviceDisconnect: boolean;
 };
 export type NotesSettings = {
   paper: 'blank' | 'ruled' | 'grid' | 'dots';
@@ -115,6 +117,22 @@ export const defaultSettings: Settings = {
     repairHyphenation: true,
   },
   aiAssistant: 'chatgpt',
+  cloudVoice: {
+    enabled: false,
+    provider: 'ELEVENLABS',
+    endpoint: 'https://api.elevenlabs.io/v1/text-to-speech',
+    model: 'eleven_v4',
+    voice: 'JBFqnCBsd6RMkjVDRZzb',
+    language: '',
+    wifiOnly: true,
+    fallbackToLocal: false,
+    cacheAudio: false,
+    timeoutSeconds: 30,
+    retries: 0,
+    pricePerMillion: 0,
+    region: '',
+  },
+  pauseOnDeviceDisconnect: true,
 };
 export type Voice = {
   id: string;
@@ -327,4 +345,84 @@ export type ActivityReport = {
     milliseconds: number;
     snapshotAt: number;
   }[];
+};
+export type DictionarySense = {
+  partOfSpeech: string;
+  definition: string;
+  examples: string[];
+  synonyms: string[];
+};
+export type DictionaryEntry = {
+  query: string;
+  headword: string;
+  senses: DictionarySense[];
+};
+export type DictionaryPackInfo = {
+  id: string;
+  title: string;
+  words: number;
+  bytes: number;
+  source: string;
+  license: string;
+  credit: string;
+};
+export type DictionaryWordPage = {
+  words: string[];
+  hasMore: boolean;
+};
+export type DictionaryDownloadState = {
+  isDownloading: boolean;
+  progress: number;
+  error?: string | null;
+};
+export type CloudVoiceProvider =
+  'ELEVENLABS' | 'CARTESIA' | 'MINIMAX' | 'KITTEN' | 'AZURE' | 'GOOGLE_CLOUD' | 'CUSTOM';
+
+export type CloudVoiceConfig = {
+  enabled: boolean;
+  provider: CloudVoiceProvider;
+  endpoint: string;
+  model: string;
+  voice: string;
+  language: string;
+  wifiOnly: boolean;
+  fallbackToLocal: boolean;
+  cacheAudio: boolean;
+  timeoutSeconds: number;
+  retries: number;
+  pricePerMillion: number;
+  region: string;
+};
+
+export type CloudVoiceUsage = {
+  characters: number;
+  requests: number;
+};
+
+export type CatalogVoice = {
+  id: string;
+  language: string;
+  label: string;
+};
+
+export type CloudVoiceStatus = {
+  config: CloudVoiceConfig;
+  hasKey: boolean;
+  usage: CloudVoiceUsage;
+};
+
+export const defaultCloudVoiceConfig: CloudVoiceConfig = {
+  enabled: false,
+  provider: 'ELEVENLABS',
+  endpoint: 'https://api.elevenlabs.io/v1/text-to-speech',
+  model: 'eleven_v4',
+  voice: 'JBFqnCBsd6RMkjVDRZzb',
+  language: '',
+  wifiOnly: true,
+  fallbackToLocal: false,
+  cacheAudio: false,
+  timeoutSeconds: 30,
+  retries: 0,
+  pricePerMillion: 0,
+  region: '',
 };

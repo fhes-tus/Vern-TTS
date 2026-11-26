@@ -73,6 +73,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -391,6 +393,7 @@ internal fun NotesBottomToolbar(
     onColorSelected: (String?) -> Unit,
     // Formatting callbacks
     onCycleHeading: () -> Unit,
+    isMarkerActive: (String) -> Boolean,
     onApplyMarker: (String) -> Unit,
     onToggleQuote: () -> Unit,
     onApplyLinePrefix: (String) -> Unit,
@@ -445,12 +448,12 @@ internal fun NotesBottomToolbar(
                         )
 
                         FormatToolbarButton(Icons.Filled.Title, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_heading), onCardColor) { onCycleHeading() }
-                        FormatToolbarButton(Icons.Filled.FormatBold, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_bold), onCardColor) { onApplyMarker("**") }
-                        FormatToolbarButton(Icons.Filled.FormatItalic, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_italic), onCardColor) { onApplyMarker("*") }
-                        FormatToolbarButton(Icons.Filled.FormatUnderlined, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_underline), onCardColor) { onApplyMarker("__") }
-                        FormatToolbarButton(Icons.Filled.StrikethroughS, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_strikethrough), onCardColor) { onApplyMarker("~~") }
+                        FormatToolbarButton(Icons.Filled.FormatBold, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_bold), onCardColor, active = isMarkerActive("**")) { onApplyMarker("**") }
+                        FormatToolbarButton(Icons.Filled.FormatItalic, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_italic), onCardColor, active = isMarkerActive("*")) { onApplyMarker("*") }
+                        FormatToolbarButton(Icons.Filled.FormatUnderlined, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_underline), onCardColor, active = isMarkerActive("__")) { onApplyMarker("__") }
+                        FormatToolbarButton(Icons.Filled.StrikethroughS, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_strikethrough), onCardColor, active = isMarkerActive("~~")) { onApplyMarker("~~") }
                         FormatToolbarButton(Icons.Filled.FormatQuote, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_quote), onCardColor) { onToggleQuote() }
-                        FormatToolbarButton(Icons.Filled.Code, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_monospace), onCardColor) { onApplyMarker("`") }
+                        FormatToolbarButton(Icons.Filled.Code, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_monospace), onCardColor, active = isMarkerActive("`")) { onApplyMarker("`") }
                         FormatToolbarButton(Icons.AutoMirrored.Filled.FormatListBulleted, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_bullet_list), onCardColor) { onApplyLinePrefix("- ") }
                         FormatToolbarButton(Icons.Filled.FormatListNumbered, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_numbered_list), onCardColor) { onApplyLinePrefix("1. ") }
                         FormatToolbarButton(Icons.Filled.CheckBoxOutlineBlank, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_task), onCardColor) { onToggleTask() }
@@ -478,7 +481,11 @@ internal fun NotesBottomToolbar(
                         )
 
                         // Checklist Toggle
-                        IconButton(onClick = onToggleChecklist) {
+                        IconToggleButton(checked = isChecklist, onCheckedChange = { onToggleChecklist() },
+                            colors = IconButtonDefaults.iconToggleButtonColors(
+                                checkedContainerColor = onCardColor.copy(alpha = .10f),
+                                checkedContentColor = onCardColor
+                            )) {
                             Icon(
                                 imageVector = if (isChecklist) Icons.Filled.Checklist else Icons.Outlined.Checklist,
                                 contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_checklist_toggle),
@@ -551,7 +558,15 @@ internal fun NotesBottomToolbar(
                             IconButton(onClick = onToggleColorPicker) {
                                 Icon(Icons.Outlined.Palette, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_color_picker), tint = onCardColor.copy(alpha = 0.8f))
                             }
-                            if (!isChecklist) {
+                            if (isChecklist) {
+                                IconToggleButton(checked = true, onCheckedChange = { onToggleChecklist() },
+                                    colors = IconButtonDefaults.iconToggleButtonColors(
+                                        checkedContainerColor = onCardColor.copy(alpha = .10f),
+                                        checkedContentColor = onCardColor
+                                    )) {
+                                    Icon(Icons.Filled.Checklist, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_checklist_toggle))
+                                }
+                            } else {
                                 IconButton(onClick = onOpenFormatting) {
                                     Icon(Icons.Filled.TextFields, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_formatting_tools), tint = onCardColor.copy(alpha = 0.8f))
                                 }

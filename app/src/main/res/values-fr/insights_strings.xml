@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_earlier">Plus tôt</string>
+    <string name="insights_last_week">La semaine dernière</string>
+    <string name="insights_daily_habit">Habitude quotidienne</string>
+    <string name="insights_master_reader">Maître de la lecture</string>
+    <string name="insights_habit_champion">Champion des habitudes</string>
+    <string name="insights_seven_day_flame">Flamme de 7 jours</string>
+    <string name="insights_consistency_pro">Champion de la régularité</string>
+    <string name="insights_week_chart_description">%1$s. %2$s. %3$s au total. Balayez à gauche ou à droite pour changer de semaine.</string>
+    <string name="insights_invalid_session_date">Saisissez une date au format YYYY-MM-DD.</string>
+    <string name="insights_future_session_date">Choisissez la date du jour ou une date antérieure.</string>
+    <string name="insights_session_save_failed">Impossible d’enregistrer cette séance. Vos modifications sont toujours là. Réessayez.</string>
+    <string name="insights_timer_save_failed">Impossible d’enregistrer les réglages du minuteur de lecture. Essayez de les modifier à nouveau.</string>
+    <string name="insights_saving">Enregistrement…</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_choose_flashcard_book">Выберите книгу для карточек</string>
+    <string name="study_flashcard_picker_empty">Сначала добавьте книгу в библиотеку. Карточки также можно вставить в учебном центре.</string>
+    <string name="study_guide_picker_empty">Добавьте книгу в библиотеку, затем экспортируйте её заметки и выделения как учебное пособие.</string>
+</resources>

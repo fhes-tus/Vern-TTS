@@ -1,6 +1,5 @@
 package com.veritas.reader.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,9 +14,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -41,13 +42,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.veritas.reader.R
 import com.veritas.reader.VeritasPackStyle
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -72,7 +75,6 @@ internal fun CalendarHeatMap(
     readingMillisByDate: Map<String, Long> = emptyMap(),
     summary: (@Composable (List<String>, String) -> Unit)? = null
 ) {
-    val context = LocalContext.current
     val currentCal = remember { Calendar.getInstance() }
     val currentYear = currentCal.get(Calendar.YEAR)
     val currentMonth = currentCal.get(Calendar.MONTH) // 0..11
@@ -82,11 +84,13 @@ internal fun CalendarHeatMap(
     var isYearView by remember { mutableStateOf(false) }
     var selectedDayData by remember { mutableStateOf<DayData?>(null) }
 
-    val monthNames = remember {
-        listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val spokenDateFormat = remember(locale) { java.text.DateFormat.getDateInstance(java.text.DateFormat.FULL, locale) }
+    val monthNames = remember(locale) {
+        java.time.Month.values().map { it.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, locale) }
     }
 
-    val months = remember(selectedYear) {
+    val months = remember(selectedYear, locale) {
         val list = mutableListOf<MonthData>()
         val cal = Calendar.getInstance()
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -210,7 +214,7 @@ internal fun CalendarHeatMap(
                             if (selectedMonthIndex == 0) { selectedYear--; selectedMonthIndex = 11 } else selectedMonthIndex--
                             selectedDayData = null
                         },
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(Icons.Filled.ChevronLeft, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous_month))
                     }
@@ -241,7 +245,7 @@ internal fun CalendarHeatMap(
                             if (selectedMonthIndex == 11) { selectedYear++; selectedMonthIndex = 0 } else selectedMonthIndex++
                             selectedDayData = null
                         },
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(Icons.Filled.ChevronRight, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next_month))
                     }
@@ -279,7 +283,7 @@ internal fun CalendarHeatMap(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    val weekdays = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                    val weekdays = java.time.DayOfWeek.values().map { it.getDisplayName(java.time.format.TextStyle.SHORT, locale) }
                     weekdays.forEach { day ->
                         Text(
                             text = day,
@@ -336,36 +340,24 @@ internal fun CalendarHeatMap(
                                         else -> null
                                     }
 
+                                    val activity = when {
+                                        isActive -> readingMillisByDate[day.dateKey]?.takeIf { it > 0L }?.let { formatTrackerDuration(it) }
+                                            ?: menuString(R.string.ui_reading_recorded_duration_not_available)
+                                        isOpened -> menuString(R.string.ui_vern_opened)
+                                        else -> menuString(R.string.ui_no_reading_activity_recorded)
+                                    }
+                                    val dayDescription = "${spokenDateFormat.format(Date(day.timeMillis))}, $activity"
+                                    val shape = RoundedCornerShape(8.dp)
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .aspectRatio(1f)
+                                            .heightIn(min = 48.dp)
+                                            .semantics { contentDescription = dayDescription }
+                                            .selectable(selected = isSelected, enabled = !isFuture, role = Role.Button) { selectedDayData = day }
                                             .padding(2.dp)
-                                            .semantics {
-                                                contentDescription = "${day.dateKey}: " + when {
-                                                    isActive -> "reading recorded"
-                                                    isOpened -> "app opened"
-                                                    else -> "no reading recorded"
-                                                }
-                                            }
-                                            .clip(RoundedCornerShape(8.dp))
+                                            .clip(shape)
                                             .background(cellBg)
-                                            .then(
-                                                if (borderStroke != null) Modifier.border(borderStroke, RoundedCornerShape(8.dp))
-                                                else Modifier
-                                            )
-                                            .clickable(enabled = !isFuture) {
-                                                if (!isFuture) {
-                                                    selectedDayData = day
-                                                    val formattedDate = SimpleDateFormat("MMMM dd, yyyy", Locale.US).format(Date(day.timeMillis))
-                                                    val msg = when {
-                                                        isActive -> "Logged reading on $formattedDate! 📖"
-                                                        isOpened -> "Vern opened on $formattedDate ⚡"
-                                                        else -> "No activity logged on $formattedDate."
-                                                    }
-                                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                                }
-                                            },
+                                            .then(if (borderStroke != null) Modifier.border(borderStroke, shape) else Modifier),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -374,6 +366,7 @@ internal fun CalendarHeatMap(
                                                 fontWeight = if (isActive || isToday || isSelected) FontWeight.Black else FontWeight.Normal
                                             ),
                                             color = textColor,
+                                            modifier = Modifier.clearAndSetSemantics {},
                                             textAlign = TextAlign.Center
                                         )
                                     }
@@ -389,7 +382,7 @@ internal fun CalendarHeatMap(
                     val isInspectedActive = activeDateKeys.contains(inspectedDay.dateKey)
                     val isInspectedOpened = openedDateKeys.contains(inspectedDay.dateKey)
                     val dateFormatted = remember(inspectedDay) {
-                        SimpleDateFormat("EEEE, MMMM dd, yyyy", Locale.US).format(Date(inspectedDay.timeMillis))
+                        java.text.DateFormat.getDateInstance(java.text.DateFormat.FULL, locale).format(Date(inspectedDay.timeMillis))
                     }
                     Surface(
                         shape = RoundedCornerShape(10.dp),

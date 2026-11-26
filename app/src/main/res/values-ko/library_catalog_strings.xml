@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="classic_add_to_library">서재에 추가</string>
+    <string name="classic_waiting_for_download">다운로드 대기 중</string>
+    <string name="classic_downloading">다운로드 중…</string>
+    <string name="classic_download_progress">다운로드 중 %1$s</string>
+    <string name="classic_adding_to_library">서재에 추가하는 중…</string>
+    <string name="classic_retry_download">다운로드 다시 시도</string>
+    <string name="classic_download_again">다시 다운로드</string>
+    <string name="classic_details_for_book">%1$s 상세 정보</string>
+    <string name="library_read_percent">%1$s 읽음</string>
+    <string name="library_read_not_started">읽기 전 · %1$s</string>
+    <string name="library_read_in_progress">%1$s 읽음 · %2$s 남음</string>
+    <string name="library_read_estimate_minutes">약 %1$d분</string>
+    <string name="library_read_estimate_hours">약 %1$d시간</string>
+    <string name="library_read_estimate_hours_minutes">약 %1$d시간 %2$d분</string>
+    <plurals name="library_page_count">
+        <item quantity="other">%1$d쪽</item>
+    </plurals>
+    <plurals name="library_sentence_count">
+        <item quantity="other">%1$d문장</item>
+    </plurals>
+</resources>

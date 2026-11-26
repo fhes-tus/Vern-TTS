@@ -1,11 +1,9 @@
 package com.veritas.reader
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -27,9 +25,6 @@ open class MainActivity : AppCompatActivity() {
 
     internal val viewModel: ReaderViewModel by viewModels()
 
-    var onHardwarePlayPause: (() -> Unit)? = null
-    var onHardwareNext: (() -> Unit)? = null
-    var onHardwarePrevious: (() -> Unit)? = null
     private val pendingIncomingShares = mutableListOf<IncomingShare>()
     internal var onIncomingShare: ((IncomingShare) -> Unit)? = null
         set(value) {
@@ -97,47 +92,6 @@ open class MainActivity : AppCompatActivity() {
     override fun onUserInteraction() {
         super.onUserInteraction()
         ReadingSessionTracker.get(applicationContext).interaction()
-    }
-
-    @SuppressLint("RestrictedApi")
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        val isPageKey =
-            event.keyCode == KeyEvent.KEYCODE_PAGE_DOWN || event.keyCode == KeyEvent.KEYCODE_PAGE_UP
-        if (isPageKey && viewModel.uiState.value.activeDocument == null) {
-            return super.dispatchKeyEvent(event)
-        }
-
-        val isHardwareControlKey = when (event.keyCode) {
-            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
-            KeyEvent.KEYCODE_MEDIA_PLAY,
-            KeyEvent.KEYCODE_MEDIA_PAUSE,
-            KeyEvent.KEYCODE_HEADSETHOOK,
-            KeyEvent.KEYCODE_MEDIA_NEXT,
-            KeyEvent.KEYCODE_PAGE_DOWN,
-            KeyEvent.KEYCODE_MEDIA_PREVIOUS,
-            KeyEvent.KEYCODE_PAGE_UP -> true
-
-            else -> false
-        }
-
-        if (isHardwareControlKey) {
-            if (event.action == KeyEvent.ACTION_UP) {
-                when (event.keyCode) {
-                    KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
-                    KeyEvent.KEYCODE_MEDIA_PLAY,
-                    KeyEvent.KEYCODE_MEDIA_PAUSE,
-                    KeyEvent.KEYCODE_HEADSETHOOK -> onHardwarePlayPause?.invoke()
-
-                    KeyEvent.KEYCODE_MEDIA_NEXT,
-                    KeyEvent.KEYCODE_PAGE_DOWN -> onHardwareNext?.invoke()
-
-                    KeyEvent.KEYCODE_MEDIA_PREVIOUS,
-                    KeyEvent.KEYCODE_PAGE_UP -> onHardwarePrevious?.invoke()
-                }
-            }
-            return true
-        }
-        return super.dispatchKeyEvent(event)
     }
 
     private fun maybeShowTtsEngineHint() {
@@ -213,8 +167,8 @@ open class MainActivity : AppCompatActivity() {
         CrashReporter.install(this)
         CrashReporter.offerPendingReport(this)
         maybeShowTtsEngineHint()
-        // Weekly data-only safety-net backup (worker checks the setting itself).
-        AutoBackupWorker.schedule(this)
+        runCatching { AutoBackupWorker.configure(this, startupAppearance.autoBackupWeekly) }
+            .onFailure { android.util.Log.w("AutoBackupWorker", "Could not reconcile weekly backup scheduling.", it) }
         // Evening streak-protection nudge (worker checks the setting itself).
         StreakReminderWorker.schedule(this)
         updateVeritasWidgets(this)

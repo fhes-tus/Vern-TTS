@@ -178,8 +178,12 @@ object VoiceModelManager {
         OfflineVoiceDescriptor("kokoro_af_heart", "Heart (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 126.0f, true, KOKORO_MODEL_URL),
         OfflineVoiceDescriptor("kokoro_af_bella", "Bella (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
         OfflineVoiceDescriptor("kokoro_af_nicole", "Nicole (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
+        OfflineVoiceDescriptor("kokoro_af_alloy", "Alloy (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
         OfflineVoiceDescriptor("kokoro_af_aoede", "Aoede (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
+        OfflineVoiceDescriptor("kokoro_af_jessica", "Jessica (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
         OfflineVoiceDescriptor("kokoro_af_kore", "Kore (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
+        OfflineVoiceDescriptor("kokoro_af_nova", "Nova (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
+        OfflineVoiceDescriptor("kokoro_af_river", "River (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
         OfflineVoiceDescriptor("kokoro_af_sarah", "Sarah (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
         OfflineVoiceDescriptor("kokoro_af_sky", "Sky (US Female • Studio)", OfflineEngineType.KOKORO, "English (US)", "en-US", 0.0f, false, KOKORO_MODEL_URL),
 
@@ -244,12 +248,19 @@ object VoiceModelManager {
      * voice, so each gets its own — otherwise installing a second voice would wipe
      * the first.
      */
-    fun getVoiceDirectory(context: Context, engineType: OfflineEngineType, voiceId: String? = null): File =
+    private fun voiceDirectory(context: Context, engineType: OfflineEngineType, voiceId: String?): File =
         when (engineType) {
             OfflineEngineType.KOKORO -> File(getTtsDirectory(context), "kokoro")
             OfflineEngineType.PIPER -> File(getTtsDirectory(context), voiceId ?: "piper")
             OfflineEngineType.KITTEN -> File(getTtsDirectory(context), "kitten-nano-08")
         }
+
+    fun getVoiceDirectory(context: Context, engineType: OfflineEngineType, voiceId: String? = null): File {
+        val target = voiceDirectory(context, engineType, voiceId)
+        if (engineType == OfflineEngineType.PIPER || !VoicePackageFiles.previous(target).exists()) return target
+        val descriptor = availableVoices.first { it.engineType == engineType }
+        return VoicePackageFiles.installedDirectory(target) { isPackageComplete(it, descriptor) }
+    }
 
     /**
      * One eSpeak-NG bundle shared by every Piper voice.
@@ -263,31 +274,12 @@ object VoiceModelManager {
         File(getTtsDirectory(context), "espeak-ng-data")
 
     fun isVoiceInstalled(context: Context, voiceId: String): Boolean {
-        val engine = availableVoices.firstOrNull { it.id == voiceId }?.engineType ?: return false
-        val dir = getVoiceDirectory(context, engine, voiceId)
-        return when (engine) {
-            OfflineEngineType.KOKORO -> {
-                val hasModel = listOf("model.onnx", "model.fp16.onnx", "model.int8.onnx")
-                    .any { File(dir, it).let { f -> f.isFile && f.length() > 0L } }
-                // The lexicon and dict are what separate the multi-lang v1.0 package
-                // from kokoro-en-v0_19. Without them here, a v0_19 payload used to
-                // report "installed" while the engine silently failed to initialise
-                // against the lexicon path it needs — so check for them up front.
-                val hasRequired = listOf(
-                    "tokens.txt", "espeak-ng-data/phontab", "lexicon-us-en.txt"
-                ).all { File(dir, it).exists() }
-                hasModel && hasRequired && isExpectedKokoroRelease(dir)
-            }
-            OfflineEngineType.PIPER -> {
-                val base = availableVoices.firstOrNull { it.id == voiceId }?.modelBaseName
-                val model = base?.let { PiperModelFiles.preferred(dir, it) }
-                model != null && model.isFile && model.length() > 0L &&
-                    File(dir, "tokens.txt").isFile &&
-                    File(sharedEspeakDirectory(context), "phontab").isFile
-            }
-            OfflineEngineType.KITTEN -> listOf("model.fp32.onnx","tokens.txt","espeak-ng-data/phontab").all { File(dir,it).let { f -> f.isFile && f.length() > 0 } } &&
-                File(dir,"voices.bin").length() == 3_276_800L
-        }
+        val voice = availableVoices.firstOrNull { it.id == voiceId } ?: return false
+        val dir = getVoiceDirectory(context, voice.engineType, voiceId)
+        if (voice.engineType != OfflineEngineType.PIPER) return isPackageComplete(dir, voice)
+        val model = voice.modelBaseName?.let { PiperModelFiles.preferred(dir, it) }
+        return model != null && File(dir, "tokens.txt").isFile &&
+            File(sharedEspeakDirectory(context), "phontab").isFile
     }
 
     fun getInstalledVoices(context: Context): List<OfflineVoiceDescriptor> {
@@ -510,7 +502,7 @@ object VoiceModelManager {
             // Extract to a staging directory and only swap it in once it is verified
             // complete. Extracting straight over the live directory meant a failed or
             // mismatched download destroyed a working voice.
-            val voiceDir = getVoiceDirectory(context, voice.engineType, voice.id)
+            val voiceDir = voiceDirectory(context, voice.engineType, voice.id)
             updateState(voice.id, DownloadState.Downloading(targetFile.length(), targetFile.length(), 99, installing = true))
             val extracted = extractTarBz2(targetFile, staging)
             targetFile.delete()
@@ -531,17 +523,26 @@ object VoiceModelManager {
 
             // Serialize the final commit with cancel/delete/new requests. Cancellation
             // before this boundary never publishes an incomplete or unwanted package.
-            val published = synchronized(requestLock) {
+            fun publish() = synchronized(requestLock) {
                 downloadContext.ensureActive()
-                if (voice.engineType == OfflineEngineType.PIPER) {
-                    hoistSharedEspeak(context, staging)
-                    PiperModelFiles.publishQuality(staging, voiceDir, requireNotNull(voice.modelBaseName))
-                    true
-                } else {
-                    voiceDir.deleteRecursively()
-                    staging.renameTo(voiceDir)
+                when (voice.engineType) {
+                    OfflineEngineType.PIPER -> {
+                        hoistSharedEspeak(context, staging)
+                        PiperModelFiles.publishQuality(staging, voiceDir, requireNotNull(voice.modelBaseName))
+                        true
+                    }
+                    else -> VoicePackageFiles.publish(staging, voiceDir, { isPackageComplete(it, voice) })
                 }
             }
+            val replacesSharedPackage = voice.engineType != OfflineEngineType.PIPER &&
+                (voiceDir.exists() || VoicePackageFiles.previous(voiceDir).exists())
+            val published = if (replacesSharedPackage) {
+                var attempted = false
+                NativeModelResources.get(context).mutateModelFiles {
+                    attempted = true
+                    publish()
+                }.also { if (!attempted) throw SpeechModelBusyException() }
+            } else publish()
             if (!published) {
                 updateState(voice.id, DownloadState.Failed("",com.veritas.reader.R.string.voice_download_storage))
                 return false
@@ -635,8 +636,9 @@ object VoiceModelManager {
             it.id == voiceId || (voice.engineType != OfflineEngineType.PIPER && it.engineType == voice.engineType)
         }
         if (inFlight[packageKey(voice)]?.isCompleted == false) return@synchronized false
-        val dir = getVoiceDirectory(context, voice.engineType, voice.id)
-        if (dir.exists() && !dir.deleteRecursively()) return@synchronized false
+        val dir = voiceDirectory(context, voice.engineType, voice.id)
+        val deleted = if (voice.engineType == OfflineEngineType.PIPER) dir.deleteRecursively() else VoicePackageFiles.delete(dir)
+        if (!deleted) return@synchronized false
         val partial = File(File(getTtsDirectory(context), "downloads"), packageKey(voice) + ".part")
         partial.delete()
         File(partial.path + ".validator").delete()

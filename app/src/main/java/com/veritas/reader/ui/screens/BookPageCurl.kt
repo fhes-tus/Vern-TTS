@@ -1,128 +1,252 @@
 package com.veritas.reader.ui.screens
 
-import android.graphics.Bitmap
-import android.graphics.Paint
-import android.graphics.Path
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
-import kotlin.math.*
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.zIndex
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.roundToInt
+import kotlin.math.sin
 
-/** Capture only for an active turn; stationary pages retain their live selectable text. */
+internal val PageCurlSettle = spring<Float>(dampingRatio = Spring.DampingRatioNoBouncy,
+    stiffness = 520f, visibilityThreshold = .5f)
+private const val CURL_STRIPS = 6
+private val curlAngles = FloatArray(CURL_STRIPS + 1) { (PI * it / (2 * CURL_STRIPS)).toFloat() }
+private val curlProjection = FloatArray(CURL_STRIPS + 1) { sin(curlAngles[it]) }
+
 @Composable
-internal fun BookPageCurl(enabled: Boolean, scrolling: Boolean, offset: () -> Float,
-    paper: Color, content: @Composable () -> Unit) {
-    if (!enabled) { Box(Modifier.fillMaxSize()) { content() }; return }
-    val layer = rememberGraphicsLayer()
-    var snapshot by remember { mutableStateOf<ImageBitmap?>(null) }
-    val renderer = remember(paper) { CurledPageMesh(paper.toArgb()) }
-    LaunchedEffect(scrolling) {
-        if (!scrolling) { snapshot = null; return@LaunchedEffect }
-        // Adjacent page layers have been recorded by the pager's prefetch drawing.
-        repeat(3) {
-            withFrameNanos { }
-            if (layer.size.width > 0 && layer.size.height > 0) {
-                snapshot = runCatching { layer.toImageBitmap() }.getOrNull()
-                if (snapshot != null) return@LaunchedEffect
-            }
-        }
+internal fun pageCurlFlingBehavior(pager: PagerState) = PagerDefaults.flingBehavior(
+    state = pager,
+    decayAnimationSpec = remember { exponentialDecay<Float>(frictionMultiplier = 3f) },
+    snapAnimationSpec = PageCurlSettle
+)
+
+internal enum class CurlDragAxis { Undecided, Horizontal, Vertical }
+
+internal fun curlDragAxis(displacement: Offset, slop: Float): CurlDragAxis {
+    val horizontal = abs(displacement.x)
+    val vertical = abs(displacement.y)
+    return when {
+        horizontal > slop && horizontal > vertical * 1.35f -> CurlDragAxis.Horizontal
+        vertical > slop -> CurlDragAxis.Vertical
+        else -> CurlDragAxis.Undecided
     }
-    val raw = offset()
-    Box(Modifier.fillMaxSize().testTag(if (snapshot != null) "book-curl-snapshot" else "book-curl-live")
-        .zIndex(if (scrolling && raw > .001f && raw < .999f) 2f else if (abs(raw) < .001f) 1f else 0f)
-        .graphicsLayer {
-            val position = offset()
-            // Alpha does not remove a page from hit testing. At rest, let the pager
-            // keep neighbours physically offscreen so its live page receives gestures.
-            translationX = if (scrolling) position * size.width else 0f
-            alpha = if (scrolling && (position < -1.001f || position >= .999f)) 0f else 1f
-        }.drawWithContent {
-            val turn = offset().coerceIn(0f, 1f)
-            val bitmap = snapshot
-            if (bitmap != null && turn > .001f) {
-                renderer.draw(drawContext.canvas.nativeCanvas, bitmap.asAndroidBitmap(), size.width, size.height, turn)
-            } else {
-                layer.record { this@drawWithContent.drawContent() }
-                drawLayer(layer)
-            }
-        }) { content() }
 }
 
-/** Bounded cylindrical mesh with perspective, a paper reverse and a travelling shadow. */
-internal class CurledPageMesh(private val paper: Int) {
-    private val columns = 48
-    private val rows = 16
-    private val vertices = FloatArray((columns + 1) * (rows + 1) * 2)
-    private val colours = IntArray((columns + 1) * (rows + 1))
-    private val ink = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-    private val reverse = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val shadow = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val reversePath = Path()
-    private val point = FloatArray(3)
+private class CurlDragLock : NestedScrollConnection {
+    var axis: CurlDragAxis? = null
+    var touching = false
 
-    private fun bend(x: Float, y: Float, w: Float, h: Float, p: Float) {
-        val diagonal = (y / h - .5f) * w * .16f * sin(p * PI).toFloat()
-        val spine = w * (1f - p) + diagonal
-        if (x <= spine) { point[0] = x; point[1] = y; point[2] = 0f; return }
-        val radius = max(1f, min(w * .16f, w * (1f - p) * .55f))
-        val distance = max(0f, x - spine)
-        val angle = min(PI.toFloat(), distance / radius)
-        val bentX = spine + radius * sin(angle) - max(0f, distance - PI.toFloat() * radius)
-        val depth = radius * (1f - cos(angle))
-        val perspective = (w * 5f) / (w * 5f - depth)
-        point[0] = spine + (bentX - spine) * perspective
-        point[1] = h * .5f + (y - h * .5f) * perspective
-        point[2] = angle
+    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
+        if (source == NestedScrollSource.UserInput && touching && axis != CurlDragAxis.Horizontal)
+            Offset(available.x, 0f) else Offset.Zero
+
+    override suspend fun onPreFling(available: Velocity): Velocity {
+        if (available.x == 0f) return Velocity.Zero
+        val blockFling = axis != null && axis != CurlDragAxis.Horizontal
+        if (!touching) axis = null
+        return if (blockFling) Velocity(available.x, 0f) else Velocity.Zero
+    }
+}
+
+/** Gate only horizontal pager motion. The text page keeps its own vertical deltas and fling. */
+@Composable
+internal fun Modifier.pageCurlDragLock(): Modifier {
+    val lock = remember { CurlDragLock() }
+    return this.nestedScroll(lock).pointerInput(lock) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            lock.axis = CurlDragAxis.Undecided
+            lock.touching = true
+            var displacement = Offset.Zero
+            try {
+                while (true) {
+                    val event = awaitPointerEvent(PointerEventPass.Initial)
+                    if (event.changes.count { it.pressed } > 1) lock.axis = CurlDragAxis.Vertical
+                    val primary = event.changes.firstOrNull { it.id == down.id }
+                    if (lock.axis == CurlDragAxis.Undecided && primary?.pressed == true) {
+                        displacement += primary.position - primary.previousPosition
+                        lock.axis = curlDragAxis(displacement, viewConfiguration.touchSlop)
+                    }
+                    if (event.changes.none { it.pressed }) break
+                }
+            } finally {
+                lock.touching = false
+            }
+        }
+    }
+}
+
+internal data class PageCurlFold(val spine: Float, val radius: Float, val arc: Float) {
+    val edge: Float get() = spine + radius * sin(arc)
+    val sourceEdge: Float get() = spine + radius * arc
+
+    companion object {
+        fun at(width: Float, progress: Float): PageCurlFold {
+            val fraction = progress.coerceIn(0f, 1f)
+            val spine = width * (1f - fraction)
+            // The page starts and ends flat, with no sudden change in fold width.
+            val bend = if (fraction > 0f && fraction < 1f) sin(PI * fraction).toFloat() else 0f
+            val radius = width * .155f * bend * bend
+            return PageCurlFold(spine, radius, (PI / 2).toFloat())
+        }
+    }
+}
+
+private fun PagerState.curlPosition(page: Int): Float =
+    if (isScrollInProgress) currentPage - page + currentPageOffsetFraction else 0f
+
+/** The fold reuses a hardware display list of the live page, with no bitmap capture window. */
+@Composable
+internal fun BookPageCurl(
+    enabled: Boolean,
+    pager: PagerState,
+    page: Int,
+    paper: Color,
+    content: @Composable () -> Unit
+) {
+    if (!enabled) {
+        Box(Modifier.fillMaxSize()) { content() }
+        return
+    }
+    val layer = rememberGraphicsLayer()
+    val paperBack = remember { Path() }
+    val frontIsTurning by remember(pager, page) {
+        derivedStateOf {
+            val progress = pager.curlPosition(page)
+            progress > 0f && progress < 1f
+        }
+    }
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    Box(
+        Modifier.fillMaxSize()
+            .testTag(if (frontIsTurning) "book-curl-turning" else "book-curl-live")
+            // The earlier page covers the next page in either direction, even when
+            // Pager changes its current page halfway through the same turn.
+            .zIndex(-page.toFloat())
+            .graphicsLayer {
+                val position = pager.curlPosition(page)
+                translationX = if (abs(position) < 1f)
+                    (position * size.width).roundToInt() * if (rtl) -1f else 1f else 0f
+            }
+            .drawWithContent {
+                val progress = pager.curlPosition(page)
+                if (progress > 0f && progress < 1f && size.width >= 1f && size.height >= 1f) {
+                    layer.record { this@drawWithContent.drawContent() }
+                    drawPageFold(layer, PageCurlFold.at(size.width, progress), paper, paperBack, rtl)
+                } else {
+                    drawContent()
+                }
+            }
+            // The source display list can reference the page's layer while its content stays clean.
+            .graphicsLayer()
+    ) { content() }
+}
+
+private fun DrawScope.drawPageFold(
+    layer: GraphicsLayer,
+    fold: PageCurlFold,
+    paper: Color,
+    paperBack: Path,
+    rtl: Boolean
+) {
+    val width = size.width
+    val height = size.height
+    val edge = fold.edge
+    fun x(logical: Float) = if (rtl) width - logical else logical
+    val shade = (fold.radius / (width * .05f)).coerceIn(0f, 1f)
+
+    val shadowEnd = (edge + fold.radius * .85f).coerceAtMost(width)
+    if (shadowEnd > edge) {
+        drawRect(
+            brush = Brush.horizontalGradient(listOf(Color.Black.copy(alpha = .24f * shade), Color.Transparent),
+                startX = x(edge), endX = x(shadowEnd)),
+            topLeft = Offset(minOf(x(edge), x(shadowEnd)), 0f),
+            size = Size(shadowEnd - edge, height)
+        )
     }
 
-    fun draw(canvas: android.graphics.Canvas, bitmap: Bitmap, width: Float, height: Float, progress: Float) {
-        if (width <= 0f || height <= 0f) return
-        val p = progress.coerceIn(0f, 1f)
-        val spine = width * (1f - p)
-        val radius = max(1f, min(width * .16f, width * (1f - p) * .55f))
-        val save = canvas.save()
-        canvas.clipRect(0f, 0f, width, height)
-        shadow.shader = android.graphics.LinearGradient(spine, 0f, spine + radius * 1.65f, 0f,
-            intArrayOf(0x50000000, 0x00000000), null, android.graphics.Shader.TileMode.CLAMP)
-        canvas.drawRect(spine, 0f, min(width, spine + radius * 1.65f), height, shadow)
-        for (row in 0..rows) for (column in 0..columns) {
-            val vertex = row * (columns + 1) + column
-            bend(width * column / columns, height * row / rows, width, height, p)
-            vertices[vertex * 2] = point[0]
-            vertices[vertex * 2 + 1] = point[1]
-            val shade = ((1f - .20f * sin(point[2]).coerceAtLeast(0f)) * 255).roundToInt().coerceIn(0, 255)
-            colours[vertex] = android.graphics.Color.rgb(shade, shade, shade)
-        }
-        canvas.drawBitmapMesh(bitmap, columns, rows, vertices, 0, colours, 0, ink)
-        // The folded material faces away from the reader. A paper tint softens mirrored ink.
-        if (width > spine + radius * PI.toFloat() * .5f) {
-            reversePath.reset()
-            for (row in 0..rows) {
-                val y = height * row / rows
-                val diagonal = (y / height - .5f) * width * .16f * sin(p * PI).toFloat()
-                bend(min(width, spine + diagonal + radius * PI.toFloat() * .5f), y, width, height, p)
-                if (row == 0) reversePath.moveTo(point[0], point[1]) else reversePath.lineTo(point[0], point[1])
+    drawRect(paper, topLeft = Offset(minOf(x(0f), x(edge)), 0f), size = Size(edge, height))
+    clipRect(left = minOf(x(0f), x(fold.spine)), right = maxOf(x(0f), x(fold.spine))) {
+        drawLayer(layer)
+    }
+
+    // Only the narrow curved edge needs slices. The rest of the page is one clipped draw.
+    for (index in 0 until CURL_STRIPS) {
+        val sourceA = x(fold.spine + fold.radius * curlAngles[index])
+        val sourceB = x(fold.spine + fold.radius * curlAngles[index + 1])
+        val destA = x(fold.spine + fold.radius * curlProjection[index])
+        val destB = x(fold.spine + fold.radius * curlProjection[index + 1])
+        val sourceWidth = abs(sourceB - sourceA)
+        val destWidth = abs(destB - destA)
+        if (sourceWidth <= .001f || destWidth <= .001f) continue
+        val left = minOf(destA, destB)
+        clipRect(left = left, right = maxOf(destA, destB)) {
+            withTransform({
+                translate(left, 0f)
+                scale(destWidth / sourceWidth, 1f, Offset.Zero)
+                translate(-minOf(sourceA, sourceB), 0f)
+            }) {
+                drawLayer(layer)
             }
-            for (row in rows downTo 0) {
-                bend(width, height * row / rows, width, height, p)
-                reversePath.lineTo(point[0], point[1])
-            }
-            reversePath.close()
-            reverse.color = paper
-            reverse.alpha = 232
-            reverse.shader = null
-            canvas.drawPath(reversePath, reverse)
-            reverse.alpha = 255
-            reverse.shader = android.graphics.LinearGradient(spine - radius, 0f, spine + radius, 0f,
-                intArrayOf(0x16000000, 0x00000000, 0x24000000), null, android.graphics.Shader.TileMode.CLAMP)
-            canvas.drawPath(reversePath, reverse)
         }
-        canvas.restoreToCount(save)
+    }
+    if (edge > fold.spine) {
+        drawRect(
+            brush = Brush.horizontalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = .26f * shade)),
+                startX = x(fold.spine), endX = x(edge)),
+            topLeft = Offset(minOf(x(fold.spine), x(edge)), 0f),
+            size = Size(edge - fold.spine, height)
+        )
+    }
+
+    val reverse = minOf((width - fold.sourceEdge) * .4f, fold.radius * 1.35f, edge)
+    if (reverse > 0f) {
+        val inner = edge - reverse
+        paperBack.reset()
+        paperBack.moveTo(x(edge), 0f)
+        paperBack.quadraticTo(x(edge - reverse * .22f), height * .46f, x(edge), height)
+        paperBack.lineTo(x(inner + reverse * .2f), height)
+        paperBack.quadraticTo(x(inner - reverse * .24f), height * .48f, x(inner), 0f)
+        paperBack.close()
+        drawPath(paperBack, Brush.horizontalGradient(
+            listOf(lerp(paper, Color.Black, .14f), paper, lerp(paper, Color.Black, .24f)),
+            startX = x(inner), endX = x(edge)
+        ))
     }
 }

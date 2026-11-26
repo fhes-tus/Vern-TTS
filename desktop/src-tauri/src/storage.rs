@@ -107,6 +107,13 @@ pub struct Settings {
     pub pdf_import: PdfImportSettings,
     #[serde(default = "default_ai_assistant")]
     pub ai_assistant: String,
+    #[serde(default)]
+    pub cloud_voice: crate::cloud_speech::CloudVoiceConfig,
+    #[serde(default = "default_true")]
+    pub pause_on_device_disconnect: bool,
+}
+fn default_true() -> bool {
+    true
 }
 fn default_line_spacing() -> f32 {
     1.85
@@ -202,6 +209,8 @@ impl Default for Settings {
             notes: NotesSettings::default(),
             pdf_import: PdfImportSettings::default(),
             ai_assistant: default_ai_assistant(),
+            cloud_voice: crate::cloud_speech::CloudVoiceConfig::default(),
+            pause_on_device_disconnect: true,
         }
     }
 }
@@ -218,7 +227,7 @@ impl Storage {
         let version: u32 = connection
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .map_err(error)?;
-        if version > 16 {
+        if version > 17 {
             return Err("This library was created by a newer Vern version.".into());
         }
         connection
@@ -297,6 +306,9 @@ impl Storage {
         }
         if version < 16 {
             connection.execute_batch("BEGIN; CREATE TABLE legacy_activity_days(date TEXT PRIMARY KEY,value TEXT NOT NULL); CREATE TABLE legacy_book_times(id TEXT PRIMARY KEY,book_id TEXT REFERENCES books(id) ON DELETE SET NULL,value TEXT NOT NULL); PRAGMA user_version=16; COMMIT;").map_err(error)?;
+        }
+        if version < 17 {
+            connection.execute_batch("BEGIN; CREATE TABLE IF NOT EXISTS cloud_credentials(provider TEXT PRIMARY KEY, key TEXT NOT NULL); CREATE TABLE IF NOT EXISTS cloud_usage(provider TEXT PRIMARY KEY, characters INTEGER NOT NULL DEFAULT 0, requests INTEGER NOT NULL DEFAULT 0); PRAGMA user_version=17; COMMIT;").map_err(error)?;
         }
         Ok(Self { connection })
     }
@@ -542,6 +554,42 @@ impl Storage {
         }
         Ok(())
     }
+    pub fn update_book_passage(
+        &mut self,
+        id: &str,
+        position: usize,
+        new_text: &str,
+    ) -> Result<Book> {
+        let trimmed = new_text.trim();
+        if trimmed.is_empty() {
+            return Err("Passage text cannot be empty.".into());
+        }
+        if trimmed.chars().count() > 50_000 {
+            return Err("Passage text exceeds the 50,000 character limit.".into());
+        }
+        let mut book = self.book(id)?;
+        if position >= book.chunks.len() {
+            return Err("Passage position is outside this book.".into());
+        }
+        book.chunks[position] = trimmed.to_string();
+        book.updated_at = now();
+        let chunks_json = serde_json::to_string(&book.chunks).map_err(error)?;
+        let changed = self
+            .connection
+            .execute(
+                "UPDATE books SET chunks=?1, updated_at=?2 WHERE id=?3",
+                params![
+                    chunks_json,
+                    i64::try_from(book.updated_at).map_err(error)?,
+                    id
+                ],
+            )
+            .map_err(error)?;
+        if changed != 1 {
+            return Err("This book no longer exists.".into());
+        }
+        Ok(book)
+    }
     pub fn delete_book(&mut self, id: &str) -> Result<()> {
         let mut settings = self.settings()?;
         let lists = self.lists_without_book(id)?;
@@ -781,7 +829,76 @@ impl Storage {
                 }
             }
         }
+        if settings.cloud_voice.enabled {
+            settings.cloud_voice.checked()?;
+        }
         self.connection.execute("INSERT INTO settings(id,value) VALUES(1,?1) ON CONFLICT(id) DO UPDATE SET value=excluded.value", [serde_json::to_string(&settings).map_err(error)?]).map_err(error)?;
+        Ok(())
+    }
+
+    pub fn cloud_credential(&self, provider: &str) -> Result<Option<String>> {
+        use rusqlite::OptionalExtension;
+        self.connection
+            .query_row(
+                "SELECT key FROM cloud_credentials WHERE provider = ?1",
+                [provider],
+                |r| r.get(0),
+            )
+            .optional()
+            .map_err(error)
+    }
+
+    pub fn set_cloud_credential(&mut self, provider: &str, key: &str) -> Result<()> {
+        if key.trim().is_empty() {
+            self.connection
+                .execute(
+                    "DELETE FROM cloud_credentials WHERE provider = ?1",
+                    [provider],
+                )
+                .map_err(error)?;
+        } else {
+            self.connection
+                .execute(
+                    "INSERT INTO cloud_credentials (provider, key) VALUES (?1, ?2) ON CONFLICT(provider) DO UPDATE SET key = excluded.key",
+                    [provider, key.trim()],
+                )
+                .map_err(error)?;
+        }
+        Ok(())
+    }
+
+    pub fn record_cloud_submission(&mut self, provider: &str, characters: u64) -> Result<()> {
+        self.connection
+            .execute(
+                "INSERT INTO cloud_usage (provider, characters, requests) VALUES (?1, ?2, 1)
+                 ON CONFLICT(provider) DO UPDATE SET characters = characters + excluded.characters, requests = requests + 1",
+                rusqlite::params![provider, characters as i64],
+            )
+            .map_err(error)?;
+        Ok(())
+    }
+
+    pub fn cloud_usage(&self, provider: &str) -> Result<(u64, u64)> {
+        use rusqlite::OptionalExtension;
+        let row: Option<(i64, i64)> = self
+            .connection
+            .query_row(
+                "SELECT characters, requests FROM cloud_usage WHERE provider = ?1",
+                [provider],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .optional()
+            .map_err(error)?;
+        Ok(match row {
+            Some((c, r)) => (c.max(0) as u64, r.max(0) as u64),
+            None => (0, 0),
+        })
+    }
+
+    pub fn clear_cloud_usage(&mut self, provider: &str) -> Result<()> {
+        self.connection
+            .execute("DELETE FROM cloud_usage WHERE provider = ?1", [provider])
+            .map_err(error)?;
         Ok(())
     }
 }
@@ -933,6 +1050,45 @@ mod tests {
         assert_eq!(books.len(), 1);
         assert_eq!(books[0].position, 1);
         assert_eq!(db.annotations(&books[0].id).unwrap()[0].text, "A note");
+        drop(db);
+        std::fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn update_book_passage_updates_text_and_validates_bounds() {
+        let path =
+            std::env::temp_dir().join(format!("vern-passage-{}.sqlite", uuid::Uuid::new_v4()));
+        let mut db = Storage::open(&path).unwrap();
+        let input = Book {
+            id: String::new(),
+            title: "Passage Test".into(),
+            author: "Tester".into(),
+            format: "TXT".into(),
+            chunks: vec!["Old passage one.".into(), "Old passage two.".into()],
+            position: 0,
+            favorite: false,
+            collection: String::new(),
+            text_available: true,
+            cover: None,
+            updated_at: 0,
+        };
+        let book = db.save_book(input).unwrap();
+        let updated = db
+            .update_book_passage(&book.id, 0, "Repaired passage one.")
+            .unwrap();
+        assert_eq!(updated.chunks[0], "Repaired passage one.");
+        assert_eq!(updated.chunks[1], "Old passage two.");
+
+        // Check bounds and empty rejection
+        assert!(db
+            .update_book_passage(&book.id, 2, "Out of bounds")
+            .is_err());
+        assert!(db.update_book_passage(&book.id, 0, "   ").is_err());
+
+        // Reopen database and verify persistence
+        drop(db);
+        let db = Storage::open(&path).unwrap();
+        let reloaded = db.book(&book.id).unwrap();
+        assert_eq!(reloaded.chunks[0], "Repaired passage one.");
         drop(db);
         std::fs::remove_file(path).unwrap();
     }

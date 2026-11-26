@@ -5,16 +5,26 @@ import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
+import com.veritas.reader.AudioExportFormat
 import com.veritas.reader.AudioExportManager
+import com.veritas.reader.AutomaticBackupEntry
+import com.veritas.reader.AutomaticBackupFiles
+import com.veritas.reader.BackupRestoreInspection
+import com.veritas.reader.BackupRestoreSafety
+import com.veritas.reader.BackupReviewChangedException
 import com.veritas.reader.GeneralNote
 import com.veritas.reader.PlaybackStateStore
 import com.veritas.reader.ReaderTextIndex
 import com.veritas.reader.SavedDocument
+import com.veritas.reader.SharedBackupFolder
+import com.veritas.reader.SharedBackupFolderEntry
 import com.veritas.reader.StudyGuidePdfExporter
 import com.veritas.reader.applyPronunciationRules
 import com.veritas.reader.buildBackupJson
+import com.veritas.reader.buildSharedSyncJson
 import com.veritas.reader.buildDocumentNotesExport
 import com.veritas.reader.estimateFullBackupBytes
+import com.veritas.reader.inspectBackup
 import com.veritas.reader.loadAiPromptHistory
 import com.veritas.reader.loadAiPromptTemplates
 import com.veritas.reader.loadAllAnnotations
@@ -25,23 +35,29 @@ import com.veritas.reader.loadDocumentNote
 import com.veritas.reader.loadGeneralNotes
 import com.veritas.reader.loadPronunciationRules
 import com.veritas.reader.loadQueueDocuments
+import com.veritas.reader.loadReaderTrackerSnapshot
 import com.veritas.reader.loadReadingHistory
 import com.veritas.reader.loadReadingListCatalog
 import com.veritas.reader.restoreBackupAuto
-import com.veritas.reader.saveGeneralNotes
+import com.veritas.reader.saveRecordedVoiceMemo
+import com.veritas.reader.stageBackupForReview
 import com.veritas.reader.writeFullBackupZip
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
-fun ReaderViewModel.exportActiveDocumentToAudio() {
+fun ReaderViewModel.exportActiveDocumentToAudio(format: AudioExportFormat = AudioExportFormat.WAV) {
+    if (uiState.value.exportInProgress || uiState.value.recordMode || uiState.value.recordAwaitingDecision) return
     val doc = uiState.value.activeDocument ?: return
     if (doc.chunks.isEmpty()) {
         _uiState.update { it.copy(exportMessage = "This document has no readable text to export.") }
@@ -53,14 +69,15 @@ fun ReaderViewModel.exportActiveDocumentToAudio() {
         exportMessage = "Playback stopped while creating the audio file.") }
     exportJob = viewModelScope.launch(Dispatchers.IO) {
         val result = runCatching {
-            AudioExportManager(getApplication()).exportToWav(
+            AudioExportManager(getApplication()).export(
                 title = doc.title,
                 chunks = doc.chunks,
                 rate = PlaybackStateStore.rate,
                 pitch = PlaybackStateStore.pitch,
                 documentId = doc.id.orEmpty(),
                 pageNumbers = if (doc.sourceLabel.uppercase().contains("PPT")) com.veritas.reader.ReaderTextModelCache.get(doc.id, doc.rawText, doc.pageCount).sentences.map { it.pageNumber }.toIntArray() else null,
-                curatedLabels = doc.id?.let { repository.findDocument(it)?.catalogId?.substringBefore(':') in listOf("classic_pilgrims_progress") } == true
+                curatedLabels = doc.id?.let { repository.findDocument(it)?.catalogId?.substringBefore(':') in listOf("classic_pilgrims_progress") } == true,
+                format = format
             )
         }
         withContext(Dispatchers.Main) {
@@ -95,6 +112,7 @@ fun ReaderViewModel.cancelAudioExport() {
 }
 
 fun ReaderViewModel.startRecordSoundFile() {
+    if (uiState.value.recordMode || uiState.value.recordAwaitingDecision) return
     val doc = uiState.value.activeDocument ?: run {
         _uiState.update { it.copy(exportMessage = "Open a reading before recording a sound file.") }
         return
@@ -177,38 +195,41 @@ fun ReaderViewModel.stopRecordSoundFile() {
 }
 
 fun ReaderViewModel.saveRecordedSoundFile() {
-    val file = uiState.value.exportedAudioFile
-    val doc = uiState.value.activeDocument
-    if (file != null && file.exists()) {
-        val now = System.currentTimeMillis()
-        val docTitle = doc?.title?.ifBlank { "Recorded Audio" } ?: "Recorded Audio"
-        val newMemo = GeneralNote(
-            id = UUID.randomUUID().toString(),
-            title = "Voice Memo: $docTitle",
-            content = "Sound recording from $docTitle\nRecorded ${SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()).format(Date(now))}",
-            updatedAt = now,
-            audioUrl = file.absolutePath,
-            audioUrls = listOf(file.absolutePath)
-        )
-        viewModelScope.launch(Dispatchers.IO) {
-            val existingNotes = repository.loadGeneralNotes()
-            repository.saveGeneralNotes(listOf(newMemo) + existingNotes)
+    val state = uiState.value
+    if (!state.recordAwaitingDecision || state.exportInProgress) return
+    val file = state.exportedAudioFile ?: return
+    val now = System.currentTimeMillis()
+    val docTitle = state.activeDocument?.title.orEmpty().ifBlank { "Recorded Audio" }
+    val memo = GeneralNote(
+        id = UUID.randomUUID().toString(),
+        title = "Voice Memo: $docTitle",
+        content = "Sound recording from $docTitle\nRecorded ${SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()).format(Date(now))}",
+        updatedAt = now
+    )
+    _uiState.update { it.copy(exportInProgress = true) }
+    viewModelScope.launch {
+        try {
+            val notes = withContext(Dispatchers.IO) { repository.saveRecordedVoiceMemo(memo, file) }
+            _uiState.update {
+                it.copy(generalNotes = notes, recordMode = false, recordAwaitingDecision = false,
+                    exportInProgress = false, exportMessage = "Sound file saved to Voice Memos: ${file.name}")
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            _uiState.update {
+                it.copy(exportInProgress = false, exportMessage = "Could not save the sound file. Try saving it again.")
+            }
         }
-    }
-    _uiState.update {
-        it.copy(
-            recordMode = false,
-            recordAwaitingDecision = false,
-            exportInProgress = false,
-            exportMessage = file?.let { saved -> "Sound file saved to Voice Memos: ${saved.name}" } ?: "No sound file was created."
-        )
     }
 }
 
 fun ReaderViewModel.exportAudioToDevice(file: File, destinationUri: Uri) {
     viewModelScope.launch(Dispatchers.IO) {
         val success = runCatching {
-            getApplication<Application>().contentResolver.openOutputStream(destinationUri)?.use { output ->
+            val destination = getApplication<Application>().contentResolver.openOutputStream(destinationUri)
+                ?: throw IOException("Could not open the audio destination.")
+            destination.use { output ->
                 file.inputStream().use { input ->
                     input.copyTo(output)
                 }
@@ -225,6 +246,7 @@ fun ReaderViewModel.exportAudioToDevice(file: File, destinationUri: Uri) {
 }
 
 fun ReaderViewModel.discardRecordedSoundFile() {
+    if (uiState.value.exportInProgress && uiState.value.exportedAudioFile != null) return
     exportJob?.cancel()
     uiState.value.exportedAudioFile?.let { file ->
         runCatching { file.delete() }
@@ -245,10 +267,10 @@ fun ReaderViewModel.discardRecordedSoundFile() {
 fun ReaderViewModel.shareExportedAudio(file: File) {
     val uri = com.veritas.reader.SafeFileSharing.uri(getApplication(), "${getApplication<Application>().packageName}.fileprovider", file)
     val shareIntent = Intent(Intent.ACTION_SEND).apply {
-        type = "audio/wav"
+        type = AudioExportFormat.forFileName(file.name).mimeType
         putExtra(Intent.EXTRA_STREAM, uri)
+        clipData = android.content.ClipData.newRawUri(file.name, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK
     }
     getApplication<Application>().startActivity(Intent.createChooser(shareIntent, "Share exported audio").apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK })
 }
@@ -313,6 +335,7 @@ fun ReaderViewModel.exportStudyGuidePdf(document: SavedDocument? = null) {
 }
 
 fun ReaderViewModel.exportLibraryBackup(uri: Uri) {
+    if (uiState.value.backupInProgress) return
     backupJob?.cancel()
     _uiState.update { it.copy(backupInProgress = true, backupMessage = null) }
     backupJob = viewModelScope.launch(Dispatchers.IO) {
@@ -341,6 +364,7 @@ suspend fun ReaderViewModel.estimateFullBackupBytes(): Long =
     withContext(Dispatchers.IO) { runCatching { repository.estimateFullBackupBytes() }.getOrDefault(0L) }
 
 fun ReaderViewModel.exportFullBackup(uri: Uri) {
+    if (uiState.value.backupInProgress) return
     backupJob?.cancel()
     _uiState.update { it.copy(backupInProgress = true, backupMessage = null) }
     backupJob = viewModelScope.launch(Dispatchers.IO) {
@@ -365,12 +389,13 @@ fun ReaderViewModel.exportFullBackup(uri: Uri) {
 }
 
 fun ReaderViewModel.shareLibrarySyncPack() {
+    if (uiState.value.backupInProgress) return
     backupJob?.cancel()
     _uiState.update { it.copy(backupInProgress = true, backupMessage = null) }
     backupJob = viewModelScope.launch(Dispatchers.IO) {
         val result = runCatching {
             val json = repository.buildBackupJson()
-            val syncDir = File(getApplication<Application>().cacheDir, "vern_sync").apply { mkdirs() }
+            val syncDir = File(getApplication<Application>().cacheDir, "shared_exports").apply { check(isDirectory || mkdirs()) }
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val file = File(syncDir, "vern_sync_pack_$timestamp.json")
             file.writeText(json, Charsets.UTF_8)
@@ -386,8 +411,8 @@ fun ReaderViewModel.shareLibrarySyncPack() {
                     putExtra(Intent.EXTRA_SUBJECT, "Vern sync pack")
                     putExtra(Intent.EXTRA_STREAM, uri)
                     putExtra(Intent.EXTRA_TEXT, "Vern sync pack. Import this file on another device to merge safely.")
+                    clipData = android.content.ClipData.newRawUri(file.name, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 getApplication<Application>().startActivity(Intent.createChooser(shareIntent, "Share sync pack").apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK })
                 _uiState.update { it.copy(backupMessage = "Sync pack ready. Choose Google Drive, WhatsApp, Files, Nearby Share, or any compatible app.") }
@@ -398,67 +423,213 @@ fun ReaderViewModel.shareLibrarySyncPack() {
     }
 }
 
-fun ReaderViewModel.importLibraryBackup(uri: Uri) {
-    backupJob?.cancel()
+fun ReaderViewModel.importLibraryBackup(uri: Uri) = prepareBackupReview({
+    val resolver = getApplication<Application>().contentResolver
+    runCatching {
+        resolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
+            if (it.moveToFirst()) it.getString(0) else null
+        }
+    }.getOrNull().orEmpty()
+}) {
+    getApplication<Application>().contentResolver.openInputStream(uri) ?: throw IOException("Could not open the selected backup.")
+}
+
+internal fun ReaderViewModel.restoreAutomaticBackup(entry: AutomaticBackupEntry) = prepareBackupReview({ entry.name }) {
+    AutomaticBackupFiles.open(getApplication(), entry)
+}
+
+internal fun ReaderViewModel.reviewSharedBackup(entry: SharedBackupFolderEntry) = prepareBackupReview({ entry.name }, entry.expectedSha256) {
+    SharedBackupFolder.open(getApplication(), entry)
+}
+
+internal fun ReaderViewModel.sendSharedBackup(folder: Uri) {
+    if (uiState.value.backupInProgress || pendingBackupReview.value != null) return
     _uiState.update { it.copy(backupInProgress = true, backupMessage = null) }
     backupJob = viewModelScope.launch(Dispatchers.IO) {
-        val result = runCatching {
-            getApplication<Application>().contentResolver.openInputStream(uri)?.use { stream ->
-                // Handles both plain JSON backups and full .zip backups.
-                repository.restoreBackupAuto(stream, replaceExisting = false)
-            } ?: throw IllegalStateException("Could not open the selected backup file.")
-        }
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(backupInProgress = false) }
+        val app = getApplication<Application>()
+        try {
+            SharedBackupFolder.send(app, folder, repository.buildSharedSyncJson())
+            _uiState.update { it.copy(backupMessage = app.getString(com.veritas.reader.R.string.shared_sync_send_complete)) }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            _uiState.update { it.copy(backupMessage = app.getString(com.veritas.reader.R.string.shared_sync_send_failed)) }
+        } finally {
             backupJob = null
-            result.onSuccess { restored ->
-                refreshAll()
-                viewModelScope.launch(Dispatchers.IO) {
-                    val documents = repository.loadDocuments()
-                    val queuedDocuments = repository.loadQueueDocuments()
-                    val pronunciationRules = repository.loadPronunciationRules()
-                    val notesSettings = NotesSettingsStore.load(getApplication())
-                    val readerSettings = repository.loadReaderSettings()
-                    val voiceSettings = repository.loadVoiceSettings()
-                    val narrationSettings = repository.loadNarrationSettings()
-                    val askAiSettings = repository.loadAskAiSettings()
-                    val aiPromptTemplates = repository.loadAiPromptTemplates()
-                    val aiPromptHistory = repository.loadAiPromptHistory()
-                    val readingListCatalog = repository.loadReadingListCatalog()
-                    val readingHistory = repository.loadReadingHistory()
-                    val allAnnotations = repository.loadAllAnnotations()
-                    val documentNotes = repository.loadAllDocumentNotes()
-                    val annotationCount = repository.loadAnnotationCount()
-                    val activeDocId = uiState.value.activeDocument?.id
-                    val annotations = if (activeDocId != null) repository.loadAnnotations(activeDocId) else emptyList()
-                    withContext(Dispatchers.Main) {
-                        _uiState.update {
-                            it.copy(
-                                documents = documents,
-                                queuedDocuments = queuedDocuments,
-                                pronunciationRules = pronunciationRules,
-                                notesSettings = notesSettings,
-                                readerSettings = readerSettings,
-                                voiceSettings = voiceSettings,
-                                narrationSettings = narrationSettings,
-                                askAiSettings = askAiSettings,
-                                aiPromptTemplates = aiPromptTemplates,
-                                aiPromptHistory = aiPromptHistory,
-                                readingListCatalog = readingListCatalog,
-                                readingHistory = readingHistory,
-                                allAnnotations = allAnnotations,
-                                documentNotes = documentNotes,
-                                annotationCount = annotationCount,
-                                annotations = annotations,
-                                backupMessage = "Backup merged: ${restored.documentCount} reading${if (restored.documentCount == 1) "" else "s"}, ${restored.annotationCount} bookmark/note${if (restored.annotationCount == 1) "" else "s"}, ${restored.generalNoteCount} note${if (restored.generalNoteCount == 1) "" else "s"}, ${restored.flashcardCount} flashcard${if (restored.flashcardCount == 1) "" else "s"}, ${restored.trackerDayCount} tracked day${if (restored.trackerDayCount == 1) "" else "s"}, ${restored.readingListCount} list${if (restored.readingListCount == 1) "" else "s"}."
-                            )
-                        }
-                        PlaybackStateStore.queueCount = queuedDocuments.size
+            _uiState.update { it.copy(backupInProgress = false) }
+        }
+    }
+}
+
+private fun ReaderViewModel.prepareBackupReview(
+    sourceName: () -> String,
+    expectedSha256: String? = null,
+    openStream: () -> InputStream
+) {
+    if (uiState.value.backupInProgress || pendingBackupReview.value != null) return
+    _uiState.update { it.copy(backupInProgress = true, backupMessage = null) }
+    backupJob = viewModelScope.launch(Dispatchers.IO) {
+        val app = getApplication<Application>()
+        val operationContext = coroutineContext
+        var staged: File? = null
+        try {
+            val name = sourceName().filterNot(Char::isISOControl).take(160)
+                .ifBlank { app.getString(com.veritas.reader.R.string.backup_review_selected_file) }
+            val snapshot = stageBackupForReview(
+                File(app.cacheDir, "backup_review"), openStream, expectedSha256, operationContext::ensureActive
+            )
+            staged = snapshot
+            val review = repository.inspectBackup(snapshot, name, operationContext::ensureActive, allowSettings = expectedSha256 == null)
+            operationContext.ensureActive()
+            pendingBackupReview.value = review
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            val detail = error.message ?: app.getString(com.veritas.reader.R.string.backup_review_selected_file)
+            val message = if (expectedSha256 == null) {
+                app.getString(com.veritas.reader.R.string.backup_review_failed, detail)
+            } else {
+                app.getString(com.veritas.reader.R.string.shared_sync_review_invalid)
+            }
+            _uiState.update { it.copy(backupMessage = message) }
+        } finally {
+            if (pendingBackupReview.value?.snapshot != staged) staged?.delete()
+            backupJob = null
+            _uiState.update { it.copy(backupInProgress = false) }
+        }
+    }
+}
+
+internal fun ReaderViewModel.dismissBackupReview() {
+    val review = pendingBackupReview.value ?: return
+    pendingBackupReview.value = null
+    viewModelScope.launch(Dispatchers.IO) { review.snapshot.delete() }
+}
+
+internal fun ReaderViewModel.confirmBackupReview() {
+    val review = pendingBackupReview.value ?: return
+    if (uiState.value.backupInProgress) return
+    pendingBackupReview.value = null
+    mergeLibraryBackup(review)
+}
+
+internal fun ReaderViewModel.saveAutomaticBackupCopy(entry: AutomaticBackupEntry, uri: Uri) {
+    if (uiState.value.backupInProgress) return
+    _uiState.update { it.copy(backupInProgress = true, backupMessage = null) }
+    backupJob = viewModelScope.launch(Dispatchers.IO) {
+        val message = try {
+            val app = getApplication<Application>()
+            AutomaticBackupFiles.open(app, entry).use { input ->
+                val output = app.contentResolver.openOutputStream(uri)
+                    ?: throw IOException("Could not open the selected backup location.")
+                output.use {
+                    if (BackupRestoreSafety.copyBounded(input, it, entry.size) != entry.size) {
+                        throw IOException("The saved backup was incomplete.")
                     }
                 }
-            }.onFailure { error ->
-                _uiState.update { it.copy(backupMessage = if (error is CancellationException) "Backup import cancelled." else "Backup import failed: ${error.message ?: "unknown error"}") }
             }
+            app.getString(com.veritas.reader.R.string.auto_backup_copy_saved)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            getApplication<Application>().getString(com.veritas.reader.R.string.auto_backup_copy_failed)
+        }
+        withContext(Dispatchers.Main) {
+            backupJob = null
+            _uiState.update { it.copy(backupInProgress = false, backupMessage = message) }
+        }
+    }
+}
+
+private fun ReaderViewModel.mergeLibraryBackup(review: BackupRestoreInspection) {
+    if (uiState.value.backupInProgress) return
+    _uiState.update { it.copy(backupInProgress = true, backupMessage = null) }
+    backupJob = viewModelScope.launch(Dispatchers.IO) {
+        var merged = false
+        try {
+            val restored = review.snapshot.inputStream().use { stream ->
+                repository.restoreBackupAuto(stream, replaceExisting = false, expected = review)
+            }
+            merged = true
+            val documents = repository.loadDocuments()
+            val queuedDocuments = repository.loadQueueDocuments()
+            val tracker = repository.loadReaderTrackerSnapshot()
+            val generalNotes = repository.loadGeneralNotes()
+            val pronunciationRules = repository.loadPronunciationRules()
+            val notesSettings = NotesSettingsStore.load(getApplication())
+            val readerSettings = repository.loadReaderSettings()
+            val voiceSettings = repository.loadVoiceSettings()
+            val narrationSettings = repository.loadNarrationSettings()
+            val askAiSettings = repository.loadAskAiSettings()
+            val aiPromptTemplates = repository.loadAiPromptTemplates()
+            val aiPromptHistory = repository.loadAiPromptHistory()
+            val readingListCatalog = repository.loadReadingListCatalog()
+            val readingHistory = repository.loadReadingHistory()
+            val allAnnotations = repository.loadAllAnnotations()
+            val documentNotes = repository.loadAllDocumentNotes()
+            val documentTitles = repository.loadAllDocumentTitles()
+            val annotationCount = repository.loadAnnotationCount()
+            val activeDocId = uiState.value.activeDocument?.id
+            val annotations = if (activeDocId != null) repository.loadAnnotations(activeDocId) else emptyList()
+            val conflicts = restored.documentConflictCount
+            val conflictMessage = when (conflicts) {
+                0 -> ""
+                1 -> " Kept your local copy of 1 reading that differs from the backup. Its backup version and linked records were skipped."
+                else -> " Kept your local copies of $conflicts readings that differ from the backup. Their backup versions and linked records were skipped."
+            }
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(
+                        documents = documents,
+                        queuedDocuments = queuedDocuments,
+                        readerTrackerSnapshot = tracker,
+                        generalNotes = generalNotes,
+                        pronunciationRules = pronunciationRules,
+                        notesSettings = notesSettings,
+                        readerSettings = readerSettings,
+                        voiceSettings = voiceSettings,
+                        narrationSettings = narrationSettings,
+                        askAiSettings = askAiSettings,
+                        aiPromptTemplates = aiPromptTemplates,
+                        aiPromptHistory = aiPromptHistory,
+                        readingListCatalog = readingListCatalog,
+                        readingHistory = readingHistory,
+                        allAnnotations = allAnnotations,
+                        documentNotes = documentNotes,
+                        documentTitles = documentTitles,
+                        annotationCount = annotationCount,
+                        annotations = annotations,
+                        backupMessage = "Backup merged: ${restored.documentCount} new reading${if (restored.documentCount == 1) "" else "s"}, ${restored.annotationCount} bookmark/note${if (restored.annotationCount == 1) "" else "s"}, ${restored.generalNoteCount} note${if (restored.generalNoteCount == 1) "" else "s"}, ${restored.flashcardCount} flashcard${if (restored.flashcardCount == 1) "" else "s"}, ${restored.trackerDayCount} tracked day${if (restored.trackerDayCount == 1) "" else "s"}, ${restored.readingListCount} list${if (restored.readingListCount == 1) "" else "s"}.$conflictMessage"
+                    )
+                }
+                PlaybackStateStore.queueCount = queuedDocuments.size
+            }
+        } catch (_: BackupReviewChangedException) {
+            val app = getApplication<Application>()
+            val operationContext = coroutineContext
+            try {
+                pendingBackupReview.value = repository.inspectBackup(
+                    review.snapshot, review.sourceName, operationContext::ensureActive, allowSettings = review.allowSettings
+                )
+                _uiState.update { it.copy(backupMessage = app.getString(com.veritas.reader.R.string.backup_review_changed)) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _uiState.update { it.copy(backupMessage = app.getString(com.veritas.reader.R.string.backup_review_failed, error.message.orEmpty())) }
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            val message = if (merged) {
+                "Backup merged. Reopen Vern to refresh your library."
+            } else {
+                "Backup import failed: ${error.message ?: "unknown error"}"
+            }
+            _uiState.update { it.copy(backupMessage = message) }
+        } finally {
+            if (pendingBackupReview.value?.snapshot != review.snapshot) review.snapshot.delete()
+            backupJob = null
+            _uiState.update { it.copy(backupInProgress = false) }
         }
     }
 }

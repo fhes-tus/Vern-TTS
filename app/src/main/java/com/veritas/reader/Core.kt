@@ -59,6 +59,7 @@ object PlaybackStateStore {
     fun beginPreparing(documentId: String?) {
         voiceAmplitude = 0f
         playbackFailure = null
+        playbackVoiceNotInstalled = false
         preparingDocumentId = documentId
         isPreparing = true
     }
@@ -72,9 +73,12 @@ object PlaybackStateStore {
     }
     var isForegroundActive by mutableStateOf(false)
     var playbackFailure by mutableStateOf<String?>(null)
+    internal var playbackVoiceNotInstalled by mutableStateOf(false)
     var statusMessage by mutableStateOf("Ready.")
     var readerMode by mutableStateOf(ReaderMode.TEXT)
     var pendingPronunciationFixWord by mutableStateOf<String?>(null)
+    internal var pendingOriginalSelection by mutableStateOf<OriginalSelectionRequest?>(null)
+    internal var pendingBookmarkSelection by mutableStateOf<OriginalBookmarkSelection?>(null)
     // Whether the app UI is currently in the foreground. The PlaybackService uses this to
     // attribute listening time to background playback (foreground reading time is tracked
     // separately by the ViewModel's session timer, so this prevents double counting).
@@ -102,14 +106,17 @@ object PlaybackStateStore {
     val sleepTimerAction: VeritasSleepTimerAction
         get() = VeritasSleepTimerAction.fromName(sleepTimerActionName)
 
-    fun activeSleepTimerSnapshot(nowMillis: Long = System.currentTimeMillis()): VeritasSleepTimerSnapshot? {
-        val snapshot = VeritasSleepTimerSnapshot(
+    fun activeSleepTimerSnapshot(nowMillis: Long = System.currentTimeMillis()): VeritasSleepTimerSnapshot? =
+        armedSleepTimerSnapshot()?.takeIf { it.isActive(nowMillis) }
+
+    internal fun armedSleepTimerSnapshot(): VeritasSleepTimerSnapshot? {
+        if (!sleepTimerStopAtEndOfSection && sleepTimerDurationMillis <= 0L) return null
+        return VeritasSleepTimerSnapshot(
             durationMillis = sleepTimerDurationMillis,
             endsAtMillis = sleepTimerEndsAtMillis,
             action = sleepTimerAction,
             stopAtEndOfSection = sleepTimerStopAtEndOfSection
         )
-        return snapshot.takeIf { sleepTimerStopAtEndOfSection || (sleepTimerDurationMillis > 0L && snapshot.isActive(nowMillis)) }
     }
 
     fun setSleepTimer(request: VeritasSleepTimerRequest, nowMillis: Long = System.currentTimeMillis()) {
@@ -135,6 +142,7 @@ object PlaybackStateStore {
         isPlaying = false
         isForegroundActive = false
         playbackFailure = null
+        playbackVoiceNotInstalled = false
         statusMessage = "Ready."
         queueCount = 0
         speechPosition = null

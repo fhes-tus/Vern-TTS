@@ -167,7 +167,7 @@ internal fun ActualDocumentTopBar(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back),
                     tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
 
@@ -251,7 +251,7 @@ internal fun ActualDocumentTopBar(
                     imageVector = Icons.AutoMirrored.Filled.List,
                     contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_table_of_contents),
                     tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
 
@@ -274,7 +274,7 @@ internal fun ActualDocumentTopBar(
                     imageVector = Icons.Filled.InvertColors,
                     contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paper_tone),
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
 
@@ -289,7 +289,7 @@ internal fun ActualDocumentTopBar(
                     imageVector = if (isLandscape) Icons.Filled.StayCurrentPortrait else Icons.Filled.StayCurrentLandscape,
                     contentDescription = if (isLandscape) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_switch_to_portrait) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_switch_to_landscape),
                     tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
 
@@ -305,7 +305,7 @@ internal fun ActualDocumentTopBar(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_more_options),
                         tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
                 ActualDocumentOverflowMenu(

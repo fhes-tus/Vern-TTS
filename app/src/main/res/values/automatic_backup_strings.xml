@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auto_backup_description">Vern keeps the four latest data backups on this device. Save a copy outside Vern to keep it after uninstalling. For original files and media, use a full ZIP backup.</string>
+    <string name="auto_backup_latest">Latest backup · %1$s · %2$s</string>
+    <string name="auto_backup_empty">No automatic backups saved yet.</string>
+    <string name="auto_backup_now">Back up now</string>
+    <string name="auto_backup_running">Creating a backup…</string>
+    <string name="auto_backup_queued">Backup queued.</string>
+    <string name="auto_backup_request_failed">Couldn’t queue a backup. Try again.</string>
+    <string name="auto_backup_weekly_unavailable">The weekly backup is waiting to be scheduled. If this persists, turn it off and back on.</string>
+    <string name="auto_backup_local_only">The latest backup was saved in Vern. The extra device copy was unavailable.</string>
+    <string name="auto_backup_retrying">The last attempt failed. Android will try again.</string>
+    <string name="auto_backup_failed">The last attempt failed. Check device storage and try again.</string>
+    <string name="auto_backup_show_files">Show saved backups</string>
+    <string name="auto_backup_hide_files">Hide saved backups</string>
+    <string name="auto_backup_app_storage">In Vern</string>
+    <string name="auto_backup_device_copy">Extra device copy</string>
+    <string name="auto_backup_file_details">%1$s · %2$s</string>
+    <string name="auto_backup_restore">Restore</string>
+    <string name="auto_backup_save_copy">Save a copy</string>
+    <string name="auto_backup_copy_saved">Backup copy saved.</string>
+    <string name="auto_backup_copy_failed">Couldn’t save the backup copy. Try again with an available backup and a writable location.</string>
+</resources>

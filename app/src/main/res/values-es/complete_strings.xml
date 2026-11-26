@@ -337,7 +337,7 @@
     <string name="ui_new" formatted="false">"NUEVO"</string>
     <string name="ui_new_notebook" formatted="false">"Nuevo cuaderno"</string>
     <string name="ui_new_quiz" formatted="false">"Nuevo cuestionario"</string>
-    <string name="ui_new_reading_list" formatted="false">"Nueva lista de lectura"</string>
+    <string name="ui_new_reading_list" formatted="false">"Nueva colección"</string>
     <string name="ui_next_2f04eb1" formatted="false">"Siguiente →"</string>
     <string name="ui_next_card" formatted="false">"Siguiente tarjeta"</string>
     <string name="ui_next_chapter" formatted="false">"Siguiente capítulo"</string>
@@ -375,7 +375,7 @@
     <string name="ui_no_readable_text_was_extracted_for_this_page" formatted="false">"No se extrajo texto legible de esta página."</string>
     <string name="ui_no_reading_activity_recorded" formatted="false">"No hay actividad de lectura registrada"</string>
     <string name="ui_no_reading_history_yet" formatted="false">"Aún no hay historial de lectura."</string>
-    <string name="ui_no_reading_lists_yet" formatted="false">"Aún no hay listas de lectura."</string>
+    <string name="ui_no_reading_lists_yet" formatted="false">"Todavía no hay colecciones."</string>
     <string name="ui_no_saved_highlights_yet" formatted="false">"Aún no hay resaltados guardados."</string>
     <string name="ui_no_saved_readings_yet" formatted="false">"Aún no hay lecturas guardadas"</string>
     <string name="ui_no_sentence_notes_yet" formatted="false">"Aún no hay notas de frases."</string>
@@ -610,6 +610,7 @@
     <string name="ui_silent_rsvp_save_for_audio" formatted="false">"RSVP silencioso · guardar para audio"</string>
     <string name="ui_silent_visual_rsvp" formatted="false">"RSVP visual silencioso"</string>
     <string name="ui_skip_table" formatted="false">"Omitir tabla"</string>
+    <string name="ui_skip_figure">Omitir figura</string>
     <string name="ui_slides_options" formatted="false">"Opciones de diapositivas"</string>
     <string name="ui_slower_0_05" formatted="false">"Más lento −0,05×"</string>
     <string name="ui_smart_resume_catch_up" formatted="false">"Resumen para retomar"</string>

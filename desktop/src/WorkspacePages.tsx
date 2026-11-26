@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { BookCover } from './BookCover';
 import { api, native } from './api';
 import { Glyph } from './Glyph';
+import { DialogSurface } from './DialogSurface';
 import type { Annotation, Book, CardInput, Flashcard } from './types';
 
 export function TextImportDialog({
@@ -29,12 +30,7 @@ export function TextImportDialog({
     }
   }
   return (
-    <Modal
-      title="Add your own text"
-      onClose={() => {
-        if (!busy) onClose();
-      }}
-    >
+    <Modal title="Add your own text" dismissible={!busy} onClose={onClose}>
       <form
         className="workspace-form"
         onSubmit={(e) => {
@@ -80,36 +76,34 @@ export function Modal({
   title,
   children,
   onClose,
+  dismissible = true,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
+  dismissible?: boolean;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const element = dialog.current;
-    element?.showModal();
-    return () => element?.close();
-  }, []);
   return (
-    <dialog
-      ref={dialog}
+    <DialogSurface
+      title={title}
       className="workspace-dialog"
-      aria-labelledby="dialog-title"
-      onCancel={(event) => {
-        event.preventDefault();
-        onClose();
-      }}
+      onClose={onClose}
+      dismissible={dismissible}
     >
       <div className="dialog-heading">
-        <h2 id="dialog-title">{title}</h2>
-        <button className="secondary small" onClick={onClose}>
+        <h2>{title}</h2>
+        <button
+          type="button"
+          className="secondary small"
+          data-dialog-dismiss
+          disabled={!dismissible}
+        >
           <Glyph name="close" />
           Close
         </button>
       </div>
       {children}
-    </dialog>
+    </DialogSurface>
   );
 }
 
@@ -145,12 +139,7 @@ export function BookDetails({
     }
   }
   return (
-    <Modal
-      title="Book details"
-      onClose={() => {
-        if (!busy) onClose();
-      }}
-    >
+    <Modal title="Book details" dismissible={!busy} onClose={onClose}>
       <form
         className="workspace-form"
         onSubmit={(e) => {
@@ -478,9 +467,8 @@ function CardEditor({
   return (
     <Modal
       title={input.id ? 'Edit flashcard' : 'Create flashcard'}
-      onClose={() => {
-        if (!busy) onClose();
-      }}
+      dismissible={!busy}
+      onClose={onClose}
     >
       <form
         className="workspace-form"
@@ -698,10 +686,14 @@ export function StudyPage({
           <p className="eyebrow">
             {reviewing.deck} · {queue?.length} remaining
           </p>
-          <h2>{reviewing.front}</h2>
+          <h2 key={reviewing.id} data-motion-in>
+            {reviewing.front}
+          </h2>
           {revealed ? (
             <>
-              <div className="flashcard-answer">{reviewing.back}</div>
+              <div className="flashcard-answer" data-motion-in>
+                {reviewing.back}
+              </div>
               <div className="action-row">
                 {['again', 'hard', 'good', 'easy'].map((rating) => (
                   <button
@@ -727,7 +719,7 @@ export function StudyPage({
         </section>
       )}
       {queue !== null && !queue.length && (
-        <section className="review-card" role="status">
+        <section className="review-card" role="status" data-motion-in>
           <h2>Review complete</h2>
           <p>Your ratings are saved. Cards will return when they are due.</p>
           <button className="primary" onClick={() => setQueue(null)}>

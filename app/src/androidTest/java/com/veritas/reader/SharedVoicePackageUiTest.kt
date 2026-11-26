@@ -29,8 +29,13 @@ class SharedVoicePackageUiTest {
                 TtsVoiceOption(it.id, it.name, it.localeTag, false, 500, 100, engine(selected))
             }
             VeritasTheme {
-                VoiceStudioDialog(VoiceSettings(enginePackage = engine(selected)), emptyList(), voices, false,
-                    {}, {}, {}, {}, {}, {}, {}, {}, {}, { _, _, _ -> }, {}, {}, {}, {}, {})
+                VoiceStudioDialog(
+                    settings = VoiceSettings(enginePackage = engine(selected), localeTag = voices.first().localeTag),
+                    engines = emptyList(), voices = voices, loadingVoices = false,
+                    onRefreshEngines = {}, onLoadVoices = {}, onUseSystemDefault = {}, onEngineSelected = {},
+                    onLanguageSelected = {}, onShowNetworkVoicesChange = {}, onVoiceSelected = {}, onPreviewVoice = {},
+                    onPresetSelected = { _, _, _ -> }, onAddLanguageVoice = {}, onOpenSystemTtsSettings = {}, onDismiss = {}
+                )
             }
         }
         for (selected in listOf(OfflineEngineType.KITTEN, OfflineEngineType.KOKORO)) {

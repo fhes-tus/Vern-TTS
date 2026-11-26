@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notes_link_cards_privacy">Las vistas previas muestran títulos e imágenes. Vern obtiene los datos que faltan del sitio enlazado o del servidor de imágenes.</string>
+    <string name="notes_link_load_from_website">Cargar desde el sitio</string>
+    <string name="notes_link_loading">Cargando la vista previa…</string>
+    <string name="notes_link_unavailable">No se pudo cargar la vista previa. Inténtalo de nuevo o abre el enlace.</string>
+</resources>

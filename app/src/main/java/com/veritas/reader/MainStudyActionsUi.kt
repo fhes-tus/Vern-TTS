@@ -171,12 +171,9 @@ internal fun AiStudyCoreToolsCards(
     onImportFlashcards: (String, List<Flashcard>) -> Unit,
     onSaveQuiz: ((QuizSet) -> Unit)?,
     onCopyText: (String, String) -> Unit,
-    onSaveAiResultAsNote: (String) -> Unit,
     onGenerateInAppFlashcards: ((String, Int, (Boolean, String) -> Unit) -> Unit)?,
     onGenerateInAppQuiz: ((String, Int, (Boolean, String, QuizSet?) -> Unit) -> Unit)?,
-    onGenerateInAppSummary: ((String, (Boolean, String) -> Unit) -> Unit)?,
-    onGenerateInAppExplanation: ((String, String, (Boolean, String) -> Unit) -> Unit)?,
-    onGenerateInAppStudyGuide: ((String, (Boolean, String) -> Unit) -> Unit)?,
+    onGenerateText: (AiPromptType, String) -> Unit,
     onSetGenerating: (Boolean, String) -> Unit,
     onSetResultPreview: (ModernStudyResultPreview) -> Unit,
     onExternalHandoff: (AiPromptType) -> Unit
@@ -194,7 +191,7 @@ internal fun AiStudyCoreToolsCards(
         iconTint = MaterialTheme.colorScheme.secondary,
         primaryActionLabel = if (hasGeminiKey) "Generate Flashcards" else "Open in $defaultAiName",
         isPrimaryInApp = hasGeminiKey,
-        enabled = !generationBusy,
+        enabled = !generationBusy && scopeText.isNotBlank(),
         onPrimaryAction = {
             if (hasGeminiKey) {
                 onSetGenerating(true, "Creating flashcards with ${GeminiStudyService.getProvider(context).label}…")
@@ -214,7 +211,7 @@ internal fun AiStudyCoreToolsCards(
                 } else {
                     coroutineScope.launch {
                         val res = GeminiStudyService.generateFlashcards(
-                            apiKey = GeminiStudyService.getApiKey(context),
+                            profile = GeminiStudyService.requestProfile(context),
                             documentTitle = document.title,
                             textContext = scopeText,
                             cardCount = 8
@@ -256,7 +253,7 @@ internal fun AiStudyCoreToolsCards(
         iconTint = MaterialTheme.colorScheme.primary,
         primaryActionLabel = if (hasGeminiKey) "Create Practice Quiz" else "Open in $defaultAiName",
         isPrimaryInApp = hasGeminiKey,
-        enabled = !generationBusy,
+        enabled = !generationBusy && scopeText.isNotBlank(),
         onPrimaryAction = {
             if (hasGeminiKey) {
                 onSetGenerating(true, "Creating exam questions with ${GeminiStudyService.getProvider(context).label}…")
@@ -274,7 +271,7 @@ internal fun AiStudyCoreToolsCards(
                 } else {
                     coroutineScope.launch {
                         val res = GeminiStudyService.generateQuiz(
-                            apiKey = GeminiStudyService.getApiKey(context),
+                            profile = GeminiStudyService.requestProfile(context),
                             documentTitle = document.title,
                             textContext = scopeText,
                             questionCount = 5
@@ -320,45 +317,10 @@ internal fun AiStudyCoreToolsCards(
         iconTint = MaterialTheme.colorScheme.tertiary,
         primaryActionLabel = if (hasGeminiKey) "Synthesize Summary" else "Open in $defaultAiName",
         isPrimaryInApp = hasGeminiKey,
-        enabled = !generationBusy,
+        enabled = !generationBusy && scopeText.isNotBlank(),
         onPrimaryAction = {
-            if (hasGeminiKey) {
-                onSetGenerating(true, "Creating executive summary...")
-                if (onGenerateInAppSummary != null) {
-                    onGenerateInAppSummary(scopeText) { success, result ->
-                        onSetGenerating(false, "")
-                        if (success) {
-                            onSetResultPreview(ModernStudyResultPreview.NoteText(
-                                AiPromptType.SUMMARY,
-                                "Executive Summary (Page $currentPage)",
-                                result
-                            ))
-                        } else {
-                            Toast.makeText(context, result, Toast.LENGTH_LONG).show()
-                        }
-                    }
-                } else {
-                    coroutineScope.launch {
-                        val res = GeminiStudyService.generateStudySummary(
-                            apiKey = GeminiStudyService.getApiKey(context),
-                            documentTitle = document.title,
-                            textContext = scopeText
-                        )
-                        onSetGenerating(false, "")
-                        res.onSuccess { summary ->
-                            onSetResultPreview(ModernStudyResultPreview.NoteText(
-                                AiPromptType.SUMMARY,
-                                "Executive Summary (Page $currentPage)",
-                                summary
-                            ))
-                        }.onFailure { err ->
-                            Toast.makeText(context, err.message ?: "Summary failed", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-            } else {
-                onExternalHandoff(AiPromptType.SUMMARY)
-            }
+            if (hasGeminiKey) onGenerateText(AiPromptType.SUMMARY, "")
+            else onExternalHandoff(AiPromptType.SUMMARY)
         },
         onCopyPrompt = {
             val prompt = AiPromptLauncher.buildPrompt(
@@ -382,47 +344,10 @@ internal fun AiStudyCoreToolsCards(
         iconTint = MaterialTheme.colorScheme.primary,
         primaryActionLabel = if (hasGeminiKey) "Explain Passage" else "Open in $defaultAiName",
         isPrimaryInApp = hasGeminiKey,
-        enabled = !generationBusy,
+        enabled = !generationBusy && scopeText.isNotBlank(),
         onPrimaryAction = {
-            if (hasGeminiKey) {
-                onSetGenerating(true, "Explaining concepts...")
-                val targetPassage = document.chunks.getOrNull(safeIndex).orEmpty()
-                if (onGenerateInAppExplanation != null) {
-                    onGenerateInAppExplanation(scopeText, targetPassage) { success, result ->
-                        onSetGenerating(false, "")
-                        if (success) {
-                            onSetResultPreview(ModernStudyResultPreview.NoteText(
-                                AiPromptType.EXPLAIN_SECTION,
-                                "Feynman Explanation",
-                                result
-                            ))
-                        } else {
-                            Toast.makeText(context, result, Toast.LENGTH_LONG).show()
-                        }
-                    }
-                } else {
-                    coroutineScope.launch {
-                        val res = GeminiStudyService.generateExplanation(
-                            apiKey = GeminiStudyService.getApiKey(context),
-                            documentTitle = document.title,
-                            textContext = scopeText,
-                            targetPassage = targetPassage
-                        )
-                        onSetGenerating(false, "")
-                        res.onSuccess { explanation ->
-                            onSetResultPreview(ModernStudyResultPreview.NoteText(
-                                AiPromptType.EXPLAIN_SECTION,
-                                "Feynman Explanation",
-                                explanation
-                            ))
-                        }.onFailure { err ->
-                            Toast.makeText(context, err.message ?: "Explanation failed", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-            } else {
-                onExternalHandoff(AiPromptType.EXPLAIN_SECTION)
-            }
+            if (hasGeminiKey) onGenerateText(AiPromptType.EXPLAIN_SECTION, document.chunks.getOrNull(safeIndex).orEmpty())
+            else onExternalHandoff(AiPromptType.EXPLAIN_SECTION)
         },
         onCopyPrompt = {
             val prompt = AiPromptLauncher.buildPrompt(
@@ -446,45 +371,10 @@ internal fun AiStudyCoreToolsCards(
         iconTint = MaterialTheme.colorScheme.secondary,
         primaryActionLabel = if (hasGeminiKey) "Build Cheatsheet" else "Open in $defaultAiName",
         isPrimaryInApp = hasGeminiKey,
-        enabled = !generationBusy,
+        enabled = !generationBusy && scopeText.isNotBlank(),
         onPrimaryAction = {
-            if (hasGeminiKey) {
-                onSetGenerating(true, "Building study study guide...")
-                if (onGenerateInAppStudyGuide != null) {
-                    onGenerateInAppStudyGuide(scopeText) { success, result ->
-                        onSetGenerating(false, "")
-                        if (success) {
-                            onSetResultPreview(ModernStudyResultPreview.NoteText(
-                                AiPromptType.STUDY_NOTES,
-                                "Study Cheatsheet",
-                                result
-                            ))
-                        } else {
-                            Toast.makeText(context, result, Toast.LENGTH_LONG).show()
-                        }
-                    }
-                } else {
-                    coroutineScope.launch {
-                        val res = GeminiStudyService.generateStudyGuide(
-                            apiKey = GeminiStudyService.getApiKey(context),
-                            documentTitle = document.title,
-                            textContext = scopeText
-                        )
-                        onSetGenerating(false, "")
-                        res.onSuccess { guide ->
-                            onSetResultPreview(ModernStudyResultPreview.NoteText(
-                                AiPromptType.STUDY_NOTES,
-                                "Study Cheatsheet",
-                                guide
-                            ))
-                        }.onFailure { err ->
-                            Toast.makeText(context, err.message ?: "Cheatsheet build failed", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-            } else {
-                onExternalHandoff(AiPromptType.STUDY_NOTES)
-            }
+            if (hasGeminiKey) onGenerateText(AiPromptType.STUDY_NOTES, "")
+            else onExternalHandoff(AiPromptType.STUDY_NOTES)
         },
         onCopyPrompt = {
             val prompt = AiPromptLauncher.buildPrompt(
@@ -508,7 +398,7 @@ internal fun AiStudyManualAccordion(
     document: ReaderDocument,
     onImportFlashcards: (String, List<Flashcard>) -> Unit,
     onSaveQuiz: ((QuizSet) -> Unit)?,
-    onSaveAiResultAsNote: (String) -> Unit,
+    onSaveAiResultAsNote: (String, (Boolean) -> Unit) -> Unit,
     onSetResultPreview: (ModernStudyResultPreview) -> Unit,
     onShowPasteFlashcards: () -> Unit,
     onShowPasteQuiz: () -> Unit,
@@ -517,6 +407,7 @@ internal fun AiStudyManualAccordion(
     val context = LocalContext.current
     var showManualTools by remember { mutableStateOf(false) }
     var manualInputDraft by remember { mutableStateOf("") }
+    var savingNote by remember { mutableStateOf(false) }
 
                     // Manual Importer & Advanced Accordion
                     Card(
@@ -591,6 +482,7 @@ internal fun AiStudyManualAccordion(
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
                                         Button(
+                                            enabled = !savingNote,
                                             onClick = {
                                                 when {
                                                     parsedCards.isNotEmpty() -> {
@@ -610,9 +502,16 @@ internal fun AiStudyManualAccordion(
                                                         manualInputDraft = ""
                                                     }
                                                     else -> {
-                                                        onSaveAiResultAsNote(manualInputDraft)
-                                                        manualInputDraft = ""
-                                                        Toast.makeText(context, "Saved as sentence note!", Toast.LENGTH_SHORT).show()
+                                                        val draft = manualInputDraft
+                                                        if (!savingNote) {
+                                                            savingNote = true
+                                                            onSaveAiResultAsNote(draft) { success ->
+                                                                savingNote = false
+                                                                if (success && manualInputDraft == draft) manualInputDraft = ""
+                                                                val message = if (success) R.string.study_ai_note_saved else R.string.study_ai_note_save_failed
+                                                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             },

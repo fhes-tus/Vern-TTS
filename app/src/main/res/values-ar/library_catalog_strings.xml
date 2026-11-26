@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="classic_add_to_library">إضافة إلى المكتبة</string>
+    <string name="classic_waiting_for_download">في انتظار التنزيل</string>
+    <string name="classic_downloading">جارٍ التنزيل…</string>
+    <string name="classic_download_progress">جارٍ التنزيل %1$s</string>
+    <string name="classic_adding_to_library">جارٍ الإضافة إلى المكتبة…</string>
+    <string name="classic_retry_download">إعادة محاولة التنزيل</string>
+    <string name="classic_download_again">التنزيل مجددًا</string>
+    <string name="classic_details_for_book">تفاصيل %1$s</string>
+    <string name="library_read_percent">قُرئ %1$s</string>
+    <string name="library_read_not_started">لم تبدأ القراءة · %1$s</string>
+    <string name="library_read_in_progress">قُرئ %1$s · المتبقي %2$s</string>
+    <string name="library_read_estimate_minutes">نحو %1$d د</string>
+    <string name="library_read_estimate_hours">نحو %1$d س</string>
+    <string name="library_read_estimate_hours_minutes">نحو %1$d س و%2$d د</string>
+    <plurals name="library_page_count">
+        <item quantity="zero">%1$d صفحة</item>
+        <item quantity="one">صفحة واحدة</item>
+        <item quantity="two">صفحتان</item>
+        <item quantity="few">%1$d صفحات</item>
+        <item quantity="many">%1$d صفحة</item>
+        <item quantity="other">%1$d صفحة</item>
+    </plurals>
+    <plurals name="library_sentence_count">
+        <item quantity="zero">%1$d جملة</item>
+        <item quantity="one">جملة واحدة</item>
+        <item quantity="two">جملتان</item>
+        <item quantity="few">%1$d جمل</item>
+        <item quantity="many">%1$d جملة</item>
+        <item quantity="other">%1$d جملة</item>
+    </plurals>
+</resources>

@@ -559,7 +559,7 @@ object DocumentExtractor {
     ): ExtractionBody {
         val bytes = readAllBytes(context, uri, ImportFilePolicy.byteLimit(ImportFormat.TEXT))
         if (bytes.isEmpty()) return ExtractionBody("")
-        val decoded = TextImportDecoder.decode(bytes, options)
+        val decoded = TextImportDecoder.decode(bytes, options, isHtml = htmlish)
         ImportFilePolicy.validateText(decoded.text)
         val text = if (htmlish) htmlishToText(decoded.text) else normalizePlainTextParagraphs(decoded.text)
         return ExtractionBody(text, decoded.diagnostics)
@@ -932,6 +932,7 @@ private val MULTI_SPACE_2_REGEX = Regex("""\s{2,}""")
 
 fun String.normalizeExtractedText(): String {
     return replace('\u00A0', ' ')
+        .replace(SpeechPunctuation.spacedEllipsis, "…")
         .replace("\r\n", "\n")
         .replace('\r', '\n')
         .split('\n')

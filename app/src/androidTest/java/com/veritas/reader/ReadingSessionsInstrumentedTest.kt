@@ -136,8 +136,13 @@ class ReadingSessionsInstrumentedTest {
             tracker.audioStarted(doc.id, 0, "fixture-audio")
             awaitRecorded { it.any { session -> session.mode == ReadingSessionMode.LISTENING } }
             Thread.sleep(300)
+            val audioEndRequestedAt = System.currentTimeMillis()
             tracker.audioEnded("fixture-audio")
-            val beforeBuffer = awaitRecorded { it.sumOf(ReadingSession::activeMillis) >= 250 }.sumOf(ReadingSession::activeMillis)
+            // A periodic checkpoint can already contain 250 ms while the audio-end event is still queued.
+            val beforeBuffer = awaitRecorded { sessions ->
+                sessions.any { it.mode == ReadingSessionMode.LISTENING &&
+                    it.checkpointAt >= audioEndRequestedAt && it.activeMillis >= 250 }
+            }.sumOf(ReadingSession::activeMillis)
             Thread.sleep(350)
             val beforeFlush = tracker.changes.value
             tracker.flush()

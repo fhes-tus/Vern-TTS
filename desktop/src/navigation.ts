@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { prefersReducedMotion } from './motion';
 
 export const pages = [
   'home',
@@ -33,6 +34,12 @@ type Entry = {
   focus?: HTMLElement | null;
 };
 type Journal = { entries: Entry[]; index: number; visited: Page[] };
+const navigationGroups: Page[][] = [
+  ['home', 'insights', 'queue', 'voices'],
+  ['library', 'classics', 'lists', 'history', 'reader'],
+  ['study', 'tools', 'ai'],
+  ['notes'],
+];
 type Options = { bookId?: string; replace?: boolean };
 function fromHash(): Pick<Entry, 'page' | 'bookId'> {
   const [name, search] = location.hash.slice(1, 512).split('?');
@@ -50,13 +57,14 @@ function capture(entry: Entry): Entry {
   };
 }
 function closeDialog() {
-  const dialog = document.querySelector<HTMLDialogElement>('dialog[open]');
+  const dialog = Array.from(document.querySelectorAll<HTMLDialogElement>('dialog[open]')).at(-1);
   if (!dialog) return false;
   dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
   return true;
 }
 export function useNavigation() {
   const travelling = useRef(false);
+  const previousRoute = useRef<Page | null>(null);
   const [journal, setJournal] = useState<Journal>(() => {
     const entry = { ...fromHash(), key: crypto.randomUUID(), scroll: 0 };
     return { entries: [entry], index: 0, visited: [entry.page] };
@@ -110,6 +118,29 @@ export function useNavigation() {
     });
     return () => cancelAnimationFrame(frame);
   }, [route, journal.index]);
+  useLayoutEffect(() => {
+    const from = previousRoute.current;
+    const to = route.page;
+    previousRoute.current = to;
+    if (!from || from === to || prefersReducedMotion()) return;
+    const group = navigationGroups.find((items) => items.includes(from) && items.includes(to));
+    const groupIndex = (page: Page) => navigationGroups.findIndex((items) => items.includes(page));
+    const direction = group
+      ? Math.sign(group.indexOf(to) - group.indexOf(from))
+      : Math.sign(groupIndex(to) - groupIndex(from));
+    const translate =
+      direction && !from.startsWith('settings') && !to.startsWith('settings')
+        ? `${direction * 8}px 0`
+        : '0 5px';
+    const animation = document.querySelector('main')?.animate?.(
+      [
+        { opacity: 0.76, translate },
+        { opacity: 1, translate: 'none' },
+      ],
+      { duration: 195, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+    );
+    return () => animation?.cancel();
+  }, [route.page]);
   const navigate = useCallback(
     (page: Page, options: Options = {}) => {
       if (travelling.current) return;

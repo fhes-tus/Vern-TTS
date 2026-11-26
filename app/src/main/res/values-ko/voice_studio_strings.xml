@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_studio_customize">맞춤 설정</string>
+    <string name="voice_studio_models_hint">오프라인 낭독용 음성 다운로드</string>
+    <string name="voice_studio_phone_more_hint">다른 음성 엔진 또는 언어 설치</string>
+    <string name="voice_studio_use_language_default">이 언어에 휴대전화 기본 음성 사용</string>
+    <string name="voice_studio_phone_engine">휴대전화 음성 엔진</string>
+    <string name="voice_studio_refresh_engines">음성 엔진 새로고침</string>
+    <string name="voice_studio_preset_values">%1$s · 속도 %2$s배 · 음높이 %3$s배</string>
+    <string name="voice_studio_multiplier">%1$s배</string>
+    <string name="voice_studio_preset_balanced">음성의 기본 속도와 음높이입니다.</string>
+    <string name="voice_studio_preset_study">원래 음높이로 더 느리게 읽습니다.</string>
+    <string name="voice_studio_preset_scan">원래 음높이로 더 빠르게 읽습니다.</string>
+    <string name="voice_studio_preset_story">조금 느린 속도와 낮은 음높이입니다.</string>
+    <string name="voice_studio_preset_lecture">조금 빠른 속도와 높은 음높이입니다.</string>
+    <string name="voice_studio_preset_bedtime">편안하게 들을 수 있도록 속도와 음높이를 낮춥니다.</string>
+    <string name="voice_studio_cloud_preview_help">설정을 적용한 뒤 음성 테스트를 눌러 클라우드 음성을 들어 보세요.</string>
+</resources>

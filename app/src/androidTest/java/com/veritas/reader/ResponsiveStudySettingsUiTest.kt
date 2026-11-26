@@ -43,6 +43,28 @@ class ResponsiveStudySettingsUiTest {
         return assertIsDisplayed()
     }
 
+    @Test fun clearingAppDataRequiresAnExplicitConfirmation() {
+        var resets = 0
+        rule.setContent {
+            MaterialTheme {
+                StorageDialog(
+                    breakdown = StorageBreakdown(20, 50, 0, documentCount = 1),
+                    candidates = emptyList(), cleanupMessage = null, onSmartCleanup = {},
+                    onClearData = { resets++; false }, onDismiss = {}
+                )
+            }
+        }
+        val label = context.getString(R.string.storage_clear_app_data)
+        rule.onNodeWithText(label).performScrollTo().performClick()
+        rule.runOnIdle { assertEquals(0, resets) }
+        rule.onNodeWithText(context.getString(R.string.ui_cancel)).performClick()
+        rule.runOnIdle { assertEquals(0, resets) }
+        rule.onNodeWithText(label).performClick()
+        rule.onNodeWithTag("storage_confirm_clear_data").performClick()
+        rule.onNodeWithText(context.getString(R.string.storage_clear_app_data_failed)).assertExists()
+        rule.runOnIdle { assertEquals(1, resets) }
+    }
+
     @Test fun batteryInstructionsAndAllActionsAreReachableAtDoubleText() {
         var dismissed = 0; var opened = 0; var never = 0
         rule.setContent { Frame {

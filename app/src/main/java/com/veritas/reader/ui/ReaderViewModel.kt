@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import androidx.compose.runtime.snapshotFlow
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,7 +26,7 @@ import com.veritas.reader.VeritasScreen
 import com.veritas.reader.VeritasSleepTimerRequest
 import com.veritas.reader.addReadingHistory
 import com.veritas.reader.buildReaderDocument
-import com.veritas.reader.completeCurrentAndGetNextQueued
+import com.veritas.reader.advanceQueue
 import com.veritas.reader.loadAiPromptHistory
 import com.veritas.reader.loadAiPromptTemplates
 import com.veritas.reader.loadAllAnnotations
@@ -41,11 +42,11 @@ import com.veritas.reader.loadQueueDocuments
 import com.veritas.reader.loadReaderTrackerSnapshot
 import com.veritas.reader.loadReadingHistory
 import com.veritas.reader.loadGeneralNotesSnapshot
+import com.veritas.reader.recoverCachedVoiceMemos
 import com.veritas.reader.loadNoteNotebooks
 import com.veritas.reader.loadReadingListCatalog
 import com.veritas.reader.recordAppOpen
 import com.veritas.reader.recordDocumentProgress
-import com.veritas.reader.recordDocumentRead
 import com.veritas.reader.recordUsageDuration
 import com.veritas.reader.sendPlaybackIntent
 import com.veritas.reader.ui.screens.VeritasHomeTab
@@ -57,11 +58,32 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
+
+private data class PlaybackReadingVisibility(val foreground: Boolean, val mode: ReaderMode, val documentId: String?, val index: Int)
+private data class MainReadingTarget(val documentId: String?, val index: Int, val covered: Boolean)
+
+private fun playbackReadingVisibility() = PlaybackReadingVisibility(
+    PlaybackStateStore.appInForeground, PlaybackStateStore.readerMode, PlaybackStateStore.activeDocumentId, PlaybackStateStore.currentIndex
+)
+
+private fun mainReadingTarget(state: ReaderUiState, playback: PlaybackReadingVisibility): MainReadingTarget {
+    val activeId = state.activeDocument?.id
+    val canvasVisible = state.showCanvasView && state.documents.any { it.id == activeId }
+    val documentId = activeId?.takeIf { playback.foreground && (playback.mode != ReaderMode.LISTEN || canvasVisible) }
+    val index = when {
+        documentId == null -> 0
+        documentId == playback.documentId -> playback.index
+        else -> state.readerPosition
+    }
+    return MainReadingTarget(documentId, index, state.coversReader())
+}
 
 class ReaderViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -88,6 +110,9 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     internal val pendingImportIds = java.util.concurrent.ConcurrentHashMap.newKeySet<java.util.UUID>()
     internal var exportJob: Job? = null
     internal var backupJob: Job? = null
+    internal val pendingBackupReview = MutableStateFlow<com.veritas.reader.BackupRestoreInspection?>(null).also { review ->
+        addCloseable("backup-review", AutoCloseable { review.value?.snapshot?.delete() })
+    }
     internal var outlineJob: Job? = null
     internal var voiceJob: Job? = null
     internal var aiStudyJob: Job? = null
@@ -97,21 +122,15 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     @Volatile internal var readerSettingsSaveRevision = 0L
     internal var scanJob: Job? = null
     internal var downloadJob: Job? = null
-    internal var sleepTimerJob: Job? = null
     internal var appSessionStartedAt: Long = 0L
 
     init {
         val sessionTracker = com.veritas.reader.ReadingSessionTracker.get(application)
         viewModelScope.launch {
-            var previous: Pair<String?, Int>? = null
-            while (true) {
-                val target = (if (PlaybackStateStore.appInForeground && uiState.value.navStack.isEmpty() && PlaybackStateStore.readerMode != ReaderMode.LISTEN) uiState.value.activeDocument?.id else null) to currentReaderIndex
-                if (target != previous) {
-                    sessionTracker.reader("main", target.first, target.second)
-                    previous = target
+            uiState.combine(snapshotFlow { playbackReadingVisibility() }, ::mainReadingTarget)
+                .distinctUntilChanged().collect { target ->
+                    sessionTracker.mainReader(target.documentId, target.index, target.covered)
                 }
-                kotlinx.coroutines.delay(1_000)
-            }
         }
         viewModelScope.launch(Dispatchers.IO) {
             sessionTracker.changes.collect {
@@ -141,34 +160,8 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             checkForUpdates()
         }
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val context = getApplication<Application>()
-                val currentVersion = runCatching {
-                    context.packageManager.getPackageInfo(context.packageName, 0).versionName
-                }.getOrNull() ?: ""
-                val prefs = context.getSharedPreferences("veritas_reader_library", android.content.Context.MODE_PRIVATE)
-                val lastRunVersion = prefs.getString("last_run_version_name", "") ?: ""
-
-                if (currentVersion.isNotEmpty() && lastRunVersion.isNotEmpty() && currentVersion != lastRunVersion) {
-                    val savedChangelog = prefs.getString("last_downloaded_changelog", "") ?: ""
-                    if (savedChangelog.isNotEmpty()) {
-                        _uiState.update {
-                            it.copy(
-                                showReleaseNotesDialog = true,
-                                releaseNotesChangelog = savedChangelog,
-                                releaseNotesVersionName = currentVersion
-                            )
-                        }
-                        prefs.edit().remove("last_downloaded_changelog").apply()
-                    }
-                }
-
-                if (currentVersion.isNotEmpty() && currentVersion != lastRunVersion) {
-                    prefs.edit().putString("last_run_version_name", currentVersion).apply()
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("ReaderViewModel", "Error checking for post-update release notes", e)
-            }
+            runCatching { showInstalledReleaseNotes() }
+                .onFailure { android.util.Log.w("ReaderViewModel", "Could not check installed release notes", it) }
         }
         viewModelScope.launch(Dispatchers.IO) {
             val trackerSnapshot = repository.recordAppOpen()
@@ -189,6 +182,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
             val documentTitles = repository.loadAllDocumentTitles()
             val annotationCount = repository.loadAnnotationCount()
             val fileBrowserRoots = VeritasFileBrowserScanner.persistedRoots(application)
+            repository.recoverCachedVoiceMemos()
             val notesSnapshot = repository.loadGeneralNotesSnapshot()
             val generalNotes = notesSnapshot.active
             val trashedGeneralNotes = notesSnapshot.trashed
@@ -269,13 +263,14 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                     readingInterest = readingInterest,
                     hasCompletedOnboarding = hasCompletedOnboarding,
                     hasImportedOrOpenedDocument = hasImportedOrOpenedDocument,
-                    questTourDone = questProgress.tourDone,
-                    questImportDone = questProgress.importDone,
-                    questSpeedDone = questProgress.speedDone,
-                    questBookmarkDone = questProgress.bookmarkDone,
+                    questTourDone = questProgress.tourDone || it.questTourDone,
+                    questImportDone = questProgress.importDone || it.questImportDone,
+                    questSpeedDone = questProgress.speedDone || it.questSpeedDone,
+                    questBookmarkDone = questProgress.bookmarkDone || it.questBookmarkDone,
+                    questNoteDone = questProgress.noteDone || it.questNoteDone,
                     readerTrackerSnapshot = trackerSnapshot,
                     documentReadingTimes = documentReadingTimes,
-                    questChecklistDismissed = (questProgress.tourDone && questProgress.importDone && questProgress.speedDone && questProgress.bookmarkDone) || repository.isQuestChecklistDismissed(),
+                    questChecklistDismissed = repository.isQuestChecklistDismissed(),
                     dismissedHeroDocId = repository.getDismissedHeroDocId(),
                     dismissedHeroDocIds = repository.getDismissedHeroDocIds(),
                     isHeroContinueDismissed = repository.isHeroContinueDismissed()
@@ -348,7 +343,6 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                     ),
                     nowMillis = savedSleepTimer.endsAtMillis - savedSleepTimer.durationMillis
                 )
-                startSleepTimerTicker()
             }
         }
         viewModelScope.launch {
@@ -468,10 +462,8 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun startActiveDocSessionTime() {
-        val docId = uiState.value.activeDocument?.id
-        if (docId != null && PlaybackStateStore.appInForeground && uiState.value.navStack.isEmpty() && PlaybackStateStore.readerMode != ReaderMode.LISTEN) {
-            com.veritas.reader.ReadingSessionTracker.get(getApplication()).reader("main", docId, currentReaderIndex)
-        }
+        val target = mainReadingTarget(uiState.value, playbackReadingVisibility())
+        com.veritas.reader.ReadingSessionTracker.get(getApplication()).mainReader(target.documentId, target.index, target.covered)
     }
 
     private fun refreshAnnotationCatalog() {
@@ -660,7 +652,7 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
                 val targetIndex = startIndex
                     ?: (if (PlaybackStateStore.activeDocumentId == latestMetadata.id) PlaybackStateStore.currentIndex else latestMetadata.currentIndex)
                 repository.markImportedOrOpenedDocument()
-                val tracker = repository.recordDocumentRead(latestMetadata.id, latestMetadata.title)
+                val tracker = repository.loadReaderTrackerSnapshot()
                 val history = repository.addReadingHistory(latestMetadata, targetIndex)
 
                 withContext(Dispatchers.Main) {
@@ -844,8 +836,8 @@ class ReaderViewModel(application: Application) : AndroidViewModel(application) 
 
     fun openNextQueuedAfterCurrent(autoPlay: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            val completedId = uiState.value.activeDocument?.id
-            val next = repository.completeCurrentAndGetNextQueued(completedId) ?: return@launch
+            val currentId = uiState.value.activeDocument?.id
+            val next = repository.advanceQueue(currentId) ?: return@launch
             val readerDocument = loadReaderDocument(next)
             val annotations = repository.loadAnnotations(next.id)
             withContext(Dispatchers.Main) {

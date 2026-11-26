@@ -29,7 +29,7 @@
     <string name="l10n_dynamic_026">"%1$s Documents"</string>
     <string name="l10n_dynamic_027">"Deselect %1$s"</string>
     <string name="l10n_dynamic_028">"Select all %1$s (%2$s)"</string>
-    <string name="l10n_dynamic_029">"This removes %1$s from the local library, queue, and reading lists. Saved notes, bookmarks, and reading history remain available."</string>
+    <string name="l10n_dynamic_029">"This removes %1$s from the local library, queue, and collections. Saved notes, bookmarks, and reading history remain available."</string>
     <string name="l10n_dynamic_030">"by %1$s"</string>
     <string name="l10n_dynamic_031">"✨ Detected %1$s Q&amp;A flashcards ready to import"</string>
     <string name="l10n_dynamic_032">"🎯 Detected %1$s practice exam questions ready to play"</string>
@@ -172,7 +172,7 @@
     <string name="l10n_dynamic_169">"Unknown %1$s"</string>
     <string name="l10n_dynamic_170">"%1$s days"</string>
     <string name="l10n_dynamic_171">"%1$s / day"</string>
-    <string name="l10n_dynamic_172">"Add \"%1$s\" to reading lists:"</string>
+    <string name="l10n_dynamic_172">"Add \"%1$s\" to collections:"</string>
     <string name="l10n_dynamic_173">"Earlier total: %1$s · mode unknown"</string>
     <string name="l10n_dynamic_174">"Stop automatic reading after %1$sm %2$ss without interaction"</string>
     <string name="l10n_dynamic_175">"What\'s New in %1$s"</string>

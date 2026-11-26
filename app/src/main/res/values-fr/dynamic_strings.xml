@@ -29,7 +29,7 @@
     <string name="l10n_dynamic_026">"Documents : %1$s"</string>
     <string name="l10n_dynamic_027">"Désélectionner %1$s"</string>
     <string name="l10n_dynamic_028">"Tout sélectionner : %1$s (%2$s)"</string>
-    <string name="l10n_dynamic_029">"%1$s sera retiré de la bibliothèque, de la file et des listes. Les notes, signets et l’historique sont conservés."</string>
+    <string name="l10n_dynamic_029">"Le document %1$s sera retiré de la bibliothèque locale, de la file de lecture et des collections. Les notes, les signets et l’historique restent disponibles."</string>
     <string name="l10n_dynamic_030">"par %1$s"</string>
     <string name="l10n_dynamic_031">"✨ Fiches Q/R détectées : %1$s, prêtes à importer"</string>
     <string name="l10n_dynamic_032">"🎯 Questions d’entraînement détectées : %1$s"</string>
@@ -172,7 +172,7 @@
     <string name="l10n_dynamic_169">"Inconnu : %1$s"</string>
     <string name="l10n_dynamic_170">"Jours : %1$s"</string>
     <string name="l10n_dynamic_171">"%1$s / jour"</string>
-    <string name="l10n_dynamic_172">"Ajouter « %1$s » aux listes de lecture :"</string>
+    <string name="l10n_dynamic_172">"Ajouter « %1$s » aux collections :"</string>
     <string name="l10n_dynamic_173">"Total antérieur : %1$s · mode inconnu"</string>
     <string name="l10n_dynamic_174">"Arrêter la lecture automatique après %1$s min %2$s s sans interaction"</string>
     <string name="l10n_dynamic_175">"Nouveautés de %1$s"</string>

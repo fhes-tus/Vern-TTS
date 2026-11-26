@@ -707,7 +707,7 @@ internal fun extractHeadingOutline(
         val rawHashes = chunk.lineSequence().firstOrNull { it.trim().startsWith("#") }?.takeWhile { it == '#' }?.length ?: 0
         val clean = chunk.replace(WHITESPACE_REGEX, " ").trim()
         val pageNum = readerModel?.sentences?.getOrNull(index)?.pageNumber
-        val cleanTitle = outlineTitle(cleanTocTitle(headingText), index)
+        val cleanTitle = outlineTitle(cleanTocTitle(com.veritas.reader.ReadingTextCleanup.withoutUnderlineMarkup(headingText)), index)
         if (isSelfReferentialTocHeading(cleanTitle) || isSelfReferentialTocHeading(headingText)) return@mapIndexedNotNull null
 
         val dottedLevel = when {
@@ -727,7 +727,9 @@ internal fun extractHeadingOutline(
         SmartOutlineEntry(
             index = index,
             title = cleanTitle,
-            preview = if (isRepaired || clean.startsWith(headingText)) clean.removePrefix(headingText).trim().take(180) else clean.take(180),
+            preview = com.veritas.reader.ReadingTextCleanup.withoutUnderlineMarkup(
+                if (isRepaired || clean.startsWith(headingText)) clean.removePrefix(headingText).trim() else clean
+            ).take(180),
             isHeading = true,
             level = level,
             pageNumber = pageNum,

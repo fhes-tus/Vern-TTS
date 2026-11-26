@@ -28,7 +28,12 @@ class BookExplorerUiTest {
     private val preferencePrefix = "book-explorer-ui-${UUID.randomUUID()}"
     private val contexts = mutableListOf<Context>()
 
-    private fun content(query: String = "", onBrowse: (String, String, String) -> Unit = { _, _, _ -> }): MutableState<Boolean> {
+    private fun content(
+        query: String = "", classicsVisible: MutableState<Boolean> = mutableStateOf(true),
+        setupComplete: MutableState<Boolean> = mutableStateOf(true),
+        listMode: Boolean = false,
+        onBrowse: (String, String, String) -> Unit = { _, _, _ -> }
+    ): MutableState<Boolean> {
         val visible = mutableStateOf(true)
         ui.setContent {
             val base = LocalContext.current
@@ -38,12 +43,16 @@ class BookExplorerUiTest {
                         base.getSharedPreferences("$preferencePrefix-$name", mode)
                 }.also { contexts.add(it) }
             }
-            CompositionLocalProvider(LocalContext provides isolated) {
+            CompositionLocalProvider(LocalContext provides isolated, LocalLibraryPageVisible provides classicsVisible.value) {
                 VeritasTheme {
                     if (visible.value) {
                         val controls = rememberClassicsHeaderState()
-                        LaunchedEffect(Unit) { controls.query = query }
-                        ClassicsCatalogContent(emptyList(), emptyMap(), {}, {}, {}, onBrowse, headerState = controls)
+                        LaunchedEffect(Unit) {
+                            controls.query = query
+                            controls.listMode = listMode
+                        }
+                        ClassicsCatalogContent(emptyList(), emptyMap(), {}, {}, {}, onBrowse,
+                            headerState = controls, discoveryTipEnabled = setupComplete.value)
                     } else Text("Another screen")
                 }
             }
@@ -63,6 +72,17 @@ class BookExplorerUiTest {
 
     @org.junit.After fun clearFixturePreferences() {
         contexts.forEach { it.getSharedPreferences("vern_classics_discovery", Context.MODE_PRIVATE).edit().clear().commit() }
+    }
+
+    @Test fun introductionWaitsForSetupAndTheVisibleClassicsPage() {
+        val classicsVisible = mutableStateOf(false)
+        val setupComplete = mutableStateOf(false)
+        content(classicsVisible = classicsVisible, setupComplete = setupComplete)
+        ui.onNodeWithTag("book_explorer_intro").assertDoesNotExist()
+        ui.runOnIdle { setupComplete.value = true }
+        ui.onNodeWithTag("book_explorer_intro").assertDoesNotExist()
+        ui.runOnIdle { classicsVisible.value = true }
+        ui.onNodeWithTag("book_explorer_intro").assertIsDisplayed()
     }
 
     @Test fun tipExplainsOnlineDiscoveryAndDismissalSurvivesReturning() {
@@ -110,5 +130,26 @@ class BookExplorerUiTest {
         ui.onNodeWithTag("book_explorer_open").performScrollTo().performClick()
         ui.onNodeWithTag("book_explorer_sheet").assertIsDisplayed()
         ui.onNodeWithTag("book_explorer_site_Ocean of PDF").assertIsDisplayed()
+    }
+
+    @Test fun goodMorningHolySpiritOffersAChoiceOfSites() =
+        assertBookOffersExplorer("classic_good_morning_holy_spirit")
+
+    @Test fun thePowerOfImaginationOffersAChoiceOfSites() =
+        assertBookOffersExplorer("classic_power_of_imagination")
+
+    private fun assertBookOffersExplorer(id: String) {
+        val book = CURATED_CLASSICS.single { it.id == id }
+        var routed = ReaderUiState()
+        content(book.title, listMode = true) { url, title, query -> routed = routed.withBookArchive(url, title, query) }
+        ui.onNodeWithTag("book_explorer_intro_dismiss").performClick()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val row = hasTestTag("classic_row_$id")
+        ui.onNodeWithTag("classics_catalog").performScrollToNode(row)
+        ui.onNode(hasAnyAncestor(row) and hasText(context.getString(R.string.book_explorer_title))).performClick()
+        ui.onNodeWithTag("book_explorer_sheet").assertIsDisplayed()
+        ui.onNodeWithTag("book_explorer_site_Open Library").performClick()
+        assertEquals("Open Library", routed.bookBrowserTitle)
+        assertEquals("${book.title} ${book.author}", routed.bookBrowserQuery)
     }
 }

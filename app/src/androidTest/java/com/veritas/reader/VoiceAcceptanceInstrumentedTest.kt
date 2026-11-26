@@ -23,6 +23,10 @@ class VoiceAcceptanceInstrumentedTest {
         override fun getFilesDir() = root
         override fun getApplicationContext(): Context = this
     }
+    private val downloadContext = object : ContextWrapper(context) {
+        override fun getFilesDir() = File(context.cacheDir, "voice-download-acceptance").apply { mkdirs() }
+        override fun getApplicationContext(): Context = this
+    }
     private fun install(name: String, destination: File) {
         val path = "/data/local/tmp/vern-$name-acceptance.tar.bz2"
         val stream = ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand("cat $path"))
@@ -107,16 +111,55 @@ class VoiceAcceptanceInstrumentedTest {
         org.junit.Assume.assumeTrue("Model network acceptance requires Wi-Fi",
             network.getNetworkCapabilities(network.activeNetwork)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) == true)
         org.junit.Assume.assumeFalse(VoiceModelManager.downloadState.value.values.any { it is DownloadState.Downloading })
-        val downloadRoot = File(context.cacheDir,"voice-download-acceptance").apply { mkdirs() }
-        val downloadContext = object : ContextWrapper(context) {
-            override fun getFilesDir() = downloadRoot
-            override fun getApplicationContext(): Context = this
-        }
         withContext(Dispatchers.IO) {
             for (id in listOf("piper_en_us_ryan", "kokoro_af_heart", "kitten_0")) {
                 val voice = VoiceModelManager.availableVoices.first { it.id == id }
                 assertTrue("Public model download failed: $id",VoiceModelManager.downloadVoice(downloadContext,voice))
                 assertTrue(VoiceModelManager.isVoiceInstalled(downloadContext,id))
+            }
+        }
+    }
+
+    @Test fun kittenLiteAndStudioSynthesizeTheReportedSentences() = runBlocking {
+        val cases = listOf(
+            "Kofi is a boy!." to "Kofi is a boy!",
+            "She is the girl who said \"I am going to school.\"" to "She is the girl who said I am going to school.",
+            "She asked, “Are you sure?!”; I said, ‘Yes.’" to "She asked, Are you sure? I said, Yes.",
+            "Listen: “Take a breath,” she said; “then begin.”" to "Listen: Take a breath, she said; then begin.",
+            "First,, breathe; ; then wait…" to "First, breathe; then wait.",
+        )
+        val voiceIds = listOf("kitten_0", "piper_en_us_ryan", "kokoro_af_heart")
+        for (id in voiceIds) {
+            if (!VoiceModelManager.isVoiceInstalled(downloadContext, id)) {
+                val descriptor = VoiceModelManager.availableVoices.first { it.id == id }
+                assertTrue("Public model download failed: $id", VoiceModelManager.downloadVoice(downloadContext, descriptor))
+            }
+        }
+        withContext(Dispatchers.Default) {
+            for (id in voiceIds) {
+                val engine: TtsEngine = when (id) {
+                    "kitten_0" -> KittenEngine(downloadContext, id)
+                    "piper_en_us_ryan" -> PiperEngine(downloadContext, id)
+                    else -> KokoroTtsEngine(downloadContext, id)
+                }
+                try {
+                    for ((index, pair) in cases.withIndex()) {
+                        val (source, expected) = pair
+                        val segment = SpeechPlan.segment(
+                            "punctuation-fixture", "v1", index, source, VoiceSettings(voiceName = id, localeTag = "en-US"),
+                            NarrationSettings(), 1f, 1f, emptyList(),
+                        )
+                        assertEquals(id, expected, segment.spoken.text)
+                        val audio = requireNotNull(engine.synthesizeFloat(segment.spoken.text, segment.rate, segment.pitch)) {
+                            "$id did not synthesize: $source"
+                        }
+                        assertTrue(id, audio.samples.all(Float::isFinite) && audio.samples.any { kotlin.math.abs(it) > .001f })
+                        PcmWavWriter(File(root, "punctuation-$id-$index.wav"), audio.sampleRate).use { it.append(audio.pcm16()) }
+                    }
+                } finally {
+                    engine.shutdown()
+                    engine.awaitShutdown()
+                }
             }
         }
     }

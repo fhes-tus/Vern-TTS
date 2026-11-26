@@ -19,7 +19,7 @@ class ReadTimeEstimateTest {
             charCount = 5000, // ~1000 words -> 5 mins at 200 WPM
             preview = ""
         )
-        assertEquals("~5m", formatEstimatedReadTime(doc))
+        assertEquals(5, estimatedReadMinutes(doc))
     }
 
     @Test
@@ -36,7 +36,7 @@ class ReadTimeEstimateTest {
             charCount = 500000, // ~100,000 words -> 500 mins -> 8h 20m
             preview = ""
         )
-        assertEquals("~8h 20m", formatEstimatedReadTime(doc))
+        assertEquals(500, estimatedReadMinutes(doc))
     }
 
     @Test
@@ -53,6 +53,6 @@ class ReadTimeEstimateTest {
             charCount = 0,
             preview = ""
         )
-        assertEquals("~5m", formatEstimatedReadTime(doc))
+        assertEquals(5, estimatedReadMinutes(doc))
     }
 }

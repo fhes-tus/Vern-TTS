@@ -197,8 +197,12 @@ object SpeechSanitizer {
         } else {
             input
         }
-        val raw = ReadingTextCleanup.forSpeech(withoutMetadata)
+        val cleaned = ReadingTextCleanup.forSpeech(withoutMetadata)
+        val raw = cleaned.replace(SpeechPunctuation.spacedEllipsis) { "…" }
         if (raw.text.isEmpty()) return raw
+        if (raw.text.trim().all { it == '.' || it == '…' || it.isWhitespace() }) {
+            return raw.replace(Regex("[\\s\\S]+")) { "" }
+        }
 
         // Mute table separator lines (e.g. | --- | --- |)
         if (isTableSeparatorLine(raw.text)) return raw.replace(Regex("[\\s\\S]+")) { "" }

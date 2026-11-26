@@ -10,6 +10,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -52,6 +55,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import com.veritas.reader.ui.screens.menuString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -169,6 +176,7 @@ internal fun ExportAudioStatusDialog(
     message: String?,
     file: File?,
     onShare: (File) -> Unit,
+    onSave: (File, android.net.Uri) -> Unit,
     onCancel: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
@@ -192,6 +200,7 @@ internal fun ExportAudioStatusDialog(
                 )
                 if (file != null) {
                     Text(file.name, fontWeight = FontWeight.SemiBold)
+                    SaveExportedAudioButton(file, onSave)
                 }
             }
         },
@@ -224,21 +233,18 @@ internal fun AiAppStudyDialog(
     onDeleteTemplate: (String) -> Unit = {},
     onClearHistory: () -> Unit = {},
     onCopyText: (String, String) -> Unit,
-    onSaveAiResultAsNote: (String) -> Unit,
+    onSaveAiResultAsNote: (String, (Boolean) -> Unit) -> Unit,
     onImportFlashcards: (String, List<Flashcard>) -> Unit,
     onGenerateInAppFlashcards: ((String, Int, (Boolean, String) -> Unit) -> Unit)? = null,
     onGenerateInAppQuiz: ((String, Int, (Boolean, String, QuizSet?) -> Unit) -> Unit)? = null,
-    onGenerateInAppSummary: ((String, (Boolean, String) -> Unit) -> Unit)? = null,
-    onGenerateInAppExplanation: ((String, String, (Boolean, String) -> Unit) -> Unit)? = null,
-    onGenerateInAppStudyGuide: ((String, (Boolean, String) -> Unit) -> Unit)? = null,
+    onGenerateInAppText: (AiPromptType, String, String, (String) -> Unit, (Boolean, String) -> Unit) -> Unit,
     onSaveQuiz: ((QuizSet) -> Unit)? = null,
     onRecordQuizScore: ((String, Int) -> Unit)? = null,
-    onRateFlashcard: ((String, String) -> Unit)? = null,
     onOpenStudyHub: (() -> Unit)? = null,
     onCancelGeneration: () -> Unit = {}
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    rememberCoroutineScope()
+    val clipboardScope = rememberCoroutineScope()
     DisposableEffect(Unit) { onDispose { onCancelGeneration() } }
     val clipboard = remember { context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
 
@@ -260,50 +266,52 @@ internal fun AiAppStudyDialog(
 
     var isGenerating by remember { mutableStateOf(false) }
     var generatingStatus by remember { mutableStateOf("Generating with AI...") }
+    var streamedAnswer by remember { mutableStateOf("") }
+    val responseLocation = remember { BringIntoViewRequester() }
 
     var activeResultPreview by remember { mutableStateOf<ModernStudyResultPreview?>(null) }
     var activeQuizQuestions by remember { mutableStateOf<List<QuizQuestion>?>(null) }
     var activeQuizId by remember { mutableStateOf<String?>(null) }
     var activeStudyDeckCards by remember { mutableStateOf<Pair<String, List<Flashcard>>?>(null) }
+    var savingAiNote by remember { mutableStateOf(false) }
 
-    // Clipboard auto-detection
     var detectedClipboardText by remember { mutableStateOf<String?>(null) }
     var detectedCards by remember { mutableStateOf<List<Flashcard>>(emptyList()) }
     var detectedQuiz by remember { mutableStateOf<List<QuizQuestion>>(emptyList()) }
     var bannerDismissed by remember { mutableStateOf(false) }
 
+    var readingClipboard by remember { mutableStateOf(false) }
+    var clipboardMessage by remember { mutableStateOf<Int?>(null) }
+
     fun checkClipboard() {
-        val clip = clipboard.primaryClip
-        if (clip != null && clip.itemCount > 0) {
-            val text = clip.getItemAt(0).text?.toString().orEmpty().trim()
-            if (text.length > 20 && text != detectedClipboardText) {
-                val quiz = AiResultParser.parseQuiz(text)
-                val isLikelyQuiz = quiz.isNotEmpty() || AiResultParser.isLikelyQuiz(text)
-                val cards = if (isLikelyQuiz) emptyList() else AiResultParser.parseFlashcards(text)
-                if (cards.isNotEmpty() || quiz.isNotEmpty() || (text.length > 50 && !text.startsWith("You are an expert"))) {
-                    detectedClipboardText = text
-                    detectedCards = cards
-                    detectedQuiz = quiz
-                    bannerDismissed = false
+        readingClipboard = true
+        clipboardMessage = null
+        detectedClipboardText = null
+        detectedCards = emptyList()
+        detectedQuiz = emptyList()
+        clipboardScope.launch {
+            try {
+                val clip = clipboard.primaryClip
+                val raw = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text
+                if (raw == null || raw.length !in 1..30_000) {
+                    clipboardMessage = R.string.study_ai_clipboard_invalid
+                    return@launch
                 }
+                val text = raw.toString().trim()
+                val (quiz, cards) = withContext(Dispatchers.Default) {
+                    val parsedQuiz = AiResultParser.parseQuiz(text)
+                    parsedQuiz to if (parsedQuiz.isEmpty()) AiResultParser.parseFlashcards(text) else emptyList()
+                }
+                detectedClipboardText = text.takeIf { cards.isNotEmpty() || quiz.isNotEmpty() }
+                detectedCards = cards
+                detectedQuiz = quiz
+                bannerDismissed = false
+                if (detectedClipboardText == null) clipboardMessage = R.string.study_ai_clipboard_invalid
+            } catch (_: SecurityException) {
+                clipboardMessage = R.string.study_ai_clipboard_invalid
+            } finally {
+                readingClipboard = false
             }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        checkClipboard()
-    }
-
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                checkClipboard()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -311,27 +319,13 @@ internal fun AiAppStudyDialog(
         GeminiStudyService.hasApiKey(context)
     }
 
-    val installedAiList = remember(context) { installedAiOptions(context) }
-    val defaultAiId = remember(askAiSettings, installedAiList) {
-        if (askAiSettings == null || askAiSettings.assistantId.isBlank() || askAiSettings.assistantId == "chooser") {
-            if (installedAiList.isNotEmpty()) installedAiList.first().first.id else "chooser"
-        } else {
-            askAiSettings.assistantId
-        }
-    }
-    val defaultAiName = remember(askAiSettings, installedAiList) {
-        if (askAiSettings == null || askAiSettings.assistantId.isBlank() || askAiSettings.assistantId == "chooser") {
-            if (installedAiList.isNotEmpty()) installedAiList.first().first.label else "Share Menu"
-        } else {
-            aiAssistantOptions.firstOrNull { it.id == askAiSettings.assistantId }?.label ?: "Share Menu"
-        }
-    }
+    val preferredPackage = remember(context, askAiSettings) { AiPromptLauncher.preferredAiPackage(context, askAiSettings) }
+    val defaultAiId = askAiSettings?.assistantId?.takeIf { preferredPackage != null } ?: "chooser"
+    val defaultAiName = askAiSettings?.assistantLabel?.takeIf { preferredPackage != null && it.isNotBlank() } ?: "Share Menu"
 
     val currentRange = remember(selectedScope, customStartPage, customEndPage, document.pageCount) {
         if (selectedScope == AiPromptScope.CUSTOM_PAGE_RANGE) {
-            val start = customStartPage.toIntOrNull() ?: 1
-            val end = customEndPage.toIntOrNull() ?: document.pageCount
-            minOf(start, end).coerceIn(1, document.pageCount.coerceAtLeast(1))..maxOf(start, end).coerceIn(1, document.pageCount.coerceAtLeast(1))
+            explicitStudyPageRange(customStartPage, customEndPage, document.pageCount.coerceAtLeast(1))
         } else null
     }
 
@@ -339,9 +333,7 @@ internal fun AiAppStudyDialog(
         AiPromptLauncher.getSelectedSentences(document, currentIndex, selectedScope, currentRange)
     }
 
-    val scopeText = remember(scopeSentences) {
-        AiPromptLauncher.extractTextForScope(document, currentIndex, selectedScope, currentRange)
-    }
+    val scopeText = remember(scopeSentences) { AiPromptLauncher.buildMarkdownForSentences(scopeSentences) }
 
     val scopeWordCount = remember(scopeSentences) {
         scopeSentences.sumOf { it.text.split(Regex("\\s+")).size }
@@ -363,7 +355,10 @@ internal fun AiAppStudyDialog(
     }
 
     if (showPasteQuiz) {
-        PasteQuizDialog(onDismiss = { showPasteQuiz = false })
+        PasteQuizDialog(
+            onSaveQuiz = onSaveQuiz?.let { save -> { quiz -> save(quiz.copy(documentId = document.id.orEmpty())) } },
+            onDismiss = { showPasteQuiz = false }
+        )
     }
 
     activeQuizQuestions?.let { questions ->
@@ -385,7 +380,7 @@ internal fun AiAppStudyDialog(
 
     activeStudyDeckCards?.let { (deckTitle, cards) ->
         FlashcardViewerDialog(
-            setName = deckTitle,
+            setName = menuString(R.string.study_ai_practice_deck_title, deckTitle),
             cards = cards.mapIndexed { idx, card ->
                 FlashcardProgress(
                     id = "${document.id.orEmpty()}_card_$idx",
@@ -395,24 +390,35 @@ internal fun AiAppStudyDialog(
                     setName = deckTitle
                 )
             },
-            onRate = { cardId, rating ->
-                onRateFlashcard?.invoke(cardId, rating)
-            },
+            onRate = { _, _, finish -> finish(true) },
             onDeleteCard = {},
+            practiceOnly = true,
             onDismiss = { activeStudyDeckCards = null }
         )
     }
 
     fun handleExternalHandoff(type: AiPromptType) {
-        AiPromptLauncher.buildPrompt(
-            title = document.title,
-            chunks = document.chunks,
-            currentIndex = PlaybackStateStore.currentIndex,
-            type = type,
-            scope = selectedScope
-        )
+        if (scopeText.isBlank()) return
         onSendToAiApp(type, "", selectedScope, currentRange)
-        Toast.makeText(context, "Prompt ready in $defaultAiName. Return here when done!", Toast.LENGTH_LONG).show()
+    }
+
+    fun generateText(type: AiPromptType, question: String) {
+        if (isGenerating || scopeText.isBlank()) return
+        val title = context.getString(when (type) {
+            AiPromptType.SUMMARY -> R.string.l10n_executive_summary
+            AiPromptType.EXPLAIN_SECTION -> R.string.l10n_explain_simplify
+            AiPromptType.STUDY_NOTES -> R.string.study_ai_guide_title
+            else -> R.string.study_ai_answer_title
+        })
+        generatingStatus = context.getString(R.string.study_ai_answer_streaming)
+        streamedAnswer = ""
+        isGenerating = true
+        onGenerateInAppText(type, scopeText, question, { streamedAnswer = it }) { success, result ->
+            isGenerating = false
+            streamedAnswer = ""
+            if (success) activeResultPreview = ModernStudyResultPreview.NoteText(type, title, result)
+            else Toast.makeText(context, result, Toast.LENGTH_LONG).show()
+        }
     }
 
     Dialog(
@@ -641,6 +647,12 @@ internal fun AiAppStudyDialog(
                                     )
                                 }
                             }
+                            if (scopeText.isBlank()) {
+                                Text(menuString(R.string.study_ai_empty_scope), color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall)
+                            } else if (hasGeminiKey && scopeText.length > AI_STUDY_EXCERPT_LIMIT) {
+                                Text(menuString(R.string.study_ai_scope_limit), style = MaterialTheme.typography.bodySmall)
+                            }
                         }
                     }
 
@@ -653,7 +665,10 @@ internal fun AiAppStudyDialog(
                         selectedScope = selectedScope
                     )
 
-                    // Clipboard Auto-Detection Banner
+                    TextButton(onClick = { checkClipboard() }, enabled = !readingClipboard) {
+                        Text(menuString(R.string.study_ai_check_clipboard))
+                    }
+                    clipboardMessage?.let { Text(menuString(it), style = MaterialTheme.typography.bodySmall) }
                     AiStudyClipboardBanner(
                         detectedClipboardText = detectedClipboardText,
                         bannerDismissed = bannerDismissed,
@@ -668,7 +683,9 @@ internal fun AiAppStudyDialog(
                     )
                     // In-Progress Loading Card
                     if (isGenerating) {
+                        LaunchedEffect(Unit) { responseLocation.bringIntoView() }
                         Card(
+                            modifier = Modifier.bringIntoViewRequester(responseLocation),
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
@@ -697,10 +714,18 @@ internal fun AiAppStudyDialog(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                TextButton(onClick = { onCancelGeneration(); isGenerating = false }) {
+                                TextButton(onClick = {
+                                    onCancelGeneration()
+                                    isGenerating = false
+                                    streamedAnswer = ""
+                                }) {
                                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel))
                                 }
                             }
+                        }
+                        if (streamedAnswer.isNotBlank()) {
+                            Text(streamedAnswer, modifier = Modifier.padding(horizontal = 8.dp),
+                                style = MaterialTheme.typography.bodyMedium)
                         }
                     }
 
@@ -718,8 +743,14 @@ internal fun AiAppStudyDialog(
                                 activeQuizQuestions = quiz.questions
                             },
                             onSaveNote = { text ->
-                                onSaveAiResultAsNote(text)
-                                Toast.makeText(context, "Saved note to sentence ${(safeIndex + 1)}!", Toast.LENGTH_SHORT).show()
+                                if (!savingAiNote) {
+                                    savingAiNote = true
+                                    onSaveAiResultAsNote(text) { success ->
+                                        savingAiNote = false
+                                        val message = if (success) R.string.study_ai_note_saved else R.string.study_ai_note_save_failed
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    }
+                                }
                             },
                             onCopy = { label, text -> onCopyText(label, text) }
                         )
@@ -739,12 +770,9 @@ internal fun AiAppStudyDialog(
                         onImportFlashcards = onImportFlashcards,
                         onSaveQuiz = onSaveQuiz,
                         onCopyText = onCopyText,
-                        onSaveAiResultAsNote = onSaveAiResultAsNote,
                         onGenerateInAppFlashcards = onGenerateInAppFlashcards,
                         onGenerateInAppQuiz = onGenerateInAppQuiz,
-                        onGenerateInAppSummary = onGenerateInAppSummary,
-                        onGenerateInAppExplanation = onGenerateInAppExplanation,
-                        onGenerateInAppStudyGuide = onGenerateInAppStudyGuide,
+                        onGenerateText = ::generateText,
                         onSetGenerating = { generating, status ->
                             isGenerating = generating
                             if (status.isNotBlank()) generatingStatus = status
@@ -753,7 +781,11 @@ internal fun AiAppStudyDialog(
                         onExternalHandoff = { handleExternalHandoff(it) }
                     )
 
-                    CustomAiHandoffCard(includeContextField = false) { instructions, _ ->
+                    CustomAiHandoffCard(
+                        includeContextField = false,
+                        canSend = !isGenerating && scopeText.isNotBlank(),
+                        onAskInVern = if (hasGeminiKey) { question -> generateText(AiPromptType.CUSTOM, question) } else null
+                    ) { instructions, _ ->
                         onSendToAiApp(AiPromptType.CUSTOM, instructions, selectedScope, currentRange)
                     }
 
@@ -775,6 +807,7 @@ internal fun AiAppStudyDialog(
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun QuickExternalAiChips(
     context: Context,
@@ -783,68 +816,70 @@ private fun QuickExternalAiChips(
     safeIndex: Int,
     selectedScope: AiPromptScope
 ) {
-    val aiHandoffs = remember {
-        listOf(
-            Triple("Gemini", "com.google.android.apps.bard", "https://gemini.google.com"),
-            Triple("ChatGPT", "com.openai.chatgpt", "https://chatgpt.com"),
-            Triple("Claude", "com.anthropic.claude", "https://claude.ai"),
-            Triple("Grok", "ai.groq", "https://x.ai"),
-            Triple("Perplexity", "ai.perplexity.app.android", "https://www.perplexity.ai"),
-            Triple("Copilot", "com.microsoft.copilot", "https://copilot.microsoft.com")
+    val sites = remember {
+        mapOf(
+            "gemini" to "https://gemini.google.com/",
+            "chatgpt" to "https://chatgpt.com/",
+            "claude" to "https://claude.ai/",
+            "grok" to "https://grok.com/",
+            "perplexity" to "https://www.perplexity.ai/",
+            "copilot" to "https://copilot.microsoft.com/"
+        )
+    }
+    val providers = remember { sites.keys.mapNotNull { id -> aiAssistantOptions.firstOrNull { it.id == id } } }
+    var selectedProvider by remember { mutableStateOf<AiAssistantOption?>(null) }
+    selectedProvider?.let { provider ->
+        val instructions = remember(document.title, safeIndex, selectedScope) {
+            AiPromptLauncher.buildPrompt(document.title, document.chunks, safeIndex, AiPromptType.STUDY_NOTES,
+                scope = selectedScope)
+        }
+        val prompt = remember(instructions, scopeText) { "$instructions\n\n$scopeText" }
+        AlertDialog(
+            onDismissRequest = { selectedProvider = null },
+            title = { Text(menuString(R.string.study_handoff_open_provider, provider.label)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(menuString(R.string.study_handoff_review))
+                    Text(instructions, style = MaterialTheme.typography.bodySmall,
+                        maxLines = 5, overflow = TextOverflow.Ellipsis)
+                    Text(menuString(R.string.study_handoff_context_count, scopeText.length),
+                        style = MaterialTheme.typography.labelMedium)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedProvider = null
+                    if (prompt.length > 60_000) {
+                        AiPromptLauncher.sharePreparedStudyPrompt(context, prompt, provider)
+                    } else {
+                        launchExternalAiHandoff(context, provider, sites.getValue(provider.id), prompt)
+                    }
+                }) { Text(menuString(if (prompt.length > 60_000) R.string.study_handoff_share_file else R.string.study_handoff_copy_open)) }
+            },
+            dismissButton = { TextButton(onClick = { selectedProvider = null }) { Text(menuString(R.string.ui_cancel)) } }
         )
     }
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = VeritasPackStyle.compactShape(),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_quick_external_ai_hand_off),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_auto_copies_prompt),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                aiHandoffs.forEach { (name, pkg, webUrl) ->
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(menuString(R.string.study_handoff_title), style = MaterialTheme.typography.titleMedium)
+            Text(menuString(R.string.study_handoff_review), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                providers.forEach { provider ->
                     AssistChip(
-                        onClick = {
-                            val prompt = AiPromptLauncher.buildPrompt(
-                                title = document.title,
-                                chunks = document.chunks,
-                                currentIndex = safeIndex,
-                                type = AiPromptType.STUDY_NOTES,
-                                scope = selectedScope
-                            ) + "\n\n" + scopeText
-                            launchExternalAiHandoff(context, name, pkg, webUrl, prompt)
-                        },
-                        label = { Text(name, fontWeight = FontWeight.SemiBold) },
+                        enabled = scopeText.isNotBlank(),
+                        onClick = { selectedProvider = provider },
+                        label = { Text(provider.label) },
                         leadingIcon = {
-                            Icon(
-                                imageVector = aiAssistantIcon(name),
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = Color.Unspecified
-                            )
+                            Icon(aiAssistantIcon(provider.id), null, Modifier.size(17.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         },
-                        shape = RoundedCornerShape(50)
+                        shape = VeritasPackStyle.chipShape()
                     )
                 }
             }
@@ -854,36 +889,13 @@ private fun QuickExternalAiChips(
 
 private fun launchExternalAiHandoff(
     context: Context,
-    appName: String,
-    packageName: String,
+    provider: AiAssistantOption,
     webUrl: String,
     prompt: String
 ) {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText("Vern AI Prompt", prompt))
-
-    var launched = false
-    if (packageName.isNotBlank()) {
-        val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
-        if (launchIntent != null) {
-            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            try {
-                context.startActivity(launchIntent)
-                Toast.makeText(context, "Prompt copied! Opening $appName...", Toast.LENGTH_SHORT).show()
-                launched = true
-            } catch (_: Exception) {}
-        }
-    }
-
-    if (!launched) {
-        try {
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(webUrl)).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            context.startActivity(browserIntent)
-            Toast.makeText(context, "Prompt copied! Opening $appName in browser...", Toast.LENGTH_SHORT).show()
-        } catch (_: Exception) {
-            Toast.makeText(context, "Prompt copied to clipboard!", Toast.LENGTH_SHORT).show()
-        }
-    }
+    AiPromptLauncher.copyPromptToClipboard(context, prompt)
+    val app = context.packageManager.getLaunchIntentForPackage(provider.packageName)
+    val opened = app != null && runCatching { context.startActivity(app) }.isSuccess
+    if (!opened) runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(webUrl))) }
+    Toast.makeText(context, context.getString(R.string.study_handoff_prompt_copied), Toast.LENGTH_SHORT).show()
 }

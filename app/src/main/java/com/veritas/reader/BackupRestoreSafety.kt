@@ -22,9 +22,28 @@ internal object BackupRestoreSafety {
     }
 
     fun parseAndValidate(raw: String): JSONObject {
-        require(raw.toByteArray(Charsets.UTF_8).size <= MAX_JSON_BYTES) { "Backup JSON is too large." }
+        requireJsonSize(raw.toByteArray(Charsets.UTF_8).size.toLong())
         val root = runCatching { JSONObject(raw) }
             .getOrElse { throw IllegalArgumentException("This is not a valid Vern backup file.", it) }
+        validate(root)
+        return root
+    }
+
+    fun requireJsonSize(size: Long) {
+        require(size in 0..MAX_JSON_BYTES) { "Backup JSON exceeds the supported 64 MiB limit." }
+    }
+
+    fun requireArchiveBounds(jsonSize: Long, assetSizes: List<Long>) {
+        requireJsonSize(jsonSize)
+        require(assetSizes.size < MAX_ENTRIES) { "The backup contains too many archive entries." }
+        var remaining = MAX_ARCHIVE_BYTES - jsonSize
+        assetSizes.forEach { size ->
+            require(size in 0..remaining) { "The expanded backup exceeds the supported 2 GiB limit." }
+            remaining -= size
+        }
+    }
+
+    fun validate(root: JSONObject) {
         val schema = root.optString("schema")
         require(schema.isBlank() || schema == "veritas.reader.backup.v1") { "Unsupported backup schema: $schema" }
         val documents = root.optJSONArray("documents")
@@ -63,12 +82,15 @@ internal object BackupRestoreSafety {
             }
         }
         val mediaPaths = mutableSetOf<String>()
+        val mediaIds = mutableSetOf<String>()
         root.optJSONArray("noteMedia")?.let { media ->
             for (i in 0 until media.length()) {
                 val entry = media.getJSONObject(i)
                 val name = entry.optString("fileName")
                 requireFileName(name)
                 require(mediaNames.add(name)) { "Duplicate note attachment in backup." }
+                val id = entry.optString("id")
+                require(id.isBlank() || mediaIds.add(id)) { "Duplicate attachment identity in archive." }
                 val path = entry.optString("path")
                 require(path.length in 1..4096 && path.none { it.isISOControl() } && mediaPaths.add(path)) { "Invalid note attachment reference." }
                 requireFileName(path.substringAfterLast('/').substringAfterLast('\\'))
@@ -77,13 +99,16 @@ internal object BackupRestoreSafety {
         listOf("readerSettings", "voiceSettings", "narrationSettings", "askAiSettings", "docReadingTimesThisMonth").forEach { key ->
             require(!root.has(key) || root.optJSONObject(key) != null) { "Invalid backup section: $key" }
         }
-        return root
     }
 
-    fun copyBounded(input: InputStream, output: OutputStream, limit: Long): Long {
+    fun copyBounded(input: InputStream, output: OutputStream, limit: Long): Long =
+        copyBounded(input, output, limit) {}
+
+    fun copyBounded(input: InputStream, output: OutputStream, limit: Long, checkActive: () -> Unit): Long {
         var total = 0L
         val buffer = ByteArray(64 * 1024)
         while (true) {
+            checkActive()
             val count = input.read(buffer)
             if (count < 0) return total
             total += count

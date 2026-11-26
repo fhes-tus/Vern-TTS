@@ -145,13 +145,14 @@ internal fun InsightsModeBars(reading: Long, listening: Long, key: String) {
     val phase = rememberInsightsPhase("mode-$key")
     val maximum = maxOf(reading, listening, 1L).toFloat()
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        listOf(Triple("Reading", reading, scheme.primary), Triple("Listening", listening, scheme.tertiary)).forEach { (label, duration, tint) ->
+        listOf(Triple("Reading", reading, scheme.primary), Triple("Listening", listening, scheme.tertiary)).forEach { (mode, duration, tint) ->
+            val label = menuString(if (mode == "Reading") com.veritas.reader.R.string.ui_reading else com.veritas.reader.R.string.ui_listening)
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(label, style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
                     Text(formatTrackerDuration(duration), style = MaterialTheme.typography.labelMedium)
                 }
-                Canvas(Modifier.fillMaxWidth().height(9.dp).testTag("insights-mode-$key-$label").semantics {
+                Canvas(Modifier.fillMaxWidth().height(9.dp).testTag("insights-mode-$key-$mode").semantics {
                     contentDescription = "$label: ${formatTrackerDuration(duration)}"
                 }) {
                     val y = size.height / 2f
@@ -208,7 +209,7 @@ internal fun InsightsSessionCard(session: ReadingSession, document: SavedDocumen
     val scheme = MaterialTheme.colorScheme
     val reading = session.mode == ReadingSessionMode.READING
     val tint = if (reading) scheme.primary else scheme.tertiary
-    val mode = if (reading) "Reading" else "Listening"
+    val mode = menuString(if (reading) com.veritas.reader.R.string.ui_reading else com.veritas.reader.R.string.ui_listening)
     InsightsDetailCard {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (document != null) DocumentArtwork(document, Modifier.size(44.dp, 62.dp)
@@ -220,7 +221,9 @@ internal fun InsightsSessionCard(session: ReadingSession, document: SavedDocumen
                 Text(session.title, style = MaterialTheme.typography.titleSmall,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text("$mode · ${formatTrackerDuration(session.activeMillis)}", style = MaterialTheme.typography.bodyMedium, color = tint)
-                Text(insightsTime(session.startedAt), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                if (session.manualDate == null) {
+                    Text(insightsTime(session.startedAt), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                }
             }
             InsightsDetailEmblem(if (reading) Icons.AutoMirrored.Filled.MenuBook else Icons.Default.Headphones, "insights-session-${session.id}")
         }
@@ -248,8 +251,10 @@ private fun SessionStatus(text: String, color: Color) {
     }
 }
 
-internal fun insightsDate(time: Long): String = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMM yyyy"))
-private fun insightsTime(time: Long): String = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("h:mm a"))
+@Composable
+internal fun insightsDate(time: Long): String = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(androidx.compose.ui.platform.LocalConfiguration.current.locales[0]))
+@Composable
+private fun insightsTime(time: Long): String = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.SHORT).withLocale(androidx.compose.ui.platform.LocalConfiguration.current.locales[0]))
 
 @Composable
 internal fun InsightsLocationBars(summary: com.veritas.reader.ReadingLocationSummary) {

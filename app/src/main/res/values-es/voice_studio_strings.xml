@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_studio_customize">Personalizar</string>
+    <string name="voice_studio_models_hint">Descargar voces para leer sin conexión</string>
+    <string name="voice_studio_phone_more_hint">Instalar otro motor de voz o idioma</string>
+    <string name="voice_studio_use_language_default">Usar la voz predeterminada del teléfono para este idioma</string>
+    <string name="voice_studio_phone_engine">Motor de voz del teléfono</string>
+    <string name="voice_studio_refresh_engines">Actualizar motores de voz</string>
+    <string name="voice_studio_preset_values">%1$s · velocidad %2$s× · tono %3$s×</string>
+    <string name="voice_studio_multiplier">%1$s×</string>
+    <string name="voice_studio_preset_balanced">Velocidad y tono habituales de la voz.</string>
+    <string name="voice_studio_preset_study">Lectura más lenta con el tono original.</string>
+    <string name="voice_studio_preset_scan">Lectura más rápida con el tono original.</string>
+    <string name="voice_studio_preset_story">Un ritmo algo más lento y un tono más grave.</string>
+    <string name="voice_studio_preset_lecture">Un ritmo algo más rápido y un tono más agudo.</string>
+    <string name="voice_studio_preset_bedtime">Un ritmo más lento y un tono más grave para escuchar con calma.</string>
+    <string name="voice_studio_cloud_preview_help">Aplica los ajustes y usa Probar voz para escuchar la voz en la nube.</string>
+</resources>

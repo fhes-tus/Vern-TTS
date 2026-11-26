@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_studio_customize">自定义</string>
+    <string name="voice_studio_models_hint">下载语音以离线朗读</string>
+    <string name="voice_studio_phone_more_hint">安装其他语音引擎或语言</string>
+    <string name="voice_studio_use_language_default">使用手机为此语言提供的默认语音</string>
+    <string name="voice_studio_phone_engine">手机语音引擎</string>
+    <string name="voice_studio_refresh_engines">刷新语音引擎</string>
+    <string name="voice_studio_preset_values">%1$s · 语速 %2$s 倍 · 音高 %3$s 倍</string>
+    <string name="voice_studio_multiplier">%1$s 倍</string>
+    <string name="voice_studio_preset_balanced">使用此语音的标准语速和音高。</string>
+    <string name="voice_studio_preset_study">放慢语速，保留原有音高。</string>
+    <string name="voice_studio_preset_scan">加快语速，保留原有音高。</string>
+    <string name="voice_studio_preset_story">语速略慢，音高略低。</string>
+    <string name="voice_studio_preset_lecture">语速略快，音高略高。</string>
+    <string name="voice_studio_preset_bedtime">放慢语速并降低音高，适合安静聆听。</string>
+    <string name="voice_studio_cloud_preview_help">应用设置后，使用“测试语音”试听云端语音。</string>
+</resources>

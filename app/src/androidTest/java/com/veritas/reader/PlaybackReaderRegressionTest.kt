@@ -50,6 +50,89 @@ class PlaybackReaderRegressionTest {
         return null
     }
 
+    @Test fun playWithAnUninstalledVoiceOpensTheVoiceStudioPrompt() {
+        val repository = DocumentRepository(context)
+        val previousVoice = repository.loadVoiceSettings()
+        val previousNarration = repository.loadNarrationSettings()
+        val previousCloud = CloudVoiceStore.load(context)
+        assumeLocalVoicePlayback(previousCloud)
+        val saved = repository.createDocument(
+            title = "Missing voice check ${UUID.randomUUID()}",
+            text = "This sentence requires the selected speech voice.",
+            sourceLabel = "TXT"
+        )
+        context.stopService(Intent(context, PlaybackService::class.java))
+        repository.saveNarrationSettings(NarrationSettings(enabled = false))
+        repository.saveVoiceSettings(VoiceSettings(
+            enginePackage = VoiceManager.KITTEN,
+            voiceName = "kitten-regression-not-installed",
+            voiceLabel = "Missing test voice"
+        ))
+        val scenario = ActivityScenario.launch<MainActivity>(Intent(context, MainActivity::class.java))
+        lateinit var vm: ReaderViewModel
+        try {
+            scenario.onActivity {
+                vm = ViewModelProvider(it)[ReaderViewModel::class.java]
+                vm.openSavedDocument(saved)
+            }
+            await("Reader opens") { vm.uiState.value.activeDocument?.id == saved.id }
+            org.junit.Assume.assumeTrue(android.os.Build.VERSION.SDK_INT >= 29)
+            var existingWindows = emptySet<View>()
+            scenario.onActivity {
+                existingWindows = android.view.inspector.WindowInspector.getGlobalWindowViews().toSet()
+                vm.playOrPause()
+            }
+            await("The missing-voice failure stops the player") {
+                PlaybackStateStore.playbackVoiceNotInstalled && !PlaybackStateStore.isPlaying &&
+                    !PlaybackStateStore.isPreparing
+            }
+            await("The missing-voice popup attaches a visible window") {
+                var shown = false
+                scenario.onActivity {
+                    shown = android.view.inspector.WindowInspector.getGlobalWindowViews().any { window ->
+                        window !in existingWindows && window.isAttachedToWindow && window.isShown
+                    }
+                }
+                shown
+            }
+        } finally {
+            scenario.onActivity { vm.stopServicePlayback() }
+            context.stopService(Intent(context, PlaybackService::class.java))
+            scenario.close()
+            repository.deleteDocument(saved.id)
+            repository.saveVoiceSettings(previousVoice)
+            repository.saveNarrationSettings(previousNarration)
+        }
+    }
+
+    private fun assumeLocalVoicePlayback(config: CloudVoiceConfig) {
+        org.junit.Assume.assumeFalse("This case exercises local voice installation", config.enabled)
+    }
+
+    @Test fun installedKittenSynthesizesTheVerseRangeAndFadesTerminalPunctuation() {
+        val voiceId = "kitten_0"
+        org.junit.Assume.assumeTrue(com.veritas.reader.tts.VoiceModelManager.isVoiceInstalled(context, voiceId))
+        val voice = VoiceSettings(enginePackage = VoiceManager.KITTEN, voiceName = voiceId, localeTag = "en-US")
+        val engine = com.veritas.reader.tts.KittenEngine(context, voiceId)
+        try {
+            kotlinx.coroutines.runBlocking {
+                for (punctuation in listOf("?", "!", ":", ";", ",", " . . .")) {
+                    val source = "Matthew 3:4-5$punctuation"
+                    val sentence = ReaderTextIndex.build(source, 1).sentences.first()
+                    val spoken = SpeechPlan.segment("test", "1", sentence.index, sentence.text, voice,
+                        NarrationSettings(), 1f, 1f, emptyList()).spoken.text
+                    assertTrue(spoken, spoken.startsWith("Matthew 3 verse 4 to 5"))
+                    val audio = requireNotNull(engine.synthesizeFloat(spoken, 1f, 1f))
+                    assertTrue(audio.samples.any { kotlin.math.abs(it) > .001f })
+                    assertEquals(0f, audio.samples.last(), 0f)
+                }
+            }
+        } finally {
+            engine.shutdown()
+            kotlinx.coroutines.runBlocking { engine.awaitShutdown() }
+        }
+    }
+
     @Test fun coldReadFromHereAndRepeatedPlayKeepSpeechAndExactSelectionAlive() {
         val repository = DocumentRepository(context)
         repository.markOnboardingComplete("Regression reader")

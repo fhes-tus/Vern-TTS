@@ -150,7 +150,7 @@ internal fun PlaybackService.vibrateShake() {
 
 internal fun PlaybackService.createSleepTimerTicker(): Runnable = object : Runnable {
     override fun run() {
-        val snapshot = PlaybackStateStore.activeSleepTimerSnapshot()
+        val snapshot = PlaybackStateStore.armedSleepTimerSnapshot()
         if (snapshot == null) {
             sleepFadeVolume = 1.0f
             return
@@ -176,7 +176,7 @@ internal fun PlaybackService.createSleepTimerTicker(): Runnable = object : Runna
 
 internal fun PlaybackService.scheduleSleepTimerFromStore() {
     cancelSleepTimerCallback()
-    val snapshot = PlaybackStateStore.activeSleepTimerSnapshot() ?: return
+    val snapshot = PlaybackStateStore.armedSleepTimerSnapshot() ?: return
     registerShakeListenerIfNeeded()
     if (snapshot.stopAtEndOfSection) {
         return
@@ -202,8 +202,8 @@ internal fun PlaybackService.cancelSleepTimer(message: String) {
 }
 
 internal fun PlaybackService.fireSleepTimer() {
-    val snapshot = PlaybackStateStore.activeSleepTimerSnapshot()
-    val action = snapshot?.action ?: VeritasSleepTimerAction.PAUSE
+    val snapshot = PlaybackStateStore.armedSleepTimerSnapshot() ?: return
+    val action = snapshot.action
     cancelSleepTimerCallback()
     repository.clearSleepTimerState()
     PlaybackStateStore.clearSleepTimer()

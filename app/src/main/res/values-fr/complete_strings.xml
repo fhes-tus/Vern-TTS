@@ -337,7 +337,7 @@
     <string name="ui_new" formatted="false">"NOUVEAU"</string>
     <string name="ui_new_notebook" formatted="false">"Nouveau carnet"</string>
     <string name="ui_new_quiz" formatted="false">"Nouveau quiz"</string>
-    <string name="ui_new_reading_list" formatted="false">"Nouvelle liste de lecture"</string>
+    <string name="ui_new_reading_list" formatted="false">"Nouvelle collection"</string>
     <string name="ui_next_2f04eb1" formatted="false">"Suivant →"</string>
     <string name="ui_next_card" formatted="false">"Fiche suivante"</string>
     <string name="ui_next_chapter" formatted="false">"Chapitre suivant"</string>
@@ -375,7 +375,7 @@
     <string name="ui_no_readable_text_was_extracted_for_this_page" formatted="false">"Aucun texte lisible extrait pour cette page."</string>
     <string name="ui_no_reading_activity_recorded" formatted="false">"Aucune activité de lecture enregistrée"</string>
     <string name="ui_no_reading_history_yet" formatted="false">"Aucun historique de lecture."</string>
-    <string name="ui_no_reading_lists_yet" formatted="false">"Aucune liste de lecture."</string>
+    <string name="ui_no_reading_lists_yet" formatted="false">"Aucune collection pour le moment."</string>
     <string name="ui_no_saved_highlights_yet" formatted="false">"Aucun surlignage enregistré."</string>
     <string name="ui_no_saved_readings_yet" formatted="false">"Aucune lecture enregistrée"</string>
     <string name="ui_no_sentence_notes_yet" formatted="false">"Aucune note de phrase."</string>
@@ -610,6 +610,7 @@
     <string name="ui_silent_rsvp_save_for_audio" formatted="false">"RSVP silencieux · enregistrer pour l’audio"</string>
     <string name="ui_silent_visual_rsvp" formatted="false">"RSVP visuel silencieux"</string>
     <string name="ui_skip_table" formatted="false">"Ignorer le tableau"</string>
+    <string name="ui_skip_figure">Ignorer l’illustration</string>
     <string name="ui_slides_options" formatted="false">"Options des diapositives"</string>
     <string name="ui_slower_0_05" formatted="false">"Plus lent −0,05×"</string>
     <string name="ui_smart_resume_catch_up" formatted="false">"Récapitulatif de reprise"</string>

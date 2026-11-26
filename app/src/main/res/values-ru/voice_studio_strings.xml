@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_studio_customize">Настроить</string>
+    <string name="voice_studio_models_hint">Скачать голоса для чтения без интернета</string>
+    <string name="voice_studio_phone_more_hint">Установить другой речевой движок или язык</string>
+    <string name="voice_studio_use_language_default">Использовать голос телефона по умолчанию для этого языка</string>
+    <string name="voice_studio_phone_engine">Речевой движок телефона</string>
+    <string name="voice_studio_refresh_engines">Обновить список речевых движков</string>
+    <string name="voice_studio_preset_values">%1$s · скорость %2$s× · высота %3$s×</string>
+    <string name="voice_studio_multiplier">%1$s×</string>
+    <string name="voice_studio_preset_balanced">Стандартная скорость и высота голоса.</string>
+    <string name="voice_studio_preset_study">Медленнее, с исходной высотой голоса.</string>
+    <string name="voice_studio_preset_scan">Быстрее, с исходной высотой голоса.</string>
+    <string name="voice_studio_preset_story">Немного медленнее и ниже.</string>
+    <string name="voice_studio_preset_lecture">Немного быстрее и выше.</string>
+    <string name="voice_studio_preset_bedtime">Медленнее и ниже для спокойного прослушивания.</string>
+    <string name="voice_studio_cloud_preview_help">Примените настройки, затем используйте проверку голоса, чтобы услышать облачный голос.</string>
+</resources>

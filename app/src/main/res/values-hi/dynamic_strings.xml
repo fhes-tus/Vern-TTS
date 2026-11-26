@@ -29,7 +29,7 @@
     <string name="l10n_dynamic_026">"दस्तावेज़: %1$s"</string>
     <string name="l10n_dynamic_027">"%1$s का चयन हटाएं"</string>
     <string name="l10n_dynamic_028">"सभी %1$s चुनें (%2$s)"</string>
-    <string name="l10n_dynamic_029">"%1$s लाइब्रेरी, कतार और सूचियों से हटेगा। नोट्स, बुकमार्क और इतिहास रहेंगे।"</string>
+    <string name="l10n_dynamic_029">"इससे %1$s स्थानीय लाइब्रेरी, कतार और संग्रहों से हट जाएगा। सहेजे गए नोट, बुकमार्क और पढ़ने का इतिहास उपलब्ध रहेगा।"</string>
     <string name="l10n_dynamic_030">"लेखक: %1$s"</string>
     <string name="l10n_dynamic_031">"✨ आयात के लिए %1$s प्रश्न-उत्तर कार्ड मिले"</string>
     <string name="l10n_dynamic_032">"🎯 अभ्यास के लिए %1$s प्रश्न मिले"</string>
@@ -172,7 +172,7 @@
     <string name="l10n_dynamic_169">"अज्ञात: %1$s"</string>
     <string name="l10n_dynamic_170">"दिन: %1$s"</string>
     <string name="l10n_dynamic_171">"%1$s / दिन"</string>
-    <string name="l10n_dynamic_172">"“%1$s” को पठन सूचियों में जोड़ें:"</string>
+    <string name="l10n_dynamic_172">"«%1$s» को संग्रहों में जोड़ें:"</string>
     <string name="l10n_dynamic_173">"पुराना कुल: %1$s · मोड अज्ञात"</string>
     <string name="l10n_dynamic_174">"इंटरैक्शन न होने पर %1$s मिनट %2$s सेकंड बाद स्वचालित पठन रोकें"</string>
     <string name="l10n_dynamic_175">"%1$s में नया क्या है"</string>

@@ -1,5 +1,11 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,13 +32,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
 import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.Flashcard
@@ -50,6 +62,8 @@ import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.VeritasReadingListCatalog
 import com.veritas.reader.VocabularyEntry
 import com.veritas.reader.ui.ReaderUiState
+import com.veritas.reader.ui.VeritasMotion
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -132,7 +146,7 @@ internal fun LibraryDialogsAndSheetsHost(
     viewerCards: List<FlashcardProgress>?,
     viewerSetName: String,
     onDismissViewerCards: () -> Unit,
-    onRateFlashcardRecall: (String, String) -> Unit,
+    onRateFlashcardRecall: (String, String, (Boolean) -> Unit) -> Unit,
     onDeleteFlashcard: (String) -> Unit,
     renameSetTarget: FlashcardSet?,
     onDismissRenameSetTarget: () -> Unit,
@@ -254,8 +268,10 @@ internal fun LibraryDialogsAndSheetsHost(
 
     if (showImportSheet) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val sheetScope = rememberCoroutineScope()
+        var closingSheet by remember { mutableStateOf(false) }
         ModalBottomSheet(
-        shape = com.veritas.reader.VeritasPackStyle.sheetShape(),
+            shape = VeritasPackStyle.sheetShape(),
             onDismissRequest = {
                 onDismissImportSheet()
                 onImportSheetModeChange(ImportSheetMode.MENU)
@@ -264,21 +280,39 @@ internal fun LibraryDialogsAndSheetsHost(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             contentColor = MaterialTheme.colorScheme.onSurface
         ) {
-            when (importSheetMode) {
-                ImportSheetMode.MENU -> {
-                    ImportSheetMenu(
+            val motion = VeritasMotion.scheme
+            val focus = LocalFocusManager.current
+            val keyboard = LocalSoftwareKeyboardController.current
+            val forward = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -1 else 1
+            val travel = if (motion.reduceMotion) 0 else with(LocalDensity.current) { 14.dp.roundToPx() } * forward
+            val backToOptions = {
+                focus.clearFocus()
+                keyboard?.hide()
+                onImportSheetModeChange(ImportSheetMode.MENU)
+            }
+            AnimatedContent(
+                targetState = importSheetMode,
+                modifier = Modifier.fillMaxWidth(),
+                transitionSpec = {
+                    val offset = if (targetState == ImportSheetMode.MENU) -travel else travel
+                    val enter = fadeIn(motion.fastEffects()) + slideInHorizontally(motion.fastSpatial()) { offset }
+                    (enter togetherWith fadeOut(motion.fastEffects()))
+                        .using(SizeTransform { _, _ -> motion.fastSpatial() })
+                },
+                label = "importSheetMode"
+            ) { mode ->
+                val active = mode == importSheetMode && !closingSheet
+                when (mode) {
+                    ImportSheetMode.MENU -> ImportSheetMenu(
+                        enabled = active,
                         onSelectOption = { option ->
                             when (option) {
                                 ImportOption.FILE -> {
                                     onDismissImportSheet()
                                     onImportFile()
                                 }
-                                ImportOption.WEB -> {
-                                    onImportSheetModeChange(ImportSheetMode.WEB)
-                                }
-                                ImportOption.PASTE -> {
-                                    onImportSheetModeChange(ImportSheetMode.PASTE)
-                                }
+                                ImportOption.WEB -> onImportSheetModeChange(ImportSheetMode.WEB)
+                                ImportOption.PASTE -> onImportSheetModeChange(ImportSheetMode.PASTE)
                                 ImportOption.SCAN -> {
                                     onDismissImportSheet()
                                     onImportImage()
@@ -297,35 +331,43 @@ internal fun LibraryDialogsAndSheetsHost(
                                 }
                             }
                         },
-                        onDismiss = { onDismissImportSheet() }
+                        onDismiss = {
+                            closingSheet = true
+                            sheetScope.launch {
+                                try {
+                                    sheetState.hide()
+                                    if (!sheetState.isVisible) onDismissImportSheet()
+                                } finally {
+                                    closingSheet = false
+                                }
+                            }
+                        }
                     )
-                }
-                ImportSheetMode.WEB -> {
-                    ImportSheetWeb(
+                    ImportSheetMode.WEB -> ImportSheetWeb(
                         urlText = draftText,
                         onUrlChange = onDraftTextChange,
+                        enabled = active,
                         onImport = { url ->
                             onImportWebArticle(url)
                             onDismissImportSheet()
                             onImportSheetModeChange(ImportSheetMode.MENU)
                         },
-                        onBack = { onImportSheetModeChange(ImportSheetMode.MENU) }
+                        onBack = backToOptions
                     )
-                }
-                ImportSheetMode.PASTE -> {
-                    ImportSheetPaste(
+                    ImportSheetMode.PASTE -> ImportSheetPaste(
                         pastedText = draftText,
                         onTextChange = onDraftTextChange,
+                        enabled = active,
                         onSave = {
                             onCreateFromDraft()
                             onDismissImportSheet()
                             onImportSheetModeChange(ImportSheetMode.MENU)
                         },
-                        onBack = { onImportSheetModeChange(ImportSheetMode.MENU) }
+                        onBack = backToOptions
                     )
+                }
             }
         }
-    }
     }
 
     // Filter dialog removed — filters are handled inline via chip row and
@@ -477,27 +519,33 @@ internal fun LibraryDialogsAndSheetsHost(
             onDismissRequest = { onDismissBatchCollectionDialog() },
             confirmButton = {
                 TextButton(
+                    enabled = batchCollectionDraft.isNotBlank(),
                     onClick = {
                         onBatchSetCollectionDocuments(selectedDocumentIds, batchCollectionDraft)
                         onClearSelectedDocuments()
                         onBatchCollectionDraftChange("")
                         onDismissBatchCollectionDialog()
                     }
-                ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move)) }
+                ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add)) }
             },
             dismissButton = {
                 TextButton(onClick = { onDismissBatchCollectionDialog() }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
             },
-            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_selected_readings)) },
+            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.collection_add_selected)) },
             text = {
+                Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
+                    readingListCatalog.activeLists.forEach { list ->
+                        TextButton(onClick = { onBatchCollectionDraftChange(list.title) }) { Text(list.title) }
+                    }
                 OutlinedTextField(
                     value = batchCollectionDraft,
                     onValueChange = { onBatchCollectionDraftChange(it) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collection)) },
-                    placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_leave_blank_for_unfiled)) },
+                    placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_new_collection_name)) },
                     singleLine = true
                 )
+                }
             }
         )
     }

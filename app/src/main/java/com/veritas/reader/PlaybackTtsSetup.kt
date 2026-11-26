@@ -19,7 +19,7 @@ internal fun PlaybackService.prepareSpeechEngine(settings: VoiceSettings, select
     val requested = settings.enginePackage.ifBlank { null }
     val neural = VoiceManager.isVeritasEngine(requested)
     if (neural && !VoiceModelManager.isVoiceInstalled(applicationContext, settings.voiceName)) {
-        handleTtsFailure("${settings.displayName} is not downloaded. Open Voice Studio to download it or choose another voice.")
+        handlePlaybackVoiceNotInstalled()
         return false
     }
     pendingSpeak = selection == null
@@ -51,8 +51,7 @@ internal fun PlaybackService.prepareSpeechEngine(settings: VoiceSettings, select
             if (generation != engineSetupGeneration) return@launch
             retiringAudioBuffer = null
             retiringKokoroGraphJob = null
-            if (pendingSpeak && PlaybackStateStore.isPlaying) speakCurrent()
-            else pendingSelectionText?.let(::speakSelectionText)
+            resumeAfterEngineSetup()
         }
         return false
     }
@@ -64,12 +63,19 @@ internal fun PlaybackService.prepareSpeechEngine(settings: VoiceSettings, select
         if (settings.voiceShaping) attachVoiceShaping() else releaseVoiceShaping()
         val engine = requireNotNull(tts)
         if (settings.voiceName.isNotBlank() && engine.voices.orEmpty().none { it.name == settings.voiceName }) {
-            handleTtsFailure("${settings.displayName} is unavailable in this engine. Choose a voice in Voice Studio.")
+            handlePlaybackVoiceNotInstalled()
             return false
         }
-        val message = VoiceConfigurator.apply(engine, settings)
-        if (message.startsWith("Voice data is missing") || message.contains("not supported")) {
-            handleTtsFailure(message); return false
+        val activation = VoiceConfigurator.activate(engine, settings)
+        when (activation.languageStatus) {
+            TextToSpeech.LANG_MISSING_DATA -> {
+                handlePlaybackVoiceNotInstalled()
+                return false
+            }
+            TextToSpeech.LANG_NOT_SUPPORTED -> {
+                handleTtsFailure(activation.message)
+                return false
+            }
         }
         pendingSpeak = false; pendingSelectionText = null
         return true
@@ -96,6 +102,14 @@ internal fun PlaybackService.handleTtsInit(status: Int) {
     }
     ttsReady = true
     attachListener()
-    if (pendingSpeak && PlaybackStateStore.isPlaying) speakCurrent()
-    else pendingSelectionText?.let(::speakSelectionText)
+    resumeAfterEngineSetup()
+}
+
+private fun PlaybackService.resumeAfterEngineSetup() {
+    val part = pendingPartStart
+    when {
+        part != null -> part()
+        pendingSpeak && PlaybackStateStore.isPlaying -> speakCurrent()
+        else -> pendingSelectionText?.let(::speakSelectionText)
+    }
 }

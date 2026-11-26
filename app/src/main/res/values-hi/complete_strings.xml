@@ -337,7 +337,7 @@
     <string name="ui_new" formatted="false">"नया"</string>
     <string name="ui_new_notebook" formatted="false">"नई नोटबुक"</string>
     <string name="ui_new_quiz" formatted="false">"नया क्विज़"</string>
-    <string name="ui_new_reading_list" formatted="false">"नई पठन सूची"</string>
+    <string name="ui_new_reading_list" formatted="false">"नया संग्रह"</string>
     <string name="ui_next_2f04eb1" formatted="false">"अगला →"</string>
     <string name="ui_next_card" formatted="false">"अगला कार्ड"</string>
     <string name="ui_next_chapter" formatted="false">"अगला अध्याय"</string>
@@ -375,7 +375,7 @@
     <string name="ui_no_readable_text_was_extracted_for_this_page" formatted="false">"इस पेज से पढ़ने योग्य टेक्स्ट नहीं निकला।"</string>
     <string name="ui_no_reading_activity_recorded" formatted="false">"पठन गतिविधि दर्ज नहीं है"</string>
     <string name="ui_no_reading_history_yet" formatted="false">"पढ़ने का इतिहास नहीं है।"</string>
-    <string name="ui_no_reading_lists_yet" formatted="false">"पठन सूची नहीं है।"</string>
+    <string name="ui_no_reading_lists_yet" formatted="false">"अभी कोई संग्रह नहीं है।"</string>
     <string name="ui_no_saved_highlights_yet" formatted="false">"सहेजे हाइलाइट नहीं हैं।"</string>
     <string name="ui_no_saved_readings_yet" formatted="false">"सहेजी सामग्री नहीं है"</string>
     <string name="ui_no_sentence_notes_yet" formatted="false">"वाक्यों के नोट्स नहीं हैं।"</string>
@@ -610,6 +610,7 @@
     <string name="ui_silent_rsvp_save_for_audio" formatted="false">"मूक RSVP · ऑडियो के लिए सहेजें"</string>
     <string name="ui_silent_visual_rsvp" formatted="false">"मूक दृश्य RSVP"</string>
     <string name="ui_skip_table" formatted="false">"तालिका छोड़ें"</string>
+    <string name="ui_skip_figure">चित्र छोड़ें</string>
     <string name="ui_slides_options" formatted="false">"स्लाइड विकल्प"</string>
     <string name="ui_slower_0_05" formatted="false">"धीमा −0.05×"</string>
     <string name="ui_smart_resume_catch_up" formatted="false">"फिर शुरू करने का सारांश"</string>

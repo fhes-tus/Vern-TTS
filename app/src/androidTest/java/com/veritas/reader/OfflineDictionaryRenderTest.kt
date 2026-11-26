@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 
 /** Native window rendering without Espresso's incompatible API-37 input injector. */
 class OfflineDictionaryRenderTest {
-    @Test fun studyDictionaryRendersRealSavedDefinitions() {
+    @Test fun studyDictionaryRendersDefinitionsAndSavesOnlyOnCommand() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         org.junit.Assume.assumeTrue("Dictionary checks require their own disposable package.", context.packageName.endsWith(".dictionarychecks"))
@@ -42,6 +42,8 @@ class OfflineDictionaryRenderTest {
             }
             try { OfflineDictionaryStore.install(context, fixture) } finally { fixture.delete() }
         }
+        val repository = DocumentRepository(context)
+        val before = repository.loadGeneralNotes()
         val saved = CountDownLatch(1)
         var scroll: androidx.compose.foundation.ScrollState? = null
         val activity = instrumentation.startActivitySync(Intent(context, ComponentActivity::class.java)
@@ -58,7 +60,19 @@ class OfflineDictionaryRenderTest {
                     }
                 }
             }
-            assertTrue("Lookup did not finish", saved.await(40, TimeUnit.SECONDS))
+            val deadline = System.currentTimeMillis() + 40_000
+            var saveButton: android.view.accessibility.AccessibilityNodeInfo? = null
+            while (saveButton == null && System.currentTimeMillis() < deadline) {
+                saveButton = instrumentation.uiAutomation.rootInActiveWindow
+                    ?.findAccessibilityNodeInfosByText("Save to vocabs")?.firstOrNull()
+                if (saveButton == null) Thread.sleep(100)
+            }
+            assertNotNull("Definition and Save to vocabs command did not appear", saveButton)
+            assertEquals(before, repository.loadGeneralNotes())
+            var clickable = saveButton
+            while (clickable != null && !clickable.isClickable) clickable = clickable.parent
+            assertTrue("Save command was not clickable", clickable?.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK) == true)
+            assertTrue("Explicit save did not finish", saved.await(10, TimeUnit.SECONDS))
             instrumentation.waitForIdleSync()
             fun capture(name: String) {
                 val root = activity.window.decorView

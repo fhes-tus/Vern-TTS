@@ -72,7 +72,6 @@ import com.veritas.reader.DocumentRepository
 import com.veritas.reader.Flashcard
 import com.veritas.reader.FlashcardProgress
 import com.veritas.reader.FlashcardSet
-import com.veritas.reader.GeminiStudyService
 import com.veritas.reader.QuizQuestion
 import com.veritas.reader.QuizSet
 import com.veritas.reader.SavedDocument
@@ -106,7 +105,6 @@ internal fun LibraryStudyTab(
     onShowPasteFlashcards: () -> Unit,
     onPlayQuiz: (QuizSet) -> Unit,
     onDeleteQuiz: (QuizSet) -> Unit,
-    onGenerateInAppFlashcards: (SavedDocument, String?) -> Unit,
     onCancelAiStudyGeneration: () -> Unit,
     onImportFlashcards: (String, List<Flashcard>) -> Unit,
     onSaveQuiz: (QuizSet) -> Unit,
@@ -142,7 +140,6 @@ internal fun LibraryStudyTab(
     var expandedVocabDocIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     val annotationSelectionMode = selectedAnnotationKeys.isNotEmpty()
 
-    var showAiBookPicker by remember { mutableStateOf(false) }
     var showStudyGuideBookPicker by remember { mutableStateOf(false) }
     if (showStudyGuideBookPicker) {
         StudyBookPickerDialog(
@@ -151,20 +148,11 @@ internal fun LibraryStudyTab(
             onGoToLibrary = { showStudyGuideBookPicker = false; onNavigateToTab(VeritasHomeTab.LIBRARY) },
             onDismiss = { showStudyGuideBookPicker = false },
             title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_choose_a_book_for_your_study_guide),
-            emptyDescription = "Add a book to your library, then export its booknotes and highlights as a study guide."
+            emptyDescription = menuString(com.veritas.reader.R.string.study_guide_picker_empty)
         )
     }
     LaunchedEffect(annotationFilter) { studyListState.requestScrollToItem(0) }
-    if (showAiBookPicker) {
-        StudyBookPickerDialog(
-            documents = documents,
-            onSelect = { document -> showAiBookPicker = false; onGenerateInAppFlashcards(document, null) },
-            onGoToLibrary = { showAiBookPicker = false; onNavigateToTab(VeritasHomeTab.LIBRARY) },
-            onDismiss = { showAiBookPicker = false }
-        )
-    }
-
-    val repository = remember(context) { DocumentRepository(context) }
+    val repository = remember(context) { lazy { DocumentRepository(context) } }
     var loadedDocSentences by remember { mutableStateOf(emptyMap<String, Pair<String, List<String>>>()) }
     val docIdsWithAnnotations = remember(uiState.allAnnotations) {
         uiState.allAnnotations.map { it.documentId }.toSet()
@@ -180,7 +168,7 @@ internal fun LibraryStudyTab(
                     val file = java.io.File(context.filesDir, "reader_documents/${doc.fileName}")
                     val revision = "${doc.fileName}:${file.lastModified()}:${file.length()}:${doc.sentenceIndexVersion}"
                     previous[docId]?.takeIf { it.first == revision }
-                        ?: (revision to TextChunker.chunk(repository.readText(doc)))
+                        ?: (revision to TextChunker.chunk(repository.value.readText(doc)))
                 }
             }
         }
@@ -433,10 +421,7 @@ internal fun LibraryStudyTab(
                                                 onOpenDeck = { onOpenFlashcardViewer(it.name, it.cards) },
                                                 onImportFlashcards = onShowPasteFlashcards,
                                                 onImportQuiz = onShowPasteQuiz,
-                                                onCreateWithAi = {
-                                                    if (GeminiStudyService.hasApiKey(context)) showAiBookPicker = true
-                                                    else onShowGeminiApiKeyDialog()
-                                                },
+                                                onCreateWithAi = onOpenAiStudyTools,
                                                 onSetupAi = onShowGeminiApiKeyDialog,
                                                 onExportStudyGuide = { showStudyGuideBookPicker = true }
                                             )

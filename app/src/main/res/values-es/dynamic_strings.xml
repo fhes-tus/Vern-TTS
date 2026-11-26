@@ -29,7 +29,7 @@
     <string name="l10n_dynamic_026">"Documentos: %1$s"</string>
     <string name="l10n_dynamic_027">"Deseleccionar %1$s"</string>
     <string name="l10n_dynamic_028">"Seleccionar todo: %1$s (%2$s)"</string>
-    <string name="l10n_dynamic_029">"Se elimina %1$s de la biblioteca, cola y listas. Se conservan notas, marcadores e historial."</string>
+    <string name="l10n_dynamic_029">"Esto elimina %1$s de la biblioteca local, la cola y las colecciones. Las notas, los marcadores y el historial siguen disponibles."</string>
     <string name="l10n_dynamic_030">"por %1$s"</string>
     <string name="l10n_dynamic_031">"✨ Tarjetas detectadas: %1$s, listas para importar"</string>
     <string name="l10n_dynamic_032">"🎯 Preguntas de práctica detectadas: %1$s"</string>
@@ -172,7 +172,7 @@
     <string name="l10n_dynamic_169">"Desconocido: %1$s"</string>
     <string name="l10n_dynamic_170">"Días: %1$s"</string>
     <string name="l10n_dynamic_171">"%1$s / día"</string>
-    <string name="l10n_dynamic_172">"Añadir «%1$s» a listas de lectura:"</string>
+    <string name="l10n_dynamic_172">"Añadir «%1$s» a colecciones:"</string>
     <string name="l10n_dynamic_173">"Total anterior: %1$s · modo desconocido"</string>
     <string name="l10n_dynamic_174">"Detener lectura automática tras %1$s min %2$s s sin interacción"</string>
     <string name="l10n_dynamic_175">"Novedades de %1$s"</string>

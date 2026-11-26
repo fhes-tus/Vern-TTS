@@ -35,11 +35,11 @@ class StudyHubOverviewUiTest {
             }
         }
         rule.onNodeWithText(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.l10n_dynamic_208, "1")).assertExists()
-        rule.onNodeWithText("1 card").assertExists()
-        rule.onNodeWithText("5 words").assertExists()
-        listOf("Flashcards", "Quizzes", "Vocabulary", "Bookmarks", "Booknotes", "History").forEach { title ->
-            rule.onNodeWithText(title).performScrollTo().performClick()
-            assertEquals(if (title == "Vocabulary") "Vocab" else title, selected)
+        rule.onNodeWithTag("study-material-Flashcards").assertTextContains("1")
+        rule.onNodeWithTag("study-material-Vocab").assertTextContains("5")
+        listOf("Flashcards", "Quizzes", "Vocab", "Bookmarks", "Booknotes", "History").forEach { section ->
+            rule.onNodeWithTag("study-material-$section").performScrollTo().performClick()
+            assertEquals(section, selected)
         }
         rule.onNodeWithText("Your decks").assertDoesNotExist()
     }

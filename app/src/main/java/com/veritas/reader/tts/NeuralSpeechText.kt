@@ -1,13 +1,20 @@
 package com.veritas.reader.tts
 
-import com.veritas.reader.SpokenText
+import com.veritas.reader.ReadingTextCleanup
 import com.veritas.reader.SpeechDates
+import com.veritas.reader.SpokenText
 import java.util.Locale
 
 /** Final neural preparation, with a composed map back to the unchanged stored book. */
 internal object NeuralSpeechText {
     private val invisible = Regex("[\\u00AD\\u200B\\u2060\\uFEFF\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]")
     private val whitespace = Regex("[\\s\\u00A0\\u202F]+")
+    private val quotationMarks = Regex("""["“”„‟«»‹›'‘’]""")
+    private val addresses = Regex("""(?i)\b(?:https?://|www\.)[^\s<>"“”]+""")
+    private val elision = Regex("""(?i)(?:tis|twas|twere|em|cause|cos|til|till|round|bout|n|[0-9]{2}s?)(?![\p{L}\p{N}])""")
+    private val clusteredMarks = Regex("""[.!?,;:](?:[ \t]*[.!?,;:]|[ \t]*[)\]}]+[ \t]*[.!?])+""")
+    private val gapBeforeMark = Regex("""(?<=[\p{L}\p{N}%)\]}])[ \t]+(?=[.!?,;:](?![\p{L}\p{N}]))""")
+    private val punctuationOnly = Regex("""^[\s.!?,;:…—–()\[\]{}]+$""")
 
     private val PRESERVED_ACRONYMS = setOf(
         "NASA", "FBI", "CIA", "USA", "UK", "UN", "NATO", "EU", "HTML", "CSS", "PDF", "API",
@@ -42,10 +49,7 @@ internal object NeuralSpeechText {
         var sanitized = normalized.sanitize().replace(whitespace) { " " }.trim()
         sanitized = SpeechDates.expand(sanitized, ::verbalizeYear)
 
-        // 1. Strip dangling quotes that trigger neural engine vocoder pops at chunk boundaries
-        sanitized = sanitized.replace(Regex("""^[\"“'‘»›]+\s*""")) { "" }
-        sanitized = sanitized.replace(Regex("""\s*[\"”'’«‹]+$""")) { "" }
-        sanitized = sanitized.replace(Regex("""([.!?])[\"”'’«‹]+""")) { it.groupValues[1] }
+        sanitized = normalizeProsody(sanitized)
 
         // 2. Normalize all-caps words so words like "IT IS A BOY" are read as words, not spelled acronyms
         sanitized = sanitized.replace(Regex("\\b[A-Z]{1,10}\\b")) { match ->
@@ -67,6 +71,63 @@ internal object NeuralSpeechText {
         }
 
         return sanitized.replace(whitespace) { " " }.trim()
+    }
+
+    /** Keep grammatical pauses and emphasis; remove typography that the phonemizer can read aloud. */
+    private fun normalizeProsody(input: SpokenText): SpokenText {
+        fun literalRanges(text: String) = ReadingTextCleanup.codeRanges(text) + addresses.findAll(text).map { it.range }.toList()
+        val source = input.text
+        val sourceLiterals = literalRanges(source)
+        var singleQuoteOpen = false
+        var doubleQuoteOpen = false
+        val prose = input.replace(quotationMarks) { match ->
+            val index = match.range.first
+            if (sourceLiterals.any { index in it }) return@replace match.value
+            val before = source.getOrNull(index - 1)
+            val after = source.getOrNull(index + 1)
+            val followsWord = before?.isLetterOrDigit() == true
+            val precedesWord = after?.isLetterOrDigit() == true
+            val quote = match.value.single()
+            if (quote in "'‘’") {
+                val wordApostrophe = followsWord && precedesWord
+                val startsElision = !followsWord && elision.matchAt(source, index + 1) != null
+                val pluralPossessive = !singleQuoteOpen && before?.lowercaseChar() == 's' && !precedesWord
+                val feet = quote == '\'' && !singleQuoteOpen && before?.isDigit() == true
+                if (wordApostrophe || startsElision || pluralPossessive || feet) return@replace match.value
+                singleQuoteOpen = quote == '‘' || (quote == '\'' && !singleQuoteOpen && precedesWord)
+            } else {
+                if (quote == '"' && !doubleQuoteOpen && before?.isDigit() == true) return@replace match.value
+                doubleQuoteOpen = quote in "“„«‹" || (quote == '"' && !doubleQuoteOpen)
+            }
+            if (precedesWord && (followsWord || before != null && before in ".!?")) " " else ""
+        }
+
+        val proseLiterals = literalRanges(prose.text)
+        val singleStops = prose.replace(clusteredMarks) { match ->
+            if (proseLiterals.any { it.first <= match.range.last && match.range.first <= it.last }) {
+                return@replace match.value
+            }
+            // A scope operator within a technical name is not a prose pause.
+            if (match.value == "::" &&
+                prose.text.getOrNull(match.range.first - 1)?.isLetterOrDigit() == true &&
+                prose.text.getOrNull(match.range.last + 1)?.isLetterOrDigit() == true) {
+                return@replace match.value
+            }
+            val stop = when {
+                '?' in match.value -> "?"
+                '!' in match.value -> "!"
+                '.' in match.value -> "."
+                ';' in match.value -> ";"
+                ':' in match.value -> ":"
+                else -> ","
+            }
+            match.value.filter { it in ")]}" } + stop
+        }
+        val stopLiterals = literalRanges(singleStops.text)
+        val attachedStops = singleStops.replace(gapBeforeMark) { match ->
+            if (stopLiterals.any { match.range.first in it }) match.value else ""
+        }
+        return attachedStops.replace(punctuationOnly) { "" }
     }
 
     private fun verbalizeYear(year: Int): String {

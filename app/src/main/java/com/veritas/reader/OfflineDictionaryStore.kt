@@ -70,22 +70,42 @@ internal object OfflineDictionaryStore {
     }
 
     /** Indexed keyset pages keep the full word list out of memory and never save vocabulary. */
-    fun browse(context: Context, prefix: String = "", after: String? = null, pageSize: Int = 40): DictionaryWordPage = synchronized(lock) {
+    fun browse(context: Context, prefix: String = "", after: String? = null, pageSize: Int = 40): DictionaryWordPage {
         require(pageSize in 1..100)
         val normalized = if (prefix.isBlank()) "" else WordNetDictionary.query(prefix)
-            ?: return@synchronized DictionaryWordPage(emptyList(), false)
-        val cursor = after?.let { WordNetDictionary.query(it) ?: return@synchronized DictionaryWordPage(emptyList(), false) }
+            ?: return DictionaryWordPage(emptyList(), false)
+        val cursor = after?.let { WordNetDictionary.query(it) ?: return DictionaryWordPage(emptyList(), false) }
         val source = file(context)
-        if (!source.isFile) return@synchronized DictionaryWordPage(emptyList(), false)
+        if (!source.isFile) return DictionaryWordPage(emptyList(), false)
         val escaped = normalized.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-        val args = mutableListOf("$escaped%")
-        val cursorClause = if (cursor == null) "" else " AND lemma > ?".also { args.add(cursor) }
-        args.add((pageSize + 1).toString())
-        val words = open(source).use { db ->
-            db.rawQuery("SELECT DISTINCT lemma FROM entries WHERE lemma LIKE ? ESCAPE '\\'$cursorClause ORDER BY lemma LIMIT ?",
-                args.toTypedArray()).use { c -> buildList { while (c.moveToNext()) add(c.getString(0)) } }
+        val limitStr = (pageSize + 1).toString()
+        val sql: String
+        val args: Array<String>
+        if (normalized.isBlank()) {
+            if (cursor == null) {
+                sql = "SELECT DISTINCT lemma FROM entries ORDER BY lemma LIMIT ?"
+                args = arrayOf(limitStr)
+            } else {
+                sql = "SELECT DISTINCT lemma FROM entries WHERE lemma > ? ORDER BY lemma LIMIT ?"
+                args = arrayOf(cursor, limitStr)
+            }
+        } else {
+            if (cursor == null) {
+                sql = "SELECT DISTINCT lemma FROM entries WHERE lemma LIKE ? ESCAPE '\\' ORDER BY lemma LIMIT ?"
+                args = arrayOf("$escaped%", limitStr)
+            } else {
+                sql = "SELECT DISTINCT lemma FROM entries WHERE lemma LIKE ? ESCAPE '\\' AND lemma > ? ORDER BY lemma LIMIT ?"
+                args = arrayOf("$escaped%", cursor, limitStr)
+            }
         }
-        DictionaryWordPage(words.take(pageSize), words.size > pageSize)
+        val words = runCatching {
+            open(source).use { db ->
+                db.rawQuery(sql, args).use { c ->
+                    buildList { while (c.moveToNext()) add(c.getString(0)) }
+                }
+            }
+        }.getOrElse { emptyList() }
+        return DictionaryWordPage(words.take(pageSize), words.size > pageSize)
     }
 
     fun remove(context: Context) = synchronized(lock) {

@@ -16,7 +16,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
 import com.veritas.reader.ui.screens.BookPageCurl
-import com.veritas.reader.ui.screens.CurledPageMesh
 import com.veritas.reader.ui.screens.readerFontPinch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -47,7 +46,7 @@ class BookPageCurlUiTest {
             scope = rememberCoroutineScope()
             MaterialTheme {
                 HorizontalPager(pager, Modifier.fillMaxSize(), pageSpacing = 0.dp, beyondViewportPageCount = 1) { page ->
-                    BookPageCurl(true, pager.isScrollInProgress, { (pager.currentPage - page) + pager.currentPageOffsetFraction }, Color.White) {
+                    BookPageCurl(true, pager, page, Color.White) {
                         Column(Modifier.fillMaxSize().background(Color.White)) {
                             androidx.compose.material3.Button({ tapped.add(page) }, Modifier.testTag("curl-tap-$page")) { Text("Tap page $page") }
                             val scroll = androidx.compose.foundation.rememberScrollState()
@@ -110,7 +109,7 @@ class BookPageCurlUiTest {
         fun inject(action: Int) {
             val event = android.view.MotionEvent.obtain(downTime, android.os.SystemClock.uptimeMillis(), action, wordPoint.x, wordPoint.y, 0)
             event.source = android.view.InputDevice.SOURCE_TOUCHSCREEN
-            try { assertTrue(automation.injectInputEvent(event, true)) } finally { event.recycle() }
+            try { assertTrue(automation.injectReaderTestTouch(event, true)) } finally { event.recycle() }
         }
         inject(android.view.MotionEvent.ACTION_DOWN)
         try { android.os.SystemClock.sleep(android.view.ViewConfiguration.getLongPressTimeout().toLong() + 180) }
@@ -137,7 +136,7 @@ class BookPageCurlUiTest {
             MaterialTheme {
                 HorizontalPager(pager, Modifier.fillMaxSize().testTag("pinch-curl-pager"),
                     userScrollEnabled = !pinching, pageSpacing = 0.dp, beyondViewportPageCount = 1) { page ->
-                    BookPageCurl(true, pager.isScrollInProgress, { (pager.currentPage - page) + pager.currentPageOffsetFraction }, Color.White) {
+                    BookPageCurl(true, pager, page, Color.White) {
                         Box(Modifier.fillMaxSize().testTag("pinch-curl-page-$page")
                             .readerFontPinch(size, { size = it; updates++ }, { pinching = it })) {
                             androidx.compose.ui.viewinterop.AndroidView(factory = { context -> android.widget.TextView(context).apply {
@@ -174,7 +173,7 @@ class BookPageCurlUiTest {
         }
         rule.waitForIdle()
         rule.runOnIdle { assertEquals(1, pager.settledPage); assertFalse(pager.isScrollInProgress) }
-        rule.onAllNodesWithTag("book-curl-snapshot").assertCountEquals(0)
+        rule.onAllNodesWithTag("book-curl-turning").assertCountEquals(0)
         node.performTouchInput { swipeLeft() }
         rule.waitForIdle()
         rule.runOnIdle { assertEquals(2, pager.settledPage) }
@@ -189,7 +188,7 @@ class BookPageCurlUiTest {
             scope = rememberCoroutineScope()
             MaterialTheme {
                 HorizontalPager(pager, Modifier.fillMaxSize(), pageSpacing = 0.dp, beyondViewportPageCount = 1) { page ->
-                    BookPageCurl(enabled, pager.isScrollInProgress, { (pager.currentPage - page) + pager.currentPageOffsetFraction }, Color(0xFFFFF6E6)) {
+                    BookPageCurl(enabled, pager, page, Color(0xFFFFF6E6)) {
                         Column(Modifier.fillMaxSize().background(if (page == 0) Color(0xFFFFF6E6) else Color(0xFFE6F0FF)).padding(24.dp)) {
                             Text("Chapter ${page + 1}", style = MaterialTheme.typography.headlineLarge)
                             Spacer(Modifier.height(24.dp))
@@ -210,43 +209,26 @@ class BookPageCurlUiTest {
         rule.mainClock.autoAdvance = false
         rule.runOnIdle { scope.launch { pager.animateScrollToPage(1, animationSpec = tween(1000)) } }
         rule.mainClock.advanceTimeBy(200)
-        rule.waitUntil(5000) { rule.onAllNodesWithTag("book-curl-snapshot").fetchSemanticsNodes().isNotEmpty() }
-        rule.mainClock.advanceTimeBy(220)
+        rule.waitUntil(5000) { rule.onAllNodesWithTag("book-curl-turning").fetchSemanticsNodes().isNotEmpty() }
+        rule.mainClock.advanceTimeUntil(600) { pager.currentPage == 1 }
+        rule.onAllNodesWithTag("book-curl-turning").assertCountEquals(1)
         capture("page-curl-forward")
         rule.mainClock.advanceTimeBy(1000)
         rule.runOnIdle { assertEquals(1, pager.currentPage) }
         rule.runOnIdle { scope.launch { pager.animateScrollToPage(0, animationSpec = tween(1000)) } }
         rule.mainClock.advanceTimeBy(250)
-        rule.waitUntil(5000) { rule.onAllNodesWithTag("book-curl-snapshot").fetchSemanticsNodes().isNotEmpty() }
-        rule.mainClock.advanceTimeBy(180)
+        rule.waitUntil(5000) { rule.onAllNodesWithTag("book-curl-turning").fetchSemanticsNodes().isNotEmpty() }
+        rule.mainClock.advanceTimeUntil(600) { pager.currentPage == 0 }
+        rule.onAllNodesWithTag("book-curl-turning").assertCountEquals(1)
         capture("page-curl-backward")
         rule.mainClock.advanceTimeBy(1000)
         rule.runOnIdle { assertEquals(0, pager.currentPage) }
-        rule.waitUntil(5000) { rule.onAllNodesWithTag("book-curl-snapshot").fetchSemanticsNodes().isEmpty() }
+        rule.waitUntil(5000) { rule.onAllNodesWithTag("book-curl-turning").fetchSemanticsNodes().isEmpty() }
         rule.runOnIdle { enabled = false }
         rule.mainClock.advanceTimeByFrame()
         rule.waitForIdle()
         rule.onAllNodesWithTag("book-curl-live").assertCountEquals(0)
         rule.onNodeWithText("Chapter 1").assertIsDisplayed()
         rule.mainClock.autoAdvance = true
-    }
-
-    @Test fun meshAcceptsTurnEndpointsAndProducesPaperReverse() {
-        val source = android.graphics.Bitmap.createBitmap(360, 520, android.graphics.Bitmap.Config.ARGB_8888)
-        val sourceCanvas = android.graphics.Canvas(source)
-        sourceCanvas.drawColor(0xFFFFF6E6.toInt())
-        val text = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.BLACK; textSize = 24f }
-        for (y in 60..480 step 45) sourceCanvas.drawText("Words across the page", 20f, y.toFloat(), text)
-        val target = android.graphics.Bitmap.createBitmap(360, 520, android.graphics.Bitmap.Config.ARGB_8888)
-        val canvas = android.graphics.Canvas(target)
-        val renderer = CurledPageMesh(0xFFFFF6E6.toInt())
-        try {
-            for (position in listOf(0f, .25f, .5f, .75f, .999f, 1f)) {
-                canvas.drawColor(android.graphics.Color.BLUE)
-                renderer.draw(canvas, source, 360f, 520f, position)
-                if (position == 0f) assertEquals(source.getPixel(10, 10), target.getPixel(10, 10))
-                if (position >= .75f) assertEquals("Next page is revealed", android.graphics.Color.BLUE, target.getPixel(350, 260))
-            }
-        } finally { source.recycle(); target.recycle() }
     }
 }

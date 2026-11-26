@@ -277,7 +277,7 @@ class ResponsiveLibraryReaderUiTest {
             onOpenPronunciationRules = {}, onOpenVoiceStudio = {}, onOpenNarrationStudio = {}, onOpenDocumentNotes = {}, onOpenCanvas = {},
             onOpenStudyTools = {}, onOpenTranslationTools = {}, onOpenSleepTimer = {}, onOpenReadingLists = {}, onOpenReadingHistory = {},
             onAskCurrentSection = {}, onSelectAskAiAssistant = { _, _ -> }, onOpenTextEditor = {}, onStartRecord = {}, onExportAudio = {},
-            onCopySelection = {}, onShareSelection = {}, onGoogleSelection = {}, onTranslateSelection = {}, onAskAiSelection = {}, onEditSpeechSelection = {},
+            onCopySelection = {}, onShareSelection = {}, onDefineSelection = {}, onTranslateSelection = {}, onAskAiSelection = {}, onEditSpeechSelection = {},
             onReadSelection = {}, onEditExtractedSelection = {}, onPlayQueue = {}, onVoiceSelected = {}, onReaderModeChange = {})
     }
 }

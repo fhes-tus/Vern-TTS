@@ -176,7 +176,7 @@
     <string name="l10n_dynamic_026">"%1$s 문서"</string>
     <string name="l10n_dynamic_027">"%1$s]를 선택"</string>
     <string name="l10n_dynamic_028">"모든 제품 %1$s (%2$s)"</string>
-    <string name="l10n_dynamic_029">"이 제거 %1$s 로컬 라이브러리에서, 큐, 그리고 읽기 목록. 저장 노트, 북마크 및 독서 기록은 사용할 수 있습니다."</string>
+    <string name="l10n_dynamic_029">"%1$s 항목이 로컬 라이브러리, 재생 대기열 및 컬렉션에서 제거됩니다. 저장한 노트, 북마크 및 읽기 기록은 유지됩니다."</string>
     <string name="l10n_dynamic_030">"%1$s에"</string>
     <string name="l10n_dynamic_031">"✨ %1$s Q&amp;A 플래시 카드 수입 준비"</string>
     <string name="l10n_dynamic_032">"⁇  %1$s 연습 시험 질문 준비"</string>
@@ -319,7 +319,7 @@
     <string name="l10n_dynamic_169">"알 수없는 %1$s"</string>
     <string name="l10n_dynamic_170">"%1$s 일"</string>
     <string name="l10n_dynamic_171">"%1$s / 일"</string>
-    <string name="l10n_dynamic_172">"\" %1$s\"을 추가하여 목록을 읽어보십시오."</string>
+    <string name="l10n_dynamic_172">"컬렉션에 ‘%1$s’ 추가:"</string>
     <string name="l10n_dynamic_173">"Earlier 합계: %1$s · 알 수없는 모드"</string>
     <string name="l10n_dynamic_174">"자동적인 독서를 후에 멈추십시오 %1$s의 m %2$s상호 작용하지 않고 s"</string>
     <string name="l10n_dynamic_175">"%1$s에서 새로운 기능"</string>
@@ -497,7 +497,7 @@
     <string name="ui_app_settings" formatted="false">"앱 설정"</string>
     <string name="ui_appearance" formatted="false">"의 특징"</string>
     <string name="ui_appearance_mode" formatted="false">"외관 형태"</string>
-    <string name="ui_apply" formatted="false">"의 특징"</string>
+    <string name="ui_apply" formatted="false">"적용"</string>
     <string name="ui_apply_narration_settings" formatted="false">"narration 설정 적용"</string>
     <string name="ui_archive" formatted="false">"의논문"</string>
     <string name="ui_are_you_sure_you_want_to_close_vern" formatted="false">"Vern 닫기를 원하십니까?"</string>
@@ -643,7 +643,7 @@
     <string name="ui_create_flashcard" formatted="false">"flashcard를 만들기"</string>
     <string name="ui_create_flashcards_quizzes_summaries_and_explanations_review_the_r" formatted="false">"flashcards, quizzes, summaries 및 설명을 작성하십시오. 소스 텍스트와 함께 결과를 검토합니다."</string>
     <string name="ui_create_list" formatted="false">"의 글"</string>
-    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"로컬 리스트를 만들고 저장된 판독을 추가합니다."</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"컬렉션 만들기 및 저장한 읽기 자료 추가"</string>
     <string name="ui_create_notebooks_to_organise_your_notes_a_note_can_belong_to_more" formatted="false">"노트를 정리하기 위해 노트북을 만듭니다. 메모는 1 개 이상에 속할 수 있습니다."</string>
     <string name="ui_create_quizzes_using_ai_study_studio_to_practice_here" formatted="false">"AI Study Studio를 사용하여 퀴즈 만들기"</string>
     <string name="ui_create_something_new" formatted="false">"새로운 것을 창조하십시오"</string>
@@ -805,7 +805,7 @@
     <string name="ui_find_word_or_phrase" formatted="false">"단어 또는 구문 찾기"</string>
     <string name="ui_finding_more_files" formatted="false">"더 많은 파일 찾기 ..."</string>
     <string name="ui_finish" formatted="false">"의 끝"</string>
-    <string name="ui_finished" formatted="false">"의 끝"</string>
+    <string name="ui_finished" formatted="false">"읽기 완료"</string>
     <string name="ui_finishing" formatted="false">"의..."</string>
     <string name="ui_first_day_of_reading" formatted="false">"첫날 독서"</string>
     <string name="ui_fit_to_screen" formatted="false">"화면에 적합"</string>
@@ -998,7 +998,7 @@
     <string name="ui_new_note" formatted="false">"새로운 소식"</string>
     <string name="ui_new_notebook" formatted="false">"새로운 노트북"</string>
     <string name="ui_new_quiz" formatted="false">"새로운 퀴즈"</string>
-    <string name="ui_new_reading_list" formatted="false">"새로운 독서 목록"</string>
+    <string name="ui_new_reading_list" formatted="false">"새 컬렉션"</string>
     <string name="ui_new_rule" formatted="false">"새로운 규칙"</string>
     <string name="ui_newest_first" formatted="false">"가장 새로운"</string>
     <string name="ui_next" formatted="false">"의 의"</string>
@@ -1048,7 +1048,7 @@
     <string name="ui_no_readable_text_was_extracted_for_this_page" formatted="false">"이 페이지에 대한 읽을 수없는 텍스트가 추출되었습니다."</string>
     <string name="ui_no_reading_activity_recorded" formatted="false">"읽지 않은 활동"</string>
     <string name="ui_no_reading_history_yet" formatted="false">"아직 읽지 않은 역사 없음."</string>
-    <string name="ui_no_reading_lists_yet" formatted="false">"아직 읽지 않은 목록 없음."</string>
+    <string name="ui_no_reading_lists_yet" formatted="false">"컬렉션이 아직 없습니다."</string>
     <string name="ui_no_results" formatted="false">"결과 없음"</string>
     <string name="ui_no_results_found" formatted="false">"결과 없음"</string>
     <string name="ui_no_rules_yet" formatted="false">"아직 규칙 없음"</string>
@@ -1094,7 +1094,7 @@
     <string name="ui_open_a_file_to_start_reading" formatted="false">"읽기 시작 파일 열기"</string>
     <string name="ui_open_a_reading_first_then_ai_study_tools_can_prepare_the_current" formatted="false">"먼저 읽고, AI 연구 도구는 현재 부분 또는 전체 문서를 준비 할 수 있습니다."</string>
     <string name="ui_open_a_reading_from_your_library_and_it_will_appear_here" formatted="false">"도서관에서 독서를 열고 여기에 나타납니다."</string>
-    <string name="ui_open_book" formatted="false">"본문 바로가기"</string>
+    <string name="ui_open_book" formatted="false">"책 열기"</string>
     <string name="ui_open_file" formatted="false">"파일 열기"</string>
     <string name="ui_open_file_browser" formatted="false">"파일 열기"</string>
     <string name="ui_open_in_document" formatted="false">"⁇"</string>
@@ -1261,8 +1261,8 @@
     <string name="ui_reading_insights" formatted="false">"읽기 Insights"</string>
     <string name="ui_reading_insights_32f8941" formatted="false">"읽기 통찰력"</string>
     <string name="ui_reading_layout" formatted="false">"읽는 배치"</string>
-    <string name="ui_reading_list" formatted="false">"읽기 목록"</string>
-    <string name="ui_reading_lists" formatted="false">"읽기 목록"</string>
+    <string name="ui_reading_list" formatted="false">"컬렉션"</string>
+    <string name="ui_reading_lists" formatted="false">"컬렉션"</string>
     <string name="ui_reading_overview" formatted="false">"읽기 개요"</string>
     <string name="ui_reading_progress" formatted="false">"읽기 Progress"</string>
     <string name="ui_reading_recorded_duration_not_available" formatted="false">"기록된 읽기; 유효한 내구"</string>
@@ -1271,7 +1271,7 @@
     <string name="ui_reading_time" formatted="false">"독서 시간"</string>
     <string name="ui_reading_velocity_daily_goal" formatted="false">"읽기 속도 및 일일 목표"</string>
     <string name="ui_ready" formatted="false">"의 특징"</string>
-    <string name="ui_ready_to_begin" formatted="false">"시작하기"</string>
+    <string name="ui_ready_to_begin" formatted="false">"읽을 준비 완료"</string>
     <string name="ui_ready_to_launch" formatted="false">"출시 예정"</string>
     <string name="ui_ready_to_listen" formatted="false">"청취하기"</string>
     <string name="ui_ready_to_resume" formatted="false">"재시작"</string>
@@ -1443,7 +1443,8 @@
     <string name="ui_silent_rsvp_save_for_audio" formatted="false">"Silent RSVP · 오디오 저장"</string>
     <string name="ui_silent_visual_rsvp" formatted="false">"침묵하는 시각 RSVP"</string>
     <string name="ui_skip" formatted="false">"의정부"</string>
-    <string name="ui_skip_table" formatted="false">"바카라"</string>
+    <string name="ui_skip_table" formatted="false">"표 건너뛰기"</string>
+    <string name="ui_skip_figure">그림 건너뛰기</string>
     <string name="ui_sleep_timer" formatted="false">"잠 타이머"</string>
     <string name="ui_slides_options" formatted="false">"슬라이드 옵션"</string>
     <string name="ui_slower_0_05" formatted="false">"감속기 −0.05×"</string>
@@ -1487,7 +1488,7 @@
     <string name="ui_study_deck_now" formatted="false">"지금 학습"</string>
     <string name="ui_study_focus" formatted="false">"STUDY FOCUS의 특징"</string>
     <string name="ui_study_guide_pdf" formatted="false">"PDF의 연구"</string>
-    <string name="ui_study_hub" formatted="false">"연구 허브"</string>
+    <string name="ui_study_hub" formatted="false">"학습 센터"</string>
     <string name="ui_success" formatted="false">"의 장점"</string>
     <string name="ui_summarize_with_ai" formatted="false">"AI로 요약"</string>
     <string name="ui_summarizing" formatted="false">"의논하기"</string>

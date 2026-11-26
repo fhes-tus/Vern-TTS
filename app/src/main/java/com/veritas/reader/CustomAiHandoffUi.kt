@@ -8,7 +8,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun CustomAiHandoffCard(includeContextField: Boolean, onSend: (String, String) -> Unit) {
+internal fun CustomAiHandoffCard(
+    includeContextField: Boolean,
+    canSend: Boolean = true,
+    onAskInVern: ((String) -> Unit)? = null,
+    onSend: (String, String) -> Unit
+) {
     var instructions by rememberSaveable { mutableStateOf("") }
     var passage by rememberSaveable { mutableStateOf("") }
     Card(shape = VeritasPackStyle.cardShape(), colors = CardDefaults.cardColors(
@@ -25,8 +30,22 @@ internal fun CustomAiHandoffCard(includeContextField: Boolean, onSend: (String, 
             if (includeContextField) OutlinedTextField(passage, { passage = it.take(12000) },
                 label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_passage_or_context_optional)) }, minLines = 2, maxLines = 6,
                 modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.compactShape())
-            Button(onClick = { onSend(instructions.trim(), passage.trim()) }, enabled = instructions.isNotBlank(),
-                modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_send_to_assistant)) }
+            val enabled = canSend && instructions.isNotBlank()
+            if (onAskInVern != null) {
+                Button(onClick = { onAskInVern(instructions.trim()) }, enabled = enabled,
+                    modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) {
+                    Text(com.veritas.reader.ui.screens.menuString(R.string.study_ai_ask_here))
+                }
+                OutlinedButton(onClick = { onSend(instructions.trim(), passage.trim()) }, enabled = enabled,
+                    modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) {
+                    Text(com.veritas.reader.ui.screens.menuString(R.string.ui_send_to_assistant))
+                }
+            } else {
+                Button(onClick = { onSend(instructions.trim(), passage.trim()) }, enabled = enabled,
+                    modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) {
+                    Text(com.veritas.reader.ui.screens.menuString(R.string.ui_send_to_assistant))
+                }
+            }
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_opens_your_chosen_assistant_or_the_share_menu_your_draft_stays_he),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

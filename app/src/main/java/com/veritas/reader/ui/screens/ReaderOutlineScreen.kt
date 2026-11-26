@@ -126,7 +126,8 @@ internal fun ReaderOutlineScreen(
 
     Dialog(
         onDismissRequest = { close(onDismiss) },
-        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+        animateWindow = false
     ) {
         val view = LocalView.current
         var screenPosition by remember { mutableStateOf(Offset.Zero) }
@@ -138,7 +139,6 @@ internal fun ReaderOutlineScreen(
                 bars.isAppearanceLightStatusBars = lightBars
                 bars.isAppearanceLightNavigationBars = lightBars
                 setDimAmount(0f)
-                setWindowAnimations(0)
             }
         }
         BackHandler { close(onDismiss) }

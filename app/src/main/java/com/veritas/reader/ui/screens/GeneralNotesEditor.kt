@@ -54,12 +54,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.GeneralNote
+import com.veritas.reader.ManagedMediaLeases
 import com.veritas.reader.ui.NotesSettings
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+
+internal class NoteDraftSubmission(val draft: GeneralNote)
+
+internal data class NoteDraftSaveState(
+    val acknowledged: GeneralNote?,
+    val pending: NoteDraftSubmission? = null,
+    val failed: GeneralNote? = null
+) {
+    fun needsSave(draft: GeneralNote): Boolean = if (pending != null) pending.draft != draft
+    else failed != null || acknowledged != draft
+
+    fun canClose(draft: GeneralNote): Boolean = pending == null && failed == null && acknowledged == draft
+
+    fun complete(submission: NoteDraftSubmission, saved: Boolean): NoteDraftSaveState {
+        if (pending !== submission) return this
+        return if (saved) copy(acknowledged = submission.draft, pending = null, failed = null)
+        else copy(pending = null, failed = submission.draft)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,10 +90,11 @@ fun GeneralNotesEditor(
     onSaveNotesSettings: (NotesSettings) -> Unit = {},
     notebooks: List<com.veritas.reader.NoteNotebook> = emptyList(),
     onCreateNotebook: suspend (String) -> com.veritas.reader.NoteNotebook = { error("Notebook creation unavailable") },
-    onSave: (title: String, content: String, color: String?, isPinned: Boolean, isChecklist: Boolean, imageUrl: String?, audioUrl: String?, reminderAt: Long?, shouldDismiss: Boolean, allAudioUrls: List<String>, notebookIds: List<String>) -> Unit,
+    onSave: (title: String, content: String, color: String?, isPinned: Boolean, isChecklist: Boolean, imageUrl: String?, audioUrl: String?, reminderAt: Long?, shouldDismiss: Boolean, allAudioUrls: List<String>, notebookIds: List<String>) -> Unit = { _, _, _, _, _, _, _, _, _, _, _ -> },
     onDelete: (String) -> Unit,
     onDismiss: () -> Unit,
-    onCopyDraft: (String, String, String?, Boolean, Boolean, String?, List<String>, Long?, List<String>) -> Unit = { _, _, _, _, _, _, _, _, _ -> }
+    onCopyDraft: (String, String, String?, Boolean, Boolean, String?, List<String>, Long?, List<String>) -> Unit = { _, _, _, _, _, _, _, _, _ -> },
+    onSaveWithAcknowledgment: ((GeneralNote, (Boolean) -> Unit) -> Unit)? = null
 ) {
     val context = LocalContext.current
     var showNotesSettings by remember { mutableStateOf(false) }
@@ -131,14 +152,13 @@ fun GeneralNotesEditor(
     val linkSaver = Saver<androidx.compose.runtime.snapshots.SnapshotStateList<NoteLink>, String>(
         save = { NoteLinks.write("", it) }, restore = { mutableStateListOf<NoteLink>().apply { addAll(NoteLinks.read(it)) } })
     var dismissedLinks by rememberSaveable { mutableStateOf(NoteLinks.dismissed(note?.content.orEmpty())) }
-    val fetchedLinkUrls = remember { mutableSetOf<String>() }
     val links = rememberSaveable(saver = linkSaver) {
         mutableStateListOf<NoteLink>().apply {
-            addAll(NoteLinks.read(note?.content.orEmpty()))
-            NoteLinks.urls(initialRawContent).filter { url -> url !in dismissedLinks && none { it.url == url } }.forEach { add(NoteLink(it, NoteLinks.host(it))) }
+            addAll(NoteLinks.syncDetectedLinks(NoteLinks.read(note?.content.orEmpty()), emptyList(),
+                NoteLinks.urls(initialRawContent), dismissedLinks))
         }
     }
-    val seenLinkUrls = remember { mutableSetOf<String>().apply { addAll(links.map { it.url }); addAll(dismissedLinks) } }
+    var previousLinkUrls by rememberSaveable { mutableStateOf(NoteLinks.urls(initialRawContent)) }
     val initialHistory = remember {
         NoteUndoHistory.read(note?.id, NoteEditorSnapshot(NoteLinks.write(VeritasNoteEditing.serializeNoteBlocks(blocks), links, dismissedLinks), isChecklist, 0, TextRange.Zero, title))
     }
@@ -337,6 +357,7 @@ fun GeneralNotesEditor(
         blocks.addAll(VeritasNoteEditing.parseNoteBlocks(NoteLinks.strip(snapshot.content)))
         title = snapshot.title
         links.clear(); links.addAll(NoteLinks.read(snapshot.content))
+        previousLinkUrls = NoteLinks.urls(NoteLinks.strip(snapshot.content))
         dismissedLinks = NoteLinks.dismissed(snapshot.content)
         isChecklist = snapshot.checklist
         items.clear()
@@ -377,30 +398,71 @@ fun GeneralNotesEditor(
     LaunchedEffect(editVersion, notesSettings.showRichLinkPreviews) {
         if (!notesSettings.showRichLinkPreviews) return@LaunchedEffect
         val body = if (isChecklist) contentText else VeritasNoteEditing.serializeNoteBlocks(blocks)
-        for (url in NoteLinks.urls(body).filter { it !in seenLinkUrls }) {
-            seenLinkUrls.add(url)
-            links.add(NoteLink(url, NoteLinks.host(url)))
-        }
-        for (link in links.toList().filter { it.url !in fetchedLinkUrls && it.title == NoteLinks.host(it.url) && it.image.isEmpty() }) {
-            fetchedLinkUrls.add(link.url)
-            val fetched = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { NoteLinks.fetch(link.url) }
-            val index = links.indexOfFirst { it.url == link.url }
-            if (index >= 0 && fetched != links[index]) {
-                links[index] = fetched
-                if (editVersion > 0) hasUnsavedChanges = true
-            }
+        val urls = NoteLinks.urls(body)
+        val updated = NoteLinks.syncDetectedLinks(links, previousLinkUrls, urls, dismissedLinks)
+        previousLinkUrls = urls
+        if (updated != links.toList()) {
+            links.clear()
+            links.addAll(updated)
         }
     }
 
-    // Continuous auto-save: debounced 800ms
-    LaunchedEffect(editVersion, title, noteColor, isPinned, isChecklist, imageUrl, audioUrls, reminderAt, links.toList(), notebookIds) {
-        if (!saveStatus.startsWith("Could not") && !hasUnsavedChanges && title == (note?.title ?: "") && noteColor == note?.color &&
-            isPinned == (note?.pinned ?: false) && isChecklist == (note?.isChecklist ?: notesSettings.newNoteIsChecklist) && reminderAt == note?.reminderAt) return@LaunchedEffect
+    fun captureDraft() = GeneralNote(id = "", title = title, content = NoteLinks.write(bodyForSave(), links, dismissedLinks),
+        updatedAt = 0L, color = noteColor, pinned = isPinned, isChecklist = isChecklist, imageUrl = imageUrl,
+        audioUrl = audioUrls.firstOrNull(), audioUrls = audioUrls, reminderAt = reminderAt, labelIds = notebookIds)
+
+    val draft = remember(editVersion, title, noteColor, isPinned, isChecklist, imageUrl, audioUrls, reminderAt,
+        links.toList(), dismissedLinks, notebookIds) { captureDraft() }
+    var saveState by remember { mutableStateOf(NoteDraftSaveState(draft.takeUnless { hasUnsavedChanges })) }
+    var closeRequestedFor by remember { mutableStateOf<GeneralNote?>(null) }
+    val editorMediaPaths = blocks.mapNotNull(NoteSharing::path).toSet()
+    DisposableEffect(editorMediaPaths) {
+        editorMediaPaths.forEach(ManagedMediaLeases::acquire)
+        onDispose { editorMediaPaths.forEach(ManagedMediaLeases::release) }
+    }
+
+    fun submitDraft(current: GeneralNote, closeLegacyEditor: Boolean = false) {
+        if (saveState.pending?.draft == current) return
+        val submission = NoteDraftSubmission(current)
+        hasUnsavedChanges = true
+        saveState = saveState.copy(pending = submission, failed = null)
+        val acknowledge: (Boolean) -> Unit = { saved ->
+            if (saveState.pending === submission) {
+                saveState = saveState.complete(submission, saved)
+                if (saved && captureDraft() == current) hasUnsavedChanges = false
+                if (!saved && closeRequestedFor == current) closeRequestedFor = null
+            }
+        }
+        if (onSaveWithAcknowledgment != null) {
+            onSaveWithAcknowledgment(current, acknowledge)
+        } else {
+            onSave(current.title, current.content, current.color, current.pinned, current.isChecklist, current.imageUrl,
+                current.audioUrl, current.reminderAt, closeLegacyEditor, current.audioUrls, current.labelIds)
+            acknowledge(true)
+        }
+    }
+
+    fun hasContent(): Boolean {
+        val hasText = if (isChecklist) items.any { it.second.text.isNotBlank() }
+        else blocks.any { it is NoteBlock.Text && it.value.text.isNotBlank() }
+        return title.isNotBlank() || hasText || links.isNotEmpty() || blocks.any { it !is NoteBlock.Text } ||
+            imageUrl != null || audioUrls.isNotEmpty()
+    }
+
+    LaunchedEffect(draft, mediaManager.isImporting, mediaManager.isRecording) {
+        if (closeRequestedFor != draft) closeRequestedFor = null
+        if (mediaManager.isImporting || mediaManager.isRecording) return@LaunchedEffect
+        if (!saveState.needsSave(draft) || saveState.failed == draft) return@LaunchedEffect
         delay(800)
-        val contentToSave = bodyForSave()
-        if (note != null || title.isNotBlank() || contentToSave.isNotBlank() || links.isNotEmpty() || imageUrl != null || audioUrls.isNotEmpty()) {
-            onSave(title, NoteLinks.write(contentToSave, links, dismissedLinks), noteColor, isPinned, isChecklist, imageUrl, audioUrls.firstOrNull(), reminderAt, false, audioUrls, notebookIds)
-            hasUnsavedChanges = false
+        if (captureDraft() == draft && saveState.needsSave(draft) && saveState.failed != draft && (note != null || hasContent())) {
+            submitDraft(draft)
+        }
+    }
+    LaunchedEffect(draft, closeRequestedFor, saveState, mediaManager.isImporting, mediaManager.isRecording) {
+        if (closeRequestedFor == draft && saveState.canClose(draft) && captureDraft() == draft &&
+            !mediaManager.isImporting && !mediaManager.isRecording) {
+            closeRequestedFor = null
+            onDismiss()
         }
     }
 
@@ -429,6 +491,12 @@ fun GeneralNotesEditor(
         ))
     }
 
+    fun changeReminder(time: Long?) {
+        if (reminderAt == time) return
+        reminderAt = time
+        hasUnsavedChanges = true
+    }
+
     fun pickReminderDateTime() {
         val now = Calendar.getInstance()
         val base = reminderAt?.let { Calendar.getInstance().apply { timeInMillis = it } } ?: now
@@ -449,7 +517,7 @@ fun GeneralNotesEditor(
                         if (cal.timeInMillis <= System.currentTimeMillis()) {
                             Toast.makeText(context, "Pick a time in the future", Toast.LENGTH_SHORT).show()
                         } else {
-                            reminderAt = cal.timeInMillis
+                            changeReminder(cal.timeInMillis)
                         }
                     },
                     base.get(Calendar.HOUR_OF_DAY),
@@ -470,27 +538,26 @@ fun GeneralNotesEditor(
     val richTextTransformation = remember(onCardColor) { RichTextVisualTransformation(onCardColor) }
 
     fun performSave() {
-        if (!saveStatus.startsWith("Could not") && !hasUnsavedChanges && title == (note?.title ?: "") && noteColor == note?.color &&
-            isPinned == (note?.pinned ?: false) && isChecklist == (note?.isChecklist ?: notesSettings.newNoteIsChecklist) && reminderAt == note?.reminderAt) {
-            onDismiss()
-            return
-        }
         if (mediaManager.isImporting) {
             Toast.makeText(context, "Wait for the attachment to finish, then save.", Toast.LENGTH_SHORT).show()
             return
         }
         if (mediaManager.isRecording) mediaManager.onToggleRecording()
-        val finalContent = bodyForSave()
-        onSave(title, NoteLinks.write(finalContent, links, dismissedLinks), noteColor, isPinned, isChecklist, imageUrl, audioUrls.firstOrNull(), reminderAt, true, audioUrls, notebookIds)
-        hasUnsavedChanges = false
+        val current = captureDraft()
+        if (saveState.canClose(current) || (note == null && !hasContent() && saveState.pending == null && saveState.failed == null)) {
+            onDismiss()
+            return
+        }
+        if (onSaveWithAcknowledgment != null) closeRequestedFor = current
+        submitDraft(current, closeLegacyEditor = true)
     }
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val flushDraft by rememberUpdatedState(newValue = {
         if (mediaManager.isRecording) mediaManager.onToggleRecording()
-        if (hasUnsavedChanges || noteColor != note?.color || isPinned != (note?.pinned ?: false) || reminderAt != note?.reminderAt) {
-            val body = bodyForSave()
-            onSave(title, NoteLinks.write(body, links, dismissedLinks), noteColor, isPinned, isChecklist, imageUrl, audioUrls.firstOrNull(), reminderAt, false, audioUrls, notebookIds)
+        val current = captureDraft()
+        if (saveState.needsSave(current) && (note != null || hasContent())) {
+            submitDraft(current)
         }
     })
     DisposableEffect(lifecycle) {
@@ -499,15 +566,7 @@ fun GeneralNotesEditor(
         onDispose { lifecycle.removeObserver(observer) }
     }
 
-    BackHandler {
-        if (mediaManager.isRecording) mediaManager.onToggleRecording()
-        val hasAnyText = if (isChecklist) items.any { it.second.text.isNotBlank() } else blocks.any { it is NoteBlock.Text && it.value.text.isNotBlank() }
-        if (note != null || title.isNotBlank() || hasAnyText || links.isNotEmpty() || blocks.any { it !is NoteBlock.Text } || imageUrl != null || audioUrls.isNotEmpty()) {
-            performSave()
-        } else {
-            onDismiss()
-        }
-    }
+    BackHandler { performSave() }
 
     Scaffold(
         topBar = {
@@ -518,20 +577,12 @@ fun GeneralNotesEditor(
                 showReminderMenu = showReminderMenu,
                 cardBgColor = cardBgColor,
                 onCardColor = onCardColor,
-                onBack = {
-                    if (mediaManager.isRecording) mediaManager.onToggleRecording()
-                    val hasAnyText = if (isChecklist) items.any { it.second.text.isNotBlank() } else blocks.any { it is NoteBlock.Text && it.value.text.isNotBlank() }
-                    if (note != null || title.isNotBlank() || hasAnyText || links.isNotEmpty() || blocks.any { it !is NoteBlock.Text } || imageUrl != null || audioUrls.isNotEmpty()) {
-                        performSave()
-                    } else {
-                        onDismiss()
-                    }
-                },
-                onTogglePin = { isPinned = !isPinned },
+                onBack = ::performSave,
+                onTogglePin = { isPinned = !isPinned; hasUnsavedChanges = true },
                 onShowReminderMenu = { showReminderMenu = true },
                 onDismissReminderMenu = { showReminderMenu = false },
                 onSetReminderLaterToday = {
-                    reminderAt = System.currentTimeMillis() + 3 * 60 * 60 * 1000L
+                    changeReminder(System.currentTimeMillis() + 3 * 60 * 60 * 1000L)
                     showReminderMenu = false
                 },
                 onSetReminderTomorrow = {
@@ -541,7 +592,7 @@ fun GeneralNotesEditor(
                         set(Calendar.MINUTE, 0)
                         set(Calendar.SECOND, 0)
                     }
-                    reminderAt = cal.timeInMillis
+                    changeReminder(cal.timeInMillis)
                     showReminderMenu = false
                 },
                 onPickReminderDateTime = {
@@ -549,7 +600,7 @@ fun GeneralNotesEditor(
                     pickReminderDateTime()
                 },
                 onRemoveReminder = {
-                    reminderAt = null
+                    changeReminder(null)
                     showReminderMenu = false
                 },
                 onSave = { performSave() }
@@ -597,10 +648,15 @@ fun GeneralNotesEditor(
                     onCopyDraft(title, NoteLinks.write(body, links, dismissedLinks), noteColor, isPinned, isChecklist, imageUrl, audioUrls, reminderAt, notebookIds)
                 },
                 onColorSelected = { hex ->
+                    if (noteColor != hex) hasUnsavedChanges = true
                     noteColor = hex
                     showColorPicker = false
                 },
                 onCycleHeading = { mutateActiveText { VeritasNoteEditing.cycleHeading(it) } },
+                isMarkerActive = { marker ->
+                    val value = (blocks.getOrNull(focusedBlockIndex) as? NoteBlock.Text)?.value ?: contentValue
+                    VeritasNoteEditing.isInlineMarkerActive(value, marker)
+                },
                 onApplyMarker = { marker -> mutateActiveText { VeritasNoteEditing.toggleInlineMarker(it, marker) } },
                 onToggleQuote = { mutateActiveText { VeritasNoteEditing.toggleQuotePrefix(it) } },
                 onApplyLinePrefix = { prefix -> mutateActiveText { VeritasNoteEditing.toggleLinePrefix(it, prefix) } },
@@ -664,10 +720,17 @@ fun GeneralNotesEditor(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             NoteLabelsRow(notebooks, notebookIds, onLabel = { showNotebooks = true })
+            val displayedSaveStatus = when {
+                mediaManager.isImporting -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_adding_attachment)
+                saveState.failed == draft -> saveStatus.takeIf { it.startsWith("Could not") } ?: "Could not save. Tap Save to retry."
+                saveState.pending?.draft == draft -> "Saving…"
+                !saveState.canClose(draft) -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_unsaved_changes)
+                else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_saved)
+            }
             Text(
-                if (mediaManager.isImporting) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_adding_attachment) else if (hasUnsavedChanges) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_unsaved_changes) else saveStatus.ifBlank { com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_saved) },
+                displayedSaveStatus,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (saveStatus.startsWith("Could not")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (saveState.failed == draft) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (reminderAt != null) {
                 val label = remember(reminderAt) {
@@ -683,7 +746,7 @@ fun GeneralNotesEditor(
                             contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_reminder),
                             modifier = Modifier
                                 .size(18.dp)
-                                .clickable { reminderAt = null }
+                                .clickable { changeReminder(null) }
                         )
                     }
                 )
@@ -804,10 +867,18 @@ fun GeneralNotesEditor(
             if (notesSettings.showRichLinkPreviews) links.toList().forEach { link ->
                 NoteLinkCard(link, onRemove = {
                     pushHistory()
-                    links.remove(link)
+                    links.removeAll { NoteLinks.identity(it.url) == NoteLinks.identity(link.url) }
                     dismissedLinks = (dismissedLinks + link.url).distinct()
                     hasUnsavedChanges = true
                     editVersion++
+                }, onMetadataLoaded = { loaded ->
+                    val index = links.indexOfFirst { it.url == loaded.url }
+                    if (index >= 0 && links[index] != loaded) {
+                        pushHistory()
+                        links[index] = loaded
+                        hasUnsavedChanges = true
+                        editVersion++
+                    }
                 })
             }
         }

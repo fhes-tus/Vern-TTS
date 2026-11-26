@@ -37,12 +37,23 @@ class TabSwipeStabilityUiTest {
                 )
             }
         }
+        val restingViewport = rule.onNodeWithTag("home_pager").fetchSemanticsNode().boundsInRoot
+        fun assertStableViewport() {
+            val viewport = rule.onNodeWithTag("home_pager").fetchSemanticsNode().boundsInRoot
+            assertEquals("Pager top should stay fixed as the header switches", restingViewport.top, viewport.top, 1f)
+            assertEquals("Pager height should stay fixed while changing tabs", restingViewport.height, viewport.height, 1f)
+        }
         fun dragToNext(forward: Boolean, expected: String) {
             val pager = rule.onNodeWithTag("home_pager")
-            // Stay below genre chips and above the horizontal book shelves.
+            val libraryToolbar = rule.onAllNodesWithTag("library_section_indicator").fetchSemanticsNodes().isNotEmpty()
+            // Between Study and Notes, the pinned header intentionally does not initiate a swipe.
+            val crossesPinnedStudyHeader = (forward && expected == "Notes") || (!forward && expected == "Study")
             pager.performTouchInput {
-                val y = (110f * androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density)
-                    .coerceAtMost(height * .4f)
+                val density = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                    .targetContext.resources.displayMetrics.density
+                val toolbarHeight = if (libraryToolbar) com.veritas.reader.ui.screens.LibrarySectionPickerHeight.value else 0f
+                val y = if (crossesPinnedStudyHeader) height * .4f else
+                    ((110f + toolbarHeight) * density).coerceAtMost(height * .4f)
                 val startX = if (forward) width * .88f else width * .12f
                 val endX = if (forward) width * .12f else width * .88f
                 down(androidx.compose.ui.geometry.Offset(startX, y))
@@ -50,6 +61,7 @@ class TabSwipeStabilityUiTest {
             }
             // Assert the new destination BEFORE lifting the finger: a settled-
             // page-only header can pass endpoint tests while visibly lagging.
+            assertStableViewport()
             rule.onNodeWithContentDescription(expected).assertIsSelected()
             val header = when (expected) {
                 "Library" -> "My Library"
@@ -66,6 +78,7 @@ class TabSwipeStabilityUiTest {
             }
             pager.performTouchInput { up() }
             rule.waitForIdle()
+            assertStableViewport()
             rule.onNodeWithContentDescription(expected).assertIsSelected()
         }
         repeat(2) {
@@ -84,8 +97,12 @@ class TabSwipeStabilityUiTest {
         rule.onNodeWithContentDescription("Home").assertIsSelected()
         rule.mainClock.autoAdvance = false
         rule.onNodeWithContentDescription("Notes").performClick()
-        rule.mainClock.advanceTimeBy(80)
+        rule.mainClock.advanceTimeByFrame()
+        rule.onNodeWithContentDescription("Notes").assertIsSelected()
+        rule.onNodeWithText("Notes & Annotations").assertIsDisplayed()
         rule.onNodeWithContentDescription("Library").performClick()
+        rule.mainClock.advanceTimeByFrame()
+        rule.onNodeWithContentDescription("Library").assertIsSelected()
         rule.mainClock.autoAdvance = true
         rule.waitForIdle()
         rule.onNodeWithContentDescription("Library").assertIsSelected()

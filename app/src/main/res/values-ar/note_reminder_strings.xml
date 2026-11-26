@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="note_reminder_channel">تذكيرات الملاحظات</string>
+    <string name="note_reminder_channel_description">التذكيرات التي تضبطها لملاحظاتك</string>
+    <string name="note_reminder_title">تذكير بملاحظة</string>
+    <string name="note_reminder_open">انقر لفتح ملاحظتك.</string>
+    <string name="note_reminder_missing">هذه الملاحظة لم تعد متاحة.</string>
+</resources>

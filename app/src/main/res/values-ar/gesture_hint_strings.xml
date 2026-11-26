@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_tips_and_gestures">نصائح وإيماءات</string>
+    <string name="hint_notes_create">اضغط على + لإنشاء ملاحظة</string>
+    <string name="hint_notes_filter">اضغط على الوسوم لتصفية ملاحظاتك</string>
+    <string name="hint_notes_open">اضغط على أي ملاحظة لتحريرها أو مشاركتها</string>
+    <string name="hint_document_gestures">إيماءات المستند</string>
+    <string name="hint_pdf_gestures">إيماءات PDF</string>
+    <string name="hint_single_tap">ضغطة واحدة</string>
+    <string name="hint_toggle_reading_bars">إخفاء أشرطة القراءة أو إظهارها</string>
+    <string name="hint_zoom_document">تكبير المستند أو تصغيره</string>
+    <string name="hint_swipe_horizontally">التمرير أفقيًا</string>
+    <string name="hint_turn_page">الانتقال إلى الصفحة السابقة أو التالية</string>
+    <string name="hint_long_press_passage">الضغط مطولًا على كلمة أو جملة</string>
+    <string name="hint_read_from_selection">حدد النص واختر القراءة من هنا</string>
+</resources>

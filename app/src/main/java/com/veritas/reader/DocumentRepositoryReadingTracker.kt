@@ -3,6 +3,7 @@ package com.veritas.reader
 import androidx.core.content.edit
 import org.json.JSONArray
 import java.text.SimpleDateFormat
+import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -19,13 +20,16 @@ fun DocumentRepository.recordAppOpen(nowMillis: Long = System.currentTimeMillis(
 fun DocumentRepository.recordUsageDuration(durationMillis: Long, endMillis: Long = System.currentTimeMillis()): ReaderTrackerSnapshot = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val cleanDuration = durationMillis.coerceIn(0L, DocumentRepository.MAX_TRACKER_SESSION_MILLIS)
     if (cleanDuration <= 0L) return@synchronized loadReaderTrackerSnapshot(endMillis)
-    val key = trackerDateKey(endMillis)
+    val allocation = linkedMapOf<String, Long>()
+    allocation.addDurationByDate(endMillis - cleanDuration, cleanDuration, ZoneId.systemDefault())
     val updated = loadTrackerDays().toMutableMap()
-    val current = updated[key] ?: ReaderTrackerDay(dateKey = key, appOpenCount = 1)
-    updated[key] = current.copy(
-        appOpenCount = maxOf(current.appOpenCount, 1),
-        usageMillis = current.usageMillis + cleanDuration
-    )
+    allocation.forEach { (key, usedMillis) ->
+        val current = updated[key] ?: ReaderTrackerDay(dateKey = key)
+        updated[key] = current.copy(
+            appOpenCount = maxOf(current.appOpenCount, 1),
+            usageMillis = current.usageMillis + usedMillis
+        )
+    }
     saveTrackerDays(updated.values)
     return@synchronized loadReaderTrackerSnapshot(endMillis)
 }

@@ -83,7 +83,7 @@
     <string name="ui_copy_text" formatted="false">"Copiar texto"</string>
     <string name="ui_create_backup" formatted="false">"Crear copia"</string>
     <string name="ui_create_flashcard" formatted="false">"Crear tarjeta"</string>
-    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"Crear listas y añadir lecturas guardadas"</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"Crea colecciones y añade lecturas guardadas"</string>
     <string name="ui_customization" formatted="false">"Personalización"</string>
     <string name="ui_daily_goal" formatted="false">"Meta diaria"</string>
     <string name="ui_daily_goal_reached" formatted="false">"Meta diaria alcanzada"</string>
@@ -125,7 +125,7 @@
     <string name="ui_filter" formatted="false">"Filtrar"</string>
     <string name="ui_filters" formatted="false">"Filtros"</string>
     <string name="ui_finish" formatted="false">"Finalizar"</string>
-    <string name="ui_finished" formatted="false">"Terminados"</string>
+    <string name="ui_finished" formatted="false">"Terminado"</string>
     <string name="ui_first_day_of_reading" formatted="false">"Primer día de lectura"</string>
     <string name="ui_flashcards" formatted="false">"Tarjetas de estudio"</string>
     <string name="ui_font" formatted="false">"Fuente"</string>
@@ -233,8 +233,8 @@
     <string name="ui_reading_goal" formatted="false">"Meta de lectura"</string>
     <string name="ui_reading_goal_reduce_motion_contrast" formatted="false">"Meta de lectura, movimiento y contraste"</string>
     <string name="ui_reading_insights_32f8941" formatted="false">"Estadísticas de lectura"</string>
-    <string name="ui_reading_list" formatted="false">"Lista de lectura"</string>
-    <string name="ui_reading_lists" formatted="false">"Listas de lectura"</string>
+    <string name="ui_reading_list" formatted="false">"Colección"</string>
+    <string name="ui_reading_lists" formatted="false">"Colecciones"</string>
     <string name="ui_reading_overview" formatted="false">"Resumen de lectura"</string>
     <string name="ui_reading_time" formatted="false">"Tiempo de lectura"</string>
     <string name="ui_ready" formatted="false">"Listo"</string>

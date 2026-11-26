@@ -1,5 +1,7 @@
 package com.veritas.reader.ui
 
+import com.veritas.reader.SpeechDelivery
+
 import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.viewModelScope
@@ -14,6 +16,8 @@ import com.veritas.reader.TtsVoiceOption
 import com.veritas.reader.VeritasThemeState
 import com.veritas.reader.VoiceManager
 import com.veritas.reader.VoiceSettings
+import com.veritas.reader.VernSettingsProfile
+import com.veritas.reader.R
 import com.veritas.reader.addAiPromptHistory
 import com.veritas.reader.addAiPromptTemplate
 import com.veritas.reader.addPronunciationRule
@@ -30,7 +34,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-fun ReaderViewModel.saveReaderSettings(update: ReaderSettings) {
+fun ReaderViewModel.saveReaderSettings(update: ReaderSettings) = saveReaderSettings(update, importingProfile = false)
+
+internal fun ReaderViewModel.applySettingsProfile(profile: VernSettingsProfile) =
+    saveReaderSettings(profile.applyTo(uiState.value.readerSettings), importingProfile = true)
+
+private fun ReaderViewModel.saveReaderSettings(update: ReaderSettings, importingProfile: Boolean) {
     val previous = uiState.value.readerSettings
     val revision = ++readerSettingsSaveRevision
     val normalized = update.copy(fontSizeSp = update.fontSizeSp.coerceIn(10, 28),
@@ -45,14 +54,22 @@ fun ReaderViewModel.saveReaderSettings(update: ReaderSettings) {
             val saved = withContext(Dispatchers.IO) {
                 synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
                     if (revision != readerSettingsSaveRevision) return@synchronized null
-                    repository.saveReaderSettings(normalized)
+                    repository.saveReaderSettings(normalized, reconcileBackupSchedule = true, requireDurableWrite = importingProfile)
                 }
             } ?: return@launch
-            if (revision == readerSettingsSaveRevision) _uiState.update { it.copy(readerSettings = saved) }
+            if (revision == readerSettingsSaveRevision) _uiState.update {
+                it.copy(
+                    readerSettings = saved,
+                    importMessage = if (importingProfile) getApplication<Application>().getString(R.string.vern_settings_import_saved)
+                    else it.importMessage
+                )
+            }
         } catch (error: Exception) {
             if (error is kotlinx.coroutines.CancellationException) throw error
             if (revision == readerSettingsSaveRevision) {
-                _uiState.update { it.copy(readerSettings = previous, importMessage = "Could not save display preferences. Please try again.") }
+                val message = if (importingProfile) getApplication<Application>().getString(R.string.vern_settings_import_save_failed)
+                else "Could not save display preferences. Please try again."
+                _uiState.update { it.copy(readerSettings = previous, importMessage = message) }
                 PlaybackStateStore.autoPlayQueue = previous.autoPlayQueue
             }
         }
@@ -97,20 +114,19 @@ fun ReaderViewModel.refreshPronunciationRules() {
 
 fun ReaderViewModel.addPronunciationRule() {
     val draft = uiState.value
-    val find = draft.newRuleFind.trim()
-    val replaceWith = if (draft.newRuleSkip) "" else if (draft.newRuleKind == com.veritas.reader.SpeechRuleKind.LITERAL)
-        draft.newRuleReplaceWith.trim() else draft.newRuleReplaceWith
-    if (find.isBlank()) return
-    val validation = com.veritas.reader.SpeechRuleDraft(draft.newRuleFind, draft.newRuleReplaceWith,
-        draft.newRuleKind, draft.newRuleCaseSensitive, draft.newRuleSkip, draft.editingRuleId).error()
+    if (draft.newRuleFind.isBlank()) return
+    val editor = com.veritas.reader.SpeechRuleDraft(draft.newRuleFind, draft.newRuleReplaceWith,
+        draft.newRuleKind, draft.newRuleCaseSensitive, draft.newRuleSkip, draft.editingRuleId)
+    val candidate = editor.rule()
+    val validation = editor.error()
     if (validation != null) {
         _uiState.update { it.copy(newRuleError = validation) }
         return
     }
     viewModelScope.launch(Dispatchers.IO) {
         try {
-            val rules = repository.addPronunciationRule(find, replaceWith, draft.newRuleKind,
-                draft.newRuleCaseSensitive, draft.editingRuleId)
+            val rules = repository.addPronunciationRule(candidate.find, candidate.replaceWith, candidate.matchKind,
+                candidate.caseSensitive, draft.editingRuleId)
             withContext(Dispatchers.Main) {
                 _uiState.update {
                     val unchanged = it.newRuleFind == draft.newRuleFind && it.newRuleReplaceWith == draft.newRuleReplaceWith &&
@@ -182,8 +198,10 @@ fun ReaderViewModel.saveVoiceSettings(update: VoiceSettings) {
             val saved = withContext(Dispatchers.IO) {
                 synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
                     if (revision != voiceSettingsSaveRevision) return@synchronized repository.loadVoiceSettings()
+                    val previousRate = repository.loadVoiceSettings().preferredRate
                     val result = repository.saveVoiceSettings(update)
                     if (docId != null) repository.saveDocVoiceMemory(docId, result.preferredRate, result.preferredPitch)
+                    if (previousRate != result.preferredRate) completeQuestSpeed()
                     result
                 }
             }
@@ -199,7 +217,6 @@ fun ReaderViewModel.saveVoiceSettings(update: VoiceSettings) {
                     rate = saved.preferredRate,
                     pitch = saved.preferredPitch
                 )
-                completeQuestSpeed()
             }
         } finally {
             if (revision == voiceSettingsSaveRevision) PlaybackStateStore.pendingVoiceSettings = false
@@ -304,14 +321,7 @@ fun ReaderViewModel.loadVoicesForEngine(enginePackage: String = uiState.value.vo
 }
 
 fun ReaderViewModel.previewVoice(voice: TtsVoiceOption) {
-    val detectedEngine = VoiceManager.engineForVoice(voice.name)
-    val enginePackage = if (detectedEngine != null) {
-        detectedEngine
-    } else if (VoiceManager.isVeritasEngine(uiState.value.voiceSettings.enginePackage)) {
-        ""
-    } else {
-        uiState.value.voiceSettings.enginePackage
-    }
+    val enginePackage = VoiceManager.engineForVoice(voice.name) ?: voice.enginePackage
     VoiceManager.previewVoice(
         context = getApplication(),
         enginePackage = enginePackage,
@@ -323,7 +333,7 @@ fun ReaderViewModel.previewVoice(voice: TtsVoiceOption) {
     )
 }
 
-fun ReaderViewModel.previewActiveVoiceWithPreset() {
+fun ReaderViewModel.previewActiveVoiceWithPreset(rate: Float, pitch: Float) {
     val settings = uiState.value.voiceSettings
     val voiceName = settings.voiceName
     val detectedEngine = VoiceManager.engineForVoice(voiceName)
@@ -341,8 +351,8 @@ fun ReaderViewModel.previewActiveVoiceWithPreset() {
         voiceName = voiceName,
         text = sampleText,
         voiceShaping = settings.voiceShaping,
-        rate = settings.preferredRate,
-        pitch = settings.preferredPitch
+        rate = SpeechDelivery.userRate(rate),
+        pitch = SpeechDelivery.userPitch(pitch)
     )
 }
 

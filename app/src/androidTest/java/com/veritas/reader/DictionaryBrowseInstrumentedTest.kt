@@ -47,9 +47,15 @@ class DictionaryBrowseInstrumentedTest {
         assertThrows(IllegalArgumentException::class.java) { OfflineDictionaryStore.browse(context, pageSize = 0) }
         assertThrows(IllegalArgumentException::class.java) { OfflineDictionaryStore.browse(context, pageSize = 101) }
     }
-    @Test fun openingABrowsedWordSavesItsMeaningAndExamples() = runBlocking {
+    @Test fun openingABrowsedWordIsReadOnlyUntilExplicitlySaved() = runBlocking {
+        val repository = DocumentRepository(context)
+        val before = repository.loadGeneralNotes()
         val word = OfflineDictionaryStore.browse(context, "abandon").words.first { it == "abandon" }
-        val result = lookupAndSaveDictionaryWord(context, word, lookupSource = DictionaryLookupSource.OFFLINE)
+        val lookup = lookupDictionaryWord(context, word, lookupSource = DictionaryLookupSource.OFFLINE)
+        assertFalse(lookup.saved)
+        assertEquals(before, repository.loadGeneralNotes())
+        assertFalse(VocabularyLookup.needsDefinition(lookup.meaning.definition))
+        val result = saveDictionaryLookupResult(context, lookup)
         assertTrue(result.saved)
         val saved = parseVocabularyNoteContent(DocumentRepository(context).loadGeneralNotes()
             .first { it.title == "__vocab__$DICTIONARY_VOCAB_ID" }.content).last()
@@ -57,5 +63,8 @@ class DictionaryBrowseInstrumentedTest {
         assertEquals(result.meaning.definition, saved.explanation)
         assertTrue(saved.examples.isNotEmpty())
         assertEquals(result.meaning.examples, saved.examples)
+        val savedNotes = repository.loadGeneralNotes()
+        saveDictionaryLookupResult(context, result)
+        assertEquals(savedNotes, repository.loadGeneralNotes())
     }
 }

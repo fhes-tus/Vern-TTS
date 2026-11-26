@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_studio_customize">Anpassen</string>
+    <string name="voice_studio_models_hint">Stimmen zum Offline-Lesen herunterladen</string>
+    <string name="voice_studio_phone_more_hint">Eine weitere Sprach-Engine oder Sprache installieren</string>
+    <string name="voice_studio_use_language_default">Standardstimme des Telefons für diese Sprache verwenden</string>
+    <string name="voice_studio_phone_engine">Sprach-Engine des Telefons</string>
+    <string name="voice_studio_refresh_engines">Sprach-Engines aktualisieren</string>
+    <string name="voice_studio_preset_values">%1$s · Tempo %2$s× · Tonhöhe %3$s×</string>
+    <string name="voice_studio_multiplier">%1$s×</string>
+    <string name="voice_studio_preset_balanced">Standardtempo und Standardtonhöhe der Stimme.</string>
+    <string name="voice_studio_preset_study">Langsamer lesen, mit ursprünglicher Tonhöhe.</string>
+    <string name="voice_studio_preset_scan">Schneller lesen, mit ursprünglicher Tonhöhe.</string>
+    <string name="voice_studio_preset_story">Etwas langsamer und mit tieferer Stimme.</string>
+    <string name="voice_studio_preset_lecture">Etwas schneller und mit höherer Stimme.</string>
+    <string name="voice_studio_preset_bedtime">Langsamer und tiefer für ruhiges Zuhören.</string>
+    <string name="voice_studio_cloud_preview_help">Wende die Einstellungen an und höre die Cloud-Stimme mit „Stimme testen“ an.</string>
+</resources>

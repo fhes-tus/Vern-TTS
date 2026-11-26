@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_tips_and_gestures">Tipps und Gesten</string>
+    <string name="hint_notes_create">Tippe auf +, um eine Notiz zu erstellen</string>
+    <string name="hint_notes_filter">Tippe auf Tags, um deine Notizen zu filtern</string>
+    <string name="hint_notes_open">Tippe auf eine Notiz, um sie zu bearbeiten oder zu teilen</string>
+    <string name="hint_document_gestures">Gesten im Dokument</string>
+    <string name="hint_pdf_gestures">PDF-Gesten</string>
+    <string name="hint_single_tap">Einmal tippen</string>
+    <string name="hint_toggle_reading_bars">Leseleisten aus- oder einblenden</string>
+    <string name="hint_zoom_document">Das Dokument vergrößern oder verkleinern</string>
+    <string name="hint_swipe_horizontally">Horizontal wischen</string>
+    <string name="hint_turn_page">Zur vorherigen oder nächsten Seite wechseln</string>
+    <string name="hint_long_press_passage">Ein Wort oder einen Satz gedrückt halten</string>
+    <string name="hint_read_from_selection">Wähle Text aus und tippe auf Ab hier vorlesen</string>
+</resources>

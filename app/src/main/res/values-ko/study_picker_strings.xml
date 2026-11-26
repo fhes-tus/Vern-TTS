@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_choose_flashcard_book">플래시카드를 만들 책 선택</string>
+    <string name="study_flashcard_picker_empty">먼저 서재에 책을 추가하세요. 학습 센터에서 플래시카드를 붙여넣을 수도 있습니다.</string>
+    <string name="study_guide_picker_empty">서재에 책을 추가한 후 독서 노트와 하이라이트를 학습 가이드로 내보내세요.</string>
+</resources>

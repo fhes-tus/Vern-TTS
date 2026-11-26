@@ -10,8 +10,9 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.veritas.reader.DocumentImportWorker
-import com.veritas.reader.cleanDocumentTitle
-import com.veritas.reader.getDisplayName
+import com.veritas.reader.DocumentBatchQueueWorker
+import com.veritas.reader.BATCH_QUEUE_WORK_TAG
+import com.veritas.reader.IMPORT_ORDER_PREFIX
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -41,21 +42,23 @@ fun ReaderViewModel.importMultipleDocuments(uris: List<Uri>, queue: Boolean) {
         try {
             val requests = withContext(Dispatchers.IO) {
                 val app = getApplication<Application>()
-                sources.map { uri ->
+                sources.mapIndexed { index, uri ->
                     if (uri.scheme == "content") {
                         runCatching { app.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
                     }
-                    val title = cleanDocumentTitle(getDisplayName(app, uri)).ifBlank { "Imported document" }
                     OneTimeWorkRequestBuilder<DocumentImportWorker>()
-                        .setInputData(workDataOf("uri" to uri.toString(), "title" to title,
-                            "batchImport" to true, "queueAfterImport" to queue))
-                        .addTag(DOCUMENT_BATCH_TAG).addTag(group).build()
+                        .setInputData(workDataOf("uri" to uri.toString(), "batchImport" to true))
+                        .addTag(DOCUMENT_BATCH_TAG).addTag(group).addTag("$IMPORT_ORDER_PREFIX$index").build()
                 }
             }
             // WorkManager owns the entire selection before observing begins.
             // Back, rotation or process death cannot abandon the remaining files.
-            var chain = manager.beginUniqueWork("vern_document_batches", ExistingWorkPolicy.APPEND_OR_REPLACE, requests.first())
-            requests.drop(1).forEach { chain = chain.then(it) }
+            var chain = manager.beginUniqueWork("vern_document_batches", ExistingWorkPolicy.APPEND_OR_REPLACE, requests)
+            if (queue) {
+                chain = chain.then(OneTimeWorkRequestBuilder<DocumentBatchQueueWorker>()
+                    .setInputData(workDataOf("batchGroup" to group))
+                    .addTag(DOCUMENT_BATCH_TAG).addTag(group).addTag(BATCH_QUEUE_WORK_TAG).build())
+            }
             withContext(Dispatchers.IO) { chain.enqueue().result.get() }
             observeBatchImport(manager, group)
         } catch (cancelled: CancellationException) {
@@ -101,7 +104,8 @@ private suspend fun ReaderViewModel.observeBatchImport(manager: WorkManager, gro
     var knownLibraryItems = emptySet<UUID>()
     var knownFinished = -1
     var lastActiveChars = -1
-    manager.getWorkInfosByTagFlow(group).first { work ->
+    manager.getWorkInfosByTagFlow(group).first { allWork ->
+        val work = allWork.filterNot { BATCH_QUEUE_WORK_TAG in it.tags }
         if (work.isEmpty()) return@first false
         val finished = work.count { it.state.isFinished }
         val failed = work.count { it.state.isFinished && (it.state != WorkInfo.State.SUCCEEDED ||
@@ -120,14 +124,22 @@ private suspend fun ReaderViewModel.observeBatchImport(manager: WorkManager, gro
             lastActiveChars = chars
             refreshImportedReader(activeId)
         }
-        val complete = finished == work.size
-        val queueFailures = work.count { it.outputData.getString("queueError") != null }
+        val complete = allWork.all { it.state.isFinished }
+        if (finished > failed && !uiState.value.questImportDone) completeQuestImport()
+        val queueFailures = work.count { it.outputData.getString("queueError") != null } +
+            allWork.filter { BATCH_QUEUE_WORK_TAG in it.tags }.sumOf { it.outputData.getInt("queueFailures", 0) +
+                if (it.state == WorkInfo.State.FAILED) 1 else 0 }
+        val duplicates = work.count { it.outputData.getBoolean("duplicate", false) }
+        val missingOriginals = work.count { it.outputData.getString("originalCopyWarning") != null }
+        if (complete && allWork.size != work.size) refreshAll()
         _uiState.update { it.copy(isBatchImporting = !complete, batchImportTotal = work.size,
             batchImportCurrent = finished, batchImportFailed = failed,
             importInProgress = pendingImportIds.isNotEmpty(), importAwaitingReadyPages = false,
             importSourceName = if (complete) "" else "${work.size} files",
-            importMessage = if (complete) "Batch finished: ${finished - failed} imported, $failed failed." +
-                (if (queueFailures > 0) " $queueFailures could not be added to the reading queue." else "") else it.importMessage) }
+            importMessage = if (complete) "Batch finished: ${finished - failed - duplicates} imported, $failed failed." +
+                (if (duplicates > 0) " $duplicates already in your library." else "") +
+                (if (queueFailures > 0) " $queueFailures could not be added to the reading queue." else "") +
+                (if (missingOriginals > 0) " Original View is unavailable for $missingOriginals." else "") else it.importMessage) }
         complete
     }
 }

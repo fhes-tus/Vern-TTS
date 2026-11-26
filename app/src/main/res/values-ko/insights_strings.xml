@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_earlier">이전</string>
+    <string name="insights_last_week">지난주</string>
+    <string name="insights_daily_habit">매일 읽기 습관</string>
+    <string name="insights_master_reader">독서의 달인</string>
+    <string name="insights_habit_champion">습관 챔피언</string>
+    <string name="insights_seven_day_flame">7일 연속</string>
+    <string name="insights_consistency_pro">꾸준함의 달인</string>
+    <string name="insights_week_chart_description">%1$s. %2$s. 합계 %3$s. 좌우로 밀어 주를 바꾸세요.</string>
+    <string name="insights_invalid_session_date">YYYY-MM-DD 형식으로 날짜를 입력하세요.</string>
+    <string name="insights_future_session_date">오늘이나 이전 날짜를 선택하세요.</string>
+    <string name="insights_session_save_failed">이 세션을 저장할 수 없습니다. 변경 내용은 그대로 있습니다. 다시 시도하세요.</string>
+    <string name="insights_timer_save_failed">읽기 타이머 설정을 저장할 수 없습니다. 설정을 다시 변경해 보세요.</string>
+    <string name="insights_saving">저장 중…</string>
+</resources>

@@ -33,12 +33,21 @@ class ResponsiveNativePdfBoundsTest {
                         if (view is ViewGroup) for (i in 0 until view.childCount) header(view.getChildAt(i))?.let { return it }
                         return null
                     }
-                    val transport = requireNotNull(header(root)).transport
+                    val controls = requireNotNull(header(root))
+                    val transport = controls.transport
                     for (i in 0 until transport.childCount) {
                         val button = transport.getChildAt(i)
                         assertTrue("Every native transport control fits", button.left >= 0 && button.right <= transport.width)
                         assertTrue("Native touch targets retain their minimum size", button.width >= 48.dp && button.height >= 48.dp)
                     }
+                    size(390, 568)
+                    assertEquals(android.widget.LinearLayout.HORIZONTAL, controls.orientation)
+                    assertTrue(controls.height in 48.dp..VeritasPackStyle.readerPlayerHeightDp.dp)
+                    assertEquals(View.GONE, panelAccentStrip?.visibility)
+                    controls.expanded = true
+                    size(390, 568)
+                    assertEquals(android.widget.LinearLayout.VERTICAL, controls.orientation)
+                    controls.expanded = false
                     root.folds = listOf(VernFoldBounds(VernPaneBounds(390.dp, 0, 410.dp, 600.dp), true))
                     size(800, 600)
                     // Pixel rounding can make either half the larger usable pane.
@@ -68,7 +77,7 @@ class ResponsiveNativePdfBoundsTest {
                             View.MeasureSpec.makeMeasureSpec(640.dp, View.MeasureSpec.EXACTLY))
                         root.layout(0, 0, root.measuredWidth, root.measuredHeight)
                         val available = deck.measuredWidth - deck.paddingLeft - deck.paddingRight
-                        assertEquals(minOf(580.dp, available), material.measuredWidth)
+                        assertEquals(minOf(480.dp, available), material.measuredWidth)
                         assertTrue(material.left >= deck.paddingLeft)
                         assertTrue(material.right <= deck.width - deck.paddingRight)
                     }

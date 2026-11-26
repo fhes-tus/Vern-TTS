@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_earlier">较早</string>
+    <string name="insights_last_week">上周</string>
+    <string name="insights_daily_habit">每日习惯</string>
+    <string name="insights_master_reader">阅读达人</string>
+    <string name="insights_habit_champion">习惯冠军</string>
+    <string name="insights_seven_day_flame">连续 7 天</string>
+    <string name="insights_consistency_pro">坚持达人</string>
+    <string name="insights_week_chart_description">%1$s。%2$s。共 %3$s。向左或向右滑动以切换周。</string>
+    <string name="insights_invalid_session_date">请输入 YYYY-MM-DD 格式的日期。</string>
+    <string name="insights_future_session_date">请选择今天或更早的日期。</string>
+    <string name="insights_session_save_failed">无法保存这次会话。你的更改仍保留在这里，请重试。</string>
+    <string name="insights_timer_save_failed">无法保存阅读计时器设置，请尝试重新更改。</string>
+    <string name="insights_saving">正在保存…</string>
+</resources>

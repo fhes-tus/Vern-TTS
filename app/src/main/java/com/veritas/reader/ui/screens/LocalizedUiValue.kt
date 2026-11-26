@@ -19,3 +19,7 @@ internal fun localizedUiValue(value: Any?): String {
         else -> value.toString()
     }
 }
+
+@Composable
+internal fun localizedUiPercent(percent: Int): String =
+    NumberFormat.getPercentInstance(LocalConfiguration.current.locales[0]).format(percent / 100.0)

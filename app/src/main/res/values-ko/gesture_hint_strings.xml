@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_tips_and_gestures">팁 및 제스처</string>
+    <string name="hint_notes_create">+를 눌러 새 노트를 만드세요</string>
+    <string name="hint_notes_filter">태그를 눌러 노트를 필터링하세요</string>
+    <string name="hint_notes_open">노트를 눌러 편집하거나 공유하세요</string>
+    <string name="hint_document_gestures">문서 제스처</string>
+    <string name="hint_pdf_gestures">PDF 제스처</string>
+    <string name="hint_single_tap">한 번 누르기</string>
+    <string name="hint_toggle_reading_bars">읽기 도구 모음 숨기기 또는 표시하기</string>
+    <string name="hint_zoom_document">문서 확대 또는 축소하기</string>
+    <string name="hint_swipe_horizontally">가로로 밀기</string>
+    <string name="hint_turn_page">이전 또는 다음 페이지로 이동하기</string>
+    <string name="hint_long_press_passage">단어나 문장 길게 누르기</string>
+    <string name="hint_read_from_selection">텍스트를 선택한 후 여기서부터 읽기를 선택하세요</string>
+</resources>

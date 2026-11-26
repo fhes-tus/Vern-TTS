@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_choose_flashcard_book">Choose a book for flashcards</string>
+    <string name="study_flashcard_picker_empty">Add a book to your library first. You can also paste flashcards into Study Hub.</string>
+    <string name="study_guide_picker_empty">Add a book to your library, then export its booknotes and highlights as a study guide.</string>
+</resources>

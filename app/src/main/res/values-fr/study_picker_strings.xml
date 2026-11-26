@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_choose_flashcard_book">Choisir un livre pour les fiches</string>
+    <string name="study_flashcard_picker_empty">Ajoutez d’abord un livre à votre bibliothèque. Vous pouvez aussi coller des fiches dans l’espace d’étude.</string>
+    <string name="study_guide_picker_empty">Ajoutez un livre à votre bibliothèque, puis exportez ses notes et passages surlignés sous forme de guide d’étude.</string>
+</resources>

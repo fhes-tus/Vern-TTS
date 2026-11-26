@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tour_welcome_title">交互式应用导览</string>
+    <string name="tour_welcome_body">跟随高亮提示，了解书库、阅读工具、笔记和设置。</string>
+    <string name="tour_name_input_title">我们该如何称呼您？</string>
+    <string name="tour_name_input_body">输入您的姓名，以便个性化仪表盘和消息。</string>
+    <string name="tour_fab_spotlight_title">任务 1 — 添加文档</string>
+    <string name="tour_fab_spotlight_body">点击添加按钮，导入 PDF、EPUB、Word 文档、文本、图片或网页链接。</string>
+    <string name="tour_checklist_spotlight_title">任务清单</string>
+    <string name="tour_checklist_spotlight_body">浮动清单会显示当前任务。完成任务即可了解各项功能。</string>
+    <string name="tour_classics_spotlight_title">经典书目</string>
+    <string name="tour_classics_spotlight_body">按类型浏览，滑动书架，将喜欢的书添加到我的书库。</string>
+    <string name="tour_insights_spotlight_title">阅读统计</string>
+    <string name="tour_insights_spotlight_body">此菜单按钮可打开仪表盘。点击下一步查看阅读统计。</string>
+    <string name="tour_insights_page_spotlight_title">统计概览</string>
+    <string name="tour_insights_page_spotlight_body">查看连续阅读记录、书库来源和每月收听时间。数据仅保存在您的设备上。</string>
+    <string name="tour_notes_tab_spotlight_title">笔记和语音备忘录</string>
+    <string name="tour_notes_tab_spotlight_body">在同一处查看文档批注、笔记、书签和录音。</string>
+    <string name="tour_study_tab_spotlight_title">AI 学习中心和抽认卡</string>
+    <string name="tour_study_tab_spotlight_body">使用 AI 生成摘要，用抽认卡复习，并通过测验检验记忆。</string>
+    <string name="tour_settings_spotlight_title">设置和自定义</string>
+    <string name="tour_settings_spotlight_body">调整语音、速度、主题、同步、备份和发音规则。</string>
+    <string name="tour_document_spotlight_title">打开文档</string>
+    <string name="tour_document_spotlight_body">您的阅读资料显示在这里。点击卡片即可打开文档。</string>
+    <string name="tour_mode_toggle_spotlight_title">切换阅读模式</string>
+    <string name="tour_mode_toggle_spotlight_body">选择文本模式阅读、收听模式跟读，或原文模式查看 PDF 版式。</string>
+    <string name="tour_player_panel_spotlight_title">播放控制</string>
+    <string name="tour_player_panel_spotlight_body">点击面板或向上拖动，调整语速、音调、语音或睡眠定时器。</string>
+    <string name="tour_reader_text_spotlight_title">文本选择与学习工具</string>
+    <string name="tour_reader_text_spotlight_body">长按句子可添加书签或笔记、翻译文本或向 AI 提问。</string>
+    <string name="tour_congratulations_title">导览完成！</string>
+    <string name="tour_congratulations_body">完成清单中的剩余任务，了解全部功能。</string>
+</resources>

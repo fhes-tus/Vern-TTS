@@ -429,12 +429,7 @@ function NoteEditor({
     }
   }
   return (
-    <Modal
-      title={draft.id ? 'Edit note' : 'New note'}
-      onClose={() => {
-        if (!busy) onClose();
-      }}
-    >
+    <Modal title={draft.id ? 'Edit note' : 'New note'} dismissible={!busy} onClose={onClose}>
       <form
         className="workspace-form"
         onSubmit={(e) => {
@@ -596,7 +591,7 @@ function NoteEditor({
           <button className="primary" disabled={busy}>
             {busy ? 'Saving…' : 'Save note'}
           </button>
-          <button type="button" className="secondary" disabled={busy} onClick={onClose}>
+          <button type="button" className="secondary" disabled={busy} data-dialog-dismiss>
             Cancel
           </button>
         </div>
@@ -634,12 +629,7 @@ function NotebookManager({
     }
   }
   return (
-    <Modal
-      title="Notebooks"
-      onClose={() => {
-        if (!busy) onClose();
-      }}
-    >
+    <Modal title="Notebooks" dismissible={!busy} onClose={onClose}>
       <form
         className="workspace-form"
         onSubmit={(e) => {

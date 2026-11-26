@@ -79,7 +79,7 @@ internal fun InsightsStreaksCard(snapshot: ReaderTrackerSnapshot, weekKeys: List
                                 else Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                             }
                         }
-                        Text(date.dayOfWeek.name.take(1), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                        Text(date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, androidx.compose.ui.platform.LocalConfiguration.current.locales[0]), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                     }
                 }
             }
@@ -168,13 +168,13 @@ internal fun InsightsWeeklyAppCard(snapshot: ReaderTrackerSnapshot, weekStart: L
                 Text(formatTrackerDuration(shown.totalMillis), style = MaterialTheme.typography.headlineMedium)
                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_171, com.veritas.reader.ui.screens.localizedUiValue(formatTrackerDuration(shown.totalMillis / 7))), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            WeeklyReadingBarsPager(history, barHeight = 82.dp, chartLabel = "Weekly app activity", accented = true, onWeekChanged = { shown = it })
+            WeeklyReadingBarsPager(history, barHeight = 82.dp, chartLabel = menuString(com.veritas.reader.R.string.ui_weekly_app_activity), accented = true, onWeekChanged = { shown = it })
         }
     }
 }
 
 @Composable
-internal fun InsightsReadingRing(snapshot: ReaderTrackerSnapshot, weekKeys: List<String>, periodLabel: String = "This week", compact: Boolean = false) {
+internal fun InsightsReadingRing(snapshot: ReaderTrackerSnapshot, weekKeys: List<String>, periodLabel: String = menuString(com.veritas.reader.R.string.ui_this_week), compact: Boolean = false) {
     val scheme = MaterialTheme.colorScheme
     val reading = weekKeys.sumOf { snapshot.measuredReadingMillisByDate[it] ?: 0 }
     val listening = weekKeys.sumOf { snapshot.listeningMillisByDate[it] ?: 0 }
@@ -219,12 +219,12 @@ internal fun InsightsReadingRing(snapshot: ReaderTrackerSnapshot, weekKeys: List
     }
     val legend: @Composable () -> Unit = {
         Column(verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
-            listOf("Reading", "Listening", "Earlier").forEachIndexed { index, label ->
+            listOf(com.veritas.reader.R.string.ui_reading, com.veritas.reader.R.string.ui_listening, com.veritas.reader.R.string.insights_earlier).forEachIndexed { index, label ->
                 if (index < 2 || legacy > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(Modifier.size(7.dp).background(colors[index], CircleShape))
                     Column {
                         Text(formatTrackerDuration(amounts[index]), style = if (compact) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleMedium)
-                        Text(label, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                        Text(menuString(label), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                     }
                 }
             }

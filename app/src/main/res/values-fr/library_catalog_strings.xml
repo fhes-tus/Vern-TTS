@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="classic_add_to_library">Ajouter à la bibliothèque</string>
+    <string name="classic_waiting_for_download">En attente du téléchargement</string>
+    <string name="classic_downloading">Téléchargement…</string>
+    <string name="classic_download_progress">Téléchargement · %1$s</string>
+    <string name="classic_adding_to_library">Ajout à la bibliothèque…</string>
+    <string name="classic_retry_download">Réessayer le téléchargement</string>
+    <string name="classic_download_again">Télécharger à nouveau</string>
+    <string name="classic_details_for_book">Détails sur %1$s</string>
+    <string name="library_read_percent">%1$s lu</string>
+    <string name="library_read_not_started">Non commencé · %1$s</string>
+    <string name="library_read_in_progress">%1$s lu · il reste %2$s</string>
+    <string name="library_read_estimate_minutes">~%1$d min</string>
+    <string name="library_read_estimate_hours">~%1$d h</string>
+    <string name="library_read_estimate_hours_minutes">~%1$d h %2$d min</string>
+    <plurals name="library_page_count">
+        <item quantity="one">%1$d page</item>
+        <item quantity="other">%1$d pages</item>
+    </plurals>
+    <plurals name="library_sentence_count">
+        <item quantity="one">%1$d phrase</item>
+        <item quantity="other">%1$d phrases</item>
+    </plurals>
+</resources>

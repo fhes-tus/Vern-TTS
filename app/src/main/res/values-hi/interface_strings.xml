@@ -83,7 +83,7 @@
     <string name="ui_copy_text" formatted="false">"पाठ कॉपी करें"</string>
     <string name="ui_create_backup" formatted="false">"बैकअप बनाएँ"</string>
     <string name="ui_create_flashcard" formatted="false">"फ़्लैशकार्ड बनाएँ"</string>
-    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"सूचियाँ बनाएँ और सहेजे पाठ जोड़ें"</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"संग्रह बनाएँ और सहेजी गई सामग्री जोड़ें"</string>
     <string name="ui_customization" formatted="false">"अनुकूलन"</string>
     <string name="ui_daily_goal" formatted="false">"रोज़ का लक्ष्य"</string>
     <string name="ui_daily_goal_reached" formatted="false">"रोज़ का लक्ष्य पूरा हुआ"</string>
@@ -233,8 +233,8 @@
     <string name="ui_reading_goal" formatted="false">"पठन लक्ष्य"</string>
     <string name="ui_reading_goal_reduce_motion_contrast" formatted="false">"पढ़ने का लक्ष्य, कम एनिमेशन और कंट्रास्ट"</string>
     <string name="ui_reading_insights_32f8941" formatted="false">"पठन आँकड़े"</string>
-    <string name="ui_reading_list" formatted="false">"पठन सूची"</string>
-    <string name="ui_reading_lists" formatted="false">"पठन सूचियाँ"</string>
+    <string name="ui_reading_list" formatted="false">"संग्रह"</string>
+    <string name="ui_reading_lists" formatted="false">"संग्रह"</string>
     <string name="ui_reading_overview" formatted="false">"पठन का अवलोकन"</string>
     <string name="ui_reading_time" formatted="false">"पढ़ने का समय"</string>
     <string name="ui_ready" formatted="false">"तैयार"</string>

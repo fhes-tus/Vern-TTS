@@ -2,6 +2,8 @@ package com.veritas.reader.ui.screens
 
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.SolidColor
 import com.veritas.reader.ui.NotesPaperTemplate
 
@@ -250,9 +252,16 @@ internal fun FormatToolbarButton(
     icon: ImageVector,
     description: String,
     tint: Color,
+    active: Boolean? = null,
     onClick: () -> Unit
 ) {
-    IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(40.dp).semantics { active?.let { selected = it } },
+        colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(
+            containerColor = if (active == true) tint.copy(alpha = .10f) else Color.Transparent
+        )
+    ) {
         Icon(icon, contentDescription = description, tint = tint.copy(alpha = 0.85f), modifier = Modifier.size(22.dp))
     }
 }

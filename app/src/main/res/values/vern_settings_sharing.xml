@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vern_settings_share_title">Share settings</string>
+    <string name="vern_settings_share_description">Send your theme, layout, and reading preferences as a Vern settings file.</string>
+    <string name="vern_settings_share_action">Share settings file</string>
+    <string name="vern_settings_import_action">Import settings file</string>
+    <string name="vern_settings_import_title">Apply these Vern settings?</string>
+    <string name="vern_settings_import_description">This file contains appearance and reading preferences.</string>
+    <string name="vern_settings_import_apply">Apply settings</string>
+    <string name="vern_settings_share_reading_size">Reading text size · %1$d sp</string>
+    <string name="vern_settings_import_loading">Reading the settings file…</string>
+    <string name="vern_settings_import_invalid">Couldn’t read this Vern settings file. For a library backup, use Import backup in Sync &amp; Backup.</string>
+    <string name="vern_settings_share_failed">Couldn’t share the settings file. Try again.</string>
+    <string name="vern_settings_import_saved">Vern settings applied.</string>
+    <string name="vern_settings_import_save_failed">Couldn’t save the imported settings. Try again.</string>
+</resources>

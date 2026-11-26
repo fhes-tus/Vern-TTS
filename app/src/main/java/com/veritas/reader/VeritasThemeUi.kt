@@ -55,12 +55,15 @@ object VeritasPackStyle {
         else -> 12.dp
     }
 
-    fun playerHeight(packId: String): androidx.compose.ui.unit.Dp = when (VeritasThemePackCatalog.normalizePackId(packId)) {
-        "one_ui" -> 68.dp
-        "material_you" -> 64.dp
-        "liquid_glass" -> 62.dp
-        else -> 58.dp
-    }
+    internal val libraryPlayerHeight = 58.dp
+    internal const val readerPlayerHeightDp = 52
+
+    internal fun readerPlayerCornerRadius(packId: String): androidx.compose.ui.unit.Dp =
+        when (VeritasThemePackCatalog.normalizePackId(packId)) {
+            "one_ui" -> 20.dp
+            "material_you", "liquid_glass" -> 32.dp
+            else -> 28.dp
+        }
 
     fun chromeElevation(packId: String): androidx.compose.ui.unit.Dp = when (VeritasThemePackCatalog.normalizePackId(packId)) {
         "liquid_glass" -> 6.dp
@@ -440,7 +443,7 @@ internal fun adaptColorScheme(base: ColorScheme, palette: androidx.palette.graph
 }
 
 @Composable
-internal fun VeritasTheme(content: @Composable () -> Unit) {
+internal fun VeritasTheme(systemBarColor: Color? = null, content: @Composable () -> Unit) {
     val context = LocalContext.current
     val selectedTheme = VeritasThemeCatalog.normalizeThemeId(VeritasThemeState.themeId)
     val selectedPack = VeritasThemePackCatalog.normalizePackId(VeritasThemeState.themePackId)
@@ -498,8 +501,8 @@ internal fun VeritasTheme(content: @Composable () -> Unit) {
         SideEffect {
             val window = (view.context as? Activity)?.window
             if (window != null) {
-                val statusBarColor = VeritasPackStyle.headerColorForPack(colorScheme, selectedPack)
-                val navBarColor = if (isAmoled) Color.Black else if (!isLight) colorScheme.background else colorScheme.surface
+                val statusBarColor = systemBarColor ?: VeritasPackStyle.headerColorForPack(colorScheme, selectedPack)
+                val navBarColor = systemBarColor ?: if (isAmoled) Color.Black else if (!isLight) colorScheme.background else colorScheme.surface
                 updateVeritasSystemBarProtection(window, statusBarColor.toArgb(), navBarColor.toArgb())
                 val isLightStatusBar = statusBarColor.luminance() > 0.45f
                 val isLightNavBar = navBarColor.luminance() > 0.45f

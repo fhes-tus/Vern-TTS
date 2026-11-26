@@ -29,7 +29,7 @@
     <string name="l10n_dynamic_026">"文档：%1$s"</string>
     <string name="l10n_dynamic_027">"取消选择 %1$s"</string>
     <string name="l10n_dynamic_028">"全选 %1$s（%2$s）"</string>
-    <string name="l10n_dynamic_029">"这会将 %1$s 从本地书库、队列和阅读列表中移除。已保存的笔记、书签和历史仍保留。"</string>
+    <string name="l10n_dynamic_029">"这会从本地资料库、队列和合集中移除 %1$s。已保存的笔记、书签和阅读历史仍可使用。"</string>
     <string name="l10n_dynamic_030">"作者：%1$s"</string>
     <string name="l10n_dynamic_031">"✨ 检测到 %1$s 张问答卡片，可导入"</string>
     <string name="l10n_dynamic_032">"🎯 检测到 %1$s 道练习题"</string>
@@ -172,7 +172,7 @@
     <string name="l10n_dynamic_169">"未知 %1$s"</string>
     <string name="l10n_dynamic_170">"%1$s 天"</string>
     <string name="l10n_dynamic_171">"每天 %1$s"</string>
-    <string name="l10n_dynamic_172">"将“%1$s”添加到阅读列表："</string>
+    <string name="l10n_dynamic_172">"将“%1$s”添加到合集："</string>
     <string name="l10n_dynamic_173">"以前总计：%1$s · 模式未知"</string>
     <string name="l10n_dynamic_174">"无交互 %1$s 分 %2$s 秒后停止自动阅读"</string>
     <string name="l10n_dynamic_175">"%1$s 的更新内容"</string>

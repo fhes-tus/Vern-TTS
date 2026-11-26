@@ -176,7 +176,7 @@
     <string name="l10n_dynamic_026">"%1$s Dokumente"</string>
     <string name="l10n_dynamic_027">"Auswahl abschalten %1$s"</string>
     <string name="l10n_dynamic_028">"Alle auswählen %1$s ( %2$s )"</string>
-    <string name="l10n_dynamic_029">"Das entfernt %1$s aus der lokalen Bibliothek, Warteschlange und Leselisten. Gespeicherte Notizen, Lesezeichen und Lesehistorie bleiben verfügbar."</string>
+    <string name="l10n_dynamic_029">"Das entfernt %1$s aus der lokalen Bibliothek, der Warteschlange und den Sammlungen. Gespeicherte Notizen, Lesezeichen und der Leseverlauf bleiben verfügbar."</string>
     <string name="l10n_dynamic_030">"von %1$s"</string>
     <string name="l10n_dynamic_031">". ermittelt %1$s Q&amp;A-Karten bereit zum Import"</string>
     <string name="l10n_dynamic_032">". ermittelt %1$s Übung Prüfung Fragen bereit zu spielen"</string>
@@ -319,7 +319,7 @@
     <string name="l10n_dynamic_169">"Unbekannt %1$s"</string>
     <string name="l10n_dynamic_170">"%1$s Tage"</string>
     <string name="l10n_dynamic_171">"%1$s / Tag"</string>
-    <string name="l10n_dynamic_172">"In die Leselisten \" %1$s \" einfügen:"</string>
+    <string name="l10n_dynamic_172">"„%1$s“ zu Sammlungen hinzufügen:"</string>
     <string name="l10n_dynamic_173">"Frühere Gesamtsumme: %1$s · Modus unbekannt"</string>
     <string name="l10n_dynamic_174">"Automatisches Lesen nach dem Ablesen stoppen %1$sDie %2$ss ohne Interaktion"</string>
     <string name="l10n_dynamic_175">"Was gibt es Neues in %1$s"</string>
@@ -643,7 +643,7 @@
     <string name="ui_create_flashcard" formatted="false">"Karteikarte erstellen"</string>
     <string name="ui_create_flashcards_quizzes_summaries_and_explanations_review_the_r" formatted="false">"Erstellen Sie Karteikarten, Quiz, Zusammenfassungen und Erklärungen. Überprüfen Sie die Ergebnisse neben dem Quelltext."</string>
     <string name="ui_create_list" formatted="false">"Liste erstellen"</string>
-    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"Lokale Listen &amp; gespeicherte Messwerte hinzufügen"</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"Sammlungen erstellen und gespeicherte Bücher hinzufügen"</string>
     <string name="ui_create_notebooks_to_organise_your_notes_a_note_can_belong_to_more" formatted="false">"Erstellen Sie Notizbücher, um Ihre Notizen zu organisieren. Eine Notiz kann mehr als einer gehören."</string>
     <string name="ui_create_quizzes_using_ai_study_studio_to_practice_here" formatted="false">"Erstellen Sie Quiz mit AI Study Studio, um hier zu üben. ."</string>
     <string name="ui_create_something_new" formatted="false">"Neues erschaffen"</string>
@@ -998,7 +998,7 @@
     <string name="ui_new_note" formatted="false">"Neuer Vermerk"</string>
     <string name="ui_new_notebook" formatted="false">"Neues Notizbuch"</string>
     <string name="ui_new_quiz" formatted="false">"Neue Quiz"</string>
-    <string name="ui_new_reading_list" formatted="false">"Neue Leseliste"</string>
+    <string name="ui_new_reading_list" formatted="false">"Neue Sammlung"</string>
     <string name="ui_new_rule" formatted="false">"Neue Regel"</string>
     <string name="ui_newest_first" formatted="false">"Neueste erste"</string>
     <string name="ui_next" formatted="false">"Nächster"</string>
@@ -1048,7 +1048,7 @@
     <string name="ui_no_readable_text_was_extracted_for_this_page" formatted="false">"Für diese Seite wurde kein lesbarer Text extrahiert."</string>
     <string name="ui_no_reading_activity_recorded" formatted="false">"Keine erfasste Leseaktivität"</string>
     <string name="ui_no_reading_history_yet" formatted="false">"Noch keine Vorgeschichte. ? ? ??"</string>
-    <string name="ui_no_reading_lists_yet" formatted="false">"Noch keine Leselisten."</string>
+    <string name="ui_no_reading_lists_yet" formatted="false">"Noch keine Sammlungen."</string>
     <string name="ui_no_results" formatted="false">"Keine Ergebnisse"</string>
     <string name="ui_no_results_found" formatted="false">"Keine Ergebnisse gefunden"</string>
     <string name="ui_no_rules_yet" formatted="false">"Noch keine Regeln"</string>
@@ -1232,7 +1232,7 @@
     <string name="ui_quiz_importer" formatted="false">"Quiz-Importeur"</string>
     <string name="ui_quiz_lab_performance" formatted="false">"Quiz Lab &amp; Performance"</string>
     <string name="ui_quiz_needs_repair" formatted="false">"Quiz muss repariert werden"</string>
-    <string name="ui_quizzes" formatted="false">"Quizzes"</string>
+    <string name="ui_quizzes" formatted="false">"Quiz"</string>
     <string name="ui_quote_source" formatted="false">"Zitatquelle"</string>
     <string name="ui_rate_your_recall_spaced_repetition" formatted="false">"Bewerte deine Rückrufe (Spaced Repetition)"</string>
     <string name="ui_re2_regex_example_0_9_look_around_and_pattern_backreferences_are" formatted="false">"RE2 regex Beispiel: \\[([0-9]+)\\]. Look-around und Muster-Backreferenzen werden nicht unterstützt. Leer-Positions-Matches werden ignoriert."</string>
@@ -1261,8 +1261,8 @@
     <string name="ui_reading_insights" formatted="false">"Einsichten lesen"</string>
     <string name="ui_reading_insights_32f8941" formatted="false">"Einblicke lesen"</string>
     <string name="ui_reading_layout" formatted="false">"Leseplan"</string>
-    <string name="ui_reading_list" formatted="false">"Literaturverzeichnis"</string>
-    <string name="ui_reading_lists" formatted="false">"Leselisten"</string>
+    <string name="ui_reading_list" formatted="false">"Sammlung"</string>
+    <string name="ui_reading_lists" formatted="false">"Sammlungen"</string>
     <string name="ui_reading_overview" formatted="false">"Überblick über die Lektüre"</string>
     <string name="ui_reading_progress" formatted="false">"Fortschritt im Lesen"</string>
     <string name="ui_reading_recorded_duration_not_available" formatted="false">"Aufzeichnung der Lektüre; Dauer nicht verfügbar"</string>
@@ -1444,6 +1444,7 @@
     <string name="ui_silent_visual_rsvp" formatted="false">"Silent Visual RSVP"</string>
     <string name="ui_skip" formatted="false">"Überspringen"</string>
     <string name="ui_skip_table" formatted="false">"Tabelle überspringen"</string>
+    <string name="ui_skip_figure">Abbildung überspringen</string>
     <string name="ui_sleep_timer" formatted="false">"Schlafzeituhr"</string>
     <string name="ui_slides_options" formatted="false">"Schieberegler"</string>
     <string name="ui_slower_0_05" formatted="false">"Langsamere −0,05×"</string>
@@ -1487,7 +1488,7 @@
     <string name="ui_study_deck_now" formatted="false">"Lerndeck jetzt"</string>
     <string name="ui_study_focus" formatted="false">"STUDIENFOCUS"</string>
     <string name="ui_study_guide_pdf" formatted="false">"Studienhandbuch PDF"</string>
-    <string name="ui_study_hub" formatted="false">"Studiendrehscheibe"</string>
+    <string name="ui_study_hub" formatted="false">"Lernbereich"</string>
     <string name="ui_success" formatted="false">"Erfolg"</string>
     <string name="ui_summarize_with_ai" formatted="false">"Zusammenfassung mit AI"</string>
     <string name="ui_summarizing" formatted="false">"Zusammenfassung..."</string>

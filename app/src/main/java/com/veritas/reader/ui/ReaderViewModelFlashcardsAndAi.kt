@@ -1,9 +1,13 @@
 package com.veritas.reader.ui
 
 import androidx.lifecycle.viewModelScope
+import com.veritas.reader.AiPromptType
 import com.veritas.reader.Flashcard
 import com.veritas.reader.FlashcardProgress
 import com.veritas.reader.GeminiStudyService
+import com.veritas.reader.studyRequestText
+import com.veritas.reader.GeneralNote
+import com.veritas.reader.mutateGeneralNotes
 import com.veritas.reader.QuizSet
 import com.veritas.reader.ReaderDocument
 import com.veritas.reader.SavedDocument
@@ -60,13 +64,25 @@ private suspend fun ReaderViewModel.persistFlashcards(documentId: String, setNam
 
 
 /** Records the recall rating for a card using SM-2 Lite spaced repetition scheduling. */
-fun ReaderViewModel.rateFlashcardRecall(cardId: String, recall: String) {
-    launchStudyMutation {
-        val updated = repository.mutateStudyFlashcards { cards -> cards.map {
-            if (it.id == cardId) SpacedRepetitionScheduler.rateCard(it, recall) else it
-        } }
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(flashcards = updated) }
+fun ReaderViewModel.rateFlashcardRecall(cardId: String, recall: String, onComplete: (Boolean) -> Unit = {}) {
+    viewModelScope.launch {
+        try {
+            var found = false
+            runStudyMutation {
+                val updated = repository.mutateStudyFlashcards { cards -> cards.map {
+                    if (it.id != cardId) it else {
+                        found = true
+                        SpacedRepetitionScheduler.rateCard(it, recall)
+                    }
+                } }
+                withContext(Dispatchers.Main) { _uiState.update { it.copy(flashcards = updated) } }
+            }
+            onComplete(found)
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            android.util.Log.e("Study", "Could not record flashcard recall", failure)
+            onComplete(false)
         }
     }
 }
@@ -118,20 +134,20 @@ private fun ReaderViewModel.startFlashcardGeneration(
     setName: String?,
     onComplete: ((Boolean, String) -> Unit)?
 ) {
-    val apiKey = GeminiStudyService.getApiKey(getApplication())
-    if (apiKey.isBlank()) {
+    val profile = GeminiStudyService.requestProfile(getApplication())
+    if (profile.apiKey.isBlank()) {
         if (onComplete == null) reportStudyFailure("Add an API key for your selected provider in AI settings.")
         onComplete?.invoke(false, "Add an API key for your selected provider in AI settings.")
         return
     }
 
-    launchAiStudy("Creating flashcards", onFailure = { message ->
+    launchAiStudy("Creating flashcards", profile.provider.label, onFailure = { message ->
         if (onComplete == null) reportStudyFailure(message) else onComplete(false, message)
     }) {
         val document = loadDocument()
-        val textToAnalyze = scopeText?.ifBlank { null } ?: document.rawText.ifBlank { document.chunks.joinToString(" ") }
+        val textToAnalyze = studyRequestText(scopeText) { document.rawText.ifBlank { document.chunks.joinToString(" ") } }
         val result = GeminiStudyService.generateFlashcards(
-            apiKey = apiKey,
+            profile = profile,
             documentTitle = document.title,
             textContext = textToAnalyze,
             cardCount = count
@@ -163,20 +179,20 @@ private fun ReaderViewModel.startQuizGeneration(
     quizTitle: String?,
     onComplete: ((Boolean, String, QuizSet?) -> Unit)?
 ) {
-    val apiKey = GeminiStudyService.getApiKey(getApplication())
-    if (apiKey.isBlank()) {
+    val profile = GeminiStudyService.requestProfile(getApplication())
+    if (profile.apiKey.isBlank()) {
         if (onComplete == null) reportStudyFailure("Add an API key for your selected provider in AI settings.")
         onComplete?.invoke(false, "Add an API key for your selected provider in AI settings.", null)
         return
     }
 
-    launchAiStudy("Creating a quiz", onFailure = { message ->
+    launchAiStudy("Creating a quiz", profile.provider.label, onFailure = { message ->
         if (onComplete == null) reportStudyFailure(message) else onComplete(false, message, null)
     }) {
         val document = loadDocument()
-        val textToAnalyze = scopeText?.ifBlank { null } ?: document.rawText.ifBlank { document.chunks.joinToString(" ") }
+        val textToAnalyze = studyRequestText(scopeText) { document.rawText.ifBlank { document.chunks.joinToString(" ") } }
         val result = GeminiStudyService.generateQuiz(
-            apiKey = apiKey,
+            profile = profile,
             documentTitle = document.title,
             textContext = textToAnalyze,
             questionCount = count
@@ -197,13 +213,6 @@ private fun ReaderViewModel.startQuizGeneration(
     }
 }
 
-fun ReaderViewModel.generateInAppFlashcards(
-    document: SavedDocument,
-    prompt: String? = null
-) {
-    startFlashcardGeneration({ loadStudyDocument(document) }, 10, prompt, null, null)
-}
-
 fun ReaderViewModel.generateInAppQuiz(
     document: SavedDocument,
     prompt: String? = null
@@ -211,104 +220,62 @@ fun ReaderViewModel.generateInAppQuiz(
     startQuizGeneration({ loadStudyDocument(document) }, 5, prompt, null, null)
 }
 
-private fun ReaderViewModel.loadStudyDocument(document: SavedDocument): ReaderDocument {
+internal fun ReaderViewModel.loadStudyDocument(document: SavedDocument): ReaderDocument {
     val text = repository.readText(document)
     check(text.isNotBlank()) { "This book has no readable text for study tools." }
-    return ReaderDocument(document.id, document.title, document.sourceLabel, text, TextChunker.chunk(text))
+    return ReaderDocument(document.id, document.title, document.sourceLabel, text, TextChunker.chunk(text), document.pageCount)
 }
 
-fun ReaderViewModel.generateInAppStudySummary(
-    document: ReaderDocument,
-    scopeText: String? = null,
-    onComplete: ((Boolean, String) -> Unit)? = null
-) {
-    val apiKey = GeminiStudyService.getApiKey(getApplication())
-    if (apiKey.isBlank()) {
-        onComplete?.invoke(false, "Add an API key for your selected provider in AI settings.")
+internal fun ReaderViewModel.saveAiStudyNote(documentTitle: String, content: String, onComplete: (Boolean) -> Unit) {
+    if (content.isBlank()) {
+        onComplete(false)
         return
     }
-
-    launchAiStudy("Writing a summary", onFailure = { message -> onComplete?.invoke(false, message) }) {
-        val textToAnalyze = scopeText?.ifBlank { null } ?: document.rawText.ifBlank { document.chunks.joinToString(" ") }
-        val result = GeminiStudyService.generateStudySummary(
-            apiKey = apiKey,
-            documentTitle = document.title,
-            textContext = textToAnalyze
-        )
-        kotlinx.coroutines.currentCoroutineContext().ensureActive()
-        result.onSuccess { summary ->
-            withContext(Dispatchers.Main) {
-                onComplete?.invoke(true, summary)
-            }
-        }.onFailure { err ->
-            withContext(Dispatchers.Main) {
-                onComplete?.invoke(false, err.message ?: "Failed to generate summary.")
-            }
+    viewModelScope.launch {
+        try {
+            val note = GeneralNote(java.util.UUID.randomUUID().toString(), documentTitle, content.trim(), System.currentTimeMillis())
+            val notes = withContext(Dispatchers.IO) { repository.mutateGeneralNotes { listOf(note) + it } }
+            _uiState.update { it.copy(generalNotes = notes) }
+            onComplete(true)
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            android.util.Log.e("Study", "Could not save an AI study note", failure)
+            onComplete(false)
         }
     }
 }
 
-fun ReaderViewModel.generateInAppExplanation(
+internal fun ReaderViewModel.generateInAppStudyAnswer(
     document: ReaderDocument,
-    scopeText: String? = null,
-    targetPassage: String = "",
-    onComplete: ((Boolean, String) -> Unit)? = null
+    type: AiPromptType,
+    scopeText: String,
+    questionOrFocus: String,
+    onPartial: (String) -> Unit,
+    onComplete: (Boolean, String) -> Unit
 ) {
-    val apiKey = GeminiStudyService.getApiKey(getApplication())
-    if (apiKey.isBlank()) {
-        onComplete?.invoke(false, "Add an API key for your selected provider in AI settings.")
+    val profile = GeminiStudyService.requestProfile(getApplication())
+    if (profile.apiKey.isBlank()) {
+        onComplete(false, "Add an API key for your selected provider in AI settings.")
         return
     }
-
-    launchAiStudy("Explaining the passage", onFailure = { message -> onComplete?.invoke(false, message) }) {
-        val textToAnalyze = scopeText?.ifBlank { null } ?: document.rawText.ifBlank { document.chunks.joinToString(" ") }
-        val result = GeminiStudyService.generateExplanation(
-            apiKey = apiKey,
-            documentTitle = document.title,
-            textContext = textToAnalyze,
-            targetPassage = targetPassage
-        )
-        kotlinx.coroutines.currentCoroutineContext().ensureActive()
-        result.onSuccess { explanation ->
-            withContext(Dispatchers.Main) {
-                onComplete?.invoke(true, explanation)
-            }
-        }.onFailure { err ->
-            withContext(Dispatchers.Main) {
-                onComplete?.invoke(false, err.message ?: "Failed to explain passage.")
+    launchAiStudy("Writing an answer", profile.provider.label, onFailure = { message -> onComplete(false, message) }) {
+        val source = studyRequestText(scopeText) { error("A passage is required.") }
+        val answer = StringBuilder()
+        var nextUpdate = 0L
+        GeminiStudyService.studyAnswer(profile, type, document.title, source, questionOrFocus).collect { delta ->
+            check(delta.length <= 80_000 - answer.length) { "The provider returned an oversized answer. Try a shorter passage." }
+            answer.append(delta)
+            val now = android.os.SystemClock.elapsedRealtime()
+            if (now >= nextUpdate) {
+                val preview = answer.toString()
+                withContext(Dispatchers.Main) { onPartial(preview) }
+                nextUpdate = now + 80
             }
         }
-    }
-}
-
-fun ReaderViewModel.generateInAppStudyGuide(
-    document: ReaderDocument,
-    scopeText: String? = null,
-    onComplete: ((Boolean, String) -> Unit)? = null
-) {
-    val apiKey = GeminiStudyService.getApiKey(getApplication())
-    if (apiKey.isBlank()) {
-        onComplete?.invoke(false, "Add an API key for your selected provider in AI settings.")
-        return
-    }
-
-    launchAiStudy("Creating a study guide", onFailure = { message -> onComplete?.invoke(false, message) }) {
-        val textToAnalyze = scopeText?.ifBlank { null } ?: document.rawText.ifBlank { document.chunks.joinToString(" ") }
-        val result = GeminiStudyService.generateStudyGuide(
-            apiKey = apiKey,
-            documentTitle = document.title,
-            textContext = textToAnalyze
-        )
-        kotlinx.coroutines.currentCoroutineContext().ensureActive()
-        result.onSuccess { guide ->
-            withContext(Dispatchers.Main) {
-                onComplete?.invoke(true, guide)
-            }
-        }.onFailure { err ->
-            withContext(Dispatchers.Main) {
-                onComplete?.invoke(false, err.message ?: "Failed to generate study guide.")
-            }
-        }
+        val result = answer.toString().trim()
+        check(result.isNotBlank()) { "The provider returned an empty answer. Try again." }
+        withContext(Dispatchers.Main) { onComplete(true, result) }
     }
 }
 
@@ -368,14 +335,14 @@ private fun ReaderViewModel.reportStudyFailure(message: String) {
 
 
 /** One generation owns the shared loading state; canceled work cannot publish a late result. */
-private fun ReaderViewModel.launchAiStudy(status: String, onFailure: (String) -> Unit, action: suspend () -> Unit) {
+private fun ReaderViewModel.launchAiStudy(status: String, providerLabel: String, onFailure: (String) -> Unit, action: suspend () -> Unit) {
     viewModelScope.launch(Dispatchers.Main.immediate) {
         if (aiStudyJob?.isActive == true) {
             onFailure("A study request is already running. Wait or cancel it first.")
             return@launch
         }
         val revision = ++aiStudyRevision
-        _uiState.update { it.copy(isGeneratingAiStudy = true, aiStudyStatusMessage = "$status with ${GeminiStudyService.getProvider(getApplication()).label}…") }
+        _uiState.update { it.copy(isGeneratingAiStudy = true, aiStudyStatusMessage = "$status with $providerLabel…") }
         aiStudyJob = viewModelScope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
             try { action() }
             catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }

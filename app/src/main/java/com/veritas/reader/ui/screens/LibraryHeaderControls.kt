@@ -48,20 +48,20 @@ internal fun LibraryHeaderActions(
         IconButton({ if (section == LibrarySection.CLASSICS) classics.listMode = !classics.listMode else viewMenu = true },
             Modifier.testTag(if (section == LibrarySection.CLASSICS) "classics_view_mode" else "library_view_mode")) {
             val grid = if (section == LibrarySection.CLASSICS) !classics.listMode else viewMode == LibraryViewMode.TILES
-            Icon(if (grid) Icons.Default.GridView else Icons.AutoMirrored.Filled.List, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_view_mode))
+            Icon(if (grid) Icons.Default.GridView else Icons.AutoMirrored.Filled.List, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_view_mode), Modifier.size(20.dp))
         }
         DropdownMenu(viewMenu, { viewMenu = false }) {
             LibraryViewMode.entries.forEach { mode ->
                 DropdownMenuItem({ Text(com.veritas.reader.ui.screens.localizedCatalogLabel(mode.label)) }, { onViewMode(mode); viewMenu = false })
             }
             HorizontalDivider()
-            DropdownMenuItem({ Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_lists)) }, { viewMenu = false; onReadingLists() })
+            DropdownMenuItem({ Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collections)) }, { viewMenu = false; onReadingLists() })
             DropdownMenuItem({ Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_history)) }, { viewMenu = false; onReadingHistory() })
         }
     }
     IconButton(onSearch, Modifier.testTag("library_search_toggle")) {
         Icon(if (searchExpanded) Icons.Default.SearchOff else Icons.Default.Search,
-            if (searchExpanded) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_library_search) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_search_library))
+            if (searchExpanded) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_library_search) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_search_library), Modifier.size(20.dp))
     }
 }
 
@@ -86,14 +86,14 @@ internal fun NotesHeaderActions(
     var notebookPicker by remember { mutableStateOf(false) }
     var sortPicker by remember { mutableStateOf(false) }
     IconButton({ onSave(settings.copy(isGridView = !settings.isGridView)) }) {
-        Icon(if (settings.isGridView) Icons.Default.GridView else Icons.AutoMirrored.Filled.List, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_toggle_layout))
+        Icon(if (settings.isGridView) Icons.Default.GridView else Icons.AutoMirrored.Filled.List, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_toggle_layout), Modifier.size(20.dp))
     }
     IconButton(onSearch, Modifier.testTag("notes_search_toggle")) {
         Icon(if (searchExpanded) Icons.Default.SearchOff else Icons.Default.Search,
-            if (searchExpanded) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_notes_search) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_search_notes))
+            if (searchExpanded) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_notes_search) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_search_notes), Modifier.size(20.dp))
     }
     Box {
-        IconButton({ menu = true }) { Icon(Icons.Default.MoreVert, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_notes_options)) }
+        IconButton({ menu = true }) { Icon(Icons.Default.MoreVert, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_notes_options), Modifier.size(20.dp)) }
         DropdownMenu(menu, { menu = false }) {
             DropdownMenuItem(
                 text = { Text(if (showTrash) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_show_notes) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_show_trash)) },

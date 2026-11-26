@@ -1,5 +1,6 @@
 package com.veritas.reader.ui.screens
 
+import com.veritas.reader.ui.animateVeritasItem
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -279,7 +280,7 @@ internal fun LazyListScope.studyHistorySection(
                                             )
                                         }
                                     },
-                                    modifier = Modifier.animateItem()
+                                    modifier = animateVeritasItem()
                                 ) {
                                     val context = LocalContext.current
                                     val coverFile = remember(historyEntry.documentId) { CoverExtractor.coverFile(context, historyEntry.documentId) }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tour_welcome_title">Interaktive App-Tour</string>
+    <string name="tour_welcome_body">Folge den Hinweisen, um Bibliothek, Lesewerkzeuge, Notizen und Einstellungen kennenzulernen.</string>
+    <string name="tour_name_input_title">Wie sollen wir dich nennen?</string>
+    <string name="tour_name_input_body">Gib deinen Namen ein, um die Übersicht und deine Nachrichten zu personalisieren.</string>
+    <string name="tour_fab_spotlight_title">Aufgabe 1 — Dokument hinzufügen</string>
+    <string name="tour_fab_spotlight_body">Tippe auf Hinzufügen, um PDFs, EPUBs, Word- oder Textdateien, Bilder oder Weblinks zu importieren.</string>
+    <string name="tour_checklist_spotlight_title">Deine Aufgabenliste</string>
+    <string name="tour_checklist_spotlight_body">Diese schwebende Liste zeigt offene Aufgaben. Schließe sie ab, um alle Funktionen kennenzulernen.</string>
+    <string name="tour_classics_spotlight_title">Klassikerkatalog</string>
+    <string name="tour_classics_spotlight_body">Stöbere nach Genre, wische durch die Regale und füge einen Titel zu deiner Bibliothek hinzu.</string>
+    <string name="tour_insights_spotlight_title">Lesestatistik</string>
+    <string name="tour_insights_spotlight_body">Diese Menütaste öffnet deine Übersicht. Tippe auf Weiter, um deine Lesestatistik zu sehen.</string>
+    <string name="tour_insights_page_spotlight_title">Deine Statistik auf einen Blick</string>
+    <string name="tour_insights_page_spotlight_body">Verfolge deine Leseserien, die Quellen deiner Bibliothek und deine monatliche Hörzeit. Die Daten bleiben auf deinem Gerät.</string>
+    <string name="tour_notes_tab_spotlight_title">Notizen und Sprachmemos</string>
+    <string name="tour_notes_tab_spotlight_body">Hier findest du Anmerkungen, Notizen, Lesezeichen und Aufnahmen an einem Ort.</string>
+    <string name="tour_study_tab_spotlight_title">KI-Lernbereich und Karteikarten</string>
+    <string name="tour_study_tab_spotlight_body">Erstelle KI-Zusammenfassungen, übe mit Karteikarten und prüfe dein Wissen mit Quizfragen.</string>
+    <string name="tour_settings_spotlight_title">Einstellungen und Anpassung</string>
+    <string name="tour_settings_spotlight_body">Passe Stimmen, Tempo, Designs, Synchronisierung, Sicherungen und Ausspracheregeln an.</string>
+    <string name="tour_document_spotlight_title">Dokument öffnen</string>
+    <string name="tour_document_spotlight_body">Hier findest du deine Lektüre. Tippe auf eine Karte, um das Dokument zu öffnen.</string>
+    <string name="tour_mode_toggle_spotlight_title">Lesemodi wechseln</string>
+    <string name="tour_mode_toggle_spotlight_body">Wähle Text zum Lesen, Hören zur Satzverfolgung oder Original für das PDF-Layout.</string>
+    <string name="tour_player_panel_spotlight_title">Wiedergabesteuerung</string>
+    <string name="tour_player_panel_spotlight_body">Tippe auf das Bedienfeld oder ziehe es nach oben, um Tempo, Tonhöhe, Stimme oder Schlummertimer einzustellen.</string>
+    <string name="tour_reader_text_spotlight_title">Auswahl und Lernwerkzeuge</string>
+    <string name="tour_reader_text_spotlight_body">Halte einen Satz gedrückt, um ein Lesezeichen oder eine Notiz hinzuzufügen, ihn zu übersetzen oder die KI zu fragen.</string>
+    <string name="tour_congratulations_title">Tour abgeschlossen!</string>
+    <string name="tour_congratulations_body">Erledige die restlichen Aufgaben deiner Liste, um alle Funktionen kennenzulernen.</string>
+</resources>

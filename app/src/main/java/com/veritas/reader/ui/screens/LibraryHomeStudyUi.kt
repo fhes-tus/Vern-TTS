@@ -83,7 +83,11 @@ import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.FlashcardProgress
 import com.veritas.reader.FlashcardSet
+import com.veritas.reader.FlashcardReviewQueue
+import com.veritas.reader.SpacedRepetitionScheduler
 import com.veritas.reader.MathText
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import com.veritas.reader.VeritasPackStyle
 import kotlinx.coroutines.launch
 
@@ -348,18 +352,23 @@ internal val FLASHCARD_RECALL_META: List<Triple<String, String, Color>> = listOf
 /**
  * Full-screen single-card viewer (see design reference): one card at a time, tap
  * to flip front↔back, forward/back through the set, recall buttons that bucket the
- * card (latest-wins), a subtle per-card delete, and "Exit card". Cards are passed
+ * card, a subtle per-card delete, and "Exit card". Cards are passed
  * pre-filtered when opened from a recall pill.
  */
 @Composable
 internal fun FlashcardViewerDialog(
     setName: String,
     cards: List<FlashcardProgress>,
-    onRate: (String, String) -> Unit,
+    onRate: (String, String, (Boolean) -> Unit) -> Unit,
     onDeleteCard: (String) -> Unit,
+    practiceOnly: Boolean = false,
     onDismiss: () -> Unit
 ) {
-    var order by remember(cards) { mutableStateOf(cards) }
+    val context = LocalContext.current
+    var baseCards by remember(cards) { mutableStateOf(cards) }
+    var queue by remember(cards) { mutableStateOf(FlashcardReviewQueue()) }
+    val cardsById = baseCards.associateBy { it.id }
+    val order = baseCards + queue.retryIds.mapNotNull(cardsById::get)
     var index by remember { mutableIntStateOf(0) }
     var flipped by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -374,6 +383,7 @@ internal fun FlashcardViewerDialog(
     }
     val safeIndex = index.coerceIn(0, order.lastIndex)
     val card = order[safeIndex]
+    val reviewingRetry = safeIndex >= baseCards.size
 
     val reduceMotion = com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion
     val swipeMotion = com.veritas.reader.ui.VeritasMotion.spatial<Float>()
@@ -394,18 +404,36 @@ internal fun FlashcardViewerDialog(
     fun advanceCard(next: Int, x: Float = 0f, y: Float = 0f, recall: String? = null) {
         if (isSwipingOut) return
         isSwipingOut = true
-        if (recall != null) {
-            onRate(card.id, recall)
-            order = order.map { if (it.id == card.id) it.copy(recall = recall) else it }
+        fun animateAfterReview() {
+            coroutineScope.launch {
+                try {
+                    if (y != 0f) dragOffsetY.animateTo(y, swipeMotion)
+                    else dragOffsetX.animateTo(x, swipeMotion)
+                    if (recall != null) {
+                        if (queue.shouldSchedule(card.id)) {
+                            baseCards = baseCards.map { if (it.id == card.id) it.copy(recall = recall) else it }
+                        }
+                        queue = queue.rate(card.id, recall, reviewingRetry)
+                    }
+                    val lastIndex = baseCards.size + queue.retryIds.size - 1
+                    index = (if (recall != null && reviewingRetry) safeIndex else next).coerceIn(0, lastIndex)
+                    flipped = false
+                    dragOffsetX.snapTo(0f)
+                    dragOffsetY.snapTo(0f)
+                } finally { isSwipingOut = false }
+            }
         }
-        coroutineScope.launch {
-            try {
-                if (y != 0f) dragOffsetY.animateTo(y, swipeMotion)
-                else dragOffsetX.animateTo(x, swipeMotion)
-                goTo(next)
-                dragOffsetX.snapTo(0f)
-                dragOffsetY.snapTo(0f)
-            } finally { isSwipingOut = false }
+
+        if (recall != null && !practiceOnly && queue.shouldSchedule(card.id)) {
+            onRate(card.id, recall) { saved ->
+                if (saved) animateAfterReview()
+                else {
+                    isSwipingOut = false
+                    Toast.makeText(context, com.veritas.reader.R.string.study_flashcard_rating_failed, Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            animateAfterReview()
         }
     }
 
@@ -419,10 +447,12 @@ internal fun FlashcardViewerDialog(
                     onClick = {
                         showDeleteCardConfirm = false
                         val removedId = card.id
-                        val remaining = order.filterNot { it.id == removedId }
                         onDeleteCard(removedId)
-                        order = remaining
-                        if (remaining.isNotEmpty()) index = safeIndex.coerceIn(0, remaining.lastIndex)
+                        baseCards = baseCards.filterNot { it.id == removedId }
+                        queue = queue.remove(removedId)
+                        val lastIndex = baseCards.size + queue.retryIds.size - 1
+                        if (lastIndex >= 0) index = safeIndex.coerceIn(0, lastIndex)
+                        flipped = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
@@ -458,8 +488,8 @@ internal fun FlashcardViewerDialog(
                             .graphicsLayer {
                                 rotationY = animatedRotation
                                 cameraDistance = 12f * density
-                                translationX = dragOffsetX.value
-                                translationY = dragOffsetY.value
+                                translationX = if (reduceMotion) 0f else dragOffsetX.value
+                                translationY = if (reduceMotion) 0f else dragOffsetY.value
                                 rotationZ = if (reduceMotion) 0f else (dragOffsetX.value / 35f).coerceIn(-12f, 12f)
                                 alpha = if (isSwipingOut) (1f - (kotlin.math.abs(dragOffsetX.value) / 1600f)).coerceIn(0.1f, 1f) else 1f
                             }
@@ -481,7 +511,7 @@ internal fun FlashcardViewerDialog(
                                         change.consume()
                                         accumulatedX += dragAmount.x
                                         accumulatedY += dragAmount.y
-                                        coroutineScope.launch {
+                                        if (!reduceMotion) coroutineScope.launch {
                                             dragOffsetX.snapTo(accumulatedX.coerceIn(-500f, 500f))
                                             dragOffsetY.snapTo(accumulatedY.coerceIn(-500f, 80f))
                                         }
@@ -567,7 +597,7 @@ internal fun FlashcardViewerDialog(
                             }
 
                             // Subtle per-card delete with confirmation
-                            IconButton(
+                            if (!practiceOnly) IconButton(
                                 onClick = { if (!isSwipingOut) showDeleteCardConfirm = true },
                                 modifier = Modifier.align(Alignment.TopEnd)
                             ) {
@@ -598,7 +628,11 @@ internal fun FlashcardViewerDialog(
                 )
 
                 Text(
-                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_rate_your_recall_spaced_repetition),
+                    menuString(when {
+                        practiceOnly -> com.veritas.reader.R.string.study_flashcard_practice
+                        reviewingRetry || !queue.shouldSchedule(card.id) -> com.veritas.reader.R.string.study_flashcard_retry
+                        else -> com.veritas.reader.R.string.ui_rate_your_recall_spaced_repetition
+                    }),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 8.dp)
@@ -611,7 +645,11 @@ internal fun FlashcardViewerDialog(
                 ) {
                     FLASHCARD_RECALL_META.forEach { (key, label, color) ->
                         val selected = card.recall == key
-                        val intervalHint = com.veritas.reader.SpacedRepetitionScheduler.previewNextInterval(card, key)
+                        val intervalHint = when {
+                            key == SpacedRepetitionScheduler.BUCKET_AGAIN -> menuString(com.veritas.reader.R.string.study_flashcard_retry_now)
+                            practiceOnly || !queue.shouldSchedule(card.id) -> ""
+                            else -> SpacedRepetitionScheduler.previewNextInterval(card, key)
+                        }
                         Button(
                             onClick = {
                                 advanceCard(safeIndex + 1, x = if (key == "again") -1800f else 1800f, recall = key)
@@ -634,7 +672,7 @@ internal fun FlashcardViewerDialog(
                                     color = Color.White,
                                     maxLines = 1
                                 )
-                                Text(
+                                if (intervalHint.isNotEmpty()) Text(
                                     intervalHint,
                                     style = MaterialTheme.typography.labelSmall,
                                     color = Color.White.copy(alpha = 0.85f),

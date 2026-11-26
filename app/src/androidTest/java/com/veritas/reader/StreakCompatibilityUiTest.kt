@@ -20,8 +20,10 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.text.DateFormat
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Date
 
 class StreakCompatibilityUiTest {
     @get:Rule val rule = createComposeRule()
@@ -83,8 +85,11 @@ class StreakCompatibilityUiTest {
             rule.mainClock.advanceTimeBy(1500)
             rule.onNodeWithText("Current streak").assertIsDisplayed()
             rule.onAllNodesWithText("3")[0].assertExists()
-            rule.onNodeWithContentDescription("${today}: reading recorded").performScrollTo().performClick()
-            rule.onNodeWithText("Reading recorded; duration not available").performScrollTo().assertIsDisplayed()
+            val locale = context.resources.configuration.locales[0]
+            val spokenDate = DateFormat.getDateInstance(DateFormat.FULL, locale).format(Date(now))
+            val noDuration = context.getString(R.string.ui_reading_recorded_duration_not_available)
+            rule.onNodeWithContentDescription("$spokenDate, $noDuration").performScrollTo().performClick()
+            rule.onNodeWithText(noDuration).performScrollTo().assertIsDisplayed()
             val file = File(context.getExternalFilesDir(null), "remaining-fixes/legacy-streak-calendar.png").apply { parentFile!!.mkdirs() }
             file.outputStream().use { rule.onNodeWithTag("legacy-streak-fixture").captureToImage().asAndroidBitmap()
                 .compress(Bitmap.CompressFormat.PNG, 100, it) }

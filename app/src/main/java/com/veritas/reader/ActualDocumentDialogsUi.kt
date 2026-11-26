@@ -5,6 +5,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
@@ -176,104 +178,40 @@ internal fun SelectedTextActionCard(
     pageIndex: Int,
     onDismiss: () -> Unit,
     onReadFromSentence: ((String, Int) -> Unit)?,
+    onAction: (ReaderSelectionAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showMore by remember { mutableStateOf(false) }
     val context = LocalContext.current
-
     Surface(
-        modifier = modifier
-            .padding(bottom = if (bottomBarVisible && !isLandscape) 96.dp else 16.dp, start = 16.dp, end = 16.dp)
-            .fillMaxWidth()
-            .navigationBarsPadding(),
-        shape = com.veritas.reader.VeritasPackStyle.compactShape(),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 8.dp,
-        shadowElevation = 6.dp,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+        modifier = modifier.padding(bottom = if (bottomBarVisible && !isLandscape) 96.dp else 16.dp, start = 16.dp, end = 16.dp)
+            .fillMaxWidth().navigationBarsPadding(),
+        shape = VeritasPackStyle.compactShape(), color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 8.dp, shadowElevation = 6.dp
     ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.FormatQuote,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text(
-                        text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_selected_text_actions),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_dismiss),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(com.veritas.reader.ui.screens.menuString(R.string.ui_selected_text_actions), Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
+                IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, com.veritas.reader.ui.screens.menuString(R.string.ui_dismiss)) }
             }
-            Text(
-                text = "“${selectedText.take(100)}${if (selectedText.length > 100) "…" else ""}”",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = {
-                        onDismiss()
-                        onReadFromSentence?.invoke(selectedText, pageIndex + 1)
-                    },
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_continue_reading_from_here), style = MaterialTheme.typography.labelMedium)
+            Text(selectedText.take(140), maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+                ReaderSelectionAction.entries.filter { it.primary }.forEach { action ->
+                    TextButton(onClick = { onAction(action); onDismiss() }) { Text(action.title(context)) }
                 }
-                OutlinedButton(
-                    onClick = {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val safeText = if (selectedText.length > 200_000) selectedText.take(200_000) else selectedText
-                        clipboard.setPrimaryClip(ClipData.newPlainText("Vern Text", safeText))
-                        Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
-                        onDismiss()
-                    },
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Icon(Icons.Filled.ContentCopy, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_copy), modifier = Modifier.size(18.dp))
-                }
-                OutlinedButton(
-                    onClick = {
-                        val searchIntent = Intent(Intent.ACTION_WEB_SEARCH).apply {
-                            putExtra(android.app.SearchManager.QUERY, selectedText)
+                Box {
+                    TextButton(onClick = { showMore = true }) { Text(com.veritas.reader.ui.screens.menuString(R.string.ui_more)) }
+                    androidx.compose.material3.DropdownMenu(showMore, { showMore = false }) {
+                        ReaderSelectionAction.entries.filterNot { it.primary }.forEach { action ->
+                            androidx.compose.material3.DropdownMenuItem(text = { Text(action.title(context)) }, onClick = {
+                                showMore = false
+                                if (action == ReaderSelectionAction.READ_FROM_HERE && onReadFromSentence != null)
+                                    onReadFromSentence(selectedText, pageIndex + 1)
+                                else onAction(action)
+                                onDismiss()
+                            })
                         }
-                        runCatching { context.startActivity(searchIntent) }
-                        onDismiss()
-                    },
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Icon(Icons.Filled.Search, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_search), modifier = Modifier.size(18.dp))
+                    }
                 }
             }
         }

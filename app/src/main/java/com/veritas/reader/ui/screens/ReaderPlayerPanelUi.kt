@@ -1,14 +1,8 @@
 package com.veritas.reader.ui.screens
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -109,7 +103,7 @@ import com.veritas.reader.isDeviceGlassCapable
 import com.veritas.reader.ui.OnboardingController
 import com.veritas.reader.ui.rememberStepHaptics
 import com.veritas.reader.ui.VeritasSleekSlider
-import com.veritas.reader.veritasGlassBackdrop
+import com.veritas.reader.veritasPlayerGlassBackdrop
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -178,7 +172,7 @@ internal fun PlayerPanel(
     val progress = (1f - (currentOffset / maxOffsetPx)).coerceIn(0f, 1f)
     val hasPageSlider = pageCount > 1
     // Sleek player capsule height with centered playback controls
-    val heightDp = 52.dp + (224.dp * progress)
+    val heightDp = VeritasPackStyle.readerPlayerHeightDp.dp + (224.dp * progress)
 
     val currentLocaleTag = voiceSettings.localeTag
     val availableVoices = remember(voices, currentLocaleTag) {
@@ -199,11 +193,13 @@ internal fun PlayerPanel(
 
     val scheme = MaterialTheme.colorScheme
     val isGlass = VeritasPackStyle.glassChromeEnabled() && isDeviceGlassCapable() && LocalVeritasBackdrop.current != null
-    val opaqueGlassFallback = VeritasPackStyle.currentPackId() == "liquid_glass" && !isGlass
+    val packId = VeritasPackStyle.currentPackId()
+    val opaqueGlassFallback = packId == "liquid_glass" && !isGlass
     val playerBrush = androidx.compose.ui.graphics.SolidColor(VeritasPackStyle.playerSurfaceColor(scheme))
     val borderBrush = VeritasPackStyle.navigationBorderBrush(scheme)
 
-    val cornerRadius = androidx.compose.ui.unit.lerp(28.dp, 22.dp, progress)
+    val packCorner = VeritasPackStyle.readerPlayerCornerRadius(packId)
+    val cornerRadius = androidx.compose.ui.unit.lerp(packCorner, packCorner * .78f, progress)
     val capsuleShape = RoundedCornerShape(cornerRadius)
     val bottomSafeInsets = WindowInsets.navigationBars.union(
         WindowInsets.displayCutout.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
@@ -231,7 +227,7 @@ internal fun PlayerPanel(
                         .widthIn(max = 400.dp)
                         .fillMaxWidth(0.88f)
                         .height(18.dp)
-                        .veritasGlassBackdrop(sliderGlassShape, isGlass, surfaceOpacity = .36f),
+                        .veritasPlayerGlassBackdrop(sliderGlassShape, isGlass),
                     shape = sliderShape,
                     color = if (opaqueGlassFallback) scheme.surface.copy(alpha = 0.85f) else if (isGlass) androidx.compose.ui.graphics.Color.Transparent else scheme.surface.copy(alpha = 0.75f),
                     border = BorderStroke(1.dp, scheme.outlineVariant.copy(alpha = 0.35f)),
@@ -253,7 +249,7 @@ internal fun PlayerPanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(heightDp)
-                    .veritasGlassBackdrop(capsuleShape, isGlass, surfaceOpacity = .36f)
+                    .veritasPlayerGlassBackdrop(capsuleShape, isGlass)
                     .anchoredDraggable(
                         state = draggableState,
                         orientation = Orientation.Vertical
@@ -261,7 +257,7 @@ internal fun PlayerPanel(
                     .onGloballyPositioned { OnboardingController.updateBounds("player_panel_header", it) },
                 shape = capsuleShape,
                 color = if (opaqueGlassFallback) scheme.surface else androidx.compose.ui.graphics.Color.Transparent,
-                shadowElevation = if (isGlass) 0.dp else VeritasPackStyle.chromeElevation(VeritasPackStyle.currentPackId()),
+                shadowElevation = if (isGlass) 0.dp else VeritasPackStyle.chromeElevation(packId),
                 tonalElevation = 0.dp
             ) {
                 Box(
@@ -874,20 +870,12 @@ internal fun SleekPlayerPageSlider(
     val tickingPageSelect = rememberStepHaptics(pageIndex, onPageSelected)
     val scheme = MaterialTheme.colorScheme
 
-    val infiniteTransition = rememberInfiniteTransition(label = "pageSliderWavy")
-    val wavePhase by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = (2 * Math.PI).toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1800, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "pageWavePhase"
-    )
-    val targetAmplitudeDp = if (isPlaying) 4.0.dp else 0.5.dp
+    val motion = com.veritas.reader.ui.VeritasMotion.scheme
+    val wavePhase by com.veritas.reader.ui.rememberPlaybackWavePhase(isPlaying && !motion.reduceMotion)
+    val targetAmplitudeDp = if (motion.reduceMotion) 0.dp else if (isPlaying) 4.dp else 0.5.dp
     val animatedAmplitudePx by animateFloatAsState(
         targetValue = with(density) { targetAmplitudeDp.toPx() },
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = motion.slowSpatial(),
         label = "pageWavyAmplitude"
     )
 

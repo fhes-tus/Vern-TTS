@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notes_link_cards_privacy">लिंक की झलक में शीर्षक और इमेज दिखती हैं। Vern छूटी जानकारी लिंक वाली साइट या इमेज होस्ट से लाता है।</string>
+    <string name="notes_link_load_from_website">वेबसाइट से लोड करें</string>
+    <string name="notes_link_loading">वेबसाइट का पूर्वावलोकन लोड हो रहा है…</string>
+    <string name="notes_link_unavailable">वेबसाइट का पूर्वावलोकन लोड नहीं हो सका। फिर से कोशिश करें या लिंक खोलें।</string>
+</resources>

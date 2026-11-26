@@ -284,8 +284,8 @@ object VeritasFeatureRegistry {
         ),
         VeritasFeatureDefinition(
             id = VeritasFeatureId.READING_LISTS,
-            title = "Reading lists",
-            description = "Organize saved readings into local lists and playback queues.",
+            title = "Collections",
+            description = "Organize saved readings into collections and playback queues.",
             category = VeritasFeatureCategory.LIBRARY,
             stage = VeritasFeatureStage.EXPANSION,
             surfaces = setOf(VeritasFeatureSurface.LIBRARY_OVERFLOW, VeritasFeatureSurface.SETTINGS_HUB),

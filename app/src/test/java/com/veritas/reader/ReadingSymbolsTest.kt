@@ -4,6 +4,62 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ReadingSymbolsTest {
+    @Test fun moneyUsesCurrencyAndFractionalUnitNames() {
+        val expected = mapOf(
+            "\$59" to "59 dollars", "\$1" to "1 dollar", "\$1.25" to "1 dollar and 25 cents",
+            "£1,234.01" to "1234 pounds and 1 penny", "£0.50" to "50 pence",
+            "1.234,56 €" to "1234 euros and 56 cents", "€1" to "1 euro",
+            "₵12.05" to "12 cedis and 5 pesewas", "GH₵1" to "1 cedi",
+            "GHS 60" to "60 cedis", "1 500 F CFA" to "1500 CFA francs",
+            "XOF 1" to "1 CFA franc", "250 XAF" to "250 CFA francs"
+        )
+        for ((source, speech) in expected) assertEquals(source, speech, ReadingSymbols.prepare(source).text)
+    }
+
+    @Test fun narrationPlansReadMoneyAmpersandsAndPercentFromBookText() {
+        val imported = MathText.beautify("R&D paid \$59 or £7 & saved 12.5%.")
+        val sentence = ReaderTextIndex.build(imported, 1).sentences.single()
+        for (voice in listOf(
+            VoiceSettings(localeTag = "en-GB"),
+            VoiceSettings(enginePackage = VoiceManager.KITTEN, voiceName = "kitten_0", localeTag = "en-US")
+        )) {
+            val speech = SpeechPlan.segment("book", "1", 0, sentence.text, voice,
+                NarrationSettings(), 1f, 1f, emptyList()).spoken
+            assertEquals("R and D paid 59 dollars or 7 pounds and saved 12.5 percent.", speech.text)
+            assertEquals(imported.indexOf("saved"), speech.sourceOffset(speech.text.indexOf("saved")))
+        }
+    }
+
+    @org.junit.Test fun bibleRangesAllowSpacesAroundTheDash() {
+        for (range in listOf("2-3", "2 -3", "2- 3", "2 - 3", "2–3", "2−3", "2‑3", "2\u202f—\u200b3")) {
+            org.junit.Assert.assertEquals("John 4 verse 2 to 3", ReadingSymbols.prepare("John 4:$range").text)
+        }
+        org.junit.Assert.assertEquals("verse 2 to 3", ReadingSymbols.prepare("verse 2 - 3").text)
+        org.junit.Assert.assertEquals("John 4 verse 2 to 3", ReadingSymbols.prepare("<u>John 4:2-3</u>").text)
+        org.junit.Assert.assertEquals("2 minus 3", ReadingSymbols.prepare("2 - 3").text)
+        assertEquals("Matthew 3 verse 4 to 5", ReadingSymbols.prepare("Matthew 3 : 4 − 5").text)
+        assertEquals("First Corinthians 2 verse 3 to 5", ReadingSymbols.prepare("1\u00A0Cor. 2:3-5").text)
+        assertEquals("Song of Solomon 2 verse 3 to 5", ReadingSymbols.prepare("Song of Solomon 2:3-5").text)
+    }
+
+    @Test fun readerCitationReachesKittenAndAndroidAsAVerseRange() {
+        for ((engine, voiceName, tag) in listOf(
+            Triple(VoiceManager.KITTEN, "kitten_0", "fr-FR"),
+            Triple("", "", "en-US")
+        )) {
+            val voice = VoiceSettings(enginePackage = engine, voiceName = voiceName, localeTag = tag)
+            for (citation in listOf("Matthew 3:4-5", "Matthew 3:4 -5", "Matthew 3:4- 5", "Matthew 3:4 - 5",
+                "Matthew 3 : 4\u202f—\u200b5", "Matthew 3 verse 4-5")) {
+                val savedText = "Read $citation. Then calculate 4 - 5."
+                val spoken = ReaderTextIndex.build(savedText, 1).sentences.map { sentence ->
+                    SpeechPlan.segment("test", "1", sentence.index, sentence.text, voice,
+                        NarrationSettings(), 1f, 1f, emptyList()).spoken.text
+                }.joinToString(" ")
+                assertTrue("Unexpected speech for $citation: $spoken", spoken.contains("Matthew 3 verse 4 to 5"))
+                assertTrue("Subtraction must still be spoken as subtraction: $spoken", spoken.contains("4 minus 5"))
+            }
+        }
+    }
     @Test fun mathematicalSymbolsAreSpokenAndFollowingOffsetsStayAligned() {
         val source = "If α ≤ 3, x² + β = 9. Continue reading."
         val spoken = ReadingSymbols.prepare(source)

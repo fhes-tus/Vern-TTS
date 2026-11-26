@@ -7,7 +7,9 @@ pub mod android_restore;
 mod android_settings;
 pub mod backup_archive;
 pub mod classics;
+pub mod cloud_speech;
 pub mod covers;
+pub mod dictionary;
 pub mod documents;
 mod handoff;
 pub mod highlights;
@@ -46,6 +48,8 @@ struct AppState {
     android_conversion: Mutex<Option<(String, android_restore::Conversion)>>,
     classics: Arc<classics::Downloads>,
     activity: Mutex<activity::Tracker>,
+    dictionary: Arc<dictionary::DictionaryManager>,
+    cloud_speech: Arc<cloud_speech::CloudSpeechManager>,
 }
 #[tauri::command]
 async fn list_opened_books(
@@ -731,6 +735,67 @@ async fn export_book(
     })
     .await
 }
+fn synthesize_chunk_audio(
+    state: &Arc<AppState>,
+    voice_id: &str,
+    text: &str,
+    rate: f32,
+    rules: &[crate::reading_tools::PronunciationRule],
+) -> Result<speech::Audio> {
+    let clean = reading_tools::apply_pronunciation(text, rules)?;
+    if clean.trim().is_empty() {
+        return Ok(speech::Audio {
+            samples: vec![0.0; 240],
+            sample_rate: 24000,
+        });
+    }
+    if crate::cloud_speech::valid_id(voice_id) {
+        let (config, key) = {
+            let db = state.db.lock().map_err(error)?;
+            let settings = db.settings()?;
+            let key = db.cloud_credential(settings.cloud_voice.provider.as_str())?;
+            (settings.cloud_voice, key)
+        };
+        let audio =
+            state
+                .cloud_speech
+                .synthesize(&config, key.as_deref().unwrap_or(""), &clean, || true)?;
+        let _ = state
+            .db
+            .lock()
+            .map_err(error)?
+            .record_cloud_submission(config.provider.as_str(), clean.chars().count() as u64);
+        Ok(audio)
+    } else {
+        let generation = state
+            .speech
+            .generation
+            .load(std::sync::atomic::Ordering::SeqCst);
+        state
+            .speech
+            .synthesize(&state.voices, voice_id, &clean, rate, generation)
+    }
+}
+
+fn sanitize_export_name(title: &str) -> String {
+    let clean: String = title
+        .chars()
+        .map(|c| {
+            if c.is_alphanumeric() || matches!(c, ' ' | '-' | '_') {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
+    let trimmed = clean.trim();
+    if trimmed.is_empty() {
+        "Vern-reading".to_string()
+    } else {
+        trimmed.chars().take(50).collect()
+    }
+}
+
 #[tauri::command]
 async fn export_passage_audio(
     app: tauri::AppHandle,
@@ -756,29 +821,160 @@ async fn export_passage_audio(
                 db.pronunciation_rules()?,
             )
         };
-        let text = reading_tools::apply_pronunciation(&text, &rules)?;
         if !voices::valid_id(&voice_id) {
             return Err("Unknown voice.".into());
         }
         if !(0.5..=2.0).contains(&rate) {
             return Err("Choose a narration speed between 0.5× and 2×.".into());
         }
-        let generation = state
-            .speech
-            .generation
-            .load(std::sync::atomic::Ordering::SeqCst);
-        let audio = if text.trim().is_empty() {
-            Audio {
-                samples: vec![0.0; 240],
-                sample_rate: 24000,
-            }
-        } else {
-            state
-                .speech
-                .synthesize(&state.voices, &voice_id, &text, rate, generation)?
-        };
+        let audio = synthesize_chunk_audio(&state, &voice_id, &text, rate, &rules)?;
         let bytes = transfer::wav_bytes(audio)?;
         save_export(&app, "Vern-passage.wav", "wav", &bytes)
+    })
+    .await
+}
+
+#[tauri::command]
+async fn export_book_audio(
+    app: tauri::AppHandle,
+    state: State<'_, Arc<AppState>>,
+    id: String,
+    voice_id: String,
+    rate: f32,
+    from_current: bool,
+) -> Result<bool> {
+    let state = state.inner().clone();
+    work(move || {
+        let (title, chunks, rules) = {
+            let db = state.db.lock().map_err(error)?;
+            let book = db.book(&id)?;
+            if !book.text_available {
+                return Err("This document needs OCR before audio export is available.".into());
+            }
+            let start = if from_current {
+                book.position.min(book.chunks.len())
+            } else {
+                0
+            };
+            let slice = book.chunks[start..].to_vec();
+            if slice.is_empty() {
+                return Err("No passages to export.".into());
+            }
+            (book.title, slice, db.pronunciation_rules()?)
+        };
+        if !voices::valid_id(&voice_id) {
+            return Err("Unknown voice.".into());
+        }
+        if !(0.5..=2.0).contains(&rate) {
+            return Err("Choose a narration speed between 0.5× and 2×.".into());
+        }
+
+        let mut all_samples = Vec::new();
+        for (i, chunk) in chunks.iter().enumerate() {
+            let audio = synthesize_chunk_audio(&state, &voice_id, chunk, rate, &rules)?;
+            let resampled = speech::resample(&audio.samples, audio.sample_rate, 24000);
+            all_samples.extend(resampled);
+            if i + 1 < chunks.len() {
+                all_samples.extend(std::iter::repeat_n(0.0, 3600));
+            }
+        }
+
+        let audio = speech::Audio {
+            samples: all_samples,
+            sample_rate: 24000,
+        };
+        let bytes = transfer::wav_bytes(audio)?;
+        let filename = format!("{}.wav", sanitize_export_name(&title));
+        save_export(&app, &filename, "wav", &bytes)
+    })
+    .await
+}
+
+#[tauri::command]
+async fn export_queue_audio(
+    app: tauri::AppHandle,
+    state: State<'_, Arc<AppState>>,
+    voice_id: String,
+    rate: f32,
+) -> Result<bool> {
+    let state = state.inner().clone();
+    work(move || {
+        let (queued_passages, rules) = {
+            let db = state.db.lock().map_err(error)?;
+            let settings = db.settings()?;
+            if settings.queue.is_empty() {
+                return Err("Add readings to your queue before exporting queue audio.".into());
+            }
+            let mut passages = Vec::new();
+            for book_id in &settings.queue {
+                if let Ok(book) = db.book(book_id) {
+                    if book.text_available && !book.chunks.is_empty() {
+                        let start = book.position.min(book.chunks.len().saturating_sub(1));
+                        passages.extend(book.chunks[start..].iter().cloned());
+                    }
+                }
+            }
+            if passages.is_empty() {
+                return Err("No readable passages found in queued books.".into());
+            }
+            (passages, db.pronunciation_rules()?)
+        };
+        if !voices::valid_id(&voice_id) {
+            return Err("Unknown voice.".into());
+        }
+        if !(0.5..=2.0).contains(&rate) {
+            return Err("Choose a narration speed between 0.5× and 2×.".into());
+        }
+
+        let mut all_samples = Vec::new();
+        for (i, chunk) in queued_passages.iter().enumerate() {
+            let audio = synthesize_chunk_audio(&state, &voice_id, chunk, rate, &rules)?;
+            let resampled = speech::resample(&audio.samples, audio.sample_rate, 24000);
+            all_samples.extend(resampled);
+            if i + 1 < queued_passages.len() {
+                all_samples.extend(std::iter::repeat_n(0.0, 3600));
+            }
+        }
+
+        let audio = speech::Audio {
+            samples: all_samples,
+            sample_rate: 24000,
+        };
+        let bytes = transfer::wav_bytes(audio)?;
+        save_export(&app, "Vern-queue-audio.wav", "wav", &bytes)
+    })
+    .await
+}
+
+#[tauri::command]
+async fn update_book_passage(
+    state: State<'_, Arc<AppState>>,
+    id: String,
+    position: usize,
+    text: String,
+) -> Result<Book> {
+    let state = state.inner().clone();
+    work(move || {
+        state
+            .db
+            .lock()
+            .map_err(error)?
+            .update_book_passage(&id, position, &text)
+    })
+    .await
+}
+
+#[tauri::command]
+async fn export_android_sync_pack(
+    app: tauri::AppHandle,
+    state: State<'_, Arc<AppState>>,
+) -> Result<bool> {
+    let state = state.inner().clone();
+    work(move || {
+        let bytes = state.db.lock().map_err(error)?.export_android_sync_pack()?;
+        let now = chrono::Local::now().format("%Y%m%d_%H%M%S");
+        let filename = format!("veritas_backup_{now}.zip");
+        save_export(&app, &filename, "zip", &bytes)
     })
     .await
 }
@@ -947,11 +1143,207 @@ async fn synthesize(
                 sample_rate: 24000,
             });
         }
+        if crate::cloud_speech::valid_id(&voice_id) {
+            let (config, key) = {
+                let db = state.db.lock().map_err(error)?;
+                let settings = db.settings()?;
+                let key = db.cloud_credential(settings.cloud_voice.provider.as_str())?;
+                (settings.cloud_voice, key)
+            };
+            let audio = state.cloud_speech.synthesize(
+                &config,
+                key.as_deref().unwrap_or(""),
+                &text,
+                || {
+                    state
+                        .speech
+                        .generation
+                        .load(std::sync::atomic::Ordering::SeqCst)
+                        == generation
+                },
+            )?;
+            let _ = state
+                .db
+                .lock()
+                .map_err(error)?
+                .record_cloud_submission(config.provider.as_str(), text.chars().count() as u64);
+            return Ok(audio);
+        }
         state
             .speech
             .synthesize(&state.voices, &voice_id, &text, rate, generation)
     })
     .await
+}
+
+#[tauri::command]
+async fn get_dictionary_status(
+    state: State<'_, Arc<AppState>>,
+) -> Result<(
+    Option<dictionary::DictionaryPackInfo>,
+    dictionary::DictionaryDownloadState,
+)> {
+    let state = state.inner().clone();
+    work(move || state.dictionary.status()).await
+}
+
+#[tauri::command]
+async fn lookup_dictionary_word(
+    state: State<'_, Arc<AppState>>,
+    word: String,
+) -> Result<Option<dictionary::DictionaryEntry>> {
+    let state = state.inner().clone();
+    work(move || state.dictionary.lookup(&word)).await
+}
+
+#[tauri::command]
+async fn suggest_dictionary_words(
+    state: State<'_, Arc<AppState>>,
+    input: String,
+) -> Result<Vec<String>> {
+    let state = state.inner().clone();
+    work(move || state.dictionary.suggestions(&input)).await
+}
+
+#[tauri::command]
+async fn browse_dictionary_words(
+    state: State<'_, Arc<AppState>>,
+    prefix: String,
+    after: Option<String>,
+    page_size: usize,
+) -> Result<dictionary::DictionaryWordPage> {
+    let state = state.inner().clone();
+    work(move || {
+        state
+            .dictionary
+            .browse(&prefix, after.as_deref(), page_size)
+    })
+    .await
+}
+
+#[tauri::command]
+async fn download_dictionary(state: State<'_, Arc<AppState>>) -> Result<()> {
+    let state = state.inner().clone();
+    state.dictionary.start_download()
+}
+
+#[tauri::command]
+async fn cancel_dictionary_download(state: State<'_, Arc<AppState>>) -> Result<()> {
+    let state = state.inner().clone();
+    state.dictionary.cancel_download()
+}
+
+#[tauri::command]
+async fn delete_dictionary(state: State<'_, Arc<AppState>>) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || state.dictionary.remove()).await
+}
+
+#[tauri::command]
+async fn get_cloud_voice_status(
+    state: State<'_, Arc<AppState>>,
+) -> Result<cloud_speech::CloudVoiceStatus> {
+    let state = state.inner().clone();
+    work(move || {
+        let db = state.db.lock().map_err(error)?;
+        let settings = db.settings()?;
+        let has_key = db
+            .cloud_credential(settings.cloud_voice.provider.as_str())?
+            .is_some_and(|k| !k.is_empty());
+        let (chars, reqs) = db.cloud_usage(settings.cloud_voice.provider.as_str())?;
+        Ok(cloud_speech::CloudVoiceStatus {
+            config: settings.cloud_voice,
+            has_key,
+            usage: cloud_speech::CloudVoiceUsage {
+                characters: chars,
+                requests: reqs,
+            },
+        })
+    })
+    .await
+}
+
+#[tauri::command]
+async fn save_cloud_voice_config(
+    state: State<'_, Arc<AppState>>,
+    config: cloud_speech::CloudVoiceConfig,
+    key: Option<String>,
+) -> Result<cloud_speech::CloudVoiceStatus> {
+    let state = state.inner().clone();
+    work(move || {
+        if config.enabled {
+            config.checked()?;
+        }
+        let mut db = state.db.lock().map_err(error)?;
+        if let Some(ref k) = key {
+            db.set_cloud_credential(config.provider.as_str(), k)?;
+        }
+        let mut settings = db.settings()?;
+        settings.cloud_voice = config.clone();
+        db.save_settings(settings)?;
+        let has_key = db
+            .cloud_credential(config.provider.as_str())?
+            .is_some_and(|k| !k.is_empty());
+        let (chars, reqs) = db.cloud_usage(config.provider.as_str())?;
+        Ok(cloud_speech::CloudVoiceStatus {
+            config,
+            has_key,
+            usage: cloud_speech::CloudVoiceUsage {
+                characters: chars,
+                requests: reqs,
+            },
+        })
+    })
+    .await
+}
+
+#[tauri::command]
+async fn test_cloud_voice(state: State<'_, Arc<AppState>>, text: String) -> Result<Audio> {
+    let state = state.inner().clone();
+    work(move || {
+        let (config, key) = {
+            let db = state.db.lock().map_err(error)?;
+            let settings = db.settings()?;
+            let key = db.cloud_credential(settings.cloud_voice.provider.as_str())?;
+            (settings.cloud_voice, key)
+        };
+        let audio =
+            state
+                .cloud_speech
+                .synthesize(&config, key.as_deref().unwrap_or(""), &text, || true)?;
+        let _ = state
+            .db
+            .lock()
+            .map_err(error)?
+            .record_cloud_submission(config.provider.as_str(), text.chars().count() as u64);
+        Ok(audio)
+    })
+    .await
+}
+
+#[tauri::command]
+async fn list_cloud_catalog_voices(
+    state: State<'_, Arc<AppState>>,
+) -> Result<Vec<cloud_speech::CatalogVoice>> {
+    let state = state.inner().clone();
+    work(move || {
+        let (config, key) = {
+            let db = state.db.lock().map_err(error)?;
+            let settings = db.settings()?;
+            let key = db.cloud_credential(settings.cloud_voice.provider.as_str())?;
+            (settings.cloud_voice, key)
+        };
+        state
+            .cloud_speech
+            .list_catalog(&config, key.as_deref().unwrap_or(""))
+    })
+    .await
+}
+
+#[tauri::command]
+async fn clear_cloud_voice_usage(state: State<'_, Arc<AppState>>, provider: String) -> Result<()> {
+    let state = state.inner().clone();
+    work(move || state.db.lock().map_err(error)?.clear_cloud_usage(&provider)).await
 }
 
 pub fn run() {
@@ -988,6 +1380,8 @@ pub fn run() {
                 android_conversion: Mutex::new(None),
                 classics: Arc::new(classics::Downloads::default()),
                 activity: Mutex::new(activity::Tracker::default()),
+                dictionary: Arc::new(dictionary::DictionaryManager::new(root.clone())),
+                cloud_speech: Arc::new(cloud_speech::CloudSpeechManager::default()),
             };
             app.manage(Arc::new(state));
             Ok(())
@@ -1067,12 +1461,28 @@ pub fn run() {
             discard_backup,
             export_book,
             export_passage_audio,
+            export_book_audio,
+            export_queue_audio,
+            update_book_passage,
+            export_android_sync_pack,
             pick_book,
             list_voices,
             download_voice,
             cancel_download,
             cancel_speech,
-            synthesize
+            synthesize,
+            get_dictionary_status,
+            lookup_dictionary_word,
+            suggest_dictionary_words,
+            browse_dictionary_words,
+            download_dictionary,
+            cancel_dictionary_download,
+            delete_dictionary,
+            get_cloud_voice_status,
+            save_cloud_voice_config,
+            test_cloud_voice,
+            list_cloud_catalog_voices,
+            clear_cloud_voice_usage
         ])
         .run(context)
         .expect("Could not run Vern");

@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -76,6 +77,7 @@ fun NarrationStudioDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val draftSaver = androidx.compose.runtime.saveable.Saver<NarrationSettings, String>(
         save = { it.toJson().toString() },
         restore = { runCatching { NarrationSettings.fromJson(org.json.JSONObject(it)) }.getOrNull() }
@@ -102,6 +104,8 @@ fun NarrationStudioDialog(
     val sampleSentence = sampleModel.sentences.getOrNull(previewSentenceIndex)?.text ?: sample
     val sampleCue = sampleCues.getOrNull(previewSentenceIndex)
     val active = NarrationAnalyzer.getActiveCharacter(sampleSentence, draft, sampleCue)
+    val suggestedNames = sampleCues.mapNotNull { it.speaker }.distinct()
+        .filterNot { name -> draft.characterProfiles.any { it.name.equals(name, ignoreCase = true) } }
     val rate = NarrationAnalyzer.effectiveRate(voiceSettings.preferredRate, draft, sampleSentence, !neural, sampleCue)
     val pitch = NarrationAnalyzer.effectivePitch(voiceSettings.preferredPitch, draft, sampleSentence, !neural, sampleCue)
     fun stopPreview() { previewRevision++; previewJob?.cancel(); VoiceManager.releasePreviewEngine(); previewing = false }
@@ -117,7 +121,7 @@ fun NarrationStudioDialog(
         all.addAll(VoiceManager.loadVeritasVoices(context))
         VoiceManager.loadInstalledEngines(context).filterNot { VoiceManager.isVeritasEngine(it.packageName) }.forEach { engine ->
             runCatching { VoiceManager.loadVoices(context, engine.packageName) }
-                .onSuccess { all.addAll(it) }.onFailure { voiceError = context.getString(com.veritas.reader.R.string.settings_voice_load_error, it.message.orEmpty()) }
+                .onSuccess { all.addAll(it) }.onFailure { voiceError = resources.getString(com.veritas.reader.R.string.settings_voice_load_error, it.message.orEmpty()) }
         }
         voices = all.distinctBy { it.enginePackage to it.name }
     }
@@ -140,6 +144,9 @@ fun NarrationStudioDialog(
                 selectedRole = role.id; roleName = ""; addRole = false
             }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add)) } }, dismissButton = { TextButton(onClick = { addRole = false }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } })
     }
+    val filteredVoices = remember(voices, voiceSearch) {
+        voices.filter { it.label.contains(voiceSearch, true) || it.localeTag.contains(voiceSearch, true) }
+    }
     if (chooseVoice) AlertDialog(onDismissRequest = { chooseVoice = false }, title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_character_voice)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -147,8 +154,8 @@ fun NarrationStudioDialog(
                     modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.compactShape())
                 androidx.compose.foundation.lazy.LazyColumn(Modifier.weight(1f, fill = false)) {
                     item { TextButton(onClick = { editRole { it.copy(voiceName = null, enginePackage = null, localeTag = "") }; chooseVoice = false }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_use_reading_voice, localizedSettingsOption(voiceSettings.displayName))) } }
-                    items(voices.filter { it.label.contains(voiceSearch, true) || it.localeTag.contains(voiceSearch, true) }.size) { index ->
-                        val voice = voices.filter { it.label.contains(voiceSearch, true) || it.localeTag.contains(voiceSearch, true) }[index]
+                    items(filteredVoices.size) { index ->
+                        val voice = filteredVoices[index]
                         val installed = !VoiceManager.isVeritasVoice(voice.name) || com.veritas.reader.tts.VoiceModelManager.isVoiceInstalled(context, voice.name)
                         TextButton(onClick = { editRole { it.copy(voiceName = voice.name, enginePackage = voice.enginePackage, localeTag = voice.localeTag) }; chooseVoice = false }, enabled = installed, modifier = Modifier.fillMaxWidth()) {
                             Text(voice.label + " · " + when (voice.enginePackage) { VoiceManager.KITTEN -> "Kitten"; VoiceManager.VERITAS_LITE -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_lite); VoiceManager.VERITAS_STUDIO -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_studio); else -> com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_system) } + if (!installed) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_download_in_voice_studio) else if (voice.requiresNetwork) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_online) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_on_device), modifier = Modifier.fillMaxWidth())
@@ -179,7 +186,8 @@ fun NarrationStudioDialog(
         val role = draft.characterProfiles.firstOrNull { it.id == selectedRole } ?: draft.characterProfiles.firstOrNull()
         if (role != null) NarrationPanel {
             Text(narrationRoleLabel(role), style = MaterialTheme.typography.titleMedium)
-            val label = voices.firstOrNull { it.name == role.voiceName }?.label ?: role.voiceName ?: voiceSettings.displayName
+            val label = voices.firstOrNull { it.name == role.voiceName &&
+                (role.enginePackage == null || role.enginePackage == it.enginePackage) }?.label ?: role.voiceName ?: voiceSettings.displayName
             OutlinedButton(onClick = { selectedRole = role.id; voiceSearch = ""; chooseVoice = true },
                 enabled = draft.enabled && draft.fullCastEnabled, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) {
                 Text(localizedSettingsOption(label), maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -210,6 +218,14 @@ fun NarrationStudioDialog(
         NarrationPanel {
             OutlinedTextField(sample, { sample = it.take(600) }, label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_preview_text)) }, modifier = Modifier.fillMaxWidth(),
                 minLines = 2, maxLines = 5, shape = VeritasPackStyle.compactShape())
+            if (suggestedNames.isNotEmpty() && draft.dialogueDetection) {
+                Text(menuString(com.veritas.reader.R.string.narration_detected_speakers), style = MaterialTheme.typography.labelLarge)
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    suggestedNames.forEach { name ->
+                        TextButton(onClick = { roleName = name; addRole = true }) { Text(name) }
+                    }
+                }
+            }
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_narration_summary, narrationRoleLabel(active), "%.2f".format(rate), "%.2f".format(pitch)),
                 style = MaterialTheme.typography.labelMedium)
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_plays_the_passage_sentence_by_sentence_with_the_same_role_detecti), style = MaterialTheme.typography.bodySmall,
@@ -221,19 +237,24 @@ fun NarrationStudioDialog(
                     val roles = draft
                     val model = sampleModel
                     val cues = sampleCues
+                    val rules = com.veritas.reader.PronunciationRulesEngine.compile(pronunciationRules)
+                    val contentRevision = com.veritas.reader.SpeechPlan.revision(listOf(sample))
                     previewJob = previewScope.launch {
                         try {
                             model.sentences.forEachIndexed { index, sentence ->
                                 if (revision != previewRevision) return@launch
                                 previewSentenceIndex = index
                                 val cue = cues[index]
-                                if (index > 0 && cue.labelEnd > 0 && roles.enabled && roles.dialogueDetection) kotlinx.coroutines.delay(120)
-                                val segment = com.veritas.reader.SpeechPlan.segment("preview", com.veritas.reader.SpeechPlan.revision(listOf(sample)),
+                                val detect = roles.enabled && roles.dialogueDetection
+                                val turnPause = com.veritas.reader.LiteraryDialogue.transitionPause(cues.getOrNull(index - 1), cue, detect, detect)
+                                val segments = com.veritas.reader.SpeechPlan.segments("preview", contentRevision,
                                     index, sentence.text, voiceSettings, roles, voiceSettings.preferredRate, voiceSettings.preferredPitch,
-                                    com.veritas.reader.PronunciationRulesEngine.compile(pronunciationRules), cue,
-                                    stripSpeakerLabel = roles.enabled && roles.dialogueDetection)
-                                val spoken = segment.spoken.text
-                                if (spoken.isNotBlank()) {
+                                    rules, cue,
+                                    stripSpeakerLabel = detect, leadingPauseMs = turnPause)
+                                for (segment in segments) {
+                                    val spoken = segment.spoken.text
+                                    if (spoken.isBlank()) continue
+                                    if (segment.leadingPauseMs > 0) kotlinx.coroutines.delay(segment.leadingPauseMs)
                                     val error = kotlinx.coroutines.withTimeout(30000) {
                                         kotlinx.coroutines.suspendCancellableCoroutine<String?> { continuation ->
                                             VoiceManager.previewVoice(context, segment.voice.enginePackage, segment.voice.voiceName, spoken,
@@ -246,7 +267,7 @@ fun NarrationStudioDialog(
                                 }
                             }
                         } catch (_: kotlinx.coroutines.TimeoutCancellationException) {
-                            previewError = context.getString(com.veritas.reader.R.string.settings_voice_preview_failed)
+                            previewError = resources.getString(com.veritas.reader.R.string.settings_voice_preview_failed)
                         } finally {
                             if (revision == previewRevision) { VoiceManager.releasePreviewEngine(); previewing = false }
                         }
@@ -255,6 +276,7 @@ fun NarrationStudioDialog(
             }, shape = VeritasPackStyle.chipShape()) { Text(if (previewing) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_stop_preview) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_listen_to_preview)) }
             previewError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
         }
+        RestorePageDefaults { selectedRole = "narrator"; draft = NarrationSettings() }
         Button(onClick = { stopPreview(); onSettingsChange(draft); onDismiss() },
             modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_apply_narration_settings)) }
     }

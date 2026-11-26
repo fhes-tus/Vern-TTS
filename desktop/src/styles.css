@@ -1549,6 +1549,9 @@ progress::-moz-progress-bar {
 .workspace-dialog::backdrop {
   background: #0007;
 }
+.workspace-dialog.text-editor-dialog {
+  width: min(640px, calc(100vw - 32px));
+}
 .dialog-heading {
   justify-content: space-between;
   margin-bottom: 24px;
@@ -1828,9 +1831,6 @@ progress::-moz-progress-bar {
 }
 .workspace {
   background: var(--page-background, var(--page));
-}
-.page {
-  animation: workspace-arrive 200ms ease-out;
 }
 .appearance-settings .toggle-setting {
   justify-content: flex-start;
@@ -2941,69 +2941,7 @@ progress::-moz-progress-bar {
 .reader-exit-focus:focus-visible {
   opacity: 1;
 }
-main {
-  animation: workspace-arrive 200ms ease-out;
-}
-button,
-a,
-.book-card,
-.voice-card,
-.saved-note {
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
-}
-.workspace-dialog[open] {
-  animation: dialog-arrive 180ms ease-out;
-}
-.workspace-dialog[open]::backdrop {
-  animation: backdrop-arrive 180ms ease-out;
-}
-.notebook {
-  animation: notebook-arrive 200ms ease-out;
-}
-@keyframes workspace-arrive {
-  from {
-    opacity: 0.4;
-    transform: translateY(7px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes dialog-arrive {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes backdrop-arrive {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes notebook-arrive {
-  from {
-    opacity: 0;
-    transform: translateX(15px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .book-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 24px #0001;

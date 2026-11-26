@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { native } from './api';
 import { Glyph } from './Glyph';
 import type { Voice } from './types';
+import { CloudVoiceSettings } from './CloudVoiceSettings';
 import './voice-studio.css';
 
 type Props = {
@@ -41,7 +42,7 @@ export function VoiceStudio(props: Props) {
       setError(String(error).replace(/^Error: /, ''));
     }
   }
-  const families = ['Windows', 'Studio', 'Lite'];
+  const families = ['Windows', 'Studio', 'Lite', 'Cloud'];
   return (
     <div className="page voices-page">
       <div className="voice-page-heading">
@@ -131,152 +132,178 @@ export function VoiceStudio(props: Props) {
           Your saved voice is not available on this computer. Choose a voice below.
         </p>
       )}
-      {families
-        .filter((name) => family === 'All' || family === name)
-        .map((name) => {
-          const group = visible.filter((voice) => voice.family === name);
-          if (!group.length) return null;
-          return (
-            <section className="voice-source-section" key={name} aria-label={`${name} voices`}>
-              <div className="voice-section-heading">
-                <div>
-                  <h2>{name === 'Windows' ? 'On this PC' : `${name} voices`}</h2>
-                  <p>
-                    {name === 'Windows'
-                      ? 'Installed Microsoft voices. Ready to use without a Vern download.'
-                      : name === 'Studio'
-                        ? '28 English speakers share one ~126 MB Kokoro v1.0 download. American and British accents.'
-                        : 'A compact Piper voice for offline listening.'}
-                  </p>
-                </div>
-                {name === 'Windows' && (
-                  <button
-                    className="text-button"
-                    disabled={!native}
-                    onClick={() => void act(props.onWindowsSettings)}
-                  >
-                    Manage Windows voices <Glyph name="external" />
-                  </button>
-                )}
-              </div>
-              <div className="voice-choice-grid">
-                {group.map((voice) => {
-                  const installed = voice.state === 'installed';
-                  const working = ['downloading', 'queued', 'validating', 'cancelling'].includes(
-                    voice.state,
-                  );
-                  return (
-                    <article
-                      className={`voice-choice ${props.selected === voice.id ? 'voice-is-selected' : ''}`}
-                      key={voice.id}
-                    >
-                      <div className="voice-choice-heading">
-                        <h3>{voice.name}</h3>
-                        {props.selected === voice.id && (
-                          <span className="voice-selected-label">
-                            <Glyph name="check" />
-                            Selected
-                          </span>
-                        )}
-                      </div>
-                      <p className="voice-language">
-                        {voice.language === 'en-GB'
-                          ? 'English · UK'
-                          : voice.language === 'en-US' || !voice.language
-                            ? 'English · US'
-                            : voice.language}
-                        {voice.gender ? ` · ${voice.gender}` : ''}
+      {family === 'Cloud' ? (
+        <CloudVoiceSettings
+          sampleText={sample}
+          onSelectVoice={props.onSelect}
+          selectedVoice={props.selected}
+        />
+      ) : (
+        families
+          .filter((name) => family === 'All' || family === name)
+          .map((name) => {
+            if (name === 'Cloud') {
+              return (
+                <section className="voice-source-section" key="Cloud" aria-label="Cloud voices">
+                  <div className="voice-section-heading">
+                    <div>
+                      <h2>Personal Cloud Voices</h2>
+                      <p>
+                        Stream narration directly from personal ElevenLabs, Cartesia, MiniMax,
+                        KittenML, Azure, or Google Cloud APIs.
                       </p>
-                      <span className="voice-engine-label">
-                        {voice.engine} ·{' '}
-                        {name === 'Windows'
-                          ? 'Installed on this PC'
-                          : installed
-                            ? 'Ready offline'
-                            : voice.size}
-                      </span>
-                      {working && (
-                        <div className="voice-download-state" role="status">
-                          {voice.state === 'downloading'
-                            ? `Downloading shared ${name} package${voice.total ? ` · ${Math.round((voice.downloaded / voice.total) * 100)}%` : ''}`
-                            : voice.state === 'validating'
-                              ? 'Validating voice package…'
-                              : voice.state === 'cancelling'
-                                ? 'Cancelling…'
-                                : 'Queued for download'}
-                          <progress
-                            aria-label={`Download progress for ${voice.name}`}
-                            value={voice.downloaded}
-                            max={voice.total || undefined}
-                          />
+                    </div>
+                    <button className="secondary small" onClick={() => setFamily('Cloud')}>
+                      Configure Cloud Voices <Glyph name="sound" />
+                    </button>
+                  </div>
+                </section>
+              );
+            }
+            const group = visible.filter((voice) => voice.family === name);
+            if (!group.length) return null;
+            return (
+              <section className="voice-source-section" key={name} aria-label={`${name} voices`}>
+                <div className="voice-section-heading">
+                  <div>
+                    <h2>{name === 'Windows' ? 'On this PC' : `${name} voices`}</h2>
+                    <p>
+                      {name === 'Windows'
+                        ? 'Installed Microsoft voices. Ready to use without a Vern download.'
+                        : name === 'Studio'
+                          ? '28 English speakers share one ~126 MB Kokoro v1.0 download. American and British accents.'
+                          : 'A compact Piper voice for offline listening.'}
+                    </p>
+                  </div>
+                  {name === 'Windows' && (
+                    <button
+                      className="text-button"
+                      disabled={!native}
+                      onClick={() => void act(props.onWindowsSettings)}
+                    >
+                      Manage Windows voices <Glyph name="external" />
+                    </button>
+                  )}
+                </div>
+                <div className="voice-choice-grid">
+                  {group.map((voice) => {
+                    const installed = voice.state === 'installed';
+                    const working = ['downloading', 'queued', 'validating', 'cancelling'].includes(
+                      voice.state,
+                    );
+                    return (
+                      <article
+                        className={`voice-choice ${props.selected === voice.id ? 'voice-is-selected' : ''}`}
+                        key={voice.id}
+                      >
+                        <div className="voice-choice-heading">
+                          <h3>{voice.name}</h3>
+                          {props.selected === voice.id && (
+                            <span className="voice-selected-label">
+                              <Glyph name="check" />
+                              Selected
+                            </span>
+                          )}
                         </div>
-                      )}
-                      {voice.error && <p className="voice-error">{voice.error}</p>}
-                      <div className="voice-choice-actions">
-                        {installed ? (
-                          <>
+                        <p className="voice-language">
+                          {voice.language === 'en-GB'
+                            ? 'English · UK'
+                            : voice.language === 'en-US' || !voice.language
+                              ? 'English · US'
+                              : voice.language}
+                          {voice.gender ? ` · ${voice.gender}` : ''}
+                        </p>
+                        <span className="voice-engine-label">
+                          {voice.engine} ·{' '}
+                          {name === 'Windows'
+                            ? 'Installed on this PC'
+                            : installed
+                              ? 'Ready offline'
+                              : voice.size}
+                        </span>
+                        {working && (
+                          <div className="voice-download-state" role="status">
+                            {voice.state === 'downloading'
+                              ? `Downloading shared ${name} package${voice.total ? ` · ${Math.round((voice.downloaded / voice.total) * 100)}%` : ''}`
+                              : voice.state === 'validating'
+                                ? 'Validating voice package…'
+                                : voice.state === 'cancelling'
+                                  ? 'Cancelling…'
+                                  : 'Queued for download'}
+                            <progress
+                              aria-label={`Download progress for ${voice.name}`}
+                              value={voice.downloaded}
+                              max={voice.total || undefined}
+                            />
+                          </div>
+                        )}
+                        {voice.error && <p className="voice-error">{voice.error}</p>}
+                        <div className="voice-choice-actions">
+                          {installed ? (
+                            <>
+                              <button
+                                className="secondary small"
+                                aria-label={`${props.previewing === voice.id ? 'Stop preview of' : 'Preview'} ${voice.name}`}
+                                disabled={!native || !sample.trim()}
+                                onClick={() =>
+                                  void act(() =>
+                                    props.previewing === voice.id
+                                      ? props.onStop()
+                                      : props.onPreview(voice.id, sample),
+                                  )
+                                }
+                              >
+                                <Glyph name={props.previewing === voice.id ? 'pause' : 'play'} />
+                                {props.previewing === voice.id ? 'Stop' : 'Preview'}
+                              </button>
+                              <button
+                                className={
+                                  props.selected === voice.id ? 'text-button' : 'primary small'
+                                }
+                                aria-label={`Use ${voice.name}`}
+                                aria-pressed={props.selected === voice.id}
+                                disabled={!native || props.selected === voice.id}
+                                onClick={() => void act(() => props.onSelect(voice.id))}
+                              >
+                                {props.selected === voice.id ? 'Selected' : 'Use voice'}
+                              </button>
+                            </>
+                          ) : working ? (
                             <button
                               className="secondary small"
-                              aria-label={`${props.previewing === voice.id ? 'Stop preview of' : 'Preview'} ${voice.name}`}
-                              disabled={!native || !sample.trim()}
-                              onClick={() =>
-                                void act(() =>
-                                  props.previewing === voice.id
-                                    ? props.onStop()
-                                    : props.onPreview(voice.id, sample),
-                                )
-                              }
+                              disabled={voice.state === 'cancelling'}
+                              onClick={() => void act(() => props.onCancel(voice.id))}
                             >
-                              <Glyph name={props.previewing === voice.id ? 'pause' : 'play'} />
-                              {props.previewing === voice.id ? 'Stop' : 'Preview'}
+                              Cancel download
                             </button>
+                          ) : name === 'Windows' ? (
                             <button
-                              className={
-                                props.selected === voice.id ? 'text-button' : 'primary small'
-                              }
-                              aria-label={`Use ${voice.name}`}
-                              aria-pressed={props.selected === voice.id}
-                              disabled={!native || props.selected === voice.id}
-                              onClick={() => void act(() => props.onSelect(voice.id))}
+                              className="secondary small"
+                              disabled={!native}
+                              onClick={() => void act(props.onRefresh)}
                             >
-                              {props.selected === voice.id ? 'Selected' : 'Use voice'}
+                              Retry detection
                             </button>
-                          </>
-                        ) : working ? (
-                          <button
-                            className="secondary small"
-                            disabled={voice.state === 'cancelling'}
-                            onClick={() => void act(() => props.onCancel(voice.id))}
-                          >
-                            Cancel download
-                          </button>
-                        ) : name === 'Windows' ? (
-                          <button
-                            className="secondary small"
-                            disabled={!native}
-                            onClick={() => void act(props.onRefresh)}
-                          >
-                            Retry detection
-                          </button>
-                        ) : (
-                          <button
-                            className="secondary small"
-                            disabled={!native}
-                            onClick={() => void act(() => props.onDownload(voice.id))}
-                          >
-                            <Glyph name="download" />
-                            {voice.state === 'failed' ? 'Retry download' : `Download ${name}`}
-                          </button>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-          );
-        })}
-      {!visible.length && (
+                          ) : (
+                            <button
+                              className="secondary small"
+                              disabled={!native}
+                              onClick={() => void act(() => props.onDownload(voice.id))}
+                            >
+                              <Glyph name="download" />
+                              {voice.state === 'failed' ? 'Retry download' : `Download ${name}`}
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })
+      )}
+      {family !== 'Cloud' && !visible.length && (
         <p className="voice-empty">
           {props.loading
             ? 'Loading voices…'

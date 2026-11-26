@@ -253,6 +253,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
         menu.addView(headerCol)
 
         val popup = PopupWindow(scroll, 300.dp, LinearLayout.LayoutParams.WRAP_CONTENT, true).apply {
+            animationStyle = R.style.VernOverlayMotion
             elevation = 14f
             isOutsideTouchable = true
             isClippingEnabled = false
@@ -474,6 +475,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             background = rounded(colorSurface, 18.dp)
         }
         val popup = PopupWindow(menu, 330.dp, LinearLayout.LayoutParams.WRAP_CONTENT, true).apply {
+            animationStyle = R.style.VernOverlayMotion
             elevation = 12f
             isOutsideTouchable = true
             isClippingEnabled = false
@@ -677,6 +679,7 @@ internal fun VeritasPdfViewerActivity.showJumpToPageDialog() {
             background = rounded(colorSurface, 18.dp)
         }
         val popup = PopupWindow(menu, 260.dp, LinearLayout.LayoutParams.WRAP_CONTENT, true).apply {
+            animationStyle = R.style.VernOverlayMotion
             elevation = 10f
             isOutsideTouchable = true
             isClippingEnabled = false

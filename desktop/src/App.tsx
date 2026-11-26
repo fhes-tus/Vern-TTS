@@ -6,6 +6,13 @@ import { ReadingLists } from './ReadingLists';
 import { VoiceStudio } from './VoiceStudio';
 import type { SpokenPassage } from './narration-highlight';
 import { Playback } from './playback';
+import {
+  registerMediaSessionHandlers,
+  setupAudioOutputSafety,
+  updateMediaMetadata,
+  updatePlaybackState,
+  updatePositionState,
+} from './media-session';
 import { TransferPanel } from './TransferPanel';
 import { ReadingToolsPage } from './ReadingToolsPage';
 import { ReaderSurface, type ReaderSelection } from './ReaderSurface';
@@ -31,6 +38,7 @@ import { AboutPage } from './AboutPage';
 import { AiHandoff } from './AiHandoff';
 import { StudyHub } from './StudyHub';
 import { NotesWorkspace } from './NotesWorkspace';
+import { TextEditorDialog } from './TextEditorDialog';
 import { useTheme } from './themes';
 import {
   defaultSettings,
@@ -168,11 +176,18 @@ export default function App() {
     word?: string;
     text?: string;
   } | null>(null);
+  const [editingPassage, setEditingPassage] = useState<{
+    id: string;
+    position: number;
+    text: string;
+  } | null>(null);
   const [readerFullscreen, setReaderFullscreen] = useState(false);
   const [savingAnnotation, setSavingAnnotation] = useState(false);
-  const [notebook, setNotebook] = useState(false);
+  const [notebook, setNotebook] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const playingRef = useRef(playing);
+  playingRef.current = playing;
   const [audioTarget, setAudioTarget] = useState<ActivityTarget | null>(null);
   const [spoken, setSpoken] = useState<(SpokenPassage & { bookId: string }) | null>(null);
   const [sleepDeadline, setSleepDeadline] = useState<number | null>(null);
@@ -344,6 +359,17 @@ export default function App() {
     if (request !== navigation.current) return;
     await position(active, index).catch(fail);
   }
+  async function skipPassage(delta: number) {
+    if (!active || !active.chunks?.length) return;
+    const nextIndex = Math.max(0, Math.min(active.chunks.length - 1, active.position + delta));
+    if (nextIndex === active.position) return;
+    const wasPlaying = playingRef.current;
+    await seek(nextIndex);
+    if (wasPlaying) {
+      const updated = { ...active, position: nextIndex };
+      await playBook(updated);
+    }
+  }
   async function open(book: Book, passage?: number) {
     const request = ++navigation.current;
     await stop();
@@ -407,6 +433,65 @@ export default function App() {
         )
       )
         setNotice('Passage audio saved as WAV.');
+    } catch (e) {
+      fail(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function exportBookAudio(fromCurrent: boolean = false) {
+    if (!active) return;
+    if (selectedVoice?.state !== 'installed') {
+      setPage('voices');
+      setError('Download a voice before exporting audio.');
+      return;
+    }
+    setBusy(true);
+    setNotice('');
+    try {
+      await beforeTransfer();
+      if (
+        await api.exportBookAudio(
+          active.id,
+          settingsRef.current.voice,
+          settingsRef.current.rate,
+          fromCurrent,
+        )
+      )
+        setNotice(fromCurrent ? 'Remaining book audio saved as WAV.' : 'Book audio saved as WAV.');
+    } catch (e) {
+      fail(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function exportQueueAudio() {
+    if (!settings.queue.length) return;
+    if (selectedVoice?.state !== 'installed') {
+      setPage('voices');
+      setError('Download a voice before exporting audio.');
+      return;
+    }
+    setBusy(true);
+    setNotice('');
+    try {
+      await beforeTransfer();
+      if (await api.exportQueueAudio(settingsRef.current.voice, settingsRef.current.rate))
+        setNotice('Listening queue audio saved as WAV.');
+    } catch (e) {
+      fail(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function savePassageEdit(text: string) {
+    if (!editingPassage) return;
+    setBusy(true);
+    try {
+      const updated = await api.updateBookPassage(editingPassage.id, editingPassage.position, text);
+      setBooks((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+      setEditingPassage(null);
+      setNotice('Passage text updated.');
     } catch (e) {
       fail(e);
     } finally {
@@ -540,6 +625,81 @@ export default function App() {
     );
     return () => clearTimeout(timer);
   }, [sleepDeadline, fail]);
+
+  useEffect(() => {
+    if (!active) {
+      updateMediaMetadata(null);
+      updatePositionState(null);
+      return;
+    }
+    const chunkCount = active.chunks?.length || 0;
+    const currentPassage = active.position + 1;
+    updateMediaMetadata({
+      title: active.title || 'Untitled Book',
+      artist: active.author || 'Vern Reader',
+      album: chunkCount > 0 ? `Passage ${currentPassage} of ${chunkCount}` : 'Vern Reader',
+      artwork: active.cover ? [{ src: active.cover }] : undefined,
+    });
+    if (chunkCount > 0) {
+      updatePositionState({
+        duration: chunkCount,
+        position: active.position,
+        playbackRate: settingsRef.current.rate || 1.0,
+      });
+    }
+  }, [active, spoken]);
+
+  useEffect(() => {
+    updatePlaybackState(playing ? 'playing' : active ? 'paused' : 'none');
+  }, [playing, active]);
+
+  useEffect(() => {
+    const unregisterHandlers = registerMediaSessionHandlers({
+      onPlay: () => {
+        if (!playingRef.current && active) void togglePlay();
+      },
+      onPause: () => {
+        if (playingRef.current) void stop();
+      },
+      onStop: () => {
+        void stop();
+      },
+      onNextTrack: () => {
+        void skipPassage(1);
+      },
+      onPreviousTrack: () => {
+        void skipPassage(-1);
+      },
+      onSeekBackward: () => {
+        void skipPassage(-1);
+      },
+      onSeekForward: () => {
+        void skipPassage(1);
+      },
+      onSeekTo: (details) => {
+        if (details.seekTime !== undefined && active) {
+          const targetIndex = Math.round(details.seekTime);
+          void seek(targetIndex);
+        }
+      },
+    });
+
+    const unregisterSafety = setupAudioOutputSafety(
+      () => playingRef.current,
+      () => {
+        if (settingsRef.current.pauseOnDeviceDisconnect ?? true) {
+          void stop();
+          setAudioState('Paused — audio device disconnected');
+          setNotice('Audio output device disconnected. Playback paused for safety.');
+        }
+      },
+    );
+
+    return () => {
+      unregisterHandlers();
+      unregisterSafety();
+    };
+  }, [active]);
   async function beforeTransfer() {
     await stop();
     await progressQueue.current.catch(() => {});
@@ -750,6 +910,26 @@ export default function App() {
       }
       if ((event.target as HTMLElement).closest('input,textarea,select,button,[contenteditable]'))
         return;
+      if (event.key === 'MediaPlayPause' || event.code === 'MediaPlayPause') {
+        event.preventDefault();
+        void togglePlay();
+        return;
+      }
+      if (event.key === 'MediaTrackNext' || event.code === 'MediaTrackNext') {
+        event.preventDefault();
+        void skipPassage(1);
+        return;
+      }
+      if (event.key === 'MediaTrackPrevious' || event.code === 'MediaTrackPrevious') {
+        event.preventDefault();
+        void skipPassage(-1);
+        return;
+      }
+      if (event.key === 'MediaStop' || event.code === 'MediaStop') {
+        event.preventDefault();
+        void stop();
+        return;
+      }
       if (event.code === 'Space' && active && window.getSelection()?.isCollapsed) {
         event.preventDefault();
         void togglePlay();
@@ -1044,6 +1224,11 @@ export default function App() {
                   await position(book, index);
                 }}
                 onRefresh={async () => setBooks(await api.books())}
+                onExportAudio={(book) => {
+                  setActiveId(book.id);
+                  void preferences({ lastBook: book.id });
+                  void exportBookAudio(false);
+                }}
               />
             </div>
           </WorkspaceScreen>
@@ -1094,6 +1279,14 @@ export default function App() {
                   }}
                 >
                   Play queue
+                </button>
+                <button
+                  className="secondary"
+                  disabled={!native || !settings.queue.length || busy}
+                  onClick={() => void exportQueueAudio()}
+                >
+                  <Glyph name="download" />
+                  {busy ? 'Preparing audio…' : 'Export queue audio (WAV)'}
                 </button>
               </div>
               <div className="workspace-filters">
@@ -1232,12 +1425,12 @@ export default function App() {
                 canForward={canForward}
                 fullscreen={readerFullscreen}
                 onFullscreen={() => void toggleReaderFullscreen()}
-                notebook={notebook}
+                notebook={notebook === true}
                 onNotebook={() => {
                   if (readerFullscreen) {
                     void toggleReaderFullscreen();
                     setNotebook(true);
-                  } else setNotebook(!notebook);
+                  } else setNotebook((open) => !open);
                 }}
                 bookmarked={annotations.some(
                   (item) =>
@@ -1274,14 +1467,36 @@ export default function App() {
                   setPage('study');
                 }}
                 onListen={(selection) => void listenToSelection(selection)}
+                onEdit={(selection) => {
+                  setEditingPassage({
+                    id: active.id,
+                    position: selection.position,
+                    text: selection.text,
+                  });
+                }}
                 onAi={(selection) => {
                   if (readerFullscreen) void toggleReaderFullscreen();
                   setHandoffSeed({ ...selection, key: crypto.randomUUID() });
                   setPage('ai');
                 }}
               />
-              {notebook && (
-                <aside className="notebook">
+              {notebook !== null && (
+                <aside
+                  className="notebook"
+                  id="reader-notebook"
+                  hidden={!notebook}
+                  inert={!notebook}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                      event.preventDefault();
+                      setNotebook(false);
+                      event.currentTarget
+                        .closest('.reading-layout')
+                        ?.querySelector<HTMLButtonElement>('[aria-controls="reader-notebook"]')
+                        ?.focus({ preventScroll: true });
+                    }
+                  }}
+                >
                   <div className="notebook-title">
                     <Glyph name="note" />
                     <h2>Your notebook</h2>
@@ -1290,7 +1505,13 @@ export default function App() {
                       className="icon-button"
                       aria-label="Close notebook"
                       title="Close notebook"
-                      onClick={() => setNotebook(false)}
+                      onClick={(event) => {
+                        setNotebook(false);
+                        event.currentTarget
+                          .closest('.reading-layout')
+                          ?.querySelector<HTMLButtonElement>('[aria-controls="reader-notebook"]')
+                          ?.focus({ preventScroll: true });
+                      }}
                     >
                       <Glyph name="close" />
                     </button>
@@ -1336,11 +1557,41 @@ export default function App() {
                   <div className="notes-list">
                     <button
                       className="secondary full"
+                      disabled={!native}
+                      onClick={() => {
+                        setEditingPassage({
+                          id: active.id,
+                          position: active.position,
+                          text: active.chunks[active.position] ?? '',
+                        });
+                      }}
+                    >
+                      <Glyph name="edit" />
+                      Edit passage text
+                    </button>
+                    <button
+                      className="secondary full"
                       disabled={!native || busy}
                       onClick={() => void exportPassageAudio()}
                     >
                       <Glyph name="download" />
                       {busy ? 'Preparing audio…' : 'Export passage audio (WAV)'}
+                    </button>
+                    <button
+                      className="secondary full"
+                      disabled={!native || busy}
+                      onClick={() => void exportBookAudio(false)}
+                    >
+                      <Glyph name="download" />
+                      {busy ? 'Preparing audio…' : 'Export full book audio (WAV)'}
+                    </button>
+                    <button
+                      className="secondary full"
+                      disabled={!native || busy}
+                      onClick={() => void exportBookAudio(true)}
+                    >
+                      <Glyph name="download" />
+                      {busy ? 'Preparing audio…' : 'Export from current position (WAV)'}
                     </button>
                     <button
                       className="secondary full"
@@ -1484,6 +1735,15 @@ export default function App() {
         {addingText && (
           <TextImportDialog onImport={importText} onClose={() => setAddingText(false)} />
         )}
+        {editingPassage && (
+          <TextEditorDialog
+            bookTitle={active?.title ?? 'Reading'}
+            passageIndex={editingPassage.position}
+            initialText={editingPassage.text}
+            onSave={savePassageEdit}
+            onClose={() => setEditingPassage(null)}
+          />
+        )}
         {details && (
           <BookDetails
             key={details.id}
@@ -1518,7 +1778,7 @@ export default function App() {
                 className="icon-button"
                 aria-label="Previous passage"
                 disabled={!active}
-                onClick={() => active && void seek(active.position - 1)}
+                onClick={() => void skipPassage(-1)}
               >
                 <Glyph name="back" />
               </button>
@@ -1528,13 +1788,13 @@ export default function App() {
                 disabled={!active || busy}
                 onClick={() => void togglePlay()}
               >
-                <Glyph name={playing ? 'pause' : 'play'} />
+                <Glyph key={playing ? 'pause' : 'play'} name={playing ? 'pause' : 'play'} />
               </button>
               <button
                 className="icon-button"
                 aria-label="Next passage"
                 disabled={!active}
-                onClick={() => active && void seek(active.position + 1)}
+                onClick={() => void skipPassage(1)}
               >
                 <Glyph name="arrow" />
               </button>

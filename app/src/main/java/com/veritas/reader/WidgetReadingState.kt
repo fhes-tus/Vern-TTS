@@ -11,10 +11,15 @@ internal data class WidgetReadingState(
     val index: Int = 0,
     val isPlaying: Boolean = false,
     val isPreparing: Boolean = false,
-    val reduceMotion: Boolean = false
+    val reduceMotion: Boolean = false,
+    val isFinished: Boolean = false
 ) {
     val progress: Float get() = document?.let {
-        if (it.chunkCount > 0) index.toFloat().div(it.chunkCount).coerceIn(0f, 1f) else 0f
+        when {
+            isFinished -> 1f
+            it.chunkCount > 0 -> (index.toFloat() / it.chunkCount).coerceIn(0f, 1f)
+            else -> 0f
+        }
     } ?: 0f
 }
 
@@ -30,8 +35,9 @@ internal fun DocumentRepository.widgetReadingState(): WidgetReadingState {
         document.id == persisted?.id -> resume?.chunkIndex ?: document.currentIndex
         else -> document.currentIndex
     }.coerceIn(0, document?.chunkCount?.coerceAtLeast(1)?.minus(1) ?: 0)
+    val finished = document != null && loadTrackerCompletions().any { it.documentId == document.id }
     return WidgetReadingState(document, index, live != null && PlaybackStateStore.isPlaying,
-        document != null && PlaybackStateStore.isPreparingFor(document.id), loadReaderSettings().reduceMotion)
+        document != null && PlaybackStateStore.isPreparingFor(document.id), loadReaderSettings().reduceMotion, finished)
 }
 
 internal fun widgetActivityIntent(context: Context, action: String? = null, documentId: String? = null, noteId: String? = null): Intent =

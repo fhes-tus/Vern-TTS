@@ -7,10 +7,10 @@ class VeritasWidgetLogicTest {
 
     @Test
     fun testWidgetProgressCalculation() {
-        val totalChunks = 100
-        val currentIndex = 24
-        val percent = ((currentIndex + 1) * 100) / totalChunks
-        assertEquals(25, percent)
+        val book = SavedDocument("widget-book", "Fixture", "fixture.txt", "TXT", 1L, 1L, 0, 1, 10, "Fixture")
+        assertEquals(0f, WidgetReadingState(book).progress, 0f)
+        assertEquals(1f, WidgetReadingState(book, isFinished = true).progress, 0f)
+        assertEquals(.24f, WidgetReadingState(book.copy(chunkCount = 100), index = 24).progress, .001f)
     }
 
     @Test

@@ -9,39 +9,22 @@ import com.veritas.reader.PlaybackStateStore
 import com.veritas.reader.VeritasReadingListSortMode
 import com.veritas.reader.VeritasSleepTimerRequest
 import com.veritas.reader.addDocumentToReadingList
+import com.veritas.reader.DocumentRepository
+import com.veritas.reader.VeritasReadingListCatalog
+import com.veritas.reader.queueFromCollection
+import com.veritas.reader.renameReadingList
+import com.veritas.reader.transferCollectionDocument
 import com.veritas.reader.archiveReadingList
 import com.veritas.reader.createReadingList
 import com.veritas.reader.deleteReadingList
+import com.veritas.reader.loadReadingListCatalog
 import com.veritas.reader.moveReadingListDocument
 import com.veritas.reader.removeDocumentFromReadingList
-import com.veritas.reader.sendPlaybackIntent
 import com.veritas.reader.setReadingListSortMode
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-fun ReaderViewModel.startSleepTimerTicker() {
-    sleepTimerJob?.cancel()
-    sleepTimerJob = viewModelScope.launch {
-        while (true) {
-            delay(1000L)
-            val snapshot = PlaybackStateStore.activeSleepTimerSnapshot()
-            if (snapshot == null) break
-            if (!snapshot.stopAtEndOfSection) {
-                val remaining = snapshot.remainingMillis()
-                if (remaining <= 0L) {
-                    PlaybackStateStore.clearSleepTimer()
-                    repository.clearSleepTimerState()
-                    sendPlaybackIntent(getApplication(), PlaybackActions.ACTION_PAUSE)
-                    _uiState.update { it.copy(importMessage = "Sleep timer finished. Playback paused.") }
-                    break
-                }
-            }
-        }
-    }
-}
 
 fun ReaderViewModel.setSleepTimer(request: VeritasSleepTimerRequest) {
     val durationMillis = request.durationMillis
@@ -54,7 +37,6 @@ fun ReaderViewModel.setSleepTimer(request: VeritasSleepTimerRequest) {
         actionName = PlaybackStateStore.sleepTimerActionName,
         stopAtEndOfSection = PlaybackStateStore.sleepTimerStopAtEndOfSection
     )
-    startSleepTimerTicker()
     val intent = Intent(getApplication(), PlaybackService::class.java)
         .setAction(PlaybackActions.ACTION_SET_SLEEP_TIMER)
         .putExtra(PlaybackActions.EXTRA_SLEEP_TIMER_DURATION_MILLIS, durationMillis)
@@ -64,8 +46,6 @@ fun ReaderViewModel.setSleepTimer(request: VeritasSleepTimerRequest) {
 }
 
 fun ReaderViewModel.cancelSleepTimer() {
-    sleepTimerJob?.cancel()
-    sleepTimerJob = null
     PlaybackStateStore.clearSleepTimer()
     repository.clearSleepTimerState()
     val intent = Intent(getApplication(), PlaybackService::class.java)
@@ -73,73 +53,46 @@ fun ReaderViewModel.cancelSleepTimer() {
     getApplication<Application>().startService(com.veritas.reader.PlaybackCommandSecurity.authorize(getApplication(), intent))
 }
 
-fun ReaderViewModel.createReadingList(title: String, documentId: String? = null) {
-    val cleanTitle = title.trim().ifBlank { "New List" }
-    viewModelScope.launch(Dispatchers.IO) {
-        var catalog = repository.createReadingList(cleanTitle)
-        if (documentId != null) {
-            val newList = catalog.activeLists.firstOrNull { it.title == cleanTitle }
-                ?: catalog.lists.maxByOrNull { it.createdAt }
-            if (newList != null) {
-                catalog = repository.addDocumentToReadingList(newList.id, documentId)
-            }
-        }
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(readingListCatalog = catalog) }
-        }
+fun ReaderViewModel.createReadingList(title: String, documentId: String? = null) =
+    changeCollections { createReadingList(title, documentId = documentId) }
+
+fun ReaderViewModel.renameReadingList(listId: String, title: String) =
+    changeCollections { renameReadingList(listId, title) }
+
+fun ReaderViewModel.addDocumentToReadingList(listId: String, documentId: String) =
+    changeCollections { addDocumentToReadingList(listId, documentId) }
+
+fun ReaderViewModel.removeDocumentFromReadingList(listId: String, documentId: String) =
+    changeCollections { removeDocumentFromReadingList(listId, documentId) }
+
+fun ReaderViewModel.moveReadingListDocument(listId: String, documentId: String, offset: Int) =
+    changeCollections { moveReadingListDocument(listId, documentId, offset) }
+
+fun ReaderViewModel.transferCollectionDocument(from: String, to: String, documentId: String) =
+    changeCollections { transferCollectionDocument(from, to, documentId) }
+
+fun ReaderViewModel.setReadingListSortMode(listId: String, sortMode: VeritasReadingListSortMode) =
+    changeCollections { setReadingListSortMode(listId, sortMode) }
+
+fun ReaderViewModel.archiveReadingList(listId: String) =
+    changeCollections { archiveReadingList(listId) }
+
+fun ReaderViewModel.deleteReadingList(listId: String) =
+    changeCollections { deleteReadingList(listId) }
+
+fun ReaderViewModel.queueFromCollection(listId: String) {
+    viewModelScope.launch {
+        val queue = withContext(Dispatchers.IO) { repository.queueFromCollection(listId) }
+        _uiState.update { it.copy(queuedDocuments = queue) }
     }
 }
 
-fun ReaderViewModel.addDocumentToReadingList(listId: String, documentId: String) {
-    viewModelScope.launch(Dispatchers.IO) {
-        val catalog = repository.addDocumentToReadingList(listId, documentId)
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(readingListCatalog = catalog) }
-        }
-    }
-}
-
-fun ReaderViewModel.removeDocumentFromReadingList(listId: String, documentId: String) {
-    viewModelScope.launch(Dispatchers.IO) {
-        val catalog = repository.removeDocumentFromReadingList(listId, documentId)
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(readingListCatalog = catalog) }
-        }
-    }
-}
-
-fun ReaderViewModel.moveReadingListDocument(listId: String, documentId: String, offset: Int) {
-    viewModelScope.launch(Dispatchers.IO) {
-        val catalog = repository.moveReadingListDocument(listId, documentId, offset)
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(readingListCatalog = catalog) }
-        }
-    }
-}
-
-fun ReaderViewModel.setReadingListSortMode(listId: String, sortMode: VeritasReadingListSortMode) {
-    viewModelScope.launch(Dispatchers.IO) {
-        val catalog = repository.setReadingListSortMode(listId, sortMode)
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(readingListCatalog = catalog) }
-        }
-    }
-}
-
-fun ReaderViewModel.archiveReadingList(listId: String) {
-    viewModelScope.launch(Dispatchers.IO) {
-        val catalog = repository.archiveReadingList(listId)
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(readingListCatalog = catalog) }
-        }
-    }
-}
-
-fun ReaderViewModel.deleteReadingList(listId: String) {
-    viewModelScope.launch(Dispatchers.IO) {
-        val catalog = repository.deleteReadingList(listId)
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(readingListCatalog = catalog) }
-        }
+private fun ReaderViewModel.changeCollections(
+    action: DocumentRepository.() -> VeritasReadingListCatalog
+) {
+    viewModelScope.launch {
+        withContext(Dispatchers.IO) { repository.action() }
+        val catalog = withContext(Dispatchers.IO) { repository.loadReadingListCatalog() }
+        _uiState.update { it.copy(readingListCatalog = catalog) }
     }
 }

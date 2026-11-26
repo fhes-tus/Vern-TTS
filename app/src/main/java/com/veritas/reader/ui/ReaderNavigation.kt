@@ -2,6 +2,20 @@ package com.veritas.reader.ui
 
 import com.veritas.reader.VeritasScreen
 
+/** Dialog visibility can be changed directly, so navigation history alone cannot tell whether the reader is visible. */
+internal fun ReaderUiState.coversReader(): Boolean =
+    showTextEditor || showFileBrowser || showPdfImportTools || showReaderSettings ||
+        showPronunciationRules || showVoiceStudio || showNarrationStudio || showAiStudyTools ||
+        showAiCenter || showAskAiSettings || showTranslationTools || showSleepTimerDialog ||
+        showReadingLists || showReadingHistory || showDocumentNotes || showSettingsHub ||
+        showBackupTools || showSyncCenter || showAppHealth || (showTutorial && !hasCompletedOnboarding) ||
+        showGeneralNotesEditor || showUserManual || showAccessibilitySettings || showNotesSettings ||
+        showUpdateDialog || showReleaseNotesDialog || showWidgetReadingInsights || showClassicsCatalog ||
+        showOceanOfPdfBrowser || showBookBrowser || showExitConfirmationDialog || pendingImport != null ||
+        deleteTarget != null || renameTarget != null || collectionTarget != null || detailsTarget != null ||
+        noteTargetIndex != null || noteTargetIndexes.isNotEmpty() || exportInProgress || exportMessage != null ||
+        exportedAudioFile != null || recordMode || recordAwaitingDecision || isOpeningDocument
+
 /** Update visibility and history together, only when a navigation action occurs. */
 internal fun ReaderUiState.withVisibility(screen: VeritasScreen, visible: Boolean): ReaderUiState {
     val stack = if (visible) {

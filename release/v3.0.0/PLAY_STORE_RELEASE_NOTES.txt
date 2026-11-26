@@ -1,0 +1,11 @@
+<en-US>
+Vern 3.0 is here.
+
+• Group your books into Collections and listen through them in order.
+• Give dialogue its own voices in Narration Studio and teach Vern pronunciation patterns.
+• Study a book with the refreshed AI Study Hub and translate definitions in Vern.
+• Move your library and notes with portable backups and restore previews.
+• Explore the illustrated setup and First Chapter on Home.
+
+General app improvements cover navigation, PDF reading, Booknotes, link previews, and imports.
+</en-US>

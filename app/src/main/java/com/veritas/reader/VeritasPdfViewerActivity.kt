@@ -1,5 +1,6 @@
 package com.veritas.reader
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.pdf.PdfRect
@@ -81,6 +83,8 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     internal var pdfSwipeMultiTouch = false
     internal var pdfSwipeTracking = false
     internal var pdfNavigationPage = 0
+    private var initialPdfPage: Int? = null
+    internal var pdfFocusTurnDirection = 0
     internal var pdfVisiblePagesCount = 0
     internal var pdfDefaultPageSpacing: Int? = null
     internal var pdfDefaultMinZoom: Float? = null
@@ -93,6 +97,9 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     internal var pdfVerticalSwipeBlocked = false
     // Expandable bottom panel state
     internal var panelExpanded = false
+    internal var panelControlsHeader: VernPdfControlsHeader? = null
+    internal var panelAccentStrip: View? = null
+    internal var panelExpansionAnimator: android.animation.ValueAnimator? = null
     internal var expandedPanelContent: LinearLayout? = null
     internal var panelExpandArrow: TextView? = null
     internal var panelStatusLabel: TextView? = null
@@ -212,17 +219,17 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                     contentAlignment = androidx.compose.ui.Alignment.Center
                 ) {
                     com.veritas.reader.ui.screens.VernGesturePopupCard(
-                        title = "PDF Gestures",
+                        title = com.veritas.reader.ui.screens.menuString(R.string.hint_pdf_gestures),
                         items = listOf(
                             com.veritas.reader.ui.screens.VernHintGestureItem(
                                 icon = androidx.compose.material.icons.Icons.Outlined.TouchApp,
-                                title = "Single tap",
-                                description = "Collapse or expand the bars"
+                                title = com.veritas.reader.ui.screens.menuString(R.string.hint_single_tap),
+                                description = com.veritas.reader.ui.screens.menuString(R.string.hint_toggle_reading_bars)
                             ),
                             com.veritas.reader.ui.screens.VernHintGestureItem(
                                 icon = androidx.compose.material.icons.Icons.Outlined.TouchApp,
-                                title = "Long press on word or sentence",
-                                description = "Select word and choose 'Read from here' to read"
+                                title = com.veritas.reader.ui.screens.menuString(R.string.hint_long_press_passage),
+                                description = com.veritas.reader.ui.screens.menuString(R.string.hint_read_from_selection)
                             )
                         ),
                         onDismissCurrent = {
@@ -253,10 +260,19 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
 
     // Native Original mode shares the same process-wide idle policy and session ledger.
     private var readingSessionJob: Job? = null
+    private val pdfWindowOverlay = Any()
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (readingSessionJob?.isActive == true) {
+            ReadingSessionTracker.get(applicationContext).readerOverlay("pdf", pdfWindowOverlay, !hasFocus)
+        }
+    }
 
     override fun onResume() {
         super.onResume()
         readingSessionJob?.cancel()
+        ReadingSessionTracker.get(applicationContext).readerOverlay("pdf", pdfWindowOverlay, !hasWindowFocus())
         readingSessionJob = lifecycleScope.launch {
             while (true) {
                 val visiblePage = runCatching { pdfView?.firstVisiblePage?.plus(1) }.getOrNull()
@@ -282,7 +298,7 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     override fun onPause() {
         (playPauseControl?.foreground as? PlaybackLoadingDrawable)?.stop()
         super.onPause()
-        saveCurrentProgress()
+        if (!intent.hasExtra(EXTRA_READER_INDEX)) saveCurrentProgress()
         recordViewerReadingSession()
         keepAwakeTimerJob?.cancel()
         window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -290,7 +306,10 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
 
     private fun recordViewerReadingSession() {
         readingSessionJob?.cancel()
-        ReadingSessionTracker.get(applicationContext).reader("pdf", null)
+        ReadingSessionTracker.get(applicationContext).let { tracker ->
+            tracker.reader("pdf", null)
+            tracker.readerOverlay("pdf", pdfWindowOverlay, false)
+        }
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
@@ -326,34 +345,47 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        ReadingSessionTracker.get(applicationContext).readerOverlay("pdf", pdfWindowOverlay, false)
+        panelExpansionAnimator?.cancel()
+        toolbarChrome?.animate()?.cancel()
+        bottomChrome?.animate()?.cancel()
+        pdfView?.animate()?.cancel()
         highlightJob?.cancel()
         chromeHideJob?.cancel()
         super.onDestroy()
     }
 
+    override fun finish() {
+        if (intent.hasExtra(EXTRA_READER_INDEX) && PlaybackStateStore.pendingOriginalSelection?.documentId != document?.id) {
+            val position = currentReadingPosition()
+            if (position != null) {
+                setResult(RESULT_OK, Intent()
+                    .putExtra(EXTRA_DOCUMENT_ID, document?.id)
+                    .putExtra(EXTRA_READER_INDEX, position))
+            }
+        }
+        super.finish()
+    }
+
+    private fun currentReadingPosition(): Int? {
+        val metadata = document ?: return null
+        val enteredPage = initialPdfPage ?: return null
+        val model = readerTextModel ?: return null
+        if (PlaybackStateStore.isPlaying && PlaybackStateStore.activeDocumentId == metadata.id) return null
+        val viewedPage = pdfFocusRequest ?: pdfNavigationPage
+        // Keep the exact sentence when the reader only looks at the original of the same page.
+        if (viewedPage == enteredPage) return null
+        return model.sentences.indices.minByOrNull { abs(model.sentences[it].pageNumber - (viewedPage + 1)) }
+    }
+
     private fun saveCurrentProgress() {
         val metadata = document ?: return
-        val view = pdfView ?: return
-        val visiblePage = runCatching { view.firstVisiblePage }.getOrNull() ?: return
         val model = readerTextModel ?: return
-        // Eyes don't move the voice: while TTS is actively reading this document, the page
-        // being LOOKED at must not overwrite the sentence being SPOKEN — that stomped the
-        // live position and caused playback to restart from far above after navigation.
-        if (PlaybackStateStore.isPlaying && PlaybackStateStore.activeDocumentId == metadata.id) return
-
+        val position = currentReadingPosition() ?: return
         lifecycleScope.launch(Dispatchers.IO) {
-            val pageNum = visiblePage + 1
-            var sentenceIndex = model.sentences.indexOfFirst { it.pageNumber == pageNum }
-            if (sentenceIndex == -1) {
-                sentenceIndex = model.sentences.mapIndexed { idx, s -> idx to abs(s.pageNumber - pageNum) }
-                    .minByOrNull { it.second }?.first ?: -1
-            }
-
-            if (sentenceIndex != -1) {
-                repository.updateProgress(metadata.id, sentenceIndex, model.sentences.size)
-                if (PlaybackStateStore.activeDocumentId == metadata.id) {
-                    PlaybackStateStore.currentIndex = sentenceIndex
-                }
+            repository.updateProgress(metadata.id, position, model.sentences.size)
+            if (PlaybackStateStore.activeDocumentId == metadata.id && !PlaybackStateStore.isPlaying) {
+                PlaybackStateStore.currentIndex = position
             }
         }
     }
@@ -556,9 +588,9 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                         }
                     }
                     found.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
-                        if (pdfChromeSettings.pdfNavigationMode == "swipe" &&
+                        if (initialPdfPage != null && pdfChromeSettings.pdfNavigationMode == "swipe" &&
                             (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop)) {
-                            focusPdfPage(pdfNavigationPage)
+                            focusPdfPage(pdfFocusRequest ?: pdfNavigationPage)
                         }
                     }
                     found.setOnTouchListener { _, event ->
@@ -578,6 +610,12 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                             while (pdfPageDimensions.size > 64) pdfPageDimensions.remove(pdfPageDimensions.keys.first())
                             if (pdfChromeSettings.pdfNavigationMode != "swipe" && pageWidth > 0f && found.width > 0)
                                 pdfFitWidthZoom = zoomLevel * found.width / pageWidth
+                            // AndroidX can report page one before the saved destination is ready.
+                            if (initialPdfPage == null) return
+                            if (pdfFocusRequest != null && !pdfFocusApplying) {
+                                schedulePdfPageFocus()
+                                return
+                            }
                             val previousPage = pdfNavigationPage
                             var mostVisible = firstVisiblePage
                             var largestArea = -1f
@@ -615,11 +653,16 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
                         }
                         val pdfDoc = runCatching { found.pdfDocument }.getOrNull() ?: return@launch
 
-                        val safeIndex = metadata.currentIndex.coerceIn(0, model.sentences.lastIndex.coerceAtLeast(0))
+                        val startIndex = if (PlaybackStateStore.activeDocumentId == metadata.id && PlaybackStateStore.isPlaying) {
+                            PlaybackStateStore.currentIndex
+                        } else intent.getIntExtra(EXTRA_READER_INDEX, metadata.currentIndex)
+                        val safeIndex = startIndex.coerceIn(0, model.sentences.lastIndex.coerceAtLeast(0))
                         val targetPage = model.sentences.getOrNull(safeIndex)?.pageNumber?.minus(1) ?: 0
                         val pageCount = pdfDoc.pageCount.coerceAtLeast(1)
                         val scrollPage = targetPage.coerceIn(0, pageCount - 1)
                         runCatching {
+                            initialPdfPage = scrollPage
+                            pdfNavigationPage = scrollPage
                             navigateToPdfPage(scrollPage)
                         }
                     }
@@ -688,8 +731,9 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
 
     internal fun showChrome(keepVisible: Boolean = false) {
         chromeVisible = true
-        toolbarChrome?.let { slideChromeIn(it, offscreenY = -it.height.toFloat()) }
-        bottomChrome?.let { slideChromeIn(it, offscreenY = it.height.toFloat()) }
+        toolbarChrome?.let { animateChrome(it, offscreenY = -it.height.toFloat()) }
+        bottomChrome?.let { animateChrome(it, offscreenY = it.height.toFloat()) }
+        syncPlaybackLoadingMotion()
         chromeHideJob?.cancel()
         if (!keepVisible) scheduleChromeAutoHide()
     }
@@ -700,48 +744,61 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
         // controls (speed/pitch sliders, queue) — never pull the bars away.
         if (chromeMenuOpen || panelExpanded || !chromeVisible) return
         chromeVisible = false
-        toolbarChrome?.let { slideChromeOut(it, offscreenY = -it.height.toFloat()) }
-        bottomChrome?.let { slideChromeOut(it, offscreenY = it.height.toFloat()) }
+        toolbarChrome?.let { animateChrome(it, offscreenY = -it.height.toFloat()) }
+        bottomChrome?.let { animateChrome(it, offscreenY = it.height.toFloat()) }
+        syncPlaybackLoadingMotion()
     }
 
-    // The bars glide on/off screen (top bar upward, bottom bar downward) with a
-    // decelerating ease instead of a hard fade — they read as part of the UI
-    // sliding away, and the document underneath never moves.
-    private fun slideChromeIn(bar: View, offscreenY: Float) {
+    private fun animateChrome(bar: View, offscreenY: Float) {
+        val showing = chromeVisible
+        val reduced = pdfChromeSettings.reduceMotion
+        val offset = if (reduced) 0f else offscreenY
         bar.animate().cancel()
-        if (bar.visibility != View.VISIBLE) {
-            bar.translationY = offscreenY
+        bar.importantForAccessibility = if (showing) View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
+            else View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+        if (showing && bar.visibility != View.VISIBLE) {
+            bar.translationY = offset
             bar.alpha = 0f
             bar.visibility = View.VISIBLE
         }
+        if (reduced) bar.translationY = 0f
+        val targetAlpha = if (showing) 1f else 0f
+        val targetOffset = if (showing) 0f else offset
+        if (!ValueAnimator.areAnimatorsEnabled() || (bar.alpha == targetAlpha && bar.translationY == targetOffset)) {
+            bar.alpha = targetAlpha
+            bar.translationY = targetOffset
+            bar.visibility = if (showing) View.VISIBLE else View.INVISIBLE
+            return
+        }
         bar.animate()
-            .translationY(0f)
-            .alpha(1f)
-            .setDuration(240L)
-            .setInterpolator(DecelerateInterpolator())
-            .start()
-    }
-
-    private fun slideChromeOut(bar: View, offscreenY: Float) {
-        bar.animate().cancel()
-        bar.animate()
-            .translationY(offscreenY)
-            .alpha(0f)
-            .setDuration(250L)
+            .translationY(targetOffset)
+            .alpha(targetAlpha)
+            .setDuration(if (reduced) 120L else if (showing) 220L else 155L)
             .setInterpolator(DecelerateInterpolator())
             .withEndAction {
-                if (!chromeVisible) bar.visibility = View.INVISIBLE
+                if (!showing && !chromeVisible) bar.visibility = View.INVISIBLE
             }
             .start()
     }
 
+    internal fun syncPlaybackLoadingMotion(loading: PlaybackLoadingDrawable? = playPauseControl?.foreground as? PlaybackLoadingDrawable) {
+        if (!pdfChromeSettings.reduceMotion && chromeVisible && playPauseControl?.isShown == true &&
+            lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) loading?.start()
+        else loading?.stop()
+    }
+
     internal fun scheduleChromeAutoHide() {
         chromeHideJob?.cancel()
-        if (!chromeVisible || chromeMenuOpen || panelExpanded) return
+        if (!chromeVisible || chromeMenuOpen || panelExpanded || chromeNeedsTimeForAccessibility()) return
         chromeHideJob = lifecycleScope.launch {
             delay(CHROME_AUTO_HIDE_MS)
-            hideChrome()
+            if (!chromeNeedsTimeForAccessibility()) hideChrome()
         }
+    }
+
+    private fun chromeNeedsTimeForAccessibility(): Boolean {
+        val accessibility = getSystemService(android.view.accessibility.AccessibilityManager::class.java)
+        return accessibility?.isTouchExplorationEnabled == true || toolbarChrome?.hasFocus() == true || bottomChrome?.hasFocus() == true
     }
 
     internal suspend fun updateSentenceHighlight(forceSync: Boolean = false) {
@@ -905,13 +962,15 @@ class VeritasPdfViewerActivity : AppCompatActivity() {
 
 
     companion object {
-        private const val EXTRA_DOCUMENT_ID = "document_id"
+        internal const val EXTRA_DOCUMENT_ID = "document_id"
+        internal const val EXTRA_READER_INDEX = "reader_index"
         private const val VIEWER_TAG = "veritas_pdf_viewer"
         private const val CHROME_AUTO_HIDE_MS = 4_000L
 
-        fun intent(context: Context, documentId: String): Intent {
+        fun intent(context: Context, documentId: String, readerIndex: Int? = null): Intent {
             return Intent(context, VeritasPdfViewerActivity::class.java)
                 .putExtra(EXTRA_DOCUMENT_ID, documentId)
+                .apply { readerIndex?.let { putExtra(EXTRA_READER_INDEX, it) } }
         }
     }
 }

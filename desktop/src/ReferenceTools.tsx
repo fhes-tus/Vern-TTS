@@ -1,15 +1,41 @@
 import { useState } from 'react';
 import { api, native } from './api';
+import type { DictionaryEntry } from './types';
 
 export function ReferenceTools({ initialText = '' }: { initialText?: string }) {
   const [text, setText] = useState(initialText.slice(0, 3500));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [dictEntry, setDictEntry] = useState<DictionaryEntry | null>(null);
+  const [dictError, setDictError] = useState('');
+
+  async function defineOffline() {
+    setBusy(true);
+    setDictError('');
+    setDictEntry(null);
+    setError('');
+    setMessage('');
+    try {
+      const entry = await api.lookupWord(text.trim());
+      if (entry) {
+        setDictEntry(entry);
+      } else {
+        setDictError(`No offline definition found for "${text.trim()}".`);
+      }
+    } catch (failure) {
+      setDictError(String(failure).replace(/^Error: /, ''));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function open(site: 'wikipedia' | 'wiktionary' | 'translate') {
     setBusy(true);
     setError('');
     setMessage('');
+    setDictEntry(null);
+    setDictError('');
     try {
       await api.openReference(site, text);
       setMessage('Sent to your browser. Review the result there.');
@@ -44,6 +70,14 @@ export function ReferenceTools({ initialText = '' }: { initialText?: string }) {
         </label>
         {!native && <p className="muted">Open the desktop app to use these browser handoffs.</p>}
         <div className="action-row" aria-busy={busy}>
+          <button
+            type="button"
+            className="primary"
+            disabled={!native || busy || !text.trim()}
+            onClick={() => void defineOffline()}
+          >
+            Define offline
+          </button>
           {(
             [
               ['wikipedia', 'Open Wikipedia'],
@@ -62,6 +96,32 @@ export function ReferenceTools({ initialText = '' }: { initialText?: string }) {
             </button>
           ))}
         </div>
+        {dictError && <p role="alert">{dictError}</p>}
+        {dictEntry && (
+          <div className="entry-card" style={{ marginTop: '12px' }}>
+            <h3 className="entry-headword">{dictEntry.headword}</h3>
+            <div className="senses-list">
+              {dictEntry.senses.map((sense, i) => (
+                <div key={i} className="sense-item">
+                  <div className="sense-pos-row">
+                    <span className={`pos-tag pos-${sense.partOfSpeech}`}>
+                      {sense.partOfSpeech}
+                    </span>
+                    <span className="sense-num">#{i + 1}</span>
+                  </div>
+                  <p className="sense-def">{sense.definition}</p>
+                  {sense.examples.length > 0 && (
+                    <ul className="sense-examples">
+                      {sense.examples.map((ex, exIdx) => (
+                        <li key={exIdx}>"{ex}"</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {error && <p role="alert">{error}</p>}
         {message && <p role="status">{message}</p>}
       </div>

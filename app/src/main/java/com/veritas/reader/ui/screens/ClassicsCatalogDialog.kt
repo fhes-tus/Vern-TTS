@@ -120,7 +120,8 @@ data class ClassicBookEntry(
     val quote: String = "",
     val category: String = "Popular",
     val editions: List<BookEditionOption> = emptyList(),
-    val legacyCatalogId: String = ""
+    val legacyCatalogId: String = "",
+    val useBookExplorer: Boolean = false
 ) {
     val hasDirectTextDownload: Boolean
         get() = downloadUrl.substringBefore('?').endsWith(".txt", ignoreCase = true)
@@ -647,8 +648,9 @@ val CURATED_CLASSICS = listOf(
         author = "Benny Hinn",
         genre = "Faith & Spirit",
         category = "Faith & Spirit",
-        description = "A personal encounter with the Holy Spirit. This source requires library access; a direct download is unavailable. Open the source page for borrowing and purchase options, or import a copy you own.",
-        downloadUrl = "https://archive.org/details/goodmorningholys00hinn",
+        description = "A personal encounter with the Holy Spirit.",
+        downloadUrl = "",
+        useBookExplorer = true,
         estimatedMinutes = 240,
         coverGradient = listOf(Color(0xFF3B1E54), Color(0xFF5B2E84)),
         accentColor = Color(0xFFD6BCFA),
@@ -661,7 +663,8 @@ val CURATED_CLASSICS = listOf(
         genre = "Faith & Spirit",
         category = "Faith & Spirit",
         description = "Unlocking God's blueprint for your life by understanding the creative spiritual power of your inner imagination and faith.",
-        downloadUrl = "https://www.awmi.net",
+        downloadUrl = "",
+        useBookExplorer = true,
         estimatedMinutes = 210,
         coverGradient = listOf(Color(0xFF1B3B2B), Color(0xFF2E6B4B)),
         accentColor = Color(0xFF9AE6B4),
@@ -681,15 +684,11 @@ val CATALOG_CATEGORIES = listOf(
     "🏛️ Epic Classics"
 )
 
-/**
- * A local Monday-to-Sunday pick. Counting whole weeks from a Monday anchor
- * keeps the recommendation stable across year boundaries and daylight saving.
- */
-fun getBookOfTheWeek(date: java.time.LocalDate = java.time.LocalDate.now()): ClassicBookEntry {
-    val monday = date.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
-    val week = java.time.temporal.ChronoUnit.WEEKS.between(java.time.LocalDate.of(1970, 1, 5), monday)
-    return CURATED_CLASSICS[Math.floorMod(week, CURATED_CLASSICS.size.toLong()).toInt()]
-}
+private val weeklyClassicsById = CURATED_CLASSICS.associateBy { it.id }
+private val weeklyClassicIds = weeklyClassicsById.keys.sorted()
+
+fun getBookOfTheWeek(date: java.time.LocalDate = java.time.LocalDate.now()): ClassicBookEntry =
+    weeklyClassicsById.getValue(weeklyClassicId(weeklyClassicIds, date))
 
 /**
  * Renders an authentic published book cover if bundled in assets,
@@ -931,7 +930,7 @@ fun ClassicBookDetailSheet(
                     color = MaterialTheme.colorScheme.secondaryContainer
                 ) {
                     Text(
-                        text = book.genre,
+                        text = localizedCatalogLabel(book.genre),
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -1037,11 +1036,16 @@ fun ClassicBookDetailSheet(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(selectedState.actionLabel)
+                        Text(localizedClassicDownloadAction(selectedState))
                     } else {
-                        Icon(if (book.hasDirectTextDownload) Icons.Filled.Download else Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(if (book.hasDirectTextDownload) selectedState.actionLabel else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_visit_website), style = MaterialTheme.typography.labelLarge)
+                        if (!selectedBook.useBookExplorer) {
+                            Icon(if (selectedBook.hasDirectTextDownload) Icons.Filled.Download else Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                        }
+                        Text(
+                            localizedClassicCatalogAction(selectedBook, selectedState),
+                            style = MaterialTheme.typography.labelLarge
+                        )
                     }
                 }
             }

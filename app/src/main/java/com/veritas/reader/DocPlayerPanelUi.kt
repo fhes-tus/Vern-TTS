@@ -119,7 +119,7 @@ internal fun DocPlayerPanel(
 
     val currentOffset = if (draggableState.offset.isNaN()) maxOffsetPx else draggableState.requireOffset()
     val progress = (1f - (currentOffset / maxOffsetPx)).coerceIn(0f, 1f)
-    val heightDp = 56.dp + (218.dp * progress)
+    val heightDp = VeritasPackStyle.readerPlayerHeightDp.dp + (222.dp * progress)
 
     rememberCoroutineScope()
 
@@ -130,13 +130,15 @@ internal fun DocPlayerPanel(
 
     val scheme = MaterialTheme.colorScheme
     val isGlass = VeritasPackStyle.glassChromeEnabled() && isDeviceGlassCapable() && LocalVeritasBackdrop.current != null
-    val opaqueGlassFallback = VeritasPackStyle.currentPackId() == "liquid_glass" && !isGlass
+    val packId = VeritasPackStyle.currentPackId()
+    val opaqueGlassFallback = packId == "liquid_glass" && !isGlass
     val isDark = scheme.surface.luminance() < 0.5f
     val playerColor = VeritasPackStyle.playerSurfaceColor(scheme)
     val gradientBrush = androidx.compose.ui.graphics.SolidColor(playerColor)
     val borderBrush = VeritasPackStyle.navigationBorderBrush(scheme)
 
-    val cornerRadius = androidx.compose.ui.unit.lerp(VeritasPackStyle.navigationCornerRadius(), VeritasPackStyle.navigationCornerRadius() * .70f, progress)
+    val packCorner = VeritasPackStyle.readerPlayerCornerRadius(packId)
+    val cornerRadius = androidx.compose.ui.unit.lerp(packCorner, packCorner * .78f, progress)
     val capsuleShape = RoundedCornerShape(cornerRadius)
 
     Box(
@@ -151,14 +153,14 @@ internal fun DocPlayerPanel(
                 .widthIn(max = 480.dp)
                 .fillMaxWidth()
                 .height(heightDp)
-                .veritasGlassBackdrop(capsuleShape, isGlass, surfaceOpacity = .36f)
+                .veritasPlayerGlassBackdrop(capsuleShape, isGlass)
                 .anchoredDraggable(
                     state = draggableState,
                     orientation = Orientation.Vertical
                 ),
             shape = capsuleShape,
             color = if (opaqueGlassFallback) scheme.surface else androidx.compose.ui.graphics.Color.Transparent,
-            shadowElevation = if (isGlass) 0.dp else VeritasPackStyle.chromeElevation(VeritasPackStyle.currentPackId()),
+            shadowElevation = if (isGlass) 0.dp else VeritasPackStyle.chromeElevation(packId),
             tonalElevation = 0.dp
         ) {
             Box(
@@ -171,7 +173,7 @@ internal fun DocPlayerPanel(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                        .padding(horizontal = 12.dp, vertical = 2.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
             // Header Row — visible in both Collapsed and Expanded state

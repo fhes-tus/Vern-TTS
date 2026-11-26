@@ -22,6 +22,9 @@ import com.veritas.reader.addToQueue
 import com.veritas.reader.cleanDocumentTitle
 import com.veritas.reader.buildReaderDocument
 import com.veritas.reader.getDisplayName
+import com.veritas.reader.findImportedCopy
+import com.veritas.reader.importFileIdentity
+import com.veritas.reader.PdfTextCleaner
 import com.veritas.reader.loadAnnotations
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
@@ -85,6 +88,7 @@ fun ReaderViewModel.createAndOpenDocument(
             refreshAll()
             openSavedDocument(saved)
             _uiState.update { it.copy(draftText = "", hasImportedOrOpenedDocument = true) }
+            if (!partial) completeQuestImport()
         }
     }
 }
@@ -149,22 +153,18 @@ fun ReaderViewModel.prepareImport(uri: Uri, sourceNameHint: String? = null) {
             val mimeType = validated.mimeType
             val sizeBytes = validated.sizeBytes
             val isPdf = validated.format == ImportFormat.PDF
-            val pageCount = if (isPdf) {
-                DocumentExtractor.getPdfPageCount(app, uri)
-            } else 0
-            // Same name AND same byte size as a stored original = the same file:
-            // open the existing reading instead of importing a second copy.
-            val baseName = name.substringBeforeLast('.').trim()
-            val cleanedName = cleanDocumentTitle(name)
-            val duplicate = repository.loadDocuments().firstOrNull { doc ->
-                val titleMatches = doc.title.trim().equals(baseName, ignoreCase = true) ||
-                    doc.title.trim().equals(name.trim(), ignoreCase = true) ||
-                    doc.title.trim().equals(cleanedName, ignoreCase = true)
-                val originalMatches = sizeBytes > 0L && repository.originalFile(doc)?.length() == sizeBytes
-                val textExists = File(repository.docsDir, doc.fileName).let { it.exists() && it.length() > 0L }
-                titleMatches && originalMatches && textExists && !doc.partial
+            val importContext = coroutineContext
+            val checkActive = { importContext.ensureActive() }
+            val haveCandidate = repository.loadDocuments().any { doc ->
+                !doc.partial && repository.originalFile(doc)?.let { sizeBytes <= 0L || it.length() == sizeBytes } == true
             }
-            if (duplicate != null) {
+            val duplicate = if (haveCandidate) importFileIdentity(app, uri, validated, checkActive)
+                ?.let { repository.findImportedCopy(it, checkActive) }?.takeUnless { it.partial } else null
+            val repairExisting = if (duplicate != null && isPdf) {
+                val text = repository.readText(duplicate)
+                PdfTextCleaner.repairPdfSpacing(text) != text
+            } else false
+            if (duplicate != null && !repairExisting) {
                 withContext(Dispatchers.Main) {
                     _uiState.update {
                         it.withVisibility(VeritasScreen.FILE_BROWSER, false).copy(
@@ -177,6 +177,7 @@ fun ReaderViewModel.prepareImport(uri: Uri, sourceNameHint: String? = null) {
                 ScanCaptureStore.discard(app, uri)
                 return@launch
             }
+            val pageCount = if (isPdf) DocumentExtractor.getPdfPageCount(app, uri) else 0
 
             withContext(Dispatchers.Main) {
                 val isPptx = validated.format == ImportFormat.PPTX
@@ -189,7 +190,8 @@ fun ReaderViewModel.prepareImport(uri: Uri, sourceNameHint: String? = null) {
                     pageCount = pageCount,
                     pdfOptions = PdfImportOptions(
                         startPage = 1,
-                        endPage = if (pageCount > 0) pageCount else null
+                        endPage = if (pageCount > 0) pageCount else null,
+                        forceFreshExtraction = repairExisting
                     ),
                     textOptions = TextImportOptions(),
                     isPptx = isPptx,
@@ -199,7 +201,8 @@ fun ReaderViewModel.prepareImport(uri: Uri, sourceNameHint: String? = null) {
                 _uiState.update {
                     it.copy(
                         pendingImport = pending,
-                        isOpeningDocument = false
+                        isOpeningDocument = false,
+                        importMessage = if (repairExisting) "This PDF is already in your library. Import again to repair its extracted text." else it.importMessage
                     )
                 }
             }
@@ -375,7 +378,13 @@ fun ReaderViewModel.importDocumentFromUri(
                                 }
                             }
                             pendingImportIds.remove(request.id)
-                            _uiState.update { it.copy(importMessage = "Successfully imported $title.", importInProgress = pendingImportIds.isNotEmpty()) }
+                            val warning = workInfo.outputData.getString("originalCopyWarning")
+                            val message = when {
+                                workInfo.outputData.getBoolean("duplicate", false) -> "Already in your library."
+                                warning == null -> "Successfully imported $title."
+                                else -> "$title was added. $warning"
+                            }
+                            _uiState.update { it.copy(importMessage = message, importInProgress = pendingImportIds.isNotEmpty()) }
                         }
                         androidx.work.WorkInfo.State.FAILED -> {
                             val error = workInfo.outputData.getString("error") ?: "Unknown error"

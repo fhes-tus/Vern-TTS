@@ -1,5 +1,6 @@
 package com.veritas.reader.ui.screens
 
+import com.veritas.reader.ui.animateVeritasItem
 import com.veritas.reader.vernScatteredCard
 
 import androidx.compose.material.icons.outlined.Restore
@@ -313,7 +314,11 @@ internal fun LibraryNotesTab(
                                         item("notes_action_hint") {
                                             VernActionHintBanner(
                                                 hintKey = "notes_tab_hint",
-                                                message = "• Tap + to create a new note\n• Tap tags to filter your notes\n• Tap any note to edit or share"
+                                                message = listOf(
+                                                    menuString(com.veritas.reader.R.string.hint_notes_create),
+                                                    menuString(com.veritas.reader.R.string.hint_notes_filter),
+                                                    menuString(com.veritas.reader.R.string.hint_notes_open)
+                                                ).joinToString("\n") { "• $it" }
                                             )
                                         }
 
@@ -377,7 +382,7 @@ internal fun LibraryNotesTab(
 
                                             @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
                                             @Composable
-                                            fun NoteCardItem(generalNote: GeneralNote) {
+                                            fun NoteCardItem(generalNote: GeneralNote, modifier: Modifier = Modifier) {
                                                 val cardBgColor = generalNote.color?.let { Color(android.graphics.Color.parseColor(it)) }
                                                     ?: VeritasPackStyle.panelColor(MaterialTheme.colorScheme)
                                                 val onCardColor = if (generalNote.color != null) com.veritas.reader.readableInk(cardBgColor) else MaterialTheme.colorScheme.onSurface
@@ -408,7 +413,7 @@ internal fun LibraryNotesTab(
                                                     )
                                                 }
 
-                                                Box {
+                                                Box(modifier) {
                                                     val noteHaptic = rememberVeritasHaptics()
                                                     Card(
                                                         modifier = Modifier
@@ -925,11 +930,11 @@ internal fun LibraryNotesTab(
                                                 }
                                                 if (isGridView) {
                                                     item(key = "general-notes-grid-pinned") {
-                                                        AdaptiveNoteColumns(pinnedNotes, columns, Modifier.animateItem()) { note -> NoteCardItem(note) }
+                                                        AdaptiveNoteColumns(pinnedNotes, columns, animateVeritasItem()) { note -> NoteCardItem(note) }
                                                     }
                                                 } else {
                                                     itemsIndexed(pinnedNotes, key = { _, note -> "pinned-${note.id}" }) { _, note ->
-                                                        NoteCardItem(note)
+                                                        NoteCardItem(note, animateVeritasItem())
                                                     }
                                                 }
                                             }
@@ -947,11 +952,11 @@ internal fun LibraryNotesTab(
                                                 }
                                                 if (isGridView) {
                                                     item(key = "general-notes-grid-other") {
-                                                        AdaptiveNoteColumns(otherNotes, columns, Modifier.animateItem()) { note -> NoteCardItem(note) }
+                                                        AdaptiveNoteColumns(otherNotes, columns, animateVeritasItem()) { note -> NoteCardItem(note) }
                                                     }
                                                 } else {
                                                     itemsIndexed(otherNotes, key = { _, note -> "other-${note.id}" }) { _, note ->
-                                                        NoteCardItem(note)
+                                                        NoteCardItem(note, animateVeritasItem())
                                                     }
                                                 }
                                             }

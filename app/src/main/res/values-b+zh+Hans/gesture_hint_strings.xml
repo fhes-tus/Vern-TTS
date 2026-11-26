@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_tips_and_gestures">提示与手势</string>
+    <string name="hint_notes_create">点击 + 创建新笔记</string>
+    <string name="hint_notes_filter">点击标签筛选笔记</string>
+    <string name="hint_notes_open">点击任意笔记进行编辑或分享</string>
+    <string name="hint_document_gestures">文档手势</string>
+    <string name="hint_pdf_gestures">PDF 手势</string>
+    <string name="hint_single_tap">单击</string>
+    <string name="hint_toggle_reading_bars">隐藏或显示阅读工具栏</string>
+    <string name="hint_zoom_document">放大或缩小文档</string>
+    <string name="hint_swipe_horizontally">横向滑动</string>
+    <string name="hint_turn_page">转到上一页或下一页</string>
+    <string name="hint_long_press_passage">长按单词或句子</string>
+    <string name="hint_read_from_selection">选中文本并选择从此处朗读</string>
+</resources>

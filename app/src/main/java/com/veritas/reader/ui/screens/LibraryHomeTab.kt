@@ -87,6 +87,7 @@ internal fun LibraryHomeTab(
     onShowImportSheet: () -> Unit,
     onOpenClassicsCatalog: () -> Unit,
     onDownloadClassicBook: (ClassicBookEntry) -> Unit,
+    onBrowseClassicArchive: (String, String, String) -> Unit,
     onCancelClassicBook: (ClassicBookEntry) -> Unit,
     onNavigateToTab: (VeritasHomeTab) -> Unit,
     onShowReadingStatsHome: () -> Unit,
@@ -101,7 +102,8 @@ internal fun LibraryHomeTab(
     onRenameDocument: (SavedDocument) -> Unit,
     onShowDetails: (SavedDocument) -> Unit,
     onDeleteDocument: (SavedDocument) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    firstChapter: (@Composable () -> Unit)? = null
 ) {
     val floatingBottomPadding = LocalHomeBottomPadding.current
     val recentBooks = remember(documents, continueDocument?.id) {
@@ -129,6 +131,7 @@ internal fun LibraryHomeTab(
     val todayKey = trackerDateKey(now)
     val weeklyBook = remember(todayKey) { getBookOfTheWeek() }
     var previewClassicBook by remember { mutableStateOf<ClassicBookEntry?>(null) }
+    var classicExplorerQuery by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<String?>(null) }
     var showGoalPicker by remember { mutableStateOf(false) }
     val todayMillis = (tracker.readingMillisByDate[todayKey] ?: 0L).coerceAtLeast(0L)
     val weekReadingMillis = remember(todayKey, tracker.readingMillisByDate) {
@@ -186,10 +189,22 @@ internal fun LibraryHomeTab(
             else -> 18.dp
         }
 
-        val classicsIndex = (if (useTwoColumnFeatured) 2 else 3) + (if (recentBooks.isNotEmpty()) 1 else 0)
-        LaunchedEffect(OnboardingController.activeStep, classicsIndex) {
-            if (OnboardingController.activeStep == OnboardingStep.CLASSICS_SPOTLIGHT) {
-                homeListState.animateScrollToItem(classicsIndex)
+        val classicsIndex = (if (useTwoColumnFeatured) 2 else 3) +
+            (if (recentBooks.isNotEmpty()) 1 else 0) + (if (firstChapter != null) 1 else 0)
+        val reduceMotion = com.veritas.reader.ui.VeritasMotion.scheme.reduceMotion
+        LaunchedEffect(OnboardingController.activeStep, classicsIndex, firstChapter != null, homeVisible, uiState.showFirstChapterPrompt) {
+            if (!homeVisible) return@LaunchedEffect
+            if (uiState.showFirstChapterPrompt && firstChapter != null) {
+                homeListState.scrollToItem(0)
+                return@LaunchedEffect
+            }
+            when (OnboardingController.activeStep) {
+                OnboardingStep.CHECKLIST_SPOTLIGHT -> if (firstChapter != null) homeListState.scrollToItem(1)
+                OnboardingStep.CLASSICS_SPOTLIGHT -> {
+                    if (reduceMotion) homeListState.scrollToItem(classicsIndex)
+                    else homeListState.animateScrollToItem(classicsIndex)
+                }
+                else -> Unit
             }
         }
 
@@ -238,6 +253,12 @@ internal fun LibraryHomeTab(
                         color = scheme.onSurface,
                         modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
                     )
+                }
+            }
+
+            if (firstChapter != null) {
+                item(key = "first-chapter") {
+                    Box(Modifier.widthIn(max = targetContentMaxWidth)) { firstChapter() }
                 }
             }
 
@@ -375,7 +396,7 @@ internal fun LibraryHomeTab(
                                     if (isHomeGridView) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_switch_to_list_view)
                                     else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_switch_to_grid_view),
                                     tint = scheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                             TextButton(onClick = { onNavigateToTab(VeritasHomeTab.LIBRARY) }) {
@@ -478,7 +499,14 @@ internal fun LibraryHomeTab(
             editionDownloadStates = uiState.classicDownloads,
             downloadState = uiState.classicDownloads[book.id] ?: com.veritas.reader.ClassicDownloadState(),
             onDismiss = { previewClassicBook = null },
-            onDownloadBook = onDownloadClassicBook,
+            onDownloadBook = { selected ->
+                if (selected.useBookExplorer) {
+                    previewClassicBook = null
+                    classicExplorerQuery = "${selected.title} ${selected.author}"
+                } else {
+                    onDownloadClassicBook(selected)
+                }
+            },
             onCancelDownload = { onCancelClassicBook(book) },
             onCancelEdition = onCancelClassicBook,
             onOpenBook = { doc ->
@@ -486,5 +514,8 @@ internal fun LibraryHomeTab(
                 onOpenDocument(doc)
             }
         )
+    }
+    classicExplorerQuery?.let { query ->
+        BookExplorerSheet(query, { classicExplorerQuery = null }, onBrowseClassicArchive)
     }
 }

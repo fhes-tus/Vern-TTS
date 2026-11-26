@@ -47,6 +47,11 @@ fun PronunciationRulesDialog(rules: List<PronunciationRule>, voiceSettings: Voic
     val editorHeader = remember { BringIntoViewRequester() }
     val scrollScope = rememberCoroutineScope()
     var preview by remember { mutableStateOf<SpeechRulePreview.Result?>(null) }
+    val patternExample = remember(draft) {
+        if (draft.kind == SpeechRuleKind.PATTERN && !draft.skip) {
+            SpeechPatternRules.fromExample(draft.find, draft.replaceWith)
+        } else null
+    }
     val validation = remember(draft) { if (draft.find.isBlank()) null else draft.error() }
     DisposableEffect(Unit) { onDispose { VoiceManager.releasePreviewEngine() } }
     LaunchedEffect(testInput, rules, draft, voiceSettings) {
@@ -71,7 +76,10 @@ fun PronunciationRulesDialog(rules: List<PronunciationRule>, voiceSettings: Voic
                 FlowRow(Modifier.fillMaxWidth(), maxItemsInEachRow = 2, horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp)) {
                     speechRuleExamples.take(if (showExamples) speechRuleExamples.size else 4).forEach { (label, preset) ->
-                        SuggestionChip(onClick = { onDraftChange(preset) }, label = { Text(localizedSettingsOption(label)) },
+                        SuggestionChip(onClick = {
+                            onDraftChange(preset)
+                            if (preset.find == "{number}/{number}") testInput = "10/11, 12/13, 15/76, and yes/no."
+                        }, label = { Text(localizedSettingsOption(label)) },
                             modifier = Modifier.weight(1f).heightIn(min = 48.dp))
                     }
                 }
@@ -130,6 +138,16 @@ fun PronunciationRulesDialog(rules: List<PronunciationRule>, voiceSettings: Voic
                                 { Text(menuString(R.string.ui_for_example_sequel_instead_of_sql)) }
                             } else null,
                             singleLine = true, shape = VeritasPackStyle.compactShape(), colors = fieldColours)
+                    }
+                    patternExample?.let { (find, replacement) ->
+                        OutlinedButton(onClick = {
+                            testInput = if (find == "{number}/{number}") draft.find + ", 15/76, yes/no" else draft.find
+                            onDraftChange(draft.copy(find = find, replaceWith = replacement))
+                        }) { Text(menuString(R.string.speech_generalize_example)) }
+                    }
+                    if (draft.kind == SpeechRuleKind.PATTERN && '/' in draft.find) {
+                        Text(menuString(R.string.speech_slash_context_help), style = MaterialTheme.typography.bodySmall,
+                            color = colours.onSurfaceVariant)
                     }
                     if (validation != null || saveError != null) Text(saveError ?: validation.orEmpty(),
                         color = colours.error, style = MaterialTheme.typography.bodySmall,
@@ -285,6 +303,7 @@ private fun SavedPronunciationRule(
 }
 
 private val speechRuleExamples = listOf(
+    "12/13 → 12 append 13" to SpeechRuleDraft("{number}/{number}", "\$1 append \$2", SpeechRuleKind.PATTERN),
     "References [n]" to SpeechRuleDraft("[n]", kind = SpeechRuleKind.PATTERN, skip = true),
     "Underscore text" to SpeechRuleDraft("_{text}_", kind = SpeechRuleKind.PATTERN, skip = true),
     "Starred text" to SpeechRuleDraft("*{text}*", kind = SpeechRuleKind.PATTERN, skip = true),

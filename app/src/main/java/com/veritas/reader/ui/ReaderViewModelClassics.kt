@@ -17,6 +17,7 @@ fun ReaderViewModel.openBookArchive(url: String, title: String, query: String) {
 }
 
 fun ReaderViewModel.downloadClassicBook(book: ClassicBookEntry) {
+    if (book.useBookExplorer) return
     if (!book.hasDirectTextDownload) {
         openBookArchive(book.downloadUrl, book.title, "")
         return
@@ -43,6 +44,9 @@ internal fun ReaderViewModel.observeClassicDownloads() {
                 classicDownloads = classicDownloadStates(work),
                 documents = documents ?: state.documents
             ) }
+            if (refresh && !uiState.value.questImportDone && repository.loadQuestProgress().importDone) {
+                completeQuestImport()
+            }
         }
     }
 }

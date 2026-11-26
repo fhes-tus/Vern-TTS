@@ -13,6 +13,71 @@ import java.util.UUID
 class NoteAttachmentsInstrumentedTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
+    @Test fun deletedBookNoteSurvivesOtherEditsAndBackupRestore() {
+        check(context.packageName.endsWith(".checks"))
+        val repository = DocumentRepository(context)
+        val deleted = repository.createDocument("Deleted book fixture", "An ordinary reading.", "TXT")
+        val kept = repository.createDocument("Kept book fixture", "A separate reading.", "TXT")
+        try {
+            repository.saveDocumentNote(deleted.id, "A note worth keeping")
+            repository.deleteDocument(deleted.id)
+            repository.saveDocumentNote(kept.id, "Another note")
+            assertEquals("A note worth keeping", repository.loadAllDocumentNotes()[deleted.id])
+            val backup = ByteArrayOutputStream().also(repository::writeFullBackupZip).toByteArray()
+            repository.deleteDocumentNote(deleted.id)
+            repository.restoreBackupAuto(ByteArrayInputStream(backup), replaceExisting = false)
+            assertNull(repository.findDocument(deleted.id))
+            assertEquals("A note worth keeping", repository.loadAllDocumentNotes()[deleted.id])
+        } finally {
+            repository.deleteDocumentNotes(setOf(deleted.id, kept.id))
+            repository.deleteDocument(deleted.id)
+            repository.deleteDocument(kept.id)
+        }
+    }
+
+    @Test fun newAndRecoveredVoiceMemosSurviveCacheRemovalAndBackupRestore() = runBlocking {
+        check(context.packageName.endsWith(".checks"))
+        val repository = DocumentRepository(context)
+        val newId = UUID.randomUUID().toString()
+        val oldId = UUID.randomUUID().toString()
+        val exportFolder = File(context.cacheDir, "shared_exports").apply { mkdirs() }
+        val bytes = byteArrayOf(10, 20, 30, 40)
+        val fresh = File(exportFolder, "$newId.wav").apply { writeBytes(bytes) }
+        val legacy = File(exportFolder, "$oldId.wav").apply { writeBytes(bytes) }
+        val managed = mutableSetOf<File>()
+        fun readMemos() = repository.loadGeneralNotes().filter { it.id == newId || it.id == oldId }
+        fun assertPortableMemos() {
+            val memos = readMemos()
+            assertEquals(setOf(newId, oldId), memos.map { it.id }.toSet())
+            for (memo in memos) {
+                val audio = requireNotNull(memo.attachments.single().resolve(context))
+                managed.add(audio)
+                assertEquals("audio/wav", memo.attachments.single().mimeType)
+                assertArrayEquals(bytes, audio.readBytes())
+            }
+        }
+        try {
+            repository.saveRecordedVoiceMemo(GeneralNote(newId, "New memo", "Recorded audio", 1), fresh)
+            repository.mutateGeneralNotes {
+                it + GeneralNote(oldId, "Existing memo", "Recorded audio", 2, audioUrl = legacy.path)
+            }
+            repository.recoverCachedVoiceMemos()
+            fresh.delete()
+            legacy.delete()
+            assertPortableMemos()
+            val backup = ByteArrayOutputStream().also(repository::writeFullBackupZip).toByteArray()
+            repository.mutateGeneralNotes { notes -> notes.filterNot { it.id == newId || it.id == oldId } }
+            managed.forEach { it.delete() }
+            repository.restoreBackupAuto(ByteArrayInputStream(backup), replaceExisting = false)
+            assertPortableMemos()
+        } finally {
+            repository.mutateGeneralNotes { notes -> notes.filterNot { it.id == newId || it.id == oldId } }
+            managed.forEach { it.delete() }
+            fresh.delete()
+            legacy.delete()
+        }
+    }
+
     @Test fun copyPublishesCompleteOwnedMediaAndRejectsEmptyInputs() = runBlocking {
         val input = File(context.cacheDir, "attachment-${UUID.randomUUID()}.png")
         val contents = ByteArray(140_000) { (it % 251).toByte() }

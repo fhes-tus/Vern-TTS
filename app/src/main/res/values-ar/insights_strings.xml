@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_earlier">سابقًا</string>
+    <string name="insights_last_week">الأسبوع الماضي</string>
+    <string name="insights_daily_habit">عادة يومية</string>
+    <string name="insights_master_reader">خبير القراءة</string>
+    <string name="insights_habit_champion">بطل العادات</string>
+    <string name="insights_seven_day_flame">سبعة أيام متتالية</string>
+    <string name="insights_consistency_pro">خبير المواظبة</string>
+    <string name="insights_week_chart_description">%1$s. %2$s. الإجمالي %3$s. مرّر يسارًا أو يمينًا لتغيير الأسبوع.</string>
+    <string name="insights_invalid_session_date">أدخل تاريخًا بصيغة YYYY-MM-DD.</string>
+    <string name="insights_future_session_date">اختر اليوم أو تاريخًا أسبق.</string>
+    <string name="insights_session_save_failed">تعذّر حفظ هذه الجلسة. ما زالت تغييراتك موجودة. حاول مرة أخرى.</string>
+    <string name="insights_timer_save_failed">تعذّر حفظ إعدادات مؤقّت القراءة. حاول تغييرها مرة أخرى.</string>
+    <string name="insights_saving">جارٍ الحفظ…</string>
+</resources>

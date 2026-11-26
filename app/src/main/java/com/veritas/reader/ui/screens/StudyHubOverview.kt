@@ -4,25 +4,26 @@ import com.veritas.reader.VernAlertDialog as AlertDialog
 import com.veritas.reader.vernScatteredCard
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.veritas.reader.R
 import com.veritas.reader.*
 import com.veritas.reader.ui.ReaderUiState
 
-private data class StudyCollection(val section: String, val count: Int, val unit: String, val icon: ImageVector)
+private data class StudyCollection(val section: String, val count: Int)
 
 @Composable
 internal fun StudyHubOverview(
@@ -41,12 +42,12 @@ internal fun StudyHubOverview(
 ) {
     val colors = MaterialTheme.colorScheme
     val collections = listOf(
-        StudyCollection("Flashcards", state.flashcards.size, "cards", Icons.Outlined.Style),
-        StudyCollection("Quizzes", state.quizzes.size, "quizzes", Icons.Outlined.Quiz),
-        StudyCollection("Vocab", vocabularyCount, "words", Icons.Outlined.Translate),
-        StudyCollection("Bookmarks", state.allAnnotations.count { it.type == AnnotationType.BOOKMARK }, "bookmarks", Icons.Outlined.BookmarkBorder),
-        StudyCollection("Booknotes", state.allAnnotations.count { it.type == AnnotationType.NOTE } + state.documentNotes.values.count { it.isNotBlank() }, "notes", Icons.AutoMirrored.Outlined.MenuBook),
-        StudyCollection("History", state.readingHistory.size, "recent books", Icons.Outlined.History)
+        StudyCollection("Flashcards", state.flashcards.size),
+        StudyCollection("Quizzes", state.quizzes.size),
+        StudyCollection("Vocab", vocabularyCount),
+        StudyCollection("Bookmarks", state.allAnnotations.count { it.type == AnnotationType.BOOKMARK }),
+        StudyCollection("Booknotes", state.allAnnotations.count { it.type == AnnotationType.NOTE } + state.documentNotes.values.count { it.isNotBlank() }),
+        StudyCollection("History", state.readingHistory.size)
     )
     BoxWithConstraints(Modifier.fillMaxWidth()) {
     val usePanels = maxWidth >= 840.dp && androidx.compose.ui.platform.LocalDensity.current.fontScale < 1.3f
@@ -79,57 +80,104 @@ internal fun StudyHubOverview(
                             .testTag("study-material-${collection.section}"),
                             shape = VeritasPackStyle.compactShape(),
                             colors = ButtonDefaults.textButtonColors(containerColor = colors.surfaceContainerHigh.copy(alpha = .65f))) {
-                            Text(if (collection.section == "Vocab") com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_vocabulary) else collection.section,
+                            Text(localizedCatalogLabel(collection.section),
                                 modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Start,
                                 style = MaterialTheme.typography.bodyMedium, color = colors.onSurface)
-                            val unit = if (collection.count != 1) collection.unit else when (collection.unit) {
-                                "quizzes" -> "quiz"
-                                "recent books" -> "recent book"
-                                else -> collection.unit.removeSuffix("s")
-                            }
-                            Text("${collection.count} $unit", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+                            Text(localizedUiValue(collection.count), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
                         }
                     }
                 }
             }
         }
-        TextButton(onClick = { onSelectSection("Dictionary") }, modifier = Modifier.width(panelWidth).heightIn(min = 56.dp)
-            .testTag("study-dictionary-entry")) {
-            Icon(Icons.AutoMirrored.Outlined.MenuBook, null, Modifier.size(22.dp))
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
-                Text("Dictionary", style = MaterialTheme.typography.titleMedium)
-                Text("Definitions, examples & an optional offline English pack", style = MaterialTheme.typography.bodySmall,
-                    color = colors.onSurfaceVariant)
-            }
-        }
         Card(
-            modifier = Modifier.width(panelWidth).vernScatteredCard("study-create", amount = .45f),
+            onClick = { onSelectSection("Dictionary") },
+            modifier = Modifier
+                .width(panelWidth)
+                .vernScatteredCard("study-dictionary", amount = .45f)
+                .testTag("study-dictionary-entry"),
             shape = VeritasPackStyle.cardShape(),
             colors = CardDefaults.cardColors(containerColor = VeritasPackStyle.panelColor(colors)),
             border = BorderStroke(1.dp, colors.outlineVariant.copy(alpha = .5f))
         ) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_something_new), style = MaterialTheme.typography.titleMedium)
-                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_start_with_your_own_cards_or_questions_or_build_a_set_from_a_book), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    maxItemsInEachRow = if (materialColumns == 1) 1 else 2) {
-                    OutlinedButton(onClick = onImportFlashcards, modifier = Modifier.weight(1f)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_cards)) }
-                    OutlinedButton(onClick = onImportQuiz, modifier = Modifier.weight(1f)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_quiz)) }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(colors.primaryContainer.copy(alpha = .5f), shape = VeritasPackStyle.compactShape()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        androidx.compose.ui.res.painterResource(R.drawable.ic_m3_dictionary),
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp),
+                        tint = colors.primary
+                    )
                 }
-                Button(onClick = onCreateWithAi, modifier = Modifier.fillMaxWidth(), enabled = !state.isGeneratingAiStudy) {
-                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_with_ai))
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        menuString(R.string.dict_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.onSurface
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        menuString(R.string.dict_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.onSurfaceVariant
+                    )
                 }
-                TextButton(onClick = onSetupAi, modifier = Modifier.align(Alignment.End)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ai_settings)) }
+                Icon(
+                    Icons.Filled.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = colors.onSurfaceVariant.copy(alpha = .7f)
+                )
             }
         }
-        OutlinedButton(onClick = onExportStudyGuide, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-            .vernScatteredCard("study-export-guide", amount = .45f)) {
-            Icon(Icons.Outlined.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_export_study_guide_pdf))
+        Column(Modifier.width(panelWidth), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(menuString(R.string.study_import_material), style = MaterialTheme.typography.titleMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                maxItemsInEachRow = if (materialColumns == 1) 1 else 2) {
+                OutlinedButton(onClick = onImportFlashcards, modifier = Modifier.weight(1f)) {
+                    Text(menuString(R.string.ui_paste_cards))
+                }
+                OutlinedButton(onClick = onImportQuiz, modifier = Modifier.weight(1f)) {
+                    Text(menuString(R.string.ui_paste_quiz))
+                }
+            }
+            TextButton(onClick = onExportStudyGuide, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Icon(Icons.Outlined.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(menuString(R.string.ui_export_study_guide_pdf))
+            }
+        }
+        Card(
+            modifier = Modifier.width(panelWidth).testTag("study-ai-workspace"),
+            shape = VeritasPackStyle.cardShape(),
+            colors = CardDefaults.cardColors(containerColor = colors.primaryContainer),
+            border = BorderStroke(1.dp, colors.outlineVariant.copy(alpha = .5f))
+        ) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = colors.onPrimaryContainer)
+                    Text(menuString(R.string.study_ai_workspace), color = colors.onPrimaryContainer,
+                        style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                }
+                Text(menuString(R.string.study_ai_workspace_description), color = colors.onPrimaryContainer,
+                    style = MaterialTheme.typography.bodyMedium)
+                Button(onClick = onCreateWithAi, modifier = Modifier.fillMaxWidth(), enabled = !state.isGeneratingAiStudy) {
+                    Text(menuString(R.string.study_ai_choose_book))
+                }
+                TextButton(onClick = onSetupAi, colors = ButtonDefaults.textButtonColors(contentColor = colors.onPrimaryContainer)) {
+                    Text(menuString(R.string.ui_ai_settings))
+                }
+            }
         }
     }
 }
@@ -138,8 +186,8 @@ internal fun StudyHubOverview(
 
 @Composable
 internal fun StudyBookPickerDialog(documents: List<SavedDocument>, onSelect: (SavedDocument) -> Unit, onGoToLibrary: () -> Unit, onDismiss: () -> Unit,
-    title: String = "Choose a book for flashcards",
-    emptyDescription: String = "Add a book to your library first. You can also paste flashcards into Study Hub.") {
+    title: String = menuString(R.string.study_choose_flashcard_book),
+    emptyDescription: String = menuString(R.string.study_flashcard_picker_empty)) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },

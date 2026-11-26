@@ -263,7 +263,7 @@
     <string name="ui_create_flashcard" formatted="false">"Create flashcard"</string>
     <string name="ui_create_flashcards_quizzes_summaries_and_explanations_review_the_r" formatted="false">"Create flashcards, quizzes, summaries and explanations. Review the results alongside the source text."</string>
     <string name="ui_create_list" formatted="false">"Create list"</string>
-    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"Create local lists &amp; add saved readings"</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"Create collections and add saved readings"</string>
     <string name="ui_create_notebooks_to_organise_your_notes_a_note_can_belong_to_more" formatted="false">"Create notebooks to organise your notes. A note can belong to more than one."</string>
     <string name="ui_create_quizzes_using_ai_study_studio_to_practice_here" formatted="false">"Create quizzes using AI Study Studio to practice here."</string>
     <string name="ui_create_something_new" formatted="false">"Create something new"</string>
@@ -271,7 +271,7 @@
     <string name="ui_creating_audio_from_this_reading" formatted="false">"Creating audio from this reading..."</string>
     <string name="ui_creating_notebook" formatted="false">"Creating notebook…"</string>
     <string name="ui_credit_the_author_narrator_or_character_who_said_it" formatted="false">"Credit the author, narrator or character who said it."</string>
-    <string name="ui_current_reading_is_in_this_list" formatted="false">"Current reading is in this list"</string>
+    <string name="ui_current_reading_is_in_this_list" formatted="false">"Current reading is in this collection"</string>
     <string name="ui_current_streak" formatted="false">"Current streak"</string>
     <string name="ui_current_voice_model" formatted="false">"CURRENT VOICE MODEL"</string>
     <string name="ui_custom_accent" formatted="false">"Custom accent"</string>
@@ -304,7 +304,7 @@
     <string name="ui_delete_flashcard_deck" formatted="false">"Delete Flashcard Deck?"</string>
     <string name="ui_delete_highlight" formatted="false">"Delete highlight?"</string>
     <string name="ui_delete_label" formatted="false">"Delete label?"</string>
-    <string name="ui_delete_list" formatted="false">"Delete list?"</string>
+    <string name="ui_delete_list" formatted="false">"Delete collection?"</string>
     <string name="ui_delete_note" formatted="false">"Delete note"</string>
     <string name="ui_delete_permanently" formatted="false">"Delete permanently?"</string>
     <string name="ui_delete_permanently_e63b515" formatted="false">"Delete permanently"</string>
@@ -619,7 +619,7 @@
     <string name="ui_new_note" formatted="false">"New note"</string>
     <string name="ui_new_notebook" formatted="false">"New notebook"</string>
     <string name="ui_new_quiz" formatted="false">"New Quiz"</string>
-    <string name="ui_new_reading_list" formatted="false">"New reading list"</string>
+    <string name="ui_new_reading_list" formatted="false">"New collection"</string>
     <string name="ui_new_rule" formatted="false">"New rule"</string>
     <string name="ui_newest_first" formatted="false">"Newest first"</string>
     <string name="ui_next" formatted="false">"Next"</string>
@@ -669,7 +669,7 @@
     <string name="ui_no_readable_text_was_extracted_for_this_page" formatted="false">"No readable text was extracted for this page."</string>
     <string name="ui_no_reading_activity_recorded" formatted="false">"No reading activity recorded"</string>
     <string name="ui_no_reading_history_yet" formatted="false">"No reading history yet."</string>
-    <string name="ui_no_reading_lists_yet" formatted="false">"No reading lists yet."</string>
+    <string name="ui_no_reading_lists_yet" formatted="false">"No collections yet."</string>
     <string name="ui_no_results" formatted="false">"No results"</string>
     <string name="ui_no_results_found" formatted="false">"No results found"</string>
     <string name="ui_no_rules_yet" formatted="false">"No rules yet"</string>
@@ -882,8 +882,8 @@
     <string name="ui_reading_insights" formatted="false">"Reading Insights"</string>
     <string name="ui_reading_insights_32f8941" formatted="false">"Reading insights"</string>
     <string name="ui_reading_layout" formatted="false">"Reading layout"</string>
-    <string name="ui_reading_list" formatted="false">"Reading list"</string>
-    <string name="ui_reading_lists" formatted="false">"Reading lists"</string>
+    <string name="ui_reading_list" formatted="false">"Collection"</string>
+    <string name="ui_reading_lists" formatted="false">"Collections"</string>
     <string name="ui_reading_overview" formatted="false">"Reading Overview"</string>
     <string name="ui_reading_progress" formatted="false">"Reading Progress"</string>
     <string name="ui_reading_recorded_duration_not_available" formatted="false">"Reading recorded; duration not available"</string>
@@ -1065,6 +1065,7 @@
     <string name="ui_silent_visual_rsvp" formatted="false">"Silent visual RSVP"</string>
     <string name="ui_skip" formatted="false">"Skip"</string>
     <string name="ui_skip_table" formatted="false">"Skip Table"</string>
+    <string name="ui_skip_figure">Skip Figure</string>
     <string name="ui_sleep_timer" formatted="false">"Sleep timer"</string>
     <string name="ui_slides_options" formatted="false">"Slides options"</string>
     <string name="ui_slower_0_05" formatted="false">"Slower −0.05×"</string>
@@ -1161,13 +1162,13 @@
     <string name="ui_then" formatted="false">"Then"</string>
     <string name="ui_these_preferences_can_be_changed_at_any_time_in_settings" formatted="false">"These preferences can be changed at any time in Settings."</string>
     <string name="ui_this_is_used_to_personalize_your_home_tab_and_reading_experience" formatted="false">"This is used to personalize your Home tab and reading experience."</string>
-    <string name="ui_this_list_is_empty" formatted="false">"This list is empty."</string>
+    <string name="ui_this_list_is_empty" formatted="false">"This collection is empty."</string>
     <string name="ui_this_month" formatted="false">"This month"</string>
     <string name="ui_this_name_already_has_a_profile" formatted="false">"This name already has a profile."</string>
     <string name="ui_this_note_will_be_permanently_deleted_its_attachment_files_are_ke" formatted="false">"This note will be permanently deleted. Its attachment files are kept to avoid removing media shared by another note."</string>
     <string name="ui_this_quiz_has_missing_questions_or_answers_that_do_not_match_its" formatted="false">"This quiz has missing questions or answers that do not match its choices. Re-import it with a correct answer for each question."</string>
     <string name="ui_this_removes_the_file_from_your_phone_s_storage_not_just_from_ver" formatted="false">"This removes the file from your phone\'s storage, not just from Vern. It cannot be undone."</string>
-    <string name="ui_this_removes_the_list_only_saved_readings_stay_in_your_library" formatted="false">"This removes the list only. Saved readings stay in your library."</string>
+    <string name="ui_this_removes_the_list_only_saved_readings_stay_in_your_library" formatted="false">"Your files stay in your library."</string>
     <string name="ui_this_removes_the_selected_annotation_from_the_book_and_study_too" formatted="false">"This removes the selected annotation from the book and Study too."</string>
     <string name="ui_this_week" formatted="false">"This week"</string>
     <string name="ui_this_week_s_pick" formatted="false">"This week’s pick"</string>

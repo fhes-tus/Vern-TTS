@@ -13,8 +13,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -31,12 +30,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -77,9 +78,10 @@ import com.veritas.reader.ui.discardRecordedSoundFile
 import com.veritas.reader.ui.dismissQuestChecklist
 import com.veritas.reader.ui.downloadClassicBook
 import com.veritas.reader.ui.exportActiveDocumentToAudio
+import com.veritas.reader.ui.applySettingsProfile
 import com.veritas.reader.ui.exportStudyGuidePdf
 import com.veritas.reader.ui.favoriteDocuments
-import com.veritas.reader.ui.generateInAppFlashcards
+import com.veritas.reader.ui.withVisibility
 import com.veritas.reader.ui.generateInAppQuiz
 import com.veritas.reader.ui.importFlashcards
 import com.veritas.reader.ui.importWebArticle
@@ -107,6 +109,7 @@ import com.veritas.reader.ui.saveRecordedSoundFile
 import com.veritas.reader.ui.saveVoiceSettings
 import com.veritas.reader.ui.screens.LibraryScreen
 import com.veritas.reader.ui.screens.OnboardingQuestChecklist
+import com.veritas.reader.ui.screens.FirstChapterPrompt
 import com.veritas.reader.ui.screens.ReaderScreen
 import com.veritas.reader.ui.screens.ReaderScreenState
 import com.veritas.reader.ui.searchLibraryContent
@@ -119,7 +122,6 @@ import com.veritas.reader.ui.toggleGeneralNotePin
 import com.veritas.reader.ui.toggleQueue
 import com.veritas.reader.ui.importSharedNote
 import com.veritas.reader.ui.updateSearchQuery
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -138,10 +140,16 @@ internal fun VeritasReaderApp(
     val context = LocalContext.current
     val viewModel: ReaderViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showAudioExportOptions by rememberSaveable(uiState.activeDocument?.id, uiState.activeDocument?.title) {
+        mutableStateOf(false)
+    }
     val coroutineScope = rememberCoroutineScope()
     var showStorageTools by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showUnrestrictedBatteryDialog by remember { mutableStateOf(false) }
+    var pendingSettingsUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    TrackReaderOverlay(if (PlaybackStateStore.readerMode == ReaderMode.LISTEN && !uiState.showCanvasView) "listen" else "main",
+        showAboutDialog || showUnrestrictedBatteryDialog || showAudioExportOptions || pendingSettingsUri != null)
     var pendingShareChooser by remember { mutableStateOf<IncomingShare?>(null) }
 
     val batteryPrefs = remember { context.getSharedPreferences("veritas_reader_library", Context.MODE_PRIVATE) }
@@ -153,6 +161,22 @@ internal fun VeritasReaderApp(
 
     fun openInNotes(share: IncomingShare) {
         viewModel.importSharedNote(share)
+    }
+
+    fun routeIncomingShare(share: IncomingShare) {
+        if (share.toNotes) {
+            openInNotes(share)
+            return
+        }
+        coroutineScope.launch {
+            val settingsUri = share.settingsFile(context.applicationContext)
+            if (settingsUri != null) {
+                pendingShareChooser = null
+                pendingSettingsUri = settingsUri
+            } else {
+                pendingShareChooser = share
+            }
+        }
     }
 
     fun importToReader(text: String, uri: Uri?) {
@@ -169,23 +193,45 @@ internal fun VeritasReaderApp(
 
     DisposableEffect(context) {
         val activity = context as? MainActivity
-        activity?.onIncomingShare = { share ->
-            if (share.toNotes) {
-                openInNotes(share)
-            } else {
-                pendingShareChooser = share
-            }
-        }
+        activity?.onIncomingShare = ::routeIncomingShare
         onDispose {
             activity?.onIncomingShare = null
         }
     }
     val documentRepository = remember(context) { DocumentRepository(context.applicationContext) }
+    val originalPdfLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val documentId = result.data?.getStringExtra(VeritasPdfViewerActivity.EXTRA_DOCUMENT_ID)
+            val index = result.data?.getIntExtra(VeritasPdfViewerActivity.EXTRA_READER_INDEX, -1) ?: -1
+            if (documentId != null && documentId == viewModel.uiState.value.activeDocument?.id &&
+                index >= 0 && !viewModel.isReaderPlaying && index != viewModel.currentReaderIndex) {
+                viewModel.moveTo(index, autoPlay = false)
+            }
+        }
+    }
     val importFileLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
             viewModel.prepareImport(uri)
+        }
+    }
+    fun openOriginalView(metadata: SavedDocument) {
+        val isPdf = metadata.originalMimeType.contains("pdf", ignoreCase = true) ||
+            metadata.originalFileName.endsWith(".pdf", ignoreCase = true) ||
+            documentRepository.originalFile(metadata)?.takeIf { it.isFile }?.let { file ->
+                runCatching {
+                    java.io.DataInputStream(file.inputStream()).use { input ->
+                        ByteArray(4).also(input::readFully).decodeToString() == "%PDF"
+                    }
+                }.getOrDefault(false)
+            } == true
+        if (isPdf) {
+            originalPdfLauncher.launch(VeritasPdfViewerActivity.intent(context, metadata.id, viewModel.currentReaderIndex))
+        } else {
+            viewModel.updateState { it.copy(showCanvasView = true) }
         }
     }
 
@@ -244,11 +290,12 @@ internal fun VeritasReaderApp(
         widgetAction = widgetAction,
         noteId = noteId,
         onOpenInNotes = ::openInNotes,
-        onPendingShareChooserChange = { pendingShareChooser = it }
+        onPendingShareChooserChange = { share -> if (share != null) routeIncomingShare(share) else pendingShareChooser = null }
     )
 
 
-    VeritasTheme {
+    val showSetup = uiState.showTutorial && !uiState.hasCompletedOnboarding && OnboardingController.activeStep == null
+    VeritasTheme(systemBarColor = com.veritas.reader.ui.screens.OnboardingPaper.takeIf { showSetup }) {
         val scanImport = rememberScanImportAction(
             onImageSelected = { viewModel.prepareImport(it) },
             onError = { message -> viewModel.updateState { it.copy(importMessage = message) } }
@@ -258,23 +305,38 @@ internal fun VeritasReaderApp(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            @OptIn(ExperimentalSharedTransitionApi::class)
-            SharedTransitionLayout {
-                AnimatedContent(
-                    targetState = uiState.activeDocument,
-                    transitionSpec = {
-                        fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
-                    },
-                    contentKey = { it?.id },
-                    label = "reader_transition"
-                ) { activeDoc ->
-                    if (activeDoc == null) {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            LibraryScreen(
-                                uiState = uiState,
-                                onRefreshInsights = viewModel::refreshReadingInsights,
-                                sharedTransitionScope = this@SharedTransitionLayout,
-                                animatedVisibilityScope = this@AnimatedContent,
+            AnimatedContent(
+                targetState = uiState.activeDocument,
+                transitionSpec = {
+                    // Keep the outgoing page behind the arriving one so the canvas never flashes through.
+                    (fadeIn(animationSpec = tween(190, easing = LinearOutSlowInEasing)) togetherWith
+                        fadeOut(animationSpec = tween(65, delayMillis = 145))).using(null)
+                },
+                contentKey = { it?.id },
+                label = "reader_transition"
+            ) { activeDoc ->
+                if (activeDoc == null) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        var chapterCardBounds by remember { mutableStateOf<Rect?>(null) }
+                        var chapterSheetOpen by rememberSaveable { mutableStateOf(false) }
+                        val promptTarget = chapterCardBounds?.takeIf {
+                            it.width > 0 && it.height > 0 && uiState.showFirstChapterPrompt &&
+                                !uiState.showTutorial && uiState.activeDocument == null &&
+                                OnboardingController.activeStep == null && !chapterSheetOpen
+                        }
+                        val dismissChapterPrompt = {
+                            viewModel.updateState { it.copy(showFirstChapterPrompt = false) }
+                        }
+                        Box(
+                            Modifier.fillMaxSize().then(
+                                if (promptTarget != null) Modifier.clearAndSetSemantics {} else Modifier
+                            )
+                        ) {
+                        LibraryScreen(
+                            uiState = uiState,
+                            onRefreshInsights = viewModel::refreshReadingInsights,
+                            sharedTransitionScope = null,
+                            animatedVisibilityScope = this@AnimatedContent,
                                 onDismissOpeningDocument = { viewModel.dismissOpeningDocument() },
                     onDraftTextChange = { text -> viewModel.updateState { it.copy(draftText = text) } },
                     widgetAction = uiState.pendingWidgetAction ?: widgetAction,
@@ -362,7 +424,7 @@ internal fun VeritasReaderApp(
                     onToggleGeneralNotePin = viewModel::toggleGeneralNotePin,
                     onChangeGeneralNoteColor = viewModel::changeGeneralNoteColor,
                     onDeleteGeneralNote = viewModel::deleteGeneralNote,
-                    onRateFlashcardRecall = viewModel::rateFlashcardRecall,
+                    onRateFlashcardRecall = { id, recall, complete -> viewModel.rateFlashcardRecall(id, recall, complete) },
                     onDeleteFlashcard = viewModel::deleteFlashcard,
                     onImportFlashcards = { name, cards -> viewModel.importFlashcards("pasted", name, cards) },
                     onRenameFlashcardSet = viewModel::renameFlashcardSet,
@@ -387,33 +449,52 @@ internal fun VeritasReaderApp(
                     onSaveQuiz = viewModel::saveQuiz,
                     onDeleteQuiz = viewModel::deleteQuiz,
                     onRecordQuizScore = viewModel::recordQuizScore,
-                    onGenerateInAppFlashcards = { doc, prompt -> viewModel.generateInAppFlashcards(doc, prompt) },
                     onGenerateInAppQuiz = { doc, prompt -> viewModel.generateInAppQuiz(doc, prompt) },
-                    onOpenAiStudyTools = { viewModel.updateState { it.copy(showAiStudyTools = true) } },
-                    onCancelAiStudyGeneration = { viewModel.cancelAiStudyGeneration() }
+                    onOpenAiStudyTools = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, true) } },
+                    onCancelAiStudyGeneration = { viewModel.cancelAiStudyGeneration() },
+                    firstChapter = if (uiState.hasCompletedOnboarding && !uiState.questChecklistDismissed ||
+                        OnboardingController.activeStep == OnboardingStep.CHECKLIST_SPOTLIGHT
+                    ) {
+                        { openImport ->
+                            val reading = uiState.documents.firstOrNull {
+                                it.sourceLabel == "System" && it.title == "Vern Welcome Guide"
+                            } ?: uiState.documents.firstOrNull { it.chunkCount > 0 }
+                            OnboardingQuestChecklist(
+                                state = uiState,
+                                hasReading = reading != null,
+                                onAddReading = openImport,
+                                onOpenReading = {
+                                    if (reading != null) viewModel.openSavedDocument(reading)
+                                    else openImport()
+                                },
+                                onWriteNote = {
+                                    viewModel.updateState { it.copy(showGeneralNotesEditor = true, generalNoteEditorTarget = null) }
+                                },
+                                onStartTour = {
+                                    viewModel.createWelcomeDocumentSilently()
+                                    OnboardingController.activeStep = OnboardingStep.WELCOME
+                                },
+                                onDismissQuests = viewModel::dismissQuestChecklist,
+                                showSheet = chapterSheetOpen,
+                                onShowSheetChange = { shown ->
+                                    if (shown && uiState.showFirstChapterPrompt) dismissChapterPrompt()
+                                    chapterSheetOpen = shown
+                                },
+                                onCardPositioned = { chapterCardBounds = it }
+                            )
+                        }
+                    } else null
                 )
-                val areQuestsIncomplete = !uiState.questTourDone || !uiState.questImportDone || !uiState.questSpeedDone || !uiState.questBookmarkDone
-                if (areQuestsIncomplete && !uiState.questChecklistDismissed) {
-                    OnboardingQuestChecklist(
-                        questTourDone = uiState.questTourDone,
-                        questImportDone = uiState.questImportDone,
-                        questSpeedDone = uiState.questSpeedDone,
-                        questBookmarkDone = uiState.questBookmarkDone,
-                        onStartTour = {
-                            viewModel.createWelcomeDocumentSilently()
-                            OnboardingController.activeStep = OnboardingStep.WELCOME
-                        },
-                        onDismissQuests = {
-                            viewModel.dismissQuestChecklist()
-                        },
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            // Keep the card clear of the Add FAB anchored at the bottom end.
-                            .fillMaxWidth(0.65f)
-                            .padding(bottom = 90.dp)
-                            .onGloballyPositioned { OnboardingController.updateBounds("quest_checklist", it) }
-                    )
-                }
+                        }
+                        FirstChapterPrompt(
+                            target = promptTarget,
+                            onOpen = {
+                                dismissChapterPrompt()
+                                chapterSheetOpen = true
+                            },
+                            onDismiss = dismissChapterPrompt,
+                            modifier = Modifier.matchParentSize()
+                        )
             }
         } else {
             val activeDocument = activeDoc
@@ -439,11 +520,11 @@ internal fun VeritasReaderApp(
                     }
                     val activeSentence = readerModel.sentences
                         .getOrNull(readerIndex)
-                    var pageSettleJob by remember { mutableStateOf<Job?>(null) }
                     ActualDocumentView(
                         document = activeMetadata,
                         repository = documentRepository,
                         readerDocument = activeDoc,
+                        animatedVisibilityScope = this@AnimatedContent,
                         activeSentencePage = activeSentence?.pageNumber ?: 0,
                         activeSentenceText = activeSentence?.text.orEmpty(),
                         isPlaying = readerPlaying,
@@ -473,24 +554,13 @@ internal fun VeritasReaderApp(
                             // Eyes don't move the voice: while TTS is playing, browsing pages
                             // in Original view must never jump playback (moveTo notifies the
                             // service mid-utterance and it re-reads from the viewed page).
-                            if (!readerPlaying) {
-                                pageSettleJob?.cancel()
-                                pageSettleJob = coroutineScope.launch {
-                                    delay(1200L)
-                                    val targetPageNumber = pageIndex + 1
-                                    val exactIndex = readerModel.sentences
-                                        .indexOfFirst { it.pageNumber == targetPageNumber }
-                                    val targetIndex = if (exactIndex >= 0) {
-                                        exactIndex
-                                    } else {
-                                        readerModel.sentences.indices.minByOrNull {
-                                            kotlin.math.abs(readerModel.sentences[it].pageNumber - targetPageNumber)
-                                        } ?: -1
-                                    }
-                                    if (targetIndex >= 0) {
-                                        viewModel.moveTo(targetIndex, autoPlay = false)
-                                    }
+                            val targetPageNumber = pageIndex + 1
+                            if (!readerPlaying && activeSentence?.pageNumber != targetPageNumber) {
+                                // Original View emits settled page changes. Update before a quick switch to Text.
+                                val targetIndex = readerModel.sentences.indices.minByOrNull {
+                                    kotlin.math.abs(readerModel.sentences[it].pageNumber - targetPageNumber)
                                 }
+                                if (targetIndex != null && targetIndex != readerIndex) viewModel.moveTo(targetIndex, autoPlay = false)
                             }
                         },
                         onOpenExternal = {
@@ -557,6 +627,9 @@ internal fun VeritasReaderApp(
                                 )
                             )
                         },
+                        onSelectionAction = { action, text, page ->
+                            viewModel.handleOriginalSelection(context, OriginalSelectionRequest(activeMetadata.id, action, text, page))
+                        },
                         onReadFromSentence = { selectedText, selectionPage ->
                             val cleanText = selectedText.trim()
                             if (cleanText.isNotBlank()) {
@@ -621,7 +694,7 @@ internal fun VeritasReaderApp(
                             voices = uiState.ttsVoices,
                             readerMode = PlaybackStateStore.readerMode
                         ),
-                        sharedTransitionScope = this@SharedTransitionLayout,
+                        sharedTransitionScope = null,
                         animatedVisibilityScope = this@AnimatedContent,
                         listState = rememberLazyListState(),
                         hasCanvas = activeMetadata?.originalFileName?.isNotBlank() == true || activeDocument.chunks.any {
@@ -709,31 +782,7 @@ internal fun VeritasReaderApp(
                         },
                         onOpenDocumentNotes = { viewModel.openDocumentNotes() },
                         onExportStudyGuidePdf = { viewModel.exportStudyGuidePdf() },
-                        onOpenCanvas = {
-                            val metadata = activeMetadata
-                            val file = metadata?.let { documentRepository.originalFile(it) }
-                            val isPdfCanvas = metadata != null && (
-                                    metadata.originalMimeType.contains("pdf", ignoreCase = true) ||
-                                            metadata.originalFileName.endsWith(".pdf", ignoreCase = true) ||
-                                            (file != null && file.exists() && runCatching {
-                                                file.inputStream().use { input ->
-                                                    val bytes = ByteArray(4)
-                                                    val read = input.read(bytes)
-                                                    read == 4 && bytes[0] == '%'.code.toByte() && bytes[1] == 'P'.code.toByte() && bytes[2] == 'D'.code.toByte() && bytes[3] == 'F'.code.toByte()
-                                                }
-                                            }.getOrDefault(false))
-                                    )
-                            if (metadata != null && isPdfCanvas) {
-                                context.startActivity(
-                                    VeritasPdfViewerActivity.intent(
-                                        context,
-                                        metadata.id
-                                    )
-                                )
-                            } else {
-                                viewModel.updateState { it.copy(showCanvasView = true) }
-                            }
-                        },
+                        onOpenCanvas = { activeMetadata?.let(::openOriginalView) },
                         onOpenStudyTools = { viewModel.updateState { it.copy(showAiStudyTools = true) } },
                         onOpenTranslationTools = {
                             viewModel.updateState {
@@ -768,10 +817,10 @@ internal fun VeritasReaderApp(
                         },
                         onOpenTextEditor = { viewModel.openCurrentPartTextEditor() },
                         onStartRecord = { viewModel.startRecordSoundFile() },
-                        onExportAudio = { viewModel.exportActiveDocumentToAudio() },
+                        onExportAudio = { showAudioExportOptions = true },
                         onCopySelection = { copyTextToClipboard(context, "Vern selection", it) },
                         onShareSelection = { sharePlainText(context, "Vern selection", it) },
-                        onGoogleSelection = { selection ->
+                        onDefineSelection = { selection ->
                             showDictionaryLookup(context, selection.text, DictionaryLookupAnchor(
                                 uiState.activeDocument?.id, selection.firstSentenceIndex,
                                 uiState.activeDocument?.chunks?.getOrNull(selection.firstSentenceIndex)))
@@ -795,7 +844,8 @@ internal fun VeritasReaderApp(
                                     newRuleFind = selection.replace(Regex("\\s+"), " ").trim()
                                         .take(120),
                                     newRuleReplaceWith = "", editingRuleId = null,
-                                    newRuleKind = SpeechRuleKind.LITERAL, newRuleCaseSensitive = false, newRuleSkip = false, newRuleError = null
+                                    newRuleKind = SpeechRuleKind.LITERAL,
+                                    newRuleCaseSensitive = false, newRuleSkip = false, newRuleError = null
                                 )
                             }
                         },
@@ -853,7 +903,10 @@ internal fun VeritasReaderApp(
                         onDismissShareToAi = {
                             viewModel.updateState { it.copy(showAiStudyTools = false) }
                         },
-                        onReaderModeChange = { PlaybackStateStore.readerMode = it },
+                        onReaderModeChange = { mode ->
+                            if (mode == ReaderMode.ORIGINAL) activeMetadata?.let(::openOriginalView)
+                            else PlaybackStateStore.readerMode = mode
+                        },
                         onPaperToneModeChange = { newTone ->
                             viewModel.saveReaderSettings(
                                 uiState.readerSettings.copy(
@@ -872,7 +925,20 @@ internal fun VeritasReaderApp(
             }
         }
     }
-}
+
+        if (showAudioExportOptions) {
+            uiState.activeDocument?.let { document ->
+                AudioExportOptions(
+                    chunks = document.chunks,
+                    rate = PlaybackStateStore.rate,
+                    onExport = { format ->
+                        showAudioExportOptions = false
+                        viewModel.exportActiveDocumentToAudio(format)
+                    },
+                    onDismiss = { showAudioExportOptions = false }
+                )
+            }
+        }
 
         if (uiState.recordMode || uiState.recordAwaitingDecision) {
             FloatingRecordOverlay(
@@ -911,6 +977,7 @@ internal fun VeritasReaderApp(
         MainDialogsHost(
             viewModel = viewModel,
             uiState = uiState,
+            onReviewSettings = { pendingSettingsUri = it },
             onOpenFilePicker = { importFileLauncher.launch(readableImportMimeTypes()) }
         )
 
@@ -918,5 +985,21 @@ internal fun VeritasReaderApp(
             viewModel = viewModel,
             uiState = uiState
         )
+
+        pendingSettingsUri?.let { uri ->
+            androidx.compose.runtime.key(uri) {
+                VernSettingsReviewDialog(
+                    uri = uri,
+                    current = uiState.readerSettings,
+                    busy = uiState.backupInProgress,
+                    onApply = { profile ->
+                        pendingSettingsUri = null
+                        viewModel.applySettingsProfile(profile)
+                    },
+                    onDismiss = { pendingSettingsUri = null }
+                )
+            }
+        }
+
     }
 }

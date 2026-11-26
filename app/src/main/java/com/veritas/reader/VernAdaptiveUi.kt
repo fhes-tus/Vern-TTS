@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import com.veritas.reader.ui.VeritasMotion
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -137,14 +138,32 @@ internal fun Modifier.vernDialogPane(): Modifier = composed {
 }
 
 @Composable
-internal fun VernDialog(onDismissRequest: () -> Unit, properties: DialogProperties = DialogProperties(), content: @Composable () -> Unit) {
+internal fun VernDialog(
+    onDismissRequest: () -> Unit,
+    properties: DialogProperties = DialogProperties(),
+    animateWindow: Boolean = true,
+    content: @Composable () -> Unit
+) {
     androidx.compose.ui.window.Dialog(onDismissRequest, properties) {
         if (properties.usePlatformDefaultWidth) {
-            Box(Modifier.vernDialogPane()) { content() }
+            Box(Modifier.vernDialogMotion(enabled = animateWindow).vernDialogPane()) { content() }
         } else {
-            VernFoldAwarePane(Modifier.fillMaxSize()) { content() }
+            VernFoldAwarePane(Modifier.fillMaxSize().vernDialogMotion(spatial = false, enabled = animateWindow)) { content() }
         }
     }
+}
+
+private fun Modifier.vernDialogMotion(spatial: Boolean = true, enabled: Boolean = true): Modifier = composed {
+    val window = (LocalView.current.parent as? DialogWindowProvider)?.window
+    val style = when {
+        !enabled -> 0
+        spatial && !VeritasMotion.scheme.reduceMotion -> R.style.VernDialogMotion
+        else -> R.style.VernOverlayMotion
+    }
+    SideEffect {
+        if (window != null && window.attributes.windowAnimations != style) window.setWindowAnimations(style)
+    }
+    this
 }
 
 @Composable
@@ -163,11 +182,11 @@ internal fun VernAlertDialog(
     textContentColor: Color = AlertDialogDefaults.textContentColor,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
     properties: DialogProperties = DialogProperties()
-) = androidx.compose.material3.AlertDialog(onDismissRequest, confirmButton, modifier.vernDialogPane(), dismissButton,
+) = androidx.compose.material3.AlertDialog(onDismissRequest, confirmButton, modifier.vernDialogMotion().vernDialogPane(), dismissButton,
     icon, title, text, shape, containerColor, iconContentColor, titleContentColor, textContentColor, tonalElevation, properties)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun VernAlertDialog(onDismissRequest: () -> Unit, modifier: Modifier = Modifier,
     properties: DialogProperties = DialogProperties(), content: @Composable () -> Unit) =
-    BasicAlertDialog(onDismissRequest, modifier.vernDialogPane(), properties, content)
+    BasicAlertDialog(onDismissRequest, modifier.vernDialogMotion().vernDialogPane(), properties, content)

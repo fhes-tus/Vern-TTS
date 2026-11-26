@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_choose_flashcard_book">اختر كتابًا لإنشاء بطاقات المراجعة</string>
+    <string name="study_flashcard_picker_empty">أضف كتابًا إلى مكتبتك أولًا. يمكنك أيضًا لصق البطاقات في مركز الدراسة.</string>
+    <string name="study_guide_picker_empty">أضف كتابًا إلى مكتبتك، ثم صدّر ملاحظاته وتظليلاته كدليل دراسة.</string>
+</resources>

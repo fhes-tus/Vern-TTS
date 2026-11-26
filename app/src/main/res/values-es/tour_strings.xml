@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tour_welcome_title">Recorrido interactivo</string>
+    <string name="tour_welcome_body">Sigue las indicaciones para conocer tu biblioteca, las herramientas de lectura, las notas y los ajustes.</string>
+    <string name="tour_name_input_title">¿Cómo te llamamos?</string>
+    <string name="tour_name_input_body">Escribe tu nombre para personalizar el panel y los mensajes.</string>
+    <string name="tour_fab_spotlight_title">Misión 1 — Añadir un documento</string>
+    <string name="tour_fab_spotlight_body">Toca Añadir para importar PDF, EPUB, archivos de Word o de texto, imágenes o enlaces web.</string>
+    <string name="tour_checklist_spotlight_title">Lista de misiones</string>
+    <string name="tour_checklist_spotlight_body">Esta lista flotante muestra las misiones activas. Complétalas para conocer todas las funciones.</string>
+    <string name="tour_classics_spotlight_title">Catálogo de clásicos</string>
+    <string name="tour_classics_spotlight_body">Explora los géneros, desliza las estanterías y añade un título a tu biblioteca.</string>
+    <string name="tour_insights_spotlight_title">Estadísticas de lectura</string>
+    <string name="tour_insights_spotlight_body">Este botón abre tu panel. Toca Siguiente para ver tus estadísticas de lectura.</string>
+    <string name="tour_insights_page_spotlight_title">Tus estadísticas de un vistazo</string>
+    <string name="tour_insights_page_spotlight_body">Consulta las rachas de lectura, las fuentes de tu biblioteca y el tiempo de escucha mensual. Los datos se guardan en tu dispositivo.</string>
+    <string name="tour_notes_tab_spotlight_title">Notas y memorias de voz</string>
+    <string name="tour_notes_tab_spotlight_body">Revisa tus anotaciones, notas, marcadores y grabaciones desde un mismo lugar.</string>
+    <string name="tour_study_tab_spotlight_title">Centro de estudio con IA y tarjetas</string>
+    <string name="tour_study_tab_spotlight_body">Genera resúmenes con IA, practica con tarjetas y repasa con cuestionarios.</string>
+    <string name="tour_settings_spotlight_title">Ajustes y personalización</string>
+    <string name="tour_settings_spotlight_body">Configura las voces, la velocidad, los temas, la sincronización, las copias de seguridad y la pronunciación.</string>
+    <string name="tour_document_spotlight_title">Abrir un documento</string>
+    <string name="tour_document_spotlight_body">Aquí aparecen tus lecturas. Toca una tarjeta para abrir el documento.</string>
+    <string name="tour_mode_toggle_spotlight_title">Modos de lectura</string>
+    <string name="tour_mode_toggle_spotlight_body">Elige Texto para leer, Escuchar para seguir las frases u Original para ver el diseño del PDF.</string>
+    <string name="tour_player_panel_spotlight_title">Controles de reproducción</string>
+    <string name="tour_player_panel_spotlight_body">Toca el panel o arrástralo hacia arriba para cambiar la velocidad, el tono, la voz o el temporizador.</string>
+    <string name="tour_reader_text_spotlight_title">Selección y herramientas de estudio</string>
+    <string name="tour_reader_text_spotlight_body">Mantén pulsada una frase para marcarla, añadir una nota, traducirla o consultar al asistente de IA.</string>
+    <string name="tour_congratulations_title">¡Recorrido completado!</string>
+    <string name="tour_congratulations_body">Completa las misiones pendientes de la lista para conocer todas las funciones.</string>
+</resources>

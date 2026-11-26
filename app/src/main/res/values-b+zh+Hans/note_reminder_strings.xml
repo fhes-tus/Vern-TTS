@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="note_reminder_channel">笔记提醒</string>
+    <string name="note_reminder_channel_description">为笔记设置的提醒</string>
+    <string name="note_reminder_title">笔记提醒</string>
+    <string name="note_reminder_open">点按以打开笔记。</string>
+    <string name="note_reminder_missing">此笔记已不可用。</string>
+</resources>

@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.AskAiSettings
+import com.veritas.reader.R
 import com.veritas.reader.ReaderSettings
 import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.aiAssistantIcon
@@ -62,9 +63,32 @@ fun AccessibilitySettingsDialog(
     onToggleBionicReading: () -> Unit = {},
     onToggleShakeToExtend: () -> Unit = {},
     onToggleCollapsibleBars: () -> Unit = {},
-    onToggleNavLabels: () -> Unit = {}
+    onToggleNavLabels: () -> Unit = {},
+    onRestoreDefaults: () -> Unit = {}
 ) {
     val scheme = MaterialTheme.colorScheme
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var showNotificationAccess by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    fun notificationsBlocked(): Boolean = !androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        showNotificationAccess = settings.streakReminderEnabled && notificationsBlocked()
+    }
+    if (showNotificationAccess) {
+        com.veritas.reader.VernAlertDialog(
+            onDismissRequest = { showNotificationAccess = false },
+            title = { Text(menuString(R.string.streak_notification_title)) },
+            text = { Text(menuString(R.string.streak_notification_description)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showNotificationAccess = false
+                    val intent = android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                    runCatching { context.startActivity(intent) }
+                }) { Text(menuString(R.string.streak_notification_open)) }
+            },
+            dismissButton = { TextButton(onClick = { showNotificationAccess = false }) { Text(menuString(R.string.ui_cancel)) } }
+        )
+    }
     FullScreenSettingsScaffold(title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_accessibility), onBack = onDismiss) {
         Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_comfort_comes_first), style = MaterialTheme.typography.headlineSmall, color = scheme.onSurface)
@@ -73,7 +97,7 @@ fun AccessibilitySettingsDialog(
         AccessibilityGroup(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_reading_focus)) {
             AccessibilityToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_collapsible_reader_bars), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_tap_the_page_to_hide_or_show_reader_controls), settings.collapsibleReaderBars, onToggleCollapsibleBars)
             AccessibilityToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_bionic_reading), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_emphasise_the_first_letters_of_each_word), settings.bionicReading, onToggleBionicReading)
-            AccessibilityToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_section_labels), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_show_section_numbers_for_easier_study_and_search), settings.showSectionNumbers, onToggleSectionNumbers)
+            AccessibilityToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_section_labels), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.reader_show_labels_detail), settings.showSectionNumbers, onToggleSectionNumbers)
         }
         AccessibilityGroup(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_motion_clarity)) {
             AccessibilityToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_reduce_motion), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_keep_decorative_animations_still), settings.reduceMotion, onToggleReduceMotion)
@@ -103,7 +127,10 @@ fun AccessibilitySettingsDialog(
                     VeritasSleekSlider(value = settings.dailyGoalMinutes.coerceIn(5, 180).toFloat(),
                         onValueChange = { onGoalMinutesChange(it.toInt().coerceIn(5, 180)) }, valueRange = 5f..180f, steps = 34)
                 }
-                AccessibilityToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_streak_reminder), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_an_evening_nudge_when_your_goal_is_at_risk), settings.streakReminderEnabled, onToggleStreakReminder)
+                AccessibilityToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_streak_reminder), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_an_evening_nudge_when_your_goal_is_at_risk), settings.streakReminderEnabled) {
+                    if (!settings.streakReminderEnabled && notificationsBlocked()) showNotificationAccess = true
+                    onToggleStreakReminder()
+                }
             }
             AccessibilityToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_shake_to_extend_timer), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_shake_in_the_final_minute_to_add_ten_minutes), settings.shakeToExtendSleepTimer, onToggleShakeToExtend)
         }
@@ -111,6 +138,7 @@ fun AccessibilitySettingsDialog(
             AccessibilityToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_adaptive_cover_theme), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_let_your_current_book_colour_the_reading_space), settings.adaptiveCover, onToggleAdaptiveCover)
             AccessibilityToggle(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_navigation_labels), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_show_names_beneath_navigation_icons), settings.showNavLabels, onToggleNavLabels)
         }
+        RestorePageDefaults(onRestoreDefaults)
         Spacer(Modifier.height(16.dp))
     }
 }

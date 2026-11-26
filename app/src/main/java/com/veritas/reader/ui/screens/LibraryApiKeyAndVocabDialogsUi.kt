@@ -60,18 +60,24 @@ import com.veritas.reader.VocabularyEntry
 import com.veritas.reader.copyTextToClipboard
 import com.veritas.reader.shareVocabularyAsImage
 import com.veritas.reader.shareVocabularyAsWords
+import kotlinx.coroutines.launch
 
 
 @Composable
 internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
     var selectedProvider by remember { mutableStateOf(GeminiStudyService.getProvider(context)) }
-    var keyDraft by remember { mutableStateOf(GeminiStudyService.getApiKey(context)) }
-    var modelDraft by remember { mutableStateOf(GeminiStudyService.getModel(context).ifBlank { selectedProvider.defaultModel }) }
-    var endpointDraft by remember { mutableStateOf(GeminiStudyService.getCustomEndpoint(context).ifBlank { selectedProvider.defaultEndpoint }) }
+    val configuredProfile = remember(selectedProvider) { GeminiStudyService.profileFor(context, selectedProvider) }
+    var keyDraft by remember(selectedProvider) { mutableStateOf(configuredProfile.apiKey) }
+    var modelDraft by remember(selectedProvider) { mutableStateOf(configuredProfile.model) }
+    var endpointDraft by remember(selectedProvider) { mutableStateOf(configuredProfile.endpoint) }
+    val legacyKey = remember(selectedProvider) { GeminiStudyService.legacyKeyForSetup(context, selectedProvider) }
+    val saveScope = androidx.compose.runtime.rememberCoroutineScope()
+    var saving by remember { mutableStateOf(false) }
+    var saveError by remember(selectedProvider) { mutableStateOf<String?>(null) }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { if (!saving) onDismiss() },
         title = {
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ai_provider_key_setup), style = MaterialTheme.typography.titleMedium)
         },
@@ -105,6 +111,7 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                             FilterChip(
                                 selected = modelDraft.trim() == recModel,
                                 onClick = { modelDraft = recModel },
+                                enabled = !saving,
                                 leadingIcon = if (modelDraft.trim() == recModel) {
                                     {
                                         Icon(
@@ -124,6 +131,7 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = modelDraft,
                     onValueChange = { modelDraft = it },
+                    enabled = !saving,
                     label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_model_name_id)) },
                     placeholder = { Text(selectedProvider.defaultModel) },
                     singleLine = true,
@@ -165,11 +173,8 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                         }
                         FilterChip(
                             selected = selectedProvider == provider,
-                            onClick = {
-                                selectedProvider = provider
-                                modelDraft = provider.defaultModel
-                                endpointDraft = provider.defaultEndpoint
-                            },
+                            onClick = { selectedProvider = provider },
+                            enabled = !saving,
                             label = {
                                 Icon(
                                     imageVector = icon,
@@ -185,6 +190,9 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = keyDraft,
                     onValueChange = { keyDraft = it },
+                    enabled = !saving,
+                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
                     label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_081, com.veritas.reader.ui.screens.localizedUiValue(selectedProvider.label))) },
                     placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_api_key)) },
                     singleLine = true,
@@ -192,10 +200,14 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(12.dp)
                 )
 
-                if (selectedProvider == AiProvider.CUSTOM || selectedProvider == AiProvider.OPENROUTER) {
+                if (selectedProvider == AiProvider.CUSTOM) {
                     OutlinedTextField(
                         value = endpointDraft,
-                        onValueChange = { endpointDraft = it },
+                        onValueChange = {
+                            if (endpointDraft.trim() != it.trim()) keyDraft = ""
+                            endpointDraft = it
+                        },
+                        enabled = !saving,
                         label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_api_endpoint_url)) },
                         placeholder = { Text(selectedProvider.defaultEndpoint) },
                         singleLine = true,
@@ -203,6 +215,15 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
                         shape = RoundedCornerShape(12.dp)
                     )
                 }
+
+                if (legacyKey.isNotBlank() && keyDraft.isBlank() && endpointDraft == configuredProfile.endpoint) {
+                    Text(menuString(com.veritas.reader.R.string.study_ai_legacy_key_hint), style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { keyDraft = legacyKey }, enabled = !saving) {
+                        Text(menuString(com.veritas.reader.R.string.study_ai_reuse_legacy_key))
+                    }
+                }
+
+                saveError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
 
                 Text(
                     when (selectedProvider) {
@@ -220,26 +241,37 @@ internal fun GeminiApiKeyDialog(onDismiss: () -> Unit) {
         },
         confirmButton = {
             Button(
+                enabled = !saving,
                 onClick = {
-                    GeminiStudyService.saveProvider(context, selectedProvider)
-                    GeminiStudyService.saveApiKey(context, keyDraft.trim())
-                    GeminiStudyService.saveModel(context, modelDraft.trim())
-                    if (selectedProvider == AiProvider.CUSTOM || selectedProvider == AiProvider.OPENROUTER) {
-                        GeminiStudyService.saveCustomEndpoint(context, endpointDraft.trim())
+                    val provider = selectedProvider
+                    val model = modelDraft
+                    val endpoint = endpointDraft
+                    val key = keyDraft
+                    saving = true
+                    saveError = null
+                    saveScope.launch {
+                        try {
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                GeminiStudyService.saveProfile(context, provider, model, endpoint, key)
+                            }
+                            onDismiss()
+                        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                            throw cancelled
+                        } catch (error: IllegalArgumentException) {
+                            saveError = error.message
+                        } catch (_: Exception) {
+                            saveError = context.getString(com.veritas.reader.R.string.study_ai_save_failed)
+                        } finally {
+                            saving = false
+                        }
                     }
-                    Toast.makeText(
-                        context,
-                        if (keyDraft.isNotBlank()) "${selectedProvider.label} API key saved!" else "API key cleared",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    onDismiss()
                 }
             ) {
                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
+            TextButton(onClick = onDismiss, enabled = !saving) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) }
         }
     )
 }

@@ -63,6 +63,9 @@ object MathText {
     // Underscore not adjacent to another underscore, so note markdown's "__underline__"
     // is never mistaken for a subscript.
     private val subCharRegex = Regex("""(?<!_)_(?!_)([A-Za-z0-9+\-=()])""")
+    private val dollarDelimitedMath = Regex(
+        """\$(?![ \t]*[+-]?\d+(?:[.,]\d+)*[,:;]?[ \t]+\p{L}{2})([^$\n]{1,200})\$(?![ \t\u00A0\u202F]*[+-]?\d)"""
+    )
 
     fun beautify(input: String): String {
         if (input.isEmpty()) return input
@@ -72,7 +75,7 @@ object MathText {
         }
         var s = input
         // Strip inline-math delimiters, keeping the inner content.
-        s = s.replace(Regex("""\$([^$\n]{1,200})\$"""), "$1")
+        s = s.replace(dollarDelimitedMath, "$1")
         s = s.replace("\\(", "").replace("\\)", "").replace("\\[", "").replace("\\]", "")
         // \frac{a}{b} → (a)/(b) — inline, before command expansion consumes braces.
         s = fracRegex.replace(s) { m ->

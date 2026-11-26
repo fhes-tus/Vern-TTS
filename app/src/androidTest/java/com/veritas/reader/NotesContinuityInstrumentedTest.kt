@@ -56,6 +56,50 @@ class NotesContinuityInstrumentedTest {
         rule.onNodeWithText("Words").assertExists()
     }
 
+    @Test fun aSavedLinkWithStaleTypingPrefixesRendersOnePreview() {
+        val base = "http://preview.invalid/passages/"
+        val links = listOf(NoteLink(base, "preview.invalid"), NoteLink("${base}1", "preview.invalid"),
+            NoteLink("${base}18", "Saved passage"))
+        val note = GeneralNote("link-prefixes", "Reading notes", NoteLinks.write("A saved reflection.", links), 123)
+        rule.setContent {
+            MaterialTheme {
+                GeneralNotesEditor(note, onSave = { _, _, _, _, _, _, _, _, _, _, _ -> }, onDelete = {}, onDismiss = {})
+            }
+        }
+        rule.onAllNodesWithTag("note_link_preview", useUnmergedTree = true).assertCountEquals(1)
+        rule.onNodeWithText("Saved passage").assertExists()
+    }
+
+    @Test fun cachedThumbnailRendersInTheEditorCardAndTheNotesFooter() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val picture = "https://example.org/unique-notes-thumbnail.png"
+        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(picture.toByteArray(Charsets.UTF_8))
+        val filename = digest.joinToString("") { "%02x".format(it) } + ".png"
+        val directory = java.io.File(context.cacheDir, "note-link-thumbnails")
+        directory.mkdirs()
+        val file = java.io.File(directory, filename)
+        val thumbnail = android.graphics.Bitmap.createBitmap(16, 16, android.graphics.Bitmap.Config.ARGB_8888)
+        thumbnail.eraseColor(android.graphics.Color.YELLOW)
+        file.outputStream().use { assertTrue(thumbnail.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)) }
+        thumbnail.recycle()
+        try {
+            val link = NoteLink("https://example.org/illustrated", "Illustrated notes", picture)
+            rule.setContent {
+                MaterialTheme {
+                    androidx.compose.foundation.layout.Column {
+                        NoteLinkCard(link)
+                        NoteLinkCard(link, footer = true)
+                    }
+                }
+            }
+            rule.waitUntil(5_000) {
+                rule.onAllNodesWithTag("note-link-thumbnail", useUnmergedTree = true).fetchSemanticsNodes().size == 2
+            }
+        } finally {
+            file.delete()
+        }
+    }
+
     @Test fun editingAChecklistRetainsItsDocumentAttachment() {
         val file = NoteBlock.File("/data/notes_media/owned.pdf", "Attached document.pdf", 50)
         val body = VeritasNoteEditing.serializeNoteBlocks(listOf(file)) + "\n[ ] Original task"

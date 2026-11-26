@@ -800,6 +800,18 @@ fun ReaderSettingsDialog(
                 }
             }
         }
+        RestorePageDefaults {
+            val defaults = ReaderSettings()
+            onReadingSettingsChange(settings.copy(
+                themeId = defaults.themeId, previousThemeId = null, themePackId = defaults.themePackId,
+                uiFontId = defaults.uiFontId, paperToneMode = defaults.paperToneMode, amoledMode = defaults.amoledMode,
+                fontSizeSp = defaults.fontSizeSp, sectionSpacingDp = defaults.sectionSpacingDp,
+                glassFloatingControls = defaults.glassFloatingControls, vibrantHero = defaults.vibrantHero,
+                autoPlayQueue = defaults.autoPlayQueue,
+                readingLayout = defaults.readingLayout, pageTurnStyle = defaults.pageTurnStyle,
+                pdfNavigationMode = defaults.pdfNavigationMode
+            ))
+        }
     }
 }
 

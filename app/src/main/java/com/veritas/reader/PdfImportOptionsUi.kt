@@ -48,6 +48,7 @@ internal fun PdfImportOptionsDialog(
     onOptionsChange: (PdfImportOptions) -> Unit,
     onTextOptionsChange: (TextImportOptions) -> Unit,
     onPickPdf: () -> Unit,
+    onRestoreDefaults: () -> Unit,
     onDismiss: () -> Unit
 ) {
     var startPageDraft by remember(options.startPage) {
@@ -99,6 +100,7 @@ internal fun PdfImportOptionsDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                item { com.veritas.reader.ui.screens.RestorePageDefaults(onRestoreDefaults) }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedTextField(
@@ -214,13 +216,6 @@ internal fun PdfImportOptionsDialog(
                         title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_repair_hyphenated_line_breaks),
                         checked = options.repairHyphenation,
                         onCheckedChange = { onOptionsChange(options.copy(repairHyphenation = it)) }
-                    )
-                }
-                item {
-                    PdfImportToggleRow(
-                        title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_include_page_markers),
-                        checked = options.includePageMarkers,
-                        onCheckedChange = { onOptionsChange(options.copy(includePageMarkers = it)) }
                     )
                 }
                 item {

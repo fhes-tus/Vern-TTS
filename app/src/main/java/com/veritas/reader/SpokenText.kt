@@ -23,6 +23,11 @@ class SpokenText private constructor(
         SpokenText(text.substring(start, end), positions.copyOfRange(start, end), ends.copyOfRange(start, end),
             maxOf(sourceOffset(end), sourceEndOffset(end)))
 
+    internal fun rebase(sourceStart: Int, sourceEnd: Int): SpokenText = SpokenText(
+        text, IntArray(positions.size) { positions[it] - sourceStart },
+        IntArray(ends.size) { ends[it] - sourceStart }, sourceEnd - sourceStart
+    )
+
     private data class Edit(val start: Int, val end: Int, val value: String)
 
     fun replace(pattern: Regex, replacement: (MatchResult) -> String): SpokenText {
@@ -152,7 +157,7 @@ object ReadingSymbols {
     fun prepare(source: String, english: Boolean = true): SpokenText = expand(SpokenText.identity(source), english).sanitize()
 
     fun expand(input: SpokenText, english: Boolean = true): SpokenText {
-        var spoken = input
+        var spoken = ReadingTextCleanup.withoutUnderlineMarkup(input)
         // Presentation ligatures are typographic variants. æ and œ are language letters.
         val ligatures = mapOf("ﬁ" to "fi", "ﬂ" to "fl", "ﬀ" to "ff", "ﬃ" to "ffi", "ﬄ" to "ffl")
         spoken = spoken.replace(Regex("[ﬁﬂﬀﬃﬄ]")) { ligatures.getValue(it.value) }
@@ -183,6 +188,21 @@ object ReadingSymbols {
             when (power) { "2" -> " squared "; "3" -> " cubed "; else -> " to the power of $power " }
         }
         spoken = spoken.replace(Regex("[₀₁₂₃₄₅₆₇₈₉]+")) { match -> " subscript " + match.value.map { subscripts.indexOf(it).digitToChar() }.joinToString("") + " " }
+        // Recognize the complete citation before numeric dashes can become subtraction.
+        spoken = spoken.replace(bibleReference) { match ->
+            val bookKey = citationSpacing.replace(match.groupValues[1].lowercase(Locale.ROOT), " ")
+            val bookName = bibleBooks[bookKey] ?: return@replace match.value
+            val chapter = match.groupValues[2]
+            val startVerse = match.groupValues[3]
+            val endVerse = match.groupValues[4]
+            if (endVerse.isNotEmpty()) {
+                "$bookName $chapter verse $startVerse to $endVerse"
+            } else {
+                "$bookName $chapter verse $startVerse"
+            }
+        }
+        spoken = SpeechAmounts.expand(spoken)
+
         val rangeContext = Regex("\\b(pages?|years?|between|from|range|aged?|ages?|through|dates?|chapters?|verses?)\\b", RegexOption.IGNORE_CASE).containsMatchIn(input.text)
         spoken = spoken.replace(Regex("(?<=\\d)\\s*[-–]\\s*(?=\\d)")) { match ->
             val before = spoken.text.substring(0, match.range.first).takeLastWhile(Char::isDigit)
@@ -209,24 +229,6 @@ object ReadingSymbols {
         }
         spoken = spoken.replace(Regex("\\b(?:e\\.g\\.|i\\.e\\.|et al\\.)(?=\\s|[,;:]|$)", RegexOption.IGNORE_CASE)) { match ->
             when (match.value.lowercase(Locale.ROOT)) { "e.g." -> "for example"; "i.e." -> "that is"; else -> "and others" }
-        }
-
-        // Bible citations: e.g. "Matt 4:5-9" -> "Matthew 4 verse 5 to 9", "1 Cor 2:3" or "I Cor 2:3" -> "First Corinthians 2 verse 3"
-        spoken = spoken.replace(Regex("\\b((?:[123I]{1,3}\\s+)?[A-Za-z]+)\\.?\\s+(\\d+)[:.](\\d+)(?:[-–](\\d+))?\\b")) { match ->
-            val bookKey = match.groupValues[1].lowercase(Locale.ROOT).replace(Regex("\\s+"), " ").trim()
-            val bookName = bibleBooks[bookKey]
-            if (bookName != null) {
-                val chapter = match.groupValues[2]
-                val startVerse = match.groupValues[3]
-                val endVerse = match.groupValues[4]
-                if (endVerse.isNotEmpty()) {
-                    "$bookName $chapter verse $startVerse to $endVerse"
-                } else {
-                    "$bookName $chapter verse $startVerse"
-                }
-            } else {
-                match.value
-            }
         }
 
         // Honorifics and title abbreviations with trailing dots: convert to full words without dots
@@ -259,6 +261,17 @@ object ReadingSymbols {
         return spoken
     }
 
+    private const val CITATION_SPACE = """[ \t\u00A0\u2007\u202F\u200B\u2060\uFEFF]"""
+    private val citationSpacing = Regex("$CITATION_SPACE+")
+    private val bibleReference by lazy {
+        val books = bibleBooks.keys.sortedByDescending { it.length }.joinToString("|") { alias ->
+            alias.split(' ').joinToString("$CITATION_SPACE+") { Regex.escape(it) }
+        }
+        Regex(
+            """(?<![\p{L}\p{N}_])($books)\.?$CITATION_SPACE+(\d+)(?:$CITATION_SPACE*[:：.]$CITATION_SPACE*|$CITATION_SPACE+verses?$CITATION_SPACE+)(\d+)(?:$CITATION_SPACE*[-‐‑‒–—−－]$CITATION_SPACE*(\d+))?\b""",
+            RegexOption.IGNORE_CASE
+        )
+    }
     private val bibleBooks = mapOf(
         "gen" to "Genesis", "ge" to "Genesis", "genesis" to "Genesis",
         "ex" to "Exodus", "exod" to "Exodus", "exodus" to "Exodus",

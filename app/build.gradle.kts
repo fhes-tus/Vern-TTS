@@ -37,6 +37,8 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // Omit upload-only native symbols from the AAB; runtime libraries and R8 mapping remain.
+            ndk.debugSymbolLevel = "NONE"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -54,8 +56,8 @@ android {
         minSdk = 28
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 49
-        versionName = "2.8.2"
+        versionCode = 54
+        versionName = "3.0.0"
 
         ndk {
             abiFilters.addAll(setOf("armeabi-v7a", "arm64-v8a"))
@@ -94,7 +96,7 @@ android {
 
     lint {
         checkReleaseBuilds = true
-        abortOnError = false
+        abortOnError = true
     }
 }
 
@@ -164,7 +166,7 @@ dependencies {
     testImplementation("org.json:json:20231013")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.0")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.0")
 }

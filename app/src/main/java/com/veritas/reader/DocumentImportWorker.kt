@@ -10,12 +10,17 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
+import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+
+private val importExtractionSlots = Semaphore(2)
 
 class DocumentImportWorker(
     appContext: Context,
@@ -23,55 +28,85 @@ class DocumentImportWorker(
 ) : CoroutineWorker(appContext, workerParams) {
     private val notificationId = (id.hashCode() and 0x3fffffff) * 2
 
+    private sealed interface ImportOutcome {
+        data class Imported(val documentId: String?, val originalCopyWarning: String? = null, val duplicate: Boolean = false) : ImportOutcome
+        data class Rejected(val output: Data = Data.EMPTY) : ImportOutcome
+    }
+
     override suspend fun doWork(): Result {
-        val result = try {
-            importDocument()
+        val outcome = try {
+            importExtractionSlots.withPermit { importDocument() }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
             Log.e("DocumentImportWorker", "Could not start import", error)
-            Result.failure(workDataOf("error" to (error.message ?: "Could not start import")))
+            ImportOutcome.Rejected(workDataOf("error" to (error.message ?: "Could not start import")))
         } finally {
             inputData.getString("uri")?.let { ScanCaptureStore.discard(applicationContext, Uri.parse(it)) }
         }
-        if (!inputData.getBoolean("batchImport", false)) return result
-        // A rejected file is a completed batch item, so later files still run.
-        // Preserve its error/partial ID for truthful UI reporting.
-        if (result is Result.Failure) {
-            val data = result.outputData
-            return Result.success(workDataOf("error" to (data.getString("error") ?: "Import failed"),
-                "partialDocumentId" to data.getString("partialDocumentId")))
-        }
-        if (result is Result.Success && inputData.getBoolean("queueAfterImport", false)) {
-            result.outputData.getString("documentId")?.let { documentId ->
-                // Commit before the next worker starts, keeping the selected order.
-                try {
-                    DocumentRepository(applicationContext).addToQueue(documentId)
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (error: Exception) {
-                    Log.e("DocumentImportWorker", "Imported document could not be queued", error)
-                    return Result.success(workDataOf("documentId" to documentId,
-                        "queueError" to (error.message ?: "Could not add to reading queue")))
+        val isBatch = inputData.getBoolean("batchImport", false)
+        when (outcome) {
+            is ImportOutcome.Rejected -> {
+                if (!isBatch) return Result.failure(outcome.output)
+                // Complete the batch item so later files still run, while retaining the import error.
+                return Result.success(workDataOf(
+                    "error" to (outcome.output.getString("error") ?: "Import failed"),
+                    "partialDocumentId" to outcome.output.getString("partialDocumentId")
+                ))
+            }
+            is ImportOutcome.Imported -> {
+                val documentId = outcome.documentId
+                if (isBatch && documentId != null && inputData.getBoolean("queueAfterImport", false)) {
+                    // Commit before the next worker starts, keeping the selected order.
+                    try {
+                        DocumentRepository(applicationContext).addToQueue(documentId)
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (error: Exception) {
+                        Log.e("DocumentImportWorker", "Imported document could not be queued", error)
+                        return Result.success(workDataOf("documentId" to documentId, "originalCopyWarning" to outcome.originalCopyWarning,
+                            "queueError" to (error.message ?: "Could not add to reading queue")))
+                    }
                 }
+                return Result.success(workDataOf("documentId" to documentId, "originalCopyWarning" to outcome.originalCopyWarning,
+                    "duplicate" to outcome.duplicate))
             }
         }
-        return result
     }
 
-    private suspend fun importDocument(): Result {
+    private suspend fun importDocument(): ImportOutcome {
         val importStarted = android.os.SystemClock.elapsedRealtime()
-        val uriString = inputData.getString("uri") ?: return Result.failure()
-        val title = inputData.getString("title") ?: "Imported document"
-        val isPartial = inputData.getBoolean("isPartial", false)
-
+        val uriString = inputData.getString("uri") ?: return ImportOutcome.Rejected()
         val uri = Uri.parse(uriString)
         val repository = DocumentRepository(applicationContext)
         val existingImport = repository.findDocument(id.toString())
         if (existingImport != null && !existingImport.partial) {
-            return Result.success(workDataOf("documentId" to existingImport.id))
+            return ImportOutcome.Imported(existingImport.id, existingImport.takeIf { it.originalFileName.isBlank() }
+                ?.let { "No original file was saved. Original View is unavailable." })
         }
         val validated = validateDocumentImport(applicationContext, uri)
+        val title = inputData.getString("title") ?: cleanDocumentTitle(validated.name).ifBlank { "Imported document" }
+        val context = currentCoroutineContext()
+        val identity = requireNotNull(importFileIdentity(applicationContext, uri, validated) { context.ensureActive() }) {
+            "Could not read the complete original file. Choose it again and retry."
+        }
+        return withImportIdentity(identity) {
+            val saved = existingImport ?: repository.findImportedCopy(identity) { context.ensureActive() }
+            val requestedEnd = inputData.getInt("pdf_endPage", -1)
+            val refresh = saved != null && validated.format == ImportFormat.PDF &&
+                inputData.getBoolean("pdf_forceFreshExtraction", false) &&
+                inputData.getInt("pdf_startPage", -1) <= 1 && (requestedEnd < 0 || requestedEnd >= saved.pageCount) &&
+                inputData.getFloat("pdf_cropLeft", -1f) == -1f
+            if (saved != null && !saved.partial && !refresh) ImportOutcome.Imported(saved.id, duplicate = true)
+            else extractDocument(uri, title, repository, validated, saved, importStarted)
+        }
+    }
+
+    private suspend fun extractDocument(uri: Uri, title: String, repository: DocumentRepository,
+        validated: ValidatedImport, existingImport: SavedDocument?, importStarted: Long): ImportOutcome {
+        val isPartial = inputData.getBoolean("isPartial", false)
+        var originalCopyWarning = existingImport?.takeIf { it.originalFileName.isBlank() }
+            ?.let { "No original file was saved. Original View is unavailable." }
         var publishedDocumentId: String? = existingImport?.id
 
         // Setup notification channel
@@ -154,10 +189,9 @@ class DocumentImportWorker(
                             val normalizedOptions = pdfOptions.normalized(totalPages)
                             val start = normalizedOptions.startPage ?: 1
                             val end = normalizedOptions.endPage ?: totalPages
-                            val chunkSize = 25
+                            val chunkSize = if (inputData.getBoolean("batchImport", false)) 48 else 25
                             var currentStart = start
                             var documentId: String? = null
-                            val repository = DocumentRepository(applicationContext)
 
                             while (currentStart <= end) {
                                 currentCoroutineContext().ensureActive()
@@ -191,21 +225,23 @@ class DocumentImportWorker(
                                             continue
                                         }
                                         showCompletionNotification("Import Failed", "No readable text was found in $title.")
-                                        return Result.failure(workDataOf("error" to "No readable text was found."))
+                                        return ImportOutcome.Rejected(workDataOf("error" to "No readable text was found."))
                                     }
 
                                     val detectedLanguage = LanguageDetector.detectLanguage(extracted.text)
-                                    val (newDocument, _) = repository.createDocumentWithResult(
+                                    val (newDocument, originalCopyError) = repository.createDocumentWithResult(
                                         title = extracted.title,
                                         text = extracted.text,
                                         sourceLabel = extracted.sourceLabel,
                                         originalUri = uri,
-                                        originalMimeType = applicationContext.contentResolver.getType(uri).orEmpty(),
+                                        originalDisplayName = validated.name,
+                                        originalMimeType = validated.mimeType,
                                         pageCount = totalPages,
                                         partial = !isComplete || isPartial,
                                         language = detectedLanguage,
                                         documentId = id.toString()
                                     )
+                                    originalCopyWarning = originalCopyError?.take(1024)
                                     documentId = newDocument.id
                                     publishedDocumentId = documentId
 
@@ -233,8 +269,7 @@ class DocumentImportWorker(
                                 currentStart = currentEnd + 1
                             }
 
-                            showCompletionNotification("Import Complete", "$title has been fully added to your library.")
-                            return Result.success(workDataOf("documentId" to documentId))
+                            return completeImport(title, documentId, originalCopyWarning)
                         }
                     } finally {
                         managedPdf.close()
@@ -262,24 +297,28 @@ class DocumentImportWorker(
             currentCoroutineContext().ensureActive()
             if (ReaderTextIndex.stripInternalMarkers(extracted.text).isBlank()) {
                 showCompletionNotification("Import Failed", "No readable text was found in $title.")
-                Result.failure(workDataOf("error" to "No readable text was found."))
+                ImportOutcome.Rejected(workDataOf("error" to "No readable text was found."))
             } else {
-                val repository = DocumentRepository(applicationContext)
                 val detectedLanguage = LanguageDetector.detectLanguage(extracted.text)
                 val newDocument = if (existingImport != null) {
                     checkNotNull(repository.updateDocumentText(existingImport.id, extracted.text,
                         partial = extracted.partial || isPartial)) { "The partial reading could not be resumed." }
-                } else repository.createDocumentWithResult(
-                    title = extracted.title,
-                    text = extracted.text,
-                    sourceLabel = extracted.sourceLabel,
-                    originalUri = uri,
-                    originalMimeType = applicationContext.contentResolver.getType(uri).orEmpty(),
-                    pageCount = extracted.pageCount,
-                    partial = extracted.partial || isPartial,
-                    language = detectedLanguage,
-                    documentId = id.toString()
-                ).document
+                } else {
+                    val (document, originalCopyError) = repository.createDocumentWithResult(
+                        title = extracted.title,
+                        text = extracted.text,
+                        sourceLabel = extracted.sourceLabel,
+                        originalUri = uri,
+                        originalDisplayName = validated.name,
+                        originalMimeType = validated.mimeType,
+                        pageCount = extracted.pageCount,
+                        partial = extracted.partial || isPartial,
+                        language = detectedLanguage,
+                        documentId = id.toString()
+                    )
+                    originalCopyWarning = originalCopyError?.take(1024)
+                    document
+                }
 
                 runCatching {
                     val originalFile = repository.originalFile(newDocument)
@@ -288,8 +327,7 @@ class DocumentImportWorker(
                     }
                 }
 
-                showCompletionNotification("Import Complete", "$title has been added to your library.")
-                Result.success(workDataOf("documentId" to newDocument.id))
+                completeImport(title, newDocument.id, originalCopyWarning)
             }
         } catch (e: CancellationException) {
             Log.d("DocumentImportWorker", "Import cancelled")
@@ -297,8 +335,15 @@ class DocumentImportWorker(
         } catch (e: Exception) {
             Log.e("DocumentImportWorker", "Failed to import document", e)
             showCompletionNotification("Import Failed", "Could not import $title: ${e.message}")
-            Result.failure(workDataOf("error" to (e.message ?: "Extraction failed"), "partialDocumentId" to publishedDocumentId))
+            ImportOutcome.Rejected(workDataOf("error" to (e.message ?: "Extraction failed"), "partialDocumentId" to publishedDocumentId))
         }
+    }
+
+    private fun completeImport(title: String, documentId: String?, originalCopyWarning: String?): ImportOutcome.Imported {
+        val headline = if (originalCopyWarning == null) "Import Complete" else "Reading added without its original"
+        val detail = "$title has been added to your library." + originalCopyWarning?.let { " $it" }.orEmpty()
+        showCompletionNotification(headline, detail)
+        return ImportOutcome.Imported(documentId, originalCopyWarning)
     }
 
     private fun showCompletionNotification(title: String, message: String) {
@@ -311,6 +356,7 @@ class DocumentImportWorker(
         val notification = NotificationCompat.Builder(applicationContext, "import_channel")
             .setContentTitle(title)
             .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setSmallIcon(R.drawable.ic_stat_veritas)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)

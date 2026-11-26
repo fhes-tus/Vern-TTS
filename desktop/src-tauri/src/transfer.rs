@@ -14,10 +14,16 @@ use std::{
 };
 
 pub const LIMIT: usize = 64 * 1024 * 1024;
+pub const WAV_LIMIT: usize = 1024 * 1024 * 1024;
+
 pub fn wav_bytes(audio: crate::speech::Audio) -> Result<Vec<u8>> {
+    wav_bytes_bounded(audio, WAV_LIMIT)
+}
+
+pub fn wav_bytes_bounded(audio: crate::speech::Audio, max_bytes: usize) -> Result<Vec<u8>> {
     if !(8000..=96000).contains(&audio.sample_rate)
         || audio.samples.is_empty()
-        || audio.samples.len() > (LIMIT - 44) / 2
+        || audio.samples.len() > (max_bytes - 44) / 2
         || audio.samples.iter().any(|s| !s.is_finite())
     {
         return Err("The voice returned unsupported audio for WAV export.".into());
@@ -782,5 +788,191 @@ impl Storage {
             return Err("Export exceeds the 64 MB limit.".into());
         }
         Ok(content.into_bytes())
+    }
+    pub fn export_android_sync_pack(&self) -> Result<Vec<u8>> {
+        use serde_json::json;
+        use std::io::Cursor;
+        use zip::{write::SimpleFileOptions, CompressionMethod, ZipWriter};
+
+        let snapshot = self.backup_snapshot(true)?;
+        let mut documents = Vec::new();
+        for book in &snapshot.books {
+            let full_text = book.chunks.join("\n\n");
+            documents.push(json!({
+                "id": book.id,
+                "title": book.title,
+                "author": book.author,
+                "format": book.format,
+                "text": full_text,
+                "pageCount": 1,
+                "chunkCount": book.chunks.len(),
+                "currentIndex": book.position,
+                "sentenceIndexVersion": 2,
+                "originalFileName": serde_json::Value::Null,
+            }));
+        }
+
+        let annotations: Vec<_> = snapshot
+            .annotations
+            .iter()
+            .map(|a| {
+                json!({
+                    "id": a.id,
+                    "documentId": a.book_id,
+                    "sentenceIndex": a.position,
+                    "text": a.text,
+                    "bookmark": a.kind == "bookmark",
+                })
+            })
+            .collect();
+
+        let flashcards: Vec<_> = snapshot
+            .flashcards
+            .iter()
+            .map(|c| {
+                json!({
+                    "id": c.id,
+                    "documentId": c.book_id,
+                    "sentenceIndex": c.position,
+                    "prompt": c.front,
+                    "answer": c.back,
+                    "deck": c.deck,
+                    "repetitions": c.repetitions,
+                    "interval": c.interval_days,
+                    "ease": c.ease,
+                    "due": c.due_at,
+                })
+            })
+            .collect();
+
+        let general_notes: Vec<_> = snapshot
+            .notes
+            .iter()
+            .map(|n| {
+                json!({
+                    "id": n.id,
+                    "title": n.title,
+                    "content": n.content,
+                    "text": n.content,
+                    "pinned": n.pinned,
+                    "isChecklist": n.is_checklist,
+                    "color": n.color,
+                    "notebookId": n.label_ids.first().cloned(),
+                    "labelIds": n.label_ids,
+                    "createdAt": n.created_at,
+                    "updatedAt": n.updated_at,
+                })
+            })
+            .collect();
+
+        let notebooks: Vec<_> = snapshot
+            .notebooks
+            .iter()
+            .map(|nb| {
+                json!({
+                    "id": nb.id,
+                    "name": nb.name,
+                    "createdAt": nb.created_at,
+                })
+            })
+            .collect();
+
+        let reading_history: Vec<_> = snapshot
+            .opened_books
+            .iter()
+            .map(|ob| {
+                json!({
+                    "documentId": ob.book_id,
+                    "lastOpened": ob.opened_at,
+                    "lastIndex": ob.position,
+                })
+            })
+            .collect();
+
+        let root = json!({
+            "schema": "veritas.reader.backup.v1",
+            "documents": documents,
+            "annotations": annotations,
+            "flashcards": flashcards,
+            "quizzes": snapshot.quizzes,
+            "generalNotes": general_notes,
+            "noteNotebooks": notebooks,
+            "readingHistory": reading_history,
+            "queue": snapshot.settings.queue,
+            "readingLists": snapshot.reading_lists,
+            "pronunciationRules": snapshot.settings.pronunciation_rules,
+        });
+
+        let json_bytes = serde_json::to_vec_pretty(&root).map_err(error)?;
+
+        let mut buffer = Cursor::new(Vec::new());
+        {
+            let mut zip = ZipWriter::new(&mut buffer);
+            let options =
+                SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
+
+            zip.start_file("backup.json", options).map_err(error)?;
+            zip.write_all(&json_bytes).map_err(error)?;
+
+            for source in &snapshot.sources {
+                if let Some(file) = self.source_file(&source.book_id)? {
+                    let entry_name = source.archive_name()?;
+                    zip.start_file(entry_name, options).map_err(error)?;
+                    zip.write_all(&file.bytes).map_err(error)?;
+                }
+            }
+
+            zip.finish().map_err(error)?;
+        }
+
+        Ok(buffer.into_inner())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn android_sync_pack_generates_valid_zip_with_backup_json() {
+        use std::io::{Cursor, Read};
+        use zip::ZipArchive;
+
+        let path =
+            std::env::temp_dir().join(format!("vern-android-sync-{}.sqlite", uuid::Uuid::new_v4()));
+        let mut db = Storage::open(&path).unwrap();
+        let book = db
+            .save_book(Book {
+                id: String::new(),
+                title: "Sync Book".into(),
+                author: "Author".into(),
+                format: "TXT".into(),
+                chunks: vec!["Hello world from desktop.".into()],
+                position: 0,
+                favorite: false,
+                collection: String::new(),
+                text_available: true,
+                cover: None,
+                updated_at: 0,
+            })
+            .unwrap();
+
+        let zip_bytes = db.export_android_sync_pack().unwrap();
+        assert!(!zip_bytes.is_empty());
+
+        let mut archive = ZipArchive::new(Cursor::new(zip_bytes)).unwrap();
+        let mut file = archive.by_name("backup.json").unwrap();
+        let mut json_str = String::new();
+        file.read_to_string(&mut json_str).unwrap();
+
+        let root: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+        assert_eq!(root["schema"], "veritas.reader.backup.v1");
+        let docs = root["documents"].as_array().unwrap();
+        assert_eq!(docs.len(), 1);
+        assert_eq!(docs[0]["title"], "Sync Book");
+        assert_eq!(docs[0]["id"], book.id);
+
+        drop(db);
+        let _ = std::fs::remove_file(path);
     }
 }

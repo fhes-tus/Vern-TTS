@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, native } from './api';
 import { Glyph } from './Glyph';
 import { Modal, StudyPage } from './WorkspacePages';
+import { DictionaryBrowser } from './DictionaryBrowser';
 import { parseCards, parseQuiz } from './study-import';
 import type { Book, CardInput, Quiz, QuizQuestion } from './types';
 
@@ -15,7 +16,7 @@ export function StudyHub(props: {
   onAi: () => void;
   onNotes: () => void;
 }) {
-  const [view, setView] = useState<'overview' | 'cards' | 'quizzes'>(
+  const [view, setView] = useState<'overview' | 'cards' | 'quizzes' | 'dictionary'>(
     props.seed ? 'cards' : 'overview',
   );
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -88,7 +89,7 @@ export function StudyHub(props: {
   return (
     <>
       <div className="study-tabs" role="group" aria-label="Study collections">
-        {(['overview', 'cards', 'quizzes'] as const).map((v) => (
+        {(['overview', 'cards', 'quizzes', 'dictionary'] as const).map((v) => (
           <button
             key={v}
             className={v === view ? 'primary small' : 'secondary small'}
@@ -99,12 +100,44 @@ export function StudyHub(props: {
               if (v === 'overview') void refresh().catch(props.onError);
             }}
           >
-            {v === 'overview' ? 'Overview' : v === 'cards' ? 'Flashcards' : 'Quizzes'}
+            {v === 'overview'
+              ? 'Overview'
+              : v === 'cards'
+                ? 'Flashcards'
+                : v === 'quizzes'
+                  ? 'Quizzes'
+                  : 'Dictionary'}
           </button>
         ))}
       </div>
       {view === 'cards' && <StudyPage {...props} />}
-      {view !== 'cards' && (
+      {view === 'dictionary' && (
+        <div className="page study-hub">
+          <DictionaryBrowser
+            onSaveVocabulary={async (word, def) => {
+              const settings = await api.settings();
+              const existing = settings.vocabulary || [];
+              if (!existing.some((v) => v.word.toLowerCase() === word.toLowerCase())) {
+                await api.saveSettings({
+                  ...settings,
+                  vocabulary: [
+                    {
+                      id: crypto.randomUUID(),
+                      word,
+                      definition: def,
+                      bookId: null,
+                      position: null,
+                    },
+                    ...existing,
+                  ],
+                });
+                await refresh();
+              }
+            }}
+          />
+        </div>
+      )}
+      {view !== 'cards' && view !== 'dictionary' && (
         <div className="page study-hub">
           <div className="page-heading">
             <div>
@@ -177,6 +210,12 @@ export function StudyHub(props: {
                     open: props.onNotes,
                   },
                   { name: 'Book notes', count: counts.notes, icon: 'note', open: props.onNotes },
+                  {
+                    name: 'Dictionary',
+                    count: 'Open English WordNet',
+                    icon: 'search',
+                    open: () => setView('dictionary'),
+                  },
                 ].map((item) => (
                   <button className="study-collection" key={item.name} onClick={item.open}>
                     <Glyph name={item.icon} />
@@ -315,7 +354,7 @@ export function StudyHub(props: {
                       {result && o === q.answer && <strong>Correct answer</strong>}
                     </label>
                   ))}
-                  {result && <p>{q.explanation || `Answer: ${q.answer}`}</p>}
+                  {result && <p data-motion-in>{q.explanation || `Answer: ${q.answer}`}</p>}
                 </fieldset>
               ))}
               {!result && (
@@ -432,9 +471,8 @@ function StudyImport({
       title={
         kind === 'cards' ? 'Paste flashcards' : existing ? 'Edit quiz' : 'Create or paste quiz'
       }
-      onClose={() => {
-        if (!busy) onClose();
-      }}
+      dismissible={!busy}
+      onClose={onClose}
     >
       <form
         className="workspace-form"
@@ -527,7 +565,7 @@ function StudyImport({
           <button className="primary" disabled={busy}>
             {busy ? 'Saving…' : items ? 'Save study set' : 'Preview items'}
           </button>
-          <button type="button" className="secondary" disabled={busy} onClick={onClose}>
+          <button type="button" className="secondary" disabled={busy} data-dialog-dismiss>
             Cancel
           </button>
         </div>

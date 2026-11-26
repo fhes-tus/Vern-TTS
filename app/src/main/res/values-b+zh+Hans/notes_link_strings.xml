@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notes_link_cards_privacy">链接预览显示标题和图片。Vern 会从链接网站或图片托管服务获取缺少的信息。</string>
+    <string name="notes_link_load_from_website">从网站加载</string>
+    <string name="notes_link_loading">正在加载网站预览…</string>
+    <string name="notes_link_unavailable">无法加载网站预览。请重试或打开链接。</string>
+</resources>

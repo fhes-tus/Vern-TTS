@@ -1,7 +1,9 @@
 package com.veritas.reader
 
+import android.animation.ValueAnimator
 import android.view.MotionEvent
 import android.view.ViewConfiguration
+import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.pdf.view.PdfView
@@ -56,12 +58,13 @@ internal fun VeritasPdfViewerActivity.navigateToPdfPage(page: Int) {
 }
 
 /** Fit and centre one complete page. A viewport-sized gap keeps adjacent pages outside it. */
-internal fun VeritasPdfViewerActivity.focusPdfPage(page: Int) {
+internal fun VeritasPdfViewerActivity.focusPdfPage(page: Int, turnDirection: Int = 0) {
     val view = pdfView ?: return
     val count = view.pdfDocument?.pageCount ?: return
     if (count <= 0) return
     val target = page.coerceIn(0, count - 1)
     pdfFocusRequest = target
+    pdfFocusTurnDirection = turnDirection
     if (!pdfPageDimensions.containsKey(target)) view.scrollToPage(target)
     schedulePdfPageFocus()
 }
@@ -81,6 +84,8 @@ internal fun VeritasPdfViewerActivity.schedulePdfPageFocus() {
         val count = (view.pdfDocument?.pageCount ?: 1).coerceAtLeast(1)
         val maximumGap = (1_000_000_000L / count).coerceAtMost(100_000L).toInt()
         val gap = kotlin.math.ceil(view.height.toDouble() * 2 / zoom).coerceAtMost(maximumGap.toDouble()).toInt()
+        val turnDirection = pdfFocusTurnDirection
+        pdfFocusTurnDirection = 0
         pdfFocusRequest = null
         pdfFocusApplying = true
         try {
@@ -92,6 +97,13 @@ internal fun VeritasPdfViewerActivity.schedulePdfPageFocus() {
             pdfNavigationPage = page
             pdfFocusInitialized = true
         } finally { pdfFocusApplying = false }
+        if (turnDirection != 0 && !pdfChromeSettings.reduceMotion && ValueAnimator.areAnimatorsEnabled()) {
+            view.animate().cancel()
+            view.translationX = turnDirection * minOf(view.width * .035f, 22.dp.toFloat())
+            view.alpha = .88f
+            view.animate().translationX(0f).alpha(1f).setDuration(220)
+                .setInterpolator(PathInterpolator(.22f, 1f, .36f, 1f)).start()
+        }
     }
 }
 
@@ -131,8 +143,9 @@ internal fun VeritasPdfViewerActivity.handlePdfPageSwipe(view: PdfView, event: M
                 val dx = event.x - pdfSwipeStartX
                 if (abs(dx) > 48.dp) {
                     val count = view.pdfDocument?.pageCount ?: 1
-                    val page = (pdfNavigationPage + if (dx < 0f) 1 else -1).coerceIn(0, count - 1)
-                    focusPdfPage(page)
+                    val direction = if (dx < 0f) 1 else -1
+                    val page = (pdfNavigationPage + direction).coerceIn(0, count - 1)
+                    if (page != pdfNavigationPage) focusPdfPage(page, direction)
                 }
             }
             pdfSwipeClaimed = false

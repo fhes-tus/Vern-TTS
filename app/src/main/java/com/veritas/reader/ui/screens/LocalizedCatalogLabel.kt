@@ -1,6 +1,8 @@
 package com.veritas.reader.ui.screens
 
 import androidx.compose.runtime.Composable
+import com.veritas.reader.ClassicDownloadPhase
+import com.veritas.reader.ClassicDownloadState
 import com.veritas.reader.R
 
 /** Display labels for app-owned enums only; identifiers and serialized values remain unchanged. */
@@ -39,6 +41,7 @@ internal fun localizedCatalogLabel(label: String): String {
         "Favorites" -> R.string.ui_favorites
         "Queue" -> R.string.ui_queue
         "Overview" -> R.string.filter_overview
+        "Dictionary" -> R.string.dict_title
         "Bookmarks" -> R.string.ui_bookmarks
         "Booknotes" -> R.string.ui_booknotes
         "Vocab" -> R.string.ui_vocabulary
@@ -84,4 +87,27 @@ internal fun localizedCatalogLabel(label: String): String {
         else -> return localizedSettingsOption(label)
     }
     return menuString(resource)
+}
+
+@Composable
+internal fun localizedClassicCatalogAction(book: ClassicBookEntry, state: ClassicDownloadState): String = when {
+    state.busy || state.phase == ClassicDownloadPhase.AVAILABLE || book.hasDirectTextDownload ->
+        localizedClassicDownloadAction(state)
+    book.useBookExplorer -> menuString(R.string.book_explorer_title)
+    else -> menuString(R.string.ui_visit_website)
+}
+
+@Composable
+internal fun localizedClassicDownloadAction(state: ClassicDownloadState): String = when (state.phase) {
+    ClassicDownloadPhase.IDLE -> menuString(R.string.classic_add_to_library)
+    ClassicDownloadPhase.QUEUED -> menuString(R.string.classic_waiting_for_download)
+    ClassicDownloadPhase.DOWNLOADING -> {
+        val percent = state.percent
+        if (percent == null) menuString(R.string.classic_downloading)
+        else menuString(R.string.classic_download_progress, localizedUiPercent(percent))
+    }
+    ClassicDownloadPhase.ADDING -> menuString(R.string.classic_adding_to_library)
+    ClassicDownloadPhase.AVAILABLE -> menuString(R.string.ui_open_book)
+    ClassicDownloadPhase.FAILED -> menuString(R.string.classic_retry_download)
+    ClassicDownloadPhase.CANCELLED -> menuString(R.string.classic_download_again)
 }

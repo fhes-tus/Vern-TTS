@@ -35,22 +35,27 @@ class AudioExportManager(private val context: Context) {
     )
 
     suspend fun exportToWav(title: String, chunks: List<String>, rate: Float, pitch: Float,
-        documentId: String = "", pageNumbers: IntArray? = null, curatedLabels: Boolean = false): ExportResult {
+        documentId: String = "", pageNumbers: IntArray? = null, curatedLabels: Boolean = false): ExportResult =
+        export(title, chunks, rate, pitch, documentId, pageNumbers, curatedLabels)
+
+    internal suspend fun export(title: String, chunks: List<String>, rate: Float, pitch: Float,
+        documentId: String, pageNumbers: IntArray?, curatedLabels: Boolean, format: AudioExportFormat = AudioExportFormat.WAV): ExportResult {
         val repository = DocumentRepository(context)
         val base = repository.loadVoiceSettings()
         val narration = repository.loadNarrationSettings()
         val revision = SpeechPlan.revision(chunks)
         val cues = LiteraryDialogue.cues(chunks.mapIndexed { index, text -> ReaderSentence(index, text, pageNumbers?.getOrNull(index) ?: 1) })
         val rules = repository.compiledPronunciationRules()
-        val segments = chunks.mapIndexed { index, original ->
+        val segments = chunks.flatMapIndexed { index, original ->
             val label = curatedLabels || (narration.enabled && narration.dialogueDetection)
-            SpeechPlan.segment(documentId, revision, index, original, base, narration, rate, pitch, rules,
+            SpeechPlan.segments(documentId, revision, index, original, base, narration, rate, pitch, rules,
                 cues[index], stripSpeakerLabel = label,
                 leadingPauseMs = maxOf(PlaybackService.leadingSilenceMs(pageNumbers, index, original),
-                    if (index > 0 && label && cues[index].labelEnd > 0) 120 else 0))
+                    LiteraryDialogue.transitionPause(cues.getOrNull(index - 1), cues[index],
+                        detectDialogue = narration.enabled && narration.dialogueDetection, stripLabels = label)))
         }.flatMap { SpeechPlan.split(it) }
         require(segments.isNotEmpty()) { "This document has no readable text to export." }
-        return MixedAudioExporter(context).export(title, segments)
+        return MixedAudioExporter(context).export(title, segments, format)
     }
 
     internal suspend fun createReadyTts(voiceSettings: VoiceSettings): TextToSpeech = withTimeout(10_000L) {

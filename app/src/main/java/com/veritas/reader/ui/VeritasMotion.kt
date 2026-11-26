@@ -1,17 +1,24 @@
 package com.veritas.reader.ui
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.SnapSpec
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -132,6 +139,37 @@ object VeritasMotion {
     @Composable
     @ReadOnlyComposable
     fun <T> effectsSlow(): FiniteAnimationSpec<T> = LocalVeritasMotion.current.slowEffects()
+}
+
+private const val PlaybackWaveTurnMillis = 1800
+// The three waves use phase multipliers of 1, 1.25 and 0.85. After twenty
+// turns, all three are back at their starting phase.
+private val PlaybackWaveCycle = (40 * Math.PI).toFloat()
+
+@Composable
+internal fun rememberPlaybackWavePhase(running: Boolean): State<Float> {
+    val phase = remember { Animatable(0f) }
+    LaunchedEffect(running) {
+        if (running) {
+            val start = phase.value % PlaybackWaveCycle
+            phase.snapTo(start)
+            phase.animateTo(
+                targetValue = start + PlaybackWaveCycle,
+                animationSpec = infiniteRepeatable(tween(PlaybackWaveTurnMillis * 20, easing = LinearEasing))
+            )
+        }
+    }
+    return phase.asState()
+}
+
+@Composable
+internal fun LazyItemScope.animateVeritasItem(modifier: Modifier = Modifier): Modifier {
+    val motion = VeritasMotion.scheme
+    return modifier.animateItem(
+        fadeInSpec = motion.fastEffects(),
+        placementSpec = if (motion.reduceMotion) null else motion.defaultSpatial(),
+        fadeOutSpec = motion.fastEffects()
+    )
 }
 
 /**

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notes_link_cards_privacy">Link previews show titles and images. Vern fetches missing details from the linked website or its image host.</string>
+    <string name="notes_link_load_from_website">Load from website</string>
+    <string name="notes_link_loading">Loading website preview…</string>
+    <string name="notes_link_unavailable">Could not load the website preview. Try again or open the link.</string>
+</resources>

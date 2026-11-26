@@ -1,4 +1,13 @@
 <resources>
+    <style name="VernDialogMotion">
+        <item name="android:windowEnterAnimation">@anim/vern_dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/vern_dialog_exit</item>
+    </style>
+    <style name="VernOverlayMotion">
+        <item name="android:windowEnterAnimation">@anim/vern_overlay_enter</item>
+        <item name="android:windowExitAnimation">@anim/vern_overlay_exit</item>
+    </style>
+
     <style name="Theme.Vern" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowBackground">@drawable/vern_starting_window_indigo</item>
     </style>

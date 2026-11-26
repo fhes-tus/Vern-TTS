@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pdf_selection_anchor_unavailable">Vern could not identify this passage in the reading text. Select it in Text view to use this action.</string>
+    <string name="pdf_selection_text_unavailable">Vern could not read this selection. Use Copy, or select it again in Text view for more actions.</string>
+</resources>

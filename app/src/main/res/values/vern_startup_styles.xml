@@ -35,6 +35,12 @@
     <style name="Theme.Vern.StartupMidnightStatic" parent="Theme.Vern">
         <item name="android:windowBackground">@drawable/vern_starting_window_midnight</item>
     </style>
+    <style name="Theme.Vern.StartupNavy" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_navy</item>
+    </style>
+    <style name="Theme.Vern.StartupNavyStatic" parent="Theme.Vern">
+        <item name="android:windowBackground">@drawable/vern_starting_window_navy</item>
+    </style>
     <style name="Theme.Vern.StartupCopper" parent="Theme.Vern">
         <item name="android:windowBackground">@drawable/vern_starting_window_copper</item>
     </style>

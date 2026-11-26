@@ -66,11 +66,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -93,6 +95,7 @@ internal fun HomeSidebarDialog(
     onOpenSyncCenter: () -> Unit = {}
 ) {
     val visibility = remember { MutableTransitionState(false).apply { targetState = true } }
+    val startDirection = if (LocalLayoutDirection.current == LayoutDirection.Rtl) 1 else -1
     val latestDismiss = rememberUpdatedState(onDismiss)
     val closeDrawer = { visibility.targetState = false }
     val spatial = VeritasMotion.spatial<androidx.compose.ui.unit.IntOffset>()
@@ -109,12 +112,12 @@ internal fun HomeSidebarDialog(
     }
     Dialog(
         onDismissRequest = closeDrawer,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        animateWindow = false
     ) {
         val window = (LocalView.current.parent as? DialogWindowProvider)?.window
         SideEffect {
             window?.setDimAmount(0f)
-            window?.setWindowAnimations(0)
         }
         Box(modifier = Modifier.fillMaxSize()) {
             // Scrim backdrop
@@ -133,11 +136,11 @@ internal fun HomeSidebarDialog(
             AnimatedVisibility(
                 visibleState = visibility,
                 enter = slideInHorizontally(
-                    initialOffsetX = { -it },
+                    initialOffsetX = { startDirection * it },
                     animationSpec = spatial
                 ) + fadeIn(effects),
                 exit = slideOutHorizontally(
-                    targetOffsetX = { -it },
+                    targetOffsetX = { startDirection * it },
                     animationSpec = exitSpatial
                 ) + fadeOut(tween(closeDuration)),
                 modifier = Modifier.align(Alignment.CenterStart)
@@ -211,11 +214,11 @@ internal fun HomeSidebarDialog(
                         // 2. Dynamic Reader Tier Status Badge
                         val streak = snapshot.currentStreak
                         val (tierTitle, tierIcon) = when {
-                            streak >= 30 -> Pair("Master Reader", Icons.Filled.EmojiEvents)
-                            streak >= 14 -> Pair("Habit Champion", Icons.Filled.Bolt)
-                            streak >= 7 -> Pair("7-Day Flame", Icons.Filled.LocalFireDepartment)
-                            streak >= 3 -> Pair("Consistency Pro", Icons.Filled.AutoAwesome)
-                            else -> Pair("Daily Habit", Icons.Filled.Spa)
+                            streak >= 30 -> Pair(menuString(com.veritas.reader.R.string.insights_master_reader), Icons.Filled.EmojiEvents)
+                            streak >= 14 -> Pair(menuString(com.veritas.reader.R.string.insights_habit_champion), Icons.Filled.Bolt)
+                            streak >= 7 -> Pair(menuString(com.veritas.reader.R.string.insights_seven_day_flame), Icons.Filled.LocalFireDepartment)
+                            streak >= 3 -> Pair(menuString(com.veritas.reader.R.string.insights_consistency_pro), Icons.Filled.AutoAwesome)
+                            else -> Pair(menuString(com.veritas.reader.R.string.insights_daily_habit), Icons.Filled.Spa)
                         }
                         Surface(
                             shape = RoundedCornerShape(12.dp),

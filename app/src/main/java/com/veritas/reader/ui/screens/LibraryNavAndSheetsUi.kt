@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentPaste
@@ -80,6 +81,8 @@ import com.veritas.reader.VeritasThemeState
 import com.veritas.reader.WebArticleExtractor
 import com.veritas.reader.progressFraction
 import com.veritas.reader.progressPercent
+import com.veritas.reader.ui.VeritasMotion
+import com.veritas.reader.ui.pressScale
 import kotlinx.coroutines.delay
 
 
@@ -406,6 +409,7 @@ internal fun RowScope.BottomNavItem(
 internal fun ImportSheetMenu(
     onSelectOption: (ImportOption) -> Unit,
     onDismiss: () -> Unit,
+    enabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     val window = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
@@ -427,7 +431,7 @@ internal fun ImportSheetMenu(
                 verticalAlignment = Alignment.CenterVertically) {
                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add_something),
                     Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                IconButton(onClick = onDismiss) {
+                IconButton(onClick = onDismiss, enabled = enabled) {
                     Icon(Icons.Filled.Close, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close))
                 }
             }
@@ -440,27 +444,27 @@ internal fun ImportSheetMenu(
                 ImportSheetOptionCard(Icons.Filled.FolderOpen,
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_file_browser),
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_browse_and_batch_import_local_files),
-                    { onSelectOption(ImportOption.BROWSE) }, Modifier.width(tileWidth), compact = compact)
+                    { onSelectOption(ImportOption.BROWSE) }, Modifier.width(tileWidth), enabled = enabled, compact = compact)
                 ImportSheetOptionCard(Icons.Filled.ContentPaste,
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_text_e6f8612),
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_copy_and_paste_any_content),
-                    { onSelectOption(ImportOption.PASTE) }, Modifier.width(tileWidth), compact = compact)
+                    { onSelectOption(ImportOption.PASTE) }, Modifier.width(tileWidth), enabled = enabled, compact = compact)
                 ImportSheetOptionCard(Icons.Filled.Language,
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_from_web),
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_paste_a_link_to_an_article),
-                    { onSelectOption(ImportOption.WEB) }, Modifier.width(tileWidth), compact = compact)
+                    { onSelectOption(ImportOption.WEB) }, Modifier.width(tileWidth), enabled = enabled, compact = compact)
                 ImportSheetOptionCard(Icons.Filled.PhotoCamera,
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_scan_ocr),
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_capture_or_choose_a_photo_to_extract_text),
-                    { onSelectOption(ImportOption.SCAN) }, Modifier.width(tileWidth), compact = compact)
+                    { onSelectOption(ImportOption.SCAN) }, Modifier.width(tileWidth), enabled = enabled, compact = compact)
                 ImportSheetOptionCard(Icons.Filled.Description,
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_browse_phone_folders),
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_open_system_file_chooser),
-                    { onSelectOption(ImportOption.FILE) }, Modifier.width(tileWidth), compact = compact)
+                    { onSelectOption(ImportOption.FILE) }, Modifier.width(tileWidth), enabled = enabled, compact = compact)
                 ImportSheetOptionCard(Icons.Filled.EditNote,
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_write_note_96dcbf1),
                     com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_create_a_freeform_reading_note),
-                    { onSelectOption(ImportOption.WRITE_NOTE) }, Modifier.width(tileWidth), compact = compact)
+                    { onSelectOption(ImportOption.WRITE_NOTE) }, Modifier.width(tileWidth), enabled = enabled, compact = compact)
             }
         }
     }
@@ -473,18 +477,21 @@ internal fun ImportSheetOptionCard(
     subtitle: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     compact: Boolean = false
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val pressedColor by animateColorAsState(
         if (pressed) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        animationSpec = VeritasMotion.effectsFast(),
         label = "addActionPress"
     )
     Card(
         onClick = onClick,
+        enabled = enabled,
         interactionSource = interaction,
-        modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).graphicsLayer { scaleX = if (pressed) 0.98f else 1f; scaleY = scaleX },
+        modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).pressScale(pressed, pressedScale = 0.98f),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = pressedColor)
     ) {
@@ -511,6 +518,7 @@ internal fun ImportSheetOptionCard(
 internal fun ImportSheetWeb(
     urlText: String,
     onUrlChange: (String) -> Unit,
+    enabled: Boolean,
     onImport: (String) -> Unit,
     onBack: () -> Unit
 ) {
@@ -525,8 +533,8 @@ internal fun ImportSheetWeb(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            IconButton(onClick = onBack) {
-                Text("←", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            IconButton(onClick = onBack, enabled = enabled) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, menuString(com.veritas.reader.R.string.ui_back))
             }
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_import_link), style = MaterialTheme.typography.titleLarge)
         }
@@ -535,6 +543,7 @@ internal fun ImportSheetWeb(
 
         OutlinedTextField(
             value = urlText,
+            enabled = enabled,
             onValueChange = onUrlChange,
             modifier = Modifier.fillMaxWidth(),
             label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_article_link)) },
@@ -545,7 +554,7 @@ internal fun ImportSheetWeb(
         Button(
             onClick = { onImport(urlText) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = urlText.isNotBlank() && WebArticleExtractor.looksLikeUrl(urlText)
+            enabled = enabled && urlText.isNotBlank() && WebArticleExtractor.looksLikeUrl(urlText)
         ) {
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_import_web_article))
         }
@@ -556,6 +565,7 @@ internal fun ImportSheetWeb(
 internal fun ImportSheetPaste(
     pastedText: String,
     onTextChange: (String) -> Unit,
+    enabled: Boolean,
     onSave: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -570,8 +580,8 @@ internal fun ImportSheetPaste(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            IconButton(onClick = onBack) {
-                Text("←", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            IconButton(onClick = onBack, enabled = enabled) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, menuString(com.veritas.reader.R.string.ui_back))
             }
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_paste_text_e6f8612), style = MaterialTheme.typography.titleLarge)
         }
@@ -580,6 +590,7 @@ internal fun ImportSheetPaste(
 
         OutlinedTextField(
             value = pastedText,
+            enabled = enabled,
             onValueChange = onTextChange,
             modifier = Modifier.fillMaxWidth().height(180.dp),
             label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_content)) },
@@ -589,7 +600,7 @@ internal fun ImportSheetPaste(
         Button(
             onClick = onSave,
             modifier = Modifier.fillMaxWidth(),
-            enabled = pastedText.isNotBlank()
+            enabled = enabled && pastedText.isNotBlank()
         ) {
             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_reading))
         }

@@ -199,6 +199,9 @@ fun SleepTimerDialog(
     var modeBySection by remember {
         mutableStateOf(activeTimer?.stopAtEndOfSection ?: false)
     }
+    var customMinutes by remember { mutableStateOf("") }
+    val customDuration = customMinutes.toLongOrNull()?.times(60_000)
+    val durationValid = customMinutes.isEmpty() || (customDuration != null && customDuration in 60_000L..43_200_000L)
     val isTimerActive = activeTimer != null && (activeTimer.stopAtEndOfSection || activeTimer.isActive(tickerNow))
     val activeLabel = activeTimer?.takeIf { it.stopAtEndOfSection || it.isActive(tickerNow) }?.menuLabel(tickerNow)
 
@@ -211,7 +214,7 @@ fun SleepTimerDialog(
             }
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (isTimerActive && activeLabel != null) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -281,19 +284,19 @@ fun SleepTimerDialog(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             row.forEach { duration ->
-                                val selected = selectedDurationMillis == duration
+                                val selected = customMinutes.isEmpty() && selectedDurationMillis == duration
                                 val content: @Composable () -> Unit = {
                                     Text(VeritasSleepTimerFormatter.formatDuration(duration))
                                 }
                                 if (selected) {
                                     Button(
-                                        onClick = { selectedDurationMillis = duration },
+                                        onClick = { selectedDurationMillis = duration; customMinutes = "" },
                                         modifier = Modifier.weight(1f),
                                         shape = VeritasPackStyle.chipShape()
                                     ) { content() }
                                 } else {
                                     OutlinedButton(
-                                        onClick = { selectedDurationMillis = duration },
+                                        onClick = { selectedDurationMillis = duration; customMinutes = "" },
                                         modifier = Modifier.weight(1f),
                                         shape = VeritasPackStyle.chipShape()
                                     ) { content() }
@@ -301,8 +304,16 @@ fun SleepTimerDialog(
                             }
                         }
                     }
+                    OutlinedTextField(customMinutes, { customMinutes = it.filter(Char::isDigit).take(3) },
+                        label = { Text(menuString(R.string.timer_custom_minutes)) },
+                        supportingText = { Text(menuString(R.string.timer_custom_range)) },
+                        singleLine = true, isError = !durationValid,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                        ), modifier = Modifier.fillMaxWidth())
                 }
 
+                Text(menuString(R.string.timer_finish_action), style = MaterialTheme.typography.titleSmall)
                 VeritasSleepTimerAction.entries.forEach { action ->
                     Row(
                         modifier = Modifier
@@ -323,13 +334,14 @@ fun SleepTimerDialog(
                 onClick = {
                     onSetTimer(
                         VeritasSleepTimerRequest(
-                            durationMillis = if (modeBySection) 0L else selectedDurationMillis,
+                            durationMillis = if (modeBySection) 0L else customDuration ?: selectedDurationMillis,
                             action = selectedAction,
                             stopAtEndOfSection = modeBySection
                         )
                     )
                     onDismiss()
                 },
+                enabled = modeBySection || durationValid,
                 shape = VeritasPackStyle.chipShape()
             ) {
                 Text(if (isTimerActive) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_update_timer) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_start_timer))

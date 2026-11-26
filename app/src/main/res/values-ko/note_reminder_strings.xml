@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="note_reminder_channel">메모 알림</string>
+    <string name="note_reminder_channel_description">메모에 설정한 알림</string>
+    <string name="note_reminder_title">메모 알림</string>
+    <string name="note_reminder_open">탭하여 메모를 엽니다.</string>
+    <string name="note_reminder_missing">이 메모는 더 이상 사용할 수 없습니다.</string>
+</resources>

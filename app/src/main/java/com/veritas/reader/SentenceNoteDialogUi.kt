@@ -34,6 +34,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +46,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
+import com.veritas.reader.ui.screens.FullScreenSettingsScaffold
 
 
 @Composable
@@ -65,35 +68,18 @@ internal fun SentenceNoteDialog(
         .filter { it in document.chunks.indices }
         .distinct()
         .sorted()
-    val title = if (indexes.size == 1) {
-        "Sentence ${indexes.first() + 1} note"
-    } else {
-        "${indexes.size} sentence note"
-    }
     val wordCount = noteDraft.trim().split(Regex("\\s+")).count { it.isNotBlank() }
-
-    val initialMemos = remember(audioPath, audioDuration) {
-        if (audioPath.isNullOrBlank()) emptyList<Pair<String, Int>>()
-        else {
-            val parts = audioPath.split("||").map { it.trim() }.filter { it.isNotEmpty() }
-            parts.map { p ->
-                val d = try {
-                    val f = java.io.File(p)
-                    if (f.exists()) {
-                        val ret = android.media.MediaMetadataRetriever()
-                        ret.setDataSource(p)
-                        val s = ret.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
-                        ret.release()
-                        (s / 1000).toInt()
-                    } else audioDuration
-                } catch (e: Exception) {
-                    audioDuration
-                }
-                Pair(p, d)
-            }
-        }
+    var audioMemos by remember(document.id, indexes) {
+        val paths = audioPath.orEmpty().split("||").map { it.trim() }.filter { it.isNotEmpty() }
+        mutableStateOf(paths.map { it to (if (paths.size == 1) audioDuration else 0) })
     }
-    var audioMemos by remember { mutableStateOf(initialMemos) }
+    val durationReader = remember { NoteAudioDurationReader() }
+    LaunchedEffect(audioMemos.map { it.first }) {
+        audioMemos = audioMemos.map { (path, previous) -> path to
+            (durationReader.read(path)?.div(1000)?.toInt() ?: previous) }
+    }
+    val isExistingNote = remember(document.id, indexes) { noteDraft.isNotBlank() || !audioPath.isNullOrBlank() }
+    var confirmDelete by remember { mutableStateOf(false) }
     val recordingState by VoiceNoteRecorder.recordingState.collectAsState()
     val recordingDuration by VoiceNoteRecorder.recordingDurationSeconds.collectAsState()
     val activeAudioPath by VoiceNoteRecorder.activeAudioPath.collectAsState()
@@ -108,31 +94,42 @@ internal fun SentenceNoteDialog(
         }
     }
 
-    AlertDialog(
-        onDismissRequest = {
+    FullScreenSettingsScaffold(
+        title = com.veritas.reader.ui.screens.menuString(R.string.ui_sentence_note),
+        onBack = {
             VoiceNoteRecorder.stopAll()
             onDismiss()
         },
-        title = { Text(title) },
-        text = {
+        scrollable = false,
+        modifier = Modifier.testTag("sentence-note-screen")
+    ) {
+        Text(document.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Column(
                 modifier = Modifier
-                    .heightIn(max = 460.dp)
+                    .weight(1f)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    document.title,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    fontWeight = FontWeight.SemiBold
-                )
+                if (indexes.isNotEmpty()) Card(Modifier.fillMaxWidth(), shape = VeritasPackStyle.compactShape()) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        indexes.take(5).forEach { index ->
+                            val excerpt = ReadingTextCleanup.forDisplay(document.chunks[index]).replace(Regex("\\s+"), " ")
+                            Text(com.veritas.reader.ui.screens.menuString(R.string.l10n_dynamic_052,
+                                com.veritas.reader.ui.screens.localizedUiValue(index + 1), com.veritas.reader.ui.screens.localizedUiValue(excerpt)),
+                                style = MaterialTheme.typography.bodyMedium, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                        }
+                        if (indexes.size > 5) Text(com.veritas.reader.ui.screens.menuString(R.string.l10n_dynamic_053,
+                            com.veritas.reader.ui.screens.localizedUiValue(indexes.size - 5)),
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                }
                 OutlinedTextField(
                     value = noteDraft,
                     onValueChange = onNoteChange,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(150.dp),
+                        .testTag("sentence-note-input")
+                        .heightIn(min = 200.dp),
                     label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_sentence_note)) },
                     placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_write_the_note_to_attach_to_this_sentence)) },
                     minLines = 4,
@@ -188,7 +185,6 @@ internal fun SentenceNoteDialog(
                                         if (isThisPlaying) {
                                             VoiceNoteRecorder.stopPlayback()
                                         }
-                                        VoiceNoteRecorder.deleteAudioFile(memo.first)
                                         val updated = audioMemos.filterIndexed { i, _ -> i != idx }
                                         audioMemos = updated
                                         val combined = if (updated.isEmpty()) null else updated.joinToString("||") { it.first }
@@ -269,28 +265,11 @@ internal fun SentenceNoteDialog(
                     }
                 }
 
-                indexes.take(5).forEach { index ->
-                    val excerpt =
-                        document.chunks.getOrNull(index).orEmpty().replace(Regex("\\s+"), " ")
-                            .trim()
-                    if (excerpt.isNotBlank()) {
-                        Text(
-                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_052, com.veritas.reader.ui.screens.localizedUiValue(index + 1), com.veritas.reader.ui.screens.localizedUiValue(excerpt)),
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                if (indexes.size > 5) {
-                    Text(
-                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_053, com.veritas.reader.ui.screens.localizedUiValue(indexes.size - 5)),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
-        },
-        confirmButton = {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (isExistingNote) TextButton(onClick = { confirmDelete = true }, enabled = recordingState != VoiceRecordingState.RECORDING) {
+                Text(com.veritas.reader.ui.screens.menuString(R.string.ui_delete_note), color = MaterialTheme.colorScheme.error)
+            }
             Button(
                 onClick = {
                     VoiceNoteRecorder.stopAll()
@@ -299,37 +278,27 @@ internal fun SentenceNoteDialog(
                     onAudioChange(combined, totDur)
                     onSave()
                 },
-                enabled = noteDraft.trim().isNotBlank() || audioMemos.isNotEmpty(),
-                shape = RoundedCornerShape(50)
+                enabled = recordingState != VoiceRecordingState.RECORDING && (noteDraft.isNotBlank() || audioMemos.isNotEmpty()),
+                shape = VeritasPackStyle.chipShape(),
+                modifier = Modifier.weight(1f)
             ) {
                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save))
             }
-        },
-        dismissButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = {
-                        VoiceNoteRecorder.stopAll()
-                        audioMemos.forEach { VoiceNoteRecorder.deleteAudioFile(it.first) }
-                        onAudioChange(null, 0)
-                        onDelete()
-                    },
-                    shape = RoundedCornerShape(50)
-                ) {
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete))
-                }
-                TextButton(
-                    onClick = {
-                        VoiceNoteRecorder.stopAll()
-                        onDismiss()
-                    },
-                    shape = RoundedCornerShape(50)
-                ) {
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel))
-                }
-            }
         }
-    )
+    }
+    if (confirmDelete) AlertDialog(onDismissRequest = { confirmDelete = false },
+        title = { Text(com.veritas.reader.ui.screens.menuString(R.string.ui_delete_note)) },
+        confirmButton = {
+            TextButton(onClick = {
+                confirmDelete = false
+                VoiceNoteRecorder.stopAll()
+                onDelete()
+            }) { Text(com.veritas.reader.ui.screens.menuString(R.string.ui_delete)) }
+        }, dismissButton = {
+            TextButton(onClick = { confirmDelete = false }) {
+                Text(com.veritas.reader.ui.screens.menuString(R.string.ui_cancel))
+            }
+        })
 }
 
 @Preview(showBackground = true)

@@ -153,6 +153,47 @@ async function openReader(
   await expect(page.getByText('Laying out pages…')).not.toBeVisible();
 }
 
+test('reader panels and dialogs keep focus correct through entry, exit, and reduced motion', async ({
+  page,
+}) => {
+  await openReader(page);
+  const search = page.getByRole('button', { name: 'Search this book', exact: true });
+  await search.click();
+  await expect(page.getByRole('searchbox', { name: 'Search this book' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(search).toBeFocused();
+  await expect(page.locator('#reader-book-search')).not.toBeVisible();
+
+  const notebook = page.getByRole('button', { name: 'Toggle notebook', exact: true });
+  await notebook.click();
+  await page.locator('#reader-notebook textarea').focus();
+  await page.keyboard.press('Escape');
+  await expect(notebook).toBeFocused();
+  await expect(page.locator('#reader-notebook')).not.toBeVisible();
+
+  const trigger = page.getByRole('button', { name: 'Reader settings', exact: true });
+  await trigger.click();
+  const dialog = page.locator('dialog[aria-label="Reader settings"]');
+  await expect(dialog).toBeVisible();
+  const exit = await dialog.evaluate(async (element: HTMLDialogElement) => {
+    await Promise.allSettled(element.getAnimations().map((animation) => animation.finished));
+    element.dispatchEvent(new Event('cancel', { cancelable: true }));
+    return { open: element.open, animations: element.getAnimations().length };
+  });
+  expect(exit.open).toBe(false);
+  expect(exit.animations).toBeGreaterThan(0);
+  await expect(trigger).toBeFocused();
+  await expect(dialog).toHaveCount(0);
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await trigger.click();
+  await expect(dialog).toBeVisible();
+  expect(await dialog.evaluate((element) => element.getAnimations().length)).toBe(0);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});
+
 test('word tools refresh the draft for each explicit reader selection', async ({ page }) => {
   await openReader(page);
   for (const word of ['Alice', 'sunlight']) {
@@ -369,6 +410,13 @@ test('single and two-page layouts turn by controls, keyboard, wheel and drag wit
   const box = await page.locator('.reader-viewport').boundingBox();
   if (!box) throw new Error('No reader viewport');
   await page.keyboard.down('Alt');
+  await page.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.5);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.65 - 30, box.y + box.height * 0.5);
+  expect(await spread.evaluate((element: HTMLElement) => element.style.translate)).not.toBe('');
+  await page.mouse.up();
+  await expect(spread).toHaveAttribute('data-page-start', '5');
+  await expect(spread).toHaveCSS('translate', 'none');
   await page.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.5);
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.5, { steps: 8 });

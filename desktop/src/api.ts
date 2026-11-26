@@ -25,8 +25,15 @@ import type {
   NoteMedia,
   ReadingHighlight,
   HighlightInput,
+  DictionaryEntry,
+  DictionaryPackInfo,
+  DictionaryWordPage,
+  DictionaryDownloadState,
+  CloudVoiceConfig,
+  CloudVoiceStatus,
+  CatalogVoice,
 } from './types';
-import { defaultSettings } from './types';
+import { defaultSettings, defaultCloudVoiceConfig } from './types';
 import classics from './data/classics.json';
 import type { ParsedBook, SourceInfo } from './types';
 import type { AndroidIndex, AndroidIndexInput } from './android-text-index';
@@ -118,6 +125,13 @@ export const api = {
   exportBook: (id: string, kind: 'text' | 'notes') => call<boolean>('export_book', { id, kind }),
   exportPassageAudio: (id: string, position: number, voiceId: string, rate: number) =>
     call<boolean>('export_passage_audio', { id, position, voiceId, rate }),
+  exportBookAudio: (id: string, voiceId: string, rate: number, fromCurrent: boolean) =>
+    call<boolean>('export_book_audio', { id, voiceId, rate, fromCurrent }),
+  exportQueueAudio: (voiceId: string, rate: number) =>
+    call<boolean>('export_queue_audio', { voiceId, rate }),
+  updateBookPassage: (id: string, position: number, text: string) =>
+    call<Book>('update_book_passage', { id, position, text }),
+  exportAndroidSyncPack: () => call<boolean>('export_android_sync_pack'),
   books: () => (native ? call<Book[]>('list_books') : Promise.resolve([])),
   saveCover: (id: string, cover: string) => call<void>('save_book_cover', { id, cover }),
   settings: async (): Promise<Settings> => {
@@ -184,5 +198,40 @@ export const api = {
             error: 'Downloads are available in the desktop app.',
           },
         ]),
+  dictionaryStatus: () =>
+    native
+      ? call<[DictionaryPackInfo | null, DictionaryDownloadState]>('get_dictionary_status')
+      : Promise.resolve<[DictionaryPackInfo | null, DictionaryDownloadState]>([
+          null,
+          { isDownloading: false, progress: 0, error: null },
+        ]),
+  lookupWord: (word: string) =>
+    native
+      ? call<DictionaryEntry | null>('lookup_dictionary_word', { word })
+      : Promise.resolve(null),
+  suggestWords: (input: string) =>
+    native ? call<string[]>('suggest_dictionary_words', { input }) : Promise.resolve([]),
+  browseWords: (prefix: string, after: string | null = null, pageSize = 40) =>
+    native
+      ? call<DictionaryWordPage>('browse_dictionary_words', { prefix, after, pageSize })
+      : Promise.resolve({ words: [], hasMore: false }),
+  downloadDictionary: () => call<void>('download_dictionary'),
+  cancelDictionaryDownload: () => call<void>('cancel_dictionary_download'),
+  deleteDictionary: () => call<void>('delete_dictionary'),
+  cloudVoiceStatus: () =>
+    native
+      ? call<CloudVoiceStatus>('get_cloud_voice_status')
+      : Promise.resolve<CloudVoiceStatus>({
+          config: defaultCloudVoiceConfig,
+          hasKey: false,
+          usage: { characters: 0, requests: 0 },
+        }),
+  saveCloudVoiceConfig: (config: CloudVoiceConfig, key: string | null = null) =>
+    call<CloudVoiceStatus>('save_cloud_voice_config', { config, key }),
+  testCloudVoice: (text: string) =>
+    call<{ samples: number[]; sampleRate: number }>('test_cloud_voice', { text }),
+  listCloudCatalogVoices: () =>
+    native ? call<CatalogVoice[]>('list_cloud_catalog_voices') : Promise.resolve([]),
+  clearCloudVoiceUsage: (provider: string) => call<void>('clear_cloud_voice_usage', { provider }),
 };
 export type Classic = (typeof classics)[number] & { bookId: string | null };

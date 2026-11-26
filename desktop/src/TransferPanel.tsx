@@ -89,6 +89,18 @@ export function TransferPanel({
           disabled={busy || !native}
           onClick={() =>
             void run(async () => {
+              if (await api.exportAndroidSyncPack())
+                setMessage('Android sync pack saved. Transfer to Android and restore in Vern.');
+            })
+          }
+        >
+          Export Android sync pack (ZIP)
+        </button>
+        <button
+          className="secondary"
+          disabled={busy || !native}
+          onClick={() =>
+            void run(async () => {
               const controller = new AbortController();
               conversion.current = controller;
               try {
@@ -197,6 +209,7 @@ export function TransferPanel({
       {preview && (
         <Modal
           title={`Restore ${preview.source === 'Android' ? 'Android ' : ''}backup`}
+          dismissible={!busy}
           onClose={close}
         >
           <dl className="backup-counts">
@@ -270,7 +283,7 @@ export function TransferPanel({
             >
               Merge backup into library
             </button>
-            <button className="secondary" disabled={busy} onClick={close}>
+            <button className="secondary" disabled={busy} data-dialog-dismiss>
               Cancel
             </button>
           </div>
@@ -279,9 +292,8 @@ export function TransferPanel({
       {deletingRetained && (
         <Modal
           title="Delete retained Android backup"
-          onClose={() => {
-            if (!busy) setDeletingRetained('');
-          }}
+          dismissible={!busy}
+          onClose={() => setDeletingRetained('')}
         >
           <p>
             Remove the original Android backup and its retained files from this library? Export it
@@ -304,7 +316,7 @@ export function TransferPanel({
             >
               Delete retained backup
             </button>
-            <button className="secondary" disabled={busy} onClick={() => setDeletingRetained('')}>
+            <button type="button" className="secondary" disabled={busy} data-dialog-dismiss>
               Cancel
             </button>
           </div>

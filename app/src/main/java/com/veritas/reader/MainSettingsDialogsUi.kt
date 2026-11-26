@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.veritas.reader.ui.OnboardingController
@@ -50,6 +51,7 @@ import com.veritas.reader.ui.screens.UserManualDialog
 import com.veritas.reader.ui.screens.VeritasHomeTab
 import com.veritas.reader.ui.screens.VoiceStudioDialog
 import com.veritas.reader.ui.screens.formatVeritasBytes
+import com.veritas.reader.ui.screens.menuString
 import com.veritas.reader.ui.startRecordSoundFile
 import com.veritas.reader.ui.togglePronunciationRule
 import kotlinx.coroutines.launch
@@ -67,6 +69,25 @@ internal fun MainSettingsDialogsHost(
     var showAboutDialog by remember { mutableStateOf(false) }
     var showBatteryDialog by remember(showUnrestrictedBatteryDialog) { mutableStateOf(showUnrestrictedBatteryDialog) }
     val batteryPrefs = remember(context) { context.getSharedPreferences("veritas_reader_library", Context.MODE_PRIVATE) }
+
+    if (PlaybackStateStore.playbackVoiceNotInstalled) {
+        AlertDialog(
+            onDismissRequest = { PlaybackStateStore.playbackVoiceNotInstalled = false },
+            title = { Text(menuString(R.string.playback_voice_not_installed_title)) },
+            text = { Text(menuString(R.string.playback_voice_not_installed_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    PlaybackStateStore.playbackVoiceNotInstalled = false
+                    viewModel.updateState { it.withVisibility(VeritasScreen.VOICE_STUDIO, true) }
+                }) { Text(menuString(R.string.ui_voice_studio)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { PlaybackStateStore.playbackVoiceNotInstalled = false }) {
+                    Text(menuString(R.string.ui_close))
+                }
+            }
+        )
+    }
 
         if (uiState.showSettingsHub) {
             SettingsHubDialog(
@@ -105,7 +126,9 @@ internal fun MainSettingsDialogsHost(
             var candidates by remember { mutableStateOf<List<Pair<SavedDocument, Long>>>(emptyList()) }
             var cleanupMessage by remember { mutableStateOf<String?>(null) }
             var refreshTick by remember { mutableIntStateOf(0) }
+            var cleaning by remember { mutableStateOf(false) }
             val storageScope = rememberCoroutineScope()
+            val resources = LocalResources.current
             LaunchedEffect(refreshTick) {
                 val (computedBreakdown, computedCandidates) = viewModel.computeStorage()
                 breakdown = computedBreakdown
@@ -115,21 +138,37 @@ internal fun MainSettingsDialogsHost(
                 breakdown = breakdown,
                 candidates = candidates,
                 cleanupMessage = cleanupMessage,
-                onSmartCleanup = {
-                    val ids = candidates.map { it.first.id }.toSet()
-                    val count = candidates.size
+                cleaning = cleaning,
+                onNoteMediaCleaned = { refreshTick++ },
+                onSmartCleanup = { ids ->
+                    cleaning = true
                     storageScope.launch {
-                        val freed = viewModel.cleanupOriginals(ids)
-                        cleanupMessage = context.getString(R.string.settings_storage_freed, formatVeritasBytes(freed), count)
-                        refreshTick++
+                        try {
+                            val result = viewModel.cleanupOriginals(ids)
+                            cleanupMessage = resources.getString(R.string.settings_storage_freed,
+                                formatVeritasBytes(result.freedBytes), result.removedFiles)
+                            refreshTick++
+                        } finally {
+                            cleaning = false
+                        }
                     }
                 },
                 onClearCache = {
+                    cleaning = true
                     storageScope.launch {
-                        val freed = viewModel.clearAppCache()
-                        cleanupMessage = context.getString(R.string.settings_cache_cleared, formatVeritasBytes(freed))
-                        refreshTick++
+                        try {
+                            val freed = viewModel.clearAppCache()
+                            cleanupMessage = resources.getString(R.string.settings_cache_cleared, formatVeritasBytes(freed))
+                            refreshTick++
+                        } finally {
+                            cleaning = false
+                        }
                     }
+                },
+                onClearData = {
+                    runCatching {
+                        context.getSystemService(android.app.ActivityManager::class.java)?.clearApplicationUserData() == true
+                    }.getOrDefault(false)
                 },
                 onDismiss = { showStorageTools = false }
             )
@@ -299,6 +338,8 @@ internal fun MainSettingsDialogsHost(
                 onLanguageSelected = { localeTag ->
                     viewModel.saveVoiceSettings(
                         uiState.voiceSettings.copy(
+                            enginePackage = "",
+                            engineLabel = "System default",
                             localeTag = localeTag,
                             voiceName = "",
                             voiceLabel = "System default voice"
@@ -314,19 +355,13 @@ internal fun MainSettingsDialogsHost(
                 },
                 onVoiceSelected = { voice ->
                     val detectedEngine = VoiceManager.engineForVoice(voice.name)
-                    val targetEngine = if (detectedEngine != null) {
-                        detectedEngine
-                    } else if (VoiceManager.isVeritasEngine(uiState.voiceSettings.enginePackage)) {
-                        ""
-                    } else {
-                        uiState.voiceSettings.enginePackage
-                    }
+                    val targetEngine = detectedEngine ?: voice.enginePackage
                     val targetEngineLabel = when (targetEngine) {
                         VoiceManager.VERITAS_LITE -> "Vern Lite"
                         VoiceManager.VERITAS_STUDIO -> "Vern Studio"
                         VoiceManager.KITTEN -> "Kitten"
                         "" -> "System default"
-                        else -> uiState.voiceSettings.engineLabel
+                        else -> uiState.ttsEngines.firstOrNull { it.packageName == targetEngine }?.label ?: targetEngine
                     }
                     viewModel.saveVoiceSettings(
                         uiState.voiceSettings.copy(
@@ -339,7 +374,7 @@ internal fun MainSettingsDialogsHost(
                     )
                 },
                 onPreviewVoice = { voice -> viewModel.previewVoice(voice) },
-                onPreviewActiveVoiceWithPreset = { viewModel.previewActiveVoiceWithPreset() },
+                onPreviewActiveVoiceWithPreset = { rate, pitch -> viewModel.previewActiveVoiceWithPreset(rate, pitch) },
                 onPresetSelected = { name, rate, pitch ->
                     viewModel.saveVoiceSettings(
                         uiState.voiceSettings.copy(
@@ -351,16 +386,6 @@ internal fun MainSettingsDialogsHost(
                 },
                 onAddLanguageVoice = { viewModel.openTtsDataInstaller() },
                 onOpenSystemTtsSettings = { viewModel.openSystemTtsSettings() },
-                onOpenSpeechEdits = {
-                    viewModel.updateState {
-                        it.withVisibility(VeritasScreen.VOICE_STUDIO, false).withVisibility(VeritasScreen.PRONUNCIATION_RULES, true)
-                    }
-                },
-                onOpenNarrationStudio = {
-                    viewModel.updateState {
-                        it.withVisibility(VeritasScreen.VOICE_STUDIO, false).withVisibility(VeritasScreen.NARRATION_STUDIO, true)
-                    }
-                },
                 onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.VOICE_STUDIO, false) } }
             )
         }
@@ -510,6 +535,24 @@ internal fun MainSettingsDialogsHost(
                     viewModel.saveReaderSettings(
                         uiState.readerSettings.copy(collapsibleReaderBars = !uiState.readerSettings.collapsibleReaderBars)
                     )
+                },
+                onRestoreDefaults = {
+                    val defaults = ReaderSettings()
+                    val current = viewModel.uiState.value.readerSettings
+                    viewModel.saveReaderSettings(current.copy(
+                        adaptiveCover = defaults.adaptiveCover,
+                        showSectionNumbers = defaults.showSectionNumbers,
+                        dailyGoalMinutes = defaults.dailyGoalMinutes,
+                        streakReminderEnabled = defaults.streakReminderEnabled,
+                        reduceMotion = defaults.reduceMotion,
+                        reduceTransparency = defaults.reduceTransparency,
+                        bionicReading = defaults.bionicReading,
+                        shakeToExtendSleepTimer = defaults.shakeToExtendSleepTimer,
+                        collapsibleReaderBars = defaults.collapsibleReaderBars,
+                        showNavLabels = defaults.showNavLabels,
+                        themeId = current.previousThemeId ?: current.themeId,
+                        previousThemeId = null
+                    ))
                 },
                 onToggleNavLabels = {
                     viewModel.saveReaderSettings(

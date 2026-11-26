@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_tips_and_gestures">सुझाव और जेस्चर</string>
+    <string name="hint_notes_create">नया नोट बनाने के लिए + टैप करें</string>
+    <string name="hint_notes_filter">नोट्स फ़िल्टर करने के लिए टैग टैप करें</string>
+    <string name="hint_notes_open">नोट संपादित करने या शेयर करने के लिए उसे टैप करें</string>
+    <string name="hint_document_gestures">दस्तावेज़ के जेस्चर</string>
+    <string name="hint_pdf_gestures">PDF के जेस्चर</string>
+    <string name="hint_single_tap">एक बार टैप करें</string>
+    <string name="hint_toggle_reading_bars">रीडिंग बार छिपाएँ या दिखाएँ</string>
+    <string name="hint_zoom_document">दस्तावेज़ ज़ूम इन या आउट करें</string>
+    <string name="hint_swipe_horizontally">दाएँ या बाएँ स्वाइप करें</string>
+    <string name="hint_turn_page">पिछले या अगले पेज पर जाएँ</string>
+    <string name="hint_long_press_passage">किसी शब्द या वाक्य को देर तक दबाएँ</string>
+    <string name="hint_read_from_selection">टेक्स्ट चुनें और यहाँ से पढ़ें चुनें</string>
+</resources>

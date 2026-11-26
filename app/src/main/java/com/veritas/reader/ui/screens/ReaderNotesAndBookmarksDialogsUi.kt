@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.EditNote
@@ -39,6 +42,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.testTag
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -65,9 +74,12 @@ import com.veritas.reader.VoiceNoteRecorder
 import com.veritas.reader.VoiceRecordingState
 import com.veritas.reader.capWords
 import com.veritas.reader.loadDocumentNoteAudio
+import com.veritas.reader.ReadingTextCleanup
 import com.veritas.reader.saveDocumentNoteAudio
+import com.veritas.reader.ui.VeritasMotion
 
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun BooknotesDialog(
     document: ReaderDocument,
@@ -80,7 +92,8 @@ fun BooknotesDialog(
     onJumpToSection: (Int) -> Unit,
     onExportNotes: () -> Unit,
     onExportPdf: () -> Unit = {},
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onEditSentenceNote: (List<Int>) -> Unit = { onJumpToSection(it.first()) }
 ) {
     val context = LocalContext.current
     val docRepo = remember(context) { DocumentRepository(context.applicationContext) }
@@ -100,93 +113,59 @@ fun BooknotesDialog(
         }
     }
 
-    val notes = annotations
-        .filter { it.type == AnnotationType.NOTE }
-        .sortedBy { it.chunkIndex }
-    AlertDialog(
-        onDismissRequest = {
-            VoiceNoteRecorder.stopAll()
-            onDismiss()
-        },
-        confirmButton = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-            ) {
-                Button(
-                    onClick = {
-                        VoiceNoteRecorder.stopAll()
-                        docRepo.saveDocumentNoteAudio(document.id.orEmpty(), generalMemos)
-                        onSaveDocumentNote()
-                    },
-                    shape = VeritasPackStyle.chipShape(),
-                    modifier = Modifier.wrapContentWidth()
-                ) {
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save))
+    val notes = remember(annotations) {
+        annotations.filter { it.type == AnnotationType.NOTE }.sortedBy { it.chunkIndex }
+            .groupBy { it.selectionGroupId ?: it.stableKey }.values.toList()
+    }
+    var sentenceTab by rememberSaveable(document.id) { mutableStateOf(false) }
+    val indicatorPosition = animateFloatAsState(
+        targetValue = if (sentenceTab) 1f else 0f,
+        animationSpec = if (VeritasMotion.scheme.reduceMotion) snap() else LibraryTabFade,
+        label = "Booknotes tab indicator"
+    )
+    var showExport by remember { mutableStateOf(false) }
+    FullScreenSettingsScaffold(title = menuString(com.veritas.reader.R.string.ui_booknotes),
+        onBack = { VoiceNoteRecorder.stopAll(); onDismiss() }, scrollable = false,
+        modifier = Modifier.testTag("booknotes-screen")) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(document.title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium,
+                maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Box {
+                IconButton(onClick = { showExport = true }) {
+                    Icon(Icons.Filled.MoreVert, menuString(com.veritas.reader.R.string.ui_export))
                 }
-                OutlinedButton(
-                    onClick = onExportPdf,
-                    enabled = documentNote.isNotBlank() || annotations.isNotEmpty(),
-                    shape = VeritasPackStyle.chipShape(),
-                    modifier = Modifier.wrapContentWidth()
-                ) {
-                    Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_study_guide_pdf))
-                }
-                OutlinedButton(
-                    onClick = onExportNotes,
-                    enabled = documentNote.isNotBlank() || notes.any { it.note.isNotBlank() },
-                    shape = VeritasPackStyle.chipShape(),
-                    modifier = Modifier.wrapContentWidth()
-                ) {
-                    Icon(Icons.Outlined.FileDownload, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_export))
-                }
-                TextButton(
-                    onClick = {
-                        VoiceNoteRecorder.stopAll()
-                        onDismiss()
-                    },
-                    shape = VeritasPackStyle.chipShape(),
-                    modifier = Modifier.wrapContentWidth()
-                ) {
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close))
+                DropdownMenu(expanded = showExport, onDismissRequest = { showExport = false }) {
+                    DropdownMenuItem(text = { Text(menuString(com.veritas.reader.R.string.ui_export)) },
+                        enabled = documentNote.isNotBlank() || notes.any { it.first().note.isNotBlank() },
+                        onClick = { showExport = false; onExportNotes() })
+                    DropdownMenuItem(text = { Text(menuString(com.veritas.reader.R.string.ui_study_guide_pdf)) },
+                        enabled = documentNote.isNotBlank() || annotations.isNotEmpty(),
+                        onClick = { showExport = false; onExportPdf() })
                 }
             }
-        },
-        dismissButton = null,
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(Icons.Outlined.EditNote, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_booknotes))
-            }
-        },
-        text = {
+        }
+        SectionTabs(
+            labels = listOf(com.veritas.reader.R.string.ui_general_document_note, com.veritas.reader.R.string.ui_sentence_notes),
+            selectedIndex = if (sentenceTab) 1 else 0,
+            progress = { indicatorPosition.value },
+            onSelect = { sentenceTab = it == 1 },
+            isTabEnabled = { it == 0 || !isRecordingGeneral }
+        )
+        androidx.compose.runtime.key(sentenceTab) {
             Column(
                 modifier = Modifier
-                    .heightIn(max = 560.dp)
+                    .weight(1f)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    document.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+              if (!sentenceTab) {
                 OutlinedTextField(
                     value = documentNote,
                     onValueChange = { onDocumentNoteChange(capWords(it, 500)) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(220.dp),
-                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_general_note)) },
+                        .heightIn(min = 256.dp),
+                    label = { Text(menuString(com.veritas.reader.R.string.ui_general_document_note)) },
                     placeholder = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_write_notes_about_this_document)) },
                     minLines = 6,
                     maxLines = 12,
@@ -225,7 +204,6 @@ fun BooknotesDialog(
                                         modifier = Modifier.size(14.dp).clickable {
                                             val updated = generalMemos.filterIndexed { i, _ -> i != aIdx }
                                             generalMemos = updated
-                                            VoiceNoteRecorder.deleteAudioFile(memo.first)
                                             docRepo.saveDocumentNoteAudio(document.id.orEmpty(), updated)
                                         }
                                     )
@@ -295,10 +273,9 @@ fun BooknotesDialog(
                     }
                 }
 
-                HorizontalDivider()
+              } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_sentence_notes), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                         Text(
                             com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_notes_attached_to_individual_sentences),
                             style = MaterialTheme.typography.bodySmall,
@@ -324,15 +301,14 @@ fun BooknotesDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    notes.forEach { note ->
-                        val excerpt = document.chunks.getOrNull(note.chunkIndex)
-                            .orEmpty()
+                    notes.forEach { group ->
+                        val note = group.first()
+                        val excerpt = ReadingTextCleanup.forDisplay(document.chunks.getOrNull(note.chunkIndex).orEmpty())
                             .replace(Regex("\\s+"), " ")
-                            .trim()
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onJumpToSection(note.chunkIndex) },
+                                .clickable { onEditSentenceNote(group.map { it.chunkIndex }) },
                             shape = VeritasPackStyle.compactShape(),
                             border = androidx.compose.foundation.BorderStroke(
                                 width = 1.dp,
@@ -351,11 +327,8 @@ fun BooknotesDialog(
                                         modifier = Modifier.weight(1f),
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.NavigateNext,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    Text(menuString(com.veritas.reader.R.string.ui_edit),
+                                        style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                                 }
                                 Text(
                                     note.note.ifBlank { com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_empty_note) },
@@ -387,13 +360,23 @@ fun BooknotesDialog(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
+                                TextButton(onClick = { onJumpToSection(note.chunkIndex) }) {
+                                    Text(menuString(com.veritas.reader.R.string.ui_open))
+                                }
                             }
                         }
                     }
                 }
+              }
             }
         }
-    )
+        if (!sentenceTab) Button(onClick = {
+            VoiceNoteRecorder.stopAll()
+            onSaveDocumentNote()
+        }, enabled = !isRecordingGeneral, modifier = Modifier.fillMaxWidth(), shape = VeritasPackStyle.chipShape()) {
+            Text(menuString(com.veritas.reader.R.string.ui_save))
+        }
+    }
 }
 
 @Composable
@@ -408,7 +391,8 @@ fun DocumentNotesDialog(
     onJumpToSection: (Int) -> Unit,
     onExportNotes: () -> Unit,
     onExportPdf: () -> Unit = {},
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onEditSentenceNote: (List<Int>) -> Unit = { onJumpToSection(it.first()) }
 ) {
     BooknotesDialog(
         document = document,
@@ -421,7 +405,8 @@ fun DocumentNotesDialog(
         onJumpToSection = onJumpToSection,
         onExportNotes = onExportNotes,
         onExportPdf = onExportPdf,
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
+        onEditSentenceNote = onEditSentenceNote
     )
 }
 

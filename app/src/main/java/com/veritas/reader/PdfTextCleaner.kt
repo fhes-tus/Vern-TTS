@@ -40,11 +40,65 @@ object PdfTextCleaner {
         RegexOption.IGNORE_CASE
     )
 
+    private const val DOTTED_WORD = "[\\p{L}\\p{M}]{2,}(?:[’'-][\\p{L}\\p{M}]+)*"
+    private const val PDF_WRAP_SPACE = "[ \\t]*(?:\\n[ \\t]*)?"
+    private val dottedProse = Regex("(?<![\\p{L}\\p{N}_])$DOTTED_WORD(?:$PDF_WRAP_SPACE[.·]$PDF_WRAP_SPACE$DOTTED_WORD){4,96}")
+    private val wordDot = Regex("$PDF_WRAP_SPACE[.·]$PDF_WRAP_SPACE(?=\\p{L})")
+    private val linkToken = Regex("(?i)(?:https?://|www\\.)[^\\s<>]+|[^\\s<>]+@[^\\s<>]+|\\b(?:[a-z0-9-]+\\.)+(?:com|org|net|edu|gov|io|dev|uk)\\b")
+    private val tightConnector = Regex("\\b(?:to|of|in|for|with|from|and|the)\\.(?=\\p{Ll}{2,}\\b)")
+    private val mixedCaseTitle = Regex("(?m)^([ \\t#]*)([a-z][a-zA-Z]{6,})(:)[ \\t]*$")
+
+    /** Some PDF fonts map inter-word space to a dot. Repair runs with repeated evidence. */
+    internal fun repairPdfSpacing(text: String): String {
+        val candidates = dottedProse.findAll(text).filter { phrase ->
+            val separators = wordDot.findAll(phrase.value).toList()
+            separators.count { it.value.length == 1 } >= 3 ||
+                separators.count { phrase.value.getOrNull(it.range.last + 1)?.isLowerCase() == true } >= 3
+        }.toList()
+        if (candidates.isEmpty()) return text
+        val links = linkToken.findAll(text).map { it.range }.toList()
+        val damaged = candidates.filterNot { phrase ->
+            links.any { phrase.range.first <= it.last && it.first <= phrase.range.last }
+        }
+        if (damaged.isEmpty()) return text
+        val replacements = damaged.map { phrase ->
+            val preceding = phrase.range.first - 1
+            val start = if (preceding > 0 && text[preceding] == '.' && text[preceding - 1] == ':') preceding else phrase.range.first
+            val separators = wordDot.findAll(phrase.value).toList()
+            val lineStart = text.lastIndexOf('\n', preceding).let { it + 1 }
+            val afterStart = phrase.range.last + 1
+            val afterEnd = text.indexOf('\n', afterStart).takeIf { it >= 0 } ?: text.length
+            val after = text.substring(afterStart, afterEnd).trimStart()
+            (start..phrase.range.last) to (if (start < phrase.range.first) " " else "") +
+                wordDot.replace(phrase.value) { separator ->
+                    val nextStartsSentence = phrase.value.getOrNull(separator.range.last + 1)?.isUpperCase() == true &&
+                        separator.value.any { it.isWhitespace() }
+                    val previousProse = separator.range == separators.first().range &&
+                        text.substring(lineStart, phrase.range.first).any { it.isLetter() }
+                    val followingProse = separator.range == separators.last().range && after.firstOrNull()?.isLetter() == true
+                    if (nextStartsSentence && (previousProse || followingProse)) ". "
+                    else if ('\n' in separator.value) "\n" else " "
+                }
+        } + tightConnector.findAll(text).mapNotNull { connector ->
+            val dot = connector.range.last
+            if (damaged.any { dot in it.range } || links.any { dot in it }) null else (dot..dot) to " "
+        }.toList()
+        val corrected = StringBuilder(text)
+        replacements.sortedByDescending { it.first.first }.forEach { (range, value) ->
+            corrected.replace(range.first, range.last + 1, value)
+        }
+        return mixedCaseTitle.replace(corrected) { title ->
+            val word = title.groupValues[2]
+            if (word.zipWithNext().count { (a, b) -> a.isUpperCase() != b.isUpperCase() } < 4) title.value
+            else title.groupValues[1] + word.lowercase().replaceFirstChar { it.uppercase() } + title.groupValues[3]
+        }
+    }
+
     fun cleanPages(pageTexts: List<String>, pageNumbers: List<Int> = pageTexts.indices.map { it + 1 }, options: PdfImportOptions = PdfImportOptions()): PdfCleanupResult {
         val pageLines = pageTexts.map { page ->
-            page.replace('\r', '\n')
+            repairPdfSpacing(page.replace("\r\n", "\n").replace('\r', '\n'))
                 .split('\n')
-                .map { it.trim() }
+                .map { it.trimEnd() }
         }
 
         val repeatedKeys = if (options.cleanupRepeatedLines) findRepeatedHeaderFooterKeys(pageLines) else emptySet()
@@ -56,14 +110,16 @@ object PdfTextCleaner {
         pageLines.forEachIndexed { pageIndex, lines ->
             val cleanedLines = mutableListOf<String>()
             lines.forEachIndexed { lineIndex, line ->
-                val cleanLine = if (isPipeTableLine(line)) {
-                    line.trim()
+                val body = line.trimStart()
+                val tableLine = isPipeTableLine(body)
+                val cleanLine = if (tableLine) {
+                    body
                 } else {
-                    line.replace(WHITESPACE_REGEX, " ").trim()
+                    line.takeWhile { it == ' ' }.take(12) + body.replace(WHITESPACE_REGEX, " ")
                 }
                 val key = normalizedLineKey(cleanLine)
                 when {
-                    options.cleanupRepeatedLines && key in repeatedKeys &&
+                    options.cleanupRepeatedLines && !tableLine && key in repeatedKeys &&
                         (lineIndex < 3 || lineIndex >= lines.size - 3) -> removedRepeated++
                     options.removePageNumbers && isStandalonePageNumber(cleanLine) -> removedPageNumbers++
                     else -> cleanedLines.add(cleanLine)
@@ -104,7 +160,7 @@ object PdfTextCleaner {
                 val key = normalizedLineKey(line)
                 // Contents entries and real section headings may repeat within a short batch.
                 // Frequency alone must never turn them into disposable running headers.
-                if (key.length in 4..120 && !isStandalonePageNumber(line) &&
+                if (key.length in 4..120 && !isPipeTableLine(line.trim()) && !isStandalonePageNumber(line) &&
                     !isStructuralChapterHeading(line.trim()) &&
                     key !in setOf("contents", "table of contents", "dedication", "acknowledgements", "acknowledgments")) {
                     counts[key] = (counts[key] ?: 0) + 1
@@ -197,6 +253,9 @@ object PdfTextCleaner {
                 if (currentIsHeading && !line.startsWith("#")) {
                     output.append("# ").append(line)
                 } else {
+                    if (!currentIsHeading && !currentIsTable) {
+                        output.append(originalLine.takeWhile { it == ' ' })
+                    }
                     output.append(line)
                 }
                 previousWasHeading = currentIsHeading
@@ -230,6 +289,8 @@ object PdfTextCleaner {
                 output.endsWith("\n\n") -> {
                     if (currentIsHeading && !line.startsWith("#")) {
                         output.append("# ")
+                    } else if (!currentIsHeading && !currentIsTable) {
+                        output.append(originalLine.takeWhile { it == ' ' })
                     }
                 }
                 currentIsTable -> {

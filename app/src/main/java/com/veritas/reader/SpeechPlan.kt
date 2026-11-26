@@ -49,7 +49,8 @@ internal object SpeechPlan {
     fun segment(documentId: String, revision: String, index: Int, original: String,
         base: VoiceSettings, narration: NarrationSettings, rate: Float, pitch: Float,
         rules: List<DocumentRepository.CompiledPronunciationRule>, cue: NarrationCue? = null,
-        resumeOffset: Int = 0, stripSpeakerLabel: Boolean = false, leadingPauseMs: Long = 0): SpeechSegment {
+        resumeOffset: Int = 0, stripSpeakerLabel: Boolean = false, leadingPauseMs: Long = 0,
+        sourceEnd: Int = original.length, prepared: SpokenText? = null): SpeechSegment {
         val role = NarrationAnalyzer.getActiveCharacter(original, narration, cue)
         val voice = voiceFor(original, base, narration, cue)
         val family = when (SpeechEngineRouting.engineForVoice(voice.voiceName) ?: voice.enginePackage) {
@@ -59,13 +60,48 @@ internal object SpeechPlan {
             else -> SpeechEngineFamily.ANDROID
         }
         val start = maxOf(resumeOffset, if (stripSpeakerLabel) cue?.labelEnd ?: 0 else 0).coerceIn(0, original.length)
-        val source = original.substring(start)
-        val english = (voice.localeTag.ifBlank { AppLanguages.systemSpeechLocale().toLanguageTag() }).startsWith("en", true)
-        val expanded = ReadingSymbols.expand(SpokenText.identity(source).applyRules(rules), english).sanitize()
+        val end = sourceEnd.coerceIn(start, original.length)
+        val source = original.substring(start, end)
+        val english = family == SpeechEngineFamily.KITTEN ||
+            voice.localeTag.ifBlank { AppLanguages.systemSpeechLocale().toLanguageTag() }.startsWith("en", true)
+        val expanded = ReadingSymbols.expand(prepared ?: SpokenText.identity(source).applyRules(rules), english).sanitize()
         val spoken = if (family == SpeechEngineFamily.ANDROID) expanded else NeuralSpeechText.prepare(expanded)
-        return SpeechSegment(documentId, revision, index, start, original.length, original, spoken, role, voice, family,
-            NarrationAnalyzer.effectiveRate(rate, narration, original, family == SpeechEngineFamily.ANDROID, cue),
-            NarrationAnalyzer.effectivePitch(pitch, narration, original, family == SpeechEngineFamily.ANDROID, cue), leadingPauseMs)
+        val deliveryText = if (prepared == null) original else source
+        return SpeechSegment(documentId, revision, index, start, end, original, spoken, role, voice, family,
+            NarrationAnalyzer.effectiveRate(rate, narration, deliveryText, family == SpeechEngineFamily.ANDROID, cue),
+            NarrationAnalyzer.effectivePitch(pitch, narration, deliveryText, family == SpeechEngineFamily.ANDROID, cue), leadingPauseMs)
+    }
+
+    fun segments(documentId: String, revision: String, index: Int, original: String,
+        base: VoiceSettings, narration: NarrationSettings, rate: Float, pitch: Float,
+        rules: List<DocumentRepository.CompiledPronunciationRule>, cue: NarrationCue? = null,
+        resumeOffset: Int = 0, stripSpeakerLabel: Boolean = false, leadingPauseMs: Long = 0): List<SpeechSegment> {
+        val runs = cue?.runs.orEmpty()
+        if (!narration.enabled || !narration.dialogueDetection || runs.isEmpty()) {
+            return listOf(segment(documentId, revision, index, original, base, narration, rate, pitch, rules,
+                cue, resumeOffset, stripSpeakerLabel, leadingPauseMs))
+        }
+        val start = maxOf(resumeOffset, if (stripSpeakerLabel) cue?.labelEnd ?: 0 else 0)
+            .coerceIn(0, original.length)
+        val mapped = SpokenText.identity(original.substring(start)).applyRules(rules)
+        return buildList {
+            var cursor = 0
+            runs.forEachIndexed { runIndex, run ->
+                val end = if (runIndex == runs.lastIndex) original.length else runs[runIndex + 1].start
+                val first = cursor
+                while (cursor < mapped.text.length && start + mapped.sourceOffset(cursor) < end) cursor++
+                if (first == cursor) return@forEachIndexed
+                val runStart = start + mapped.sourceOffset(first)
+                val runEnd = start + mapped.sourceEndOffset(cursor)
+                val part = mapped.slice(first, cursor).rebase(runStart - start, runEnd - start)
+                val speaker = if (run.dialogue) run.speaker ?: cue?.speaker else null
+                val role = NarrationCue(run.dialogue, speaker)
+                val segment = segment(documentId, revision, index, original, base, narration, rate, pitch, rules,
+                    role, runStart, leadingPauseMs = if (isEmpty()) leadingPauseMs else 85L,
+                    sourceEnd = runEnd, prepared = part)
+                if (segment.spoken.text.isNotBlank()) add(segment)
+            }
+        }
     }
 
     /** Bounded final text without reclassifying roles or damaging a grapheme. */

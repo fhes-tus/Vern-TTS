@@ -63,12 +63,11 @@ class VisualHierarchyTest {
         }
     }
 
-    @Test fun bookRowsShowReadingStatusInsteadOfTechnicalSentenceCounts() {
+    @Test fun bookRowsUseTheSavedProgressToEstimateTimeLeft() {
         val book = SavedDocument("summary", "A book", "book.pdf", "PDF", 1, 1, 50, 101, 20_000, "")
-        assertEquals("50% read · ~10m left", libraryReadingSummary(book))
-        assertEquals("Finished", libraryReadingSummary(book.copy(currentIndex = 100)))
-        assertEquals("Not started · ~20m", libraryReadingSummary(book.copy(currentIndex = 0)))
-        assertFalse(libraryReadingSummary(book).contains("PDF"))
-        assertFalse(libraryReadingSummary(book).contains("sent"))
+        assertEquals(50, progressPercent(book))
+        assertEquals(10, estimatedRemainingReadMinutes(book))
+        assertEquals(0, estimatedRemainingReadMinutes(book.copy(currentIndex = 100)))
+        assertEquals(20, estimatedRemainingReadMinutes(book.copy(currentIndex = 0)))
     }
 }

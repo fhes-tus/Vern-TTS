@@ -1,11 +1,26 @@
 package com.veritas.reader
 
 import com.veritas.reader.ui.ReaderViewModel
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class UpdateCheckerTest {
+    @Test fun postUpdateNotesDistinguishFirstLaunchUpgradeAndDowngrade() {
+        assertFalse(isInstalledUpgrade("", 0, "3.0.0", 53))
+        assertTrue(isInstalledUpgrade("2.7.1", 0, "3.0.0", 53))
+        assertTrue(isInstalledUpgrade("3.0.0", 52, "3.0.0", 53))
+        assertFalse(isInstalledUpgrade("3.0.0", 53, "3.0.0", 53))
+        assertFalse(isInstalledUpgrade("3.0.1", 54, "3.0.0", 53))
+    }
+
+    @Test fun postUpdateNotesSelectOnlyTheExactInstalledVersion() {
+        val bundled = """{"2.7.1":["Old change"],"3.0.0":["New change","",null]}"""
+        assertEquals(listOf("New change"), releaseNotesForVersion(bundled, "3.0.0"))
+        assertEquals(emptyList<String>(), releaseNotesForVersion(bundled, "3.0.1"))
+    }
+
 
     @Test
     fun testVersionComparisonCorrectlyIdentifiesNewerVersions() {

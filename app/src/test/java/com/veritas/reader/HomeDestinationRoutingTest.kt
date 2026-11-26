@@ -1,10 +1,29 @@
 package com.veritas.reader
 
 import com.veritas.reader.ui.screens.VeritasHomeTab
+import com.veritas.reader.ui.screens.libraryPagerNavPosition
+import com.veritas.reader.ui.screens.libraryHeaderMoves
+import com.veritas.reader.ui.screens.libraryPinnedHeaderProgress
 import org.junit.Assert.*
 import org.junit.Test
 
 class HomeDestinationRoutingTest {
+    @Test fun headersFollowThePageOnlyAcrossTheOuterLibraryTransitions() {
+        for ((page, moves) in listOf(0 to true, 1 to false, 2 to true, 3 to false)) {
+            assertEquals(moves, libraryHeaderMoves(page, page + 1))
+            assertEquals(moves, libraryHeaderMoves(page + 1, page))
+            if (moves) {
+                assertNull(libraryPinnedHeaderProgress(page, page + .25f))
+            } else {
+                assertEquals(.25f, requireNotNull(libraryPinnedHeaderProgress(page, page + .25f)), 0f)
+                assertEquals(.25f, requireNotNull(libraryPinnedHeaderProgress(page + 1, page + .25f)), 0f)
+            }
+        }
+        assertFalse(libraryHeaderMoves(0, -1))
+        assertFalse(libraryHeaderMoves(4, 5))
+        assertNull(libraryPinnedHeaderProgress(3, 3f))
+    }
+
     @Test fun librarySectionsSwipeBeforeStudyWithoutChangingMainTabIdentities() {
         val pages = com.veritas.reader.ui.screens.libraryPagerPages
         assertEquals(listOf("HOME", "LIBRARY", "LIBRARY", "STUDY", "NOTES"), pages.map { it.tab.name })
@@ -24,6 +43,17 @@ class HomeDestinationRoutingTest {
         }
         assertNull(VeritasHomeTab.fromPagerIndex(-1))
         assertNull(VeritasHomeTab.fromPagerIndex(4))
+    }
+
+    @Test fun navigationPillTracksPartialSwipesAndStaysOnLibraryAcrossItsSections() {
+        val navPosition = ::libraryPagerNavPosition
+        assertEquals(.25f, navPosition(.25f), 0f)
+        assertEquals(1f, navPosition(1.5f), 0f)
+        assertEquals(1.25f, navPosition(2.25f), 0f)
+        assertEquals(2.75f, navPosition(3.75f), 0f)
+        assertEquals(2.5f, navPosition(3.5f), 0f)
+        assertEquals(0f, navPosition(-.5f), 0f)
+        assertEquals(3f, navPosition(4.5f), 0f)
     }
 
     @Test fun noteAndStudyWidgetsKeepTheirSemanticDestinations() {

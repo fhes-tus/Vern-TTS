@@ -171,17 +171,35 @@ object ReaderTextIndex {
         val safeStart = startSentenceIndex.coerceIn(0, model.sentences.lastIndex)
         val safeEnd = endSentenceIndexExclusive.coerceIn(safeStart + 1, model.sentences.size)
         val replacementText = replacement.trim()
-        if (replacementText.isBlank()) return rawText
+        if (replacementText.isBlank() && safeStart == 0 && safeEnd == model.sentences.size) return rawText
 
-        val replacementPage = model.sentences.getOrNull(safeStart)?.pageNumber ?: 1
-        val replacementFragments = splitSentenceFragments(replacementText)
-            .ifEmpty { listOf(SentenceFragment(replacementText, "")) }
+        val originalSentences = model.sentences.subList(safeStart, safeEnd)
+        val replacementFragments = if (replacementText.isBlank()) emptyList() else
+            splitSentenceFragments(replacementText).ifEmpty { listOf(SentenceFragment(replacementText, "")) }
+        val prefix = originalSentences.zip(replacementFragments).takeWhile { (before, after) ->
+            before.text == after.text
+        }.size
+        val maximumSuffix = minOf(originalSentences.size, replacementFragments.size) - prefix
+        var suffix = 0
+        while (suffix < maximumSuffix &&
+            originalSentences[originalSentences.lastIndex - suffix].text ==
+            replacementFragments[replacementFragments.lastIndex - suffix].text) {
+            suffix++
+        }
+        val oldMiddle = originalSentences.size - prefix - suffix
+        val newMiddle = replacementFragments.size - prefix - suffix
         val replacementSentences = replacementFragments.mapIndexed { index, fragment ->
+            // Preserve page numbers of unchanged sentences on either side of an edit.
+            val oldIndex = when {
+                index < prefix -> index
+                index >= replacementFragments.size - suffix -> index + originalSentences.size - replacementFragments.size
+                else -> (prefix + (index - prefix).toLong() * oldMiddle / newMiddle).toInt()
+            }.coerceIn(0, originalSentences.lastIndex)
             ReaderSentence(
                 index = -1,
                 text = fragment.text,
-                pageNumber = replacementPage,
-                separatorBefore = if (index == 0) model.sentences.getOrNull(safeStart)?.separatorBefore.orEmpty() else fragment.separatorBefore
+                pageNumber = originalSentences[oldIndex].pageNumber,
+                separatorBefore = if (index == 0) originalSentences.first().separatorBefore else fragment.separatorBefore
             )
         }
 
@@ -365,7 +383,8 @@ object ReaderTextIndex {
             previousSentence != null && previousSentence.pageNumber != currentSentence.pageNumber -> "\n\n"
             isBulletOrList -> if (normalized.count { it == '\n' } >= 2) "\n\n" else "\n"
             isDialogueStart && normalized.contains('\n') -> "\n\n"
-            normalized.count { it == '\n' } >= 2 -> "\n\n"
+            normalized.count { it == '\n' } >= 2 ->
+                "\n\n" + normalized.substringAfterLast('\n').takeWhile { it == ' ' }.take(12)
             normalized.contains('\n') -> " "
             normalized.contains('\t') -> " "
             normalized.isNotBlank() -> " "
@@ -395,6 +414,7 @@ object ReaderTextIndex {
                 var end = index + 1
                 if (!legacy && char in sentenceEndMarks) {
                     while (end < text.length && text[end] in "!?.”’\"')]}»") end++
+                    if (text.startsWith("</u>", end)) end += 4
                 }
                 previousEnd = addTrimmedSentence(text, start, end, previousEnd, sentences)
                 start = end
@@ -457,6 +477,7 @@ object ReaderTextIndex {
         if (mark == '.' && text.getOrNull(markIndex + 1)?.isDigit() == true && text.getOrNull(markIndex - 1)?.isDigit() == true) return false
         var end = markIndex + 1
         while (end < text.length && text[end] in "!?.”’\"')]}»") end++
+        if (text.startsWith("</u>", end)) end += 4
         if (end < text.length && !text[end].isWhitespace()) return false
         val next = text.indexOfFirstAfter(end - 1) { !it.isWhitespace() } ?: return true
         if (mark == '.') {

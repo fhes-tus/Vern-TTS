@@ -13,6 +13,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import com.veritas.reader.VernAlertDialog as AlertDialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,9 +39,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.veritas.reader.R
 import com.veritas.reader.SavedDocument
 import com.veritas.reader.VeritasReadingList
 import com.veritas.reader.VeritasReadingListCatalog
@@ -48,6 +56,9 @@ fun ReadingListsDialog(
     activeDocumentId: String?,
     onDismiss: () -> Unit,
     onCreateList: (String) -> Unit,
+    onRenameList: (String, String) -> Unit,
+    onQueueList: (String) -> Unit,
+    onTransferDocument: (String, String, String) -> Unit,
     onAddDocument: (String, String) -> Unit,
     onRemoveDocument: (String, String) -> Unit,
     onOpenDocument: (SavedDocument) -> Unit,
@@ -62,74 +73,68 @@ fun ReadingListsDialog(
     val documentTitles = remember(documents) { documents.associate { it.id to it.title } }
     val documentsById = remember(documents) { documents.associateBy { it.id } }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = { Button(onClick = onDismiss, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close)) } },
-        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_lists)) },
-        text = {
-            Column(
-                modifier = Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Card(
+    FullScreenSettingsScaffold(title = menuString(R.string.ui_collections), onBack = onDismiss) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            )
+        ) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_collection), style = MaterialTheme.typography.labelLarge)
+                OutlinedTextField(
+                    value = newListTitle,
+                    onValueChange = { newListTitle = it },
+                    label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.collection_name)) },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                    )
+                    shape = RoundedCornerShape(50)
+                )
+                Button(
+                    onClick = {
+                        onCreateList(newListTitle)
+                        newListTitle = ""
+                    },
+                    enabled = newListTitle.trim().isNotBlank(),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(50)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create_list), style = MaterialTheme.typography.labelLarge)
-                        OutlinedTextField(
-                            value = newListTitle,
-                            onValueChange = { newListTitle = it },
-                            label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_list_name)) },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(50)
-                        )
-                        Button(
-                            onClick = {
-                                onCreateList(newListTitle)
-                                newListTitle = ""
-                            },
-                            enabled = newListTitle.trim().isNotBlank(),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(50)
-                        ) {
-                            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create))
-                        }
-                    }
-                }
-
-                if (activeLists.isEmpty()) {
-                    Text(
-                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_reading_lists_yet),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                } else {
-                    activeLists.forEach { list ->
-                        ReadingListCard(
-                            list = list,
-                            documentsById = documentsById,
-                            documentTitles = documentTitles,
-                            activeDocument = activeDocument,
-                            onAddDocument = onAddDocument,
-                            onRemoveDocument = onRemoveDocument,
-                            onOpenDocument = onOpenDocument,
-                            onMoveDocument = onMoveDocument,
-                            onSetSortMode = onSetSortMode,
-                            onArchiveList = onArchiveList,
-                            onDeleteList = onDeleteList
-                        )
-                    }
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_create))
                 }
             }
         }
-    )
+
+        if (activeLists.isEmpty()) {
+            Text(
+                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_collections_yet),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        } else {
+            activeLists.forEach { list ->
+                androidx.compose.runtime.key(list.id) { ReadingListCard(
+                    list = list,
+                    documentsById = documentsById,
+                    documentTitles = documentTitles,
+                    activeDocument = activeDocument,
+                    onAddDocument = onAddDocument,
+                    onRenameList = onRenameList,
+                    onQueueList = onQueueList,
+                    onTransferDocument = onTransferDocument,
+                    destinations = activeLists.filter { it.id != list.id },
+                    onRemoveDocument = onRemoveDocument,
+                    onOpenDocument = onOpenDocument,
+                    onMoveDocument = onMoveDocument,
+                    onSetSortMode = onSetSortMode,
+                    onArchiveList = onArchiveList,
+                    onDeleteList = onDeleteList
+                ) }
+            }
+        }
+    }
 }
 
 @Composable
@@ -138,6 +143,10 @@ private fun ReadingListCard(
     documentsById: Map<String, SavedDocument>,
     documentTitles: Map<String, String>,
     activeDocument: SavedDocument?,
+    destinations: List<VeritasReadingList>,
+    onRenameList: (String, String) -> Unit,
+    onQueueList: (String) -> Unit,
+    onTransferDocument: (String, String, String) -> Unit,
     onAddDocument: (String, String) -> Unit,
     onRemoveDocument: (String, String) -> Unit,
     onOpenDocument: (SavedDocument) -> Unit,
@@ -146,8 +155,14 @@ private fun ReadingListCard(
     onArchiveList: (String) -> Unit,
     onDeleteList: (String) -> Unit
 ) {
+    var membersExpanded by rememberSaveable { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
-    var confirmDelete by remember { mutableStateOf(false) }
+    var confirmDelete by remember(list.id) { mutableStateOf(false) }
+    var showActions by remember(list.id) { mutableStateOf(false) }
+    var showAdd by remember(list.id) { mutableStateOf(false) }
+    var confirmQueue by remember(list.id) { mutableStateOf(false) }
+    var newName by remember(list.id) { mutableStateOf<String?>(null) }
+    var movingDocument by remember(list.id) { mutableStateOf<SavedDocument?>(null) }
     val orderedDocuments = remember(list, documentsById, documentTitles) {
         list.orderedItems(documentTitles).mapNotNull { documentsById[it.documentId] }
     }
@@ -165,14 +180,24 @@ private fun ReadingListCard(
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(list.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(
-                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_217, com.veritas.reader.ui.screens.localizedUiValue(orderedDocuments.size)),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                val expandLabel = menuString(if (membersExpanded) R.string.ui_collapse else R.string.ui_expand)
+                Row(
+                    Modifier.weight(1f).clickable(role = Role.Button, onClickLabel = expandLabel) {
+                        membersExpanded = !membersExpanded
+                    },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(if (membersExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null)
+                    Column(Modifier.padding(start = 8.dp)) {
+                        Text(list.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            menuString(R.string.l10n_dynamic_217, localizedUiValue(orderedDocuments.size)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
-                Box {
+                if (membersExpanded) Box {
                     OutlinedButton(onClick = { showSortMenu = true }, shape = RoundedCornerShape(50)) {
                         Text(sortModeLabel(list.sortMode))
                     }
@@ -212,28 +237,100 @@ private fun ReadingListCard(
                 }
             }
 
-            if (orderedDocuments.isEmpty()) {
-                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_this_list_is_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } else {
-                orderedDocuments.forEachIndexed { index, document ->
-                    ReadingListDocumentRow(
-                        document = document,
-                        canMoveUp = manualOrder && index > 0,
-                        canMoveDown = manualOrder && index < orderedDocuments.lastIndex,
-                        onOpen = { onOpenDocument(document) },
-                        onMoveUp = { onMoveDocument(list.id, document.id, -1) },
-                        onMoveDown = { onMoveDocument(list.id, document.id, 1) },
-                        onRemove = { onRemoveDocument(list.id, document.id) }
-                    )
+            if (membersExpanded) {
+                if (orderedDocuments.isEmpty()) {
+                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_this_list_is_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    orderedDocuments.forEachIndexed { index, document ->
+                        ReadingListDocumentRow(
+                            document = document,
+                            canMoveUp = manualOrder && index > 0,
+                            canMoveDown = manualOrder && index < orderedDocuments.lastIndex,
+                            onOpen = { onOpenDocument(document) },
+                            onMoveUp = { onMoveDocument(list.id, document.id, -1) },
+                            onMoveDown = { onMoveDocument(list.id, document.id, 1) },
+                            onRemove = { onRemoveDocument(list.id, document.id) },
+                            onTransfer = if (destinations.isEmpty()) null else ({ movingDocument = document })
+                        )
+                    }
                 }
             }
 
             HorizontalDivider()
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { onArchiveList(list.id) }, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_archive)) }
-                Button(onClick = { confirmDelete = true }, shape = RoundedCornerShape(50)) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_delete)) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = { showAdd = true }, modifier = Modifier.weight(1f)) {
+                    Text(menuString(R.string.collection_add_files))
+                }
+                Box {
+                    IconButton(onClick = { showActions = true }) {
+                        Icon(Icons.Filled.MoreVert, menuString(R.string.collection_actions))
+                    }
+                    DropdownMenu(expanded = showActions, onDismissRequest = { showActions = false }) {
+                        DropdownMenuItem(text = { Text(menuString(R.string.collection_rename)) },
+                            onClick = { showActions = false; newName = list.title })
+                        DropdownMenuItem(text = { Text(menuString(R.string.collection_queue)) },
+                            enabled = orderedDocuments.isNotEmpty(),
+                            onClick = { showActions = false; confirmQueue = true })
+                        DropdownMenuItem(text = { Text(menuString(R.string.ui_archive)) },
+                            onClick = { showActions = false; onArchiveList(list.id) })
+                        DropdownMenuItem(text = { Text(menuString(R.string.ui_delete)) },
+                            onClick = { showActions = false; confirmDelete = true })
+                    }
+                }
             }
         }
+    }
+
+    newName?.let { name ->
+        AlertDialog(onDismissRequest = { newName = null },
+            title = { Text(menuString(R.string.collection_rename)) },
+            text = { OutlinedTextField(name, { newName = it }, label = { Text(menuString(R.string.collection_name)) }, singleLine = true) },
+            confirmButton = {
+                TextButton(enabled = name.isNotBlank(), onClick = { newName = null; onRenameList(list.id, name) }) {
+                    Text(menuString(R.string.ui_save))
+                }
+            },
+            dismissButton = { TextButton(onClick = { newName = null }) { Text(menuString(R.string.ui_cancel)) } })
+    }
+    if (confirmQueue) {
+        AlertDialog(onDismissRequest = { confirmQueue = false },
+            title = { Text(menuString(R.string.collection_queue)) },
+            text = { Text(menuString(R.string.collection_queue_description)) },
+            confirmButton = {
+                TextButton(onClick = { confirmQueue = false; onQueueList(list.id) }) {
+                    Text(menuString(R.string.collection_replace_queue))
+                }
+            },
+            dismissButton = { TextButton(onClick = { confirmQueue = false }) { Text(menuString(R.string.ui_cancel)) } })
+    }
+    movingDocument?.let { document ->
+        AlertDialog(onDismissRequest = { movingDocument = null },
+            title = { Text(menuString(R.string.collection_move)) },
+            text = {
+                Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
+                    destinations.forEach { destination ->
+                        TextButton(onClick = {
+                            movingDocument = null
+                            onTransferDocument(list.id, destination.id, document.id)
+                        }) { Text(destination.title) }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { movingDocument = null }) { Text(menuString(R.string.ui_cancel)) } })
+    }
+    if (showAdd) {
+        val available = documentsById.values.filterNot { list.contains(it.id) }.sortedBy { it.title.lowercase() }
+        AlertDialog(onDismissRequest = { showAdd = false },
+            title = { Text(menuString(R.string.collection_add_files)) },
+            text = {
+                Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
+                    if (available.isEmpty()) Text(menuString(R.string.collection_no_more_files))
+                    available.forEach { document ->
+                        TextButton(onClick = { onAddDocument(list.id, document.id) }) { Text(document.title) }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { showAdd = false }) { Text(menuString(R.string.ui_close)) } })
     }
 
     if (confirmDelete) {
@@ -267,8 +364,10 @@ private fun ReadingListDocumentRow(
     onOpen: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    onTransfer: (() -> Unit)?
 ) {
+    var showActions by remember(document.id) { mutableStateOf(false) }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.weight(1f).clickable { onOpen() }) {
             Text(document.title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
@@ -279,9 +378,21 @@ private fun ReadingListDocumentRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        TextButton(onClick = onMoveUp, enabled = canMoveUp) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_up)) }
-        TextButton(onClick = onMoveDown, enabled = canMoveDown) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_down)) }
-        TextButton(onClick = onRemove) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove)) }
+        Box {
+            IconButton(onClick = { showActions = true }) {
+                Icon(Icons.Filled.MoreVert, menuString(R.string.collection_file_actions, document.title))
+            }
+            DropdownMenu(expanded = showActions, onDismissRequest = { showActions = false }) {
+                if (canMoveUp) DropdownMenuItem(text = { Text(menuString(R.string.ui_up)) },
+                    onClick = { showActions = false; onMoveUp() })
+                if (canMoveDown) DropdownMenuItem(text = { Text(menuString(R.string.ui_down)) },
+                    onClick = { showActions = false; onMoveDown() })
+                if (onTransfer != null) DropdownMenuItem(text = { Text(menuString(R.string.collection_move)) },
+                    onClick = { showActions = false; onTransfer() })
+                DropdownMenuItem(text = { Text(menuString(R.string.ui_remove)) },
+                    onClick = { showActions = false; onRemove() })
+            }
+        }
     }
 }
 

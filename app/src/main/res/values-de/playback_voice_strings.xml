@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_voice_not_installed_title">Stimme nicht installiert</string>
+    <string name="playback_voice_not_installed_message">Installiere die ausgewählte Stimme oder wähle eine bereits installierte Stimme.</string>
+</resources>

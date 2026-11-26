@@ -61,9 +61,9 @@ class SpeechPatternPlaybackInstrumentedTest {
             repository.savePronunciationRules(emptyList())
             repository.restoreBackupJson(backup, replaceExisting = false)
             assertEquals(before, DocumentRepository(context).loadPronunciationRules().single())
-            // Restore atomically publishes a new file. Reload its current metadata by identity.
+            // A merge preserves the existing file for the same reading.
             val restored = requireNotNull(repository.findDocument(document.id))
-            assertNotEquals(document.fileName, restored.fileName)
+            assertEquals(document.fileName, restored.fileName)
             assertEquals("Keep [12] and _terro_ in the displayed book.", repository.readText(restored))
             assertEquals("Keep reference 12 and _terro_ in the displayed book.", repository.applyPronunciationRules(repository.readText(restored)))
         } finally { repository.deleteDocument(document.id) }
@@ -76,6 +76,8 @@ class SpeechPatternPlaybackInstrumentedTest {
         assertEquals("A[12]B", repository.applyPronunciationRules("A[12]B"))
         repository.addPronunciationRule("_{text}_", "\$1", SpeechRuleKind.PATTERN, ruleId = saved.id)
         assertEquals(1, repository.loadPronunciationRules().size)
+        assertEquals("A[12]B _terro_", repository.applyPronunciationRules("A[12]B _terro_"))
+        repository.togglePronunciationRule(saved.id)
         assertEquals("A[12]B terro", repository.applyPronunciationRules("A[12]B _terro_"))
         repository.removePronunciationRule(saved.id)
         assertEquals("_terro_", repository.applyPronunciationRules("_terro_"))

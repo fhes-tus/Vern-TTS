@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -38,14 +39,19 @@ import java.util.Locale
 
 /** Source choice is explicit. Editing credentials never silently starts cloud reading. */
 @Composable
-internal fun CloudVoiceSettingsPanel(onUsePhoneVoice: () -> Unit = {}): Boolean {
+internal fun CloudVoiceSettingsPanel(
+    onUsePhoneVoice: () -> Unit = {},
+    previewRate: Float = 1f,
+    previewPitch: Float = 1f,
+    beforeSources: @Composable (editingCloud: Boolean) -> Unit = {}
+): Boolean {
     val context = LocalContext.current
     val uri = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     var saved by remember { mutableStateOf(CloudVoiceStore.load(context)) }
     var draft by remember { mutableStateOf(saved) }
     var cloudEditor by remember { mutableStateOf(saved.enabled) }
-    var showNotice by remember { mutableStateOf(!CloudVoiceStore.noticeSeen(context)) }
+    var showNotice by remember { mutableStateOf(false) }
     var providerMenu by remember { mutableStateOf(false) }
     var key by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
@@ -62,7 +68,9 @@ internal fun CloudVoiceSettingsPanel(onUsePhoneVoice: () -> Unit = {}): Boolean 
     var usage by remember { mutableStateOf(CloudVoiceStore.usage(context,draft.provider)) }
     val preview = remember { CloudVoicePlayer(context,scope) }
     val sample = menuString(R.string.cloud_preview_text)
-    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val configuration = LocalConfiguration.current
+    val currentConfiguration by rememberUpdatedState(configuration)
+    val locale = configuration.locales[0]
     DisposableEffect(Unit) { onDispose { preview.stop(); catalogTransport?.cancel() } }
 
     fun draftConfig(enable: Boolean) = draft.copy(enabled = enable, endpoint = draft.endpoint.trim(),
@@ -108,6 +116,7 @@ internal fun CloudVoiceSettingsPanel(onUsePhoneVoice: () -> Unit = {}): Boolean 
         },
         confirmButton = { TextButton(onClick = { connectionHelp = false }) { Text(menuString(R.string.ui_got_it)) } })
 
+    beforeSources(cloudEditor)
     SettingsHubSectionTitle(menuString(R.string.cloud_source))
     Row(Modifier.fillMaxWidth().clickable(enabled = !busy) {
         preview.stop(); busy = false; cloudEditor = false; status = 0
@@ -255,12 +264,12 @@ internal fun CloudVoiceSettingsPanel(onUsePhoneVoice: () -> Unit = {}): Boolean 
                     if(PlaybackStateStore.isPlaying) sendPlaybackIntent(context,PlaybackActions.ACTION_PAUSE)
                     previewActive = true
                     val spokenSample = if (config.provider.hasVoiceCatalog) {
-                        val sampleConfig = Configuration(context.resources.configuration).apply {
+                        val sampleConfig = Configuration(currentConfiguration).apply {
                             setLocale(Locale.forLanguageTag(config.language))
                         }
                         context.createConfigurationContext(sampleConfig).getString(R.string.cloud_preview_text)
                     } else sample
-                    preview.play(config,spokenSample,1f,1f,onStarted = { status = R.string.cloud_preview_playing },onFinished = {
+                    preview.play(config,spokenSample,previewRate,previewPitch,onStarted = { status = R.string.cloud_preview_playing },onFinished = {
                     busy = false; previewActive = false; status = R.string.cloud_preview_done; usage = CloudVoiceStore.usage(context,config.provider); cacheBytes = CloudVoicePlayer.cacheBytes(context)
                 },onError = { busy = false; previewActive = false; status = it; usage = CloudVoiceStore.usage(context,config.provider); cacheBytes = CloudVoicePlayer.cacheBytes(context) },
                     credentialOverride = prepared.credential)
@@ -385,12 +394,15 @@ private fun CloudToggle(title: String,checked: Boolean,enabled: Boolean,onChange
 internal fun PhoneVoiceDirectory() {
     val uri = LocalUriHandler.current
     var status by remember { mutableIntStateOf(0) }
-        SettingsHubSectionTitle(menuString(R.string.cloud_more_phone_voices))
-        Text(menuString(R.string.cloud_directory_hint),style = MaterialTheme.typography.bodySmall,color = MaterialTheme.colorScheme.onSurfaceVariant)
-        listOf(
-            R.string.cloud_google to "https://play.google.com/store/apps/details?id=com.google.android.tts",
-            R.string.cloud_rhvoice to "https://play.google.com/store/apps/details?id=com.github.olga_yakovleva.rhvoice.android",
-            R.string.cloud_espeak to "https://f-droid.org/packages/com.reecedunn.espeak/"
-        ).forEach { (label,url) -> TextButton(onClick = { runCatching { uri.openUri(url) }.onFailure { status = R.string.cloud_error_connection } }) { Text(menuString(label)) } }
-        if(status != 0) Text(menuString(status))
+    Text(menuString(R.string.cloud_directory_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    listOf(
+        R.string.cloud_google to "https://play.google.com/store/apps/details?id=com.google.android.tts",
+        R.string.cloud_rhvoice to "https://play.google.com/store/apps/details?id=com.github.olga_yakovleva.rhvoice.android",
+        R.string.cloud_espeak to "https://f-droid.org/packages/com.reecedunn.espeak/"
+    ).forEach { (label, url) ->
+        TextButton(onClick = { runCatching { uri.openUri(url) }.onFailure { status = R.string.cloud_error_connection } }) {
+            Text(menuString(label))
+        }
+    }
+    if (status != 0) Text(menuString(status))
 }

@@ -4,6 +4,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 
 data class TextImportOptions(
     val encodingId: String = TextImportEncodingCatalog.AUTO_DETECT_ID
@@ -80,23 +81,39 @@ internal data class TextDecodingResult(
 )
 
 internal object TextImportDecoder {
-    fun decode(bytes: ByteArray, options: TextImportOptions): TextDecodingResult {
+    // A single scan lets tags inside comments, raw text, and quoted attributes stay inert.
+    private val tagAttributes = """(?:[^<>"']++|"[^"]*"|'[^']*')*"""
+    private val htmlHeaderToken = Regex(
+        """<!--.*?(?:-->|$)""" +
+            """|<(script|style|title|textarea)(?=[\s/>])$tagAttributes>.*?(?:</\1\s*>|$)""" +
+            """|<(/?)([a-z][a-z0-9:-]*)(?=[\s/>])($tagAttributes)>""",
+        setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+    )
+    private val attribute = Regex("""(?is)([a-z][a-z0-9:_-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""")
+    private val charsetParameter = Regex("""(?i)(?:^|;)\s*charset\s*=\s*["']?\s*([A-Za-z0-9._-]+)""")
+    private val xmlEncoding = Regex("""(?is)^<\?xml\s+[^?]*\bencoding\s*=\s*["']([^"']+)["'][^?]*\?>""")
+
+    fun decode(bytes: ByteArray, options: TextImportOptions, isHtml: Boolean = false): TextDecodingResult {
         val requested = TextImportEncodingCatalog.byId(options.encodingId)
         val resolved = when {
-            requested.useDeclaredHtmlCharset -> declaredHtmlCharset(bytes)?.let { charset ->
-                DecodeCandidate(charset, requested.label, "Declared HTML charset: ${charset.name()}.")
+            requested.useDeclaredHtmlCharset && isHtml -> {
+                val declared = detectBom(bytes) ?: declaredHtmlCharset(bytes)?.let { charset ->
+                    DecodeCandidate(charset, requested.label, "Declared HTML charset: ${charset.name()}.")
+                }
+                declared ?: autoDetectCandidate(bytes, isHtml = false).let {
+                    it.copy(diagnostic = "No supported HTML charset was declared. ${it.diagnostic}")
+                }
+            }
+            requested.useDeclaredHtmlCharset -> autoDetectCandidate(bytes, isHtml = false).let {
+                it.copy(diagnostic = "HTML charset declarations apply only to HTML imports. ${it.diagnostic}")
             }
             requested.charsetName != null -> DecodeCandidate(
                 charset = Charset.forName(requested.charsetName),
                 requestLabel = requested.label,
                 diagnostic = "Text decoded as ${requested.label}."
             )
-            else -> autoDetectCandidate(bytes)
-        } ?: DecodeCandidate(
-            charset = StandardCharsets.UTF_8,
-            requestLabel = requested.label,
-            diagnostic = "No declared charset was found; decoded as Unicode (UTF-8)."
-        )
+            else -> autoDetectCandidate(bytes, isHtml)
+        }
 
         val text = decodeLenient(bytes, resolved.charset).trimLeadingBom()
         return TextDecodingResult(
@@ -106,10 +123,12 @@ internal object TextImportDecoder {
         )
     }
 
-    private fun autoDetectCandidate(bytes: ByteArray): DecodeCandidate {
+    private fun autoDetectCandidate(bytes: ByteArray, isHtml: Boolean): DecodeCandidate {
         detectBom(bytes)?.let { return it }
-        declaredHtmlCharset(bytes)?.let { charset ->
-            return DecodeCandidate(charset, "Auto-detect", "Auto-detected declared HTML charset: ${charset.name()}.")
+        if (isHtml) {
+            declaredHtmlCharset(bytes)?.let { charset ->
+                return DecodeCandidate(charset, "Auto-detect", "Auto-detected declared HTML charset: ${charset.name()}.")
+            }
         }
         if (decodeStrict(bytes, StandardCharsets.UTF_8) != null) {
             return DecodeCandidate(StandardCharsets.UTF_8, "Auto-detect", "Auto-detected Unicode (UTF-8).")
@@ -131,16 +150,27 @@ internal object TextImportDecoder {
     }
 
     private fun declaredHtmlCharset(bytes: ByteArray): Charset? {
-        val header = bytes
-            .take(4096)
-            .toByteArray()
-            .toString(StandardCharsets.ISO_8859_1)
-        val match = Regex("""(?is)\bcharset\s*=\s*["']?\s*([A-Za-z0-9._-]+)""")
-            .find(header)
-            ?: Regex("""(?is)<\?xml\b[^>]*\bencoding\s*=\s*["']([^"']+)["']""").find(header)
-        val name = match?.groupValues?.getOrNull(1)?.trim().orEmpty()
-        return if (name.isBlank() || !Charset.isSupported(name)) null else Charset.forName(name)
+        val header = String(bytes, 0, minOf(bytes.size, 4096), StandardCharsets.ISO_8859_1)
+            .removePrefix("\u00EF\u00BB\u00BF").trimStart()
+        for (token in htmlHeaderToken.findAll(header)) {
+            val tagName = token.groups[3]?.value?.lowercase(Locale.ROOT) ?: continue
+            val closing = token.groupValues[2].isNotEmpty()
+            if (tagName == "body" || tagName == "head" && closing) break
+            if (tagName != "meta" || closing) continue
+            val attributes = attribute.findAll(token.groupValues[4]).associate { match ->
+                match.groupValues[1].lowercase(Locale.ROOT) to
+                    (match.groups[2]?.value ?: match.groups[3]?.value ?: match.groupValues[4])
+            }
+            val name = attributes["charset"] ?: attributes["content"]
+                ?.takeIf { attributes["http-equiv"]?.trim().equals("content-type", ignoreCase = true) }
+                ?.let { charsetParameter.find(it)?.groupValues?.get(1) }
+            supportedCharset(name)?.let { return it }
+        }
+        return supportedCharset(xmlEncoding.find(header)?.groupValues?.get(1))
     }
+
+    private fun supportedCharset(name: String?): Charset? = name?.trim()?.trimEnd('/')?.takeIf { it.isNotEmpty() }
+        ?.let { runCatching { Charset.forName(it) }.getOrNull() }
 
     private fun decodeStrict(bytes: ByteArray, charset: Charset): String? {
         return try {

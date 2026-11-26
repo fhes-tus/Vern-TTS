@@ -70,9 +70,30 @@ internal class VernPdfControlsHeader(context: Context) : LinearLayout(context) {
     val summary = LinearLayout(context).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
     val transport = LinearLayout(context).apply { gravity = android.view.Gravity.CENTER_VERTICAL or android.view.Gravity.END }
     private var stacked: Boolean? = null
-    init { addView(summary); addView(transport) }
+    var expanded = false
+        set(value) {
+            if (field != value) {
+                field = value
+                updatePadding()
+            }
+        }
+
+    init {
+        addView(summary)
+        addView(transport)
+        updatePadding()
+    }
+
+    private fun updatePadding() {
+        val density = resources.displayMetrics.density
+        val verticalDp = if (expanded) 4 else (VeritasPackStyle.readerPlayerHeightDp - 48) / 2
+        val vertical = (verticalDp * density).toInt()
+        setPadding((8 * density).toInt(), vertical, (6 * density).toInt(), vertical)
+    }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val next = MeasureSpec.getSize(widthMeasureSpec) < 360 * resources.displayMetrics.density
+        // The compact row only needs room for the brand and five 48 dp controls.
+        val stackBelowDp = if (expanded) 360 else 302
+        val next = MeasureSpec.getSize(widthMeasureSpec) < stackBelowDp * resources.displayMetrics.density
         if (next != stacked) {
             stacked = next
             orientation = if (next) VERTICAL else HORIZONTAL

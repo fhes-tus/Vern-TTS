@@ -59,6 +59,16 @@
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_midnight</item>
         <item name="android:windowSplashScreenAnimationDuration">950</item>
     </style>
+    <style name="Theme.Vern.StartupNavy" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#000020</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_copper</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
+    <style name="Theme.Vern.StartupNavyStatic" parent="Theme.Vern">
+        <item name="android:windowSplashScreenBackground">#000020</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_mark_copper</item>
+        <item name="android:windowSplashScreenAnimationDuration">950</item>
+    </style>
     <style name="Theme.Vern.StartupCopper" parent="Theme.Vern">
         <item name="android:windowSplashScreenBackground">#C07318</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/vern_splash_animated_copper</item>

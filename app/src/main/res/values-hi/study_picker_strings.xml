@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_choose_flashcard_book">फ़्लैशकार्ड के लिए किताब चुनें</string>
+    <string name="study_flashcard_picker_empty">पहले अपनी लाइब्रेरी में किताब जोड़ें। आप अध्ययन केंद्र में फ़्लैशकार्ड पेस्ट भी कर सकते हैं।</string>
+    <string name="study_guide_picker_empty">लाइब्रेरी में किताब जोड़ें, फिर उसके नोट्स और हाइलाइट को अध्ययन गाइड के रूप में निर्यात करें।</string>
+</resources>

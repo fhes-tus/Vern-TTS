@@ -9,6 +9,8 @@ import android.graphics.drawable.GradientDrawable
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -20,6 +22,10 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+
+private class PdfControlButton(context: android.content.Context) : TextView(context) {
+    override fun getAccessibilityClassName(): CharSequence = android.widget.Button::class.java.name
+}
 
 internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         // FrameLayout so the PDF stays full-screen underneath and the bars float
@@ -41,7 +47,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             )
         }
         applyToolbarInsets(toolbar)
-        toolbar.addView(iconButton(R.drawable.ic_m3_chevron_left) { finish() }.apply {
+        toolbar.addView(iconButton(R.drawable.ic_m3_chevron_left, glyphSizeDp = 18, targetWidthDp = 38) { finish() }.apply {
             contentDescription = getString(R.string.ui_back)
         })
 
@@ -116,17 +122,17 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         }
         toolbar.addView(pill)
 
-        toolbar.addView(iconButton(R.drawable.ic_m3_search) { toggleSearch() }.apply {
+        toolbar.addView(iconButton(R.drawable.ic_m3_search, glyphSizeDp = 18, targetWidthDp = 38) { toggleSearch() }.apply {
             contentDescription = getString(R.string.ui_search)
         })
-        toolbar.addView(iconButton(R.drawable.ic_m3_toc) { showTableOfContentsDialog() }.also {
+        toolbar.addView(iconButton(R.drawable.ic_m3_toc, glyphSizeDp = 18, targetWidthDp = 38) { showTableOfContentsDialog() }.also {
             it.contentDescription = getString(R.string.ui_table_of_contents)
             outlineButton = it
         })
-        toolbar.addView(iconButton(R.drawable.ic_m3_contrast) { cyclePaperToneMode() }.apply {
+        toolbar.addView(iconButton(R.drawable.ic_m3_contrast, glyphSizeDp = 18, targetWidthDp = 38) { cyclePaperToneMode() }.apply {
             contentDescription = getString(R.string.ui_paper_tone)
         })
-        toolbar.addView(iconButton(R.drawable.ic_m3_more_vert) { showTopMenu(toolbar) }.apply {
+        toolbar.addView(iconButton(R.drawable.ic_m3_more_vert, glyphSizeDp = 18, targetWidthDp = 38) { showTopMenu(toolbar) }.apply {
             contentDescription = getString(R.string.ui_more_options)
         })
         toolbarChrome = toolbar
@@ -180,18 +186,18 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
             }
         }
 
-        // Progress strip (thin coloured bar at top of panel)
-        val progressStrip = View(this).apply {
+        // The original accent stays with the expanded controls.
+        val accentStrip = View(this).apply {
+            visibility = View.GONE
             setBackgroundColor(if (PlaybackStateStore.isPlaying) colorActiveStrip else colorOutline)
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2.dp)
         }
 
         // ── Header row (always visible) ─────────────────────────────────────
-        val controlRow = VernPdfControlsHeader(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(8.dp, 4.dp, 6.dp, 4.dp)
-        }
+        val controlRow = VernPdfControlsHeader(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        panelExpanded = false
+        panelControlsHeader = controlRow
+        panelAccentStrip = accentStrip
 
         // Brand tile — tap to expand/collapse
         val brand = FrameLayout(this).apply {
@@ -203,6 +209,8 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
                 setPadding(4.dp, 4.dp, 4.dp, 4.dp)
             }, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
             setOnClickListener { togglePanelExpand() }
+            isFocusable = false
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         }
         controlRow.summary.addView(brand)
 
@@ -222,7 +230,9 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         controlRow.summary.addView(panelStatusLabel)
 
         // Playback controls
-        controlRow.transport.addView(iconButton(R.drawable.ic_m3_fast_rewind) { sendPlaybackIntent(this, PlaybackActions.ACTION_PREVIOUS) })
+        controlRow.transport.addView(iconButton(R.drawable.ic_m3_fast_rewind) { sendPlaybackIntent(this, PlaybackActions.ACTION_PREVIOUS) }.apply {
+            contentDescription = getString(R.string.ui_previous_sentence)
+        })
         playPauseControl = prominentButton("") {
             val preparing = PlaybackStateStore.isPreparingFor(document?.id)
             sendPlaybackIntent(this, if (PlaybackStateStore.isPlaying || preparing) PlaybackActions.ACTION_PAUSE else PlaybackActions.ACTION_PLAY,
@@ -231,22 +241,21 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         }
         applyPlayPauseIcon(PlaybackStateStore.isPlaying)
         controlRow.transport.addView(requireNotNull(playPauseControl))
-        controlRow.transport.addView(iconButton(R.drawable.ic_m3_fast_forward) { sendPlaybackIntent(this, PlaybackActions.ACTION_NEXT) })
+        controlRow.transport.addView(iconButton(R.drawable.ic_m3_fast_forward) { sendPlaybackIntent(this, PlaybackActions.ACTION_NEXT) }.apply {
+            contentDescription = getString(R.string.ui_next_sentence)
+        })
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         val rotateIcon = if (isLandscape) R.drawable.ic_m3_stay_primary_portrait else R.drawable.ic_m3_stay_primary_landscape
-        val rotBtn = iconButton(rotateIcon) { rotateViewer() }
+        val rotBtn = iconButton(rotateIcon) { rotateViewer() }.apply {
+            contentDescription = getString(R.string.ui_rotate_view_90)
+        }
         rotateControl = rotBtn
         controlRow.transport.addView(rotBtn)
 
         // Expand arrow indicator
-        panelExpandArrow = TextView(this).apply {
-            gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(38.dp, 38.dp)
-            setOnClickListener { togglePanelExpand() }
-        }
-        panelExpandArrow?.let { arrow ->
-            applyIconGlyph(arrow, R.drawable.ic_m3_expand_less)
-            arrow.foreground?.setTint(colorTextSecondary)
+        panelExpandArrow = iconButton(R.drawable.ic_m3_expand_less) { togglePanelExpand() }.apply {
+            contentDescription = getString(R.string.ui_expand_player_panel)
+            foreground?.setTint(colorTextSecondary)
         }
         controlRow.transport.addView(panelExpandArrow)
 
@@ -319,7 +328,7 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         })
         expandedSection.addView(bottomRow)
 
-        controls.addView(progressStrip)
+        controls.addView(accentStrip)
         controls.addView(controlRow)
         controls.addView(expandedSection)
         val controlViewport = android.widget.ScrollView(this).apply {
@@ -410,12 +419,11 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         val preparing = PlaybackStateStore.isPreparingFor(document?.id)
         if (preparing) {
             val loading = (control.foreground as? PlaybackLoadingDrawable) ?: PlaybackLoadingDrawable(
-                if (isLightTheme) Color.WHITE else Color.rgb(8, 34, 40), resources.displayMetrics.density,
-                pdfChromeSettings.reduceMotion).also { control.foreground = it }
+                if (isLightTheme) Color.WHITE else Color.rgb(8, 34, 40), resources.displayMetrics.density)
+                .also { control.foreground = it }
             control.foregroundGravity = Gravity.CENTER
             control.contentDescription = getString(R.string.pdf_cancel_preparing)
-            if (control.isShown && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) loading.start()
-            else loading.stop()
+            syncPlaybackLoadingMotion(loading)
             return
         }
         (control.foreground as? PlaybackLoadingDrawable)?.stop()
@@ -445,54 +453,73 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
 
     internal fun VeritasPdfViewerActivity.togglePanelExpand() {
         val section = expandedPanelContent ?: return
+        val previousAnimation = panelExpansionAnimator
+        val start = when {
+            section.visibility != View.VISIBLE -> 0
+            previousAnimation != null -> section.layoutParams.height.coerceAtLeast(0)
+            else -> section.height
+        }
+        panelExpansionAnimator = null
+        previousAnimation?.cancel()
         panelExpanded = !panelExpanded
+        panelControlsHeader?.expanded = panelExpanded
+        panelAccentStrip?.visibility = if (panelExpanded) View.VISIBLE else View.GONE
         panelExpandArrow?.let { arrow ->
             applyIconGlyph(arrow, if (panelExpanded) R.drawable.ic_m3_expand_more else R.drawable.ic_m3_expand_less)
             arrow.foreground?.setTint(colorTextSecondary)
+            arrow.contentDescription = getString(if (panelExpanded) R.string.ui_collapse_player else R.string.ui_expand_player_panel)
         }
         showChrome(keepVisible = true)
-        if (panelExpanded) {
-            section.visibility = View.VISIBLE
-            section.measure(
-                View.MeasureSpec.makeMeasureSpec(
-                    (section.parent as? View)?.width?.takeIf { it > 0 } ?: section.width,
-                    View.MeasureSpec.AT_MOST
-                ),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-            )
-            val target = section.measuredHeight
-            section.layoutParams.height = 0
+        fun settle() {
+            section.layoutParams.height = WRAP_CONTENT
+            section.visibility = if (panelExpanded) View.VISIBLE else View.GONE
             section.requestLayout()
-            ValueAnimator.ofInt(0, target).apply {
-                duration = 240
-                addUpdateListener {
-                    section.layoutParams.height = it.animatedValue as Int
-                    section.requestLayout()
-                }
-                start()
-            }
+        }
+        val animate = !pdfChromeSettings.reduceMotion && ValueAnimator.areAnimatorsEnabled()
+        if (!animate) {
+            settle()
         } else {
-            val start = section.measuredHeight
-            ValueAnimator.ofInt(start, 0).apply {
-                duration = 200
+            section.visibility = View.VISIBLE
+            val target = if (panelExpanded) {
+                section.measure(
+                    View.MeasureSpec.makeMeasureSpec(
+                        (section.parent as? View)?.width?.takeIf { it > 0 } ?: section.width,
+                        View.MeasureSpec.AT_MOST
+                    ),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                )
+                section.measuredHeight
+            } else 0
+            section.layoutParams.height = start
+            section.requestLayout()
+            val animation = ValueAnimator.ofInt(start, target).apply {
+                duration = if (panelExpanded) 225 else 155
+                interpolator = PathInterpolator(0.22f, 1f, 0.36f, 1f)
                 addUpdateListener {
                     section.layoutParams.height = it.animatedValue as Int
                     section.requestLayout()
                 }
-                doOnEnd { section.visibility = View.GONE }
-                start()
+                doOnEnd {
+                    if (panelExpansionAnimator === it) {
+                        panelExpansionAnimator = null
+                        settle()
+                    }
+                }
             }
+            panelExpansionAnimator = animation
+            animation.start()
         }
         if (chromeVisible && !chromeMenuOpen) scheduleChromeAutoHide()
     }
 
-    internal fun VeritasPdfViewerActivity.iconButton(label: String, action: () -> Unit): TextView {
-        return TextView(this).apply {
-            text = label
+    private fun VeritasPdfViewerActivity.iconButton(iconRes: Int, glyphSizeDp: Int = 24, targetWidthDp: Int = 48, action: () -> Unit): TextView {
+        return PdfControlButton(this).apply {
             setTextColor(colorTextPrimary)
-            textSize = 20f
             gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(38.dp, 38.dp)
+            layoutParams = LinearLayout.LayoutParams(targetWidthDp.dp, 48.dp)
+            isFocusable = true
+            // The glyph stays centered independently of the touch target.
+            applyIconGlyph(this, iconRes, glyphSizeDp)
             setOnClickListener {
                 action()
                 if (chromeVisible && !chromeMenuOpen) scheduleChromeAutoHide()
@@ -500,17 +527,16 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
         }
     }
 
-    // Material icon variant: the glyph renders as a centered, tinted foreground
-    // drawable so the buttons match the Compose screens' Material 3 icons.
-    internal fun VeritasPdfViewerActivity.iconButton(iconRes: Int, action: () -> Unit): TextView {
-        return iconButton("", action).apply { applyIconGlyph(this, iconRes) }
-    }
-
-    private fun VeritasPdfViewerActivity.applyIconGlyph(view: TextView, iconRes: Int) {
+    private fun VeritasPdfViewerActivity.applyIconGlyph(view: TextView, iconRes: Int, glyphSizeDp: Int = 24) {
         val icon = androidx.core.content.ContextCompat.getDrawable(this, iconRes)?.mutate()
         icon?.setTint(colorTextPrimary)
         view.text = ""
-        view.foreground = icon
+        view.foreground = icon?.let { drawable ->
+            object : android.graphics.drawable.InsetDrawable(drawable, 0) {
+                override fun getIntrinsicWidth() = glyphSizeDp.dp
+                override fun getIntrinsicHeight() = glyphSizeDp.dp
+            }
+        }
         view.foregroundGravity = Gravity.CENTER
     }
 
@@ -522,17 +548,18 @@ internal fun VeritasPdfViewerActivity.buildLayout(title: String) {
     }
 
     internal fun VeritasPdfViewerActivity.prominentButton(label: String, action: () -> Unit): TextView {
-        return TextView(this).apply {
+        return PdfControlButton(this).apply {
             text = label
             setTextColor(if (isLightTheme) Color.WHITE else Color.rgb(8, 34, 40))
             textSize = 17f
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
             background = rounded(colorAccentButton, 19.dp)
-            minimumWidth = if (label.isBlank()) 40.dp else 130.dp
-            minimumHeight = 38.dp
+            minimumWidth = if (label.isBlank()) 48.dp else 130.dp
+            minimumHeight = 48.dp
+            isFocusable = true
             setPadding(10.dp, 4.dp, 10.dp, 4.dp)
-            val targetWidth = if (label.isBlank()) 40.dp else LinearLayout.LayoutParams.WRAP_CONTENT
+            val targetWidth = if (label.isBlank()) 48.dp else LinearLayout.LayoutParams.WRAP_CONTENT
             layoutParams = LinearLayout.LayoutParams(targetWidth, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
                 marginStart = 3.dp
                 marginEnd = 3.dp

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_ai_legacy_key_hint">Vern found a previously saved key. Reuse it only if you know it belongs to this provider and endpoint.</string>
+    <string name="study_ai_reuse_legacy_key">Use previous key</string>
+    <string name="study_ai_save_failed">Could not save the AI configuration. Try again.</string>
+    <string name="study_ai_empty_scope">Choose a range that contains readable text.</string>
+    <string name="study_ai_scope_limit">In-app AI uses the first 25,000 characters for cards, quizzes and explanations, and the first 30,000 for summaries and study guides.</string>
+    <string name="study_ai_note_saved">Saved as a new note.</string>
+    <string name="study_ai_note_save_failed">Could not save the new note. Try again.</string>
+    <string name="study_ai_book_load_failed">Could not load readable text for this book.</string>
+    <string name="study_ai_choose_book">Choose a book to study</string>
+    <string name="study_ai_note_title">Study note · %1$s</string>
+    <string name="study_ai_practice_deck_title">%1$s · Practice preview</string>
+    <string name="study_ai_check_clipboard">Check clipboard for cards or a quiz</string>
+    <string name="study_ai_clipboard_invalid">No cards or quiz found. Copy a reply of up to 30,000 characters and try again.</string>
+</resources>

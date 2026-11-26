@@ -37,7 +37,7 @@ object AiPromptLauncher {
         if (instructions.isBlank()) return false
         val body = customPromptBody(instructions, passage)
         copyPromptToClipboard(context, body)
-        val preferred = if (settings?.assistantId == "chooser") null else preferredAiPackage(context, settings)
+        val preferred = preferredAiPackage(context, settings)
         val share = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, body)
@@ -64,20 +64,19 @@ object AiPromptLauncher {
                 if (currentIndex in model.sentences.indices) listOf(model.sentences[currentIndex]) else emptyList()
             }
             AiPromptScope.CURRENT_PAGE -> {
-                val curSentence = model.sentences.getOrNull(currentIndex)
-                val pageNum = curSentence?.pageNumber ?: 1
-                val onPage = model.sentences.filter { it.pageNumber == pageNum }
-                if (onPage.isNotEmpty()) onPage else if (currentIndex in model.sentences.indices) listOf(model.sentences[currentIndex]) else emptyList()
+                val curSentence = model.sentences.getOrNull(currentIndex) ?: return emptyList()
+                model.sentences.filter { it.pageNumber == curSentence.pageNumber }
             }
             AiPromptScope.CURRENT_SECTION -> {
-                val part = model.partForSentence(currentIndex)
-                if (part == null) model.sentences else model.sentences.subList(part.sentenceStartIndex, part.sentenceEndIndexExclusive)
+                if (currentIndex !in model.sentences.indices) return emptyList()
+                val part = model.partForSentence(currentIndex) ?: return emptyList()
+                model.sentences.subList(part.sentenceStartIndex, part.sentenceEndIndexExclusive)
             }
             AiPromptScope.WHOLE_DOCUMENT -> {
                 model.sentences
             }
             AiPromptScope.CUSTOM_PAGE_RANGE -> {
-                if (customPageRange == null) model.sentences else model.sentences.filter { it.pageNumber in customPageRange }
+                if (customPageRange == null) emptyList() else model.sentences.filter { it.pageNumber in customPageRange }
             }
         }
     }
@@ -144,12 +143,6 @@ object AiPromptLauncher {
 
         val textBody = if (noPrompt) markdownText else "$prompt\n\n$markdownText"
 
-        if (!noPrompt) {
-            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            clipboard.setPrimaryClip(ClipData.newPlainText("Vern Prompt", prompt))
-            Toast.makeText(context, "Prompt copied to clipboard", Toast.LENGTH_SHORT).show()
-        }
-
         val shareDir = File(context.cacheDir, "shares").apply { mkdirs() }
         val shareFileMd = File(shareDir, fileNameMd)
         try {
@@ -181,9 +174,7 @@ object AiPromptLauncher {
                     try {
                         val fileNameTxt = fileNameMd.substringBeforeLast(".md") + ".txt"
                         val shareFileTxt = File(shareDir, fileNameTxt)
-                        if (!shareFileTxt.exists()) {
-                            shareFileTxt.writeText(markdownText, Charsets.UTF_8)
-                        }
+                        shareFileTxt.writeText(markdownText, Charsets.UTF_8)
                         val uriTxt = com.veritas.reader.SafeFileSharing.uri(context, "${context.packageName}.fileprovider", shareFileTxt)
                         val txtIntent = Intent(shareIntent).apply {
                             putExtra(Intent.EXTRA_STREAM, uriTxt)
@@ -196,6 +187,7 @@ object AiPromptLauncher {
                     }
                 }
             }
+            if (!noPrompt) runCatching { copyPromptToClipboard(context, prompt) }
             return true
         } catch (e: Exception) {
             android.util.Log.e("AiPromptLauncher", "Error sharing markdown to AI: ${e.message}", e)
@@ -204,18 +196,35 @@ object AiPromptLauncher {
         }
     }
 
-    private fun preferredAiPackage(context: Context, settings: AskAiSettings?): String? {
-        if (settings == null) return null
+    internal fun sharePreparedStudyPrompt(context: Context, prompt: String, provider: AiAssistantOption) {
+        val result = runCatching {
+            val directory = File(context.cacheDir, "shares").apply { check(isDirectory || mkdirs()) }
+            val file = File.createTempFile("Vern-study-prompt-", ".txt", directory)
+            file.writeText(prompt, Charsets.UTF_8)
+            val uri = SafeFileSharing.uri(context, "${context.packageName}.fileprovider", file)
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                clipData = ClipData.newRawUri(file.name, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            val direct = Intent(send).setPackage(provider.packageName)
+            if (!runCatching { context.startActivity(direct) }.isSuccess) {
+                context.startActivity(Intent.createChooser(send, context.getString(R.string.study_handoff_share_file)))
+            }
+        }
+        result.onFailure {
+            Toast.makeText(context, R.string.study_handoff_share_failed, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    internal fun preferredAiPackage(context: Context, settings: AskAiSettings?): String? {
+        if (settings == null || settings.assistantId.isBlank() || settings.assistantId == "chooser") return null
         if (settings.packageName.isNotBlank() && isPackageInstalled(context, settings.packageName)) {
             return settings.packageName
         }
-        if (settings.assistantId.isNotBlank()) {
-            aiAssistantOptions.firstOrNull { it.id == settings.assistantId }
-                ?.let { installedPackageForOption(context, it) }
-                ?.takeIf { it.isNotBlank() }
-                ?.let { return it }
-        }
-        return installedAiOptions(context).firstOrNull()?.second
+        return aiAssistantOptions.firstOrNull { it.id == settings.assistantId }
+            ?.packageNames?.firstOrNull { isPackageInstalled(context, it) }
     }
 
     fun buildPrompt(
@@ -310,7 +319,7 @@ object AiPromptLauncher {
         return builder.toString().trim()
     }
 
-    private fun buildMarkdownForSentences(sentences: List<ReaderSentence>): String {
+    internal fun buildMarkdownForSentences(sentences: List<ReaderSentence>): String {
         if (sentences.isEmpty()) return ""
         val output = StringBuilder()
         val ordered = sentences.groupBy { it.pageNumber.coerceAtLeast(1) }.toSortedMap()

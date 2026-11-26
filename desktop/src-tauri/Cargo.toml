@@ -34,6 +34,7 @@ regex = "1.13"
 chrono = "0.4"
 chrono-tz = "=0.10.4"
 base64 = "0.22"
+minimp3 = "0.5"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.62.2", features = ["Foundation", "Media_Core", "Media_SpeechSynthesis", "Storage_Streams", "Win32_System_WinRT"] }

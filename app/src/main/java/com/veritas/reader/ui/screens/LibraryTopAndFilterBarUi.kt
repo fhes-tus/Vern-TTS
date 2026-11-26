@@ -1,11 +1,7 @@
 package com.veritas.reader.ui.screens
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.Canvas
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocalFireDepartment
@@ -33,6 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,6 +46,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,15 +77,12 @@ internal fun LibraryTopAndFilterBar(
     onSelectedGeneralNoteTagChange: (String) -> Unit,
     onOpenHomeSidebar: () -> Unit,
     onOpenSettingsHub: () -> Unit,
-    librarySection: LibrarySection = LibrarySection.MY_LIBRARY,
-    librarySelectedSection: LibrarySection = librarySection,
-    libraryTabProgress: () -> Float = { librarySelectedSection.ordinal.toFloat() },
     isActiveHeader: Boolean = true,
-    onLibrarySectionChange: (LibrarySection) -> Unit = {},
     onOpenNotesSettings: () -> Unit = onOpenSettingsHub,
     headerActions: @Composable () -> Unit = {},
     notesSearch: @Composable () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    includeStatusBar: Boolean = true
 ) {
                 val scheme = MaterialTheme.colorScheme
                 val isDark = scheme.surface.luminance() < 0.5f
@@ -106,9 +102,9 @@ internal fun LibraryTopAndFilterBar(
                             modifier = Modifier
                                 .widthIn(max = 760.dp)
                                 .fillMaxWidth()
-                                .statusBarsPadding()
+                                .then(if (includeStatusBar) Modifier.statusBarsPadding() else Modifier)
                                 .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
-                            verticalArrangement = Arrangement.spacedBy(if (activeNavTab == VeritasHomeTab.LIBRARY) 0.dp else 6.dp)
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             when (activeNavTab) {
                                 VeritasHomeTab.HOME -> {
@@ -140,6 +136,7 @@ internal fun LibraryTopAndFilterBar(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Settings,
+                                                modifier = Modifier.size(20.dp),
                                                 contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_settings),
                                                 tint = MaterialTheme.colorScheme.onSurface
                                             )
@@ -165,49 +162,11 @@ internal fun LibraryTopAndFilterBar(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Filled.Settings,
+                                                modifier = Modifier.size(20.dp),
                                                 contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_settings),
                                                 tint = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
-                                    }
-                                    Row(Modifier.fillMaxWidth()) {
-                                        LibrarySection.entries.forEach { section ->
-                                            androidx.compose.material3.Tab(selected = section == librarySelectedSection,
-                                                onClick = { onLibrarySectionChange(section) }, modifier = Modifier.weight(1f).height(40.dp),
-                                                selectedContentColor = MaterialTheme.colorScheme.primary,
-                                                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant) {
-                                                Text(com.veritas.reader.ui.screens.menuString(section.labelResource), fontWeight = FontWeight.SemiBold)
-                                            }
-                                        }
-                                    }
-                                    val indicatorColor = MaterialTheme.colorScheme.primary
-                                    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-                                    val targetProgress = libraryTabProgress().coerceIn(0f, 1f)
-                                    val animatedProgress by animateFloatAsState(
-                                        targetValue = targetProgress,
-                                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioLowBouncy),
-                                        label = "library_tab_indicator_anim"
-                                    )
-                                    Canvas(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(3.5.dp)
-                                            .testTag("library_section_indicator")
-                                            .semantics { this[LibraryTabProgress] = targetProgress }
-                                    ) {
-                                        val progress = if (rtl) 1f - animatedProgress else animatedProgress
-                                        val tabWidth = size.width / 2f
-                                        val indicatorWidth = 56.dp.toPx()
-                                        val indicatorHeight = size.height
-                                        val cornerRadius = CornerRadius(indicatorHeight / 2f, indicatorHeight / 2f)
-                                        val centerX = tabWidth * 0.5f + (tabWidth * progress)
-                                        val left = (centerX - indicatorWidth / 2f).coerceIn(0f, size.width - indicatorWidth)
-                                        drawRoundRect(
-                                            color = indicatorColor,
-                                            topLeft = Offset(left, 0f),
-                                            size = Size(indicatorWidth, indicatorHeight),
-                                            cornerRadius = cornerRadius
-                                        )
                                     }
                                 }
                                 VeritasHomeTab.NOTES -> {
@@ -271,6 +230,77 @@ internal fun LibraryTopAndFilterBar(
 
 }
 
+private val LibrarySectionTabHeight = 40.dp
+private val LibrarySectionIndicatorHeight = 3.5.dp
+internal val LibrarySectionPickerHeight = LibrarySectionTabHeight + LibrarySectionIndicatorHeight
+
+@Composable
+internal fun LibrarySectionPicker(
+    selected: LibrarySection,
+    progress: () -> Float,
+    onSelect: (LibrarySection) -> Unit
+) {
+    val scheme = MaterialTheme.colorScheme
+    Surface(
+        color = VeritasPackStyle.headerColor(scheme),
+        contentColor = scheme.onSurface,
+        tonalElevation = if (scheme.surface.luminance() < 0.5f) 0.dp else 3.dp
+    ) {
+        SectionTabs(
+            labels = LibrarySection.entries.map { it.labelResource },
+            selectedIndex = selected.ordinal,
+            progress = progress,
+            onSelect = { onSelect(LibrarySection.entries[it]) },
+            modifier = Modifier.padding(horizontal = 12.dp),
+            indicatorModifier = Modifier.testTag("library_section_indicator")
+                .semantics { this[LibraryTabProgress] = progress().coerceIn(0f, 1f) }
+        )
+    }
+}
+
+@Composable
+internal fun SectionTabs(
+    labels: List<Int>,
+    selectedIndex: Int,
+    progress: () -> Float,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    indicatorModifier: Modifier = Modifier,
+    isTabEnabled: (Int) -> Boolean = { true }
+) {
+    val scheme = MaterialTheme.colorScheme
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    Column(modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().selectableGroup()) {
+            labels.forEachIndexed { index, label ->
+                Tab(
+                    selected = index == selectedIndex,
+                    onClick = { onSelect(index) },
+                    enabled = isTabEnabled(index),
+                    modifier = Modifier.weight(1f).height(LibrarySectionTabHeight),
+                    selectedContentColor = scheme.primary,
+                    unselectedContentColor = scheme.onSurfaceVariant
+                ) {
+                    Text(menuString(label), fontWeight = FontWeight.SemiBold, maxLines = 2,
+                        overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+        Canvas(Modifier.fillMaxWidth().height(LibrarySectionIndicatorHeight).then(indicatorModifier)) {
+            val position = progress().coerceIn(0f, labels.lastIndex.toFloat())
+            val index = if (rtl) labels.lastIndex - position else position
+            val tabWidth = size.width / labels.size
+            val indicatorWidth = minOf(56.dp.toPx(), tabWidth)
+            drawRoundRect(
+                color = scheme.primary,
+                topLeft = Offset(tabWidth * (0.5f + index) - indicatorWidth / 2f, 0f),
+                size = Size(indicatorWidth, size.height),
+                cornerRadius = CornerRadius(size.height / 2f)
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 internal fun LibraryTopAndFilterBarPreview() {
@@ -325,18 +355,7 @@ internal fun LibraryDocumentFilters(
                                         val completedCount = remember(documents) { documents.count { it.chunkCount > 0 && it.currentIndex >= it.chunkCount - 1 } }
                                         val favoritesCount = remember(documents) { documents.count { it.favorite } }
 
-                                        val collections = remember(documents) {
-                                            documents.map { it.collection.trim() }
-                                                .filter { it.isNotEmpty() }
-                                                .distinct()
-                                                .sorted()
-                                        }
-                                        val readingLists = remember(uiState.readingListCatalog, documents) {
-                                            uiState.readingListCatalog.lists
-                                                .filterNot { it.archived }
-                                                .filter { list -> documents.any { doc -> list.contains(doc.id) } || readingListFilter == list.id }
-                                                .sortedBy { it.title.lowercase(Locale.getDefault()) }
-                                        }
+                                        val collections = uiState.readingListCatalog.activeLists
                                         val formats = remember(documents) {
                                             documents.map { it.sourceLabel.trim() }.filter { it.isNotBlank() }.distinct().sorted()
                                         }
@@ -394,14 +413,7 @@ internal fun LibraryDocumentFilters(
                                                 })
                                             }
 
-                                            collections.forEach { name ->
-                                                val count = documents.count { it.collection.trim() == name }
-                                                add(LibraryChip(name, collectionFilter == name, count, catalog = false) {
-                                                    if (collectionFilter == name) reset() else { reset(); onCollectionFilterChange(name) }
-                                                })
-                                            }
-
-                                            readingLists.forEach { readingList ->
+                                            collections.forEach { readingList ->
                                                 val count = documents.count { readingList.contains(it.id) }
                                                 add(LibraryChip(readingList.title, readingListFilter == readingList.id, count, catalog = false) {
                                                     if (readingListFilter == readingList.id) reset() else { reset(); onReadingListFilterChange(readingList.id) }

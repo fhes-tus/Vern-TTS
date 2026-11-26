@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="note_reminder_channel">Rappels de notes</string>
+    <string name="note_reminder_channel_description">Rappels définis pour vos notes</string>
+    <string name="note_reminder_title">Rappel de note</string>
+    <string name="note_reminder_open">Appuyez pour ouvrir votre note.</string>
+    <string name="note_reminder_missing">Cette note n’est plus disponible.</string>
+</resources>

@@ -4,6 +4,8 @@ import com.veritas.reader.VeritasScreen
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.CoverExtractor
+import com.veritas.reader.FirstChapterMilestone
+import com.veritas.reader.ui.screens.VeritasHomeTab
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -51,7 +53,8 @@ fun ReaderViewModel.completeRevampedOnboarding(
     interest: String,
     aiAssistant: String,
     speedRate: Float,
-    pitchRate: Float
+    pitchRate: Float,
+    showFirstChapterPrompt: Boolean
 ) {
     val cleanName = name.trim().ifBlank { "Reader" }
     val cleanInterest = interest.trim()
@@ -88,7 +91,9 @@ fun ReaderViewModel.completeRevampedOnboarding(
                     hasCompletedOnboarding = true,
                     askAiSettings = updatedAi,
                     voiceSettings = updatedVoice,
-                    questTourDone = false
+                    showFirstChapterPrompt = showFirstChapterPrompt && !it.questChecklistDismissed,
+                    targetHomeTab = if (showFirstChapterPrompt) VeritasHomeTab.HOME else it.targetHomeTab,
+                    targetLibrarySection = if (showFirstChapterPrompt) null else it.targetLibrarySection
                 )
             }
         }
@@ -96,43 +101,54 @@ fun ReaderViewModel.completeRevampedOnboarding(
 }
 
 fun ReaderViewModel.resetQuestProgress() {
-    viewModelScope.launch(Dispatchers.IO) {
+    viewModelScope.launch {
         repository.saveQuestProgress(tour = false, import = false, speed = false, bookmark = false)
         repository.resetOnboardingState()
-        withContext(Dispatchers.Main) {
-            _uiState.update {
-                it.withVisibility(VeritasScreen.TUTORIAL, true).copy(
-                    questTourDone = false,
-                    questImportDone = false,
-                    questSpeedDone = false,
-                    questBookmarkDone = false,
-                    hasCompletedOnboarding = false
-                )
-            }
+        _uiState.update {
+            it.withVisibility(VeritasScreen.TUTORIAL, true).copy(
+                questTourDone = false,
+                questImportDone = false,
+                questSpeedDone = false,
+                questBookmarkDone = false,
+                questNoteDone = false,
+                questChecklistDismissed = false,
+                showFirstChapterPrompt = false,
+                showConfetti = false,
+                hasCompletedOnboarding = false
+            )
         }
     }
 }
 
-fun ReaderViewModel.completeQuestTour() {
-    if (uiState.value.questTourDone) return
-    viewModelScope.launch(Dispatchers.IO) {
-        val state = uiState.value
-        repository.saveQuestProgress(
-            tour = true,
-            import = state.questImportDone,
-            speed = state.questSpeedDone,
-            bookmark = state.questBookmarkDone
-        )
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(questTourDone = true) }
-            checkOnboardingOverallCompletion()
+fun ReaderViewModel.completeQuestTour() = completeFirstChapterMilestone(FirstChapterMilestone.TOUR)
+
+fun ReaderViewModel.completeQuestImport() = completeFirstChapterMilestone(FirstChapterMilestone.IMPORT)
+
+fun ReaderViewModel.completeQuestSpeed() = completeFirstChapterMilestone(FirstChapterMilestone.PACE)
+
+fun ReaderViewModel.completeQuestBookmark() = completeFirstChapterMilestone(FirstChapterMilestone.BOOKMARK)
+
+internal fun ReaderViewModel.completeQuestNote() = completeFirstChapterMilestone(FirstChapterMilestone.NOTE)
+
+private fun ReaderViewModel.completeFirstChapterMilestone(milestone: FirstChapterMilestone) {
+    viewModelScope.launch {
+        repository.completeFirstChapterMilestone(milestone)
+        _uiState.update { state ->
+            when (milestone) {
+                FirstChapterMilestone.IMPORT -> state.copy(questImportDone = true)
+                FirstChapterMilestone.PACE -> state.copy(questSpeedDone = true)
+                FirstChapterMilestone.BOOKMARK -> state.copy(questBookmarkDone = true)
+                FirstChapterMilestone.NOTE -> state.copy(questNoteDone = true)
+                FirstChapterMilestone.TOUR -> state.copy(questTourDone = true)
+            }
         }
+        checkOnboardingOverallCompletion()
     }
 }
 
 fun ReaderViewModel.dismissQuestChecklist() {
     repository.setQuestChecklistDismissed(true)
-    _uiState.update { it.copy(questChecklistDismissed = true) }
+    _uiState.update { it.copy(questChecklistDismissed = true, showFirstChapterPrompt = false) }
 }
 
 fun ReaderViewModel.reopenQuestChecklist() {
@@ -140,72 +156,21 @@ fun ReaderViewModel.reopenQuestChecklist() {
     _uiState.update { it.copy(questChecklistDismissed = false) }
 }
 
-fun ReaderViewModel.completeQuestImport() {
-    if (uiState.value.questImportDone) return
-    viewModelScope.launch(Dispatchers.IO) {
-        val state = uiState.value
-        repository.saveQuestProgress(
-            tour = state.questTourDone,
-            import = true,
-            speed = state.questSpeedDone,
-            bookmark = state.questBookmarkDone
-        )
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(questImportDone = true) }
-            checkOnboardingOverallCompletion()
-        }
-    }
-}
-
-fun ReaderViewModel.completeQuestSpeed() {
-    if (uiState.value.questSpeedDone) return
-    viewModelScope.launch(Dispatchers.IO) {
-        val state = uiState.value
-        repository.saveQuestProgress(
-            tour = state.questTourDone,
-            import = state.questImportDone,
-            speed = true,
-            bookmark = state.questBookmarkDone
-        )
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(questSpeedDone = true) }
-            checkOnboardingOverallCompletion()
-        }
-    }
-}
-
-fun ReaderViewModel.completeQuestBookmark() {
-    if (uiState.value.questBookmarkDone) return
-    viewModelScope.launch(Dispatchers.IO) {
-        val state = uiState.value
-        repository.saveQuestProgress(
-            tour = state.questTourDone,
-            import = state.questImportDone,
-            speed = state.questSpeedDone,
-            bookmark = true
-        )
-        withContext(Dispatchers.Main) {
-            _uiState.update { it.copy(questBookmarkDone = true) }
-            checkOnboardingOverallCompletion()
-        }
-    }
-}
-
 internal fun ReaderViewModel.checkOnboardingOverallCompletion() {
     val state = uiState.value
-    if (state.questTourDone && state.questImportDone && state.questSpeedDone && state.questBookmarkDone) {
-        if (!repository.hasCelebratedQuests()) {
-            repository.markQuestsCelebrated()
-            repository.setQuestChecklistDismissed(true)
-            _uiState.update { it.copy(showConfetti = true, questChecklistDismissed = true) }
-        }
+    if (state.hasCompletedOnboarding && !state.questChecklistDismissed &&
+        state.questImportDone && state.questSpeedDone && state.questBookmarkDone && state.questNoteDone &&
+        !repository.hasCelebratedQuests()
+    ) {
+        repository.markQuestsCelebrated()
+        _uiState.update { it.copy(showConfetti = true) }
     }
 }
 
 fun ReaderViewModel.finishConfettiCelebration() {
     _uiState.update { it.copy(showConfetti = false) }
-    finishOnboarding(uiState.value.userName.ifBlank { "Reader" })
 }
+
 
 fun ReaderViewModel.createWelcomeDocumentSilently() {
     viewModelScope.launch(Dispatchers.IO) {

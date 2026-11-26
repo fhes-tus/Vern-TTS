@@ -20,6 +20,9 @@ internal fun showDictionaryLookup(context: Context, query: String, anchor: Dicti
     fun dismiss() { parent.removeView(host); host.disposeComposition() }
     parent.addView(host, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
     host.setContent {
+        val reader = if (activity is VeritasPdfViewerActivity) "pdf"
+            else if (PlaybackStateStore.readerMode == ReaderMode.LISTEN) "listen" else "main"
+        TrackReaderOverlay(reader, visible = true)
         VeritasTheme {
             OfflineDictionarySheet(query, anchor, onSaved = { notes ->
                 (activity as? MainActivity)?.viewModel?.updateState { it.copy(generalNotes = notes) }

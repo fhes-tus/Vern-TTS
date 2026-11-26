@@ -6,6 +6,61 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class SpeechPatternRulesTest {
+    @Test
+    fun numberPairExampleKeepsBothValuesAndLeavesOtherSlashesAlone() {
+        val draft = SpeechRuleDraft("12/13", "12 append 13", SpeechRuleKind.PATTERN)
+        val wordRule = SpeechRuleDraft("{word}/{word}", "\$1 or \$2", SpeechRuleKind.PATTERN)
+        assertEquals("{number}/{number}", draft.rule().find)
+        assertEquals("15 append 76; yes or no; /; ref12/13; 2026/10/11",
+            apply("15/76; yes/no; /; ref12/13; 2026/10/11", wordRule.rule(), draft.rule()))
+    }
+
+    @Test
+    fun numberPairGeneralizationRequiresPatternMode() {
+        val selection = SpeechRuleDraft("12/13", "12 append 13")
+        assertEquals(SpeechRuleKind.LITERAL, selection.rule().matchKind)
+        val passage = "12/13, 15/76"
+        assertEquals("12 append 13, 15/76", apply(passage, selection.rule()))
+        assertEquals("12 append 13, 15/76", apply(passage, selection.copy(kind = SpeechRuleKind.REGEX).rule()))
+        assertEquals("12 append 13, 15 append 76", apply(passage, selection.copy(kind = SpeechRuleKind.PATTERN).rule()))
+        val expression = SpeechRuleDraft("([0-9]+)/([0-9]+)", "\$1 then \$2", SpeechRuleKind.REGEX)
+        assertEquals("12 then 13, 15 then 76", apply(passage, expression.rule()))
+    }
+
+    @Test
+    fun patternsCanBeBuiltFromWordsNumbersAndSymbols() {
+        val (wordFind, wordSay) = requireNotNull(SpeechPatternRules.fromExample("left/right", "left or right"))
+        assertEquals("{word}/{word}", wordFind)
+        assertEquals("yes or no, 12/34", apply("yes/no, 12/34", rule(wordFind, wordSay)))
+
+        val (mixedFind, mixedSay) = requireNotNull(SpeechPatternRules.fromExample("Lab-12", "Lab sample 12"))
+        assertEquals("{word}-{number}", mixedFind)
+        assertEquals("Room sample ٧", apply("Room-٧", rule(mixedFind, mixedSay)))
+
+        val (symbolFind, symbolSay) = requireNotNull(SpeechPatternRules.fromExample("[★]", "symbol ★"))
+        assertEquals("[{symbol}]", symbolFind)
+        assertEquals("symbol ☆, symbol 😀, and [𐐀]", apply("[☆], [😀], and [𐐀]", rule(symbolFind, symbolSay)))
+        assertNull(SpeechPatternRules.fromExample("left right", "left or right"))
+    }
+
+    @Test
+    fun exactTextExceptionWinsAgainstASameLengthPattern() {
+        val pattern = SpeechRuleDraft("12/13", "12 append 13", SpeechRuleKind.PATTERN).rule()
+        val exception = SpeechRuleDraft("12/13", "12 or 13").rule()
+        assertEquals("12 or 13, 15 append 76", apply("12/13, 15/76", pattern, exception))
+    }
+
+    @Test
+    fun previewHonorsTheSavedRulesDisabledStateAcrossRuleTypes() {
+        SpeechRuleKind.entries.forEach { kind ->
+            val saved = rule("SQL", "sequel", kind, enabled = false)
+            val draft = SpeechRuleDraft.from(saved).copy(replaceWith = "letters")
+            val preview = SpeechRulePreview.build("SQL", listOf(saved), draft, VoiceSettings())
+            assertEquals("SQL", preview.spoken)
+            assertFalse(preview.includesDraft)
+        }
+    }
+
     @Test fun syntaxGuideExamplesKeepTheCapturedDigits() {
         assertEquals("12", apply("[12]", rule("[{number}]", "\$1", SpeechRuleKind.PATTERN)))
         assertEquals("12", apply("[12]", rule("""\[([0-9]+)\]""", "\$1", SpeechRuleKind.REGEX)))

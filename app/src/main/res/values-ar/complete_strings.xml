@@ -337,7 +337,7 @@
     <string name="ui_new" formatted="false">"جديد"</string>
     <string name="ui_new_notebook" formatted="false">"دفتر جديد"</string>
     <string name="ui_new_quiz" formatted="false">"اختبار جديد"</string>
-    <string name="ui_new_reading_list" formatted="false">"قائمة قراءة جديدة"</string>
+    <string name="ui_new_reading_list" formatted="false">"مجموعة جديدة"</string>
     <string name="ui_next_2f04eb1" formatted="false">"التالي ←"</string>
     <string name="ui_next_card" formatted="false">"البطاقة التالية"</string>
     <string name="ui_next_chapter" formatted="false">"الفصل التالي"</string>
@@ -375,7 +375,7 @@
     <string name="ui_no_readable_text_was_extracted_for_this_page" formatted="false">"لم يُستخرج نص مقروء لهذه الصفحة."</string>
     <string name="ui_no_reading_activity_recorded" formatted="false">"لا يوجد نشاط قراءة مسجل"</string>
     <string name="ui_no_reading_history_yet" formatted="false">"لا يوجد سجل قراءة بعد."</string>
-    <string name="ui_no_reading_lists_yet" formatted="false">"لا توجد قوائم قراءة بعد."</string>
+    <string name="ui_no_reading_lists_yet" formatted="false">"لا توجد مجموعات بعد."</string>
     <string name="ui_no_saved_highlights_yet" formatted="false">"لا توجد تظليلات محفوظة بعد."</string>
     <string name="ui_no_saved_readings_yet" formatted="false">"لا توجد قراءات محفوظة بعد"</string>
     <string name="ui_no_sentence_notes_yet" formatted="false">"لا توجد ملاحظات جمل بعد."</string>
@@ -610,6 +610,7 @@
     <string name="ui_silent_rsvp_save_for_audio" formatted="false">"RSVP صامت · احفظ للصوت"</string>
     <string name="ui_silent_visual_rsvp" formatted="false">"RSVP مرئي صامت"</string>
     <string name="ui_skip_table" formatted="false">"تخطي الجدول"</string>
+    <string name="ui_skip_figure">تخطي الشكل</string>
     <string name="ui_slides_options" formatted="false">"خيارات الشرائح"</string>
     <string name="ui_slower_0_05" formatted="false">"أبطأ −0.05×"</string>
     <string name="ui_smart_resume_catch_up" formatted="false">"ملخص الاستئناف الذكي"</string>

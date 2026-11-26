@@ -9,7 +9,7 @@ import com.veritas.reader.tts.PcmPeakLimiter
 
 /** Bounded PCM/float WAV decoding, channel downmix and band-limited sample-rate conversion. */
 internal object WavAudioNormalizer {
-    fun append(file: File, writer: PcmWavWriter, outputRate: Int, checkActive: () -> Unit = {}) {
+    fun append(file: File, writer: PcmAudioWriter, outputRate: Int, checkActive: () -> Unit = {}) {
         require(outputRate in 8000..192000)
         RandomAccessFile(file, "r").use { input ->
             fun tag() = ByteArray(4).also(input::readFully).toString(Charsets.US_ASCII)

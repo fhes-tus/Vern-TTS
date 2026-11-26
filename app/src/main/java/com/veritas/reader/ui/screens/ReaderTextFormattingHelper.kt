@@ -20,6 +20,7 @@ import android.text.style.ReplacementSpan
 import android.text.style.StrikethroughSpan
 import android.text.style.StyleSpan
 import android.text.style.TypefaceSpan
+import com.veritas.reader.addReaderSelectionActions
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
@@ -68,7 +69,7 @@ internal fun buildReaderTextSelection(
     while (endExclusive > start && source[endExclusive - 1].isWhitespace()) endExclusive--
 
     if (start >= endExclusive) return null
-    val selected = source.substring(start, endExclusive)
+    val selected = com.veritas.reader.ReadingTextCleanup.withoutUnderlineMarkup(source.substring(start, endExclusive))
     if (selected.isBlank()) return null
     val sentenceIndexes = part.sentenceRanges
         .filter { range -> range.endExclusive > start && range.start < endExclusive }
@@ -664,10 +665,14 @@ internal fun applyMarkdownLine(
         return
     }
 
-    // Bullet items: starts with "- ", "* ", or "• "
-    if (cursor < lineEnd && (text.startsWith("- ", cursor) || text.startsWith("* ", cursor) || text.startsWith("• ", cursor))) {
-        spannable.styleRange(VeritasBoldSpan(boldTypeface), cursor, cursor + 1)
-        applyInlineMarkdown(spannable, text, cursor + 2, lineEnd, boldTypeface)
+    // Align wrapped list text below the start of the item.
+    val listPrefix = readerListPrefix.find(text.substring(cursor, lineEnd))
+    if (listPrefix != null) {
+        val contentStart = cursor + listPrefix.value.length
+        val indent = (16 * (context?.resources?.displayMetrics?.density ?: 1f)).toInt()
+        spannable.styleRange(android.text.style.LeadingMarginSpan.Standard(0, indent), lineStart, lineEnd)
+        spannable.styleRange(VeritasBoldSpan(boldTypeface), cursor, contentStart - 1)
+        applyInlineMarkdown(spannable, text, contentStart, lineEnd, boldTypeface)
         return
     }
 
@@ -694,6 +699,8 @@ internal fun applyMarkdownLine(
 
     applyInlineMarkdown(spannable, text, lineStart, lineEnd, boldTypeface)
 }
+
+private val readerListPrefix = Regex("^(?:[•*-]|[0-9]{1,3}[.)]) ")
 
 private fun isDemotedFalseHeading(headingText: String): Boolean {
     val trimmed = headingText.trim()
@@ -723,6 +730,16 @@ internal fun applyInlineMarkdown(
     while (i < end) {
         val c = text[i]
         when {
+            c == '<' && text.startsWith("<u>", i) -> {
+                val close = text.indexOf("</u>", i + 3)
+                if (close > i + 3 && close + 4 <= end) {
+                    spannable.styleRange(android.text.style.UnderlineSpan(), i + 3, close)
+                    spannable.hideMarkup(i, i + 3)
+                    spannable.hideMarkup(close, close + 4)
+                    i = close + 4
+                    continue
+                }
+            }
             // **bold**
             c == '*' && i + 1 < end && text[i + 1] == '*' -> {
                 val close = text.indexOf("**", i + 2)
@@ -837,7 +854,7 @@ internal fun readerSelectionActionModeCallback(
     onEditNotes: (List<Int>) -> Unit,
     onTranslateSelection: (ReaderTextSelection) -> Unit,
     onCopySelection: (String) -> Unit,
-    onGoogleSelection: (ReaderTextSelection) -> Unit,
+    onDefineSelection: (ReaderTextSelection) -> Unit,
     onShareSelection: (String) -> Unit,
     onShareSelectionToAi: (ReaderTextSelection) -> Unit,
     onEditSpeechSelection: (String) -> Unit,
@@ -862,61 +879,7 @@ internal fun readerSelectionActionModeCallback(
             onSelectionChanged(currentSelection())
             menu.add(0, android.R.id.selectAll, 3, context.getString(com.veritas.reader.R.string.ui_select_all))
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-            val selectionFeatures = VeritasFeatureRegistry.resolve(
-                VeritasFeatureSurface.SELECTION_OVERFLOW,
-                VeritasFeatureContext(
-                    hasActiveDocument = !documentId.isNullOrBlank(),
-                    hasTextSelection = true,
-                    hasSavedDocument = !documentId.isNullOrBlank()
-                )
-            ).associateBy { it.definition.id }
-            menu.addReaderSelectionFeature(
-                itemId = READER_SELECTION_BOOKMARK,
-                order = 0,
-                title = context.getString(com.veritas.reader.R.string.ui_bookmark),
-                feature = selectionFeatures.requireResolvedFeature(VeritasFeatureId.BOOKMARKS_AND_NOTES),
-                showAsAction = MenuItem.SHOW_AS_ACTION_ALWAYS
-            )
-            menu.addReaderSelectionFeature(
-                itemId = READER_SELECTION_NOTE,
-                order = 1,
-                title = context.getString(com.veritas.reader.R.string.ui_note),
-                feature = selectionFeatures.requireResolvedFeature(VeritasFeatureId.BOOKMARKS_AND_NOTES),
-                showAsAction = MenuItem.SHOW_AS_ACTION_ALWAYS
-            )
-            menu.add(0, READER_SELECTION_GOOGLE, 2, context.getString(com.veritas.reader.R.string.ui_search_definitions))
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-            menu.add(0, READER_SELECTION_READ_FROM_HERE, 4, "Read from here")
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-            menu.add(0, READER_SELECTION_COPY, 5, "Copy")
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-            menu.add(0, READER_SELECTION_SEARCH, 6, "Search")
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-            menu.addReaderSelectionFeature(
-                itemId = READER_SELECTION_TRANSLATE,
-                order = 7,
-                title = "Translate",
-                feature = selectionFeatures.requireResolvedFeature(VeritasFeatureId.TRANSLATION_HANDOFF)
-            )
-            menu.addReaderSelectionFeature(
-                itemId = READER_SELECTION_EDIT_TEXT,
-                order = 9,
-                title = "Edit selected text",
-                feature = selectionFeatures.requireResolvedFeature(VeritasFeatureId.EXTRACTED_TEXT_EDITOR)
-            )
-            menu.addReaderSelectionFeature(
-                itemId = READER_SELECTION_EDIT_SPEECH,
-                order = 10,
-                title = "Fix pronunciation",
-                feature = selectionFeatures.requireResolvedFeature(VeritasFeatureId.PRONUNCIATION_RULES)
-            )
-            menu.add(0, READER_SELECTION_READ_ALOUD, 11, "Read aloud")
-            menu.addReaderSelectionFeature(
-                itemId = READER_SELECTION_ASK_AI,
-                order = 12,
-                title = "Ask AI",
-                feature = selectionFeatures.requireResolvedFeature(VeritasFeatureId.AI_APP_HANDOFF)
-            )
+            menu.addReaderSelectionActions(context, !documentId.isNullOrBlank())
             return true
         }
 
@@ -954,7 +917,9 @@ internal fun readerSelectionActionModeCallback(
                 READER_SELECTION_COPY -> onCopySelection(selection.text)
                 READER_SELECTION_SEARCH -> onSearchQueryChange(selection.text.take(80))
                 READER_SELECTION_TRANSLATE -> onTranslateSelection(selection)
-                READER_SELECTION_GOOGLE -> onGoogleSelection(selection)
+                READER_SELECTION_DEFINE -> onDefineSelection(selection)
+                READER_SELECTION_GOOGLE -> com.veritas.reader.openGoogleSearch(context, selection.text)
+                READER_SELECTION_SHARE -> onShareSelection(selection.text)
                 READER_SELECTION_EDIT_TEXT -> onEditExtractedSelection(selection)
                 READER_SELECTION_EDIT_SPEECH -> onEditSpeechSelection(selection.text)
                 READER_SELECTION_READ_ALOUD -> onReadSelection(selection.text)
@@ -996,7 +961,8 @@ private const val READER_SELECTION_COPY = 6105
 private const val READER_SELECTION_SEARCH = 6106
 private const val READER_SELECTION_TRANSLATE = 6107
 private const val READER_SELECTION_SHARE = 6108
-private const val READER_SELECTION_GOOGLE = 6109
+private const val READER_SELECTION_DEFINE = 6109
+private const val READER_SELECTION_GOOGLE = 6114
 private const val READER_SELECTION_EDIT_TEXT = 6110
 private const val READER_SELECTION_EDIT_SPEECH = 6111
 private const val READER_SELECTION_READ_ALOUD = 6112

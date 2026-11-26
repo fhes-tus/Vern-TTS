@@ -365,7 +365,7 @@ fun OnboardingInfoCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = step.title,
+                    text = menuString(step.titleRes),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
@@ -385,7 +385,7 @@ fun OnboardingInfoCard(
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = step.body,
+                text = menuString(step.bodyRes),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -468,7 +468,7 @@ fun OnboardingInfoCard(
                     enabled = !isTransitioning,
                     shape = RoundedCornerShape(50)
                 ) {
-                    val label = if (step == OnboardingStep.CONGRATULATIONS) "Finish" else "Next"
+                    val label = menuString(if (step == OnboardingStep.CONGRATULATIONS) com.veritas.reader.R.string.ui_finish else com.veritas.reader.R.string.ui_next)
                     Text(label, style = MaterialTheme.typography.labelMedium)
                     if (step != OnboardingStep.CONGRATULATIONS) {
                         Spacer(modifier = Modifier.width(4.dp))

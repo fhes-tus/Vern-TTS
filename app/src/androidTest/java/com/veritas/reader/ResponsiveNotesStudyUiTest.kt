@@ -173,7 +173,7 @@ class ResponsiveNotesStudyUiTest {
         var narrow by mutableStateOf(false)
         val selected = mutableListOf<ImportOption>()
         rule.setContent { Frame(if (narrow) 320.dp else 640.dp, if (narrow) 568.dp else 340.dp) {
-            ImportSheetMenu({ selected += it }, {})
+            ImportSheetMenu({ selected += it }, {}, enabled = true)
         } }
         rule.onNodeWithTag("add-options-2").assertExists()
         val titles = listOf(R.string.ui_file_browser, R.string.ui_paste_text_e6f8612, R.string.l10n_from_web,
@@ -207,7 +207,7 @@ class ResponsiveNotesStudyUiTest {
                 if (showAdd) ModalBottomSheet(onDismissRequest = { showAdd = false },
                     sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
                     shape = VeritasPackStyle.sheetShape(), containerColor = MaterialTheme.colorScheme.surfaceContainerHigh) {
-                    ImportSheetMenu({}, { showAdd = false }, Modifier.testTag("actual-add-sheet"))
+                    ImportSheetMenu({}, { showAdd = false }, enabled = true, modifier = Modifier.testTag("actual-add-sheet"))
                 }
             } }
             fun captureWindow(tag: String, name: String) {

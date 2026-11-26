@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_studio_customize">अनुकूलित करें</string>
+    <string name="voice_studio_models_hint">ऑफ़लाइन पढ़ने के लिए आवाज़ें डाउनलोड करें</string>
+    <string name="voice_studio_phone_more_hint">दूसरा वॉइस इंजन या भाषा इंस्टॉल करें</string>
+    <string name="voice_studio_use_language_default">इस भाषा के लिए फ़ोन की डिफ़ॉल्ट आवाज़ इस्तेमाल करें</string>
+    <string name="voice_studio_phone_engine">फ़ोन का वॉइस इंजन</string>
+    <string name="voice_studio_refresh_engines">वॉइस इंजन रीफ़्रेश करें</string>
+    <string name="voice_studio_preset_values">%1$s · गति %2$s× · स्वर की ऊँचाई %3$s×</string>
+    <string name="voice_studio_multiplier">%1$s×</string>
+    <string name="voice_studio_preset_balanced">आवाज़ की सामान्य गति और स्वर की ऊँचाई।</string>
+    <string name="voice_studio_preset_study">मूल स्वर की ऊँचाई पर धीमी गति से पढ़ना।</string>
+    <string name="voice_studio_preset_scan">मूल स्वर की ऊँचाई पर तेज़ गति से पढ़ना।</string>
+    <string name="voice_studio_preset_story">थोड़ी धीमी गति और थोड़ा नीचा स्वर।</string>
+    <string name="voice_studio_preset_lecture">थोड़ी तेज़ गति और थोड़ा ऊँचा स्वर।</string>
+    <string name="voice_studio_preset_bedtime">शांत होकर सुनने के लिए धीमी गति और नीचा स्वर।</string>
+    <string name="voice_studio_cloud_preview_help">सेटिंग लागू करें, फिर क्लाउड की आवाज़ सुनने के लिए आवाज़ की जाँच करें।</string>
+</resources>

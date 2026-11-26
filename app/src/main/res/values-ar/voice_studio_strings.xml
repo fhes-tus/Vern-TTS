@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_studio_customize">تخصيص</string>
+    <string name="voice_studio_models_hint">تنزيل أصوات للقراءة دون اتصال</string>
+    <string name="voice_studio_phone_more_hint">تثبيت محرك صوت أو لغة أخرى</string>
+    <string name="voice_studio_use_language_default">استخدام صوت الهاتف الافتراضي لهذه اللغة</string>
+    <string name="voice_studio_phone_engine">محرك صوت الهاتف</string>
+    <string name="voice_studio_refresh_engines">تحديث محركات الصوت</string>
+    <string name="voice_studio_preset_values">%1$s · السرعة %2$s× · حدة الصوت %3$s×</string>
+    <string name="voice_studio_multiplier">%1$s×</string>
+    <string name="voice_studio_preset_balanced">سرعة الصوت وحدته القياسيتان.</string>
+    <string name="voice_studio_preset_study">قراءة أبطأ بحدة الصوت الأصلية.</string>
+    <string name="voice_studio_preset_scan">قراءة أسرع بحدة الصوت الأصلية.</string>
+    <string name="voice_studio_preset_story">سرعة أبطأ قليلاً وحدة صوت أخفض.</string>
+    <string name="voice_studio_preset_lecture">سرعة أعلى قليلاً وحدة صوت أعلى.</string>
+    <string name="voice_studio_preset_bedtime">سرعة أبطأ وحدة صوت أخفض للاستماع الهادئ.</string>
+    <string name="voice_studio_cloud_preview_help">طبّق إعداداتك ثم استخدم اختبار الصوت لسماع الصوت السحابي.</string>
+</resources>

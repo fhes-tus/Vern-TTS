@@ -377,10 +377,18 @@ data class StorageBreakdown(
     val coversBytes: Long,
     val cacheBytes: Long = 0L,
     val databaseBytes: Long = 0L,
-    val documentCount: Int
+    val documentCount: Int,
+    val voiceBytes: Long = 0L,
+    val dictionaryBytes: Long = 0L,
+    val noteMediaBytes: Long = 0L,
+    val backupBytes: Long = 0L,
+    val otherBytes: Long = 0L
 ) {
-    val totalBytes: Long get() = textBytes + originalsBytes + coversBytes + cacheBytes + databaseBytes
+    val totalBytes: Long get() = textBytes + originalsBytes + coversBytes + cacheBytes + databaseBytes +
+        voiceBytes + dictionaryBytes + noteMediaBytes + backupBytes + otherBytes
 }
+
+data class OriginalCleanupResult(val freedBytes: Long, val removedFiles: Int)
 
 data class LibrarySearchHit(
     val document: SavedDocument,
@@ -398,7 +406,8 @@ data class BackupRestoreResult(
     val restoredVoiceSettings: Boolean,
     val generalNoteCount: Int = 0,
     val trackerDayCount: Int = 0,
-    val flashcardCount: Int = 0
+    val flashcardCount: Int = 0,
+    val documentConflictCount: Int = 0
 )
 
 data class AiPromptTemplate(
@@ -608,8 +617,11 @@ data class QuestProgress(
     val tourDone: Boolean,
     val importDone: Boolean,
     val speedDone: Boolean,
-    val bookmarkDone: Boolean
+    val bookmarkDone: Boolean,
+    val noteDone: Boolean = false
 )
+
+internal enum class FirstChapterMilestone { IMPORT, PACE, BOOKMARK, NOTE, TOUR }
 
 data class PersistedResumePoint(
     val documentId: String,

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_earlier">Anterior</string>
+    <string name="insights_last_week">La semana pasada</string>
+    <string name="insights_daily_habit">Hábito diario</string>
+    <string name="insights_master_reader">Maestro de la lectura</string>
+    <string name="insights_habit_champion">Campeón de los hábitos</string>
+    <string name="insights_seven_day_flame">Racha de 7 días</string>
+    <string name="insights_consistency_pro">Experto en constancia</string>
+    <string name="insights_week_chart_description">%1$s. %2$s. %3$s en total. Desliza a la izquierda o derecha para cambiar de semana.</string>
+    <string name="insights_invalid_session_date">Introduce una fecha en formato YYYY-MM-DD.</string>
+    <string name="insights_future_session_date">Elige hoy o una fecha anterior.</string>
+    <string name="insights_session_save_failed">No se pudo guardar esta sesión. Tus cambios siguen aquí. Inténtalo de nuevo.</string>
+    <string name="insights_timer_save_failed">No se pudo guardar la configuración del temporizador de lectura. Intenta cambiarla de nuevo.</string>
+    <string name="insights_saving">Guardando…</string>
+</resources>

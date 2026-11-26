@@ -9,8 +9,8 @@ import java.io.File
 /** Kitten Nano 0.8 FP32, its own phoneme table and all eight reference-style rows. */
 internal class KittenEngine(context: Context, voiceId: String, role: SpeechModelRole = SpeechModelRole.EXPORT) : TtsEngine, PlaybackModelPin {
     private val sid = voiceId.removePrefix("kitten_").toInt().also { require(it in 0..7) }
-    private val directory = VoiceModelManager.getVoiceDirectory(context,OfflineEngineType.KITTEN)
     private val native = NativeModel(NativeModelResources.get(context),role, {
+        val directory = VoiceModelManager.getVoiceDirectory(context, OfflineEngineType.KITTEN)
         require(VoiceModelManager.isVoiceInstalled(context,voiceId)) { "Download the selected Kitten voice first." }
         OfflineTts(config = OfflineTtsConfig(model = OfflineTtsModelConfig(kitten = OfflineTtsKittenModelConfig(
             model = File(directory,"model.fp32.onnx").path,voices = File(directory,"voices.bin").path,
@@ -27,9 +27,22 @@ internal class KittenEngine(context: Context, voiceId: String, role: SpeechModel
         val generated = native.use { it.generate(clean,sid,SpeechDelivery.rate(rate)) }
         ensureActive()
         if(closed || generated.samples.isEmpty()) return@withContext null
-        FloatPcmAudio(PcmPitchShift.apply(generated.samples,generated.sampleRate,pitch),generated.sampleRate)
+        val pcm = PcmPitchShift.apply(generated.samples, generated.sampleRate, pitch)
+        fadeKittenTail(pcm, generated.sampleRate)
+        FloatPcmAudio(pcm, generated.sampleRate)
     }
     override fun setPlaybackActive(active: Boolean) = native.setPlaybackActive(active)
     override fun shutdown() { closed = true; native.close() }
     override suspend fun awaitShutdown() = native.awaitClosed()
+}
+
+/** Smooth the discontinuity between the vocoder's final samples and playback silence. */
+internal fun fadeKittenTail(samples: FloatArray, sampleRate: Int) {
+    val length = (sampleRate * 15L / 1000L).toInt().coerceAtMost(samples.size / 2)
+    if (length < 2) return
+    val start = samples.size - length
+    for (index in 0 until length) {
+        val remaining = (length - 1 - index).toFloat() / (length - 1)
+        samples[start + index] *= remaining * remaining
+    }
 }

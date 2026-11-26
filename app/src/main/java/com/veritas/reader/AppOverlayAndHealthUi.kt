@@ -67,16 +67,16 @@ data class VoicePreset(
     val name: String,
     val rate: Float,
     val pitch: Float,
-    val summary: String
+    @androidx.annotation.StringRes val summaryRes: Int
 )
 
 fun voicePresets(): List<VoicePreset> = listOf(
-    VoicePreset("Balanced", 1.0f, 1.0f, "Natural everyday audio reading with standard timing."),
-    VoicePreset("Study focus", 0.92f, 0.99f, "Deliberate pacing with grounded tone for deep comprehension."),
-    VoicePreset("Quick scan", 1.25f, 1.01f, "Fast energetic review with crisp consonant clarity."),
-    VoicePreset("Storyteller", 0.95f, 0.97f, "Warm, chest-resonant narration for fiction and novels."),
-    VoicePreset("Lecture bright", 1.10f, 1.03f, "Confident, articulate delivery for academic and business text."),
-    VoicePreset("Bedtime calm", 0.85f, 0.98f, "Slow, soothing, mellow tone for quiet night-time listening.")
+    VoicePreset("Balanced", 1f, 1f, R.string.voice_studio_preset_balanced),
+    VoicePreset("Study focus", .88f, 1f, R.string.voice_studio_preset_study),
+    VoicePreset("Quick scan", 1.25f, 1f, R.string.voice_studio_preset_scan),
+    VoicePreset("Storyteller", .95f, .95f, R.string.voice_studio_preset_story),
+    VoicePreset("Lecture bright", 1.05f, 1.04f, R.string.voice_studio_preset_lecture),
+    VoicePreset("Bedtime calm", .80f, .96f, R.string.voice_studio_preset_bedtime)
 )
 
 internal fun openOriginalDocument(
@@ -195,8 +195,8 @@ internal fun FloatingRecordOverlay(
                 ) {
                     RecordPillDot(inProgress = inProgress)
                     if (fileReady) {
-                        TextButton(onClick = onSave) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save)) }
-                        TextButton(onClick = onDiscard) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_discard)) }
+                        TextButton(onClick = onSave, enabled = !inProgress) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save)) }
+                        TextButton(onClick = onDiscard, enabled = !inProgress) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_discard)) }
                     } else {
                         Text(
                             if (inProgress) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_finishing) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_no_audio_yet),

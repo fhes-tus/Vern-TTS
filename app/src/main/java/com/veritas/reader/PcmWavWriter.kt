@@ -3,8 +3,13 @@ package com.veritas.reader
 import java.io.File
 import java.io.RandomAccessFile
 
+internal interface PcmAudioWriter : java.io.Closeable {
+    fun append(samples: ShortArray, checkActive: () -> Unit = {})
+    fun finish(checkActive: () -> Unit) = checkActive()
+}
+
 /** Streams mono PCM16 with a fixed buffer, finalizing the RIFF header on close. */
-internal class PcmWavWriter(file: File, private val sampleRate: Int) : java.io.Closeable {
+internal class PcmWavWriter(file: File, private val sampleRate: Int) : PcmAudioWriter {
     private val output = RandomAccessFile(file, "rw")
     private var bytes = 0L
     init {
@@ -12,7 +17,7 @@ internal class PcmWavWriter(file: File, private val sampleRate: Int) : java.io.C
         output.setLength(0)
         output.write(ByteArray(44))
     }
-    fun append(samples: ShortArray, checkActive: () -> Unit = {}) {
+    override fun append(samples: ShortArray, checkActive: () -> Unit) {
         require(bytes + samples.size * 2L <= 0xffffffffL - 36) { "The WAV export exceeds the 4 GiB RIFF limit. Export a smaller range." }
         val buffer = ByteArray(64 * 1024)
         var offset = 0

@@ -59,15 +59,15 @@ object NoteReminderScheduler {
         if (manager.getNotificationChannel(CHANNEL_ID) == null) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Note reminders",
+                context.getString(R.string.note_reminder_channel),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Reminders you set on your notes"
+                description = context.getString(R.string.note_reminder_channel_description)
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 400, 200, 400)
                 enableLights(true)
                 setShowBadge(true)
-                lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+                lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
             }
             manager.createNotificationChannel(channel)
         }
@@ -89,16 +89,16 @@ object NoteReminderScheduler {
 
 class NoteReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val noteId = intent.getStringExtra(NoteReminderScheduler.EXTRA_NOTE_ID).orEmpty()
+        val noteId = intent.getStringExtra(NoteReminderScheduler.EXTRA_NOTE_ID)?.takeIf { it.isNotBlank() } ?: return
+        val genericTitle = context.getString(R.string.note_reminder_title)
+        val genericBody = context.getString(R.string.note_reminder_open)
         val title = intent.getStringExtra(NoteReminderScheduler.EXTRA_TITLE)?.takeIf { it.isNotBlank() }
-            ?: "Note reminder"
-        val body = intent.getStringExtra(NoteReminderScheduler.EXTRA_BODY).orEmpty()
+            ?: genericTitle
+        val body = intent.getStringExtra(NoteReminderScheduler.EXTRA_BODY).orEmpty().ifBlank { genericBody }
 
         NoteReminderScheduler.ensureChannel(context)
 
-        val openIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
+        val openIntent = widgetActivityIntent(context, MainActivity.ACTION_EDIT_NOTE, noteId = noteId)
         val contentPendingIntent = PendingIntent.getActivity(
             context,
             noteId.hashCode(),
@@ -106,14 +106,20 @@ class NoteReminderReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val publicNotification = NotificationCompat.Builder(context, NoteReminderScheduler.CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_veritas)
+            .setContentTitle(genericTitle)
+            .setContentText(genericBody)
+            .build()
         val notification = NotificationCompat.Builder(context, NoteReminderScheduler.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_veritas)
             .setContentTitle(title)
-            .setContentText(body.ifBlank { "Tap to open your note." })
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body.ifBlank { "Tap to open your note." }))
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(publicNotification)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setVibrate(longArrayOf(0, 400, 200, 400))
             .setAutoCancel(true)

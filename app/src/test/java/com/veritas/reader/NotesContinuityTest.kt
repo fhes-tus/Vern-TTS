@@ -6,6 +6,27 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class NotesContinuityTest {
+    @Test fun completedUrlReplacesItsTypingPrefixesWithoutRemovingSeparateLinks() {
+        val shorter = "https://bible.example/reading/1"
+        val completed = "https://bible.example/reading/18"
+        val another = "https://bible.example/reading/2"
+        val first = NoteLinks.syncDetectedLinks(emptyList(), emptyList(), listOf(shorter, another), emptyList())
+        val final = NoteLinks.syncDetectedLinks(first, listOf(shorter, another), listOf(completed, another), emptyList())
+        assertEquals(setOf(completed, another), final.map { it.url }.toSet())
+        assertEquals(final, NoteLinks.syncDetectedLinks(final, listOf(completed, another), emptyList(), emptyList()))
+    }
+
+    @Test fun savedPreviewKeepsItsImageAndDropsOldEmptyUrlPrefixes() {
+        val prefix = "https://bible.example/reading/"
+        val full = "https://bible.example/reading/18"
+        val rich = NoteLink(full, "Saved passage", "https://bible.example/cover.png")
+        val stale = NoteLink(prefix, "bible.example")
+        val same = NoteLink("https://BIBLE.example:443/reading/18", "bible.example")
+        val another = NoteLink("https://bible.example/reading/19", "bible.example")
+        assertEquals(listOf(rich, another), NoteLinks.read(NoteLinks.write("Passage", listOf(stale, rich, same, another))))
+        assertEquals(listOf(stale, rich), NoteLinks.read(NoteLinks.write("Both links: $prefix and $full", listOf(stale, rich))))
+    }
+
     @Test fun linkMetadataHandlesQuotedTitlesAndRelativeSocialImages() {
         val link = NoteLinks.parseMetadata("https://example.org/note", """
             <meta content="God's promise &amp; hope" property="og:title">

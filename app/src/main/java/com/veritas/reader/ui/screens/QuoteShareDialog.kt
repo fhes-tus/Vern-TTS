@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.veritas.reader.R
 import com.veritas.reader.*
 import java.io.File
 import kotlinx.coroutines.CancellationException
@@ -205,7 +206,7 @@ internal fun QuoteShareDialog(visible: Boolean, quote: String, title: String, do
                                         reset()
                                     }
                                 },
-                                label = { Text("Sentence ${i + 1}", maxLines = 1) },
+                                label = { Text(menuString(R.string.quote_sentence_label, i + 1), maxLines = 1) },
                                 leadingIcon = if (!isPresent) {
                                     { Icon(Icons.Outlined.ContentCut, contentDescription = null, modifier = Modifier.size(14.dp)) }
                                 } else null
@@ -216,8 +217,8 @@ internal fun QuoteShareDialog(visible: Boolean, quote: String, title: String, do
                 OutlinedTextField(
                     value = activeQuote,
                     onValueChange = { onTextEdited(it) },
-                    label = { Text("Quote text (subtraction only)") },
-                    supportingText = { Text("Delete text to condense quote • Ellipses (...) added automatically") },
+                    label = { Text(menuString(R.string.quote_text_subtraction)) },
+                    supportingText = { Text(menuString(R.string.quote_subtraction_hint)) },
                     maxLines = 3,
                     enabled = !sharing,
                     modifier = Modifier.fillMaxWidth().testTag("quote-text-edit")

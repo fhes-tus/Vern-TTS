@@ -3,9 +3,7 @@ package com.veritas.reader
 import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -44,8 +42,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.layout.widthIn
@@ -95,12 +96,15 @@ internal fun ActualDocumentView(
     onVoiceSelected: (TtsVoiceOption) -> Unit,
     /** Selected text plus the 1-based page it was selected on, so the match can be scoped. */
     onReadFromSentence: ((String, Int) -> Unit)? = null,
+    onSelectionAction: (ReaderSelectionAction, String, Int) -> Unit = { _, _, _ -> },
     initialPaperToneMode: PaperToneMode = PaperToneMode.fromString(repository.loadReaderSettings().paperToneMode),
     onPaperToneModeChange: ((PaperToneMode) -> Unit)? = null,
     readerDocument: ReaderDocument? = null,
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     onClose: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val resources = LocalResources.current
     val pageSettings = remember(document.id) { repository.loadReaderSettings() }
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
@@ -111,6 +115,7 @@ internal fun ActualDocumentView(
         mutableIntStateOf((activeSentencePage - 1).coerceAtLeast(0))
     }
     var pageCount by remember(document.id) { mutableIntStateOf(1) }
+    var pdfReady by remember(document.id) { mutableStateOf(false) }
     var bitmap by remember(document.id) { mutableStateOf<Bitmap?>(null) }
     var message by remember(document.id) { mutableStateOf<String?>(null) }
     var showMenu by remember { mutableStateOf(false) }
@@ -127,6 +132,7 @@ internal fun ActualDocumentView(
     var showJumpToPageDialog by remember { mutableStateOf(false) }
     var showDocInfoDialog by remember { mutableStateOf(false) }
     var showOutlineDialog by remember { mutableStateOf(false) }
+    TrackReaderOverlay("main", showMenu || showJumpToPageDialog || showDocInfoDialog || showOutlineDialog)
     var outlineOrigin by remember { mutableStateOf(Offset.Unspecified) }
     val actualReaderDoc = remember(document.id, readerDocument) {
         readerDocument ?: buildReaderDocument(document, repository.readText(document))
@@ -235,21 +241,18 @@ internal fun ActualDocumentView(
         }
     }
 
-    // Page-scoped work only: the rendered PDF page or the decoded image.
-    LaunchedEffect(original?.toString(), pageIndex) {
+    // The pager already renders and retains the visible PDF and its neighbours.
+    LaunchedEffect(original?.toString(), isPdf, isImage) {
         if (original == null) return@LaunchedEffect
-        if (isPdf || isImage) bitmap = null
         if (isPdf) {
-            val rendered = withContext(Dispatchers.IO) {
-                runCatching { renderPdfPage(context, original, pageIndex) }
-            }
-            rendered.onSuccess {
-                pageCount = it.pageCount
-                if (pageIndex > it.pageCount - 1) pageIndex = it.pageCount - 1
-                bitmap = it.bitmap
-            }.onFailure { e ->
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                message = "Could not render this PDF page: ${e.message ?: "unknown error"}"
+            pdfReady = false
+            val count = withContext(Dispatchers.IO) { DocumentExtractor.getPdfPageCount(context, original) }
+            if (count > 0) {
+                pageCount = count
+                pageIndex = pageIndex.coerceIn(0, count - 1)
+                pdfReady = true
+            } else {
+                message = "Could not open this PDF."
             }
         } else if (isImage) {
             val decoded = withContext(Dispatchers.IO) {
@@ -319,12 +322,12 @@ internal fun ActualDocumentView(
 
     val topBarOffset by animateFloatAsState(
         targetValue = if (topBarVisible) 0f else -300f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatial(),
         label = "topBarOffset"
     )
     val bottomBarOffset by animateFloatAsState(
         targetValue = if (bottomBarVisible) 0f else 400f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = com.veritas.reader.ui.VeritasMotion.spatial(),
         label = "bottomBarOffset"
     )
 
@@ -398,61 +401,36 @@ internal fun ActualDocumentView(
         }
     }
 
-    val originalToolbar = androidx.compose.ui.platform.LocalTextToolbar.current
-    val customToolbar = remember(originalToolbar) {
-        object : androidx.compose.ui.platform.TextToolbar {
-            override val status: androidx.compose.ui.platform.TextToolbarStatus
-                get() = originalToolbar.status
-
-            override fun showMenu(
-                rect: androidx.compose.ui.geometry.Rect,
-                onCopyRequested: (() -> Unit)?,
-                onPasteRequested: (() -> Unit)?,
-                onCutRequested: (() -> Unit)?,
-                onSelectAllRequested: (() -> Unit)?
-            ) {
-                val wrappedCopy = onCopyRequested?.let { originalCopy ->
-                    {
-                        originalCopy.invoke()
-                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
-                        val clipText = clipboard?.primaryClip?.getItemAt(0)?.text?.toString()
-                        if (!clipText.isNullOrBlank()) {
-                            selectedCanvasText = clipText
-                        }
-                    }
-                }
-                originalToolbar.showMenu(
-                    rect = rect,
-                    onCopyRequested = wrappedCopy ?: onCopyRequested,
-                    onPasteRequested = onPasteRequested,
-                    onCutRequested = onCutRequested,
-                    onSelectAllRequested = onSelectAllRequested
-                )
-            }
-
-            override fun hide() {
-                originalToolbar.hide()
-            }
-        }
+    var selectionCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    val (selectionClipboard, customToolbar, selectionMenuProvider) = rememberDocumentSelectionToolbar({ selectionCoordinates }) { action, text ->
+        onSelectionAction(action, text, pageIndex + 1)
     }
 
+    val isTransitionSettled = animatedVisibilityScope?.transition?.let {
+        it.currentState == it.targetState
+    } ?: true
     val glassEnabled = VeritasPackStyle.glassChromeEnabled() && isDeviceGlassCapable()
     val readerBackdrop = if (glassEnabled) rememberVeritasLayerBackdrop() else null
+    val effectiveBackdrop = if (isTransitionSettled) readerBackdrop else null
     CompositionLocalProvider(
         androidx.compose.ui.platform.LocalTextToolbar provides customToolbar,
-        LocalVeritasBackdrop provides readerBackdrop
+        androidx.compose.ui.platform.LocalClipboard provides selectionClipboard,
+        androidx.compose.foundation.text.contextmenu.provider.LocalTextContextMenuToolbarProvider provides selectionMenuProvider,
+        androidx.compose.foundation.text.contextmenu.provider.LocalTextContextMenuDropdownProvider provides selectionMenuProvider,
+        LocalVeritasBackdrop provides effectiveBackdrop
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(colorScheme.background)
+                .onGloballyPositioned { selectionCoordinates = it }
                 .monitorReadingActivity { interactionTrigger = System.currentTimeMillis() }
         ) {
             // 1. Full-screen rendering canvas with universal Zoom & Pan
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
-                    .recordVeritasBackdrop(readerBackdrop, glassEnabled)
+                    .recordVeritasBackdrop(effectiveBackdrop, isTransitionSettled && glassEnabled)
                     .background(colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
@@ -572,8 +550,8 @@ internal fun ActualDocumentView(
             ) {
                 val image = bitmap
                 when {
-                    isPdf && original != null && pageCount > 0 -> {
-                        com.veritas.reader.ui.screens.OriginalPdfPager(original, pageIndex, pageCount, bitmap,
+                    isPdf && original != null && pdfReady -> {
+                        com.veritas.reader.ui.screens.OriginalPdfPager(original, pageIndex, pageCount, null,
                             pageSettings, zoomScale > 1.05f, darkThemeColorFilter, ::selectPage)
                     }
                     image != null -> {
@@ -743,13 +721,13 @@ internal fun ActualDocumentView(
                 paperToneMode = newMode
                 val curSettings = repository.loadReaderSettings()
                 repository.saveReaderSettings(curSettings.copy(paperToneMode = newMode.name.lowercase()))
-                val toneLabel = context.getString(when (newMode) {
+                val toneLabel = resources.getString(when (newMode) {
                     PaperToneMode.ACTIVE_THEME -> R.string.ui_default
                     PaperToneMode.DARK -> R.string.ui_dark_slate
                     PaperToneMode.NATURAL_WHITE -> R.string.ui_bone
                     PaperToneMode.WARM_SEPIA -> R.string.ui_sepia
                 })
-                android.widget.Toast.makeText(context, context.getString(R.string.reader_paper_tone_selected, toneLabel), android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, resources.getString(R.string.reader_paper_tone_selected, toneLabel), android.widget.Toast.LENGTH_SHORT).show()
                 onPaperToneModeChange?.invoke(newMode)
             },
             showMenu = showMenu,
@@ -820,6 +798,7 @@ internal fun ActualDocumentView(
                 pageIndex = pageIndex,
                 onDismiss = { selectedCanvasText = null },
                 onReadFromSentence = onReadFromSentence,
+                onAction = { action -> onSelectionAction(action, selectedCanvasText.orEmpty(), pageIndex + 1) },
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
@@ -866,22 +845,22 @@ internal fun ActualDocumentView(
                 contentAlignment = Alignment.Center
             ) {
                 VernGesturePopupCard(
-                    title = "Document Gestures",
+                    title = com.veritas.reader.ui.screens.menuString(R.string.hint_document_gestures),
                     items = listOf(
                         VernHintGestureItem(
                             icon = Icons.Outlined.TouchApp,
-                            title = "Single tap",
-                            description = "Collapse or expand reading bars and controls"
+                            title = com.veritas.reader.ui.screens.menuString(R.string.hint_single_tap),
+                            description = com.veritas.reader.ui.screens.menuString(R.string.hint_toggle_reading_bars)
                         ),
                         VernHintGestureItem(
                             icon = Icons.Outlined.ZoomIn,
-                            title = "Pinch in / out",
-                            description = "Zoom in or out on the document"
+                            title = com.veritas.reader.ui.screens.menuString(R.string.l10n_pinch_in_out),
+                            description = com.veritas.reader.ui.screens.menuString(R.string.hint_zoom_document)
                         ),
                         VernHintGestureItem(
                             icon = Icons.AutoMirrored.Outlined.MenuBook,
-                            title = "Swipe horizontally",
-                            description = "Turn to the previous or next page"
+                            title = com.veritas.reader.ui.screens.menuString(R.string.hint_swipe_horizontally),
+                            description = com.veritas.reader.ui.screens.menuString(R.string.hint_turn_page)
                         )
                     ),
                     onDismissCurrent = {

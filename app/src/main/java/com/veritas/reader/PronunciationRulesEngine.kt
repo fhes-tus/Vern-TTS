@@ -5,6 +5,8 @@ internal object PronunciationRulesEngine {
     data class Edit(val range: IntRange, val replacement: String, val preserveWordGap: Boolean = false)
     fun compile(rules: List<PronunciationRule>): List<DocumentRepository.CompiledPronunciationRule> =
         rules.filter { it.enabled && it.find.isNotBlank() }.distinctBy(SpeechPatternRules::identity)
+            // An exact Text exception wins when another rule matches the same source span.
+            .sortedBy { it.matchKind != SpeechRuleKind.LITERAL }
             .mapNotNull { runCatching { SpeechPatternRules.compile(it) }.getOrNull() }
 
     fun edits(source: String, rules: List<DocumentRepository.CompiledPronunciationRule>): List<Edit> {

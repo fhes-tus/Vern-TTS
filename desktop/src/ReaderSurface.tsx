@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type RefObject,
@@ -22,6 +23,7 @@ import type { Book, Settings, SourceInfo } from './types';
 import { readerFontFamily, readerPaperStyle } from './reader-appearance';
 import { useNarrationHighlight, type SpokenPassage } from './narration-highlight';
 import { ReadingHighlights } from './ReadingHighlights';
+import { prefersReducedMotion } from './motion';
 
 const PdfPage = lazy(() => import('./PdfPage').then((module) => ({ default: module.PdfPage })));
 export type ReaderSelection = {
@@ -58,6 +60,7 @@ type Props = {
   onFlashcard: (selection: ReaderSelection) => void;
   onAi: (selection: ReaderSelection) => void;
   onListen: (selection: ReaderSelection) => void;
+  onEdit?: (selection: ReaderSelection) => void;
 };
 
 function SourceBlock({ block }: { block: DocumentBlock }) {
@@ -206,7 +209,9 @@ export function ReaderSurface(props: Props) {
   const [sourceError, setSourceError] = useState('');
   const [sourceLoading, setSourceLoading] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [selection, setSelection] = useState<ReaderSelection | null>(null);
+  const [selectionContent, setSelection] = useState<ReaderSelection | null>(null);
+  const [hasSelection, setHasSelection] = useState(false);
+  const selection = hasSelection ? selectionContent : null;
   const [selectionAtTop, setSelectionAtTop] = useState(false);
   const [highlightsOpen, setHighlightsOpen] = useState(false);
   const [highlightRequest, setHighlightRequest] = useState<ReaderSelection | null>(null);
@@ -215,6 +220,20 @@ export function ReaderSurface(props: Props) {
   const [controls, setControls] = useState(true);
   const [jump, setJump] = useState('1');
   const [searchOpen, setSearchOpen] = useState(() => !!props.query);
+  const searchToggle = useRef<HTMLButtonElement>(null);
+  const [closingQuery, setClosingQuery] = useState('');
+  const searchQuery = searchOpen ? props.query : closingQuery;
+  const searchMatches = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    if (!query) return [];
+    const matches: { text: string; position: number }[] = [];
+    for (const [position, text] of book.chunks.entries()) {
+      if (!text.toLowerCase().includes(query)) continue;
+      matches.push({ text, position });
+      if (matches.length === 30) break;
+    }
+    return matches;
+  }, [book.chunks, searchQuery]);
   const pageRef = useRef(0);
   const latestPosition = useRef(book.position);
   latestPosition.current = book.position;
@@ -225,7 +244,16 @@ export function ReaderSurface(props: Props) {
   const pinch = useRef({ amount: 0, last: 0 });
   const readingSize = useRef(settings.fontSize);
   readingSize.current = settings.fontSize;
-  const pointer = useRef<{ x: number; y: number; id: number; allowed: boolean } | null>(null);
+  const pointer = useRef<{
+    x: number;
+    y: number;
+    id: number;
+    allowed: boolean;
+    axis: 'pending' | 'turn' | 'scroll';
+    offset: number;
+  } | null>(null);
+  const lastSpread = useRef<{ start: number; view: string; columns: number } | null>(null);
+  const spreadAnimation = useRef<Animation | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const sourceWrites = useRef<Promise<void>>(Promise.resolve());
   const view = book.textAvailable === false ? 'original' : settings.readerView;
@@ -438,26 +466,33 @@ export function ReaderSurface(props: Props) {
     if (view !== 'flow' || settings.readerLayout !== 'scroll' || selection) return;
     viewport.current?.querySelector('[aria-current="location"]')?.scrollIntoView({
       block: 'nearest',
-      behavior:
-        settings.reduceMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          ? 'instant'
-          : 'smooth',
+      behavior: prefersReducedMotion(settings.reduceMotion) ? 'instant' : 'smooth',
     });
   }, [book.position, view, settings.readerLayout, selection, settings.reduceMotion]);
   useEffect(() => {
     setJump(String(start + 1));
-    if (!settings.reduceMotion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      stage.current?.animate(
-        [
-          {
-            opacity: 0.6,
-            transform: `perspective(1500px) translateX(${direction.current * 18}px) rotateY(${direction.current * 4}deg)`,
-          },
-          { opacity: 1, transform: 'perspective(1500px) translateX(0) rotateY(0)' },
-        ],
-        { duration: 230, easing: 'cubic-bezier(.2,.7,.2,1)' },
-      );
-    }
+  }, [start, view, columns, settings.reduceMotion]);
+  useLayoutEffect(() => {
+    const previous = lastSpread.current;
+    lastSpread.current = { start, view, columns };
+    if (
+      !previous ||
+      previous.start === start ||
+      previous.view !== view ||
+      previous.columns !== columns ||
+      prefersReducedMotion(settings.reduceMotion)
+    )
+      return;
+    const near = Math.abs(start - previous.start) <= columns;
+    const animation = stage.current?.animate?.(
+      [
+        { opacity: 0.78, translate: near ? `${direction.current * 14}px 0` : 'none' },
+        { opacity: 1, translate: 'none' },
+      ],
+      { duration: near ? 205 : 145, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+    );
+    spreadAnimation.current = animation ?? null;
+    return () => animation?.cancel();
   }, [start, view, columns, settings.reduceMotion]);
   const revealControls = useCallback(() => {
     setControls(true);
@@ -471,8 +506,26 @@ export function ReaderSurface(props: Props) {
   }, [props.fullscreen, revealControls]);
   function clearSelection() {
     window.getSelection()?.removeAllRanges();
-    setSelection(null);
+    setHasSelection(false);
     setCopied('');
+  }
+  function closeSearch() {
+    setClosingQuery(props.query);
+    setSearchOpen(false);
+    props.onQuery('');
+    searchToggle.current?.focus({ preventScroll: true });
+  }
+  function endDrag(offset: number, settle: boolean) {
+    const element = stage.current;
+    if (!element || !offset) return;
+    element.style.removeProperty('translate');
+    if (settle && !prefersReducedMotion(settings.reduceMotion)) {
+      spreadAnimation.current =
+        element.animate?.([{ translate: `${offset}px 0` }, { translate: 'none' }], {
+          duration: 180,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        }) ?? null;
+    }
   }
   function go(target: number) {
     if (!count || !Number.isFinite(target)) return;
@@ -648,12 +701,12 @@ export function ReaderSurface(props: Props) {
         !viewport.current?.contains(selected.anchorNode) ||
         !viewport.current.contains(selected.focusNode)
       ) {
-        setSelection(null);
+        setHasSelection(false);
         return;
       }
       const text = selected.toString().trim().slice(0, 10000);
       if (!text) {
-        setSelection(null);
+        setHasSelection(false);
         return;
       }
       const range = selected.getRangeAt(0);
@@ -717,6 +770,7 @@ export function ReaderSurface(props: Props) {
         }
       }
       setSelection({ bookId: book.id, text, position, endPosition, highlightable });
+      setHasSelection(true);
       setCopied('');
       revealControls();
     };
@@ -923,14 +977,18 @@ export function ReaderSurface(props: Props) {
             </label>
           )}
           <button
+            ref={searchToggle}
             className="icon-button"
             aria-label="Search this book"
             title="Search this book (Ctrl+F)"
             aria-expanded={searchOpen}
+            aria-controls="reader-book-search"
             onClick={() => {
-              setSearchOpen((open) => !open);
-              if (searchOpen) props.onQuery('');
-              requestAnimationFrame(() => props.searchRef.current?.focus());
+              if (searchOpen) closeSearch();
+              else {
+                setSearchOpen(true);
+                requestAnimationFrame(() => props.searchRef.current?.focus());
+              }
             }}
           >
             <Glyph name="search" />
@@ -953,6 +1011,7 @@ export function ReaderSurface(props: Props) {
             aria-label="Toggle notebook"
             title="Notebook"
             aria-pressed={props.notebook}
+            aria-controls="reader-notebook"
             onClick={props.onNotebook}
           >
             <Glyph name="note" />
@@ -989,61 +1048,53 @@ export function ReaderSurface(props: Props) {
             <Glyph name="settings" />
           </button>
         </div>
-        {searchOpen && (
-          <div
-            className="reader-search-panel"
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                event.preventDefault();
-                setSearchOpen(false);
-                props.onQuery('');
-              }
-            }}
+        <div
+          className="reader-search-panel"
+          id="reader-book-search"
+          hidden={!searchOpen}
+          inert={!searchOpen}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              closeSearch();
+            }
+          }}
+        >
+          <label className="search">
+            <input
+              ref={props.searchRef}
+              type="search"
+              aria-label="Search this book"
+              placeholder="Search this book…"
+              value={searchQuery}
+              onChange={(e) => props.onQuery(e.target.value)}
+            />
+          </label>
+          <button
+            className="icon-button"
+            aria-label="Close book search"
+            title="Close search"
+            onClick={closeSearch}
           >
-            <label className="search">
-              <input
-                ref={props.searchRef}
-                type="search"
-                aria-label="Search this book"
-                placeholder="Search this book…"
-                value={props.query}
-                onChange={(e) => props.onQuery(e.target.value)}
-              />
-            </label>
-            <button
-              className="icon-button"
-              aria-label="Close book search"
-              title="Close search"
-              onClick={() => {
-                setSearchOpen(false);
-                props.onQuery('');
-              }}
-            >
-              <Glyph name="close" />
-            </button>
-            {props.query && (
-              <div className="reader-match-list">
-                {book.chunks
-                  .map((text, position) => ({ text, position }))
-                  .filter((part) => part.text.toLowerCase().includes(props.query.toLowerCase()))
-                  .slice(0, 30)
-                  .map((part) => (
-                    <button
-                      key={part.position}
-                      onClick={() => {
-                        void props.onSeek(part.position);
-                        props.onQuery('');
-                        setSearchOpen(false);
-                      }}
-                    >
-                      <small>Passage {part.position + 1}</small>
-                      {part.text.slice(0, 160)}
-                    </button>
-                  ))}
-              </div>
-            )}
-          </div>
-        )}
+            <Glyph name="close" />
+          </button>
+          {searchQuery && (
+            <div className="reader-match-list">
+              {searchMatches.map((part) => (
+                <button
+                  key={part.position}
+                  onClick={() => {
+                    void props.onSeek(part.position);
+                    closeSearch();
+                  }}
+                >
+                  <small>Passage {part.position + 1}</small>
+                  {part.text.slice(0, 160)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </header>
       {props.fullscreen && (
         <button
@@ -1054,21 +1105,23 @@ export function ReaderSurface(props: Props) {
           Exit fullscreen · Esc
         </button>
       )}
-      {selection && (
+      {selectionContent && (
         <div
-          className="selection-actions"
+          className="selection-actions reader-choice-panel"
+          hidden={!hasSelection}
+          inert={!hasSelection}
           data-placement={selectionAtTop ? 'bottom' : 'top'}
           role="toolbar"
           aria-label="Selected text actions"
           onMouseDown={(event) => event.preventDefault()}
         >
-          <span title={selection.text}>
-            {selection.text.slice(0, 70)}
-            {selection.text.length > 70 ? '…' : ''}
+          <span title={selectionContent.text}>
+            {selectionContent.text.slice(0, 70)}
+            {selectionContent.text.length > 70 ? '…' : ''}
           </span>
           <button
             onClick={() =>
-              void navigator.clipboard.writeText(selection.text).then(
+              void navigator.clipboard.writeText(selectionContent.text).then(
                 () => setCopied('Copied'),
                 () => setCopied('Use Ctrl/Cmd C to copy'),
               )
@@ -1077,40 +1130,46 @@ export function ReaderSurface(props: Props) {
             <Glyph name="copy" />
             Copy
           </button>
-          <button onClick={() => props.onListen(selection)}>
+          <button onClick={() => props.onListen(selectionContent)}>
             <Glyph name="headphones" />
             Listen
           </button>
-          <button onClick={() => props.onNote(selection)}>
+          <button onClick={() => props.onNote(selectionContent)}>
             <Glyph name="note" />
             Add to note
           </button>
           <button
-            disabled={!selection.highlightable}
+            disabled={!selectionContent.highlightable}
             title={
-              selection.highlightable
+              selectionContent.highlightable
                 ? 'Highlight the selected passages'
                 : 'Choose an exact passage in Reading view to highlight it'
             }
             onClick={() => {
-              setHighlightRequest(selection);
+              setHighlightRequest(selectionContent);
               setHighlightsOpen(true);
             }}
           >
             Highlight passages
           </button>
-          <button onClick={() => props.onVocabulary(selection)}>
+          <button onClick={() => props.onVocabulary(selectionContent)}>
             <Glyph name="dictionary" />
             Word tools
           </button>
-          <button onClick={() => props.onFlashcard(selection)}>
+          <button onClick={() => props.onFlashcard(selectionContent)}>
             <Glyph name="study" />
             Flashcard
           </button>
-          <button onClick={() => props.onAi(selection)}>
+          <button onClick={() => props.onAi(selectionContent)}>
             <Glyph name="sparkles" />
             Ask AI
           </button>
+          {props.onEdit && (
+            <button onClick={() => props.onEdit?.(selectionContent)}>
+              <Glyph name="edit" />
+              Edit text
+            </button>
+          )}
           <button onClick={clearSelection}>
             <Glyph name="close" />
             Clear selection
@@ -1124,32 +1183,71 @@ export function ReaderSurface(props: Props) {
         className={`reader-viewport ${settings.readerLayout === 'scroll' ? 'reader-scroll-mode' : ''}`}
         aria-label="Book pages"
         onPointerDown={(event) => {
+          if (event.button !== 0 || (pointer.current && pointer.current.id !== event.pointerId))
+            return;
           const edge = (event.target as HTMLElement).closest('[data-page-edge]');
           const allowed = event.pointerType === 'touch' || event.altKey || !!edge;
-          pointer.current = { x: event.clientX, y: event.clientY, id: event.pointerId, allowed };
+          pointer.current = {
+            x: event.clientX,
+            y: event.clientY,
+            id: event.pointerId,
+            allowed,
+            axis: 'pending',
+            offset: 0,
+          };
           if (allowed && event.pointerType !== 'touch') {
             event.currentTarget.setPointerCapture(event.pointerId);
             event.preventDefault();
           }
         }}
-        onPointerUp={(event) => {
+        onPointerMove={(event) => {
           const down = pointer.current;
-          pointer.current = null;
           if (
-            !down ||
+            !down?.allowed ||
             down.id !== event.pointerId ||
-            !down.allowed ||
-            !window.getSelection()?.isCollapsed
+            down.axis === 'scroll' ||
+            !window.getSelection()?.isCollapsed ||
+            !stage.current ||
+            count <= 1 ||
+            prefersReducedMotion(settings.reduceMotion)
           )
             return;
           const dx = event.clientX - down.x;
           const dy = event.clientY - down.y;
-          if (Math.abs(dx) >= 55 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-            go(pageRef.current + (dx < 0 ? columns : -columns));
+          if (down.axis === 'pending') {
+            if (Math.hypot(dx, dy) < 9) return;
+            down.axis = Math.abs(dx) > Math.abs(dy) * 1.5 ? 'turn' : 'scroll';
+          }
+          if (down.axis !== 'turn') return;
+          const atEdge = dx > 0 ? pageRef.current === 0 : pageRef.current + 1 >= count;
+          const limit = atEdge ? 12 : 36;
+          down.offset = limit * Math.tanh(dx / (atEdge ? 90 : 65));
+          spreadAnimation.current?.cancel();
+          stage.current.style.translate = `${down.offset}px 0`;
+        }}
+        onPointerUp={(event) => {
+          const down = pointer.current;
+          if (!down || down.id !== event.pointerId) return;
+          pointer.current = null;
+          const dx = event.clientX - down.x;
+          const dy = event.clientY - down.y;
+          const target = pageRef.current + (dx < 0 ? columns : -columns);
+          const canTurn =
+            down.allowed &&
+            down.axis !== 'scroll' &&
+            window.getSelection()?.isCollapsed &&
+            Math.abs(dx) >= 55 &&
+            Math.abs(dx) > Math.abs(dy) * 1.5 &&
+            (dx < 0 ? pageRef.current + 1 < count : pageRef.current > 0);
+          endDrag(down.offset, !canTurn);
+          if (canTurn) {
+            go(target);
             event.preventDefault();
           }
         }}
-        onPointerCancel={() => {
+        onPointerCancel={(event) => {
+          if (pointer.current?.id !== event.pointerId) return;
+          endDrag(pointer.current.offset, true);
           pointer.current = null;
         }}
       >

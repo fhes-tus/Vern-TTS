@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notes_link_cards_privacy">تعرض معاينات الروابط العناوين والصور. يجلب Vern التفاصيل الناقصة من الموقع المرتبط أو من مضيف الصورة.</string>
+    <string name="notes_link_load_from_website">تحميل من الموقع</string>
+    <string name="notes_link_loading">جارٍ تحميل معاينة الموقع…</string>
+    <string name="notes_link_unavailable">تعذّر تحميل معاينة الموقع. حاول مرة أخرى أو افتح الرابط.</string>
+</resources>

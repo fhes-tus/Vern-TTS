@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_earlier">पहले</string>
+    <string name="insights_last_week">पिछला सप्ताह</string>
+    <string name="insights_daily_habit">दैनिक आदत</string>
+    <string name="insights_master_reader">पठन मास्टर</string>
+    <string name="insights_habit_champion">आदत चैंपियन</string>
+    <string name="insights_seven_day_flame">लगातार 7 दिन</string>
+    <string name="insights_consistency_pro">निरंतरता विशेषज्ञ</string>
+    <string name="insights_week_chart_description">%1$s। %2$s। कुल %3$s। सप्ताह बदलने के लिए बाएँ या दाएँ स्वाइप करें।</string>
+    <string name="insights_invalid_session_date">YYYY-MM-DD प्रारूप में तारीख डालें।</string>
+    <string name="insights_future_session_date">आज की या उससे पहले की तारीख चुनें।</string>
+    <string name="insights_session_save_failed">यह सत्र सेव नहीं हो सका। आपके बदलाव अभी यहीं हैं। फिर से कोशिश करें।</string>
+    <string name="insights_timer_save_failed">रीडिंग टाइमर की सेटिंग सेव नहीं हो सकी। सेटिंग बदलने की फिर से कोशिश करें।</string>
+    <string name="insights_saving">सेव हो रहा है…</string>
+</resources>

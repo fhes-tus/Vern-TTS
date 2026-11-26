@@ -170,9 +170,9 @@ internal object VocabularyLookup {
             offline = { runCatching { OfflineDictionaryStore.lookup(context, word) }.getOrNull()?.vocabularyMeaning() },
             online = { fetch(word) })?.let { return it }
         if (lookupSource != DictionaryLookupSource.AUTOMATIC) return VocabularyDefinition(UNAVAILABLE)
-        val apiKey = GeminiStudyService.getApiKey(context)
-        if (apiKey.isNotBlank() && !sentence.isNullOrBlank()) {
-            val contextual = GeminiStudyService.defineInContext(apiKey, word, sentence, title).getOrNull()
+        val profile = GeminiStudyService.requestProfile(context)
+        if (profile.apiKey.isNotBlank() && !sentence.isNullOrBlank()) {
+            val contextual = GeminiStudyService.defineInContext(profile, word, sentence, title).getOrNull()
             if (!contextual.isNullOrBlank()) return VocabularyDefinition(contextual)
         }
         return VocabularyDefinition(UNAVAILABLE)

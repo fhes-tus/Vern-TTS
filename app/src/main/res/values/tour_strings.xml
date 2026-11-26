@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tour_welcome_title">Interactive App Tour</string>
+    <string name="tour_welcome_body">Follow the highlights to discover your library, reading tools, study notes, and settings.</string>
+    <string name="tour_name_input_title">What should we call you?</string>
+    <string name="tour_name_input_body">Please enter your name so we can personalize your dashboard and messages.</string>
+    <string name="tour_fab_spotlight_title">Quest 1: Add a Document</string>
+    <string name="tour_fab_spotlight_body">This is the Add button. Tap it to import PDFs, EPUBs, Word files, text files, images, or web links.</string>
+    <string name="tour_checklist_spotlight_title">Your Quest Checklist</string>
+    <string name="tour_checklist_spotlight_body">This floating checklist shows your active missions. Complete all quests to master the app!</string>
+    <string name="tour_classics_spotlight_title">Classic Books Catalog</string>
+    <string name="tour_classics_spotlight_body">Browse timeless books by genre, swipe through each shelf, and add a favourite to My Library. Your reading and listening stay close at hand.</string>
+    <string name="tour_insights_spotlight_title">Reading Insights Dashboard</string>
+    <string name="tour_insights_spotlight_body">This menu button opens your personalized dashboard. Tap Next to see your reading analytics.</string>
+    <string name="tour_insights_page_spotlight_title">Your Insights at a Glance</string>
+    <string name="tour_insights_page_spotlight_body">Track daily reading streaks on the heatmap, see how your library splits by source, and watch where your listening time goes each month — all stored privately on your device.</string>
+    <string name="tour_notes_tab_spotlight_title">Notes &amp; Voice Memos</string>
+    <string name="tour_notes_tab_spotlight_body">Here is your notes studio. Review all your document annotations, standalone notes, bookmarks, and audio recordings in one dedicated hub.</string>
+    <string name="tour_study_tab_spotlight_title">AI Study Hub &amp; Flashcards</string>
+    <string name="tour_study_tab_spotlight_body">Here is your study studio. Generate AI summaries, practice interactive flashcards, and review active recall quizzes across your library.</string>
+    <string name="tour_settings_spotlight_title">Settings &amp; Customization</string>
+    <string name="tour_settings_spotlight_body">Here is your settings hub. Tune voice engines, playback speeds, themes, cloud sync, backup tools, and pronunciation rules anytime.</string>
+    <string name="tour_document_spotlight_title">Open your Document</string>
+    <string name="tour_document_spotlight_body">Your readings appear here. Tap a card to open it and enter the reader screen.</string>
+    <string name="tour_mode_toggle_spotlight_title">Layout Mode Switcher</string>
+    <string name="tour_mode_toggle_spotlight_body">Toggle layouts dynamically: TEXT for clean reading, LISTEN for lyrics/sentence highlights, and ORIGINAL for PDF layouts.</string>
+    <string name="tour_player_panel_spotlight_title">Expandable Playback Studio</string>
+    <string name="tour_player_panel_spotlight_body">Tap or drag this panel up to access speed, pitch, premium voice selections, and sleep timers.</string>
+    <string name="tour_reader_text_spotlight_title">Highlight &amp; Study Actions</string>
+    <string name="tour_reader_text_spotlight_body">Long-press any sentence to bookmark it, add study notes, translate text, or consult the AI Assistant.</string>
+    <string name="tour_congratulations_title">Tour Complete!</string>
+    <string name="tour_congratulations_body">Awesome! You have completed the guided tour. Now complete the remaining quests on your checklist to unlock the full app!</string>
+</resources>

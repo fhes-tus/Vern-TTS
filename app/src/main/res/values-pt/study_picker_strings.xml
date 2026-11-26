@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_choose_flashcard_book">Escolha um livro para os cartões</string>
+    <string name="study_flashcard_picker_empty">Primeiro, adicione um livro à biblioteca. Você também pode colar cartões na central de estudos.</string>
+    <string name="study_guide_picker_empty">Adicione um livro à biblioteca e exporte suas notas e destaques como guia de estudo.</string>
+</resources>

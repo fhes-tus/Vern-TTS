@@ -59,7 +59,9 @@ import androidx.compose.material.icons.outlined.Spellcheck
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.ViewCarousel
 import androidx.compose.material.icons.outlined.ViewStream
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -170,6 +172,21 @@ fun UserManualDialog(
                         ),
                         imageResId = R.drawable.manual_settings_hub,
                         tags = listOf("tabs", "navigation", "workspaces", "home", "library", "study", "notes", "settings hub")
+                    ),
+                    ManualChapter(
+                        title = "Adaptive Window & Foldable Layouts",
+                        icon = Icons.Outlined.ViewCarousel,
+                        subtitle = "Tablets, foldables, rotation, and multi-window",
+                        content = "Vern adapts seamlessly across phones, foldables, tablets, and landscape orientations. On wider screens, Notes arranges into adaptive masonry columns, Study displays side-by-side study decks, and dialogs avoid folding hinges automatically. Rotation and layout transitions preserve your active reading position, drafts, and quiz progress.",
+                        ctaText = "Explore Settings",
+                        ctaAction = "settings_hub",
+                        flowSteps = listOf(
+                            "Rotate your phone or open your foldable to landscape mode",
+                            "Enjoy side-by-side split panels and expanded reading margins",
+                            "Use compact two-column menus on shorter window heights"
+                        ),
+                        imageResId = R.drawable.manual_settings_hub,
+                        tags = listOf("adaptive", "tablet", "foldable", "landscape", "rotation", "large screen", "split pane", "multi-window")
                     )
                 )
             ),
@@ -183,7 +200,7 @@ fun UserManualDialog(
                         icon = Icons.Outlined.CollectionsBookmark,
                         subtitle = "Catalog, category chips, and preloaded books",
                         content = "The Library dashboard compiles all your imported books, documents, and web articles, alongside preloaded classics like 'Who Moved My Cheese?'. Use category filter chips (All, Reading, Finished, Unread, Audio, Favorites) and instant search to find any title in seconds.",
-                        ctaText = "Manage Reading Lists",
+                        ctaText = "Manage Collections",
                         ctaAction = "reading_lists",
                         flowSteps = listOf(
                             "Tap the 'Library' tab on the bottom bar",
@@ -212,7 +229,7 @@ fun UserManualDialog(
                         title = "Batch Organization & Import Floater",
                         icon = Icons.Outlined.Checklist,
                         subtitle = "Manage multiple documents and monitor imports",
-                        content = "Organize a large reading list efficiently using batch mode. Long-press any book card to activate multi-select mode. When importing files or downloading books, a movable circular floater shows live progress without blocking your screen.",
+                        content = "Organize a large library efficiently using batch mode. Long-press any book card to activate multi-select mode. When importing files or downloading books, a movable circular floater shows live progress without blocking your screen.",
                         ctaText = "Bulk Edit Tip",
                         ctaAction = "bulk_edit",
                         flowSteps = listOf(
@@ -363,6 +380,21 @@ fun UserManualDialog(
                         ),
                         imageResId = R.drawable.manual_reader_tools_menu,
                         tags = listOf("bookmark", "search text", "export notes", "markdown", "reset progress")
+                    ),
+                    ManualChapter(
+                        title = "On-Device Translation & Languages",
+                        icon = Icons.Outlined.Translate,
+                        subtitle = "Private offline sentence, paragraph, and word translation",
+                        content = "Translate foreign languages on the fly directly inside the reader without sending book text to external cloud servers. Vern leverages local machine translation models to provide private, rapid translation popups for selected words, sentences, or paragraphs.",
+                        ctaText = "Configure Languages",
+                        ctaAction = "reader_settings",
+                        flowSteps = listOf(
+                            "Highlight a word or sentence in the reader",
+                            "Select 'Translate' from the text action bar",
+                            "View instant on-device translation in a floating sheet"
+                        ),
+                        imageResId = R.drawable.manual_text_selection_bar,
+                        tags = listOf("translate", "translation", "language", "offline translation", "multilingual", "dictionary", "on-device")
                     )
                 )
             ),
@@ -372,19 +404,19 @@ fun UserManualDialog(
                 description = "Vern Studio & Lite offline neural voices, narration studio, and sleep timer",
                 chapters = listOf(
                     ManualChapter(
-                        title = "Audio Player & Playback Control",
+                        title = "Audio Player & Transport Controls",
                         icon = Icons.Outlined.GraphicEq,
-                        subtitle = "Play, pause, speed, and timer dials",
-                        content = "Expand the bottom audio bar to control playback. Set narration speeds from 0.5x to 4.0x, navigate by sentence or chapter, view progress status, and set a sleep timer to pause audio automatically after a set period.",
+                        subtitle = "Wavy seekbar, transport controls, and playback speed",
+                        content = "Control playback using the liquid glass bottom bar. Enjoy smooth animated transport controls, a modern wavy seekbar that reflects audio cadence, quick 10-second skip buttons, sentence-by-sentence jumps, fine-grained playback speeds from 0.5x to 4.0x, and persistent media notification controls.",
                         ctaText = "Configure Sleep Timer",
                         ctaAction = "sleep_timer",
                         flowSteps = listOf(
-                            "Click the play icon on any sentence",
-                            "Expand the mini-player to open controls",
-                            "Adjust speed slider or set a sleep timer"
+                            "Tap play on any sentence in the book",
+                            "Use the wavy seekbar to scrub through paragraphs",
+                            "Adjust speed, skip back/forward, or set a sleep timer"
                         ),
                         imageResId = R.drawable.manual_audio_mode,
-                        tags = listOf("audio", "tts", "play", "pause", "speed", "playback", "listen", "narrate", "loud")
+                        tags = listOf("audio", "tts", "play", "pause", "speed", "playback", "listen", "narrate", "wavy seekbar", "transport")
                     ),
                     ManualChapter(
                         title = "Voice Studio & Offline Neural Voices",
@@ -400,6 +432,36 @@ fun UserManualDialog(
                         ),
                         imageResId = R.drawable.manual_voice_language,
                         tags = listOf("voice", "engine", "tts", "vern studio", "kokoro", "vern lite", "piper", "offline", "neural voice")
+                    ),
+                    ManualChapter(
+                        title = "Personal Cloud Voices (BYOK)",
+                        icon = Icons.Outlined.RecordVoiceOver,
+                        subtitle = "OpenAI, ElevenLabs, Gemini & Custom Endpoints",
+                        content = "Connect your personal API keys for cloud-grade narration. Vern supports OpenAI TTS (tts-1, tts-1-hd), ElevenLabs voices, Google Gemini speech, and custom OpenAI-compatible audio endpoints. Your keys stay securely on your device, and generated audio is cached locally for instant replay.",
+                        ctaText = "Configure Cloud Voices",
+                        ctaAction = "voice_studio",
+                        flowSteps = listOf(
+                            "Open Settings -> Voice Studio -> Cloud Voices",
+                            "Enter your API key (OpenAI, ElevenLabs, Gemini, or custom)",
+                            "Audition available voices and start streaming speech"
+                        ),
+                        imageResId = R.drawable.manual_voice_language,
+                        tags = listOf("cloud voice", "openai", "elevenlabs", "gemini", "tts", "byok", "api key", "custom endpoint")
+                    ),
+                    ManualChapter(
+                        title = "Speech Syntax & Pronunciation Guide",
+                        icon = Icons.Outlined.Spellcheck,
+                        subtitle = "Pause tags, speech cadence, and phonetics",
+                        content = "Fine-tune pronunciation and pacing with custom rules and syntax tags. Use pause markup (e.g. [pause=500ms] or ellipses) to add dramatic timing, define phonetic replacements for medical or technical terms, and customize character dialogue speech patterns.",
+                        ctaText = "Configure Pronunciation",
+                        ctaAction = "pronunciation",
+                        flowSteps = listOf(
+                            "Open Settings -> Speech Edits",
+                            "Tap '+' to add replacement or phonetic rules",
+                            "Use pause tags and cadence markup in text or notes"
+                        ),
+                        imageResId = R.drawable.manual_pronunciation_rules,
+                        tags = listOf("pronunciation", "phonetics", "acronyms", "syntax", "pause", "cadence", "speech edits", "markup")
                     ),
                     ManualChapter(
                         title = "Full-Cast Narration Studio",
@@ -454,6 +516,21 @@ fun UserManualDialog(
                 description = "Track reading history, streak insights, study cards, and notes",
                 chapters = listOf(
                     ManualChapter(
+                        title = "Offline Dictionary & WordNet",
+                        icon = Icons.AutoMirrored.Outlined.MenuBook,
+                        subtitle = "150,000+ definitions, word browser, and examples offline",
+                        content = "Vern features a full offline English dictionary powered by Princeton WordNet. Browse words by letter (A-Z) or search prefixes instantly. Each entry includes definitions, parts of speech, usage examples, and clickable synonym chips. Opened definitions can be saved to your Vocabulary list with one tap. Access the dictionary from Study Hub or directly from the reader selection sheet.",
+                        ctaText = "Open Study Hub",
+                        ctaAction = "study_general",
+                        flowSteps = listOf(
+                            "Open Study Hub -> Dictionary, or highlight a word in the reader",
+                            "Browse words alphabetically or search any term",
+                            "Explore definitions, pronunciations, synonyms, and examples"
+                        ),
+                        imageResId = R.drawable.manual_study_general,
+                        tags = listOf("dictionary", "wordnet", "offline dictionary", "definitions", "vocab", "vocabulary", "synonyms", "examples")
+                    ),
+                    ManualChapter(
                         title = "Study General & Vocabulary",
                         icon = Icons.Outlined.BookmarkBorder,
                         subtitle = "Central list of highlights and words",
@@ -488,7 +565,7 @@ fun UserManualDialog(
                         icon = Icons.Outlined.Insights,
                         subtitle = "Check weekly statistics and streaks",
                         content = "Review reading statistics in the Insights tab. This panel tracks daily and weekly reading time, calculates average reading speed, and counts consecutive reading days to help build and maintain a consistent habit.",
-                        ctaText = "Manage Reading Lists",
+                        ctaText = "Manage Collections",
                         ctaAction = "reading_lists",
                         flowSteps = listOf(
                             "Select Insights from menu or drawer",
@@ -654,13 +731,16 @@ fun UserManualDialog(
 
             // Synonym dictionary mapping user intent words to semantic tags
             val semanticSynonyms = mapOf(
-                "speak" to listOf("tts", "speech", "voice", "audio", "narrate", "listen", "read loud", "sound", "cadence"),
-                "read" to listOf("reader", "book", "text", "page", "font", "display", "mode", "reflow", "original"),
+                "speak" to listOf("tts", "speech", "voice", "audio", "narrate", "listen", "read loud", "sound", "cadence", "cloud voice", "wavy"),
+                "read" to listOf("reader", "book", "text", "page", "font", "display", "mode", "reflow", "original", "adaptive"),
                 "dark" to listOf("theme", "mode", "color", "background", "black", "palette", "night", "sepia"),
                 "quiz" to listOf("flashcard", "card", "anki", "sm2", "study", "memory", "review", "vocab", "deck"),
                 "pdf" to listOf("document", "file", "ocr", "layout", "original", "import", "scan"),
                 "save" to listOf("backup", "sync", "export", "restore", "drive", "webdav", "archive"),
-                "fast" to listOf("speed", "rate", "pitch", "narration", "cadence", "pause")
+                "fast" to listOf("speed", "rate", "pitch", "narration", "cadence", "pause"),
+                "dict" to listOf("dictionary", "wordnet", "definition", "vocab", "word", "meaning", "synonym", "lookup"),
+                "translate" to listOf("translation", "language", "multilingual", "locale", "foreign", "on-device"),
+                "cloud" to listOf("cloud voice", "openai", "elevenlabs", "gemini", "api key", "byok", "endpoint")
             )
 
             allSections.mapNotNull { section ->

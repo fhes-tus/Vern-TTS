@@ -2,6 +2,10 @@ package com.veritas.reader
 
 import android.content.Context
 import android.os.SystemClock
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,15 +20,13 @@ internal class ReadingSessionTracker private constructor(context: Context) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val changes = MutableStateFlow(0L)
     private var lastWidgetUpdate = 0L
-    private val clock = ReadingSessionClock(save = {
-        repository.putReadingSession(it); changes.value++
-        val now = SystemClock.elapsedRealtime()
-        if (it.closedReason != null || now - lastWidgetUpdate > 30_000) {
-            lastWidgetUpdate = now; scope.launch { updateVeritasWidgets(context.applicationContext) }
-        }
-    })
+    private val clock = ReadingSessionClock()
+    private var recoveredInterruptedSessions = false
+    private var recoveryWritePending = false
     private var readerOwner: String? = null
     private var reader: ReadingSessionTarget? = null
+    private var mainWindowCovered = false
+    private val readerOverlays = mutableMapOf<Any, String>()
     private var lastInteraction = SystemClock.elapsedRealtime()
     private var requested = false
     private var audio: ReadingSessionTarget? = null
@@ -35,17 +37,47 @@ internal class ReadingSessionTracker private constructor(context: Context) {
 
     init {
         scope.launch {
-            synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
-                repository.saveReadingSessions(repository.loadReadingSessions().map {
-                    if (it.closedReason == null) it.copy(closedReason = "interrupted") else it
-                })
-            }
+            persistSessions()
             for (command in commands) {
                 try { command() } catch (e: CancellationException) { throw e }
-                catch (e: Exception) { android.util.Log.e("ReadingSessions", "Session checkpoint failed", e) }
+                catch (e: Exception) { android.util.Log.e("ReadingSessions", "Could not process reading event", e) }
+                persistSessions()
             }
         }
         scope.launch { while (isActive) { delay(5_000); send { reconcile(it) } } }
+    }
+
+    private fun persistSessions() {
+        try {
+            if (!recoveredInterruptedSessions) {
+                synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+                    val sessions = repository.loadReadingSessions()
+                    if (recoveryWritePending || sessions.any { it.closedReason == null }) {
+                        // SharedPreferences can expose the new value in memory even when commit fails.
+                        recoveryWritePending = true
+                        repository.saveReadingSessions(sessions.map {
+                            if (it.closedReason == null) it.copy(closedReason = "interrupted") else it
+                        })
+                        recoveryWritePending = false
+                        changes.value++
+                    }
+                }
+                recoveredInterruptedSessions = true
+            }
+            clock.flush { session ->
+                repository.putReadingSession(session)
+                changes.value++
+                val now = SystemClock.elapsedRealtime()
+                if (session.closedReason != null || now - lastWidgetUpdate > 30_000) {
+                    lastWidgetUpdate = now
+                    scope.launch { updateVeritasWidgets(repository.appContext) }
+                }
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            android.util.Log.e("ReadingSessions", "Could not save reading sessions; will retry", error)
+        }
     }
     private data class EventTime(val wall: Long, val mono: Long, val zone: String)
     private val commandLock = Any()
@@ -70,28 +102,55 @@ internal class ReadingSessionTracker private constructor(context: Context) {
     }
     private fun reconcile(event: EventTime, reason: String = "changed") {
         val mono = event.mono; val wall = event.wall; val zone = event.zone
-        val timeout = repository.prefs.getInt("reading_idle_seconds", 120).coerceIn(30, 900) * 1000L
+        val settings = repository.loadReadingTimerSettings()
+        val timeout = settings.idleSeconds * 1000L
         val explicit = explicitDocument != null && reader?.documentId == explicitDocument
         val eligible = reader != null && !requested && (explicit ||
-            (!repository.prefs.getBoolean("reading_explicit_only", false) && mono - lastInteraction < timeout))
-        val chosen = audio ?: if (requested) lastAudio else if (eligible) reader else null
-        val cap = if (clock.current?.mode == ReadingSessionMode.READING && !explicit) minOf(mono, lastInteraction + timeout) else mono
-        clock.transition(chosen, audio != null || eligible, wall, mono, zone, reason, cap)
-    }
-    fun reader(owner: String, docId: String?, index: Int = 0) = send { event ->
-        if (docId == null) {
-            if (readerOwner == owner) { reader = null; readerOwner = null; reconcile(event, "reader hidden") }
-        } else {
-            val doc = repository.findDocument(docId)
-            if (doc != null) {
-                if (readerOwner != owner || reader?.documentId != docId) lastInteraction = event.mono
-                readerOwner = owner; reader = target(doc, ReadingSessionMode.READING, index); reconcile(event)
-            }
+            (!settings.explicitOnly && mono - lastInteraction < timeout))
+        val covered = readerOwner?.let { owner ->
+            (mainWindowCovered && (owner == "main" || owner == "listen")) || owner in readerOverlays.values
+        } == true
+        val visibleOrPausedReader = reader?.takeIf { target ->
+            eligible && (!covered || clock.current?.let { current ->
+                current.mode == target.mode && current.documentId == target.documentId && current.revision == target.revision
+            } == true)
         }
+        val chosen = audio ?: if (requested) lastAudio else visibleOrPausedReader
+        val cap = if (clock.current?.mode == ReadingSessionMode.READING && !explicit) minOf(mono, lastInteraction + timeout) else mono
+        clock.transition(chosen, audio != null || (eligible && !covered), wall, mono, zone, reason, cap)
+    }
+    fun reader(owner: String, docId: String?, index: Int = 0) = send { event -> updateReader(owner, docId, index, event) }
+
+    fun mainReader(docId: String?, index: Int, covered: Boolean) = send { event ->
+        val visibilityChanged = mainWindowCovered != covered
+        mainWindowCovered = covered
+        val updated = updateReader("main", docId, index, event)
+        if (visibilityChanged && !updated && readerOwner == "listen") reconcile(event, "reader overlay changed")
+    }
+
+    fun readerOverlay(owner: String, token: Any, visible: Boolean) = send { event ->
+        if (visible) readerOverlays[token] = owner else readerOverlays.remove(token)
+        if (readerOwner == owner) reconcile(event, "reader overlay changed")
+    }
+
+    private fun updateReader(owner: String, docId: String?, index: Int, event: EventTime): Boolean {
+        if (docId == null) {
+            if (readerOwner != owner) return false
+            reader = null
+            readerOwner = null
+            reconcile(event, "reader hidden")
+        } else {
+            val doc = repository.findDocument(docId) ?: return false
+            if (readerOwner != owner || reader?.documentId != docId) lastInteraction = event.mono
+            readerOwner = owner
+            reader = target(doc, ReadingSessionMode.READING, index)
+            reconcile(event)
+        }
+        return true
     }
     fun interaction() = send { event ->
         val now = event.mono
-        val timeout = repository.prefs.getInt("reading_idle_seconds", 120).coerceIn(30, 900) * 1000L
+        val timeout = repository.loadReadingTimerSettings().idleSeconds * 1000L
         if (now - lastInteraction >= timeout) reconcile(event, "idle")
         lastInteraction = now
         if (clock.current == null) reconcile(event)
@@ -125,5 +184,17 @@ internal class ReadingSessionTracker private constructor(context: Context) {
             instance ?: ReadingSessionTracker(context.applicationContext).also { instance = it }
         }
         fun playbackRequested(value: Boolean) { instance?.playbackRequested(value) }
+    }
+}
+
+/** Keep independent overlay lifecycles from resuming a reader while another dialog is still open. */
+@Composable
+internal fun TrackReaderOverlay(owner: String, visible: Boolean) {
+    val context = LocalContext.current
+    val token = remember { Any() }
+    DisposableEffect(context, owner, token, visible) {
+        val tracker = if (visible) ReadingSessionTracker.get(context) else null
+        tracker?.readerOverlay(owner, token, true)
+        onDispose { tracker?.readerOverlay(owner, token, false) }
     }
 }

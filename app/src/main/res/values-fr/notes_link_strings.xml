@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notes_link_cards_privacy">Les aperçus affichent les titres et les images. Vern récupère les données manquantes auprès du site lié ou de l’hébergeur de l’image.</string>
+    <string name="notes_link_load_from_website">Charger depuis le site</string>
+    <string name="notes_link_loading">Chargement de l’aperçu du site…</string>
+    <string name="notes_link_unavailable">Impossible de charger l’aperçu. Réessayez ou ouvrez le lien.</string>
+</resources>

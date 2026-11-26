@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="note_reminder_channel">नोट रिमाइंडर</string>
+    <string name="note_reminder_channel_description">आपके नोट के लिए सेट किए गए रिमाइंडर</string>
+    <string name="note_reminder_title">नोट रिमाइंडर</string>
+    <string name="note_reminder_open">अपना नोट खोलने के लिए टैप करें।</string>
+    <string name="note_reminder_missing">यह नोट अब उपलब्ध नहीं है।</string>
+</resources>

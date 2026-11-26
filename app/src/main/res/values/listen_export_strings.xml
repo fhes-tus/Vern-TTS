@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="listen_current_passage">Back to current passage</string>
+    <string name="audio_export_estimating">Estimating file sizes…</string>
+    <string name="audio_export_space">%1$s free on this device</string>
+    <string name="audio_export_m4a">Compressed M4A · about %1$s</string>
+    <string name="audio_export_wav">Uncompressed WAV · about %1$s</string>
+    <string name="audio_export_estimate_help">The selected voices and pauses affect the actual file size.</string>
+    <string name="audio_export_wav_space">This WAV may exceed the available space. M4A uses less space.</string>
+    <string name="audio_export_save_file">Save to device</string>
+</resources>

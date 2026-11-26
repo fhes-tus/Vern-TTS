@@ -461,7 +461,7 @@ mod tests {
             db.connection
                 .pragma_query_value(None, "user_version", |r| r.get::<_, u32>(0))
                 .unwrap(),
-            16
+            17
         );
     }
 }

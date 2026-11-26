@@ -9,8 +9,10 @@ import android.graphics.PixelFormat
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import android.view.animation.LinearInterpolator
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Canvas as ComposeCanvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
@@ -55,13 +57,20 @@ internal fun PlaybackControlIcon(
                 CircularProgressIndicator(Modifier.size(size), color = tint, strokeWidth = 2.dp)
             }
         }
-        Icon(if (isPlaying && !isPreparing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-            contentDescription = null, tint = tint, modifier = Modifier.size(if (isPreparing) size * .58f else size))
+        Crossfade(
+            targetState = isPlaying && !isPreparing,
+            modifier = Modifier.size(if (isPreparing) size * .58f else size),
+            animationSpec = VeritasMotion.effectsFast(),
+            label = "playbackControlIcon"
+        ) { showPause ->
+            Icon(if (showPause) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                contentDescription = null, tint = tint, modifier = Modifier.fillMaxSize())
+        }
     }
 }
 
 /** Native PDF counterpart; only its ring rotates, and its host owns start/stop. */
-internal class PlaybackLoadingDrawable(color: Int, private val density: Float, private val reduceMotion: Boolean) : Drawable(), Animatable {
+internal class PlaybackLoadingDrawable(color: Int, private val density: Float) : Drawable(), Animatable {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
     private val triangle = Path()
     private var rotation = -90f
@@ -89,8 +98,13 @@ internal class PlaybackLoadingDrawable(color: Int, private val density: Float, p
         canvas.drawPath(triangle, paint)
     }
 
-    override fun start() { if (!reduceMotion && !animator.isStarted) animator.start() }
-    override fun stop() { animator.cancel() }
+    override fun start() { if (ValueAnimator.areAnimatorsEnabled() && !animator.isStarted) animator.start() }
+    override fun stop() {
+        if (!animator.isStarted) return
+        animator.cancel()
+        rotation = -90f
+        invalidateSelf()
+    }
     override fun isRunning(): Boolean = animator.isRunning
     override fun setAlpha(alpha: Int) { paint.alpha = alpha; invalidateSelf() }
     override fun setColorFilter(colorFilter: ColorFilter?) { paint.colorFilter = colorFilter; invalidateSelf() }

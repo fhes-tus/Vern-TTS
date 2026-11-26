@@ -1,259 +1,331 @@
 package com.veritas.reader.ui.screens
 
-import androidx.compose.animation.animateContentSize
+import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Explore
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.veritas.reader.R
+import com.veritas.reader.VernDialog
 import com.veritas.reader.VeritasPackStyle
 import com.veritas.reader.ui.OnboardingController
-import com.veritas.reader.ui.rememberVeritasHaptics
+import com.veritas.reader.ui.ReaderUiState
+import com.veritas.reader.ui.VeritasMotion
+import com.veritas.reader.ui.pressScale
+import kotlinx.coroutines.launch
 
-/**
- * Onboarding Quest Checklist Card to guide new users through essential features.
- * Restored to the exact theme-adaptive pre-refactor implementation.
- */
+private enum class ChapterTask(
+    @StringRes val title: Int,
+    @StringRes val description: Int,
+    @StringRes val actionLabel: Int,
+    val icon: ImageVector
+) {
+    IMPORT(
+        R.string.vern_chapter_import,
+        R.string.vern_chapter_import_body,
+        R.string.vern_chapter_import_action,
+        Icons.Default.Add
+    ),
+    PACE(
+        R.string.vern_chapter_pace,
+        R.string.vern_chapter_pace_body,
+        R.string.vern_chapter_pace_action,
+        Icons.Default.GraphicEq
+    ),
+    BOOKMARK(
+        R.string.vern_chapter_bookmark,
+        R.string.vern_chapter_bookmark_body,
+        R.string.vern_chapter_bookmark_action,
+        Icons.Default.Bookmark
+    ),
+    NOTE(
+        R.string.vern_chapter_note,
+        R.string.vern_chapter_note_body,
+        R.string.vern_chapter_note_action,
+        Icons.Outlined.EditNote
+    );
+
+    fun isComplete(state: ReaderUiState): Boolean = when (this) {
+        IMPORT -> state.questImportDone
+        PACE -> state.questSpeedDone
+        BOOKMARK -> state.questBookmarkDone
+        NOTE -> state.questNoteDone
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OnboardingQuestChecklist(
-    questTourDone: Boolean,
-    questImportDone: Boolean,
-    questSpeedDone: Boolean,
-    questBookmarkDone: Boolean,
+internal fun OnboardingQuestChecklist(
+    state: ReaderUiState,
+    hasReading: Boolean,
+    onAddReading: () -> Unit,
+    onOpenReading: () -> Unit,
+    onWriteNote: () -> Unit,
     onStartTour: () -> Unit,
-    onDismissQuests: (() -> Unit)? = null,
+    onDismissQuests: () -> Unit,
+    showSheet: Boolean,
+    onShowSheetChange: (Boolean) -> Unit,
+    onCardPositioned: (Rect?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isExpanded by rememberSaveable { mutableStateOf(false) }
-    val haptic = rememberVeritasHaptics()
+    val tasks = ChapterTask.entries
+    val count = tasks.count { it.isComplete(state) }
+    val next = tasks.firstOrNull { !it.isComplete(state) }
+    val subtitle = next?.title ?: R.string.vern_chapter_finish_title
+    val progress by animateFloatAsState(
+        count.toFloat() / tasks.size,
+        animationSpec = VeritasMotion.effects(),
+        label = "First Chapter progress"
+    )
+    val progressLabel = menuString(R.string.vern_chapter_progress, count, tasks.size)
+    val homeVisible = LocalLibraryPageVisible.current
+    val fade = VeritasMotion.effectsFast<Float>()
+    val interaction = remember { MutableInteractionSource() }
+    val reportCardPosition by rememberUpdatedState(onCardPositioned)
+    DisposableEffect(homeVisible) {
+        onDispose { if (homeVisible) reportCardPosition(null) }
+    }
 
-    val isTourActive = OnboardingController.activeStep != null
-    LaunchedEffect(isTourActive) {
-        if (isTourActive) {
-            isExpanded = false
+    Surface(
+        onClick = { onShowSheetChange(true) },
+        enabled = homeVisible && OnboardingController.activeStep == null,
+        modifier = modifier.fillMaxWidth().pressScale(interaction).onGloballyPositioned {
+            if (homeVisible && it.isAttached) {
+                OnboardingController.updateBounds("quest_checklist", it)
+                val bounds = it.boundsInRoot()
+                reportCardPosition(bounds.takeIf { rect -> rect.height >= it.size.height - 1f })
+            }
+        },
+        interactionSource = interaction,
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        shape = VeritasPackStyle.cardShape()
+    ) {
+        Column(
+            Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (next == null) {
+                    Icon(Icons.Default.Check, null, Modifier.size(22.dp))
+                } else {
+                    OnboardingArtwork(
+                        R.drawable.vern_setup_read,
+                        aspectRatio = 1.45f,
+                        modifier = Modifier.width(64.dp),
+                        shape = VeritasPackStyle.compactShape()
+                    )
+                }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(menuString(R.string.vern_chapter_title), style = MaterialTheme.typography.titleMedium)
+                    AnimatedContent(
+                        subtitle,
+                        transitionSpec = { fadeIn(fade).togetherWith(fadeOut(fade)).using(null) },
+                        label = "Next First Chapter milestone"
+                    ) { title ->
+                        Text(menuString(title), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(20.dp))
+            }
+            ChapterProgress(progress, progressLabel)
         }
     }
 
-    val completedCount = listOf(questTourDone, questImportDone, questSpeedDone, questBookmarkDone).count { done -> done }
-    val progress = completedCount / 4f
+    if (showSheet && homeVisible && OnboardingController.activeStep == null) {
+        val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val scope = rememberCoroutineScope()
+        val reduceMotion = VeritasMotion.scheme.reduceMotion
+        var closing by remember { mutableStateOf(false) }
 
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .shadow(12.dp, RoundedCornerShape(20.dp))
-            .clickable {
-                haptic.toggle(!isExpanded)
-                isExpanded = isExpanded == false
-            },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
-    ) {
-        Column(
-            modifier = Modifier
-                .animateContentSize()
-                .padding(16.dp)
-        ) {
-            // Header summary row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+        fun closeAnd(action: () -> Unit) {
+            if (closing) return
+            closing = true
+            scope.launch {
+                if (!reduceMotion) sheet.hide()
+                onShowSheetChange(false)
+                action()
+            }
+        }
+
+        val content: @Composable () -> Unit = {
+            Column(
+                Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                    .padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.EmojiEvents,
-                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_quests),
-                        tint = if (progress == 1f) Color(0xFFFFD700) else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Column {
-                        Text(
-                            text = if (progress == 1f) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_all_quests_complete) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_onboarding_quests),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_126, com.veritas.reader.ui.screens.localizedUiValue(completedCount)),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (onDismissQuests != null) {
-                        IconButton(
-                            onClick = {
-                                haptic.success()
-                                onDismissQuests()
-                            },
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel_quests),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
-
-                    IconButton(
-                        onClick = {
-                            haptic.toggle(!isExpanded)
-                            isExpanded = isExpanded == false
-                        },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                            contentDescription = if (isExpanded) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_collapse) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_expand),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            // Progress bar
-            Spacer(modifier = Modifier.height(10.dp))
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(50)),
-                color = if (progress == 1f) Color(0xFF2196F3) else MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-
-            // Checklist contents
-            if (isExpanded) {
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                Spacer(modifier = Modifier.height(12.dp))
-
-                QuestItemRow(
-                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_take_the_guided_tour),
-                    desc = "Learn the layout of the app with our quick guide.",
-                    done = questTourDone
-                )
-                QuestItemRow(
-                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_import_your_first_reading),
-                    desc = "Add any PDF, EPUB, docx, or link using the + button.",
-                    done = questImportDone
-                )
-                QuestItemRow(
-                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_tune_voice_speed_or_pitch),
-                    desc = "Adjust playback parameters in the playback studio.",
-                    done = questSpeedDone
-                )
-                QuestItemRow(
-                    title = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_bookmark_a_sentence),
-                    desc = "Long press text in the reader to save a bookmark.",
-                    done = questBookmarkDone
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Button(
-                    onClick = {
-                        haptic.success()
-                        onStartTour()
-                    },
-                    shape = RoundedCornerShape(50),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Explore,
-                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_guided_tour),
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = if (questTourDone) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_restart_guided_tour) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_start_guided_tour),
-                        style = MaterialTheme.typography.labelMedium
+                        menuString(if (next == null) R.string.vern_chapter_finish_title else R.string.vern_chapter_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.weight(1f).semantics { heading() }
+                    )
+                    IconButton(onClick = { closeAnd {} }, enabled = !closing) {
+                        Icon(Icons.Default.Close, menuString(R.string.ui_close))
+                    }
+                }
+                if (next == null) {
+                    Text(
+                        menuString(R.string.vern_chapter_finish_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                OutlinedButton(
+                    onClick = { closeAnd(onStartTour) },
+                    enabled = !closing,
+                    shape = VeritasPackStyle.compactShape(),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                ) {
+                    Icon(Icons.Default.Explore, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(menuString(R.string.vern_chapter_tour))
+                }
+                ChapterProgress(progress, progressLabel)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    tasks.forEach { task ->
+                        val action = when (task) {
+                            ChapterTask.IMPORT -> onAddReading
+                            ChapterTask.PACE, ChapterTask.BOOKMARK -> onOpenReading
+                            ChapterTask.NOTE -> onWriteNote
+                        }
+                        val needsReading = !hasReading && (task == ChapterTask.PACE || task == ChapterTask.BOOKMARK)
+                        val actionLabel = if (needsReading) R.string.vern_chapter_import_action else task.actionLabel
+                        val description = if (task == ChapterTask.IMPORT) {
+                            when (state.readingInterest) {
+                                "PDF & Research" -> R.string.vern_chapter_import_pdf
+                                "Books & Novels" -> R.string.vern_chapter_import_book
+                                "Web & Articles" -> R.string.vern_chapter_import_web
+                                "Study & Learning" -> R.string.vern_chapter_import_study
+                                else -> task.description
+                            }
+                        } else task.description
+                        ChapterTaskRow(task, description, actionLabel, task.isComplete(state), task == next, !closing) {
+                            closeAnd(action)
+                        }
+                    }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(
+                        onClick = { closeAnd(onDismissQuests) },
+                        enabled = !closing,
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    ) {
+                        Text(menuString(if (next == null) R.string.vern_chapter_close else R.string.vern_chapter_hide))
+                    }
+                }
             }
+        }
+        if (reduceMotion) {
+            VernDialog(onDismissRequest = { onShowSheetChange(false) }) {
+                Surface(
+                    shape = VeritasPackStyle.cardShape(),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                ) {
+                    Box(Modifier.padding(top = 12.dp)) { content() }
+                }
+            }
+        } else {
+            ModalBottomSheet(
+                onDismissRequest = { onShowSheetChange(false) },
+                sheetState = sheet,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            ) { content() }
         }
     }
 }
 
 @Composable
-fun QuestItemRow(
-    title: String,
-    desc: String,
-    done: Boolean
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Icon(
-            imageVector = if (done) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-            contentDescription = if (done) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_completed) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_incomplete),
-            tint = if (done) Color(0xFF2196F3) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier
-                .padding(top = 2.dp)
-                .size(18.dp)
+private fun ChapterProgress(progress: Float, label: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.fillMaxWidth().height(4.dp),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.outlineVariant
         )
-        Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelMedium,
-                color = if (done) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = desc,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        Text(label, style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+@Composable
+private fun ChapterTaskRow(
+    task: ChapterTask,
+    @StringRes description: Int,
+    @StringRes actionLabel: Int,
+    complete: Boolean,
+    next: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    val shape = VeritasPackStyle.compactShape()
+    val action = if (complete) Modifier else Modifier.clip(shape).clickable(
+        enabled = enabled,
+        role = Role.Button,
+        onClickLabel = menuString(actionLabel),
+        onClick = onClick
+    )
+    Surface(
+        modifier = Modifier.fillMaxWidth().then(action),
+        shape = shape,
+        color = if (next) colors.secondaryContainer else colors.surfaceContainer,
+        contentColor = if (next) colors.onSecondaryContainer else colors.onSurface
+    ) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = if (complete) colors.primaryContainer else colors.surface,
+                contentColor = if (complete) colors.onPrimaryContainer else colors.primary
+            ) {
+                Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
+                    Icon(
+                        if (complete) Icons.Default.Check else task.icon,
+                        contentDescription = if (complete) menuString(R.string.vern_chapter_done) else null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(menuString(task.title), style = MaterialTheme.typography.titleSmall)
+                if (!complete) {
+                    Text(menuString(description), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            if (!complete) Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(17.dp))
         }
     }
 }

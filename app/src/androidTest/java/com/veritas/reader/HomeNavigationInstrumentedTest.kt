@@ -33,6 +33,9 @@ class HomeNavigationInstrumentedTest {
             hasContentDescription(label)
     )
 
+    private fun librarySection(label: String) =
+        SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab) and hasText(label)
+
     private fun awaitSelected(label: String) {
         val matcher = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab) and
             hasContentDescription(label) and isSelected()
@@ -40,6 +43,12 @@ class HomeNavigationInstrumentedTest {
             compose.onAllNodes(matcher).fetchSemanticsNodes().size == 1
         }
         tab(label).assertIsSelected()
+    }
+
+    private fun awaitLibrarySection(label: String) {
+        compose.waitUntil(20_000) {
+            compose.onAllNodes(librarySection(label) and isSelected()).fetchSemanticsNodes().size == 1
+        }
     }
 
     @Test fun tabsFollowApprovedOrderAndTapsSelectEachDestination() {
@@ -65,14 +74,22 @@ class HomeNavigationInstrumentedTest {
             listOf("Library", "Library", "Study", "Notes").forEachIndexed { index, label ->
                 compose.onNodeWithTag("home_pager").performTouchInput {
                     // Shelf rows keep their own horizontal scrolling; use the toolbar area.
-                    val swipeY = if (index == 2) 110 * context.resources.displayMetrics.density else centerY
-                    swipe(androidx.compose.ui.geometry.Offset(right, swipeY), androidx.compose.ui.geometry.Offset(left, swipeY))
+                    val swipeY = when (index) {
+                        2 -> (110f + com.veritas.reader.ui.screens.LibrarySectionPickerHeight.value) *
+                            context.resources.displayMetrics.density
+                        3 -> height * .4f
+                        else -> centerY
+                    }
+                    swipe(
+                        androidx.compose.ui.geometry.Offset(width * .88f, swipeY),
+                        androidx.compose.ui.geometry.Offset(width * .12f, swipeY)
+                    )
                 }
                 awaitSelected(label)
                 org.junit.Assert.assertEquals("Swiping must retain the page viewport", viewportHeight,
                     compose.onNodeWithTag("home_pager").fetchSemanticsNode().boundsInRoot.height, 1f)
-                if (index == 0) compose.onNodeWithText("My Library").assertIsSelected()
-                if (index == 1) compose.onNodeWithText("Classics").assertIsSelected()
+                if (index == 0) awaitLibrarySection("Added")
+                if (index == 1) awaitLibrarySection("Classics")
             }
             compose.onAllNodes(isDialog()).assertCountEquals(0)
             compose.waitUntil(20_000) {
@@ -90,8 +107,8 @@ class HomeNavigationInstrumentedTest {
             awaitSelected("Home")
             tab("Library").performClick()
             awaitSelected("Library")
-            compose.onNodeWithText("My Library").performClick()
-            compose.onNodeWithText("My Library").assertIsSelected()
+            compose.onNode(librarySection("Added")).performClick()
+            awaitLibrarySection("Added")
             val viewportHeight = compose.onNodeWithTag("home_pager").fetchSemanticsNode().boundsInRoot.height
             compose.onNodeWithTag("home_pager").performTouchInput {
                 down(androidx.compose.ui.geometry.Offset(right - 10, centerY))
@@ -106,7 +123,7 @@ class HomeNavigationInstrumentedTest {
                 moveTo(androidx.compose.ui.geometry.Offset(left + 10, centerY), delayMillis = 250)
                 up()
             }
-            compose.onNodeWithText("Classics").assertIsSelected()
+            awaitLibrarySection("Classics")
         }
     }
 

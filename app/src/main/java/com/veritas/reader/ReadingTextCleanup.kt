@@ -8,6 +8,7 @@ internal object ReadingTextCleanup {
     )
     private val heading = Regex("""(?m)^[ \t]{0,3}#{1,6}(?:[ \t]+|$)""")
     private val headingEnd = Regex("""[ \t]+#+[ \t]*$""")
+    private val underlineTag = Regex("</?u>")
     private val divider = Regex("""(?m)^[ \t]{0,3}(?:(?:-[ \t]*){3,}|(?:\*[ \t]*){3,}|(?:_[ \t]*){3,})\r?$""")
     private val reference = Regex("""\[[1-9][0-9]{0,2}\]""")
     private val mathematicalContext = Regex(
@@ -47,15 +48,29 @@ internal object ReadingTextCleanup {
 
     fun forSpeech(input: SpokenText): SpokenText = markdown(input).applyRules(listOf(citations))
 
+    /** Remove display markup before the angle brackets can be expanded as arithmetic. */
+    fun withoutUnderlineMarkup(input: SpokenText): SpokenText {
+        if ('<' !in input.text) return input
+        val code = codeRanges(input.text)
+        val tags = underlineTag.findAll(input.text)
+            .filter { tag -> code.none { it.first <= tag.range.last && tag.range.first <= it.last } }
+            .map { it.range }.toList()
+        return input.omit(tags)
+    }
+
+    fun withoutUnderlineMarkup(source: String): String =
+        if ('<' !in source) source else withoutUnderlineMarkup(SpokenText.identity(source)).text
+
     private fun markdown(input: SpokenText): SpokenText {
         val text = input.text
-        if (text.none { it in "_*#-" }) return input
+        if (text.none { it in "_*#-<" }) return input
         val code = codeRanges(text)
         val hidden = mutableListOf<IntRange>()
         fun hide(range: IntRange) {
             if (code.none { it.first <= range.last && range.first <= it.last }) hidden.add(range)
         }
         divider.findAll(text).forEach { hide(it.range) }
+        underlineTag.findAll(text).forEach { hide(it.range) }
         heading.findAll(text).forEach { match ->
             hide(match.range)
             val end = text.indexOf('\n', match.range.last + 1).let { if (it < 0) text.length else it }

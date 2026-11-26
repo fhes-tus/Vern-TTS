@@ -2,7 +2,6 @@ package com.veritas.reader
 
 import com.veritas.reader.ui.OnboardingStep
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -13,8 +12,8 @@ class OnboardingTourSequenceTest {
         val classicsStep = OnboardingStep.CLASSICS_SPOTLIGHT
         assertEquals("classics", classicsStep.key)
         assertTrue(classicsStep.targetKey == "classics_shelves" || classicsStep.targetKey == "classics_catalog_card")
-        assertTrue(classicsStep.title.contains("Classic", ignoreCase = true))
-        assertTrue(classicsStep.body.contains("books", ignoreCase = true) || classicsStep.body.contains("classic", ignoreCase = true))
+        assertEquals(R.string.tour_classics_spotlight_title, classicsStep.titleRes)
+        assertEquals(R.string.tour_classics_spotlight_body, classicsStep.bodyRes)
     }
 
     @Test
@@ -23,12 +22,9 @@ class OnboardingTourSequenceTest {
         val keys = steps.map { it.key }
         assertEquals("All onboarding steps must have unique keys", keys.size, keys.toSet().size)
 
-        steps.forEach { step ->
-            assertNotNull("Title must not be null", step.title)
-            assertTrue("Title must not be empty", step.title.isNotBlank())
-            assertNotNull("Body must not be null", step.body)
-            assertTrue("Body must not be empty", step.body.isNotBlank())
-        }
+        val copy = steps.flatMap { listOf(it.titleRes, it.bodyRes) }
+        assertTrue("All steps must have title and body resources", copy.all { it != 0 })
+        assertEquals("Each title and body has its own resource", copy.size, copy.toSet().size)
     }
 
     @Test

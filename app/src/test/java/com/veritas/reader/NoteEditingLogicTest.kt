@@ -4,6 +4,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import com.veritas.reader.ui.screens.VeritasNoteEditing
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -189,5 +190,21 @@ class NoteEditingLogicTest {
         val parsed3 = VeritasNoteEditing.parseNoteBlocks(serialized2)
         val serialized3 = VeritasNoteEditing.serializeNoteBlocks(parsed3)
         assertEquals(original, serialized3)
+    }
+
+    @Test fun activeInlineStyleCanBeSwitchedOffWithoutRemovingExistingFormatting() {
+        val text = "**Styled**"
+        val typingAtEnd = TextFieldValue(text, TextRange(8))
+        assertTrue(VeritasNoteEditing.isInlineMarkerActive(typingAtEnd, "**"))
+        assertFalse(VeritasNoteEditing.isInlineMarkerActive(typingAtEnd, "*"))
+        val off = VeritasNoteEditing.toggleInlineMarker(typingAtEnd, "**")
+        assertEquals(text, off.text)
+        assertEquals(TextRange(text.length), off.selection)
+        assertFalse(VeritasNoteEditing.isInlineMarkerActive(off, "**"))
+
+        val inside = TextFieldValue(text, TextRange(5))
+        val split = VeritasNoteEditing.toggleInlineMarker(inside, "**")
+        assertEquals("**Sty****led**", split.text)
+        assertFalse(VeritasNoteEditing.isInlineMarkerActive(split, "**"))
     }
 }

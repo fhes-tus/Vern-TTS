@@ -13,6 +13,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import com.veritas.reader.ui.ReaderViewModel
 import org.junit.Assert.*
@@ -41,10 +42,10 @@ class ExtractedCurlGestureInstrumentedTest {
         if (view is ViewGroup) for (i in 0 until view.childCount) visibleText(view.getChildAt(i), page)?.let { return it }
         return null
     }
-    private fun touch(action: Int, down: Long, x: Float, y: Float) {
+    private fun touch(action: Int, down: Long, x: Float, y: Float, sync: Boolean = true) {
         val event = MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, y, 0)
         event.source = InputDevice.SOURCE_TOUCHSCREEN
-        try { check(instrumentation.uiAutomation.injectInputEvent(event, true)) } finally { event.recycle() }
+        try { check(instrumentation.uiAutomation.injectReaderTestTouch(event, sync)) } finally { event.recycle() }
     }
     private fun drag(x: Float, y: Float, toX: Float, toY: Float, advanceFrames: Boolean = false) {
         val down = SystemClock.uptimeMillis()
@@ -73,6 +74,69 @@ class ExtractedCurlGestureInstrumentedTest {
     @Test fun reducedMotionCurlRetainsNativeGesturesAndPagePositions() = runGesturesWithStyle("flip", reduceMotion = true)
 
     @Test fun singleTapShowsBothBarsAfterScrollAndDoesNotUndoItself() = runGesturesWithStyle("flip", verifyBarTap = true)
+
+    @Test fun upwardSwipeAtTheEndKeepsTheLastLineAnchoredWhenControlsHide() {
+        check(context.packageName.endsWith(".checks"))
+        val repository = DocumentRepository(context)
+        val previousSettings = repository.loadReaderSettings()
+        repository.saveReaderSettings(previousSettings.copy(
+            readingLayout = "pages", pageTurnStyle = "flip", reduceMotion = false,
+            fontSizeSp = 18, showGestureTips = false, collapsibleReaderBars = true
+        ))
+        repository.markOnboardingComplete("Gesture preview")
+        val text = "[[VERITAS_PAGE:1]]\n" + (1..35).joinToString("\n\n") {
+            "Gesture page 1 paragraph $it continues with enough words for a typical extracted text line."
+        }
+        val saved = repository.createDocument("Edge gesture fixture ${UUID.randomUUID()}", text, "TXT", pageCount = 1)
+        val previousMode = PlaybackStateStore.readerMode
+        PlaybackStateStore.readerMode = ReaderMode.TEXT
+        try {
+            ActivityScenario.launch<MainActivity>(Intent(context, MainActivity::class.java)).use { scenario ->
+                lateinit var vm: ReaderViewModel
+                scenario.onActivity { vm = ViewModelProvider(it)[ReaderViewModel::class.java] }
+                await("Initial library startup completes") { vm.uiState.value.documents.any { it.id == saved.id } }
+                scenario.onActivity {
+                    vm.updateState { it.copy(showReleaseNotesDialog = false, showTutorial = false, navStack = emptyList()) }
+                    vm.openSavedDocument(saved, 0)
+                }
+                await("Saved reader opens") { vm.uiState.value.activeDocument?.id == saved.id }
+                val scroll = compose.onNodeWithTag("reader-page-scroll-1")
+                val range = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
+                scroll.performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, range.maxValue()) }
+                await("Scroll reaches the end with the reader controls visible") { range.maxValue() > 0f && range.value() == range.maxValue() }
+                compose.onNodeWithTag("reader-bottom-controls").assertIsDisplayed()
+
+                fun lastLineBottom(): Int {
+                    var bottom = 0
+                    scenario.onActivity {
+                        val view = checkNotNull(visibleText(it.window.decorView, 1))
+                        val layout = checkNotNull(view.layout)
+                        val location = IntArray(2)
+                        view.getLocationOnScreen(location)
+                        bottom = location[1] + view.totalPaddingTop + layout.getLineBottom(layout.lineCount - 1)
+                    }
+                    return bottom
+                }
+                val before = lastLineBottom()
+                scroll.performTouchInput { swipeUp(startY = height * .75f, endY = height * .30f) }
+                compose.waitForIdle()
+                compose.onNodeWithTag("reader-bottom-controls").assertIsNotDisplayed()
+                val after = lastLineBottom()
+                assertEquals("The edge should settle at the same last line after the swipe", before.toFloat(), after.toFloat(), 3f)
+                assertEquals("The callback should leave the page at its end", range.maxValue(), range.value(), 3f)
+
+                scroll.performTouchInput { swipeDown(startY = height * .30f, endY = height * .75f, durationMillis = 450L) }
+                await("A downward swipe moves away from the end") { range.maxValue() - range.value() > 100f }
+                scroll.performTouchInput { swipeUp(startY = height * .82f, endY = height * .18f, durationMillis = 160L) }
+                await("A fast upward swipe reaches the end with controls hidden") { range.value() == range.maxValue() }
+                assertEquals("The final line still settles at the same position", before.toFloat(), lastLineBottom().toFloat(), 3f)
+            }
+        } finally {
+            repository.deleteDocument(saved.id)
+            repository.saveReaderSettings(previousSettings)
+            PlaybackStateStore.readerMode = previousMode
+        }
+    }
 
     private fun runGesturesWithStyle(style: String, reduceMotion: Boolean = false, verifyBarTap: Boolean = false) {
         val repository = DocumentRepository(context)
@@ -108,17 +172,18 @@ class ExtractedCurlGestureInstrumentedTest {
             }
             await("Saved reader opens") { vm.uiState.value.activeDocument?.id == saved.id }
             await("Extracted middle page appears") { locate(2) != null }
-            var visible = Rect()
-            scenario.onActivity { native!!.getGlobalVisibleRect(visible) }
+            val visible = Rect()
             val scrollNode = compose.onNodeWithTag("reader-page-scroll-2")
-            fun scrollPosition() = scrollNode.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
+            fun scrollRange() = scrollNode.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
+            fun scrollPosition() = scrollRange().value()
             fun tapPage(margin: Int = 0) {
                 val bounds = scrollNode.fetchSemanticsNode().boundsInRoot
                 val tapPoint = androidx.compose.ui.geometry.Offset(
                     when (margin) { -1 -> bounds.left - 12f; 1 -> bounds.right + 12f; else -> bounds.center.x },
                     bounds.center.y)
                 val down = SystemClock.uptimeMillis()
-                touch(MotionEvent.ACTION_DOWN, down, tapPoint.x, tapPoint.y)
+                // Waiting for the UI to idle on DOWN can turn this tap into a long press.
+                touch(MotionEvent.ACTION_DOWN, down, tapPoint.x, tapPoint.y, sync = false)
                 SystemClock.sleep(60)
                 touch(MotionEvent.ACTION_UP, down, tapPoint.x, tapPoint.y)
                 SystemClock.sleep(550)
@@ -130,8 +195,8 @@ class ExtractedCurlGestureInstrumentedTest {
                 compose.onNodeWithTag("reader-bottom-controls").assertIsNotDisplayed()
             }
             val beforeScroll = scrollPosition()
-            drag(visible.centerX().toFloat(), visible.top + visible.height() * .65f,
-                visible.centerX().toFloat(), visible.top + visible.height() * .25f)
+            val scrollBounds = scrollNode.fetchSemanticsNode().boundsInRoot
+            scrollNode.performTouchInput { swipeUp(startY = height * .65f, endY = height * .25f, durationMillis = 400L) }
             if (verifyBarTap) {
                 // A tap just after a scroll must reveal the controls too,
                 // even when the first touch stops a remaining fling.
@@ -148,7 +213,7 @@ class ExtractedCurlGestureInstrumentedTest {
                 compose.onNodeWithTag("reader-top-controls").assertIsDisplayed()
                 compose.onNodeWithTag("reader-bottom-controls").assertIsDisplayed()
             }
-            await("Vertical scrolling reaches extracted prose") {
+            await("Vertical scrolling reaches extracted prose (start=$beforeScroll, max=${scrollRange().maxValue()}, viewport=$scrollBounds)") {
                 scrollPosition() > beforeScroll + 20
             }
             // Let the vertical fling settle before calculating a word target.

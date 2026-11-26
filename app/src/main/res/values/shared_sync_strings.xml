@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shared_sync_title">Shared folder</string>
+    <string name="shared_sync_description">Share library text, progress, notes, and study data using a folder you can open on both devices. Use a full backup for original files and attachment media.</string>
+    <string name="shared_sync_send">Save backup</string>
+    <string name="shared_sync_review">Review backup</string>
+    <string name="shared_sync_picker_unavailable">Android couldn’t open the folder picker.</string>
+    <string name="shared_sync_choose_snapshot">Choose a backup to review</string>
+    <string name="shared_sync_loading">Looking for backups…</string>
+    <string name="shared_sync_folder_unavailable">This folder couldn’t be read. Check your connection, or choose a smaller folder.</string>
+    <string name="shared_sync_empty">No Vern backups are available here yet. Refresh once your storage provider has finished syncing.</string>
+    <string name="shared_sync_provider_loading">Your storage provider is still loading this folder. Refresh to check for more backups.</string>
+    <string name="shared_sync_snapshot_details">%1$s · %2$s</string>
+    <string name="shared_sync_refresh">Refresh</string>
+    <string name="shared_sync_send_complete">Backup saved and verified in the selected folder. Your storage provider controls when it appears on the other device.</string>
+    <string name="shared_sync_send_failed">Vern couldn’t verify the backup in that folder. Check the folder and try again.</string>
+    <string name="shared_sync_review_invalid">This backup is unavailable, incomplete, or has changed. Refresh the shared folder and try again.</string>
+</resources>

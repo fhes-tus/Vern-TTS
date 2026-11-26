@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notes_link_cards_privacy">Linkvorschauen zeigen Titel und Bilder. Vern ruft fehlende Angaben von der verlinkten Website oder dem Bildanbieter ab.</string>
+    <string name="notes_link_load_from_website">Von der Website laden</string>
+    <string name="notes_link_loading">Website-Vorschau wird geladen…</string>
+    <string name="notes_link_unavailable">Die Website-Vorschau konnte nicht geladen werden. Versuche es erneut oder öffne den Link.</string>
+</resources>

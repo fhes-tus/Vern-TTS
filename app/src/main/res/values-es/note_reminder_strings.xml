@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="note_reminder_channel">Recordatorios de notas</string>
+    <string name="note_reminder_channel_description">Recordatorios que configuras para tus notas</string>
+    <string name="note_reminder_title">Recordatorio de una nota</string>
+    <string name="note_reminder_open">Toca para abrir tu nota.</string>
+    <string name="note_reminder_missing">Esta nota ya no está disponible.</string>
+</resources>

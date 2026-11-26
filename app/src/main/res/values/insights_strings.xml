@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_earlier">Earlier</string>
+    <string name="insights_last_week">Last week</string>
+    <string name="insights_daily_habit">Daily Habit</string>
+    <string name="insights_master_reader">Master Reader</string>
+    <string name="insights_habit_champion">Habit Champion</string>
+    <string name="insights_seven_day_flame">7-Day Flame</string>
+    <string name="insights_consistency_pro">Consistency Pro</string>
+    <string name="insights_week_chart_description">%1$s. %2$s. %3$s total. Swipe left or right to change week.</string>
+    <string name="insights_invalid_session_date">Enter a date in YYYY-MM-DD format.</string>
+    <string name="insights_future_session_date">Choose today or an earlier date.</string>
+    <string name="insights_session_save_failed">Could not save this session. Your changes are still here. Try again.</string>
+    <string name="insights_timer_save_failed">Could not save the reading timer settings. Try changing them again.</string>
+    <string name="insights_saving">Saving…</string>
+</resources>

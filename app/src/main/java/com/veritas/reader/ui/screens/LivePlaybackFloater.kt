@@ -48,7 +48,7 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
     val needsStatus = listOf("Preparing", "Could not", "No readable", "Error", "Failed", "Loading").any { status.startsWith(it, ignoreCase = true) }
     val progress = expansion.coerceIn(0f, 1f)
     val packShape = VeritasPackStyle.cardShape()
-    val playerHeight = VeritasPackStyle.playerHeight(VeritasPackStyle.currentPackId())
+    val playerHeight = VeritasPackStyle.libraryPlayerHeight
     val density = androidx.compose.ui.platform.LocalDensity.current
     val isGlassCapable = isDeviceGlassCapable() && LocalVeritasBackdrop.current != null
     val isLiquidGlass = VeritasPackStyle.glassChromeEnabled() && isGlassCapable
@@ -65,7 +65,7 @@ internal fun LivePlaybackFloater(document: SavedDocument, onOpen: () -> Unit, on
     val corner = (collapsedSize.value / 2f + (packCorner.coerceAtMost(collapsedSize.value / 2f) - collapsedSize.value / 2f) * progress).dp
     val playerShape = androidx.compose.foundation.shape.RoundedCornerShape(corner)
     Surface(Modifier.offset(x = start).width(collapsedSize + (fullWidth - collapsedSize) * progress).height(surfaceHeight)
-        .veritasGlassBackdrop(playerShape, isLiquidGlass, surfaceOpacity = .36f)
+        .veritasPlayerGlassBackdrop(playerShape, isLiquidGlass)
         .testTag("live_playback_floater"),
         shape = playerShape,
         color = if (isLiquidGlass) androidx.compose.ui.graphics.Color.Transparent

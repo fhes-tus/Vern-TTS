@@ -282,68 +282,7 @@ pub use platform::{list, synthesize};
 // timer, highlights and WAV export all use the same controls and cancellation.
 #[cfg(any(target_os = "windows", test))]
 fn decode_pcm(bytes: &[u8]) -> Result<Audio> {
-    if bytes.len() < 12
-        || bytes.len() > 16_000_000
-        || &bytes[..4] != b"RIFF"
-        || &bytes[8..12] != b"WAVE"
-    {
-        return Err("Windows returned an unsupported speech stream.".into());
-    }
-    let mut format = None;
-    let mut data = None;
-    let mut at = 12;
-    while at + 8 <= bytes.len() {
-        let length = u32::from_le_bytes(bytes[at + 4..at + 8].try_into().unwrap()) as usize;
-        let start = at + 8;
-        let end = start
-            .checked_add(length)
-            .filter(|end| *end <= bytes.len())
-            .ok_or("Truncated Windows speech audio.")?;
-        if &bytes[at..at + 4] == b"fmt " && length >= 16 {
-            let read16 =
-                |n| u16::from_le_bytes(bytes[start + n..start + n + 2].try_into().unwrap());
-            format = Some((
-                read16(0),
-                read16(2),
-                u32::from_le_bytes(bytes[start + 4..start + 8].try_into().unwrap()),
-                read16(12),
-                read16(14),
-            ));
-        } else if &bytes[at..at + 4] == b"data" {
-            data = Some(&bytes[start..end]);
-        }
-        at = end + (length & 1);
-    }
-    let (encoding, channels, sample_rate, align, bits) =
-        format.ok_or("Windows speech has no audio format.")?;
-    let data = data.ok_or("Windows speech has no audio samples.")?;
-    if encoding != 1
-        || !(1..=2).contains(&channels)
-        || bits != 16
-        || align != channels * 2
-        || !(8000..=48000).contains(&sample_rate)
-        || data.is_empty()
-        || !data.len().is_multiple_of(usize::from(align))
-        || data.len() / usize::from(align) > sample_rate as usize * 120
-    {
-        return Err("Windows speech must be bounded 16-bit PCM audio.".into());
-    }
-    let samples = data
-        .chunks_exact(usize::from(align))
-        .map(|frame| {
-            frame
-                .as_chunks::<2>()
-                .0
-                .iter()
-                .map(|sample| f32::from(i16::from_le_bytes(*sample)) / 32768.0)
-                .sum::<f32>()
-                / f32::from(channels)
-        })
-        .collect();
-    Ok(Audio {
-        samples,
-        sample_rate: sample_rate as i32,
-    })
+    crate::speech::decode_pcm(bytes)
 }
 
 #[cfg(test)]

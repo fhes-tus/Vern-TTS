@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tour_welcome_title">Интерактивный тур</string>
+    <string name="tour_welcome_body">Следуйте подсказкам, чтобы познакомиться с библиотекой, инструментами чтения, заметками и настройками.</string>
+    <string name="tour_name_input_title">Как к вам обращаться?</string>
+    <string name="tour_name_input_body">Введите имя для персонализации панели и сообщений.</string>
+    <string name="tour_fab_spotlight_title">Задание 1 — Добавьте документ</string>
+    <string name="tour_fab_spotlight_body">Нажмите кнопку добавления, чтобы импортировать PDF, EPUB, файлы Word, текст, изображения или ссылки.</string>
+    <string name="tour_checklist_spotlight_title">Список заданий</string>
+    <string name="tour_checklist_spotlight_body">В этом плавающем списке показаны текущие задания. Выполните их, чтобы познакомиться со всеми функциями.</string>
+    <string name="tour_classics_spotlight_title">Каталог классики</string>
+    <string name="tour_classics_spotlight_body">Выбирайте жанры, листайте полки и добавляйте книги в свою библиотеку.</string>
+    <string name="tour_insights_spotlight_title">Статистика чтения</string>
+    <string name="tour_insights_spotlight_body">Эта кнопка открывает панель статистики. Нажмите «Далее», чтобы посмотреть данные о чтении.</string>
+    <string name="tour_insights_page_spotlight_title">Ваша статистика</string>
+    <string name="tour_insights_page_spotlight_body">Отслеживайте серии чтения, источники книг и время прослушивания за месяц. Данные хранятся на устройстве.</string>
+    <string name="tour_notes_tab_spotlight_title">Заметки и голосовые записи</string>
+    <string name="tour_notes_tab_spotlight_body">Просматривайте аннотации, заметки, закладки и записи в одном месте.</string>
+    <string name="tour_study_tab_spotlight_title">Учебный центр с ИИ и карточками</string>
+    <string name="tour_study_tab_spotlight_body">Создавайте краткие пересказы с ИИ, повторяйте материал по карточкам и проходите тесты.</string>
+    <string name="tour_settings_spotlight_title">Настройки и оформление</string>
+    <string name="tour_settings_spotlight_body">Настройте голоса, скорость, темы, синхронизацию, резервное копирование и произношение.</string>
+    <string name="tour_document_spotlight_title">Откройте документ</string>
+    <string name="tour_document_spotlight_body">Здесь находятся ваши книги. Коснитесь карточки, чтобы открыть документ.</string>
+    <string name="tour_mode_toggle_spotlight_title">Режимы чтения</string>
+    <string name="tour_mode_toggle_spotlight_body">Выберите «Текст» для чтения, «Слушать» для подсветки фраз или «Оригинал» для просмотра PDF.</string>
+    <string name="tour_player_panel_spotlight_title">Управление воспроизведением</string>
+    <string name="tour_player_panel_spotlight_body">Коснитесь панели или потяните её вверх, чтобы настроить скорость, высоту голоса, озвучку или таймер сна.</string>
+    <string name="tour_reader_text_spotlight_title">Выделение и учебные действия</string>
+    <string name="tour_reader_text_spotlight_body">Удерживайте фразу, чтобы добавить закладку или заметку, перевести текст или обратиться к ИИ.</string>
+    <string name="tour_congratulations_title">Тур завершён!</string>
+    <string name="tour_congratulations_body">Выполните оставшиеся задания в списке, чтобы познакомиться со всеми функциями.</string>
+</resources>

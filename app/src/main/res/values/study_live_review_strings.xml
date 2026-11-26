@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_flashcard_rating_failed">Could not save the rating. Try again.</string>
+    <string name="study_flashcard_retry">Practice retry. Your saved review date stays the same.</string>
+    <string name="study_flashcard_practice">Practice recall</string>
+    <string name="study_flashcard_retry_now">Retry here</string>
+    <string name="study_ai_answer_streaming">Receiving an answer</string>
+    <string name="study_ai_ask_here">Ask in Vern</string>
+    <string name="study_ai_answer_title">Answer</string>
+    <string name="study_ai_guide_title">Study guide</string>
+</resources>

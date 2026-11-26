@@ -8,7 +8,16 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.ui.graphics.Path
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -18,6 +27,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,6 +36,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,6 +59,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -74,6 +86,7 @@ import androidx.compose.material.icons.outlined.TheaterComedy
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -90,6 +103,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -100,6 +114,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -112,6 +129,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -194,6 +212,7 @@ internal fun ListenSelectionActionCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val clipboardManager = LocalClipboardManager.current
     val scheme = MaterialTheme.colorScheme
 
@@ -316,7 +335,7 @@ internal fun ListenSelectionActionCard(
                         clipboardManager.setText(AnnotatedString(quoteText))
                         android.widget.Toast.makeText(
                             context,
-                            context.getString(com.veritas.reader.R.string.ui_sentence_copied),
+                            resources.getString(com.veritas.reader.R.string.ui_sentence_copied),
                             android.widget.Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -415,6 +434,8 @@ fun AudioModeScreen(
     val hintPrefs = remember(context) {
         context.getSharedPreferences(LISTEN_HINTS_PREFS_NAME, Context.MODE_PRIVATE)
     }
+    var browsing by rememberSaveable(documentId) { mutableStateOf(false) }
+    val following = !browsing && scrub == null
     var coverHintHiddenPermanently by remember(hintPrefs) {
         mutableStateOf(hintPrefs.getBoolean(PREF_HIDE_COVER_TAP_HINT, false))
     }
@@ -582,7 +603,7 @@ fun AudioModeScreen(
                                     Triple("Sleep timer", Icons.Outlined.Timer, onOpenSleepTimer),
                                     Triple("Voice & language", Icons.Outlined.RecordVoiceOver, onOpenVoiceStudio),
                                     Triple("Narration mode", Icons.Outlined.TheaterComedy, onOpenNarrationStudio),
-                                    Triple("Export audio", Icons.Outlined.FileDownload, onExportAudio)
+                                    Triple(menuString(R.string.ui_export_audio), Icons.Outlined.FileDownload, onExportAudio)
                                 ).forEach { (label, icon, action) ->
                                     DropdownMenuItem(
                                         text = { Text(label) },
@@ -658,8 +679,12 @@ fun AudioModeScreen(
                                     Column(Modifier.fillMaxSize()) {
                                         Box(Modifier.weight(1f).fillMaxWidth()) {
                                             ListenSentenceList(
+                                                glass = glass,
                                                 chunks = quoteChunks,
                                                 currentIndex = index,
+                                                following = following,
+                                                onBrowse = { browsing = true },
+                                                onReturnToPlayback = { browsing = false },
                                                 onSentenceClick = { sentence ->
                                                     if (quoteSelection.isNotEmpty()) selectQuoteSentence(sentence)
                                                 },
@@ -783,8 +808,12 @@ fun AudioModeScreen(
                                     .padding(horizontal = if (fullScreenRead && isLandscapeSplit) 64.dp else 0.dp)
                             ) {
                                 ListenSentenceList(
+                                    glass = glass,
                                     chunks = quoteChunks,
                                     currentIndex = index,
+                                    following = following,
+                                    onBrowse = { browsing = true },
+                                    onReturnToPlayback = { browsing = false },
                                     onSentenceClick = { sentence ->
                                         if (quoteSelection.isNotEmpty()) selectQuoteSentence(sentence)
                                     },
@@ -794,6 +823,7 @@ fun AudioModeScreen(
                                     onReturnToCover = handleReturnToPlayerFromRead,
                                     fontSizeSp = fontSizeSp,
                                     quoteSelection = quoteSelection,
+                                    controlsOverlay = fullScreenRead,
                                     onSentenceLongClick = { sentence ->
                                         haptics.select()
                                         selectQuoteSentence(sentence)
@@ -1467,28 +1497,69 @@ private fun ListenArtwork(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ListenSentenceList(
+    glass: Boolean,
     chunks: List<String>,
     currentIndex: Int,
+    following: Boolean,
+    onBrowse: () -> Unit,
+    onReturnToPlayback: () -> Unit,
     onSentenceClick: (Int) -> Unit,
     onSentenceDoubleClick: (Int) -> Unit,
     onReturnToCover: () -> Unit,
     fontSizeSp: Int,
     quoteSelection: List<Int>,
-    onSentenceLongClick: (Int) -> Unit
+    onSentenceLongClick: (Int) -> Unit,
+    controlsOverlay: Boolean = false
 ) {
     val state = rememberLazyListState()
     val scheme = MaterialTheme.colorScheme
     val reducedMotion = VeritasMotion.scheme.reduceMotion
     val density = LocalDensity.current
-    LaunchedEffect(currentIndex, chunks.size, reducedMotion, fontSizeSp, quoteSelection.isNotEmpty()) {
-        if (quoteSelection.isNotEmpty() || currentIndex !in chunks.indices) return@LaunchedEffect
-        repeat(15) {
-            if (state.layoutInfo.viewportEndOffset <= 0) delay(30)
+    val browse = androidx.compose.runtime.rememberUpdatedState(onBrowse)
+    val scrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (source == NestedScrollSource.UserInput && available.y != 0f) browse.value()
+                return Offset.Zero
+            }
+
         }
+    }
+    val scope = rememberCoroutineScope()
+    val latestIndex by rememberUpdatedState(currentIndex)
+    val passageOpacity = remember { Animatable(1f) }
+    val lyricsBackdrop = if (glass) rememberVeritasLayerBackdrop() else null
+    val returnSpring = spring<Float>(dampingRatio = .54f, stiffness = Spring.StiffnessMediumLow)
+    val passageFadeOut = VeritasMotion.effects<Float>()
+    val passageFadeIn = VeritasMotion.effectsSlow<Float>()
+    var returning by remember { mutableStateOf(false) }
+    val edge by remember(state, currentIndex) {
+        derivedStateOf {
+            val layout = state.layoutInfo
+            val visible = layout.visibleItemsInfo
+            val inset = (layout.viewportEndOffset - layout.viewportStartOffset) / 12
+            val active = visible.firstOrNull { it.index == currentIndex }
+            when {
+                visible.isEmpty() -> null
+                currentIndex < visible.first().index ||
+                    (active != null && active.offset + active.size <= layout.viewportStartOffset + inset) -> Alignment.TopCenter
+                currentIndex > visible.last().index ||
+                    (active != null && active.offset >= layout.viewportEndOffset - inset) -> Alignment.BottomCenter
+                else -> null
+            }
+        }
+    }
+    suspend fun center(index: Int, crossfade: Boolean = false) {
+        if (index !in chunks.indices) return
+        repeat(15) { if (state.layoutInfo.viewportEndOffset <= 0) delay(30) }
         val viewport = state.layoutInfo.viewportEndOffset - state.layoutInfo.viewportStartOffset
         val offset = -(viewport * .14f).toInt()
-        if (reducedMotion) state.scrollToItem(currentIndex, offset) else state.animateScrollToItem(currentIndex, offset)
+        if (reducedMotion || crossfade) state.scrollToItem(index, offset) else state.animateScrollToItem(index, offset)
     }
+    LaunchedEffect(currentIndex, following, chunks.size, reducedMotion, fontSizeSp, quoteSelection.isNotEmpty()) {
+        if (following && quoteSelection.isEmpty()) center(currentIndex)
+    }
+
     Box(
         Modifier
             .fillMaxSize()
@@ -1503,8 +1574,13 @@ private fun ListenSentenceList(
         LazyColumn(
             Modifier
                 .fillMaxSize()
+                .nestedScroll(scrollConnection)
                 .testTag("listen-sentences")
-                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                .recordVeritasBackdrop(lyricsBackdrop, glass)
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                    alpha = passageOpacity.value
+                }
                 .drawWithContent {
                     drawContent()
                     // Fade only the sentences so the page's glass backdrop remains continuous.
@@ -1523,6 +1599,10 @@ private fun ListenSentenceList(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             itemsIndexed(chunks) { index, sentence ->
+                // Silently hide markdown table divider lines (e.g. | --- | --- |) from the lyrics display
+                if (com.veritas.reader.SpeechSanitizer.isTableSeparatorLine(sentence)) return@itemsIndexed
+
+                val isTableRow = remember(sentence) { com.veritas.reader.SpeechSanitizer.isTableRow(sentence) }
                 val displayText = remember(sentence) { com.veritas.reader.ReadingTextCleanup.forDisplay(sentence) }
                 if (displayText.isBlank()) return@itemsIndexed
                 val active = index == currentIndex
@@ -1530,40 +1610,306 @@ private fun ListenSentenceList(
                 val alpha by animateFloatAsState(if (active || quoteSelected) 1f else .46f, VeritasMotion.effectsSlow(), label = "sentenceOpacity")
                 val scale by animateFloatAsState(if (active || quoteSelected || reducedMotion) 1f else .95f, VeritasMotion.spatialSlow(), label = "sentenceScale")
                 val lift by animateFloatAsState(if (active || quoteSelected || reducedMotion) 0f else 5f, VeritasMotion.spatialSlow(), label = "sentenceLift")
-                // Stable typography prevents intermediate font sizes from rewrapping the paragraph.
-                Text(
-                    displayText,
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .graphicsLayer {
-                            this.alpha = alpha
-                            scaleX = scale
-                            scaleY = scale
-                            translationY = with(density) { lift.dp.toPx() }
-                        }
-                        .background(if (quoteSelected) scheme.primaryContainer else Color.Transparent, RoundedCornerShape(12.dp))
-                        .testTag("listen-sentence-$index")
-                        .semantics { selected = if (quoteSelection.isNotEmpty()) quoteSelected else active }
-                        .combinedClickable(
-                            onClick = {
-                                if (quoteSelection.isNotEmpty()) {
-                                    onSentenceClick(index)
-                                } else {
-                                    onReturnToCover()
-                                }
-                            },
-                            onDoubleClick = {
-                                if (quoteSelection.isEmpty()) {
-                                    onSentenceDoubleClick(index)
-                                }
-                            },
-                            onLongClickLabel = "Select for quote",
-                            onLongClick = { onSentenceLongClick(index) }
-                        ),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = fontSizeSp.sp, lineHeight = (fontSizeSp * 1.5f).sp),
-                    color = scheme.onBackground
+
+                if (isTableRow) {
+                    ListenTableRowCard(
+                        sentence = sentence,
+                        index = index,
+                        active = active,
+                        quoteSelected = quoteSelected,
+                        fontSizeSp = fontSizeSp,
+                        alpha = alpha,
+                        scale = scale,
+                        lift = lift,
+                        chunks = chunks,
+                        onClick = {
+                            if (quoteSelection.isNotEmpty()) {
+                                onSentenceClick(index)
+                            } else {
+                                onReturnToCover()
+                            }
+                        },
+                        onDoubleClick = {
+                            if (quoteSelection.isEmpty()) {
+                                onSentenceDoubleClick(index)
+                            }
+                        },
+                        onLongClick = { onSentenceLongClick(index) }
+                    )
+                } else {
+                    // Stable typography prevents intermediate font sizes from rewrapping the paragraph.
+                    Text(
+                        displayText,
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .graphicsLayer {
+                                this.alpha = alpha
+                                scaleX = scale
+                                scaleY = scale
+                                translationY = with(density) { lift.dp.toPx() }
+                            }
+                            .background(if (quoteSelected) scheme.primaryContainer else Color.Transparent, RoundedCornerShape(12.dp))
+                            .testTag("listen-sentence-$index")
+                            .semantics { selected = if (quoteSelection.isNotEmpty()) quoteSelected else active }
+                            .combinedClickable(
+                                onClick = {
+                                    if (quoteSelection.isNotEmpty()) {
+                                        onSentenceClick(index)
+                                    } else {
+                                        onReturnToCover()
+                                    }
+                                },
+                                onDoubleClick = {
+                                    if (quoteSelection.isEmpty()) {
+                                        onSentenceDoubleClick(index)
+                                    }
+                                },
+                                onLongClickLabel = "Select for quote",
+                                onLongClick = { onSentenceLongClick(index) }
+                            ),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = fontSizeSp.sp, lineHeight = (fontSizeSp * 1.5f).sp),
+                        color = scheme.onBackground
+                    )
+                }
+            }
+        }
+        val indicator = edge
+        listOf(Alignment.TopCenter, Alignment.BottomCenter).forEach { position ->
+            val atTop = position == Alignment.TopCenter
+            AnimatedVisibility(
+                visible = indicator == position && !following && quoteSelection.isEmpty(),
+                modifier = Modifier.align(position).padding(
+                    top = 12.dp, bottom = if (!atTop && controlsOverlay) 68.dp else 12.dp
+                ),
+                enter = fadeIn(VeritasMotion.effects()) +
+                    if (reducedMotion) EnterTransition.None else scaleIn(returnSpring, initialScale = .68f),
+                exit = fadeOut(VeritasMotion.effects()) +
+                    if (reducedMotion) ExitTransition.None else scaleOut(VeritasMotion.spatial(), targetScale = .90f)
+            ) {
+                val interaction = remember { MutableInteractionSource() }
+                val pressed by interaction.collectIsPressedAsState()
+                val scale by animateFloatAsState(
+                    targetValue = when {
+                        reducedMotion -> 1f
+                        pressed -> .88f
+                        returning -> 1.14f
+                        else -> 1f
+                    },
+                    animationSpec = returnSpring,
+                    label = "passageReturnScale"
                 )
+                val label = menuString(R.string.listen_current_passage)
+                val container = scheme.primaryContainer
+                val ink = scheme.onPrimaryContainer
+                val drop = remember(atTop) {
+                    GenericShape { size, _ ->
+                        val width = size.width
+                        val height = size.height
+                        fun y(fraction: Float) = height * if (atTop) fraction else 1f - fraction
+                        moveTo(width * .5f, y(.04f))
+                        cubicTo(width * .66f, y(.20f), width * .96f, y(.42f), width * .96f, y(.63f))
+                        cubicTo(width * .96f, y(1.08f), width * .04f, y(1.08f), width * .04f, y(.63f))
+                        cubicTo(width * .04f, y(.42f), width * .34f, y(.20f), width * .5f, y(.04f))
+                        close()
+                    }
+                }
+                Box(
+                    modifier = Modifier.size(48.dp)
+                        .testTag(if (atTop) "listen-return-top" else "listen-return-bottom")
+                        .semantics { contentDescription = label }
+                        .clickable(interactionSource = interaction, indication = null, role = Role.Button,
+                            enabled = indicator == position && !returning) {
+                            returning = true
+                            scope.launch {
+                                try {
+                                    if (!reducedMotion) passageOpacity.animateTo(0f, passageFadeOut)
+                                    center(latestIndex, crossfade = true)
+                                    if (!reducedMotion) passageOpacity.animateTo(1f, passageFadeIn)
+                                    onReturnToPlayback()
+                                } finally {
+                                    returning = false
+                                }
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    val highlight = Color.White.copy(alpha = if (glass) .62f else .25f)
+                    VeritasBackdropProvider(lyricsBackdrop) {
+                        Canvas(
+                            Modifier.size(30.dp)
+                                .graphicsLayer { scaleX = scale; scaleY = scale }
+                                .clip(drop)
+                                .background(container.copy(alpha = if (glass) .38f else 1f))
+                                .veritasGlassBackdrop(drop, glass, surfaceOpacity = .22f)
+                                .border(1.dp, Brush.verticalGradient(listOf(highlight, ink.copy(alpha = .24f))), drop)
+                        ) {
+                            drawRect(Brush.linearGradient(
+                                colors = listOf(highlight, Color.Transparent, Color.Transparent),
+                                start = Offset(size.width * .15f, 0f),
+                                end = Offset(size.width * .74f, size.height * .84f)
+                            ))
+                            val dotCenter = if (atTop) .64f else .36f
+                            for (x in listOf(.34f, .50f, .66f)) {
+                                drawCircle(ink, radius = 1.7.dp.toPx(), center = Offset(size.width * x, size.height * dotCenter))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ListenTableRowCard(
+    sentence: String,
+    index: Int,
+    active: Boolean,
+    quoteSelected: Boolean,
+    fontSizeSp: Int,
+    alpha: Float,
+    scale: Float,
+    lift: Float,
+    chunks: List<String>,
+    onClick: () -> Unit,
+    onDoubleClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+    val density = LocalDensity.current
+    val cells = remember(sentence) {
+        sentence.trim()
+            .removeSurrounding("|")
+            .split('|')
+            .map { it.trim() }
+    }
+    if (cells.isEmpty()) return
+
+    val isHeaderRow = remember(index, chunks.size) {
+        index + 1 < chunks.size && com.veritas.reader.SpeechSanitizer.isTableSeparatorLine(chunks[index + 1])
+    }
+
+    val resolvedHeaders = remember(sentence, index) {
+        var prevSep = -1
+        for (i in (index - 1) downTo maxOf(0, index - 20)) {
+            if (com.veritas.reader.SpeechSanitizer.isTableSeparatorLine(chunks[i])) {
+                prevSep = i
+                break
+            }
+            if (!com.veritas.reader.SpeechSanitizer.isTableRow(chunks[i])) break
+        }
+        if (prevSep > 0 && com.veritas.reader.SpeechSanitizer.isTableRow(chunks[prevSep - 1])) {
+            chunks[prevSep - 1].trim().removeSurrounding("|").split('|').map { it.trim() }
+        } else null
+    }
+
+    val activeColIndex = if (active) PlaybackStateStore.activeTableColumnIndex else -1
+
+    val cardBg = when {
+        quoteSelected -> scheme.primaryContainer
+        active -> scheme.primary.copy(alpha = 0.14f)
+        isHeaderRow -> scheme.surfaceVariant.copy(alpha = 0.50f)
+        else -> scheme.surfaceVariant.copy(alpha = 0.30f)
+    }
+    val cardBorder = when {
+        quoteSelected -> scheme.primary
+        active -> scheme.primary.copy(alpha = 0.55f)
+        isHeaderRow -> scheme.outlineVariant.copy(alpha = 0.40f)
+        else -> scheme.outlineVariant.copy(alpha = 0.20f)
+    }
+
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = cardBg,
+        border = androidx.compose.foundation.BorderStroke(1.dp, cardBorder),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .graphicsLayer {
+                this.alpha = alpha
+                scaleX = scale
+                scaleY = scale
+                translationY = with(density) { lift.dp.toPx() }
+            }
+            .testTag("listen-table-row-$index")
+            .semantics { selected = if (quoteSelected) true else active }
+            .combinedClickable(
+                onClick = onClick,
+                onDoubleClick = onDoubleClick,
+                onLongClickLabel = "Select for quote",
+                onLongClick = onLongClick
+            )
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (isHeaderRow) {
+                // Table Header Card
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "TABLE HEADER",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = scheme.primary
+                    )
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    cells.forEachIndexed { colIdx, cell ->
+                        if (cell.isNotBlank()) {
+                            Text(
+                                text = cell,
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontSize = (fontSizeSp * 0.95f).sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = scheme.primary
+                            )
+                        }
+                    }
+                }
+            } else {
+                // Table Data Row with clear column labels and spotlighting
+                cells.forEachIndexed { colIdx, cellText ->
+                    if (cellText.isNotBlank()) {
+                        val headerLabel = resolvedHeaders?.getOrNull(colIdx)
+                        val isColActive = active && (activeColIndex == colIdx || (activeColIndex == -1 && colIdx == 0))
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    if (isColActive) scheme.primary.copy(alpha = 0.18f) else Color.Transparent,
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 3.dp)
+                        ) {
+                            if (!headerLabel.isNullOrBlank()) {
+                                Text(
+                                    text = headerLabel,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (isColActive) scheme.primary else scheme.onSurfaceVariant.copy(alpha = 0.75f)
+                                )
+                            }
+                            Text(
+                                text = cellText,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontSize = fontSizeSp.sp,
+                                    lineHeight = (fontSizeSp * 1.45f).sp,
+                                    fontWeight = if (isColActive) FontWeight.SemiBold else FontWeight.Normal
+                                ),
+                                color = if (isColActive) scheme.primary else scheme.onBackground
+                            )
+                        }
+                    }
+                }
             }
         }
     }

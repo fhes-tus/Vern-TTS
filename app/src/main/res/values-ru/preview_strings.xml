@@ -35,7 +35,7 @@
     <string name="l10n_catalog_7" formatted="false">"Заметки для изучения"</string>
     <string name="l10n_catalog_8" formatted="false">"Упрощение"</string>
     <string name="l10n_catalog_9" formatted="false">"Разделы по разделам"</string>
-    <string name="l10n_catalog_10" formatted="false">"Квизр"</string>
+    <string name="l10n_catalog_10" formatted="false">"Тест"</string>
     <string name="l10n_catalog_11" formatted="false">"Обычная скорость"</string>
     <string name="l10n_catalog_12" formatted="false">"Перенести текущий раздел"</string>
     <string name="l10n_catalog_13" formatted="false">"Текущий раздел, посвященный двум языкам"</string>
@@ -176,7 +176,7 @@
     <string name="l10n_dynamic_026">"%1$s Документы:.,"</string>
     <string name="l10n_dynamic_027">"Отмена %1$s"</string>
     <string name="l10n_dynamic_028">"Выбрать все %1$s (%2$s)"</string>
-    <string name="l10n_dynamic_029">"Это удаляет %1$s Остаются в наличии заметки, закладки и история чтения."</string>
+    <string name="l10n_dynamic_029">"%1$s будет удалено из локальной библиотеки, очереди и коллекций. Заметки, закладки и история чтения сохранятся."</string>
     <string name="l10n_dynamic_030">":: :: %1$s"</string>
     <string name="l10n_dynamic_031">"▪ Обнаружены %1$s Карточки Q&amp;A готовые к импортуЯЗОВЫ НЕ ПРИВЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЗЯЗЯЧЯ"</string>
     <string name="l10n_dynamic_032">", обнаруженные %1$s вопросы экзамена готовы к работеЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ"</string>
@@ -319,7 +319,7 @@
     <string name="l10n_dynamic_169">"Неизвестно %1$s"</string>
     <string name="l10n_dynamic_170">"%1$s дней"</string>
     <string name="l10n_dynamic_171">"%1$s/суточный"</string>
-    <string name="l10n_dynamic_172">"Добавить « %1$s » в список, содержащийся в чтении::. [1]]\""</string>
+    <string name="l10n_dynamic_172">"Добавить «%1$s» в коллекции:"</string>
     <string name="l10n_dynamic_173">"Ранее: %1$s режим неизвестен"</string>
     <string name="l10n_dynamic_174">"Остановить автоматическое чтение после %1$s m %2$s без взаимодействия]"</string>
     <string name="l10n_dynamic_175">"Что нового в %1$s."</string>
@@ -548,7 +548,7 @@
     <string name="ui_bookmark" formatted="false">"Закладки"</string>
     <string name="ui_bookmark_options" formatted="false">"Параметры закладки"</string>
     <string name="ui_bookmarks" formatted="false">"Закладки"</string>
-    <string name="ui_booknotes" formatted="false">"Букметики"</string>
+    <string name="ui_booknotes" formatted="false">"Заметки о книгах"</string>
     <string name="ui_books_notes_and_dashboard_cards_drop_into_varied_tilts_and_offset" formatted="false">"Книги, ноты и карточки с приборной доской сбрасываются в различные наклоны и смещения. Каждая карточка сохраняет свое место."</string>
     <string name="ui_browse_cards" formatted="false">"Просмотр карт"</string>
     <string name="ui_browse_files" formatted="false">"Просмотр файлов"</string>
@@ -643,7 +643,7 @@
     <string name="ui_create_flashcard" formatted="false">"Создать карту"</string>
     <string name="ui_create_flashcards_quizzes_summaries_and_explanations_review_the_r" formatted="false">"Создать карточки, викторины, резюме и пояснения. Проанализировать результаты вместе с исходным текстом."</string>
     <string name="ui_create_list" formatted="false">"Создать список"</string>
-    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"Создать местные списки &amp; добавить сохраненные показания"</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"Создание коллекций и добавление сохранённых книг"</string>
     <string name="ui_create_notebooks_to_organise_your_notes_a_note_can_belong_to_more" formatted="false">"Создать тетради для подготовки записей. Записка может принадлежать не одному, а нескольким.."</string>
     <string name="ui_create_quizzes_using_ai_study_studio_to_practice_here" formatted="false">"Создайте викторины с помощью студии AI Studio для тренировки здесь."</string>
     <string name="ui_create_something_new" formatted="false">"Создать что-то новое"</string>
@@ -805,14 +805,14 @@
     <string name="ui_find_word_or_phrase" formatted="false">"Найти слово или фразу"</string>
     <string name="ui_finding_more_files" formatted="false">"Найти больше файлов"</string>
     <string name="ui_finish" formatted="false">"Заканчивать"</string>
-    <string name="ui_finished" formatted="false">"Закончили"</string>
+    <string name="ui_finished" formatted="false">"Прочитано"</string>
     <string name="ui_finishing" formatted="false">"Заканчиваю"</string>
     <string name="ui_first_day_of_reading" formatted="false">"Первый день чтения"</string>
     <string name="ui_fit_to_screen" formatted="false">"Приспособиться к скриншу"</string>
     <string name="ui_flag_question_for_review" formatted="false">"Вопрос флага для пересмотра"</string>
     <string name="ui_flagged" formatted="false">"Флаг"</string>
     <string name="ui_flashcard_and_quiz_replies_can_be_pasted_straight_back_into_vern" formatted="false">"Флэшкарта и ответы на вопросы могут быть вставлены прямо в Vern — карты соединяют вашу площадку для повторения, и викторины становятся тестом для оценки."</string>
-    <string name="ui_flashcards" formatted="false">"Карточки."</string>
+    <string name="ui_flashcards" formatted="false">"Карточки"</string>
     <string name="ui_flawless_mastery" formatted="false">"Безупречная мастерская!...я.!"</string>
     <string name="ui_flowing_text_notes_speed_reader" formatted="false">"Поток текста, примечания и скорость"</string>
     <string name="ui_folders" formatted="false">"Папки"</string>
@@ -998,7 +998,7 @@
     <string name="ui_new_note" formatted="false">"Новое примечание"</string>
     <string name="ui_new_notebook" formatted="false">"Новая тетрадь"</string>
     <string name="ui_new_quiz" formatted="false">"Новый квиз"</string>
-    <string name="ui_new_reading_list" formatted="false">"Новый список чтения"</string>
+    <string name="ui_new_reading_list" formatted="false">"Новая коллекция"</string>
     <string name="ui_new_rule" formatted="false">"Новое правило"</string>
     <string name="ui_newest_first" formatted="false">"Самая новая первая"</string>
     <string name="ui_next" formatted="false">"Следующий"</string>
@@ -1048,7 +1048,7 @@
     <string name="ui_no_readable_text_was_extracted_for_this_page" formatted="false">"Для этой страницы не было получено ни одного текста, который можно было бы прочитать.... .----я"</string>
     <string name="ui_no_reading_activity_recorded" formatted="false">"Не зарегистрирована активность чтения ο.- (в %) не зарегистрирован"</string>
     <string name="ui_no_reading_history_yet" formatted="false">"Пока ничего не читал...., что ты читаешь историю.?"</string>
-    <string name="ui_no_reading_lists_yet" formatted="false">"Пока нет списков чтения...., что ты делаешь?"</string>
+    <string name="ui_no_reading_lists_yet" formatted="false">"Коллекций пока нет."</string>
     <string name="ui_no_results" formatted="false">"Нет результатов ο.,"</string>
     <string name="ui_no_results_found" formatted="false">"Результаты отсутствуют ο.:-хо"</string>
     <string name="ui_no_rules_yet" formatted="false">"Пока никаких правил ο....,"</string>
@@ -1094,7 +1094,7 @@
     <string name="ui_open_a_file_to_start_reading" formatted="false">"Откройте файл, чтобы начать чтение.,-:!"</string>
     <string name="ui_open_a_reading_first_then_ai_study_tools_can_prepare_the_current" formatted="false">"Сначала откройте чтение, затем AI Study Instruments может подготовить текущую часть или полный документ.я.. .@ info: whatsthisboard is under units. .."</string>
     <string name="ui_open_a_reading_from_your_library_and_it_will_appear_here" formatted="false">"Откройте чтение из вашей библиотеки, и оно появится здесь.... -я.есть?---, я хочу сказать, что вы"</string>
-    <string name="ui_open_book" formatted="false">"Открытая книга ο.,"</string>
+    <string name="ui_open_book" formatted="false">"Открыть книгу"</string>
     <string name="ui_open_file" formatted="false">"Открыть файл ο,."</string>
     <string name="ui_open_file_browser" formatted="false">"Открыть браузер файла.,- ."</string>
     <string name="ui_open_in_document" formatted="false">"Открыто в документе,.,"</string>
@@ -1232,7 +1232,7 @@
     <string name="ui_quiz_importer" formatted="false">"Импортер Quiz is units."</string>
     <string name="ui_quiz_lab_performance" formatted="false">"&amp; Эффективность οz lob_BAR_- ο"</string>
     <string name="ui_quiz_needs_repair" formatted="false">"Кьюиз нуждается в ремонте., .. ."</string>
-    <string name="ui_quizzes" formatted="false">"Квизы ο."</string>
+    <string name="ui_quizzes" formatted="false">"Тесты"</string>
     <string name="ui_quote_source" formatted="false">"Источник данных ο'.-"</string>
     <string name="ui_rate_your_recall_spaced_repetition" formatted="false">"Померить отзыв (повторение космического пространства).,- (последнее рассмотрение):: .."</string>
     <string name="ui_re2_regex_example_0_9_look_around_and_pattern_backreferences_are" formatted="false">"Пример регекса RE2:  проигнорированы ссылки на дальние и контурные линии.ему не уделяется внимания.-порожний матч происки не учитывается. ///_BAR_ ..//([0-9]+)\\// /. / . .. (Spe"</string>
@@ -1261,8 +1261,8 @@
     <string name="ui_reading_insights" formatted="false">"Чтение инстинктов.- ."</string>
     <string name="ui_reading_insights_32f8941" formatted="false">"Чтение очерков.,-"</string>
     <string name="ui_reading_layout" formatted="false">"Считывание οbjection."</string>
-    <string name="ui_reading_list" formatted="false">"Список чтения ο,."</string>
-    <string name="ui_reading_lists" formatted="false">"Чтение списков"</string>
+    <string name="ui_reading_list" formatted="false">"Коллекция"</string>
+    <string name="ui_reading_lists" formatted="false">"Коллекции"</string>
     <string name="ui_reading_overview" formatted="false">"Читать обзор ο.-:"</string>
     <string name="ui_reading_progress" formatted="false">"Ход чтения ο_ name''"</string>
     <string name="ui_reading_recorded_duration_not_available" formatted="false">"Запись считывания; продолжительность не установлена.-: (последний раз) не"</string>
@@ -1271,7 +1271,7 @@
     <string name="ui_reading_time" formatted="false">"Время чтения ο'."</string>
     <string name="ui_reading_velocity_daily_goal" formatted="false">"Чтение велоциативности и ежедневных целей"</string>
     <string name="ui_ready" formatted="false">"Готов ο'."</string>
-    <string name="ui_ready_to_begin" formatted="false">"Готовы к началуя. ."</string>
+    <string name="ui_ready_to_begin" formatted="false">"Можно начинать"</string>
     <string name="ui_ready_to_launch" formatted="false">"Готов к запуску ο.,-"</string>
     <string name="ui_ready_to_listen" formatted="false">"Готов слушать ο., что-то"</string>
     <string name="ui_ready_to_resume" formatted="false">"Готовы возобновить...., что я не могу больше ничего сделать"</string>
@@ -1443,7 +1443,8 @@
     <string name="ui_silent_rsvp_save_for_audio" formatted="false">"Молчаливый RSVP · , за исключением звука- ."</string>
     <string name="ui_silent_visual_rsvp" formatted="false">"Тишина визуального RSVP.,"</string>
     <string name="ui_skip" formatted="false">"Пропустить ο_."</string>
-    <string name="ui_skip_table" formatted="false">"Пропустить стол ο.-"</string>
+    <string name="ui_skip_table" formatted="false">"Пропустить таблицу"</string>
+    <string name="ui_skip_figure">Пропустить рисунок</string>
     <string name="ui_sleep_timer" formatted="false">"Таймер сна ~.,к"</string>
     <string name="ui_slides_options" formatted="false">"Параметры скольженияий formula_B"</string>
     <string name="ui_slower_0_05" formatted="false">"Медленнее - 0,05 ×. х"</string>
@@ -1487,7 +1488,7 @@
     <string name="ui_study_deck_now" formatted="false">"Учись сейчасль. :"</string>
     <string name="ui_study_focus" formatted="false">"ИССЛЕДОВАНИЕ., инстинктов"</string>
     <string name="ui_study_guide_pdf" formatted="false">"Руководство по подготовке кадров ѕƒФ.-"</string>
-    <string name="ui_study_hub" formatted="false">"Учебный центр mmunities."</string>
+    <string name="ui_study_hub" formatted="false">"Учебный центр"</string>
     <string name="ui_success" formatted="false">"Успех ο_-"</string>
     <string name="ui_summarize_with_ai" formatted="false">"Обобщать с АИ"</string>
     <string name="ui_summarizing" formatted="false">"Резюмируя...., что я"</string>
@@ -1639,7 +1640,7 @@
     <string name="ui_view_image" formatted="false">"Вид ¶_ name."</string>
     <string name="ui_view_insights" formatted="false">"Вид Просмотр β formula_."</string>
     <string name="ui_view_mode" formatted="false">"Режим просмотра ο_BAR_"</string>
-    <string name="ui_visit_website" formatted="false">"Посетить веб-сайт.,-"</string>
+    <string name="ui_visit_website" formatted="false">"Открыть сайт"</string>
     <string name="ui_vocabulary" formatted="false">"Словарь ο''."</string>
     <string name="ui_voice" formatted="false">"Голос : ¶."</string>
     <string name="ui_voice_3091c84" formatted="false">"Голос ο''"</string>

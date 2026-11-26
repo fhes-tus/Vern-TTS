@@ -11,6 +11,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -55,6 +57,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -77,11 +81,11 @@ internal fun mondayBasedTodayIndex(): Int {
  * Resolves a Long milliseconds value into a day-of-week label (Mon–Sun).
  * `weekStartMonday` is the epoch-ms of Monday 00:00 for the displayed week.
  */
-internal fun dayLabel(dayIndex: Int, weekStartMonday: Long): String {
+internal fun dayLabel(dayIndex: Int, weekStartMonday: Long, locale: Locale): String {
     val cal = Calendar.getInstance()
     cal.timeInMillis = weekStartMonday
     cal.add(Calendar.DAY_OF_YEAR, dayIndex)
-    return SimpleDateFormat("EEE, d MMM", Locale.getDefault())
+    return SimpleDateFormat("EEE, d MMM", locale)
         .format(Date(cal.timeInMillis))
 }
 
@@ -137,7 +141,10 @@ internal fun MiniWeekBars(
 ) {
     var entered by remember { mutableStateOf(!accented) }
     LaunchedEffect(Unit) { entered = true }
-    val labels = listOf("M", "T", "W", "T", "F", "S", "S")
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val labels = remember(locale) {
+        java.time.DayOfWeek.values().map { it.getDisplayName(java.time.format.TextStyle.NARROW, locale) }
+    }
     val max = (values.maxOrNull()?.coerceAtLeast(1L) ?: 1L) * 1.25f
     val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
     val primary = MaterialTheme.colorScheme.primary
@@ -206,14 +213,20 @@ internal fun MiniWeekBars(
                         animationSpec = com.veritas.reader.ui.VeritasMotion.spatialSlow(),
                         label = "barFrac$i"
                     )
-                    val dayDesc = if (weekStartMonday > 0L && value > 0L)
-                        "${dayLabel(i, weekStartMonday)}: ${formatTrackerDuration(value)}"
-                    else labels.getOrElse(i) { "" }
+                    val dateLabel = if (weekStartMonday > 0L) dayLabel(i, weekStartMonday, locale) else labels.getOrElse(i) { "" }
+                    val dayDesc = "$dateLabel, ${formatTrackerDuration(value)}"
                     val barInteraction = remember { MutableInteractionSource() }
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .semantics { contentDescription = dayDesc },
+                            .semantics { contentDescription = dayDesc }
+                            .selectable(
+                                selected = isSelected,
+                                enabled = todayIndex == -1 || i <= todayIndex,
+                                role = Role.Button,
+                                indication = LocalIndication.current,
+                                interactionSource = barInteraction
+                            ) { onSelectDay(if (isSelected) -1 else i) },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
@@ -227,12 +240,7 @@ internal fun MiniWeekBars(
                                         MaterialTheme.colorScheme.primaryContainer
                                     else trackColor
                                 )
-                                .pressScale(barInteraction)
-                                .clickable(
-                                    enabled = todayIndex == -1 || i <= todayIndex,
-                                    indication = null,
-                                    interactionSource = barInteraction
-                                ) { onSelectDay(if (isSelected) -1 else i) },
+                                .pressScale(barInteraction),
                             contentAlignment = Alignment.BottomCenter
                         ) {
                             if (frac > 0f) {
@@ -254,6 +262,7 @@ internal fun MiniWeekBars(
                         }
                         Text(
                             labels.getOrElse(i) { "" },
+                            modifier = Modifier.clearAndSetSemantics {},
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = if (isToday || isSelected) FontWeight.Bold else FontWeight.Normal,
                             color = when {
@@ -288,7 +297,7 @@ internal fun WeeklyReadingBarsPager(
     history: List<WeekBars>,
     modifier: Modifier = Modifier,
     barHeight: androidx.compose.ui.unit.Dp = 64.dp,
-    chartLabel: String = "Weekly reading chart",
+    chartLabel: String = menuString(com.veritas.reader.R.string.ui_weekly_app_activity),
     accented: Boolean = false,
     onWeekChanged: (WeekBars) -> Unit = {}
 ) {
@@ -305,20 +314,22 @@ internal fun WeeklyReadingBarsPager(
 
     val visibleWeek = history[pagerState.currentPage]
     LaunchedEffect(visibleWeek) { onWeekChanged(visibleWeek) }
-    val chartDescription = "$chartLabel. ${visibleWeek.label}: " +
-        "${formatTrackerDuration(visibleWeek.totalMillis)} total. Swipe left or right to change week."
-
-    val weekStartMonday = remember(pagerState.currentPage) {
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-        val weeksBack = history.lastIndex - pagerState.currentPage
-        cal.add(Calendar.WEEK_OF_YEAR, -weeksBack)
-        cal.timeInMillis
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val weeksBack = history.lastIndex - pagerState.currentPage
+    val weekStart = remember(weeksBack) {
+        val today = java.time.LocalDate.now()
+        today.minusDays((today.dayOfWeek.value - 1).toLong()).minusWeeks(weeksBack.toLong())
     }
+    val weekStartMonday = weekStart.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+    val weekLabel = when {
+        visibleWeek.isCurrentWeek -> menuString(com.veritas.reader.R.string.ui_this_week)
+        visibleWeek.label == "Last week" -> menuString(com.veritas.reader.R.string.insights_last_week)
+        else -> {
+            val format = java.time.format.DateTimeFormatter.ofPattern("d MMM", locale)
+            "${weekStart.format(format)} – ${weekStart.plusDays(6).format(format)}"
+        }
+    }
+    val chartDescription = menuString(com.veritas.reader.R.string.insights_week_chart_description, chartLabel, weekLabel, formatTrackerDuration(visibleWeek.totalMillis))
 
     Box(
         modifier = modifier
@@ -331,7 +342,7 @@ internal fun WeeklyReadingBarsPager(
         ) {
             val tooltipVisible = selectedBarIndex >= 0 && selectedBarIndex < visibleWeek.values.size
             val tooltipLabel = if (tooltipVisible && weekStartMonday > 0L)
-                dayLabel(selectedBarIndex, weekStartMonday) else ""
+                dayLabel(selectedBarIndex, weekStartMonday, locale) else ""
             val tooltipDuration = if (tooltipVisible)
                 formatTrackerDuration(visibleWeek.values.getOrElse(selectedBarIndex) { 0L }) else ""
 
@@ -352,7 +363,7 @@ internal fun WeeklyReadingBarsPager(
                             }
                         },
                         enabled = pagerState.currentPage > 0,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -366,7 +377,7 @@ internal fun WeeklyReadingBarsPager(
                         color = if (visibleWeek.isCurrentWeek) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surfaceContainerHigh
                     ) {
                         Text(
-                            text = visibleWeek.label,
+                            text = weekLabel,
                             style = MaterialTheme.typography.labelMedium,
                             color = if (visibleWeek.isCurrentWeek) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -379,7 +390,7 @@ internal fun WeeklyReadingBarsPager(
                             }
                         },
                         enabled = pagerState.currentPage < history.lastIndex,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,

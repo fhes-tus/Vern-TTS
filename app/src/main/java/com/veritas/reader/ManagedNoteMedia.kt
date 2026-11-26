@@ -16,7 +16,10 @@ internal data class UnusedNoteMedia(val file: File, val size: Long, val modified
 internal fun DocumentRepository.noteMediaReferences(): Set<String> {
     val versions = loadGeneralNotes() + loadTrashedGeneralNotes() + loadAllNoteRevisions().map { it.snapshot }
     val paths = versions.flatMap { NoteSharing.blocks(it).mapNotNull(NoteSharing::path) }.toMutableSet()
-    loadAllAnnotations().mapNotNullTo(paths) { it.audioPath }
+    loadAllAnnotations().flatMapTo(paths) { it.audioPath.orEmpty().split("||").filter { path -> path.isNotBlank() } }
+    prefs.all.keys.filter { it.startsWith("doc_note_audio_") }.forEach { key ->
+        loadDocumentNoteAudio(key.removePrefix("doc_note_audio_")).forEach { paths.add(it.first) }
+    }
     loadAllQuizzes().flatMap { it.questions }.flatMap { it.attachments }.mapNotNullTo(paths) { it.resolve(appContext)?.path }
     // Recovery snapshots are also owners. If they cannot be read, refuse cleanup.
     prefs.getString("general_notes__bak", null)?.let { raw ->

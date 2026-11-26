@@ -57,6 +57,10 @@ import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -83,6 +87,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.veritas.reader.R
 import com.veritas.reader.ResolvedVeritasFeature
 import com.veritas.reader.SavedDocument
 import com.veritas.reader.StorageBreakdown
@@ -269,7 +274,7 @@ fun SettingsHubDialog(
                     ),
                     featureRowSpec(
                         settingsFeature(VeritasFeatureId.READING_LISTS),
-                        menuString(com.veritas.reader.R.string.ui_reading_lists), menuString(com.veritas.reader.R.string.ui_create_local_lists_add_saved_readings),
+                        menuString(com.veritas.reader.R.string.ui_collections), menuString(com.veritas.reader.R.string.ui_create_local_lists_add_saved_readings),
                         Icons.AutoMirrored.Filled.List, onOpenReadingLists
                     ),
                     SettingsRowSpec(
@@ -330,7 +335,7 @@ fun SettingsHubDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = OnboardingStep.SETTINGS_SPOTLIGHT.title,
+                                text = menuString(OnboardingStep.SETTINGS_SPOTLIGHT.titleRes),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -350,7 +355,7 @@ fun SettingsHubDialog(
                         }
 
                         Text(
-                            text = OnboardingStep.SETTINGS_SPOTLIGHT.body,
+                            text = menuString(OnboardingStep.SETTINGS_SPOTLIGHT.bodyRes),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -417,7 +422,8 @@ fun formatVeritasBytes(bytes: Long): String {
     return when {
         mb >= 1024 -> String.format(Locale.getDefault(), "%.2f GB", mb / 1024.0)
         mb >= 1.0 -> String.format(Locale.getDefault(), "%.1f MB", mb)
-        else -> String.format(Locale.getDefault(), "%.0f KB", bytes / 1024.0)
+        bytes >= 1024 -> String.format(Locale.getDefault(), "%.0f KB", bytes / 1024.0)
+        else -> String.format(Locale.getDefault(), "%d B", bytes)
     }
 }
 
@@ -426,69 +432,145 @@ fun StorageDialog(
     breakdown: StorageBreakdown?,
     candidates: List<Pair<SavedDocument, Long>>,
     cleanupMessage: String?,
-    onSmartCleanup: () -> Unit,
+    onSmartCleanup: (Set<String>) -> Unit,
     onClearCache: (() -> Unit)? = null,
+    onClearData: (() -> Boolean)? = null,
+    onNoteMediaCleaned: () -> Unit = {},
+    cleaning: Boolean = false,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close)) } },
-        title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_storage)) },
-        text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (breakdown == null) {
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_measuring), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else {
-                    Text(
-                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_storage_summary, formatVeritasBytes(breakdown.totalBytes), breakdown.documentCount),
-                        style = MaterialTheme.typography.bodyLarge)
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_originals_size, formatVeritasBytes(breakdown.originalsBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_text_size, formatVeritasBytes(breakdown.textBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_covers_size, formatVeritasBytes(breakdown.coversBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_database_size, formatVeritasBytes(breakdown.databaseBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_cache_size, formatVeritasBytes(breakdown.cacheBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    NoteMediaCleanupControl()
-
-                    if (onClearCache != null) {
-                        val cacheBytes = breakdown.cacheBytes
-                        OutlinedButton(
-                            onClick = onClearCache,
-                            enabled = cacheBytes > 0L,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                if (cacheBytes <= 0L) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_temporary_cache_is_clean)
-                                else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_clear_cache, formatVeritasBytes(cacheBytes))
-                            )
+    var selected by remember { mutableStateOf<Set<String>?>(null) }
+    selected?.let { ids ->
+        val bytes = candidates.filter { it.first.id in ids }.sumOf { it.second }
+        AlertDialog(
+            onDismissRequest = { selected = null },
+            title = { Text(menuString(R.string.settings_smart_cleanup, formatVeritasBytes(bytes))) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(menuString(R.string.settings_cleanup_explanation, ids.size))
+                    LazyColumn(Modifier.heightIn(max = 300.dp)) {
+                        items(candidates, key = { it.first.id }) { (document, size) ->
+                            val checked = document.id in ids
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(checked = checked, onCheckedChange = { include ->
+                                    selected = if (include) ids + document.id else ids - document.id
+                                })
+                                Column(Modifier.weight(1f)) {
+                                    Text(document.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                    Text(formatVeritasBytes(size), style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
                         }
                     }
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = ids.isNotEmpty(), onClick = { selected = null; onSmartCleanup(ids) }) {
+                    Text(menuString(R.string.ui_remove))
+                }
+            },
+            dismissButton = { TextButton(onClick = { selected = null }) { Text(menuString(R.string.ui_cancel)) } }
+        )
+    }
+    var confirmClearData by remember { mutableStateOf(false) }
+    var clearDataFailed by remember { mutableStateOf(false) }
+    FullScreenSettingsScaffold(title = menuString(R.string.ui_storage), onBack = onDismiss) {
+        if (breakdown == null) {
+            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_measuring), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            Text(
+                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_storage_summary, formatVeritasBytes(breakdown.totalBytes), breakdown.documentCount),
+                style = MaterialTheme.typography.bodyLarge)
+            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_originals_size, formatVeritasBytes(breakdown.originalsBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_text_size, formatVeritasBytes(breakdown.textBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_covers_size, formatVeritasBytes(breakdown.coversBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_database_size, formatVeritasBytes(breakdown.databaseBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_cache_size, formatVeritasBytes(breakdown.cacheBytes)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            StorageSizeRow(menuString(R.string.ui_voices), breakdown.voiceBytes)
+            StorageSizeRow(menuString(R.string.dict_title), breakdown.dictionaryBytes)
+            StorageSizeRow(menuString(R.string.ui_notes), breakdown.noteMediaBytes)
+            StorageSizeRow(menuString(R.string.ui_automatic_weekly_backups), breakdown.backupBytes)
+            StorageSizeRow(menuString(R.string.storage_other_app_data), breakdown.otherBytes)
+            HorizontalDivider()
+            NoteMediaCleanupControl(onNoteMediaCleaned)
 
-                    val reclaimable = candidates.sumOf { it.second }
-                    Button(
-                        onClick = onSmartCleanup,
-                        enabled = candidates.isNotEmpty(),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            if (candidates.isEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_nothing_to_clean_up)
-                            else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_smart_cleanup, formatVeritasBytes(reclaimable))
-                        )
-                    }
+            if (onClearCache != null) {
+                val cacheBytes = breakdown.cacheBytes
+                OutlinedButton(
+                    onClick = onClearCache,
+                    enabled = !cleaning && cacheBytes > 0L,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(
-                        if (candidates.isEmpty())
-                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_smart_cleanup_removes_original_files_of_fully_read_or_90_day_dorm)
-                        else
-                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_cleanup_explanation, candidates.size),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall
+                        if (cacheBytes <= 0L) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_temporary_cache_is_clean)
+                        else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_clear_cache, formatVeritasBytes(cacheBytes))
                     )
-                    if (!cleanupMessage.isNullOrBlank()) {
-                        Text(cleanupMessage, color = MaterialTheme.colorScheme.primary)
-                    }
                 }
             }
+
+            val reclaimable = candidates.sumOf { it.second }
+            Button(
+                onClick = { selected = candidates.map { it.first.id }.toSet() },
+                enabled = !cleaning && candidates.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    if (candidates.isEmpty()) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_nothing_to_clean_up)
+                    else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_smart_cleanup, formatVeritasBytes(reclaimable))
+                )
+            }
+            Text(
+                if (candidates.isEmpty())
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_smart_cleanup_removes_original_files_of_fully_read_or_90_day_dorm)
+                else
+                    com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_cleanup_explanation, candidates.size),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall
+            )
+            if (!cleanupMessage.isNullOrBlank()) {
+                Text(cleanupMessage, color = MaterialTheme.colorScheme.primary)
+            }
         }
-    )
+        if (onClearData != null) {
+            HorizontalDivider(Modifier.padding(top = 8.dp))
+            OutlinedButton(
+                onClick = { clearDataFailed = false; confirmClearData = true },
+                enabled = breakdown != null && !cleaning,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(menuString(R.string.storage_clear_app_data), color = MaterialTheme.colorScheme.error)
+            }
+            if (clearDataFailed) {
+                Text(menuString(R.string.storage_clear_app_data_failed), color = MaterialTheme.colorScheme.error)
+            }
+        }
+    }
+    if (confirmClearData && onClearData != null) {
+        AlertDialog(
+            onDismissRequest = { confirmClearData = false },
+            title = { Text(menuString(R.string.storage_clear_app_data)) },
+            text = { Text(menuString(R.string.storage_clear_app_data_description)) },
+            dismissButton = {
+                TextButton(onClick = { confirmClearData = false }) { Text(menuString(R.string.ui_cancel)) }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmClearData = false
+                    clearDataFailed = !onClearData()
+                }, enabled = !cleaning, modifier = Modifier.testTag("storage_confirm_clear_data")) {
+                    Text(menuString(R.string.storage_clear_app_data), color = MaterialTheme.colorScheme.error)
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun StorageSizeRow(label: String, bytes: Long) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(label, modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(formatVeritasBytes(bytes), color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable
@@ -695,5 +777,20 @@ fun VeritasRoundSlider(
         steps = steps,
         modifier = modifier,
         enabled = enabled
+    )
+}
+
+@Composable
+internal fun RestorePageDefaults(onRestore: () -> Unit) {
+    var confirm by remember { mutableStateOf(false) }
+    TextButton(onClick = { confirm = true }) { Text(menuString(R.string.settings_restore_defaults)) }
+    if (confirm) com.veritas.reader.VernAlertDialog(
+        onDismissRequest = { confirm = false },
+        title = { Text(menuString(R.string.settings_restore_defaults)) },
+        text = { Text(menuString(R.string.settings_restore_defaults_description)) },
+        confirmButton = {
+            TextButton(onClick = { confirm = false; onRestore() }) { Text(menuString(R.string.settings_restore_defaults)) }
+        },
+        dismissButton = { TextButton(onClick = { confirm = false }) { Text(menuString(R.string.ui_cancel)) } }
     )
 }

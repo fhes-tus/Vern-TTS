@@ -157,18 +157,22 @@ class MobileReadingRefinementUiTest {
         val raw = (1..3).joinToString("\n\n") { page ->
             if (page == 2) "[[VERITAS_PAGE:2]]\n\n" else
             "[[VERITAS_PAGE:$page]]\n" + (1..8).joinToString("\n\n") { "A thoughtful sentence on page $page, paragraph $it, with enough words to wrap naturally and retain native text selection." } +
-                "\n\n| Topic | Value |\n| --- | --- |\n| Reading | 12 |\n| Listening | 8 |"
+                "\n\n| Topic | Value |\n| --- | --- |\n| Reading | 12 |\n| Listening | 8 |\n\n" +
+                (1..8).joinToString("\n\n") { "Paragraph $it follows the table and has enough words to test scrolling to the end of the page." }
         }
         val model = ReaderTextIndex.build(raw, 3)
         val doc = ReaderDocument("scroll-fixture", "A thoughtful book", "TXT", raw, model.sentences.map { it.text }, 3)
-        var index by mutableIntStateOf(0)
+        val tableIndex = model.sentences.indexOfFirst { it.pageNumber == 1 && it.text.startsWith("| Topic") }
+        assertTrue(tableIndex >= 0)
+        var index by mutableIntStateOf(tableIndex)
         var mode by mutableStateOf(ReaderMode.TEXT)
         var font by mutableIntStateOf(18)
+        var readingLayout by mutableStateOf("pages")
         rule.setContent {
             CompositionLocalProvider(LocalVeritasMotion provides VeritasMotionScheme(true)) {
                 MaterialTheme {
                     val state = ReaderScreenState(doc, index, false, false, 1f, 1f, "", 0, false, emptyList(), 0,
-                        ReaderSettings(readingLayout = "scroll", fontSizeSp = font, reduceMotion = true, showGestureTips = false),
+                        ReaderSettings(readingLayout = readingLayout, fontSizeSp = font, reduceMotion = true, showGestureTips = false),
                         VoiceSettings(), NarrationSettings(), AskAiSettings(), "", emptyList(), 0, emptyList(), false,
                         0L, 0L, VeritasSleepTimerAction.PAUSE, 0, 0, emptyList(), mode)
                     ReaderScreen(state, androidx.compose.foundation.lazy.rememberLazyListState(), false,
@@ -207,7 +211,7 @@ class MobileReadingRefinementUiTest {
                     onExportAudio = {},
                     onCopySelection = {},
                     onShareSelection = {},
-                    onGoogleSelection = {},
+                    onDefineSelection = {},
                     onTranslateSelection = {},
                     onAskAiSelection = {},
                     onEditSpeechSelection = {},
@@ -219,6 +223,22 @@ class MobileReadingRefinementUiTest {
                     )
                 }
             }
+        }
+        val scrollPage = rule.onNodeWithTag("reader-page-scroll-1")
+        fun scrollOffset(): Float = scrollPage.fetchSemanticsNode().config[
+            androidx.compose.ui.semantics.SemanticsProperties.VerticalScrollAxisRange
+        ].value()
+        rule.onNodeWithText("Skip Table").assertIsDisplayed()
+        val tableOffset = scrollOffset()
+        scrollPage.performTouchInput { swipeUp() }
+        rule.onNodeWithTag("reader-prose-1-2").assertIsDisplayed()
+        assertTrue("Reader stays past the active table after an upward swipe", scrollOffset() > tableOffset)
+        repeat(2) { scrollPage.performTouchInput { swipeDown() } }
+        rule.onNodeWithTag("reader-prose-1-0").assertIsDisplayed()
+        assertTrue("Reader stays before the active table after a downward swipe", scrollOffset() < tableOffset)
+        rule.runOnIdle {
+            readingLayout = "scroll"
+            index = 0
         }
         rule.onNodeWithTag("reader-continuous-scroll").assertIsDisplayed()
         rule.onNodeWithTag("reader-prose-1-0").assertExists()

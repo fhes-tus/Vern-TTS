@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_tips_and_gestures">Tips &amp; Gestures</string>
+    <string name="hint_notes_create">Tap + to create a new note</string>
+    <string name="hint_notes_filter">Tap tags to filter your notes</string>
+    <string name="hint_notes_open">Tap any note to edit or share</string>
+    <string name="hint_document_gestures">Document Gestures</string>
+    <string name="hint_pdf_gestures">PDF Gestures</string>
+    <string name="hint_single_tap">Single tap</string>
+    <string name="hint_toggle_reading_bars">Collapse or expand the reading bars</string>
+    <string name="hint_zoom_document">Zoom in or out on the document</string>
+    <string name="hint_swipe_horizontally">Swipe horizontally</string>
+    <string name="hint_turn_page">Turn to the previous or next page</string>
+    <string name="hint_long_press_passage">Long press on a word or sentence</string>
+    <string name="hint_read_from_selection">Select text and choose Read from here</string>
+</resources>

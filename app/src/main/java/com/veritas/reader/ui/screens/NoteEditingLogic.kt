@@ -154,6 +154,41 @@ object VeritasNoteEditing {
         return TextFieldValue(nt, TextRange((selMin + shift).coerceIn(0, nt.length)))
     }
 
+    fun isInlineMarkerActive(value: TextFieldValue, marker: String): Boolean {
+        val selection = value.text.substring(value.selection.min, value.selection.max)
+        return selectionWrapsInlineMarker(selection, marker) ||
+            (!value.selection.collapsed && hasInlinePairAtSelection(value, marker)) || inlinePairAtCaret(value, marker) != null
+    }
+
+    private fun selectionWrapsInlineMarker(selection: String, marker: String): Boolean =
+        selection.length >= marker.length * 2 && selection.startsWith(marker) && selection.endsWith(marker) &&
+            (marker != "*" || selection == "**" || (!selection.startsWith("**") && !selection.endsWith("**")))
+
+    private fun hasInlinePairAtSelection(value: TextFieldValue, marker: String): Boolean {
+        val start = value.selection.min
+        val end = value.selection.max
+        return start >= marker.length && value.text.startsWith(marker, start - marker.length) &&
+            value.text.startsWith(marker, end) &&
+            (marker != "*" || value.text.getOrNull(start - 2) != '*' && value.text.getOrNull(end + 1) != '*')
+    }
+
+    private fun inlinePairAtCaret(value: TextFieldValue, marker: String): IntRange? {
+        val caret = value.selection.min
+        val text = value.text
+        if (!value.selection.collapsed || caret == 0) return null
+        val escaped = Regex.escape(marker)
+        val exact = if (marker == "*") "(?<!\\*)\\*(?!\\*)" else escaped
+        val lineStart = text.lastIndexOf('\n', caret - 1) + 1
+        val lineEnd = text.indexOf('\n', caret).takeUnless { it == -1 } ?: text.length
+        val line = text.substring(lineStart, lineEnd)
+        return Regex(exact).findAll(line).chunked(2).firstNotNullOfOrNull { pair ->
+            if (pair.size < 2) return@firstNotNullOfOrNull null
+            val start = lineStart + pair[0].range.last + 1
+            val end = lineStart + pair[1].range.first
+            (start..end).takeIf { caret in it }
+        }
+    }
+
     /**
      * Wraps the selection (or inserts empty markers at the caret) with an inline marker,
      * or unwraps if the selection is already wrapped.
@@ -164,16 +199,22 @@ object VeritasNoteEditing {
         val e = value.selection.max
         val selected = text.substring(s, e)
         val mlen = marker.length
+        val activePair = inlinePairAtCaret(value, marker)
         return when {
-            selected.length >= 2 * mlen && selected.startsWith(marker) && selected.endsWith(marker) -> {
+            selectionWrapsInlineMarker(selected, marker) -> {
                 val inner = selected.substring(mlen, selected.length - mlen)
                 val nt = text.substring(0, s) + inner + text.substring(e)
                 TextFieldValue(nt, TextRange(s, s + inner.length))
             }
-            s >= mlen && e + mlen <= text.length &&
-                text.substring(s - mlen, s) == marker && text.substring(e, e + mlen) == marker -> {
+            hasInlinePairAtSelection(value, marker) && (s != e || activePair != null) -> {
                 val nt = text.substring(0, s - mlen) + selected + text.substring(e + mlen)
                 TextFieldValue(nt, TextRange(s - mlen, e - mlen))
+            }
+            activePair != null -> when (s) {
+                activePair.first -> value.copy(selection = TextRange(s - mlen))
+                activePair.last -> value.copy(selection = TextRange(s + mlen))
+                else -> value.copy(text = text.substring(0, s) + marker + marker + text.substring(s),
+                    selection = TextRange(s + mlen), composition = null)
             }
             else -> {
                 val nt = text.substring(0, s) + marker + selected + marker + text.substring(e)

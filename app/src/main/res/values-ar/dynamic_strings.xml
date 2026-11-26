@@ -29,7 +29,7 @@
     <string name="l10n_dynamic_026">"المستندات: %1$s"</string>
     <string name="l10n_dynamic_027">"إلغاء تحديد %1$s"</string>
     <string name="l10n_dynamic_028">"تحديد كل %1$s (%2$s)"</string>
-    <string name="l10n_dynamic_029">"يُزال %1$s من المكتبة والقائمة وقوائم القراءة. تبقى الملاحظات والإشارات والسجل محفوظة."</string>
+    <string name="l10n_dynamic_029">"يؤدي هذا إلى إزالة %1$s من المكتبة المحلية وقائمة الانتظار والمجموعات. تبقى الملاحظات والإشارات المرجعية وسجل القراءة المحفوظة متاحة."</string>
     <string name="l10n_dynamic_030">"بقلم %1$s"</string>
     <string name="l10n_dynamic_031">"✨ اكتُشفت %1$s بطاقة سؤال وجواب جاهزة للاستيراد"</string>
     <string name="l10n_dynamic_032">"🎯 اكتُشفت %1$s أسئلة تدريبية"</string>
@@ -172,7 +172,7 @@
     <string name="l10n_dynamic_169">"غير معروف %1$s"</string>
     <string name="l10n_dynamic_170">"الأيام: %1$s"</string>
     <string name="l10n_dynamic_171">"%1$s / يوم"</string>
-    <string name="l10n_dynamic_172">"إضافة «%1$s» لقوائم القراءة:"</string>
+    <string name="l10n_dynamic_172">"إضافة «%1$s» إلى المجموعات:"</string>
     <string name="l10n_dynamic_173">"الإجمالي السابق: %1$s · الوضع غير معروف"</string>
     <string name="l10n_dynamic_174">"إيقاف القراءة التلقائية بعد %1$s د %2$s ث دون تفاعل"</string>
     <string name="l10n_dynamic_175">"الجديد في %1$s"</string>

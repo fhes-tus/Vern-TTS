@@ -230,6 +230,13 @@ export function AccessibilityPreferences({ settings, onSave }: Props) {
         checked={settings.showSectionNumbers}
         onChange={(showSectionNumbers) => void onSave({ showSectionNumbers })}
       />
+      <h3 className="settings-subheading">Audio output & media controls</h3>
+      <SettingToggle
+        label="Pause on headphone disconnect"
+        detail="Automatically pause narration when headphones, Bluetooth headsets, or external audio devices are unplugged."
+        checked={settings.pauseOnDeviceDisconnect ?? true}
+        onChange={(pauseOnDeviceDisconnect) => void onSave({ pauseOnDeviceDisconnect })}
+      />
       <div className="settings-field-group">
         <label>
           High contrast

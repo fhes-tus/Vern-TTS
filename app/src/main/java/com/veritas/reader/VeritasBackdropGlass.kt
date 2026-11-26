@@ -8,6 +8,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.composed
@@ -125,6 +126,15 @@ internal fun Modifier.veritasGlassBackdrop(
         backdrop = backdrop, shape = { safeBackdropShape }, highlight = { Highlight(width = 1.dp) },
         effects = effects, onDrawSurface = surface
     )
+}
+
+/** The tint remains visible while the first reader backdrop frame is being captured. */
+internal fun Modifier.veritasPlayerGlassBackdrop(shape: Shape, enabled: Boolean): Modifier = composed {
+    if (!enabled) return@composed this
+    val tint = VeritasPackStyle.playerSurfaceColor(androidx.compose.material3.MaterialTheme.colorScheme)
+    this.background(tint.copy(alpha = .66f), shape)
+        .veritasGlassBackdrop(shape, true, surfaceOpacity = .36f)
+        .veritasGlassOutline(shape, true)
 }
 
 /** A uniform outline defines the glass edge without a glossy highlight. */

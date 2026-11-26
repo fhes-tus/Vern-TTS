@@ -19,6 +19,7 @@ internal object VernStartupMotion {
     }
     fun bloomPose(progress: Float): Pose {
         val p = progress.coerceIn(0f, 1f)
-        return Pose(alpha = .4f + .6f * (p / .65f).coerceIn(0f, 1f), scale = .72f + .28f * p)
+        val bloom = if (p < .45f) p / .45f else (1f - p) / .55f
+        return Pose(alpha = 1f - .06f * bloom, scale = 1f + .08f * bloom)
     }
 }

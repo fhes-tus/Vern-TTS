@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="classic_add_to_library">Add to library</string>
+    <string name="classic_waiting_for_download">Waiting for download</string>
+    <string name="classic_downloading">Downloading…</string>
+    <string name="classic_download_progress">Downloading %1$s</string>
+    <string name="classic_adding_to_library">Adding to library…</string>
+    <string name="classic_retry_download">Retry download</string>
+    <string name="classic_download_again">Download again</string>
+    <string name="classic_details_for_book">Details for %1$s</string>
+    <string name="library_read_percent">%1$s through</string>
+    <string name="library_read_not_started">Not started · %1$s</string>
+    <string name="library_read_in_progress">%1$s read · %2$s left</string>
+    <string name="library_read_estimate_minutes">~%1$dm</string>
+    <string name="library_read_estimate_hours">~%1$dh</string>
+    <string name="library_read_estimate_hours_minutes">~%1$dh %2$dm</string>
+    <plurals name="library_page_count">
+        <item quantity="one">%1$d page</item>
+        <item quantity="other">%1$d pages</item>
+    </plurals>
+    <plurals name="library_sentence_count">
+        <item quantity="one">%1$d sentence</item>
+        <item quantity="other">%1$d sentences</item>
+    </plurals>
+</resources>

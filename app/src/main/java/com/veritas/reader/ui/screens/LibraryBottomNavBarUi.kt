@@ -36,13 +36,18 @@ internal fun LibraryBottomNavBar(
     activeNavTab: VeritasHomeTab,
     showNavLabels: Boolean,
     onNavigateToTab: (VeritasHomeTab) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    pagerNavPosition: (() -> Float)? = null
 ) {
-    val selectionPosition by animateFloatAsState(activeNavTab.pagerIndex + .5f,
-        animationSpec = VeritasMotion.spatialSlow(), label = "navigationSelectionSlide")
+    val selectionPosition: () -> Float = pagerNavPosition ?: run {
+        val animatedPosition = animateFloatAsState(activeNavTab.pagerIndex.toFloat(),
+            animationSpec = VeritasMotion.spatial(), label = "navigationSelectionSlide")
+        val position: () -> Float = { animatedPosition.value }
+        position
+    }
     val separation by animateFloatAsState(
         if (activeNavTab == VeritasHomeTab.NOTES) 1f else 0f,
-        animationSpec = VeritasMotion.spatialSlow(), label = "notesNavigationSeparation"
+        animationSpec = VeritasMotion.spatialFast(), label = "notesNavigationSeparation"
     )
     val split = separation.coerceIn(0f, 1f)
     val radius = VeritasPackStyle.navigationCornerRadius()
@@ -94,12 +99,11 @@ internal fun LibraryBottomNavBar(
 
 @Composable
 private fun NavigationCapsule(shape: Shape, glass: Boolean, opaqueFallback: Boolean, modifier: Modifier,
-    active: VeritasHomeTab, tabs: List<VeritasHomeTab>, labels: Boolean, selectionPosition: Float,
+    active: VeritasHomeTab, tabs: List<VeritasHomeTab>, labels: Boolean, selectionPosition: () -> Float,
     content: @Composable RowScope.() -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val targetIndex = tabs.indexOf(active)
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val position = (selectionPosition - tabs.first().pagerIndex) / tabs.size
     val opacity by animateFloatAsState(if (targetIndex >= 0) 1f else 0f,
         animationSpec = VeritasMotion.effects(), label = "navigationSelectionFade")
     Surface(modifier.veritasGlassBackdrop(shape, glass, surfaceOpacity = .36f), shape = shape,
@@ -113,6 +117,8 @@ private fun NavigationCapsule(shape: Shape, glass: Boolean, opaqueFallback: Bool
             Box(Modifier.align(Alignment.CenterStart).width(pillWidth).height(pillHeight)
                 .testTag("navigation-selection-${tabs.first().name}")
                 .graphicsLayer {
+                    val position = (selectionPosition() + .5f - tabs.first().pagerIndex)
+                        .coerceIn(.5f, tabs.size - .5f) / tabs.size
                     val distance = maxWidth.toPx() * position - pillWidth.toPx() / 2f
                     translationX = if (rtl) -distance else distance
                     alpha = opacity

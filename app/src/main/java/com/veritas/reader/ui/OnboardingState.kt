@@ -1,5 +1,7 @@
 package com.veritas.reader.ui
 
+import com.veritas.reader.R
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -209,98 +211,98 @@ val AiStudyFocusOptions = listOf(
 enum class OnboardingStep(
     val key: String,
     val targetKey: String?,
-    val title: String,
-    val body: String
+    @androidx.annotation.StringRes val titleRes: Int,
+    @androidx.annotation.StringRes val bodyRes: Int
 ) {
     WELCOME(
         key = "welcome",
         targetKey = null,
-        title = "Interactive App Tour",
-        body = "Follow the highlights to discover your library, reading tools, study notes, and settings."
+        titleRes = R.string.tour_welcome_title,
+        bodyRes = R.string.tour_welcome_body
     ),
     NAME_INPUT(
         key = "name_input",
         targetKey = null,
-        title = "What should we call you?",
-        body = "Please enter your name so we can personalize your dashboard and messages."
+        titleRes = R.string.tour_name_input_title,
+        bodyRes = R.string.tour_name_input_body
     ),
     FAB_SPOTLIGHT(
         key = "fab",
         targetKey = "add_fab",
-        title = "Quest 1: Add a Document",
-        body = "This is the Add button. Tap it to import PDFs, EPUBs, Word files, text files, images, or web links."
+        titleRes = R.string.tour_fab_spotlight_title,
+        bodyRes = R.string.tour_fab_spotlight_body
     ),
     CHECKLIST_SPOTLIGHT(
         key = "checklist",
         targetKey = "quest_checklist",
-        title = "Your Quest Checklist",
-        body = "This floating checklist shows your active missions. Complete all quests to master the app!"
+        titleRes = R.string.vern_chapter_title,
+        bodyRes = R.string.vern_chapter_tour_body
     ),
     CLASSICS_SPOTLIGHT(
         key = "classics",
         targetKey = "classics_shelves",
-        title = "Classic Books Catalog",
-        body = "Browse timeless books by genre, swipe through each shelf, and add a favourite to My Library. Your reading and listening stay close at hand."
+        titleRes = R.string.tour_classics_spotlight_title,
+        bodyRes = R.string.tour_classics_spotlight_body
     ),
     INSIGHTS_SPOTLIGHT(
         key = "insights",
         targetKey = "insights_trigger",
-        title = "Reading Insights Dashboard",
-        body = "This menu button opens your personalized dashboard. Tap Next to see your reading analytics."
+        titleRes = R.string.tour_insights_spotlight_title,
+        bodyRes = R.string.tour_insights_spotlight_body
     ),
     INSIGHTS_PAGE_SPOTLIGHT(
         key = "insights_page",
         targetKey = null,
-        title = "Your Insights at a Glance",
-        body = "Track daily reading streaks on the heatmap, see how your library splits by source, and watch where your listening time goes each month — all stored privately on your device."
+        titleRes = R.string.tour_insights_page_spotlight_title,
+        bodyRes = R.string.tour_insights_page_spotlight_body
     ),
     NOTES_TAB_SPOTLIGHT(
         key = "notes_tab",
         targetKey = null,
-        title = "Notes & Voice Memos",
-        body = "Here is your notes studio. Review all your document annotations, standalone notes, bookmarks, and audio recordings in one dedicated hub."
+        titleRes = R.string.tour_notes_tab_spotlight_title,
+        bodyRes = R.string.tour_notes_tab_spotlight_body
     ),
     STUDY_TAB_SPOTLIGHT(
         key = "study_tab",
         targetKey = null,
-        title = "AI Study Hub & Flashcards",
-        body = "Here is your study studio. Generate AI summaries, practice interactive flashcards, and review active recall quizzes across your library."
+        titleRes = R.string.tour_study_tab_spotlight_title,
+        bodyRes = R.string.tour_study_tab_spotlight_body
     ),
     SETTINGS_SPOTLIGHT(
         key = "settings",
         targetKey = null,
-        title = "Settings & Customization",
-        body = "Here is your settings hub. Tune voice engines, playback speeds, themes, cloud sync, backup tools, and pronunciation rules anytime."
+        titleRes = R.string.tour_settings_spotlight_title,
+        bodyRes = R.string.tour_settings_spotlight_body
     ),
     DOCUMENT_SPOTLIGHT(
         key = "document",
         targetKey = "document_card_0",
-        title = "Open your Document",
-        body = "Your readings appear here. Tap a card to open it and enter the reader screen."
+        titleRes = R.string.tour_document_spotlight_title,
+        bodyRes = R.string.tour_document_spotlight_body
     ),
     MODE_TOGGLE_SPOTLIGHT(
         key = "mode_toggle",
         targetKey = "reader_mode_toggle",
-        title = "Layout Mode Switcher",
-        body = "Toggle layouts dynamically: TEXT for clean reading, LISTEN for lyrics/sentence highlights, and ORIGINAL for PDF layouts."
+        titleRes = R.string.tour_mode_toggle_spotlight_title,
+        bodyRes = R.string.tour_mode_toggle_spotlight_body
     ),
     PLAYER_PANEL_SPOTLIGHT(
         key = "player_panel",
         targetKey = "player_panel_header",
-        title = "Expandable Playback Studio",
-        body = "Tap or drag this panel up to access speed, pitch, premium voice selections, and sleep timers."
+        titleRes = R.string.tour_player_panel_spotlight_title,
+        bodyRes = R.string.tour_player_panel_spotlight_body
     ),
     READER_TEXT_SPOTLIGHT(
         key = "reader_text",
         targetKey = "reader_text_view",
-        title = "Highlight & Study Actions",
-        body = "Long-press any sentence to bookmark it, add study notes, translate text, or consult the AI Assistant."
+        titleRes = R.string.tour_reader_text_spotlight_title,
+        bodyRes = R.string.tour_reader_text_spotlight_body
     ),
     CONGRATULATIONS(
         key = "congratulations",
         targetKey = null,
-        title = "Tour Complete!",
-        body = "Awesome! You have completed the guided tour. Now complete the remaining quests on your checklist to unlock the full app!"
+        titleRes = R.string.tour_congratulations_title,
+        bodyRes = R.string.tour_congratulations_body
     )
 }
 

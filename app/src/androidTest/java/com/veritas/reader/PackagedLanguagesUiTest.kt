@@ -11,7 +11,10 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
 import com.veritas.reader.ui.ReaderUiState
+import com.veritas.reader.ui.OnboardingStep
 import com.veritas.reader.ui.screens.LibraryDocumentFilters
+import com.veritas.reader.ui.screens.OnboardingInfoCard
+import com.veritas.reader.ui.screens.localizedCatalogLabel
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -29,6 +32,24 @@ class PackagedLanguagesUiTest {
             val localized = context.createConfigurationContext(config)
             assertEquals(tag, settings, localized.getString(R.string.ui_settings))
         }
+    }
+
+    @Test fun studyFiltersAndTourPopUpUseTheSelectedLanguage() {
+        val config = Configuration(context.resources.configuration).apply { setLocale(Locale.FRANCE) }
+        val french = context.createConfigurationContext(config)
+        rule.setContent {
+            CompositionLocalProvider(LocalConfiguration provides config, LocalResources provides french.resources) {
+                MaterialTheme {
+                    androidx.compose.foundation.layout.Column {
+                        androidx.compose.material3.Text(localizedCatalogLabel("Dictionary"))
+                        OnboardingInfoCard(OnboardingStep.STUDY_TAB_SPOTLIGHT, "", {}, {}, {}, {}, false)
+                    }
+                }
+            }
+        }
+        rule.onNodeWithText("Dictionnaire").assertIsDisplayed()
+        rule.onNodeWithText("Espace d’étude IA et fiches").assertIsDisplayed()
+        rule.onNodeWithText(french.getString(R.string.tour_study_tab_spotlight_body)).assertIsDisplayed()
     }
 
     @Test fun libraryFilterUsesFrenchTextAndKeepsTheOriginalFilterValue() {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_studio_customize">Customize</string>
+    <string name="voice_studio_models_hint">Download voices for offline reading</string>
+    <string name="voice_studio_phone_more_hint">Install another voice engine or language</string>
+    <string name="voice_studio_use_language_default">Use the phone’s default voice for this language</string>
+    <string name="voice_studio_phone_engine">Phone voice engine</string>
+    <string name="voice_studio_refresh_engines">Refresh voice engines</string>
+    <string name="voice_studio_preset_values">%1$s · %2$s× speed · %3$s× pitch</string>
+    <string name="voice_studio_multiplier">%1$s×</string>
+    <string name="voice_studio_preset_balanced">The voice’s standard speed and pitch.</string>
+    <string name="voice_studio_preset_study">Slower reading with the original pitch.</string>
+    <string name="voice_studio_preset_scan">Faster reading with the original pitch.</string>
+    <string name="voice_studio_preset_story">A slightly slower pace and lower pitch.</string>
+    <string name="voice_studio_preset_lecture">A slightly quicker pace and higher pitch.</string>
+    <string name="voice_studio_preset_bedtime">A slower pace and lower pitch for quiet listening.</string>
+    <string name="voice_studio_cloud_preview_help">Apply your settings, then use Test voice to hear the cloud voice.</string>
+</resources>

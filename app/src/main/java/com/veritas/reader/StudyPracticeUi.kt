@@ -1,5 +1,9 @@
 package com.veritas.reader
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -72,6 +76,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.veritas.reader.ui.VeritasMotion
 import kotlin.math.roundToInt
 
 @Composable
@@ -521,18 +526,24 @@ internal fun QuizPlayerDialog(
                             val isCorrect = optionText == question.answer
                             val showEvaluation = selected != null
 
-                            val containerColor = when {
+                            val targetContainerColor = when {
                                 showEvaluation && isCorrect -> Color(0xFF10B981).copy(alpha = 0.18f)
                                 showEvaluation && isPicked -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
                                 isPicked -> MaterialTheme.colorScheme.primaryContainer
                                 else -> MaterialTheme.colorScheme.surface
                             }
+                            val containerColor by androidx.compose.runtime.key(safeIndex) {
+                                animateColorAsState(targetContainerColor, VeritasMotion.effectsFast(), label = "quizAnswerFill")
+                            }
 
-                            val borderColor = when {
+                            val targetBorderColor = when {
                                 showEvaluation && isCorrect -> Color(0xFF10B981)
                                 showEvaluation && isPicked -> MaterialTheme.colorScheme.error
                                 isPicked -> MaterialTheme.colorScheme.primary
                                 else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                            }
+                            val borderColor by androidx.compose.runtime.key(safeIndex) {
+                                animateColorAsState(targetBorderColor, VeritasMotion.effectsFast(), label = "quizAnswerBorder")
                             }
 
                             Card(
@@ -593,29 +604,35 @@ internal fun QuizPlayerDialog(
                         }
 
                         // Explanation card
-                        if (selected != null && question.explanation.isNotBlank()) {
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(14.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                        androidx.compose.runtime.key(safeIndex) {
+                            AnimatedVisibility(
+                                visible = selected != null && question.explanation.isNotBlank(),
+                                enter = fadeIn(VeritasMotion.effects()),
+                                exit = fadeOut(VeritasMotion.effectsFast())
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(14.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                                 ) {
-                                    Text("💡", fontSize = 18.sp)
-                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        Text(
-                                            com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_explanation),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                        Text(
-                                            question.explanation,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
+                                    Row(
+                                        modifier = Modifier.padding(14.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        Text("💡", fontSize = 18.sp)
+                                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Text(
+                                                com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_explanation),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                            Text(
+                                                question.explanation,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
                                     }
                                 }
                             }

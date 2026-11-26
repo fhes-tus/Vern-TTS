@@ -19,6 +19,7 @@ type Props = {
   onDelete: (ids: string[]) => Promise<void>;
   onPosition: (book: Book, position: number) => Promise<void>;
   onRefresh: () => Promise<void>;
+  onExportAudio?: (book: Book) => void;
 };
 
 export function LibraryShelf(props: Props) {
@@ -291,6 +292,14 @@ export function LibraryShelf(props: Props) {
                         Mark as finished
                       </button>
                     )}
+                    {props.onExportAudio && (
+                      <button
+                        disabled={!native || busy}
+                        onClick={() => props.onExportAudio?.(book)}
+                      >
+                        Export audio (WAV)…
+                      </button>
+                    )}
                     <button
                       className="book-delete"
                       disabled={!native || busy}
@@ -369,9 +378,8 @@ export function LibraryShelf(props: Props) {
       {deleting && (
         <Modal
           title={deleting.length === 1 ? 'Delete book?' : `Delete ${deleting.length} books?`}
-          onClose={() => {
-            if (!busy) setDeleting(null);
-          }}
+          dismissible={!busy}
+          onClose={() => setDeleting(null)}
         >
           <p>
             This removes the selected books, saved positions, book notes, bookmarks and linked
@@ -386,12 +394,7 @@ export function LibraryShelf(props: Props) {
           </ul>
           {error && <p role="alert">{error}</p>}
           <div className="action-row">
-            <button
-              className="secondary"
-              disabled={busy}
-              autoFocus
-              onClick={() => setDeleting(null)}
-            >
+            <button className="secondary" disabled={busy} data-dialog-autofocus data-dialog-dismiss>
               Keep books
             </button>
             <button
@@ -411,12 +414,7 @@ export function LibraryShelf(props: Props) {
         </Modal>
       )}
       {moving && (
-        <Modal
-          title="Move to collection"
-          onClose={() => {
-            if (!busy) setMoving(false);
-          }}
-        >
+        <Modal title="Move to collection" dismissible={!busy} onClose={() => setMoving(false)}>
           <form
             className="workspace-form"
             onSubmit={(event) => {

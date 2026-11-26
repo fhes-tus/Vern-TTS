@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_tips_and_gestures">Советы и жесты</string>
+    <string name="hint_notes_create">Нажмите +, чтобы создать заметку</string>
+    <string name="hint_notes_filter">Нажимайте на метки, чтобы отфильтровать заметки</string>
+    <string name="hint_notes_open">Коснитесь заметки, чтобы изменить её или поделиться ею</string>
+    <string name="hint_document_gestures">Жесты в документе</string>
+    <string name="hint_pdf_gestures">Жесты в PDF</string>
+    <string name="hint_single_tap">Одиночное касание</string>
+    <string name="hint_toggle_reading_bars">Скрыть или показать панели чтения</string>
+    <string name="hint_zoom_document">Увеличить или уменьшить масштаб документа</string>
+    <string name="hint_swipe_horizontally">Смахнуть по горизонтали</string>
+    <string name="hint_turn_page">Перейти к предыдущей или следующей странице</string>
+    <string name="hint_long_press_passage">Удерживать слово или фразу</string>
+    <string name="hint_read_from_selection">Выделите текст и выберите «Читать отсюда»</string>
+</resources>

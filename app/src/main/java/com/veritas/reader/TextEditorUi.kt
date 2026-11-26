@@ -1,5 +1,10 @@
 package com.veritas.reader
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -21,6 +26,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import com.veritas.reader.ui.screens.RichTextVisualTransformation
+import com.veritas.reader.ui.screens.VeritasNoteEditing
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -39,6 +49,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +66,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -63,6 +78,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.veritas.reader.ui.VeritasMotion
 
 internal fun textEditorDownloadName(
     document: ReaderDocument,
@@ -107,6 +123,8 @@ internal fun TextEditorDialog(
     currentIndex: Int,
     text: String,
     target: VeritasTextEditTarget,
+    isSaving: Boolean,
+    saveError: String?,
     onTextChange: (String) -> Unit,
     onSave: (partIndex: Int, text: String) -> Unit,
     onDownloadToPhone: () -> Unit,
@@ -128,14 +146,23 @@ internal fun TextEditorDialog(
         }
     }
 
-    var currentPartIndex by remember { mutableIntStateOf(initialPartIndex) }
+    var currentPartIndex by rememberSaveable(initialPartIndex) { mutableIntStateOf(initialPartIndex) }
+    val originalText = remember(model, target) {
+        when (target) {
+            is VeritasTextEditTarget.Part -> parts.getOrNull(initialPartIndex)?.text.orEmpty()
+            is VeritasTextEditTarget.SentenceRange -> document.chunks
+                .subList(target.startSentenceIndex, target.endSentenceIndexExclusive).joinToString("\n\n")
+        }
+    }
+    val editorFocus = remember { FocusRequester() }
+    val underlineLabel = com.veritas.reader.ui.screens.menuString(R.string.l10n_underline)
     var showSearch by remember { mutableStateOf(false) }
     var showReplace by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var replaceQuery by remember { mutableStateOf("") }
 
-    var editorValue by remember(currentPartIndex) {
-        val initialText = if (currentPartIndex == initialPartIndex && text.isNotBlank()) {
+    var editorValue by rememberSaveable(currentPartIndex, stateSaver = TextFieldValue.Saver) {
+        val initialText = if (currentPartIndex == initialPartIndex) {
             text
         } else {
             parts.getOrNull(currentPartIndex)?.text.orEmpty()
@@ -148,11 +175,34 @@ internal fun TextEditorDialog(
         )
     }
 
+    val canClearSelection = when (target) {
+        is VeritasTextEditTarget.Part -> parts.getOrNull(currentPartIndex)?.let {
+            it.sentenceStartIndex > 0 || it.sentenceEndIndexExclusive < model.sentences.size
+        } == true
+        is VeritasTextEditTarget.SentenceRange -> target.startSentenceIndex > 0 || target.endSentenceIndexExclusive < model.sentences.size
+    }
+    val originalPart = if (currentPartIndex == initialPartIndex) originalText else parts.getOrNull(currentPartIndex)?.text.orEmpty()
+    var pendingPart by remember { mutableStateOf<Int?>(null) }
+    var confirmClose by remember { mutableStateOf(false) }
+    fun selectPart(index: Int) {
+        currentPartIndex = index
+        onTextChange(if (index == initialPartIndex) originalText else parts.getOrNull(index)?.text.orEmpty())
+    }
+    fun closeEditor() {
+        if (isSaving) return
+        if (editorValue.text != originalPart) confirmClose = true else onDismiss()
+    }
+    pendingPart?.let { index ->
+        EditorDiscardDialog(onDiscard = { pendingPart = null; selectPart(index) }, onKeep = { pendingPart = null })
+    }
+    if (confirmClose) EditorDiscardDialog(onDiscard = onDismiss, onKeep = { confirmClose = false })
+
     var undoStack by remember(currentPartIndex) { mutableStateOf<List<TextFieldValue>>(emptyList()) }
     var redoStack by remember(currentPartIndex) { mutableStateOf<List<TextFieldValue>>(emptyList()) }
 
     fun commitValue(next: TextFieldValue) {
-        if (next.text == editorValue.text && next.selection == editorValue.selection) {
+        if (isSaving) return
+        if (next.text == editorValue.text) {
             editorValue = next
             return
         }
@@ -173,87 +223,9 @@ internal fun TextEditorDialog(
         commitValue(TextFieldValue(nextText, selection = TextRange(start, start + transformed.length)))
     }
 
-    fun wrapSelection(prefix: String, suffix: String = prefix, defaultPlaceholder: String = "text") {
-        val value = editorValue
-        val start = value.selection.min.coerceIn(0, value.text.length)
-        val end = value.selection.max.coerceIn(0, value.text.length)
-        if (start == end) {
-            val inserted = "$prefix$defaultPlaceholder$suffix"
-            val nextText = value.text.replaceRange(start, end, inserted)
-            commitValue(TextFieldValue(nextText, selection = TextRange(start + prefix.length, start + prefix.length + defaultPlaceholder.length)))
-        } else {
-            val selected = value.text.substring(start, end)
-            if (selected.startsWith(prefix) && selected.endsWith(suffix) && selected.length >= prefix.length + suffix.length) {
-                val unwrapped = selected.removePrefix(prefix).removeSuffix(suffix)
-                val nextText = value.text.replaceRange(start, end, unwrapped)
-                commitValue(TextFieldValue(nextText, selection = TextRange(start, start + unwrapped.length)))
-            } else {
-                val wrapped = "$prefix$selected$suffix"
-                val nextText = value.text.replaceRange(start, end, wrapped)
-                commitValue(TextFieldValue(nextText, selection = TextRange(start, start + wrapped.length)))
-            }
-        }
-    }
-
-    fun toggleLinePrefix(prefix: String) {
-        val value = editorValue
-        val start = value.selection.min.coerceIn(0, value.text.length)
-        val end = value.selection.max.coerceIn(0, value.text.length)
-        val lineStart = value.text.lastIndexOf('\n', (start - 1).coerceAtLeast(0)).let { if (it < 0) 0 else it + 1 }
-        val lineEnd = value.text.indexOf('\n', end).let { if (it < 0) value.text.length else it }
-        val chunk = value.text.substring(lineStart, lineEnd)
-        val lines = chunk.lines()
-        val allHavePrefix = lines.all { it.startsWith(prefix) }
-        val transformed = lines.joinToString("\n") { line ->
-            if (allHavePrefix) line.removePrefix(prefix) else "$prefix$line"
-        }
-        val nextText = value.text.replaceRange(lineStart, lineEnd, transformed)
-        commitValue(TextFieldValue(nextText, selection = TextRange(lineStart, lineStart + transformed.length)))
-    }
-
-    fun applyBulletList() {
-        val value = editorValue
-        val start = value.selection.min.coerceIn(0, value.text.length)
-        val end = value.selection.max.coerceIn(0, value.text.length)
-        val selected = value.text.substring(start, end)
-        val lines = if (selected.contains("\n")) selected.lines() else listOf(selected)
-        val transformed = lines.joinToString("\n") { line ->
-            if (line.isNotBlank()) {
-                "• ${line.replace(Regex("^\\d+\\.\\s*|^[•\\-*]\\s*"), "")}"
-            } else line
-        }
-        val nextText = value.text.replaceRange(start, end, transformed)
-        commitValue(TextFieldValue(nextText, selection = TextRange(start, start + transformed.length)))
-    }
-
-    fun applyNumberedList() {
-        val value = editorValue
-        val start = value.selection.min.coerceIn(0, value.text.length)
-        val end = value.selection.max.coerceIn(0, value.text.length)
-        val selected = value.text.substring(start, end)
-        val lines = if (selected.contains("\n")) selected.lines() else listOf(selected)
-        var counter = 1
-        val transformed = lines.joinToString("\n") { line ->
-            if (line.isNotBlank()) {
-                "${counter++}. ${line.replace(Regex("^\\d+\\.\\s*|^[•\\-*]\\s*"), "")}"
-            } else line
-        }
-        val nextText = value.text.replaceRange(start, end, transformed)
-        commitValue(TextFieldValue(nextText, selection = TextRange(start, start + transformed.length)))
-    }
-
-    fun applyIndent() {
-        val value = editorValue
-        val start = value.selection.min.coerceIn(0, value.text.length)
-        val end = value.selection.max.coerceIn(0, value.text.length)
-        val selected = value.text.substring(start, end)
-        val transformed = if (selected.contains("\n")) {
-            selected.lines().joinToString("\n") { if (it.isNotBlank()) "    $it" else it }
-        } else {
-            "    $selected"
-        }
-        val nextText = value.text.replaceRange(start, end, transformed)
-        commitValue(TextFieldValue(nextText, selection = TextRange(start, start + transformed.length)))
+    fun format(action: (TextFieldValue) -> TextFieldValue) {
+        commitValue(action(editorValue))
+        editorFocus.requestFocus()
     }
 
     fun cleanAndNormalizeText() {
@@ -308,7 +280,7 @@ internal fun TextEditorDialog(
     }
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = ::closeEditor,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
             decorFitsSystemWindows = false
@@ -333,7 +305,7 @@ internal fun TextEditorDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    IconButton(onClick = onDismiss, modifier = Modifier.size(40.dp)) {
+                    IconButton(onClick = ::closeEditor, modifier = Modifier.size(40.dp)) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back))
                     }
                     Column(
@@ -380,7 +352,7 @@ internal fun TextEditorDialog(
                     }
                     IconButton(
                         onClick = onDownloadToPhone,
-                        enabled = editorValue.text.isNotBlank(),
+                        enabled = !isSaving && editorValue.text.isNotBlank(),
                         modifier = Modifier.size(38.dp)
                     ) {
                         Icon(Icons.Outlined.FileDownload, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_export_text), modifier = Modifier.size(20.dp))
@@ -391,18 +363,28 @@ internal fun TextEditorDialog(
                             onTextChange(currentText)
                             onSave(currentPartIndex, currentText)
                         },
-                        enabled = editorValue.text.isNotBlank(),
+                        enabled = !isSaving && editorValue.text != originalPart && (editorValue.text.isNotBlank() || canClearSelection),
                         shape = RoundedCornerShape(50),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                     ) {
-                        Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                        if (isSaving) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                        }
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save), style = MaterialTheme.typography.labelMedium)
                     }
                 }
 
-                // Per-Page Navigator Header
-                Card(
+                saveError?.let { message ->
+                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
+                            .semantics { liveRegion = LiveRegionMode.Polite })
+                }
+
+                // Browse sections only when the editor was opened for a section.
+                if (target is VeritasTextEditTarget.Part) Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 4.dp),
@@ -420,10 +402,11 @@ internal fun TextEditorDialog(
                         IconButton(
                             onClick = {
                                 if (currentPartIndex > 0) {
-                                    currentPartIndex--
+                                    if (editorValue.text == originalPart) selectPart(currentPartIndex - 1)
+                                    else pendingPart = currentPartIndex - 1
                                 }
                             },
-                            enabled = currentPartIndex > 0
+                            enabled = !isSaving && currentPartIndex > 0
                         ) {
                             Icon(Icons.AutoMirrored.Filled.NavigateBefore, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_previous_page))
                         }
@@ -443,10 +426,11 @@ internal fun TextEditorDialog(
                         IconButton(
                             onClick = {
                                 if (currentPartIndex < totalPages - 1) {
-                                    currentPartIndex++
+                                    if (editorValue.text == originalPart) selectPart(currentPartIndex + 1)
+                                    else pendingPart = currentPartIndex + 1
                                 }
                             },
-                            enabled = currentPartIndex < totalPages - 1
+                            enabled = !isSaving && currentPartIndex < totalPages - 1
                         ) {
                             Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next_page))
                         }
@@ -454,7 +438,11 @@ internal fun TextEditorDialog(
                 }
 
                 // Search Panel
-                if (showSearch) {
+                AnimatedVisibility(
+                    visible = showSearch,
+                    enter = fadeIn(VeritasMotion.effectsFast()) + expandVertically(VeritasMotion.spatialFast(), expandFrom = Alignment.Top),
+                    exit = fadeOut(VeritasMotion.effectsFast()) + shrinkVertically(VeritasMotion.spatialFast(), shrinkTowards = Alignment.Top)
+                ) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -471,6 +459,7 @@ internal fun TextEditorDialog(
                         ) {
                             OutlinedTextField(
                                 value = searchQuery,
+                                enabled = showSearch,
                                 onValueChange = { searchQuery = it.take(120) },
                                 modifier = Modifier.weight(1f),
                                 singleLine = true,
@@ -486,7 +475,7 @@ internal fun TextEditorDialog(
                             }
                             Button(
                                 onClick = ::findNextSearchMatch,
-                                enabled = searchMatches > 0,
+                                enabled = showSearch && searchMatches > 0,
                                 shape = RoundedCornerShape(50)
                             ) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next)) }
                         }
@@ -494,7 +483,11 @@ internal fun TextEditorDialog(
                 }
 
                 // Replace Panel
-                if (showReplace) {
+                AnimatedVisibility(
+                    visible = showReplace,
+                    enter = fadeIn(VeritasMotion.effectsFast()) + expandVertically(VeritasMotion.spatialFast(), expandFrom = Alignment.Top),
+                    exit = fadeOut(VeritasMotion.effectsFast()) + shrinkVertically(VeritasMotion.spatialFast(), shrinkTowards = Alignment.Top)
+                ) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -510,6 +503,7 @@ internal fun TextEditorDialog(
                             ) {
                                 OutlinedTextField(
                                     value = searchQuery,
+                                    enabled = showReplace,
                                     onValueChange = { searchQuery = it.take(120) },
                                     modifier = Modifier.weight(1f),
                                     singleLine = true,
@@ -518,6 +512,7 @@ internal fun TextEditorDialog(
                                 )
                                 OutlinedTextField(
                                     value = replaceQuery,
+                                    enabled = showReplace,
                                     onValueChange = { replaceQuery = it.take(120) },
                                     modifier = Modifier.weight(1f),
                                     singleLine = true,
@@ -530,10 +525,10 @@ internal fun TextEditorDialog(
                                 horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                TextButton(onClick = ::replaceCurrentMatch, enabled = searchQuery.isNotBlank()) {
+                                TextButton(onClick = ::replaceCurrentMatch, enabled = showReplace && searchQuery.isNotBlank()) {
                                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_replace_next))
                                 }
-                                Button(onClick = ::replaceAllMatches, enabled = searchQuery.isNotBlank(), shape = RoundedCornerShape(50)) {
+                                Button(onClick = ::replaceAllMatches, enabled = showReplace && searchQuery.isNotBlank(), shape = RoundedCornerShape(50)) {
                                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_replace_all))
                                 }
                             }
@@ -558,8 +553,12 @@ internal fun TextEditorDialog(
 
                 // Rich Text Editor Area
                 val editorScrollState = rememberScrollState()
+                val editorColor = MaterialTheme.colorScheme.onBackground
+                val editorTransformation = remember(editorColor) { RichTextVisualTransformation(editorColor) }
                 BasicTextField(
                     value = editorValue,
+                    visualTransformation = editorTransformation,
+                    readOnly = isSaving,
                     onValueChange = { next -> commitValue(next) },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
                         color = MaterialTheme.colorScheme.onBackground,
@@ -570,6 +569,7 @@ internal fun TextEditorDialog(
                         .fillMaxWidth()
                         .weight(1f)
                         .background(MaterialTheme.colorScheme.background)
+                        .focusRequester(editorFocus)
                         .verticalScroll(editorScrollState)
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 )
@@ -596,7 +596,7 @@ internal fun TextEditorDialog(
                                 editorValue = previous
                                 onTextChange(previous.text)
                             },
-                            enabled = undoStack.isNotEmpty()
+                            enabled = !isSaving && undoStack.isNotEmpty()
                         ) {
                             Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_undo))
                         }
@@ -609,7 +609,7 @@ internal fun TextEditorDialog(
                                 editorValue = next
                                 onTextChange(next.text)
                             },
-                            enabled = redoStack.isNotEmpty()
+                            enabled = !isSaving && redoStack.isNotEmpty()
                         ) {
                             Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_redo))
                         }
@@ -622,22 +622,28 @@ internal fun TextEditorDialog(
                         )
 
                         // Bold
-                        IconButton(onClick = { wrapSelection("**") }) {
+                        IconButton(onClick = { format { VeritasNoteEditing.toggleInlineMarker(it, "**") } }) {
                             Text("B", style = MaterialTheme.typography.titleMedium)
                         }
 
                         // Italic
-                        IconButton(onClick = { wrapSelection("*") }) {
+                        IconButton(onClick = { format { VeritasNoteEditing.toggleInlineMarker(it, "*") } }) {
                             Text("I", style = MaterialTheme.typography.titleMedium, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                         }
 
+                        IconButton(onClick = { format { VeritasNoteEditing.toggleInlineMarker(it, "__") } }) {
+                            Text("U", modifier = Modifier.semantics {
+                                contentDescription = underlineLabel
+                            }, textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline)
+                        }
+
                         // Strikethrough
-                        IconButton(onClick = { wrapSelection("~~") }) {
+                        IconButton(onClick = { format { VeritasNoteEditing.toggleInlineMarker(it, "~~") } }) {
                             Text("S", style = MaterialTheme.typography.titleMedium, textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough)
                         }
 
                         // Inline code
-                        IconButton(onClick = { wrapSelection("`") }) {
+                        IconButton(onClick = { format { VeritasNoteEditing.toggleInlineMarker(it, "`") } }) {
                             Text("<>", style = MaterialTheme.typography.labelMedium)
                         }
 
@@ -649,16 +655,16 @@ internal fun TextEditorDialog(
                         )
 
                         // Headings
-                        IconButton(onClick = { toggleLinePrefix("# ") }) {
+                        IconButton(onClick = { format { VeritasNoteEditing.toggleLinePrefix(it, "# ") } }) {
                             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_h1), style = MaterialTheme.typography.labelMedium)
                         }
 
-                        IconButton(onClick = { toggleLinePrefix("## ") }) {
+                        IconButton(onClick = { format { VeritasNoteEditing.toggleLinePrefix(it, "## ") } }) {
                             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_h2), style = MaterialTheme.typography.labelMedium)
                         }
 
                         // Quote
-                        IconButton(onClick = { toggleLinePrefix("> ") }) {
+                        IconButton(onClick = { format { VeritasNoteEditing.toggleLinePrefix(it, "> ") } }) {
                             Text("❝", style = MaterialTheme.typography.titleMedium)
                         }
 
@@ -670,15 +676,15 @@ internal fun TextEditorDialog(
                         )
 
                         // Lists & Indent
-                        IconButton(onClick = ::applyBulletList) {
+                        IconButton(onClick = { format { VeritasNoteEditing.toggleLinePrefix(it, "- ") } }) {
                             Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_bulleted_list))
                         }
 
-                        IconButton(onClick = ::applyNumberedList) {
+                        IconButton(onClick = { format { VeritasNoteEditing.toggleLinePrefix(it, "1. ") } }) {
                             Icon(Icons.Filled.FormatListNumbered, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_numbered_list))
                         }
 
-                        IconButton(onClick = ::applyIndent) {
+                        IconButton(onClick = { format(VeritasNoteEditing::applyIndent) }) {
                             Icon(Icons.AutoMirrored.Filled.FormatIndentIncrease, contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_indent))
                         }
 
@@ -715,4 +721,14 @@ internal fun TextEditorDialog(
             }
         }
     }
+}
+
+@Composable
+private fun EditorDiscardDialog(onDiscard: () -> Unit, onKeep: () -> Unit) {
+    VernAlertDialog(
+        onDismissRequest = onKeep,
+        title = { Text(com.veritas.reader.ui.screens.menuString(R.string.editor_discard_changes)) },
+        confirmButton = { TextButton(onClick = onDiscard) { Text(com.veritas.reader.ui.screens.menuString(R.string.ui_discard)) } },
+        dismissButton = { TextButton(onClick = onKeep) { Text(com.veritas.reader.ui.screens.menuString(R.string.ui_keep_editing)) } }
+    )
 }

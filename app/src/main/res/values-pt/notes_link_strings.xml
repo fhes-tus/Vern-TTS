@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notes_link_cards_privacy">As pré-visualizações mostram títulos e imagens. Vern obtém os dados em falta do site ligado ou do servidor da imagem.</string>
+    <string name="notes_link_load_from_website">Carregar do site</string>
+    <string name="notes_link_loading">A carregar a pré-visualização do site…</string>
+    <string name="notes_link_unavailable">Não foi possível carregar a pré-visualização. Tente novamente ou abra a ligação.</string>
+</resources>

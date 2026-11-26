@@ -1,8 +1,5 @@
 package com.veritas.reader
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
@@ -11,222 +8,111 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
+import androidx.pdf.selection.LinkSelection
+import androidx.pdf.selection.model.TextSelection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view.ActionMode?) {
-                val menu = mode?.menu ?: return
+    val menu = mode?.menu ?: return
+    if (pdfView?.currentSelection == null || currentFocus is android.widget.EditText) return
+    val menuContext = pdfView?.context ?: this
+    val selectAllTitle = menuContext.getString(android.R.string.selectAll)
+    val copyTitle = menuContext.getString(android.R.string.copy)
 
-        // Retain the PDF viewer's Select all item and its own click listener. Its items may
-        // share Menu.NONE IDs, so identify Select all by its localized platform title too.
-        menu.removeItem(android.R.id.textAssist)
-        val selectAllTitle = (pdfView?.context ?: this).getString(android.R.string.selectAll)
-        for (index in 0 until menu.size()) {
-            val item = menu.getItem(index)
-            item.setShowAsAction(if (item.itemId == android.R.id.selectAll || item.title == selectAllTitle)
-                android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM else android.view.MenuItem.SHOW_AS_ACTION_NEVER)
+    // AndroidX uses Menu.NONE for these items and its own click listeners. Keep
+    // explicit Copy and Select all intact instead of dispatching a shared item ID.
+    val nativeCopy = (menu.size() - 1 downTo 0).asSequence().map(menu::getItem).firstOrNull {
+        it.itemId == android.R.id.copy || it.title?.toString() == copyTitle
+    }
+    for (index in menu.size() - 1 downTo 0) {
+        val item = menu.getItem(index)
+        when {
+            item.itemId == android.R.id.selectAll || item.title?.toString() == selectAllTitle ->
+                item.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS)
+            item === nativeCopy ->
+                item.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
+            else -> item.isVisible = false
+        }
+    }
+    menu.addReaderSelectionActions(this, document != null) { action ->
+        val selection = pdfView?.currentSelection
+        val text = when (selection) {
+            is TextSelection -> selection.text
+            is LinkSelection -> selection.linkText
+            else -> null
+        }?.toString()
+        if (text.isNullOrBlank()) {
+            Toast.makeText(activity, R.string.pdf_selection_text_unavailable, Toast.LENGTH_LONG).show()
+            return@addReaderSelectionActions
         }
 
-        val readItem = menu.findItem(1001) ?: menu.add(0, 1001, 4, "Read from here")
-        readItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
-        readItem.titleCondensed = "Read"
-        readItem.isVisible = true
-        readItem.isEnabled = true
-        readItem.setOnMenuItemClickListener {
-            performActionOnCopiedSelection(menu, mode) { text ->
-                jumpToText(text)
+        val selectedPage = selection?.bounds?.firstOrNull()?.pageNum?.plus(1)
+        val selectionPage = selectedPage ?: pdfView?.firstVisiblePage?.plus(1) ?: 1
+        val match by lazy {
+            readerTextModel?.let {
+                PdfSelectionLocator.findExactRange(text, it, selectionPage, allowAdjacentPages = selectedPage == null)?.start
             }
-            true
         }
-
-        val fixPronunciationItem = menu.findItem(1002) ?: menu.add(0, 1002, 7, "Fix pronunciation")
-        fixPronunciationItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
-        fixPronunciationItem.isVisible = true
-        fixPronunciationItem.isEnabled = true
-        fixPronunciationItem.setOnMenuItemClickListener {
-            performActionOnCopiedSelection(menu, mode) { text ->
-                PlaybackStateStore.pendingPronunciationFixWord = text.replace(Regex("\\s+"), " ").trim().take(120)
-                val intent = Intent(activity, MainActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                }
-                startActivity(intent)
-                finish()
-            }
-            true
+        if (action in listOf(ReaderSelectionAction.BOOKMARK, ReaderSelectionAction.NOTE, ReaderSelectionAction.EDIT_TEXT) && match == null) {
+            Toast.makeText(activity, R.string.pdf_selection_anchor_unavailable, Toast.LENGTH_SHORT).show()
+            return@addReaderSelectionActions
         }
-
-        val bookmarkItem = menu.findItem(1003) ?: menu.add(0, 1003, 0, getString(R.string.ui_bookmark))
-        bookmarkItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
-        bookmarkItem.isVisible = true
-        bookmarkItem.isEnabled = true
-        bookmarkItem.setOnMenuItemClickListener {
-            performActionOnCopiedSelection(menu, mode) { text ->
-                val index = findSentenceIndexForText(text)
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val docId = document?.id ?: return@launch
-                    repository.toggleAnnotation(docId, index, AnnotationType.BOOKMARK)
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(activity, "Bookmark toggled.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-            true
-        }
-
-        val noteItem = menu.findItem(1004) ?: menu.add(0, 1004, 1, getString(R.string.ui_note))
-        noteItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
-        noteItem.isVisible = true
-        noteItem.isEnabled = true
-        noteItem.setOnMenuItemClickListener {
-            performActionOnCopiedSelection(menu, mode) { text ->
-                val index = findSentenceIndexForText(text)
-                showAddNoteDialog(index)
-            }
-            true
-        }
-
-        val askAiItem = menu.findItem(1005) ?: menu.add(0, 1005, 8, "Ask AI")
-        askAiItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
-        askAiItem.isVisible = true
-        askAiItem.isEnabled = true
-        askAiItem.setOnMenuItemClickListener {
-            performActionOnCopiedSelection(menu, mode) { text ->
-                val cleanText = text.replace(Regex("\\s+"), " ").trim()
-                appendVocabularyWord(cleanText, "Asked AI for explanation.")
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val settings = repository.loadAskAiSettings()
-                    withContext(Dispatchers.Main) {
-                        askAiWithSelection(activity, settings, cleanText)
-                    }
-                }
-            }
-            true
-        }
-
-        val copyItem = menu.findItem(1006) ?: menu.add(0, 1006, 5, "Copy")
-        copyItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
-        copyItem.isVisible = true
-        copyItem.isEnabled = true
-        copyItem.setOnMenuItemClickListener {
-            performActionOnCopiedSelection(menu, mode) { text ->
-                copyTextToClipboard(activity, "Vern selection", text)
-            }
-            true
-        }
-
-        val shareItem = menu.findItem(1007) ?: menu.add(0, 1007, 6, "Share")
-        shareItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER)
-        shareItem.isVisible = true
-        shareItem.isEnabled = true
-        shareItem.setOnMenuItemClickListener {
-            performActionOnCopiedSelection(menu, mode) { text ->
-                sharePlainText(activity, "Vern selection", text)
-            }
-            true
-        }
-
-        val lookupItem = menu.findItem(1008) ?: menu.add(0, 1008, 2, getString(R.string.ui_search_definitions))
-        lookupItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS or android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT)
-        lookupItem.setOnMenuItemClickListener {
-            performActionOnCopiedSelection(menu, mode) { text ->
-                val index = findSentenceIndexForText(text)
+        mode.finish()
+        when (action) {
+            ReaderSelectionAction.COPY -> copyTextToClipboard(activity, "Vern selection", text)
+            ReaderSelectionAction.SHARE -> sharePlainText(activity, "Vern selection", text)
+            ReaderSelectionAction.GOOGLE -> openGoogleSearch(activity, text)
+            ReaderSelectionAction.DEFINE -> {
+                val index = match?.chunkIndex ?: -1
                 showDictionaryLookup(activity, text, DictionaryLookupAnchor(document?.id, index,
                     readerTextModel?.sentences?.getOrNull(index)?.text))
             }
-            true
-        }
-
-        mode.invalidate()
-    }
-
-    private fun VeritasPdfViewerActivity.performActionOnCopiedSelection(
-        menu: android.view.Menu,
-        mode: android.view.ActionMode,
-        onTextRetrieved: (String) -> Unit
-    ) {
-        // Public PDF selection avoids depending on duplicate Menu.NONE IDs for Copy.
-        val selected = (pdfView?.currentSelection as? androidx.pdf.selection.model.TextSelection)?.text?.toString()
-        if (!selected.isNullOrBlank()) {
-            mode.finish()
-            onTextRetrieved(selected)
-            return
-        }
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val oldClip = clipboard.primaryClip
-        val sentinel = "vern-pdf-selection-${System.nanoTime()}"
-        clipboard.setPrimaryClip(ClipData.newPlainText("Vern selection marker", sentinel))
-
-        val copyItem = findCopyMenuItem(menu)
-        if (copyItem != null) {
-            val copyStarted = performCopyMenuAction(menu, copyItem)
-            if (!copyStarted) {
-                restoreClipboard(clipboard, oldClip)
-                Toast.makeText(activity, "Copy action did not start.", Toast.LENGTH_SHORT).show()
-                mode.finish()
-                return
+            ReaderSelectionAction.TRANSLATE -> {
+                appendVocabularyWord(text, "Looked up translation.", match)
+                openGoogleTranslate(activity, text)
             }
-            pollCopiedSelection(clipboard, oldClip, sentinel, mode, 0, onTextRetrieved)
-        } else {
-            Toast.makeText(activity, "Copy action is not available.", Toast.LENGTH_SHORT).show()
-            restoreClipboard(clipboard, oldClip)
-            mode.finish()
-        }
-    }
-
-    private fun VeritasPdfViewerActivity.pollCopiedSelection(
-        clipboard: ClipboardManager,
-        previousClip: ClipData?,
-        sentinel: String,
-        mode: android.view.ActionMode,
-        attempt: Int,
-        onTextRetrieved: (String) -> Unit
-    ) {
-        val delayMs = when (attempt) {
-            0 -> 180L
-            1 -> 260L
-            else -> 360L
-        }
-        window.decorView.postDelayed({
-            val newClip = clipboard.primaryClip
-            val selectedText = newClip?.getItemAt(0)?.coerceToText(activity)?.toString()
-            if (!selectedText.isNullOrBlank() && selectedText != sentinel) {
-                restoreClipboard(clipboard, previousClip)
-                mode.finish()
-                onTextRetrieved(selectedText)
-            } else if (attempt < 2) {
-                pollCopiedSelection(clipboard, previousClip, sentinel, mode, attempt + 1, onTextRetrieved)
-            } else {
-                Toast.makeText(activity, "Could not extract selected text.", Toast.LENGTH_SHORT).show()
-                restoreClipboard(clipboard, previousClip)
-                mode.finish()
+            ReaderSelectionAction.ASK_AI -> {
+                appendVocabularyWord(text, "Asked AI for explanation.", match)
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val settings = repository.loadAskAiSettings()
+                    withContext(Dispatchers.Main) { askAiWithSelection(activity, settings, text) }
+                }
             }
-        }, delayMs)
-    }
-
-    private fun VeritasPdfViewerActivity.findSentenceIndexForText(selectedText: String): Int {
-        val clean = selectedText.trim()
-        if (clean.isBlank()) return PlaybackStateStore.currentIndex
-        val model = readerTextModel ?: return PlaybackStateStore.currentIndex
-        return PdfSelectionLocator.findMatch(clean, model, pdfView?.firstVisiblePage?.plus(1), PlaybackStateStore.currentIndex)?.chunkIndex
-            ?: PlaybackStateStore.currentIndex
-    }
-
-    private fun VeritasPdfViewerActivity.appendVocabularyWord(word: String, explanation: String): kotlinx.coroutines.Job? {
-        val savedDocument = document ?: return null
-        val docId = savedDocument.id
-        val currentIndex = findSentenceIndexForText(word)
-        val textModel = readerTextModel
-        val contextSentence = textModel?.sentences?.getOrNull(currentIndex)?.text
-        val sectionNum = (textModel?.partForSentence(currentIndex)?.index ?: 0) + 1
-        return lifecycleScope.launch(Dispatchers.IO) {
-            repository.saveVocabularyLookup(activity, docId, VocabularyEntry(
-                word.trim(), explanation,
-                "(looked up: Section $sectionNum, sentence ${currentIndex + 1})",
-                currentIndex, contextSentence
-            ))
+            ReaderSelectionAction.READ_FROM_HERE -> jumpToSelection(match)
+            ReaderSelectionAction.READ_ALOUD -> sendSelectionSpeechIntent(activity, text)
+            else -> {
+                val docId = document?.id ?: return@addReaderSelectionActions
+                PlaybackStateStore.pendingOriginalSelection = OriginalSelectionRequest(
+                    docId, action, text, selectionPage, pageIsExact = selectedPage != null
+                )
+                PlaybackStateStore.readerMode = ReaderMode.TEXT
+                startActivity(Intent(activity, MainActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                })
+                finish()
+            }
         }
     }
+    if (nativeCopy != null) menu.removeItem(ReaderSelectionAction.COPY.menuId)
+    mode.invalidate()
+}
+
+private fun VeritasPdfViewerActivity.appendVocabularyWord(word: String, explanation: String, match: PdfSelectionMatch?) {
+    val docId = document?.id ?: return
+    val index = match?.chunkIndex
+    val textModel = readerTextModel
+    val contextSentence = index?.let { textModel?.sentences?.getOrNull(it)?.text }
+    val section = index?.let { textModel?.partForSentence(it)?.index?.plus(1) }
+    val location = if (index != null && section != null) "(looked up: Section $section, sentence ${index + 1})"
+        else "(looked up: source location unavailable)"
+    lifecycleScope.launch(Dispatchers.IO) {
+        repository.saveVocabularyLookup(activity, docId, VocabularyEntry(
+            word.trim(), explanation, location, index ?: -1, contextSentence
+        ))
+    }
+}
 
     private fun VeritasPdfViewerActivity.showAddNoteDialog(sentenceIndex: Int) {
         val docId = document?.id ?: return
@@ -277,67 +163,19 @@ internal fun VeritasPdfViewerActivity.handleActionModeStarted(mode: android.view
         dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)?.setTextColor(colorTextSecondary)
     }
 
-    private fun findCopyMenuItem(menu: android.view.Menu): android.view.MenuItem? {
-        menu.findItem(android.R.id.copy)?.let { return it }
-        for (index in 0 until menu.size()) {
-            val item = menu.getItem(index)
-            val title = item.title?.toString().orEmpty()
-            val description = item.contentDescription?.toString().orEmpty()
-            if (title.contains("copy", ignoreCase = true) || description.contains("copy", ignoreCase = true)) {
-                return item
-            }
-            item.subMenu?.let { subMenu ->
-                findCopyMenuItem(subMenu)?.let { return it }
-            }
-        }
-        return null
+private fun VeritasPdfViewerActivity.jumpToSelection(match: PdfSelectionMatch?) {
+    val docId = document?.id ?: return
+    if (match == null) {
+        Toast.makeText(this, R.string.pdf_selection_anchor_unavailable, Toast.LENGTH_SHORT).show()
+        return
     }
-
-    private fun performCopyMenuAction(menu: android.view.Menu, item: android.view.MenuItem): Boolean {
-        if (menu.performIdentifierAction(item.itemId, 0)) return true
-        if (item.itemId != android.R.id.copy && menu.performIdentifierAction(android.R.id.copy, 0)) return true
-        item.subMenu?.let { subMenu ->
-            findCopyMenuItem(subMenu)?.let { nested ->
-                if (subMenu.performIdentifierAction(nested.itemId, 0)) return true
-            }
-        }
-        return false
+    val intent = Intent(this, PlaybackService::class.java).apply {
+        action = PlaybackActions.ACTION_JUMP_TO
+        putExtra(PlaybackActions.EXTRA_DOCUMENT_ID, docId)
+        putExtra(PlaybackActions.EXTRA_START_INDEX, match.chunkIndex)
+        putExtra(PlaybackActions.EXTRA_CHAR_OFFSET, match.charOffset)
     }
-
-    private fun restoreClipboard(clipboard: ClipboardManager, previousClip: ClipData?) {
-        if (previousClip != null) {
-            clipboard.setPrimaryClip(previousClip)
-        } else {
-            clipboard.clearPrimaryClip()
-        }
-    }
-
-    private fun VeritasPdfViewerActivity.jumpToText(selectedText: String) {
-        val docId = document?.id ?: return
-        val currentPage = pdfView?.firstVisiblePage?.plus(1)
-        val model = readerTextModel
-        val match = if (model != null) {
-            PdfSelectionLocator.findMatch(
-                selectedText = selectedText,
-                model = model,
-                currentPage = currentPage,
-                preferredSentenceIndex = PlaybackStateStore.currentIndex
-            )
-        } else {
-            PdfSelectionLocator.findMatch(selectedText, extractedChunks)
-        }
-
-        if (match != null) {
-            val intent = Intent(this, PlaybackService::class.java).apply {
-                action = PlaybackActions.ACTION_JUMP_TO
-                putExtra(PlaybackActions.EXTRA_DOCUMENT_ID, docId)
-                putExtra(PlaybackActions.EXTRA_START_INDEX, match.chunkIndex)
-                putExtra(PlaybackActions.EXTRA_CHAR_OFFSET, match.charOffset)
-            }
-            startService(PlaybackCommandSecurity.authorize(this, intent))
-            Toast.makeText(this, "Reading from selection", Toast.LENGTH_SHORT).show()
-            updatePlaybackControls()
-        } else {
-            Toast.makeText(this, "Text not found in extracted document.", Toast.LENGTH_SHORT).show()
-        }
-    }
+    startService(PlaybackCommandSecurity.authorize(this, intent))
+    Toast.makeText(this, "Reading from selection", Toast.LENGTH_SHORT).show()
+    updatePlaybackControls()
+}

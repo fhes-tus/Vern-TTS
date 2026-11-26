@@ -32,6 +32,7 @@ data class NotesSettings(
     // Checklist behavior; legacy fields remain readable.
     val moveCheckedToBottom: Boolean = true,
     val addNewItemsToTop: Boolean = false,
+    // Controls card visibility. Network preview loads require an explicit card action.
     val showRichLinkPreviews: Boolean = true,
 
     // Reading Linkage & Audio (Veritas)

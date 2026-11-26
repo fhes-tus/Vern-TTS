@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_choose_flashcard_book">Wähle ein Buch für die Karteikarten</string>
+    <string name="study_flashcard_picker_empty">Füge deiner Bibliothek zuerst ein Buch hinzu. Du kannst Karteikarten auch im Lernbereich einfügen.</string>
+    <string name="study_guide_picker_empty">Füge deiner Bibliothek ein Buch hinzu und exportiere seine Notizen und Markierungen als Lernleitfaden.</string>
+</resources>

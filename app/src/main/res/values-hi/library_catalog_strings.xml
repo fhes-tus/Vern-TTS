@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="classic_add_to_library">लाइब्रेरी में जोड़ें</string>
+    <string name="classic_waiting_for_download">डाउनलोड का इंतज़ार है</string>
+    <string name="classic_downloading">डाउनलोड हो रहा है…</string>
+    <string name="classic_download_progress">डाउनलोड हो रहा है · %1$s</string>
+    <string name="classic_adding_to_library">लाइब्रेरी में जोड़ा जा रहा है…</string>
+    <string name="classic_retry_download">दोबारा डाउनलोड करने की कोशिश करें</string>
+    <string name="classic_download_again">फिर से डाउनलोड करें</string>
+    <string name="classic_details_for_book">%1$s की जानकारी</string>
+    <string name="library_read_percent">%1$s पढ़ा</string>
+    <string name="library_read_not_started">पढ़ना शुरू नहीं किया · %1$s</string>
+    <string name="library_read_in_progress">%1$s पढ़ा · %2$s बाकी</string>
+    <string name="library_read_estimate_minutes">लगभग %1$d मि॰</string>
+    <string name="library_read_estimate_hours">लगभग %1$d घं॰</string>
+    <string name="library_read_estimate_hours_minutes">लगभग %1$d घं॰ %2$d मि॰</string>
+    <plurals name="library_page_count">
+        <item quantity="one">%1$d पेज</item>
+        <item quantity="other">%1$d पेज</item>
+    </plurals>
+    <plurals name="library_sentence_count">
+        <item quantity="one">%1$d वाक्य</item>
+        <item quantity="other">%1$d वाक्य</item>
+    </plurals>
+</resources>

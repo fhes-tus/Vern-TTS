@@ -313,9 +313,8 @@ export function ReadingLists({
       {deleting && (
         <Modal
           title="Delete this reading list?"
-          onClose={() => {
-            if (!busy) setDeleting(null);
-          }}
+          dismissible={!busy}
+          onClose={() => setDeleting(null)}
         >
           <p>“{deleting.title}” will be removed. Its books stay in your library.</p>
           <div className="action-row">
@@ -364,9 +363,8 @@ function ListEditor({
   return (
     <Modal
       title={initial.id ? 'Edit reading list' : 'New reading list'}
-      onClose={() => {
-        if (!busy) onClose();
-      }}
+      dismissible={!busy}
+      onClose={onClose}
     >
       <form
         className="workspace-form reading-list-editor"
@@ -459,7 +457,7 @@ function ListEditor({
           <button className="primary" disabled={busy || !draft.title.trim()}>
             {busy ? 'Saving…' : 'Save list'}
           </button>
-          <button type="button" className="secondary" disabled={busy} onClick={onClose}>
+          <button type="button" className="secondary" disabled={busy} data-dialog-dismiss>
             Cancel
           </button>
         </div>

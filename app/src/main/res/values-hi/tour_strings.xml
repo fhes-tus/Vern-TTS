@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tour_welcome_title">ऐप का इंटरैक्टिव दौरा</string>
+    <string name="tour_welcome_body">लाइब्रेरी, पठन टूल, नोट्स और सेटिंग जानने के लिए हाइलाइट का अनुसरण करें।</string>
+    <string name="tour_name_input_title">हम आपको क्या कहें?</string>
+    <string name="tour_name_input_body">डैशबोर्ड और संदेशों को वैयक्तिकृत करने के लिए अपना नाम दर्ज करें।</string>
+    <string name="tour_fab_spotlight_title">कार्य 1 — दस्तावेज़ जोड़ें</string>
+    <string name="tour_fab_spotlight_body">PDF, EPUB, Word, टेक्स्ट फ़ाइल, चित्र या वेब लिंक आयात करने के लिए जोड़ें बटन टैप करें।</string>
+    <string name="tour_checklist_spotlight_title">आपकी कार्य सूची</string>
+    <string name="tour_checklist_spotlight_body">यह फ़्लोटिंग सूची आपके सक्रिय कार्य दिखाती है। सभी सुविधाएँ जानने के लिए इन्हें पूरा करें।</string>
+    <string name="tour_classics_spotlight_title">क्लासिक पुस्तकों की सूची</string>
+    <string name="tour_classics_spotlight_body">विधा के अनुसार ब्राउज़ करें, शेल्फ़ पर स्वाइप करें और पसंदीदा किताब लाइब्रेरी में जोड़ें।</string>
+    <string name="tour_insights_spotlight_title">पठन आँकड़े</string>
+    <string name="tour_insights_spotlight_body">यह मेनू बटन डैशबोर्ड खोलता है। पठन आँकड़े देखने के लिए आगे टैप करें।</string>
+    <string name="tour_insights_page_spotlight_title">आपके आँकड़े एक नज़र में</string>
+    <string name="tour_insights_page_spotlight_body">लगातार पढ़ने के दिन, किताबों के स्रोत और हर महीने सुनने का समय देखें। ये आँकड़े आपके डिवाइस पर रहते हैं।</string>
+    <string name="tour_notes_tab_spotlight_title">नोट्स और वॉइस मेमो</string>
+    <string name="tour_notes_tab_spotlight_body">दस्तावेज़ की टिप्पणियाँ, नोट्स, बुकमार्क और रिकॉर्डिंग एक ही जगह देखें।</string>
+    <string name="tour_study_tab_spotlight_title">AI अध्ययन केंद्र और फ़्लैशकार्ड</string>
+    <string name="tour_study_tab_spotlight_body">AI से सारांश बनाएँ, फ़्लैशकार्ड से अभ्यास करें और क्विज़ से अपनी समझ जाँचें।</string>
+    <string name="tour_settings_spotlight_title">सेटिंग और अनुकूलन</string>
+    <string name="tour_settings_spotlight_body">आवाज़, गति, थीम, सिंक, बैकअप और उच्चारण नियम समायोजित करें।</string>
+    <string name="tour_document_spotlight_title">दस्तावेज़ खोलें</string>
+    <string name="tour_document_spotlight_body">आपके दस्तावेज़ यहाँ दिखते हैं। दस्तावेज़ खोलने के लिए कार्ड टैप करें।</string>
+    <string name="tour_mode_toggle_spotlight_title">पठन मोड बदलें</string>
+    <string name="tour_mode_toggle_spotlight_body">पढ़ने के लिए टेक्स्ट, वाक्यों का अनुसरण करने के लिए सुनें, या PDF लेआउट के लिए मूल चुनें।</string>
+    <string name="tour_player_panel_spotlight_title">प्लेबैक नियंत्रण</string>
+    <string name="tour_player_panel_spotlight_body">गति, पिच, आवाज़ और स्लीप टाइमर के लिए पैनल टैप करें या ऊपर खींचें।</string>
+    <string name="tour_reader_text_spotlight_title">टेक्स्ट चयन और अध्ययन टूल</string>
+    <string name="tour_reader_text_spotlight_body">बुकमार्क या नोट जोड़ने, अनुवाद करने या AI सहायक से पूछने के लिए वाक्य को देर तक दबाएँ।</string>
+    <string name="tour_congratulations_title">दौरा पूरा हुआ!</string>
+    <string name="tour_congratulations_body">सभी सुविधाएँ जानने के लिए सूची में बाकी कार्य पूरे करें।</string>
+</resources>

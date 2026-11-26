@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tour_welcome_title">جولة تفاعلية في التطبيق</string>
+    <string name="tour_welcome_body">اتبع الإشارات للتعرّف على المكتبة وأدوات القراءة والملاحظات والإعدادات.</string>
+    <string name="tour_name_input_title">بماذا نناديك؟</string>
+    <string name="tour_name_input_body">أدخل اسمك لتخصيص لوحة المعلومات والرسائل.</string>
+    <string name="tour_fab_spotlight_title">المهمة 1 — إضافة مستند</string>
+    <string name="tour_fab_spotlight_body">اضغط على زر الإضافة لاستيراد ملفات PDF أو EPUB أو Word أو ملفات نصية أو صور أو روابط.</string>
+    <string name="tour_checklist_spotlight_title">قائمة المهام</string>
+    <string name="tour_checklist_spotlight_body">تعرض هذه القائمة العائمة مهامك الحالية. أكملها للتعرّف على جميع الميزات.</string>
+    <string name="tour_classics_spotlight_title">فهرس الكتب الكلاسيكية</string>
+    <string name="tour_classics_spotlight_body">تصفّح حسب النوع، ومرّر الرفوف، وأضف كتابًا إلى مكتبتك.</string>
+    <string name="tour_insights_spotlight_title">إحصاءات القراءة</string>
+    <string name="tour_insights_spotlight_body">يفتح زر القائمة لوحة المعلومات. اضغط على التالي لعرض إحصاءات القراءة.</string>
+    <string name="tour_insights_page_spotlight_title">إحصاءاتك في لمحة</string>
+    <string name="tour_insights_page_spotlight_body">تابع أيام القراءة المتتالية ومصادر كتبك ومدة الاستماع الشهرية. تُحفظ البيانات على جهازك.</string>
+    <string name="tour_notes_tab_spotlight_title">الملاحظات والمذكرات الصوتية</string>
+    <string name="tour_notes_tab_spotlight_body">راجع التعليقات والملاحظات والإشارات المرجعية والتسجيلات في مكان واحد.</string>
+    <string name="tour_study_tab_spotlight_title">مركز الدراسة بالذكاء الاصطناعي وبطاقات المراجعة</string>
+    <string name="tour_study_tab_spotlight_body">أنشئ ملخصات بالذكاء الاصطناعي وراجع البطاقات واختبر معلوماتك.</string>
+    <string name="tour_settings_spotlight_title">الإعدادات والتخصيص</string>
+    <string name="tour_settings_spotlight_body">اضبط الأصوات وسرعة التشغيل والسمات والمزامنة والنسخ الاحتياطي وقواعد النطق.</string>
+    <string name="tour_document_spotlight_title">افتح مستندًا</string>
+    <string name="tour_document_spotlight_body">تظهر مستنداتك هنا. اضغط على بطاقة لفتح المستند.</string>
+    <string name="tour_mode_toggle_spotlight_title">التبديل بين أوضاع القراءة</string>
+    <string name="tour_mode_toggle_spotlight_body">اختر النص للقراءة، أو الاستماع لمتابعة الجمل، أو الأصل لعرض تنسيق PDF.</string>
+    <string name="tour_player_panel_spotlight_title">عناصر التحكم في التشغيل</string>
+    <string name="tour_player_panel_spotlight_body">اضغط على اللوحة أو اسحبها للأعلى لضبط السرعة أو حدة الصوت أو الصوت أو مؤقت النوم.</string>
+    <string name="tour_reader_text_spotlight_title">تحديد النص وأدوات الدراسة</string>
+    <string name="tour_reader_text_spotlight_body">اضغط مطولًا على جملة لإضافة إشارة أو ملاحظة أو ترجمة النص أو سؤال مساعد الذكاء الاصطناعي.</string>
+    <string name="tour_congratulations_title">اكتملت الجولة!</string>
+    <string name="tour_congratulations_body">أكمل المهام المتبقية في القائمة للتعرّف على جميع الميزات.</string>
+</resources>

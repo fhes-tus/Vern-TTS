@@ -69,6 +69,7 @@ class ClassicLibraryInstrumentedTest {
         title, "A first sentence to read.\n\nA second sentence remains in place.\n\nThe third sentence completes the fixture.", "TXT")
         .also { ownedDocuments.add(it.id) }
     private fun tab(label: String) = compose.onNode(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab) and hasContentDescription(label))
+
     private fun screenshot(name: String) {
         compose.waitForIdle()
         SystemClock.sleep(500)

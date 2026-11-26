@@ -4,12 +4,14 @@ import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import com.veritas.reader.ui.VeritasMotion
@@ -17,6 +19,9 @@ import com.veritas.reader.veritasGlassBackdrop
 import androidx.compose.foundation.layout.statusBarsPadding
 import com.veritas.reader.recordVeritasBackdrop
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,7 +30,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -59,6 +63,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,11 +78,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.zIndex
 import com.veritas.reader.ui.NotesSettings
 import com.veritas.reader.AiResultParser
 import com.veritas.reader.Flashcard
@@ -103,6 +116,11 @@ import com.veritas.reader.ui.OnboardingStep
 import com.veritas.reader.ui.ReaderUiState
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 internal data class MarkedDocument(
     val document: SavedDocument,
@@ -110,6 +128,10 @@ internal data class MarkedDocument(
     val documentNote: String,
     val updatedAt: Long
 )
+
+private data class LibraryTabTransition(val outgoing: Int, val incoming: Int)
+
+internal val LibraryTabFade = tween<Float>(durationMillis = 155, easing = LinearOutSlowInEasing)
 
 internal enum class ImportSheetMode {
     MENU,
@@ -189,7 +211,7 @@ fun LibraryScreen(
     onToggleGeneralNotePin: (String) -> Unit = {},
     onChangeGeneralNoteColor: (String, String?) -> Unit = { _, _ -> },
     onDeleteGeneralNote: (String) -> Unit = {},
-    onRateFlashcardRecall: (String, String) -> Unit = { _, _ -> },
+    onRateFlashcardRecall: (String, String, (Boolean) -> Unit) -> Unit = { _, _, finish -> finish(false) },
     onDeleteFlashcard: (String) -> Unit = {},
     onImportFlashcards: (String, List<Flashcard>) -> Unit = { _, _ -> },
     onRenameFlashcardSet: (String, String) -> Unit = { _, _ -> },
@@ -198,11 +220,11 @@ fun LibraryScreen(
     onSaveQuiz: (QuizSet) -> Unit = {},
     onDeleteQuiz: (String) -> Unit = {},
     onRecordQuizScore: (String, Int) -> Unit = { _, _ -> },
-    onGenerateInAppFlashcards: (SavedDocument, String?) -> Unit = { _, _ -> },
     onGenerateInAppQuiz: (SavedDocument, String?) -> Unit = { _, _ -> },
     onOpenAiStudyTools: () -> Unit = {},
     onExportStudyGuidePdf: (SavedDocument) -> Unit = {},
     onCancelAiStudyGeneration: () -> Unit = {},
+    firstChapter: (@Composable (openImport: () -> Unit) -> Unit)? = null,
     onDismissOpeningDocument: () -> Unit = {},
     onOpenNotesSettings: () -> Unit = {},
     showNotesSettings: Boolean = false,
@@ -235,6 +257,11 @@ fun LibraryScreen(
     var sourceFilter by rememberSaveable { mutableStateOf("All") }
     var collectionFilter by rememberSaveable { mutableStateOf("All") }
     var readingListFilter by rememberSaveable { mutableStateOf("All") }
+    LaunchedEffect(uiState.readingListCatalog, readingListFilter) {
+        if (readingListFilter != "All" && uiState.readingListCatalog.list(readingListFilter)?.archived != false) {
+            readingListFilter = "All"
+        }
+    }
     var manageListsDocument by remember { mutableStateOf<SavedDocument?>(null) }
     var sortMode by rememberSaveable { mutableStateOf("Updated") }
     var showQueue by remember { mutableStateOf(false) }
@@ -291,12 +318,14 @@ fun LibraryScreen(
         if (selectedHomeTab == VeritasHomeTab.STUDY) {
             val clip = clipboard.getClipEntry()?.clipData?.getItemAt(0)?.text?.toString()?.trim().orEmpty()
             if (clip.isNotBlank() && clip.length in 15..30000 && clip.take(60) != dismissedClipboardSnippet) {
-                val quiz = AiResultParser.parseQuiz(clip)
+                val (quiz, cards) = withContext(Dispatchers.Default) {
+                    val parsedQuiz = AiResultParser.parseQuiz(clip)
+                    parsedQuiz to if (parsedQuiz.isEmpty()) AiResultParser.parseFlashcards(clip) else emptyList()
+                }
                 if (quiz.isNotEmpty()) {
                     detectedClipboardQuiz = quiz
                     detectedClipboardFlashcards = emptyList()
                 } else {
-                    val cards = AiResultParser.parseFlashcards(clip)
                     if (cards.size >= 2) {
                         detectedClipboardFlashcards = cards
                         detectedClipboardQuiz = emptyList()
@@ -310,9 +339,7 @@ fun LibraryScreen(
     var showHomeSidebar by remember { mutableStateOf(false) }
     var showImportSheet by remember { mutableStateOf(false) }
     var importSheetMode by remember { mutableStateOf(ImportSheetMode.MENU) }
-    var showReadingStatsHome by remember(widgetAction) {
-        mutableStateOf(widgetAction == "show_reader_tracker")
-    }
+    var showReadingStatsHome by remember { mutableStateOf(false) }
     LaunchedEffect(showReadingStatsHome) {
         if (showReadingStatsHome) onRefreshInsights()
     }
@@ -380,32 +407,54 @@ fun LibraryScreen(
     val studyListState = rememberLazyListState()
 
     val reduceMotion = VeritasMotion.scheme.reduceMotion
-    val pagerMotion = VeritasMotion.spatialSlow<Float>()
     val chromeEffects = VeritasMotion.effectsFast<Float>()
-    var navigationJob by remember { mutableStateOf<Job?>(null) }
-    var navigationRequest by remember { mutableStateOf(0) }
-    var requestedNavTab by remember { mutableStateOf<VeritasHomeTab?>(null) }
-    val navigateToPage: (VeritasHomeTab, LibrarySection) -> Unit = remember(pagerState, coroutineScope, reduceMotion) { { tab, section ->
-            val request = ++navigationRequest
-            navigationJob?.cancel()
-            if (tab == VeritasHomeTab.LIBRARY) librarySection = section
-            selectedHomeTab = tab
-            requestedNavTab = tab
-            navigationJob = coroutineScope.launch {
-                try {
-                    val page = libraryPagerIndex(tab, section)
-                    if (reduceMotion) pagerState.scrollToPage(page)
-                    else pagerState.animateScrollToPage(page, animationSpec = pagerMotion)
-                } finally {
-                    if (navigationRequest == request) requestedNavTab = null
-                }
+    val tabFade = remember { mutableStateOf<LibraryTabTransition?>(null) }
+    val tabArrival = remember { mutableFloatStateOf(1f) }
+    val navigationJob = remember { mutableStateOf<Job?>(null) }
+    var retainedPageRadius by remember { mutableIntStateOf(1) }
+    LaunchedEffect(pagerState) {
+        for (radius in 2..libraryPagerPages.lastIndex) {
+            delay(120)
+            snapshotFlow { !pagerState.isScrollInProgress && tabFade.value == null }.first { it }
+            retainedPageRadius = radius
+        }
+    }
+    LaunchedEffect(pagerState) {
+        pagerState.interactionSource.interactions.collect { interaction ->
+            if (interaction is DragInteraction.Start) {
+                navigationJob.value?.cancel()
+                tabFade.value = null
             }
-    } }
-    val navigateToTab: (VeritasHomeTab) -> Unit = remember(navigateToPage) { { tab ->
-        navigateToPage(tab, if (tab == VeritasHomeTab.LIBRARY) LibrarySection.MY_LIBRARY else librarySection)
-    } }
-
-    val backNavTab = requestedNavTab ?: libraryPagerPages[pagerState.currentPage].tab
+        }
+    }
+    val navigateToPage: (VeritasHomeTab, LibrarySection, Boolean) -> Unit = remember(pagerState, coroutineScope, reduceMotion) {
+        { tab, section, fade ->
+            val page = libraryPagerIndex(tab, section)
+            val previous = pagerState.currentPage
+            val changingPage = previous != page
+            if (changingPage || pagerState.isScrollInProgress || pagerState.currentPageOffsetFraction != 0f) {
+                navigationJob.value?.cancel()
+                val transition = if (changingPage && fade && !reduceMotion &&
+                    !pagerState.isScrollInProgress
+                ) LibraryTabTransition(previous, page) else null
+                tabFade.value = transition
+                val startAlpha = .12f
+                tabArrival.floatValue = startAlpha
+                pagerState.requestScrollToPage(page)
+                navigationJob.value = if (transition != null) coroutineScope.launch {
+                    animate(startAlpha, 1f, animationSpec = LibraryTabFade) { alpha, _ ->
+                        tabArrival.floatValue = alpha
+                    }
+                    tabFade.value = null
+                } else null
+            }
+        }
+    }
+    val navigateToTab: (VeritasHomeTab) -> Unit = remember(navigateToPage) {
+        { tab -> navigateToPage(tab, LibrarySection.MY_LIBRARY, true) }
+    }
+    val currentDestination = libraryPagerPages[pagerState.currentPage]
+    val backNavTab = currentDestination.tab
     val isNotHomeTab = backNavTab != VeritasHomeTab.HOME
     BackHandler(enabled = selectionMode || selectedAnnotationKeys.isNotEmpty() || showHomeSidebar || showImportSheet || isNotHomeTab) {
         when {
@@ -437,70 +486,44 @@ fun LibraryScreen(
         )
         handledWidgetAction = widgetAction
         if (target != null) {
-            navigationRequest++
-            navigationJob?.cancel()
-            requestedNavTab = null
-            pagerState.scrollToPage(libraryPagerIndex(target, uiState.targetLibrarySection ?: librarySection))
-            selectedHomeTab = target
+            navigateToPage(target, uiState.targetLibrarySection ?: librarySection, false)
         }
-        uiState.targetLibrarySection?.let { librarySection = it }
         if (explicitTarget != null) onClearTargetHomeTab()
     }
 
     // Handle onboarding tour steps:
-    LaunchedEffect(OnboardingController.activeStep) {
-        when (OnboardingController.activeStep) {
-            OnboardingStep.CLASSICS_SPOTLIGHT -> {
-                librarySection = LibrarySection.CLASSICS
-                pagerState.animateScrollToPage(libraryPagerIndex(VeritasHomeTab.LIBRARY, librarySection), animationSpec = pagerMotion)
-                selectedHomeTab = VeritasHomeTab.LIBRARY
-            }
+    LaunchedEffect(activeOnboardingStep) {
+        when (activeOnboardingStep) {
+            OnboardingStep.CLASSICS_SPOTLIGHT -> navigateToPage(VeritasHomeTab.LIBRARY, LibrarySection.CLASSICS, true)
+            OnboardingStep.CHECKLIST_SPOTLIGHT,
             OnboardingStep.INSIGHTS_SPOTLIGHT,
-            OnboardingStep.INSIGHTS_PAGE_SPOTLIGHT -> {
-                pagerState.animateScrollToPage(libraryPagerIndex(VeritasHomeTab.HOME, librarySection), animationSpec = pagerMotion)
-                selectedHomeTab = VeritasHomeTab.HOME
-            }
-            OnboardingStep.NOTES_TAB_SPOTLIGHT -> {
-                pagerState.animateScrollToPage(libraryPagerIndex(VeritasHomeTab.NOTES, librarySection), animationSpec = pagerMotion)
-                selectedHomeTab = VeritasHomeTab.NOTES
-            }
-            OnboardingStep.STUDY_TAB_SPOTLIGHT -> {
-                pagerState.animateScrollToPage(libraryPagerIndex(VeritasHomeTab.STUDY, librarySection), animationSpec = pagerMotion)
-                selectedHomeTab = VeritasHomeTab.STUDY
-            }
-            null -> {}
-            else -> {
-                pagerState.animateScrollToPage(libraryPagerIndex(VeritasHomeTab.LIBRARY, librarySection), animationSpec = pagerMotion)
-                selectedHomeTab = VeritasHomeTab.LIBRARY
-            }
+            OnboardingStep.INSIGHTS_PAGE_SPOTLIGHT -> navigateToTab(VeritasHomeTab.HOME)
+            OnboardingStep.NOTES_TAB_SPOTLIGHT -> navigateToTab(VeritasHomeTab.NOTES)
+            OnboardingStep.STUDY_TAB_SPOTLIGHT -> navigateToTab(VeritasHomeTab.STUDY)
+            null -> Unit
+            else -> navigateToPage(VeritasHomeTab.LIBRARY, librarySection, true)
         }
     }
 
-    // Follow the nearest page during a swipe; settled destinations are persisted below.
-    val activeNavTab = requestedNavTab ?: libraryPagerPages[pagerState.currentPage].tab
-    val entrancePage = requestedNavTab?.let { libraryPagerIndex(it, librarySection) } ?: pagerState.currentPage
-    val activeCardEntrance = remember(entrancePage) { android.os.SystemClock.uptimeMillis() }
+    val activeNavTab = currentDestination.tab
+    val activeLibrarySection = currentDestination.section ?: librarySection
+    // Card entrances belong to the initial screen, not every crossing of a page midpoint.
+    val entrancePage = remember(pagerState) { pagerState.settledPage }
+    val cardEntrance = remember(pagerState) { android.os.SystemClock.uptimeMillis() }
     BackHandler(enabled = (activeNavTab == VeritasHomeTab.LIBRARY || activeNavTab == VeritasHomeTab.NOTES) && searchExpanded) {
         searchExpanded = false
         headerFocus.clearFocus()
     }
-    LaunchedEffect(activeNavTab) { searchExpanded = false; headerFocus.clearFocus() }
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage to pagerState.isScrollInProgress }
-            .collect { (page, scrolling) ->
-                if (!scrolling && libraryPagerPages[page].tab == VeritasHomeTab.HOME) onRefreshInsights()
-            }
-    }
-
-    // Keep selectedHomeTab in sync with settled page:
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }.collect { page ->
             val destination = libraryPagerPages[page]
-            if (requestedNavTab == null) {
-                destination.section?.let { librarySection = it }
-                val targetTab = destination.tab
-                if (selectedHomeTab != targetTab) selectedHomeTab = targetTab
+            destination.section?.let { librarySection = it }
+            if (selectedHomeTab != destination.tab) {
+                searchExpanded = false
+                headerFocus.clearFocus()
+                selectedHomeTab = destination.tab
             }
+            if (destination.tab == VeritasHomeTab.HOME) onRefreshInsights()
         }
     }
 
@@ -651,9 +674,25 @@ fun LibraryScreen(
         )
     }
 
+    val isTransitionSettled = animatedVisibilityScope?.transition?.let {
+        it.currentState == EnterExitState.Visible && it.targetState == EnterExitState.Visible
+    } ?: true
     val glassEnabled = VeritasPackStyle.glassChromeEnabled() && com.veritas.reader.isDeviceGlassCapable()
     val glassBackdrop = if (glassEnabled) com.veritas.reader.rememberVeritasLayerBackdrop() else null
-    com.veritas.reader.VeritasBackdropProvider(glassBackdrop) {
+    val effectiveBackdrop = if (isTransitionSettled) glassBackdrop else null
+    val playbackId = PlaybackStateStore.activeDocumentId
+    val playingDocument = remember(documents, playbackId) { documents.firstOrNull { it.id == playbackId } }
+    val density = LocalDensity.current
+    val fallbackPlayerHeight = VeritasPackStyle.libraryPlayerHeight + 8.dp
+    var measuredPlayerHeight by remember(density, fallbackPlayerHeight) { mutableStateOf(fallbackPlayerHeight) }
+    val playerClearance = if (playingDocument != null) measuredPlayerHeight else 0.dp
+    val pagerPosition = remember(pagerState) {
+        { pagerState.currentPage + pagerState.currentPageOffsetFraction }
+    }
+    val navPosition = remember(pagerPosition) { { libraryPagerNavPosition(pagerPosition()) } }
+    val addedPage = libraryPagerIndex(VeritasHomeTab.LIBRARY)
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    com.veritas.reader.VeritasBackdropProvider(effectiveBackdrop) {
     Box(modifier = Modifier.fillMaxSize().background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))) {
         Scaffold(
             containerColor = Color.Transparent,
@@ -664,101 +703,95 @@ fun LibraryScreen(
             // and is unreadable in dark mode on the notes/bookmarks/history/vocabulary tabs.
             contentColor = MaterialTheme.colorScheme.onSurface,
             floatingActionButton = {
-                // FAB pops in/out with the Library tab and its + rotates 45° with a
-                // spring while the import sheet is open (micro-morph, no layout risk).
-                AnimatedVisibility(
-                    visible = (activeNavTab == VeritasHomeTab.LIBRARY && librarySection == LibrarySection.MY_LIBRARY) || activeNavTab == VeritasHomeTab.NOTES,
-                    enter = scaleIn(VeritasMotion.spatialFast(), initialScale = .92f) + fadeIn(chromeEffects),
-                    exit = scaleOut(VeritasMotion.spatialFast(), targetScale = .96f) + fadeOut(chromeEffects)
-                ) {
-                    androidx.compose.animation.AnimatedContent(
-                        targetState = activeNavTab,
-                        transitionSpec = { (fadeIn(chromeEffects) togetherWith fadeOut(chromeEffects)).using(null) },
-                        modifier = Modifier.offset(y = if (activeNavTab != VeritasHomeTab.NOTES &&
-                            documents.any { it.id == PlaybackStateStore.activeDocumentId }) 88.dp * (1f - playerExpansion) else 0.dp),
-                        label = "fabTabContentTransition"
-                    ) { currentTab ->
-                        if (currentTab == VeritasHomeTab.NOTES) {
-                            ExtendedFloatingActionButton(
-                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_note)) },
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.EditNote,
-                                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_write_note_96dcbf1),
-                                        modifier = Modifier.size(22.dp)
-                                    )
-                                },
-                                onClick = { onWriteGeneralNote() },
-                                shape = VeritasPackStyle.chipShape(),
-                                elevation = if (glassEnabled) FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp) else FloatingActionButtonDefaults.elevation(),
-                                containerColor = if (glassEnabled) Color.Transparent else MaterialTheme.colorScheme.primary,
-                                contentColor = if (glassEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.veritasGlassBackdrop(VeritasPackStyle.chipShape(), glassEnabled, surfaceOpacity = .36f)
-                                    .then(if (glassEnabled) Modifier else Modifier.border(VeritasPackStyle.cardBorder(MaterialTheme.colorScheme), VeritasPackStyle.chipShape()))
-                            )
-                        } else {
-                            val fabPlusRotation by animateFloatAsState(
-                                targetValue = if (showImportSheet) 45f else 0f,
-                                animationSpec = VeritasMotion.spatialFast(),
-                                label = "fabPlusRotation"
-                            )
-                            ExtendedFloatingActionButton(
-                                text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add)) },
-                                icon = {
-                                    Text(
-                                        "+",
-                                        fontSize = 20.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.graphicsLayer { rotationZ = fabPlusRotation }
-                                    )
-                                },
-                                onClick = { showImportSheet = true },
-                                shape = VeritasPackStyle.chipShape(),
-                                elevation = if (glassEnabled) FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp) else FloatingActionButtonDefaults.elevation(),
-                                containerColor = if (glassEnabled) Color.Transparent else MaterialTheme.colorScheme.primary,
-                                contentColor = if (glassEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier
-                                    .veritasGlassBackdrop(VeritasPackStyle.chipShape(), glassEnabled, surfaceOpacity = .36f)
-                                    .onGloballyPositioned { OnboardingController.updateBounds("add_fab", it) }
-                                    .then(if (glassEnabled) Modifier else Modifier.border(VeritasPackStyle.cardBorder(MaterialTheme.colorScheme), VeritasPackStyle.chipShape()))
-                            )
-                        }
+                val actionTab = when {
+                    activeNavTab == VeritasHomeTab.NOTES -> VeritasHomeTab.NOTES
+                    activeNavTab == VeritasHomeTab.LIBRARY && activeLibrarySection == LibrarySection.MY_LIBRARY -> VeritasHomeTab.LIBRARY
+                    else -> null
+                }
+                androidx.compose.animation.AnimatedContent(
+                    targetState = actionTab,
+                    transitionSpec = { (fadeIn(LibraryTabFade) togetherWith fadeOut(LibraryTabFade)).using(null) },
+                    contentAlignment = Alignment.BottomEnd,
+                    label = "fabTabContentTransition"
+                ) { currentTab ->
+                    val actionSemantics = if (currentTab == actionTab) Modifier else Modifier.clearAndSetSemantics {}
+                    if (currentTab == VeritasHomeTab.NOTES) {
+                        ExtendedFloatingActionButton(
+                            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_note)) },
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.EditNote,
+                                    contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_write_note_96dcbf1),
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            onClick = { if (actionTab == currentTab) onWriteGeneralNote() },
+                            shape = VeritasPackStyle.chipShape(),
+                            elevation = if (glassEnabled) FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp) else FloatingActionButtonDefaults.elevation(),
+                            containerColor = if (glassEnabled) Color.Transparent else MaterialTheme.colorScheme.primary,
+                            contentColor = if (glassEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                            modifier = actionSemantics.veritasGlassBackdrop(VeritasPackStyle.chipShape(), glassEnabled, surfaceOpacity = .36f)
+                                .then(if (glassEnabled) Modifier else Modifier.border(VeritasPackStyle.cardBorder(MaterialTheme.colorScheme), VeritasPackStyle.chipShape()))
+                        )
+                    } else if (currentTab == VeritasHomeTab.LIBRARY) {
+                        val fabPlusRotation by animateFloatAsState(
+                            targetValue = if (showImportSheet) 45f else 0f,
+                            animationSpec = VeritasMotion.spatialFast(),
+                            label = "fabPlusRotation"
+                        )
+                        ExtendedFloatingActionButton(
+                            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_add)) },
+                            icon = {
+                                Text(
+                                    "+",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.graphicsLayer { rotationZ = fabPlusRotation }
+                                )
+                            },
+                            onClick = { if (actionTab == currentTab) showImportSheet = true },
+                            shape = VeritasPackStyle.chipShape(),
+                            elevation = if (glassEnabled) FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp) else FloatingActionButtonDefaults.elevation(),
+                            containerColor = if (glassEnabled) Color.Transparent else MaterialTheme.colorScheme.primary,
+                            contentColor = if (glassEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                            modifier = actionSemantics
+                                .padding(bottom = playerClearance * playerExpansion)
+                                .veritasGlassBackdrop(VeritasPackStyle.chipShape(), glassEnabled, surfaceOpacity = .36f)
+                                .onGloballyPositioned { OnboardingController.updateBounds("add_fab", it) }
+                                .then(if (glassEnabled) Modifier else Modifier.border(VeritasPackStyle.cardBorder(MaterialTheme.colorScheme), VeritasPackStyle.chipShape()))
+                        )
                     }
                 }
             },
 
             bottomBar = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (activeNavTab != VeritasHomeTab.NOTES) documents.firstOrNull { it.id == com.veritas.reader.PlaybackStateStore.activeDocumentId }?.let { playingDocument ->
-                        LivePlaybackFloater(playingDocument,
-                            onOpen = { onOpenDocumentAt(playingDocument, com.veritas.reader.PlaybackStateStore.currentIndex) },
-                            onPlayPause = { onPlayPauseContinue(playingDocument) },
-                            collapsed = playerCollapsed, expansion = playerExpansion,
-                            onToggleCollapsed = { playerCollapsed = !playerCollapsed })
-                    }
                 LibraryBottomNavBar(
                     activeNavTab = activeNavTab,
                     showNavLabels = uiState.readerSettings.showNavLabels,
-                    onNavigateToTab = navigateToTab
+                    onNavigateToTab = navigateToTab,
+                    pagerNavPosition = navPosition
                 )
-                }
             }
         ) { homePadding ->
-            CompositionLocalProvider(
-                LocalHomeBottomPadding provides homePadding.calculateBottomPadding()
-            ) {
+            val navigationClearance = homePadding.calculateBottomPadding()
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .recordVeritasBackdrop(glassBackdrop, glassEnabled)
-                    .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme))
                     .padding(
                         top = homePadding.calculateTopPadding()
                     ),
                 contentAlignment = Alignment.TopCenter
             ) {
+                // The floating player samples this backdrop. It must be a sibling of the capture.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .recordVeritasBackdrop(effectiveBackdrop, isTransitionSettled && glassEnabled)
+                        .background(VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme)),
+                    contentAlignment = Alignment.TopCenter
+                ) {
                 val contentWidth = 760.dp
-                BoxWithConstraints(Modifier.widthIn(max = contentWidth).fillMaxSize().testTag("library-content")) {
+                BoxWithConstraints(Modifier.widthIn(max = contentWidth).fillMaxSize().statusBarsPadding().testTag("library-content")) {
                 // Use the capped content column, including after a live window resize.
                 // Add columns when 160 dp tiles and 12 dp gaps fit within the 36 dp list gutters.
                 val columnCount = ((maxWidth - 24.dp) / 172.dp).toInt().coerceIn(2, 4)
@@ -767,16 +800,66 @@ fun LibraryScreen(
                         .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Box(Modifier.fillMaxSize()) {
+                    val searchScroll = remember(headerFocus) { object : NestedScrollConnection {
+                        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                            if (source == NestedScrollSource.UserInput && available.y < -8f && searchExpanded) {
+                                searchExpanded = false
+                                headerFocus.clearFocus()
+                            }
+                            return Offset.Zero
+                        }
+                    } }
+                    val tapTransition = tabFade.value
+                    val tabBackground = VeritasPackStyle.backgroundBrush(MaterialTheme.colorScheme)
+                    val transitionPageRadius = tapTransition?.let { abs(it.incoming - it.outgoing) } ?: 0
+                    HorizontalPager(
+                        state = pagerState,
+                        userScrollEnabled = !selectionMode,
+                        beyondViewportPageCount = maxOf(retainedPageRadius, transitionPageRadius),
+                        modifier = Modifier.fillMaxSize().testTag("home_pager").nestedScroll(searchScroll)
+                    ) { page ->
+                        val destination = libraryPagerPages[page]
+                        val pageVisible by remember(pagerState, page) { derivedStateOf {
+                            pagerState.settledPage == page
+                        } }
+                        CompositionLocalProvider(
+                            LocalLibraryPageVisible provides pageVisible,
+                            LocalHomeBottomPadding provides navigationClearance + (if (destination.tab == VeritasHomeTab.NOTES) 0.dp else playerClearance),
+                            com.veritas.reader.LocalVernCardEntrance provides if (page == entrancePage) cardEntrance else -1L
+                        ) {
+                        val isCurrentPage = page == pagerState.currentPage
+                        val pageLibrarySection = destination.section ?: librarySection
+                        val showPageSearch = searchExpanded && destination.tab == selectedHomeTab
+                        val outgoing = tapTransition?.outgoing == page
+                        val arriving = tapTransition?.incoming == page
+                        Column(
+                            Modifier.fillMaxSize().zIndex(if (outgoing) -1f else page.toFloat())
+                                .graphicsLayer {
+                                    translationX = if (outgoing) (pagerPosition() - page) * size.width *
+                                        if (rtl) -1f else 1f else 0f
+                                    alpha = if (arriving) tabArrival.floatValue else 1f
+                                }
+                                .background(tabBackground)
+                                .then(if (isCurrentPage) Modifier else Modifier.clearAndSetSemantics {})
+                        ) {
+                            Column(
+                                Modifier.fillMaxWidth()
+                                    .libraryHeaderSwipeGate(page, rtl)
+                                    .graphicsLayer {
+                                        val position = pagerPosition()
+                                        val pinned = libraryPinnedHeaderProgress(page, position)
+                                        translationX = if (pinned == null) 0f else
+                                            (position - page) * size.width * if (rtl) -1f else 1f
+                                        // Blend the arriving header over the stationary one.
+                                        alpha = if (pinned == null || page == position.toInt()) 1f else pinned
+                                    }
+                            ) {
+
                     LibraryTopAndFilterBar(
-                                activeNavTab = activeNavTab,
-                                librarySection = librarySection,
-                                librarySelectedSection = libraryPagerPages[pagerState.currentPage].section ?: librarySection,
-                                libraryTabProgress = { (pagerState.currentPage + pagerState.currentPageOffsetFraction - 1f).coerceIn(0f, 1f) },
-                                isActiveHeader = true,
-                                onLibrarySectionChange = { section ->
-                                    librarySection = section; selectedDocumentIds = emptySet()
-                                    navigateToPage(VeritasHomeTab.LIBRARY, section)
-                                },
+                                activeNavTab = destination.tab,
+                                isActiveHeader = isCurrentPage,
+                                includeStatusBar = false,
                                 documents = documents,
                                 queuedDocuments = queuedDocuments,
                                 uiState = uiState,
@@ -794,14 +877,14 @@ fun LibraryScreen(
                                 onOpenHomeSidebar = { showHomeSidebar = true },
                                 onOpenSettingsHub = onOpenSettingsHub,
                                 headerActions = {
-                                    when (activeNavTab) {
-                                        VeritasHomeTab.LIBRARY -> LibraryHeaderActions(librarySection, libraryViewMode,
+                                    when (destination.tab) {
+                                        VeritasHomeTab.LIBRARY -> LibraryHeaderActions(pageLibrarySection, libraryViewMode,
                                             { libraryViewMode = it; libraryPrefs.edit().putString("library_view_mode", it.name).apply() },
-                                            classicsHeaderState, searchExpanded,
+                                            classicsHeaderState, showPageSearch,
                                             { searchExpanded = !searchExpanded; if (!searchExpanded) headerFocus.clearFocus() },
                                             onOpenReadingLists, onOpenReadingHistory)
                                         VeritasHomeTab.NOTES -> NotesHeaderActions(notesSettings, onSaveNotesSettings,
-                                            { localShowNotesSettings = true; onOpenNotesSettings() }, searchExpanded,
+                                            { localShowNotesSettings = true; onOpenNotesSettings() }, showPageSearch,
                                             { searchExpanded = !searchExpanded; if (!searchExpanded) headerFocus.clearFocus() },
                                             showNotesTrash, { showNotesTrash = it }, uiState.noteNotebooks,
                                             selectedNotesNotebookId, { selectedNotesNotebookId = it }, noteCollectionActions != null,
@@ -811,7 +894,7 @@ fun LibraryScreen(
                                     }
                                 },
                                 notesSearch = {
-                                    AnimatedVisibility(searchExpanded, enter = expandVertically(VeritasMotion.spatial()) + fadeIn(chromeEffects), exit = shrinkVertically(VeritasMotion.spatial()) + fadeOut(chromeEffects)) {
+                                    AnimatedVisibility(showPageSearch, enter = expandVertically(VeritasMotion.spatial()) + fadeIn(chromeEffects), exit = shrinkVertically(VeritasMotion.spatial()) + fadeOut(chromeEffects)) {
                                         LibrarySearchField(noteSearchQuery, { noteSearchQuery = it }, "Search notes...",
                                             Modifier.fillMaxWidth().padding(horizontal = 6.dp).testTag("notes_search"),
                                             onDone = { searchExpanded = false; headerFocus.clearFocus() })
@@ -823,40 +906,30 @@ fun LibraryScreen(
                                 }
                             )
 
-                    AnimatedVisibility(activeNavTab == VeritasHomeTab.LIBRARY && searchExpanded,
+                            if (destination.section != null) {
+                                LibrarySectionPicker(
+                                    selected = activeLibrarySection,
+                                    progress = { pagerPosition() - addedPage },
+                                    onSelect = { section ->
+                                        selectedDocumentIds = emptySet()
+                                        navigateToPage(VeritasHomeTab.LIBRARY, section, true)
+                                    }
+                                )
+                            }
+
+                    AnimatedVisibility(destination.section != null && showPageSearch,
                         enter = expandVertically(VeritasMotion.spatial()) + fadeIn(chromeEffects), exit = shrinkVertically(VeritasMotion.spatial()) + fadeOut(chromeEffects)) {
                         LibrarySearchField(
-                            if (librarySection == LibrarySection.CLASSICS) classicsHeaderState.query else libraryQuery,
-                            { if (librarySection == LibrarySection.CLASSICS) classicsHeaderState.query = it else libraryQuery = it },
-                            menuString(if (librarySection == LibrarySection.CLASSICS) com.veritas.reader.R.string.filter_search_classics
+                            if (pageLibrarySection == LibrarySection.CLASSICS) classicsHeaderState.query else libraryQuery,
+                            { if (pageLibrarySection == LibrarySection.CLASSICS) classicsHeaderState.query = it else libraryQuery = it },
+                            menuString(if (pageLibrarySection == LibrarySection.CLASSICS) com.veritas.reader.R.string.filter_search_classics
                                 else com.veritas.reader.R.string.ui_search_library),
                             Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp)
-                                .testTag(if (librarySection == LibrarySection.CLASSICS) "classics_search" else "library_search"),
+                                .testTag(if (pageLibrarySection == LibrarySection.CLASSICS) "classics_search" else "library_search"),
                             onDone = { searchExpanded = false; headerFocus.clearFocus() })
                     }
 
-                    HorizontalPager(
-                        state = pagerState,
-                        userScrollEnabled = !selectionMode,
-                        beyondViewportPageCount = 1,
-                        modifier = Modifier.fillMaxSize().testTag("home_pager").nestedScroll(object : NestedScrollConnection {
-                            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                                if (source == NestedScrollSource.UserInput && available.y < -8f && searchExpanded) {
-                                    searchExpanded = false; headerFocus.clearFocus()
-                                }
-                                return Offset.Zero
                             }
-                        })
-                    ) { page ->
-                        val destination = libraryPagerPages[page]
-                        val pageVisible by remember(pagerState, page) { derivedStateOf {
-                            pagerState.layoutInfo.visiblePagesInfo.any { it.index == page }
-                        } }
-                        CompositionLocalProvider(
-                            LocalLibraryPageVisible provides pageVisible,
-                            com.veritas.reader.LocalVernCardEntrance provides if (page == entrancePage) activeCardEntrance else -1L
-                        ) {
-                        Column(Modifier.fillMaxSize().then(if (page == pagerState.currentPage) Modifier else Modifier.clearAndSetSemantics {})) {
 
                         when (destination.tab) {
                             VeritasHomeTab.HOME -> {
@@ -876,6 +949,7 @@ fun LibraryScreen(
                                     onShowImportSheet = { showImportSheet = true },
                                     onOpenClassicsCatalog = onOpenClassicsCatalog,
                                     onDownloadClassicBook = onDownloadClassicBook,
+                                    onBrowseClassicArchive = onBrowseClassicArchive,
                                     onCancelClassicBook = onCancelClassicBook,
                                     onNavigateToTab = navigateToTab,
                                     onShowReadingStatsHome = { showReadingStatsHome = true },
@@ -889,14 +963,20 @@ fun LibraryScreen(
                                     onManageLists = { manageListsDocument = it },
                                     onRenameDocument = onRenameDocument,
                                     onShowDetails = onShowDetails,
-                                    onDeleteDocument = onDeleteDocument
+                                    onDeleteDocument = onDeleteDocument,
+                                    firstChapter = firstChapter?.let { chapter ->
+                                        { chapter { showImportSheet = true } }
+                                    }
                                 )
                             }
                             VeritasHomeTab.LIBRARY -> {
                                 sectionStateHolder.SaveableStateProvider(destination.section!!.name) {
                                 if (destination.section == LibrarySection.CLASSICS) {
                                     ClassicsCatalogContent(documents, uiState.classicDownloads, onDownloadClassicBook,
-                                        onCancelClassicBook, onOpenDocument, onBrowseClassicArchive, headerState = classicsHeaderState)
+                                        onCancelClassicBook, onOpenDocument, onBrowseClassicArchive,
+                                        headerState = classicsHeaderState,
+                                        discoveryTipEnabled = uiState.hasCompletedOnboarding && !uiState.showTutorial &&
+                                            !uiState.showFirstChapterPrompt && !uiState.showBookBrowser)
                                 } else LibraryBooksTab(
                                     filters = {
                                         LibraryDocumentFilters(documents, queuedDocuments, uiState,
@@ -1012,7 +1092,6 @@ fun LibraryScreen(
                                     onShowPasteFlashcards = { showPasteFlashcards = true },
                                     onPlayQuiz = { activePlayingQuiz = it },
                                     onDeleteQuiz = { quizToDelete = it },
-                                    onGenerateInAppFlashcards = onGenerateInAppFlashcards,
                                     onCancelAiStudyGeneration = onCancelAiStudyGeneration,
                                     onImportFlashcards = onImportFlashcards,
                                     onSaveQuiz = onSaveQuiz,
@@ -1036,9 +1115,11 @@ fun LibraryScreen(
                         }
                                         }
                         }
-}
+                    }
+                    }
                 }
 
+                    }
                 }
                 BatchImportFloater(
                     visible = uiState.isBatchImporting,
@@ -1046,13 +1127,54 @@ fun LibraryScreen(
                     total = uiState.batchImportTotal,
                     failed = uiState.batchImportFailed,
                     modifier = Modifier
-                        .padding(bottom = homePadding.calculateBottomPadding())
+                        .padding(bottom = navigationClearance + if (activeNavTab == VeritasHomeTab.NOTES) 0.dp else playerClearance)
                         .consumeWindowInsets(homePadding)
                         .windowInsetsPadding(WindowInsets.safeDrawing)
                 )
-            }
+                if (playingDocument != null && activeNavTab != VeritasHomeTab.NOTES) {
+                    Box(
+                        Modifier.align(Alignment.BottomCenter)
+                            .padding(bottom = navigationClearance)
+                            .onSizeChanged { measuredPlayerHeight = with(density) { it.height.toDp() } }
+                    ) {
+                        LivePlaybackFloater(
+                            playingDocument,
+                            onOpen = { onOpenDocumentAt(playingDocument, PlaybackStateStore.currentIndex) },
+                            onPlayPause = { onPlayPauseContinue(playingDocument) },
+                            collapsed = playerCollapsed,
+                            expansion = playerExpansion,
+                            onToggleCollapsed = { playerCollapsed = !playerCollapsed }
+                        )
+                    }
+                }
             }
         }
     }
 }
 }
+
+private fun Modifier.libraryHeaderSwipeGate(page: Int, rtl: Boolean): Modifier =
+    pointerInput(page, rtl) {
+        awaitEachGesture {
+            val pointer = awaitFirstDown(requireUnconsumed = false).id
+            var displacement = Offset.Zero
+            var blockSwipe = false
+            while (true) {
+                val change = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == pointer }
+                    ?: break
+                if (!change.pressed) break
+                if (!blockSwipe) {
+                    displacement += change.position - change.previousPosition
+                    val horizontal = abs(displacement.x)
+                    val vertical = abs(displacement.y)
+                    if (vertical > viewConfiguration.touchSlop && vertical > horizontal) break
+                    if (horizontal <= viewConfiguration.touchSlop) continue
+                    val forward = if (rtl) displacement.x > 0f else displacement.x < 0f
+                    if (libraryHeaderMoves(page, page + if (forward) 1 else -1)) break
+                    blockSwipe = true
+                }
+                // Consume before the pager handles motion, while still giving taps to toolbar actions.
+                change.consume()
+            }
+        }
+    }

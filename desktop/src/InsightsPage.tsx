@@ -635,12 +635,7 @@ function SessionEditor({
     }
   }
   return (
-    <Modal
-      title="Edit reading session"
-      onClose={() => {
-        if (!busy) onClose();
-      }}
-    >
+    <Modal title="Edit reading session" dismissible={!busy} onClose={onClose}>
       <form
         className="workspace-form"
         onSubmit={(e) => {
@@ -747,12 +742,7 @@ function ManualSession({
     }
   }
   return (
-    <Modal
-      title="Add manual session"
-      onClose={() => {
-        if (!busy) onClose();
-      }}
-    >
+    <Modal title="Add manual session" dismissible={!busy} onClose={onClose}>
       <form className="workspace-form" onSubmit={(e) => void submit(e)}>
         <label>
           Book

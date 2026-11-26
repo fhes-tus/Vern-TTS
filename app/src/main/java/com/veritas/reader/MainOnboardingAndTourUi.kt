@@ -22,6 +22,7 @@ import com.veritas.reader.ui.saveUserName
 import com.veritas.reader.ui.screens.ConfettiOverlay
 import com.veritas.reader.ui.screens.OnboardingSpotlightOverlay
 import com.veritas.reader.ui.screens.RevampedOnboardingFlow
+import com.veritas.reader.ui.screens.menuString
 import com.veritas.reader.ui.updateUserNameInMemory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -44,7 +45,7 @@ internal fun MainOnboardingAndTourHost(
             initialPitch = uiState.voiceSettings.preferredPitch,
             onComplete = { name, interest, aiAssistant, speed, pitch ->
                 viewModel.createWelcomeDocumentSilently()
-                viewModel.completeRevampedOnboarding(name, interest, aiAssistant, speed, pitch)
+                viewModel.completeRevampedOnboarding(name, interest, aiAssistant, speed, pitch, showFirstChapterPrompt = true)
                 OnboardingController.activeStep = null
             },
             onDismiss = {
@@ -54,7 +55,8 @@ internal fun MainOnboardingAndTourHost(
                     interest = uiState.readingInterest,
                     aiAssistant = uiState.askAiSettings.assistantId,
                     speedRate = uiState.voiceSettings.preferredRate,
-                    pitchRate = uiState.voiceSettings.preferredPitch
+                    pitchRate = uiState.voiceSettings.preferredPitch,
+                    showFirstChapterPrompt = false
                 )
                 OnboardingController.activeStep = null
             }
@@ -62,11 +64,13 @@ internal fun MainOnboardingAndTourHost(
     } else if (OnboardingController.activeStep != null) {
         var isTransitioningStep by remember { mutableStateOf(false) }
         val activeStep = OnboardingController.activeStep
+        val stepTitle = activeStep?.let { menuString(it.titleRes) }.orEmpty()
+        val stepBody = activeStep?.let { menuString(it.bodyRes) }.orEmpty()
         // Voice-assisted tutorial: read each step aloud automatically
-        LaunchedEffect(activeStep) {
+        LaunchedEffect(activeStep, stepTitle, stepBody) {
             if (activeStep != null) {
                 TutorialSpeaker.init(context)
-                TutorialSpeaker.speak("${activeStep.title}. ${activeStep.body}")
+                TutorialSpeaker.speak("$stepTitle. $stepBody")
             } else {
                 TutorialSpeaker.stop()
             }

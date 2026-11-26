@@ -553,7 +553,11 @@ object VoiceConfigurator {
         SpeechDelivery.applyResolved(rate, pitch,
             { tts.setSpeechRate(it) == TextToSpeech.SUCCESS }, { tts.setPitch(it) == TextToSpeech.SUCCESS })
 
-    fun apply(tts: TextToSpeech, settings: VoiceSettings): String {
+    internal data class Activation(val languageStatus: Int, val message: String)
+
+    fun apply(tts: TextToSpeech, settings: VoiceSettings): String = activate(tts, settings).message
+
+    internal fun activate(tts: TextToSpeech, settings: VoiceSettings): Activation {
         val locale = settings.localeTag.takeIf { it.isNotBlank() }?.let { Locale.forLanguageTag(it) }
             ?: tts.defaultVoice?.locale ?: AppLanguages.systemSpeechLocale()
         val languageStatus = tts.setLanguage(locale)
@@ -562,11 +566,12 @@ object VoiceConfigurator {
         if (selectedVoice != null) {
             tts.voice = selectedVoice
         }
-        return when (languageStatus) {
+        val message = when (languageStatus) {
             TextToSpeech.LANG_MISSING_DATA -> "Voice data is missing for ${locale.displayLanguage}."
             TextToSpeech.LANG_NOT_SUPPORTED -> "${locale.displayLanguage} is not supported by this TTS engine."
             else -> "Voice ready: ${settings.displayName}."
         }
+        return Activation(languageStatus, message)
     }
 }
 

@@ -9,6 +9,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.testTag
@@ -28,6 +29,43 @@ import java.io.File
 
 class ListenRedesignUiTest {
     @get:Rule val rule = createComposeRule()
+
+    @Test fun returnIndicatorFollowsSwipeDirectionAndRestoresThePassage() {
+        val sentences = List(55) { "Passage " + (it + 1) + " has enough words to occupy a few lines on the phone." }
+        val active = 27
+        rule.setContent {
+            MaterialTheme {
+                AudioModeScreen("Lyrics return fixture", active, sentences.size, sentences[active], false,
+                    onPlayPause = {}, onNext = {}, onPrevious = {}, onDismiss = {}, documentChunks = sentences)
+            }
+        }
+        rule.onNodeWithTag("listen-artwork").performClick()
+        val list = rule.onNodeWithTag("listen-sentences")
+        val current = rule.onNodeWithTag("listen-sentence-$active")
+        current.assertIsDisplayed()
+        val top = rule.onNodeWithTag("listen-return-top")
+        val bottom = rule.onNodeWithTag("listen-return-bottom")
+        list.performTouchInput { swipe(center, center - Offset(0f, height * .04f), 420) }
+        current.assertIsDisplayed()
+        top.assertDoesNotExist()
+        bottom.assertDoesNotExist()
+        repeat(2) { list.performTouchInput { swipeUp() } }
+        top.assertIsDisplayed()
+        bottom.assertDoesNotExist()
+        list.performTouchInput { swipe(center, center + Offset(0f, height * .10f), 420) }
+        top.assertIsDisplayed()
+        bottom.assertDoesNotExist()
+        top.performClick()
+        current.assertIsDisplayed()
+        top.assertDoesNotExist()
+        repeat(2) { list.performTouchInput { swipeDown() } }
+        bottom.assertIsDisplayed()
+        top.assertDoesNotExist()
+        bottom.performClick()
+        current.assertIsDisplayed()
+        bottom.assertDoesNotExist()
+    }
+
     @Test fun safeAreaKeepsControlsClearAndDoesNotDoubleConsumedInsets() {
         var parentConsumes by mutableStateOf(false)
         var topInset = 0; var bottomInset = 0

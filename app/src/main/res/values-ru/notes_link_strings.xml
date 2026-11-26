@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notes_link_cards_privacy">В карточках ссылок отображаются заголовки и изображения. Vern загружает недостающие данные с сайта ссылки или сервера изображения.</string>
+    <string name="notes_link_load_from_website">Загрузить с сайта</string>
+    <string name="notes_link_loading">Загрузка предпросмотра сайта…</string>
+    <string name="notes_link_unavailable">Не удалось загрузить предпросмотр. Попробуйте ещё раз или откройте ссылку.</string>
+</resources>

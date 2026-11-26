@@ -12,12 +12,25 @@ import android.text.style.ForegroundColorSpan
 import android.view.KeyEvent
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.pdf.view.PdfView
 import androidx.test.core.app.ActivityScenario
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.swipeLeft
+import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -28,8 +41,10 @@ import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 import com.veritas.reader.ui.ReaderViewModel
+import com.veritas.reader.ui.currentReaderIndex
 import com.veritas.reader.ui.importDocumentFromUri
 import com.veritas.reader.ui.prepareImport
+import com.veritas.reader.ui.openDocumentNotes
 import com.veritas.reader.ui.appendVocabularyWord
 import com.veritas.reader.ui.removeVocabularyWord
 import com.veritas.reader.ui.importMultipleDocuments
@@ -97,10 +112,11 @@ class DeviceImportFlowTest {
         await("import completes") { !viewModel.uiState.value.importInProgress }
     }
 
-    private fun pdf(pages: Int): File {
+    private fun pdf(pages: Int, includeSecondSentence: Boolean = false): File {
         PDFBoxResourceLoader.init(context)
         val file = File(fixtures, "fixture.pdf")
         PDDocument().use { document ->
+            document.documentInformation.title = token
             repeat(pages) { index ->
                 val page = PDPage()
                 document.addPage(page)
@@ -109,12 +125,105 @@ class DeviceImportFlowTest {
                     stream.setFont(PDType1Font.HELVETICA, 14f)
                     stream.newLineAtOffset(60f, 500f)
                     stream.showText("Source page ${index + 1} contains a unique readable sentence.")
+                    if (includeSecondSentence) stream.showText(" Another sentence belongs to this page.")
                     stream.endText()
                 }
             }
             document.save(file)
         }
         return file
+    }
+
+    @Test fun textAndOriginalFollowTheSamePageAcrossAQuickSwitch() {
+        val previousSettings = repository.loadReaderSettings()
+        val originalTab = compose.onNodeWithTag("reader-mode-ORIGINAL")
+        fun openPdfAt(page: Int): VeritasPdfViewerActivity {
+            originalTab.performClick()
+            var original: VeritasPdfViewerActivity? = null
+            await("Original tab opens the native PDF viewer", 10_000) {
+                instrumentation.runOnMainSync {
+                    original = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                        .filterIsInstance<VeritasPdfViewerActivity>().firstOrNull { !it.isFinishing }
+                }
+                original != null
+            }
+            val opened = requireNotNull(original)
+            var details = ""
+            try {
+                await("Original opens page $page", 15_000) {
+                    var ready = false
+                    instrumentation.runOnMainSync {
+                        ready = opened.pdfFocusInitialized && opened.pdfNavigationPage == page - 1
+                        details = "layout=${opened.pdfChromeSettings.pdfNavigationMode}, visible=${opened.pdfNavigationPage + 1}, " +
+                            "pending=${opened.pdfFocusRequest}, focused=${opened.pdfFocusInitialized}, " +
+                            "pdfPages=${opened.pdfView?.pdfDocument?.pageCount}, textPages=${opened.readerTextModel?.sentences?.map { it.pageNumber }?.distinct()}"
+                    }
+                    ready
+                }
+            } catch (error: IllegalStateException) {
+                throw AssertionError("Original did not settle on page $page ($details)", error)
+            }
+            return opened
+        }
+        try {
+            repository.saveReaderSettings(previousSettings.copy(pdfNavigationMode = "swipe"))
+            com.veritas.reader.ui.screens.VernActionHintManager.dismissForSession("pdf_gestures_hint")
+            import(pdf(4, includeSecondSentence = true))
+            await("PDF text opens") { viewModel.uiState.value.activeDocument?.pageCount == 4 }
+            val document = requireNotNull(viewModel.uiState.value.activeDocument)
+            val sentences = ReaderTextModelCache.get(document.id, document.rawText, document.pageCount).sentences
+            val secondSentenceOnPageTwo = sentences.indexOfLast { it.pageNumber == 2 }
+            assertTrue(secondSentenceOnPageTwo > sentences.indexOfFirst { it.pageNumber == 2 })
+            scenario.onActivity { viewModel.moveTo(secondSentenceOnPageTwo, autoPlay = false) }
+
+            val opened = openPdfAt(2)
+            instrumentation.runOnMainSync { opened.finish() }
+            originalTab.assertIsDisplayed()
+            assertEquals("Returning from the same page keeps the exact sentence", secondSentenceOnPageTwo, viewModel.currentReaderIndex)
+
+            val turned = openPdfAt(2)
+            instrumentation.uiAutomation.cancelReaderTestTouch()
+            onView(isAssignableFrom(PdfView::class.java)).perform(swipeLeft())
+            await("Original advances to page 3", 10_000) {
+                var page = -1
+                instrumentation.runOnMainSync { page = turned.pdfNavigationPage }
+                page == 2
+            }
+            instrumentation.runOnMainSync { turned.finish() }
+            await("Text follows immediately after returning from Original", 5_000) {
+                viewModel.currentReaderIndex == sentences.indexOfFirst { it.pageNumber == 3 }
+            }
+        } finally {
+            instrumentation.runOnMainSync {
+                ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                    .filterIsInstance<VeritasPdfViewerActivity>().forEach { it.finish() }
+            }
+            repository.saveReaderSettings(previousSettings)
+        }
+    }
+
+    @Test fun booknotesSeparateWholeDocumentAndSentenceEditing() {
+        val file = File(fixtures, "$token notes.txt").apply {
+            writeText("<u>**A memorable original sentence**</u>. A second sentence follows.")
+        }
+        import(file)
+        await("reading opens") { viewModel.uiState.value.activeDocument != null }
+        assertTrue(viewModel.uiState.value.activeDocument?.chunks?.firstOrNull()?.contains("<u>") == true)
+        scenario.onActivity { viewModel.openDocumentNotes() }
+        compose.waitUntil(10_000) { viewModel.uiState.value.showDocumentNotes }
+        compose.onNodeWithTag("booknotes-screen").assertIsDisplayed()
+        compose.onNodeWithText("Sentence notes").assertIsNotSelected()
+        compose.onNodeWithText("Sentence notes").performClick()
+        compose.onNodeWithText("Sentence notes").assertIsSelected()
+        compose.onNodeWithText("Add current").performClick()
+        compose.onNodeWithTag("sentence-note-screen").assertIsDisplayed()
+        compose.onNodeWithText("Sentence 1: A memorable original sentence.").assertIsDisplayed()
+        compose.onNodeWithTag("sentence-note-input").performTextInput("A note from the full screen editor.")
+        compose.onNodeWithText("Save").performClick()
+        await("sentence note is stored") { viewModel.uiState.value.annotations.any { it.note == "A note from the full screen editor." } }
+        compose.onNodeWithTag("booknotes-screen").assertIsDisplayed()
+        compose.onNodeWithText("A memorable original sentence.").assertIsDisplayed()
+        assertTrue(viewModel.uiState.value.documentNoteDraft.isBlank())
     }
 
     @Test fun utf8ImportOpensExtractedTextAndConsumesStatus() {
@@ -309,7 +418,11 @@ class DeviceImportFlowTest {
         scenario.onActivity { viewModel.importMultipleDocuments(files.map(Uri::fromFile), queue) }
         var requests = emptyList<WorkInfo>()
         await("all batch files registered") {
-            requests = manager.getWorkInfosByTag(DOCUMENT_BATCH_TAG).get().filter { it.id !in previous }
+            val added = manager.getWorkInfosByTag(DOCUMENT_BATCH_TAG).get().filter { it.id !in previous }
+            workIds.addAll(added.map { it.id })
+            requests = added.filterNot { BATCH_QUEUE_WORK_TAG in it.tags }.sortedBy { info ->
+                info.tags.firstOrNull { it.startsWith(IMPORT_ORDER_PREFIX) }?.removePrefix(IMPORT_ORDER_PREFIX)?.toIntOrNull()
+            }
             requests.size == files.distinct().size
         }
         return requests.map { it.id }.also { workIds.addAll(it) }
@@ -327,9 +440,9 @@ class DeviceImportFlowTest {
             ids.any { manager.getWorkInfoById(it).get().progress.getString("firstChunkDocumentId") != null }
         }
         val work = ids.map { manager.getWorkInfoById(it).get() }
-        assertEquals("Only one batch extractor may run", 1, work.count { it.state == WorkInfo.State.RUNNING })
-        assertEquals("Later files wait instead of competing for PDF memory", 2, work.count { it.state == WorkInfo.State.BLOCKED })
-        assertEquals(0, viewModel.uiState.value.batchImportCurrent)
+        assertTrue("Independent files are eligible while the PDF is still extracting", work.none { it.state == WorkInfo.State.BLOCKED })
+        assertTrue("The short file finishes while the PDF is still extracting", work.first().state == WorkInfo.State.RUNNING &&
+            work.last().state == WorkInfo.State.SUCCEEDED)
         compose.onAllNodesWithText("Importing", substring = false).assertCountEquals(0)
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
         await("Back leaves file browser") { !viewModel.uiState.value.showFileBrowser }
@@ -353,6 +466,24 @@ class DeviceImportFlowTest {
         assertEquals(finalText, repository.readText(text))
         assertEquals(listOf(pdf.id, text.id), repository.loadQueueDocuments().filter { it.id in readings.map { doc -> doc.id } }.map { it.id })
         assertEquals(1, ids.count { manager.getWorkInfoById(it).get().outputData.getString("error") != null })
+    }
+
+    @Test fun batchReusesRenamedIdenticalFilesWhileRetainingDifferentFilesOfTheSameSize() {
+        val same = "Same original bytes for $token A."
+        val different = "Same original bytes for $token B."
+        val first = File(fixtures, "$token first.txt").apply { writeText(same) }
+        val renamed = File(fixtures, "$token renamed.txt").apply { writeText(same) }
+        val other = File(fixtures, "$token other.txt").apply { writeText(different) }
+        val ids = startBatch(listOf(first, renamed, other), queue = true)
+        await("duplicate batch settles") { !viewModel.uiState.value.isBatchImporting }
+        val manager = WorkManager.getInstance(context)
+        val outcomes = ids.map { manager.getWorkInfoById(it).get().outputData }
+        assertEquals(outcomes[0].getString("documentId"), outcomes[1].getString("documentId"))
+        assertNotEquals(outcomes[0].getString("documentId"), outcomes[2].getString("documentId"))
+        assertEquals(1, outcomes.count { it.getBoolean("duplicate", false) })
+        val requestedIds = outcomes.mapNotNull { it.getString("documentId") }.distinct()
+        assertEquals(requestedIds, repository.loadQueueDocuments().map { it.id }.filter { it in requestedIds })
+        assertEquals(setOf(same, different), repository.loadDocuments().filter { it.id in requestedIds }.map(repository::readText).toSet())
     }
 
     @Test fun batchReattachesAfterActivityAndViewModelAreDestroyed() {

@@ -1,14 +1,6 @@
 package com.veritas.reader.ui
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -82,23 +74,12 @@ fun VeritasSleekSlider(
 
     val latestFinished by rememberUpdatedState(onValueChangeFinished)
 
-    val wavePhase = if (wavy) {
-        val infiniteTransition = rememberInfiniteTransition(label = "wavySeekbar")
-        infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = (2 * Math.PI).toFloat(),
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 1800, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart
-            ),
-            label = "wavePhase"
-        ).value
-    } else 0f
-
-    val targetAmplitudeDp = if (!wavy) 0.dp else if (isPlaying) 8.5.dp else 1.5.dp
+    val showWave = wavy && !VeritasMotion.scheme.reduceMotion
+    val wavePhase by rememberPlaybackWavePhase(showWave && isPlaying && enabled)
+    val targetAmplitudeDp = if (!showWave) 0.dp else if (isPlaying) 8.5.dp else 1.5.dp
     val animatedAmplitudePx by animateFloatAsState(
         targetValue = with(density) { targetAmplitudeDp.toPx() },
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = VeritasMotion.spatialSlow(),
         label = "wavyAmplitude"
     )
 

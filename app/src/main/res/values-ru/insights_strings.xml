@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_earlier">Ранее</string>
+    <string name="insights_last_week">Прошлая неделя</string>
+    <string name="insights_daily_habit">Ежедневная привычка</string>
+    <string name="insights_master_reader">Мастер чтения</string>
+    <string name="insights_habit_champion">Чемпион привычек</string>
+    <string name="insights_seven_day_flame">Серия из 7 дней</string>
+    <string name="insights_consistency_pro">Мастер постоянства</string>
+    <string name="insights_week_chart_description">%1$s. %2$s. Всего %3$s. Смахните влево или вправо, чтобы сменить неделю.</string>
+    <string name="insights_invalid_session_date">Введите дату в формате YYYY-MM-DD.</string>
+    <string name="insights_future_session_date">Выберите сегодняшнюю или более раннюю дату.</string>
+    <string name="insights_session_save_failed">Не удалось сохранить сеанс. Изменения всё ещё здесь. Попробуйте ещё раз.</string>
+    <string name="insights_timer_save_failed">Не удалось сохранить настройки таймера чтения. Попробуйте изменить их ещё раз.</string>
+    <string name="insights_saving">Сохранение…</string>
+</resources>

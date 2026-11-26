@@ -9,8 +9,10 @@ import com.veritas.reader.ReaderDocument
 import com.veritas.reader.ReaderTextIndex
 import com.veritas.reader.ReaderTextModelCache
 import com.veritas.reader.VeritasTextEditTarget
+import com.veritas.reader.buildReaderDocument
 import com.veritas.reader.loadAnnotationCount
 import com.veritas.reader.loadAnnotations
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -77,11 +79,15 @@ internal fun ReaderViewModel.buildSearchMatches(document: ReaderDocument?, query
 
 fun ReaderViewModel.openCurrentPartTextEditor() {
     val doc = uiState.value.activeDocument ?: return
+    val documentId = doc.id ?: return
     val model = ReaderTextModelCache.get(doc.id, doc.rawText, doc.pageCount)
     val part = model.partForSentence(currentReaderIndex) ?: model.parts.firstOrNull() ?: return
     _uiState.update {
         it.withVisibility(VeritasScreen.TEXT_EDITOR, true).copy(
             editorText = part.text,
+            editorDocumentId = documentId,
+            editorSaving = false,
+            editorSaveError = null,
             editorTarget = VeritasTextEditTarget.Part(
                 partIndex = part.index,
                 label = "part ${part.index + 1}"
@@ -92,6 +98,7 @@ fun ReaderViewModel.openCurrentPartTextEditor() {
 
 fun ReaderViewModel.openSelectionTextEditor(indexes: List<Int>) {
     val doc = uiState.value.activeDocument ?: return
+    val documentId = doc.id ?: return
     val sorted = indexes
         .filter { it in doc.chunks.indices }
         .distinct()
@@ -107,6 +114,9 @@ fun ReaderViewModel.openSelectionTextEditor(indexes: List<Int>) {
     _uiState.update {
         it.withVisibility(VeritasScreen.TEXT_EDITOR, true).copy(
             editorText = doc.chunks.subList(start, endExclusive).joinToString("\n\n"),
+            editorDocumentId = documentId,
+            editorSaving = false,
+            editorSaveError = null,
             editorTarget = VeritasTextEditTarget.SentenceRange(
                 startSentenceIndex = start,
                 endSentenceIndexExclusive = endExclusive,
@@ -117,74 +127,99 @@ fun ReaderViewModel.openSelectionTextEditor(indexes: List<Int>) {
 }
 
 fun ReaderViewModel.saveTextEditorChanges(partIndex: Int? = null, text: String? = null) {
-    val doc = uiState.value.activeDocument ?: return
-    val baseTarget = uiState.value.editorTarget ?: return
-    val docId = doc.id ?: return
-    val target = if (partIndex != null && baseTarget is VeritasTextEditTarget.Part) {
-        VeritasTextEditTarget.Part(partIndex = partIndex, label = "part ${partIndex + 1}")
-    } else {
-        baseTarget
-    }
-    val replacement = (text ?: uiState.value.editorText).trim()
-    if (replacement.isBlank()) return
-
-    stopServicePlayback()
-    viewModelScope.launch(Dispatchers.IO) {
-        val updatedText = when (target) {
-            is VeritasTextEditTarget.Part -> ReaderTextIndex.replacePart(
-                rawText = doc.rawText,
-                storedPageCount = doc.pageCount,
-                partIndex = target.partIndex,
-                replacement = replacement
-            )
-            is VeritasTextEditTarget.SentenceRange -> ReaderTextIndex.replaceSentenceRange(
-                rawText = doc.rawText,
-                storedPageCount = doc.pageCount,
-                startSentenceIndex = target.startSentenceIndex,
-                endSentenceIndexExclusive = target.endSentenceIndexExclusive,
-                replacement = replacement
-            )
+    viewModelScope.launch {
+        val state = uiState.value
+        val doc = state.activeDocument ?: return@launch
+        val docId = doc.id ?: return@launch
+        val owner = state.editorTarget ?: return@launch
+        if (!state.ownsTextEdit(doc, owner) || state.editorSaving) return@launch
+        val replacement = (text ?: state.editorText).trim()
+        if (doc.partial) {
+            _uiState.update { it.copy(editorSaveError = "Wait for the import to finish before saving changes to this reading.") }
+            return@launch
         }
-        val updated = repository.updateDocumentText(docId, updatedText) ?: return@launch
-        val updatedDocument = loadReaderDocument(updated)
-        val annotations = repository.loadAnnotations(docId)
-        val documents = repository.loadDocuments()
-        val annotationCount = repository.loadAnnotationCount()
-        val outline = repository.loadDocumentOutline(updated, updatedDocument.chunks)
-        val startIndex = when (target) {
-            is VeritasTextEditTarget.Part -> {
-                ReaderTextModelCache.get(updatedDocument.id, updatedDocument.rawText, updatedDocument.pageCount)
-                    .parts
-                    .getOrNull(target.partIndex)
-                    ?.sentenceStartIndex
-                    ?: currentReaderIndex
+        val target = if (partIndex != null && owner is VeritasTextEditTarget.Part) owner.copy(partIndex = partIndex) else owner
+        val previousIndex = currentReaderIndex
+        _uiState.update { it.copy(editorSaving = true, editorSaveError = null) }
+        try {
+            if (PlaybackStateStore.activeDocumentId == docId) stopServicePlayback()
+            withContext(Dispatchers.IO) persist@{
+                val updatedText = when (target) {
+                    is VeritasTextEditTarget.Part -> ReaderTextIndex.replacePart(doc.rawText, doc.pageCount, target.partIndex, replacement)
+                    is VeritasTextEditTarget.SentenceRange -> ReaderTextIndex.replaceSentenceRange(
+                        doc.rawText, doc.pageCount, target.startSentenceIndex, target.endSentenceIndexExclusive, replacement
+                    )
+                }.trim()
+                val updated = repository.saveEditedDocumentText(docId, doc.rawText, updatedText)
+                if (updated == null) {
+                    withContext(Dispatchers.Main) {
+                        _uiState.update {
+                            if (it.ownsTextEdit(doc, owner)) it.copy(editorSaving = false,
+                                editorSaveError = "This reading changed while the editor was open. Copy or export your draft before reopening it.")
+                            else if (it.editorTarget === owner) it.copy(editorSaving = false) else it
+                        }
+                    }
+                    return@persist
+                }
+                val updatedDocument = buildReaderDocument(updated, updatedText)
+                val annotations = repository.loadAnnotations(docId)
+                val documents = repository.loadDocuments()
+                val annotationCount = repository.loadAnnotationCount()
+                val outline = repository.loadDocumentOutline(updated, updatedDocument.chunks)
+                val startIndex = when (target) {
+                    is VeritasTextEditTarget.Part -> ReaderTextModelCache.get(updatedDocument.id, updatedText, updatedDocument.pageCount)
+                        .parts.getOrNull(target.partIndex)?.sentenceStartIndex ?: previousIndex
+                    is VeritasTextEditTarget.SentenceRange -> target.startSentenceIndex
+                }.coerceIn(0, (updatedDocument.chunks.size - 1).coerceAtLeast(0))
+                withContext(Dispatchers.Main) publish@{
+                    if (!uiState.value.ownsTextEdit(doc, owner)) {
+                        _uiState.update { if (it.editorTarget === owner) it.copy(editorSaving = false) else it }
+                        refreshAll()
+                        return@publish
+                    }
+                    _uiState.update {
+                        it.withVisibility(VeritasScreen.TEXT_EDITOR, false).copy(
+                            documents = documents,
+                            activeDocument = updatedDocument,
+                            annotations = annotations,
+                            annotationCount = annotationCount,
+                            documentOutline = outline,
+                            editorText = "",
+                            editorTarget = null,
+                            editorDocumentId = null,
+                            editorSaving = false,
+                            editorSaveError = null,
+                            searchMatches = buildSearchMatches(updatedDocument, it.searchQuery),
+                            searchCursor = 0,
+                            importMessage = "Extracted text updated."
+                        )
+                    }
+                    syncPlaybackStateForDocument(updatedDocument, startIndex)
+                }
             }
-            is VeritasTextEditTarget.SentenceRange -> target.startSentenceIndex
-        }.coerceIn(0, (updatedDocument.chunks.size - 1).coerceAtLeast(0))
-        withContext(Dispatchers.Main) {
-            syncPlaybackStateForDocument(updatedDocument, startIndex)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            android.util.Log.w("TextEditor", "Could not finish saving the extracted-text edit.", error)
             _uiState.update {
-                it.withVisibility(VeritasScreen.TEXT_EDITOR, false).copy(
-                    documents = documents,
-                    activeDocument = updatedDocument,
-                    annotations = annotations,
-                    annotationCount = annotationCount,
-                    documentOutline = outline,
-                    editorText = "",
-                    editorTarget = null,
-                    searchMatches = buildSearchMatches(updatedDocument, it.searchQuery),
-                    searchCursor = 0,
-                    importMessage = "Extracted text updated."
-                )
+                if (it.ownsTextEdit(doc, owner)) it.copy(editorSaving = false,
+                    editorSaveError = "The edit could not be confirmed. Your draft is still here. Try saving again.")
+                else if (it.editorTarget === owner) it.copy(editorSaving = false) else it
             }
         }
     }
 }
 
+internal fun ReaderUiState.ownsTextEdit(document: ReaderDocument, target: VeritasTextEditTarget): Boolean =
+    showTextEditor && !isOpeningDocument && editorDocumentId == document.id && activeDocument === document && editorTarget === target
+
 fun ReaderViewModel.dismissTextEditor() {
     _uiState.update { it.withVisibility(VeritasScreen.TEXT_EDITOR, false).copy(
         editorText = "",
-        editorTarget = null
+        editorTarget = null,
+        editorDocumentId = null,
+        editorSaving = false,
+        editorSaveError = null
     ) }
 }
 

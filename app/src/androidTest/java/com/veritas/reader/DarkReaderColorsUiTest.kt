@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -112,7 +113,7 @@ class DarkReaderColorsUiTest {
                         onOpenNarrationStudio = {}, onOpenDocumentNotes = {}, onOpenCanvas = {}, onOpenStudyTools = {},
                         onOpenTranslationTools = {}, onOpenSleepTimer = {}, onOpenReadingLists = {}, onOpenReadingHistory = {},
                         onAskCurrentSection = {}, onSelectAskAiAssistant = { _, _ -> }, onOpenTextEditor = {}, onStartRecord = {},
-                        onExportAudio = {}, onCopySelection = {}, onShareSelection = {}, onGoogleSelection = {}, onTranslateSelection = {},
+                        onExportAudio = {}, onCopySelection = {}, onShareSelection = {}, onDefineSelection = {}, onTranslateSelection = {},
                         onAskAiSelection = {}, onEditSpeechSelection = {}, onReadSelection = {}, onEditExtractedSelection = {},
                         onPlayQueue = {}, onVoiceSelected = {}, onReaderModeChange = {})
                 }
@@ -136,8 +137,9 @@ class DarkReaderColorsUiTest {
     @Test fun enablingCurlDoesNotPaintWhitePaperOverTheDarkReaderGutter() {
         var curl by mutableStateOf(false)
         rule.setContent {
+            val pager = rememberPagerState(pageCount = { 1 })
             Box(Modifier.fillMaxSize().background(Color.Black).testTag("curl-stage")) {
-                BookPageCurl(curl, false, { 0f }, Color.White) {
+                BookPageCurl(curl, pager, 0, Color.White) {
                     Box(Modifier.fillMaxSize().padding(24.dp)) {
                         Box(Modifier.fillMaxSize().background(Color.White))
                     }

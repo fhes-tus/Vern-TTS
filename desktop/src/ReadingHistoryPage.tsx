@@ -163,9 +163,8 @@ export function ReadingHistoryPage({
       {removing && (
         <Modal
           title={removing === 'all' ? 'Clear reading history' : 'Remove from history'}
-          onClose={() => {
-            if (!busy) setRemoving(null);
-          }}
+          dismissible={!busy}
+          onClose={() => setRemoving(null)}
         >
           {error && (
             <Notice error onDismiss={() => setError('')}>
@@ -181,7 +180,7 @@ export function ReadingHistoryPage({
             <button className="danger" disabled={busy} onClick={() => void remove()}>
               {removing === 'all' ? 'Clear history' : 'Remove from history'}
             </button>
-            <button className="secondary" disabled={busy} onClick={() => setRemoving(null)}>
+            <button type="button" className="secondary" disabled={busy} data-dialog-dismiss>
               Cancel
             </button>
           </div>

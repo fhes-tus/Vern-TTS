@@ -7,12 +7,13 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.veritas.reader.VeritasBrowserFile
 import com.veritas.reader.VeritasFileBrowserScanner
+import com.veritas.reader.VeritasFileBrowserScanResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ensureActive
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -26,25 +27,18 @@ fun ReaderViewModel.approveFileBrowserFolder(uri: Uri?) {
     }
     _uiState.update {
         it.copy(
-            fileBrowserRoots = VeritasFileBrowserScanner.persistedRoots(context),
             fileBrowserLocation = null,
+            fileBrowserFiles = emptyList(),
             fileBrowserBackStack = emptyList()
         )
     }
     refreshFileBrowser()
 }
 
-fun ReaderViewModel.refreshFileBrowserAccessState() {
-    val context = getApplication<Application>()
-    _uiState.update {
-        it.copy(
-            fileBrowserRoots = VeritasFileBrowserScanner.persistedRoots(context),
-            fileBrowserAllFilesGranted = hasAllFilesAccess()
-        )
-    }
-}
-
 fun ReaderViewModel.clearFileBrowserAccess() {
+    scanJob?.cancel()
+    scanJob = null
+    fileBrowserCache.evictAll()
     val context = getApplication<Application>()
     context.contentResolver.persistedUriPermissions.forEach { permission ->
         runCatching {
@@ -58,6 +52,8 @@ fun ReaderViewModel.clearFileBrowserAccess() {
         it.copy(
             fileBrowserRoots = emptyList(),
             fileBrowserFiles = emptyList(),
+            fileBrowserScanning = false,
+            fileBrowserMessage = null,
             fileBrowserLocation = null,
             fileBrowserBackStack = emptyList()
         )
@@ -65,8 +61,15 @@ fun ReaderViewModel.clearFileBrowserAccess() {
 }
 
 fun ReaderViewModel.openFileBrowser() {
+    if (uiState.value.showFileBrowser) return
     _uiState.update { it.withVisibility(VeritasScreen.FILE_BROWSER, true) }
     refreshFileBrowser()
+}
+
+fun ReaderViewModel.closeFileBrowser() {
+    scanJob?.cancel()
+    scanJob = null
+    _uiState.update { it.withVisibility(VeritasScreen.FILE_BROWSER, false).copy(fileBrowserScanning = false) }
 }
 
 fun ReaderViewModel.enterFileBrowserDirectory(entry: VeritasBrowserFile) {
@@ -134,56 +137,80 @@ fun ReaderViewModel.deleteBrowserFiles(files: List<VeritasBrowserFile>) {
 }
 
 fun ReaderViewModel.refreshFileBrowser() {
+    val previous = uiState.value
+    if (!previous.showFileBrowser) return
     scanJob?.cancel()
     _uiState.update { it.copy(fileBrowserScanning = true, fileBrowserMessage = null) }
-    scanJob = viewModelScope.launch(Dispatchers.IO) {
-        val owner = coroutineContext[Job]
-        val context = getApplication<Application>()
-        val roots = VeritasFileBrowserScanner.persistedRoots(context)
-        val allFilesGranted = hasAllFilesAccess()
-        withContext(Dispatchers.Main) {
-            _uiState.update {
-                it.copy(
-                    fileBrowserRoots = roots,
-                    fileBrowserAllFilesGranted = allFilesGranted
-                )
-            }
-        }
-        val result = runCatching {
-            VeritasFileBrowserScanner.scan(
-                context = context,
-                roots = roots,
-                includeAllFilesAccess = allFilesGranted,
-                location = uiState.value.fileBrowserLocation,
-                checkCancelled = { owner?.ensureActive() },
-                onProgress = { partial ->
-                    viewModelScope.launch(Dispatchers.Main) {
-                        if (scanJob === owner && owner?.isActive == true) {
-                            _uiState.update { it.copy(fileBrowserFiles = partial.files, fileBrowserLocation = partial.location) }
-                        }
+    val job = viewModelScope.launch(start = CoroutineStart.LAZY) {
+        val owner = coroutineContext.job
+        val scanResult = try {
+            withContext(Dispatchers.IO) {
+                val context = getApplication<Application>()
+                val roots = VeritasFileBrowserScanner.persistedRoots(context, previous.fileBrowserRoots) {
+                    owner.ensureActive()
+                }
+                val allFilesGranted = hasAllFilesAccess()
+                val previousLocation = previous.fileBrowserLocation
+                val location = previousLocation?.takeIf { current ->
+                    if (current.filePath != null) allFilesGranted else roots.any { it.uri == current.rootUri }
+                }
+                val keepPreviousFiles = location != null && previous.fileBrowserFiles.isNotEmpty() &&
+                    fileBrowserCache.get(location)?.files === previous.fileBrowserFiles
+                withContext(Dispatchers.Main) {
+                    _uiState.update {
+                        it.copy(
+                            fileBrowserRoots = roots,
+                            fileBrowserAllFilesGranted = allFilesGranted,
+                            fileBrowserLocation = location,
+                            fileBrowserFiles = if (location == previousLocation) it.fileBrowserFiles else emptyList(),
+                            fileBrowserBackStack = if (location == previousLocation) it.fileBrowserBackStack else emptyList()
+                        )
                     }
                 }
-            )
-        }
-        val scanResult = result.getOrElse { error ->
-            if (error is CancellationException) throw error
-            withContext(Dispatchers.Main) {
-                _uiState.update { it.copy(fileBrowserScanning = false, fileBrowserMessage = "Scan failed: ${error.message}") }
+                val publishProgress: ((VeritasFileBrowserScanResult) -> Unit)? =
+                    if (keepPreviousFiles) null else { partial ->
+                        viewModelScope.launch(Dispatchers.Main) {
+                            if (scanJob === owner && owner.isActive && uiState.value.showFileBrowser) {
+                                _uiState.update {
+                                    it.copy(fileBrowserFiles = partial.files, fileBrowserLocation = partial.location)
+                                }
+                            }
+                        }
+                    }
+                VeritasFileBrowserScanner.scan(
+                    context = context,
+                    roots = roots,
+                    includeAllFilesAccess = allFilesGranted,
+                    location = location,
+                    checkCancelled = { owner.ensureActive() },
+                    onProgress = publishProgress
+                )
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            if (scanJob === owner) {
+                scanJob = null
+                _uiState.update {
+                    it.copy(fileBrowserScanning = false, fileBrowserMessage = "Scan failed: ${error.message}")
+                }
             }
             return@launch
         }
-        withContext(Dispatchers.Main) {
-            if (scanJob !== owner) return@withContext
-            scanResult.location?.let { fileBrowserCache.put(it, scanResult) }
-            _uiState.update { it.copy(
+        if (scanJob !== owner) return@launch
+        scanJob = null
+        scanResult.location?.let { fileBrowserCache.put(it, scanResult) }
+        _uiState.update {
+            it.copy(
                 fileBrowserScanning = false,
                 fileBrowserFiles = scanResult.files,
                 fileBrowserLocation = scanResult.location,
-                fileBrowserAllFilesGranted = hasAllFilesAccess(),
                 fileBrowserMessage = scanResult.diagnostics.joinToString("\n").ifBlank {
                     if (scanResult.files.isEmpty()) "No files found" else null
                 }
-            )}
+            )
         }
     }
+    scanJob = job
+    job.start()
 }

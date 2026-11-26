@@ -83,6 +83,32 @@ class BackupRestoreSafetyTest {
         }
     }
 
+    @Test fun exportBudgetCountsBackupJsonAndExpandedAssets() {
+        val jsonSize = BackupRestoreSafety.MAX_JSON_BYTES
+        val assetSize = BackupRestoreSafety.MAX_ARCHIVE_BYTES - jsonSize
+        BackupRestoreSafety.requireArchiveBounds(jsonSize, listOf(assetSize))
+        assertThrows(IllegalArgumentException::class.java) {
+            BackupRestoreSafety.requireArchiveBounds(jsonSize + 1, emptyList())
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            BackupRestoreSafety.requireArchiveBounds(jsonSize, listOf(assetSize, 1L))
+        }
+    }
+
+    @Test fun archiveEntryBudgetReservesAnEntryForBackupJson() {
+        BackupRestoreSafety.requireArchiveBounds(1, List(BackupRestoreSafety.MAX_ENTRIES - 1) { 0L })
+        assertThrows(IllegalArgumentException::class.java) {
+            BackupRestoreSafety.requireArchiveBounds(1, List(BackupRestoreSafety.MAX_ENTRIES) { 0L })
+        }
+    }
+
+    @Test fun validatesGeneratedManifestBeforeExport() {
+        val root = backup().put("noteMedia", JSONArray()
+            .put(JSONObject().put("id", "same-id").put("fileName", "one.wav").put("path", "/local/one.wav"))
+            .put(JSONObject().put("id", "same-id").put("fileName", "two.wav").put("path", "/local/two.wav")))
+        assertThrows(IllegalArgumentException::class.java) { BackupRestoreSafety.validate(root) }
+    }
+
     @Test fun failedStagingLeavesExistingFilesUntouched() {
         val root = temporary.newFolder()
         val existing = File(root, "reading.txt").apply { writeText("previous text") }

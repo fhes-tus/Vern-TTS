@@ -73,13 +73,19 @@ class WidgetAndQuestAcceptanceTest {
         try {
             repo.saveQuestProgress(true, false, true, false); repo.setQuestChecklistDismissed(false)
             val incomplete = DocumentRepository(context).loadQuestProgress()
-            assertTrue(incomplete.tourDone); assertFalse(incomplete.importDone)
+            assertEquals(QuestProgress(tourDone = true, importDone = false, speedDone = true, bookmarkDone = false), incomplete)
             repo.setQuestChecklistDismissed(true)
             assertEquals(incomplete, DocumentRepository(context).loadQuestProgress())
             assertTrue(DocumentRepository(context).isQuestChecklistDismissed())
-            repo.setQuestChecklistDismissed(false); repo.saveQuestProgress(true, true, true, true); repo.markQuestsCelebrated()
+            repo.setQuestChecklistDismissed(false)
+            repo.completeFirstChapterMilestone(FirstChapterMilestone.NOTE)
+            DocumentRepository(context).completeFirstChapterMilestone(FirstChapterMilestone.BOOKMARK)
+            repo.completeFirstChapterMilestone(FirstChapterMilestone.IMPORT)
+            repo.completeFirstChapterMilestone(FirstChapterMilestone.NOTE)
+            repo.markQuestsCelebrated()
             val complete = DocumentRepository(context)
-            assertTrue(complete.loadQuestProgress().let { it.tourDone && it.importDone && it.speedDone && it.bookmarkDone })
+            assertEquals(QuestProgress(tourDone = true, importDone = true, speedDone = true, bookmarkDone = true, noteDone = true),
+                complete.loadQuestProgress())
             assertTrue(complete.hasCelebratedQuests()); assertFalse(complete.isQuestChecklistDismissed())
         } finally {
             val edit = repo.prefs.edit()

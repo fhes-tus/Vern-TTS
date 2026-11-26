@@ -83,7 +83,7 @@
     <string name="ui_copy_text" formatted="false">"复制文本"</string>
     <string name="ui_create_backup" formatted="false">"创建备份"</string>
     <string name="ui_create_flashcard" formatted="false">"创建抽认卡"</string>
-    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"创建本地书单并添加已保存内容"</string>
+    <string name="ui_create_local_lists_add_saved_readings" formatted="false">"创建合集并添加已保存的读物"</string>
     <string name="ui_customization" formatted="false">"个性化"</string>
     <string name="ui_daily_goal" formatted="false">"每日目标"</string>
     <string name="ui_daily_goal_reached" formatted="false">"已达成每日目标"</string>
@@ -233,8 +233,8 @@
     <string name="ui_reading_goal" formatted="false">"阅读目标"</string>
     <string name="ui_reading_goal_reduce_motion_contrast" formatted="false">"阅读目标、减少动态效果与对比度"</string>
     <string name="ui_reading_insights_32f8941" formatted="false">"阅读统计"</string>
-    <string name="ui_reading_list" formatted="false">"书单"</string>
-    <string name="ui_reading_lists" formatted="false">"书单"</string>
+    <string name="ui_reading_list" formatted="false">"合集"</string>
+    <string name="ui_reading_lists" formatted="false">"合集"</string>
     <string name="ui_reading_overview" formatted="false">"阅读概览"</string>
     <string name="ui_reading_time" formatted="false">"阅读时长"</string>
     <string name="ui_ready" formatted="false">"就绪"</string>

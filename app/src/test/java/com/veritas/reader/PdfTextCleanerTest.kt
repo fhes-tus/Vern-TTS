@@ -5,6 +5,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PdfTextCleanerTest {
+    @Test fun wordSpacingDotsAreRepairedWithoutDeletingRealPunctuationOrLinks() {
+        val original = """inTRODUcTiOn:
+            |
+            |Notes from the chapter. The.secret.is.to.ask.the.right.question. Then read it aloud.
+            |Dynamic. Bible. study. involves. writing. down. your. observations . Keep this spacing readable.
+            |Read to.you. See https://www.example.org/of.things, U.S.A., 3.14 and 2 Tim. 3:16.
+        """.trimMargin()
+        val cleaned = PdfTextCleaner.repairPdfSpacing(original)
+        assertTrue(cleaned.startsWith("Introduction:"))
+        assertTrue(cleaned.contains("Notes from the chapter. The secret is to ask the right question. Then read it aloud."))
+        assertTrue(cleaned.contains("Dynamic Bible study involves writing down your observations. Keep"))
+        assertTrue(cleaned.contains("Read to you. See https://www.example.org/of.things, U.S.A., 3.14 and 2 Tim. 3:16."))
+    }
+
     @Test fun repeatedContentsAndChapterEntriesAreNeverRunningHeaders() {
         val pages = listOf("Publisher details\nCopyright notice", "A dedication to family.",
             "Contents\nIntroduction\nWhat is self-love?\nPart One: A Matter of Vibes\nIntroduction\nA chapter\nPart Two: Positive Habits\nIntroduction",
@@ -71,6 +85,19 @@ class PdfTextCleanerTest {
         val text = result.text
 
         assertTrue("Should preserve existing markdown table", text.contains("| Parameter | Value |\n| Speed | 100 km/h |\n| Temperature | 25 C |"))
+    }
+
+    @Test fun repeatedTableHeadersAndSeparatorsAreNotRemovedAsPageFurniture() {
+        val rows = "| Item | Value |\n| --- | --- |\n| Speed | 60 |"
+        val pages = (1..3).map { "$rows\n\nExplanation for table $it." }
+        val cleaned = PdfTextCleaner.cleanPages(pages)
+        org.junit.Assert.assertEquals(3, cleaned.text.split(rows).size - 1)
+    }
+
+    @Test fun paragraphStartRetainsIndentationAndWrappedLinesReflow() {
+        val page = "The first paragraph ends here.\n\n   The next paragraph begins here\n    and continues on the next line."
+        val cleaned = PdfTextCleaner.cleanPages(listOf(page)).text
+        assertTrue(cleaned.contains("\n\n   The next paragraph begins here and continues on the next line."))
     }
 
     @Test

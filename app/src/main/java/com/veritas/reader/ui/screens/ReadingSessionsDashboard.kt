@@ -3,6 +3,9 @@ import com.veritas.reader.VernAlertDialog as AlertDialog
 
 import com.veritas.reader.vernScatteredCard
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,7 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -26,12 +32,16 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 import com.veritas.reader.*
+import com.veritas.reader.R
+import com.veritas.reader.ui.VeritasSleekSlider
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.util.UUID
 
 @Composable
 internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, documents: List<SavedDocument>,
@@ -44,11 +54,73 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var edit by remember { mutableStateOf<ReadingSession?>(null) }
     var manual by remember { mutableStateOf(false) }
-    var idle by remember { mutableIntStateOf(repository.prefs.getInt("reading_idle_seconds", 120)) }
-    var explicit by remember { mutableStateOf(repository.prefs.getBoolean("reading_explicit_only", false)) }
-    LaunchedEffect(idle) {
-        kotlinx.coroutines.delay(300)
-        kotlinx.coroutines.withContext(Dispatchers.IO) { repository.prefs.edit().putInt("reading_idle_seconds", idle).commit(); tracker.flush() }
+    var savingSession by remember { mutableStateOf(false) }
+    var sessionSaveFailed by remember { mutableStateOf(false) }
+    var timerSettings by remember { mutableStateOf<ReadingTimerSettings?>(null) }
+    var idleDraft by remember { mutableIntStateOf(120) }
+    var savingTimer by remember { mutableStateOf(false) }
+    var timerSaveFailed by remember { mutableStateOf(false) }
+    var retryTimerLoad by remember { mutableIntStateOf(0) }
+    LaunchedEffect(repository, retryTimerLoad) {
+        timerSaveFailed = false
+        try {
+            val settings = withContext(Dispatchers.IO) { repository.loadReadingTimerSettings() }
+            timerSettings = settings
+            idleDraft = settings.idleSeconds
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            timerSaveFailed = true
+        }
+    }
+    fun saveTimerSettings(idleSeconds: Int? = null, explicitOnly: Boolean? = null) {
+        val current = timerSettings ?: return
+        val changed = (idleSeconds ?: current.idleSeconds) != current.idleSeconds ||
+            (explicitOnly ?: current.explicitOnly) != current.explicitOnly
+        if (savingTimer || !changed) return
+        savingTimer = true
+        timerSaveFailed = false
+        scope.launch {
+            try {
+                timerSettings = withContext(Dispatchers.IO) {
+                    repository.saveReadingTimerSettings(idleSeconds, explicitOnly)
+                }
+                tracker.flush()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                timerSaveFailed = true
+            } finally {
+                idleDraft = timerSettings?.idleSeconds ?: current.idleSeconds
+                savingTimer = false
+            }
+        }
+    }
+    fun dismissEditor() {
+        manual = false
+        edit = null
+        sessionSaveFailed = false
+    }
+    fun saveSession(save: () -> Unit) {
+        if (savingSession) return
+        savingSession = true
+        sessionSaveFailed = false
+        scope.launch {
+            try {
+                withContext(Dispatchers.IO) { save() }
+                tracker.flush()
+                dismissEditor()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                sessionSaveFailed = true
+            } finally {
+                savingSession = false
+            }
+        }
+    }
+    fun dismissDashboard() {
+        if (!savingSession && !savingTimer) onDismiss()
     }
     val today = LocalDate.now()
     val todayKey = today.toString()
@@ -67,14 +139,15 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
     val documentsById = remember(documents) { documents.associateBy { it.id } }
     val historyByDay = remember(snapshot.sessions) {
         snapshot.sessions.filter { it.measuredMillis > 0 }.sortedByDescending { it.startedAt }
-            .groupBy { java.time.Instant.ofEpochMilli(it.startedAt).atZone(ZoneId.systemDefault()).toLocalDate() }
+            .groupBy { it.manualDate ?: java.time.Instant.ofEpochMilli(it.startedAt).atZone(ZoneId.systemDefault()).toLocalDate() }
+            .toSortedMap(reverseOrder())
     }
     val overviewScroll = rememberLazyListState()
     val booksScroll = rememberLazyListState()
     val historyScroll = rememberLazyListState()
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = ::dismissDashboard,
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
     ) {
         val dialogView = LocalView.current
@@ -104,11 +177,11 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                 ) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_insights), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-                    IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_insights)) }
+                    IconButton(onClick = ::dismissDashboard, enabled = !savingSession && !savingTimer) { Icon(Icons.Default.Close, com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close_insights)) }
                 }
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Overview", "Books", "History").forEachIndexed { index, label ->
-                        FilterChip(selected = tab == index, onClick = { tab = index }, label = { Text(label) })
+                    listOf(com.veritas.reader.R.string.filter_overview, com.veritas.reader.R.string.l10n_books, com.veritas.reader.R.string.filter_history).forEachIndexed { index, label ->
+                        FilterChip(selected = tab == index, onClick = { tab = index }, label = { Text(menuString(label)) })
                     }
                 }
                 LazyColumn(Modifier.weight(1f).testTag("insights-content"), state = when (tab) { 0 -> overviewScroll; 1 -> booksScroll; else -> historyScroll }, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -165,14 +238,28 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                         item {
                             InsightsDetailCard(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_reading_timer), Icons.Default.Timer) {
                                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_automatic_reading_measures_visible_reader_time_after_interaction))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                val explicitOnly = timerSettings?.explicitOnly == true
+                                val timerEnabled = timerSettings != null && !savingTimer
+                                Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(
+                                    value = explicitOnly, enabled = timerEnabled, role = Role.Switch,
+                                    onValueChange = { saveTimerSettings(explicitOnly = it) }
+                                ), verticalAlignment = Alignment.CenterVertically) {
                                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_use_an_explicit_timer_only), modifier = Modifier.weight(1f))
-                                    Switch(checked = explicit, onCheckedChange = { value ->
-                                        explicit = value; scope.launch(Dispatchers.IO) { repository.prefs.edit().putBoolean("reading_explicit_only", value).commit(); tracker.flush() }
-                                    })
+                                    Switch(checked = explicitOnly, onCheckedChange = null, enabled = timerEnabled)
                                 }
-                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_174, com.veritas.reader.ui.screens.localizedUiValue(idle / 60), com.veritas.reader.ui.screens.localizedUiValue(idle % 60)))
-                                VeritasRoundSlider(value = idle.toFloat(), onValueChange = { idle = it.toInt() }, valueRange = 30f..900f)
+                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_174, com.veritas.reader.ui.screens.localizedUiValue(idleDraft / 60), com.veritas.reader.ui.screens.localizedUiValue(idleDraft % 60)))
+                                VeritasSleekSlider(value = idleDraft.toFloat(),
+                                    onValueChange = { idleDraft = it.toInt() }, valueRange = 30f..900f,
+                                    enabled = timerSettings != null && !savingTimer,
+                                    onValueChangeFinished = { saveTimerSettings(idleSeconds = idleDraft) })
+                                if (timerSaveFailed) {
+                                    InsightsSaveError(menuString(R.string.insights_timer_save_failed))
+                                    if (timerSettings == null) {
+                                        TextButton(onClick = { retryTimerLoad++ }) {
+                                            Text(menuString(R.string.ui_try_again))
+                                        }
+                                    }
+                                }
                                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_start_a_timer_from_books_it_runs_while_that_book_s_reader_is_visi), style = MaterialTheme.typography.bodySmall)
                                 TextButton(onClick = { tracker.explicitTimer(null) }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_stop_reading_timer)) }
                             }
@@ -204,7 +291,7 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                                 Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Icon(Icons.Default.Timeline, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
-                                    Text(if (date == today) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_today_s_sessions) else date.format(DateTimeFormatter.ofPattern("EEE, d MMM yyyy")),
+                                    Text(if (date == today) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_today_s_sessions) else date.format(DateTimeFormatter.ofPattern("EEE, d MMM yyyy", androidx.compose.ui.platform.LocalConfiguration.current.locales[0])),
                                         style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                                     Text("${entries.size}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
@@ -217,7 +304,7 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
                 }
                 if (com.veritas.reader.ui.OnboardingController.activeStep == com.veritas.reader.ui.OnboardingStep.INSIGHTS_PAGE_SPOTLIGHT) {
                     InsightsCard(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_reading_insights)) {
-                        Text(com.veritas.reader.ui.OnboardingStep.INSIGHTS_PAGE_SPOTLIGHT.body)
+                        Text(menuString(com.veritas.reader.ui.OnboardingStep.INSIGHTS_PAGE_SPOTLIGHT.bodyRes))
                         Row {
                             TextButton(onClick = { onDismiss(); com.veritas.reader.ui.OnboardingController.activeStep = com.veritas.reader.ui.OnboardingStep.INSIGHTS_SPOTLIGHT }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_back)) }
                             TextButton(onClick = { onDismiss(); com.veritas.reader.ui.OnboardingController.activeStep = com.veritas.reader.ui.OnboardingStep.NOTES_TAB_SPOTLIGHT }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_next)) }
@@ -228,20 +315,18 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
         }
     }
     }
-    if (manual || edit != null) {
-        SessionEditor(documents, edit, onDismiss = { manual = false; edit = null }, onReset = {
-            val id = edit?.id
-            scope.launch(Dispatchers.IO) { if (id != null) repository.correctReadingSession(id, null, false); tracker.flush() }
-            manual = false; edit = null
-        }, onSave = { doc, mode, start, duration, exclude ->
-            val original = edit
-            scope.launch(Dispatchers.IO) {
-                if (original != null) repository.correctReadingSession(original.id, duration, exclude)
-                else if (doc != null) repository.addManualReadingSession(doc, mode, start, duration)
-                tracker.flush()
-            }
-            manual = false; edit = null
-        })
+    val editedSession = edit
+    if (manual || editedSession != null) {
+        val manualSessionId = remember { UUID.randomUUID().toString() }
+        SessionEditor(documents, editedSession, savingSession, sessionSaveFailed, onDismiss = ::dismissEditor,
+            onAdd = { documentId, mode, date, duration ->
+                saveSession { repository.addManualReadingSession(manualSessionId, documentId, mode, date, duration) }
+            },
+            onCorrect = { duration, excluded ->
+                if (editedSession != null) saveSession {
+                    repository.correctReadingSession(editedSession.id, duration, excluded)
+                }
+            })
     }
 }
 
@@ -255,38 +340,89 @@ internal fun ReadingSessionsDashboardDialog(snapshot: ReaderTrackerSnapshot, doc
     }
 }
 
-@Composable private fun SessionEditor(documents: List<SavedDocument>, session: ReadingSession?, onDismiss: () -> Unit,
-    onReset: () -> Unit,
-    onSave: (SavedDocument?, ReadingSessionMode, Long, Long, Boolean) -> Unit) {
-    var book by remember { mutableStateOf(documents.firstOrNull { it.id == session?.documentId } ?: documents.firstOrNull()) }
+@Composable
+private fun InsightsSaveError(message: String) {
+    Text(message, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }, color = MaterialTheme.colorScheme.error)
+}
+
+@Composable
+private fun SessionEditor(
+    documents: List<SavedDocument>,
+    session: ReadingSession?,
+    saving: Boolean,
+    saveFailed: Boolean,
+    onDismiss: () -> Unit,
+    onAdd: (String, ReadingSessionMode, LocalDate, Long) -> Unit,
+    onCorrect: (Long?, Boolean) -> Unit
+) {
+    var bookId by remember { mutableStateOf(documents.firstOrNull()?.id) }
+    val book = documents.firstOrNull { it.id == bookId }
     var menu by remember { mutableStateOf(false) }
     var mode by remember { mutableStateOf(session?.mode ?: ReadingSessionMode.READING) }
-    var minutes by remember { mutableStateOf(if (session == null) "20" else ((if (session.excluded) session.measuredMillis else session.activeMillis) / 60000.0).toString()) }
-    var date by remember { mutableStateOf(session?.let { java.time.Instant.ofEpochMilli(it.startedAt).atZone(ZoneId.systemDefault()).toLocalDate().toString() } ?: LocalDate.now().toString()) }
-    val duration = minutes.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0 && it <= 1440 }?.let { (it * 60_000).toLong() }
-    val start = runCatching { LocalDate.parse(date).atTime(12, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() }.getOrNull()
-    AlertDialog(onDismissRequest = onDismiss, title = { Text(if (session == null) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_manual_session) else com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_correct_duration)) }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    var minutes by remember {
+        mutableStateOf(if (session == null) "20" else ((session.correctedMillis ?: session.measuredMillis) / 60_000.0).toString())
+    }
+    val today = LocalDate.now()
+    var date by remember { mutableStateOf(today.toString()) }
+    val duration = minutes.toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..1440.0 }
+        ?.let { (it * 60_000).toLong() }?.takeIf { it > 0L }
+    val selectedDate = remember(date) {
+        date.trim().takeIf { it.length == 10 }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+    }
+    val dateError = when {
+        selectedDate == null -> R.string.insights_invalid_session_date
+        selectedDate.isAfter(today) -> R.string.insights_future_session_date
+        else -> null
+    }
+    AlertDialog(onDismissRequest = { if (!saving) onDismiss() }, title = {
+        Text(menuString(if (session == null) R.string.ui_manual_session else R.string.ui_correct_duration))
+    }, text = {
+        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (session == null) {
-                Box { TextButton(onClick = { menu = true }) { Text(book?.title ?: com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_choose_book)) }
-                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) { documents.forEach { doc -> DropdownMenuItem(
-                        text = { Text(doc.title) }, onClick = { book = doc; menu = false }) } }
+                Box {
+                    TextButton(enabled = !saving, onClick = { menu = true }) {
+                        Text(book?.title ?: menuString(R.string.ui_choose_book))
+                    }
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        documents.forEach { doc ->
+                            DropdownMenuItem(text = { Text(doc.title) }, onClick = { bookId = doc.id; menu = false })
+                        }
+                    }
                 }
                 Row {
                     ReadingSessionMode.entries.forEach { value ->
-                        FilterChip(mode == value, onClick = { mode = value }, label = {
+                        FilterChip(mode == value, enabled = !saving, onClick = { mode = value }, label = {
                             Text(menuString(if (value == ReadingSessionMode.READING) com.veritas.reader.R.string.ui_reading
                                 else com.veritas.reader.R.string.ui_listening))
                         })
                     }
                 }
-                OutlinedTextField(date, onValueChange = { date = it }, label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_date_yyyy_mm_dd)) }, singleLine = true)
+                OutlinedTextField(date, onValueChange = { date = it }, enabled = !saving,
+                    label = { Text(menuString(R.string.ui_date_yyyy_mm_dd)) }, singleLine = true,
+                    isError = dateError != null, supportingText = dateError?.let { id -> { Text(menuString(id)) } })
             } else Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_the_measured_duration_remains_in_the_record_this_correction_chang))
-            OutlinedTextField(minutes, onValueChange = { minutes = it }, label = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_active_minutes)) }, singleLine = true)
-            if (session != null) TextButton(onClick = { onSave(book, mode, session.startedAt, 0, true) }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_exclude_this_session_from_totals)) }
-            if (session != null && (session.correctedMillis != null || session.excluded)) TextButton(onClick = onReset) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_restore_original_measurement)) }
+            OutlinedTextField(minutes, onValueChange = { minutes = it }, enabled = !saving,
+                label = { Text(menuString(R.string.ui_active_minutes)) }, singleLine = true)
+            if (session != null) {
+                TextButton(enabled = !saving, onClick = { onCorrect(null, true) }) {
+                    Text(menuString(R.string.ui_exclude_this_session_from_totals))
+                }
+                if (session.correctedMillis != null || session.excluded) {
+                    TextButton(enabled = !saving, onClick = { onCorrect(null, false) }) {
+                        Text(menuString(R.string.ui_restore_original_measurement))
+                    }
+                }
+            }
+            if (saveFailed) InsightsSaveError(menuString(R.string.insights_session_save_failed))
         }
-    }, confirmButton = { TextButton(enabled = duration != null && start != null && (book != null || session != null), onClick = {
-        onSave(book, mode, session?.startedAt ?: start!!, duration!!, false)
-    }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save)) } }, dismissButton = { TextButton(onClick = onDismiss) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } })
+    }, confirmButton = {
+        TextButton(enabled = !saving && duration != null && (session != null || book != null && dateError == null), onClick = {
+            if (duration != null) {
+                if (session != null) onCorrect(duration, false)
+                else if (book != null && selectedDate != null && dateError == null) onAdd(book.id, mode, selectedDate, duration)
+            }
+        }) { Text(menuString(if (saving) R.string.insights_saving else R.string.ui_save)) }
+    }, dismissButton = {
+        TextButton(enabled = !saving, onClick = onDismiss) { Text(menuString(R.string.ui_cancel)) }
+    })
 }

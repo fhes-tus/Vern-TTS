@@ -40,7 +40,7 @@ class ReaderFontSizeUiTest {
                     onOpenStudyTools = {}, onOpenTranslationTools = {}, onOpenSleepTimer = {}, onOpenReadingLists = {},
                     onOpenReadingHistory = {}, onAskCurrentSection = {}, onSelectAskAiAssistant = { _, _ -> },
                     onOpenTextEditor = {}, onStartRecord = {}, onExportAudio = {}, onCopySelection = {}, onShareSelection = {},
-                    onGoogleSelection = {}, onTranslateSelection = {}, onAskAiSelection = {}, onEditSpeechSelection = {},
+                    onDefineSelection = {}, onTranslateSelection = {}, onAskAiSelection = {}, onEditSpeechSelection = {},
                     onReadSelection = {}, onEditExtractedSelection = {}, onPlayQueue = {}, onVoiceSelected = {},
                     onReaderModeChange = { mode = it })
             } }

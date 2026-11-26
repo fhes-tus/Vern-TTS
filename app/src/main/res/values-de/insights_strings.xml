@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="insights_earlier">Früher</string>
+    <string name="insights_last_week">Letzte Woche</string>
+    <string name="insights_daily_habit">Tägliche Gewohnheit</string>
+    <string name="insights_master_reader">Lesemeister</string>
+    <string name="insights_habit_champion">Gewohnheitschampion</string>
+    <string name="insights_seven_day_flame">7-Tage-Serie</string>
+    <string name="insights_consistency_pro">Beständigkeitsprofi</string>
+    <string name="insights_week_chart_description">%1$s. %2$s. Insgesamt %3$s. Wische nach links oder rechts, um die Woche zu wechseln.</string>
+    <string name="insights_invalid_session_date">Gib ein Datum im Format YYYY-MM-DD ein.</string>
+    <string name="insights_future_session_date">Wähle heute oder ein früheres Datum.</string>
+    <string name="insights_session_save_failed">Diese Sitzung konnte nicht gespeichert werden. Deine Änderungen sind noch vorhanden. Versuche es erneut.</string>
+    <string name="insights_timer_save_failed">Die Einstellungen des Lesetimers konnten nicht gespeichert werden. Ändere die Einstellungen erneut.</string>
+    <string name="insights_saving">Wird gespeichert…</string>
+</resources>

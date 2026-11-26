@@ -46,6 +46,12 @@ class SpeechSanitizerTest {
         assertEquals("Wait. what", output)
     }
 
+    @Test fun spacedEllipsisUsesOnePauseAndItsOwnChunksStaySilent() {
+        assertEquals("Wait . then speak", SpeechSanitizer.forSpeech("Wait . . . then speak"))
+        assertFalse(SpeechSanitizer.isSpeakable(". . ."))
+        assertFalse(SpeechSanitizer.isSpeakable("."))
+    }
+
     @Test
     fun `pure decoration chunks are not speakable`() {
         assertFalse(SpeechSanitizer.isSpeakable("•••"))

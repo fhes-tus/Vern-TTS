@@ -71,7 +71,6 @@ import com.veritas.reader.LibraryViewMode
 import com.veritas.reader.SavedDocument
 import com.veritas.reader.SoftChip
 import com.veritas.reader.VeritasPackStyle
-import com.veritas.reader.formatEstimatedReadTime
 import com.veritas.reader.formatUpdated
 import com.veritas.reader.progressFraction
 import com.veritas.reader.progressPercent
@@ -155,7 +154,7 @@ internal fun RecentImportItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            val subtitleText = com.veritas.reader.libraryReadingSummary(document)
+            val subtitleText = localizedLibraryReadingSummary(document)
             Text(
                 text = subtitleText,
                 style = MaterialTheme.typography.bodySmall,
@@ -278,7 +277,8 @@ internal fun HomeRecentBookGridItem(
             val index = if (com.veritas.reader.PlaybackStateStore.activeDocumentId == document.id)
                 com.veritas.reader.PlaybackStateStore.currentIndex else document.currentIndex
             val progress = if (document.chunkCount > 0) (index.toFloat() / document.chunkCount).coerceIn(0f, 1f) else 0f
-            val subtitleText = if (index <= 0) "Ready to begin" else "${(progress * 100).toInt()}% through"
+            val subtitleText = if (index <= 0) menuString(com.veritas.reader.R.string.ui_ready_to_begin)
+            else menuString(com.veritas.reader.R.string.library_read_percent, localizedUiPercent((progress * 100).toInt()))
             Text(
                 text = subtitleText,
                 style = MaterialTheme.typography.bodySmall,
@@ -462,7 +462,7 @@ fun DocumentCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    com.veritas.reader.libraryReadingSummary(document),
+                    localizedLibraryReadingSummary(document),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -487,7 +487,6 @@ fun DocumentCard(
                         modifier = Modifier.horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        if (document.collection.isNotBlank()) SoftChip(document.collection, emphasis = true)
                         if (isQueued) SoftChip(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_queued))
                         if (document.favorite) SoftChip(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_favorite))
                         SoftChip(formatUpdated(document.updatedAt))
@@ -758,7 +757,7 @@ fun DocumentTileCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            val subtitleText = com.veritas.reader.libraryReadingSummary(document)
+            val subtitleText = localizedLibraryReadingSummary(document)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically

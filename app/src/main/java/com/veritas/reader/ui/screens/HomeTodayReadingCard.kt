@@ -234,22 +234,14 @@ internal fun HomeTodayReadingCard(
         }
     }
     var showGoalPicker by remember { mutableStateOf(false) }
-    val currentSlide = slides[statIndex.coerceIn(slides.indices)]
-
     Card(
         modifier = modifier
             .fillMaxWidth()
             .vernScatteredCard("home-today-reading", amount = .5f)
             .testTag("home-today-reading-card")
             .clickable(
-                onClickLabel = if (currentSlide.actionOpensGoalPicker) setOrEditGoalLabel else viewInsightsLabel,
-                onClick = {
-                    if (currentSlide.actionOpensGoalPicker) {
-                        showGoalPicker = true
-                    } else {
-                        onOpenInsights()
-                    }
-                }
+                onClickLabel = viewInsightsLabel,
+                onClick = onOpenInsights
             )
             .pointerInput(slides.size) {
                 var drag = 0f
@@ -306,10 +298,8 @@ internal fun HomeTodayReadingCard(
                     goalMinutes = goalMinutes,
                     weekReadingMillis = weekValues,
                     weekdayLabels = weekdayLabels,
-                    onActionClick = {
-                        if (slide.actionOpensGoalPicker) showGoalPicker = true else onOpenInsights()
-                    },
-                    onGoalRowClick = if (slide.actionOpensGoalPicker) ({ showGoalPicker = true }) else null,
+                    onActionClick = null,
+                    onGoalRowClick = null,
                     modifier = Modifier
                         .graphicsLayer { alpha = 0f }
                         .clearAndSetSemantics {}
@@ -383,7 +373,7 @@ private fun ReadingStatPage(
     goalMinutes: Int,
     weekReadingMillis: List<Long>,
     weekdayLabels: List<String>,
-    onActionClick: () -> Unit,
+    onActionClick: (() -> Unit)?,
     onGoalRowClick: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
@@ -443,10 +433,7 @@ private fun ReadingStatPage(
                 maxLines = 1,
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .clickable(
-                        role = Role.Button,
-                        onClick = onActionClick
-                    )
+                    .then(if (onActionClick != null) Modifier.clickable(role = Role.Button, onClick = onActionClick) else Modifier)
                     .padding(horizontal = 4.dp, vertical = 2.dp)
                     .testTag(if (slide.actionOpensGoalPicker) "home-today-reading-set-goal" else "home-today-reading-view-insights")
             )

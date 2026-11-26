@@ -1,16 +1,24 @@
 package com.veritas.reader
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.MalformedURLException
 import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.UnknownHostException
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util.Locale
+import java.util.zip.GZIPInputStream
 
 data class WebArticle(
     val title: String,
@@ -19,63 +27,118 @@ data class WebArticle(
 )
 
 object WebArticleExtractor {
+    private const val DOWNLOAD_TIMEOUT_MILLIS = 45_000L
     private const val USER_AGENT =
         "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36 VernReader/2.0"
 
-    suspend fun extract(urlText: String): WebArticle = withContext(Dispatchers.IO) {
+    suspend fun extract(urlText: String): WebArticle = extract(urlText, DOWNLOAD_TIMEOUT_MILLIS) {
+        it.openConnection() as HttpURLConnection
+    }
+
+    internal suspend fun extract(
+        urlText: String,
+        timeoutMillis: Long,
+        openConnection: (URL) -> HttpURLConnection
+    ): WebArticle = withContext(Dispatchers.IO) {
         val normalizedUrl = normalizeUrl(urlText)
-        val connection = try {
-            (URL(normalizedUrl).openConnection() as HttpURLConnection).apply {
-                connectTimeout = 15000
-                readTimeout = 20000
-                instanceFollowRedirects = true
-                setRequestProperty("User-Agent", USER_AGENT)
-                setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                setRequestProperty("Accept-Language", "en-US,en;q=0.9")
-            }
-        } catch (e: UnknownHostException) {
-            throw IllegalArgumentException("Unable to reach the web server. Please check your internet connection.", e)
-        } catch (e: Exception) {
-            throw IllegalArgumentException("Failed to open connection to article URL: ${e.localizedMessage ?: "Unknown error"}", e)
+        val url = try {
+            URL(normalizedUrl).also { require(it.host.isNotBlank()) { "Enter a valid web article link." } }
+        } catch (error: MalformedURLException) {
+            throw IllegalArgumentException("Enter a valid web article link.", error)
         }
 
         val (rawBytes, headerCharset) = try {
-            when (val responseCode = connection.responseCode) {
-                HttpURLConnection.HTTP_OK -> {
-                    val contentType = connection.contentType.orEmpty()
-                    val charset = extractCharsetFromHeader(contentType)
-                    val bytes = readBytesSafely(connection.inputStream)
-                    bytes to charset
+            withTimeoutOrNull(timeoutMillis) {
+                coroutineScope {
+                    val connection = openConnection(url)
+                    val transfer = async {
+                        val jobContext = currentCoroutineContext()
+                        try {
+                            runInterruptible {
+                                readResponse(connection) { jobContext.ensureActive() }
+                            }
+                        } finally {
+                            runCatching { connection.disconnect() }
+                        }
+                    }
+                    try {
+                        transfer.await()
+                    } finally {
+                        // Interrupt a blocked read. The transfer still cleans up in case cancellation
+                        // raced the connection opening and the first disconnect happened early.
+                        if (!transfer.isCompleted) runCatching { connection.disconnect() }
+                    }
                 }
-                HttpURLConnection.HTTP_UNAUTHORIZED, HttpURLConnection.HTTP_FORBIDDEN -> {
-                    throw IllegalArgumentException("This article is paywalled, protected, or restricted by the website (HTTP $responseCode).")
-                }
-                HttpURLConnection.HTTP_NOT_FOUND -> {
-                    throw IllegalArgumentException("Article was not found at this URL (HTTP 404).")
-                }
-                in 500..599 -> {
-                    throw IllegalArgumentException("The website server encountered an error (HTTP $responseCode). Please try again later.")
-                }
-                else -> {
-                    throw IllegalArgumentException("Unable to read web article (HTTP $responseCode).")
-                }
-            }
+            } ?: throw IllegalArgumentException("The web article took too long to download. Please try again.")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: UnknownHostException) {
+            throw IllegalArgumentException("Unable to reach the web server. Please check your internet connection.", e)
         } catch (e: SocketTimeoutException) {
             throw IllegalArgumentException("Connection timed out while loading article. Please try again.", e)
         } catch (e: IllegalArgumentException) {
             throw e
         } catch (e: Exception) {
-            throw IllegalArgumentException("Failed to download web article: ${e.localizedMessage ?: "Network error"}", e)
-        } finally {
-            connection.disconnect()
+            throw IllegalArgumentException("Failed to download the web article. Please try again.", e)
         }
 
+        currentCoroutineContext().ensureActive()
+        require(rawBytes.isNotEmpty()) { "No readable article text was found at this link." }
+        ImportFilePolicy.validateHeader(ImportFormat.HTML, rawBytes.copyOf(minOf(1024, rawBytes.size)))
         val html = decodeHtml(rawBytes, headerCharset)
-        val title = extractTitle(html).ifBlank { URL(normalizedUrl).host.removePrefix("www.") }
+        ImportFilePolicy.validateText(html)
+        val title = extractTitle(html).ifBlank { url.host.removePrefix("www.") }
         val articleHtml = extractArticleHtml(html)
+        currentCoroutineContext().ensureActive()
         val text = htmlToText(articleHtml).ifBlank { htmlToText(html) }
         if (text.isBlank()) throw IllegalArgumentException("No readable article text was found at this link.")
         WebArticle(title = title, text = text, url = normalizedUrl)
+    }
+
+    private fun readResponse(connection: HttpURLConnection, checkActive: () -> Unit): Pair<ByteArray, Charset?> {
+        connection.connectTimeout = 15_000
+        connection.readTimeout = 20_000
+        connection.instanceFollowRedirects = true
+        connection.setRequestProperty("User-Agent", USER_AGENT)
+        connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+        connection.setRequestProperty("Accept-Language", "en-US,en;q=0.9")
+        // Own decompression so the byte limit applies to the HTML handed to the parser.
+        connection.setRequestProperty("Accept-Encoding", "gzip")
+
+        checkActive()
+        when (val status = connection.responseCode) {
+            HttpURLConnection.HTTP_OK -> Unit
+            HttpURLConnection.HTTP_UNAUTHORIZED, HttpURLConnection.HTTP_FORBIDDEN ->
+                throw IllegalArgumentException("The website restricted access to this article (HTTP $status).")
+            HttpURLConnection.HTTP_NOT_FOUND ->
+                throw IllegalArgumentException("Article was not found at this URL (HTTP 404).")
+            in 500..599 ->
+                throw IllegalArgumentException("The website server encountered an error (HTTP $status). Please try again later.")
+            else -> throw IllegalArgumentException("Unable to read web article (HTTP $status).")
+        }
+        val contentType = connection.contentType.orEmpty()
+        val mediaType = contentType.substringBefore(';').trim().lowercase(Locale.ROOT)
+        require(mediaType.startsWith("text/") || mediaType in setOf("", "application/xhtml+xml", "application/xml", "application/octet-stream")) {
+            "This link did not return a readable web page."
+        }
+
+        val encoding = connection.contentEncoding.orEmpty().trim().lowercase(Locale.ROOT)
+        val gzip = encoding == "gzip" || encoding == "x-gzip"
+        require(gzip || encoding.isEmpty() || encoding == "identity") {
+            "The website returned an unsupported compression format."
+        }
+        val limit = ImportFilePolicy.byteLimit(ImportFormat.HTML)
+        val expected = if (gzip) -1L else connection.contentLengthLong
+        require(expected <= limit) { "Web article exceeds the ${limit / (1024 * 1024)} MB safety limit." }
+        val output = ByteArrayOutputStream()
+        val decodedSize = connection.inputStream.use { input ->
+            if (gzip) {
+                GZIPInputStream(input).use { ResourceLimits.copy(it, output, limit, checkActive) }
+            } else ResourceLimits.copy(input, output, limit, checkActive)
+        }
+        checkActive()
+        require(expected < 0 || decodedSize == expected) { "The website ended before the full article was received." }
+        return output.toByteArray() to extractCharsetFromHeader(contentType)
     }
 
     fun looksLikeUrl(text: String): Boolean {
@@ -93,18 +156,6 @@ object WebArticleExtractor {
         } else {
             "https://$trimmed"
         }
-    }
-
-    private fun readBytesSafely(input: InputStream): ByteArray {
-        val buffer = ByteArray(8192)
-        val output = ByteArrayOutputStream()
-        input.use { stream ->
-            var bytesRead: Int
-            while (stream.read(buffer).also { bytesRead = it } != -1) {
-                output.write(buffer, 0, bytesRead)
-            }
-        }
-        return output.toByteArray()
     }
 
     private fun extractCharsetFromHeader(contentType: String): Charset? {

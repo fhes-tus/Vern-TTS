@@ -11,7 +11,12 @@ import com.veritas.reader.VernAlertDialog as AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.veritas.reader.ui.ReaderUiState
 import com.veritas.reader.ui.ReaderViewModel
@@ -24,6 +29,9 @@ import com.veritas.reader.ui.cancelSleepTimer
 import com.veritas.reader.ui.cancelUpdateDownload
 import com.veritas.reader.ui.clearAiPromptHistory
 import com.veritas.reader.ui.createReadingList
+import com.veritas.reader.ui.renameReadingList
+import com.veritas.reader.ui.queueFromCollection
+import com.veritas.reader.ui.transferCollectionDocument
 import com.veritas.reader.ui.deleteAiPromptTemplate
 import com.veritas.reader.ui.deleteGeneralNote
 import com.veritas.reader.ui.deleteReadingList
@@ -31,17 +39,16 @@ import com.veritas.reader.ui.dismissReleaseNotes
 import com.veritas.reader.ui.downloadClassicBook
 import com.veritas.reader.ui.duplicateGeneralNote
 import com.veritas.reader.ui.executePendingImport
-import com.veritas.reader.ui.generateInAppExplanation
+import com.veritas.reader.ui.exportAudioToDevice
+import com.veritas.reader.ui.generateInAppStudyAnswer
 import com.veritas.reader.ui.generateInAppFlashcards
 import com.veritas.reader.ui.generateInAppQuiz
-import com.veritas.reader.ui.generateInAppStudyGuide
-import com.veritas.reader.ui.generateInAppStudySummary
 import com.veritas.reader.ui.importDownloadedBook
 import com.veritas.reader.ui.importFlashcards
 import com.veritas.reader.ui.isInstalledFromGooglePlay
+import com.veritas.reader.ui.loadStudyDocument
 import com.veritas.reader.ui.moveReadingListDocument
 import com.veritas.reader.ui.openGooglePlayStore
-import com.veritas.reader.ui.rateFlashcardRecall
 import com.veritas.reader.ui.recordAiPrompt
 import com.veritas.reader.ui.recordQuizScore
 import com.veritas.reader.ui.removeDocumentFromReadingList
@@ -51,7 +58,7 @@ import com.veritas.reader.ui.createNoteLabel
 import com.veritas.reader.ui.saveGeneralNote
 import com.veritas.reader.ui.saveNarrationSettings
 import com.veritas.reader.ui.saveQuiz
-import com.veritas.reader.ui.saveSentenceNote
+import com.veritas.reader.ui.saveAiStudyNote
 import com.veritas.reader.ui.screens.AskAiSettingsDialog
 import com.veritas.reader.ui.screens.BookCatalogBrowserDialog
 import com.veritas.reader.ui.screens.ClassicsCatalogDialog
@@ -60,6 +67,7 @@ import com.veritas.reader.ui.screens.NarrationStudioDialog
 import com.veritas.reader.ui.screens.ReadingListsDialog
 import com.veritas.reader.ui.screens.ReleaseNotesDialog
 import com.veritas.reader.ui.screens.SleepTimerDialog
+import com.veritas.reader.ui.screens.StudyBookPickerDialog
 import com.veritas.reader.ui.screens.UpdateAvailableDialog
 import com.veritas.reader.ui.screens.VeritasHomeTab
 import com.veritas.reader.ui.setReadingListSortMode
@@ -78,6 +86,31 @@ internal fun MainCatalogAndToolsDialogsHost(
     onImportToReader: (String, Uri?) -> Unit
 ) {
     val context = LocalContext.current
+    var studySource by remember(uiState.showAiStudyTools) { mutableStateOf<SavedDocument?>(null) }
+    var openedFromAiHub by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.showAiStudyTools) {
+        if (!uiState.showAiStudyTools) openedFromAiHub = false
+    }
+    val studySourceResult by produceState<Result<ReaderDocument>?>(null, studySource, uiState.showAiStudyTools) {
+        value = null
+        val source = studySource?.takeIf { uiState.showAiStudyTools } ?: return@produceState
+        value = try {
+            Result.success(kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { viewModel.loadStudyDocument(source) })
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            Result.failure(IllegalStateException(context.getString(R.string.study_ai_book_load_failed)))
+        }
+    }
+
+    fun closeStudyTools(returnToHub: Boolean = true) {
+        viewModel.updateState {
+            val closed = it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false)
+            if (openedFromAiHub && returnToHub) closed.withVisibility(VeritasScreen.AI_CENTER, true) else closed
+        }
+        studySource = null
+        openedFromAiHub = false
+    }
 
     if (uiState.showNarrationStudio) {
         NarrationStudioDialog(
@@ -117,6 +150,8 @@ internal fun MainCatalogAndToolsDialogsHost(
                 }
             },
             onOpenStudyTools = {
+                studySource = null
+                openedFromAiHub = true
                 viewModel.updateState {
                     it.withVisibility(VeritasScreen.AI_CENTER, false).withVisibility(VeritasScreen.AI_STUDY_TOOLS, true)
                 }
@@ -125,44 +160,62 @@ internal fun MainCatalogAndToolsDialogsHost(
         )
     }
 
-    if (uiState.showAiStudyTools && uiState.activeDocument == null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false) } },
-            title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ai_study_tools)) },
-            text = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_open_a_reading_first_then_ai_study_tools_can_prepare_the_current)) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false) } }) {
-                    Text(
-                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_ok)
-                    )
+    val studyDocument = uiState.activeDocument ?: studySourceResult?.getOrNull()?.takeIf { it.id == studySource?.id }
+    if (uiState.showAiStudyTools && studyDocument == null) {
+        if (studySource == null) {
+            StudyBookPickerDialog(
+                documents = uiState.documents,
+                title = com.veritas.reader.ui.screens.menuString(R.string.study_ai_choose_book),
+                emptyDescription = com.veritas.reader.ui.screens.menuString(R.string.ui_add_a_reading_to_choose_a_passage),
+                onSelect = { studySource = it },
+                onGoToLibrary = {
+                    closeStudyTools(returnToHub = false)
+                    viewModel.navigateToHomeTab(VeritasHomeTab.LIBRARY)
+                },
+                onDismiss = { closeStudyTools() }
+            )
+        } else {
+            val failed = studySourceResult?.isFailure == true
+            AlertDialog(
+                onDismissRequest = { closeStudyTools() },
+                title = { Text(studySource?.title.orEmpty()) },
+                text = {
+                    if (failed) Text(com.veritas.reader.ui.screens.menuString(R.string.study_ai_book_load_failed))
+                    else androidx.compose.material3.CircularProgressIndicator()
+                },
+                confirmButton = {
+                    TextButton(onClick = { studySource = null }) {
+                        Text(com.veritas.reader.ui.screens.menuString(R.string.ui_back))
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 
-    uiState.activeDocument?.let { document ->
+    studyDocument?.let { document ->
         if (uiState.showAiStudyTools) {
+            val studyIndex = if (uiState.activeDocument != null) viewModel.currentReaderIndex else studySource?.currentIndex ?: 0
             AiAppStudyDialog(
                 document = document,
-                currentIndex = viewModel.currentReaderIndex,
+                currentIndex = studyIndex,
                 templates = uiState.aiPromptTemplates,
                 history = uiState.aiPromptHistory,
                 askAiSettings = uiState.askAiSettings,
                 onUpdateAskAiSettings = { viewModel.saveAskAiSettings(it) },
-                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false) } },
+                onDismiss = { closeStudyTools() },
                 onSendToAiApp = { type, customInstruction, scope, range ->
                     val prompt = AiPromptLauncher.buildPrompt(
                         title = document.title,
                         chunks = document.chunks,
-                        currentIndex = viewModel.currentReaderIndex,
+                        currentIndex = studyIndex,
                         type = type,
                         customInstruction = customInstruction,
                         scope = scope
                     )
-                    AiPromptLauncher.launch(
+                    val launched = AiPromptLauncher.launch(
                         context = context,
                         document = document,
-                        currentIndex = viewModel.currentReaderIndex,
+                        currentIndex = studyIndex,
                         type = type,
                         customInstruction = customInstruction,
                         scope = scope,
@@ -173,7 +226,7 @@ internal fun MainCatalogAndToolsDialogsHost(
                         // dropped the user's edited instructions entirely.
                         noPrompt = false
                     )
-                    viewModel.recordAiPrompt(document.title, type.label, scope.label, prompt)
+                    if (launched) viewModel.recordAiPrompt(document.title, type.label, scope.label, prompt)
                 },
                 onSaveTemplate = { title, instruction ->
                     viewModel.saveAiPromptTemplate(
@@ -184,14 +237,8 @@ internal fun MainCatalogAndToolsDialogsHost(
                 onDeleteTemplate = { id -> viewModel.deleteAiPromptTemplate(id) },
                 onClearHistory = { viewModel.clearAiPromptHistory() },
                 onCopyText = { label, text -> copyTextToClipboard(context, label, text) },
-                onSaveAiResultAsNote = { result ->
-                    viewModel.updateState {
-                        it.copy(
-                            noteDraft = result,
-                            noteTargetIndexes = listOf(viewModel.currentReaderIndex)
-                        )
-                    }
-                    viewModel.saveSentenceNote()
+                onSaveAiResultAsNote = { result, onComplete ->
+                    viewModel.saveAiStudyNote(context.getString(R.string.study_ai_note_title, document.title), result, onComplete)
                 },
                 onImportFlashcards = { name, cards ->
                     viewModel.importFlashcards(document.id ?: "pasted", name, cards)
@@ -215,36 +262,14 @@ internal fun MainCatalogAndToolsDialogsHost(
                         onComplete = onComplete
                     )
                 },
-                onGenerateInAppSummary = { scopeText, onComplete ->
-                    viewModel.generateInAppStudySummary(
-                        document = document,
-                        scopeText = scopeText,
-                        onComplete = onComplete
-                    )
-                },
-                onGenerateInAppExplanation = { scopeText, targetPassage, onComplete ->
-                    viewModel.generateInAppExplanation(
-                        document = document,
-                        scopeText = scopeText,
-                        targetPassage = targetPassage,
-                        onComplete = onComplete
-                    )
-                },
-                onGenerateInAppStudyGuide = { scopeText, onComplete ->
-                    viewModel.generateInAppStudyGuide(
-                        document = document,
-                        scopeText = scopeText,
-                        onComplete = onComplete
-                    )
+                onGenerateInAppText = { type, scopeText, question, onPartial, onComplete ->
+                    viewModel.generateInAppStudyAnswer(document, type, scopeText, question, onPartial, onComplete)
                 },
                 onSaveQuiz = { quiz ->
                     viewModel.saveQuiz(quiz)
                 },
                 onRecordQuizScore = { quizId, score ->
                     viewModel.recordQuizScore(quizId, score)
-                },
-                onRateFlashcard = { cardId, recall ->
-                    viewModel.rateFlashcardRecall(cardId, recall)
                 },
                 onOpenStudyHub = {
                     viewModel.updateState { it.withVisibility(VeritasScreen.AI_STUDY_TOOLS, false).withVisibility(VeritasScreen.AI_CENTER, false) }
@@ -260,6 +285,7 @@ internal fun MainCatalogAndToolsDialogsHost(
             message = uiState.exportMessage,
             file = uiState.exportedAudioFile,
             onShare = { file -> viewModel.shareExportedAudio(file) },
+            onSave = { file, uri -> viewModel.exportAudioToDevice(file, uri) },
             onCancel = { viewModel.cancelAudioExport() },
             onDismiss = {
                 viewModel.updateState {
@@ -336,7 +362,7 @@ internal fun MainCatalogAndToolsDialogsHost(
     if (uiState.showReleaseNotesDialog) {
         ReleaseNotesDialog(
             versionName = uiState.releaseNotesVersionName,
-            changelog = uiState.releaseNotesChangelog,
+            notes = uiState.releaseNotes,
             onDismiss = {
                 viewModel.dismissReleaseNotes()
             }
@@ -385,6 +411,9 @@ internal fun MainCatalogAndToolsDialogsHost(
             activeDocumentId = uiState.activeDocument?.id,
             onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.READING_LISTS, false) } },
             onCreateList = { title -> viewModel.createReadingList(title) },
+            onRenameList = viewModel::renameReadingList,
+            onQueueList = viewModel::queueFromCollection,
+            onTransferDocument = viewModel::transferCollectionDocument,
             onAddDocument = viewModel::addDocumentToReadingList,
             onRemoveDocument = viewModel::removeDocumentFromReadingList,
             onOpenDocument = { doc ->
@@ -407,8 +436,10 @@ internal fun MainCatalogAndToolsDialogsHost(
             onSaveNotesSettings = { viewModel.saveNotesSettings(it) },
             note = uiState.generalNoteEditorTarget,
             saveStatus = uiState.generalNoteSaveStatus,
-            onSave = { title, content, color, pinned, isChecklist, imageUrl, audioUrl, reminderAt, closeEditor, audioUrls, notebookIds ->
-                viewModel.saveGeneralNote(title, content, color, pinned, isChecklist, imageUrl, audioUrl, reminderAt, closeEditor, audioUrls, notebookIds)
+            onSaveWithAcknowledgment = { draft, acknowledge ->
+                viewModel.saveGeneralNote(draft.title, draft.content, draft.color, draft.pinned, draft.isChecklist,
+                    draft.imageUrl, draft.audioUrl, draft.reminderAt, closeEditor = false,
+                    audioUrls = draft.audioUrls, notebookIds = draft.labelIds, onComplete = acknowledge)
             },
             onDelete = { noteId -> viewModel.deleteGeneralNote(noteId) },
             onCopyDraft = { title, content, color, pinned, checklist, image, audios, reminder, notebookIds ->

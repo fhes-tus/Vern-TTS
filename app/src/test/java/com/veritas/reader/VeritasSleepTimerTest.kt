@@ -8,6 +8,21 @@ import org.junit.Test
 
 class VeritasSleepTimerTest {
     @Test
+    fun expiredStopTimerStaysArmedUntilTheServiceClearsIt() {
+        val request = VeritasSleepTimerRequest(60_000L, VeritasSleepTimerAction.STOP)
+        try {
+            PlaybackStateStore.setSleepTimer(request, nowMillis = 1_000L)
+            org.junit.Assert.assertNull(PlaybackStateStore.activeSleepTimerSnapshot(nowMillis = 61_000L))
+            val armed = requireNotNull(PlaybackStateStore.armedSleepTimerSnapshot())
+            assertEquals(VeritasSleepTimerAction.STOP, armed.action)
+            assertEquals(0L, armed.remainingMillis(nowMillis = 61_000L))
+        } finally {
+            PlaybackStateStore.clearSleepTimer()
+        }
+        org.junit.Assert.assertNull(PlaybackStateStore.armedSleepTimerSnapshot())
+    }
+
+    @Test
     fun requestRejectsDurationsOutsideSupportedRange() {
         assertFails { VeritasSleepTimerRequest(59_999L, VeritasSleepTimerAction.PAUSE) }
         assertFails { VeritasSleepTimerRequest(12L * 60L * 60L * 1000L + 1L, VeritasSleepTimerAction.STOP) }

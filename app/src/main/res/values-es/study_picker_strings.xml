@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="study_choose_flashcard_book">Elige un libro para crear tarjetas</string>
+    <string name="study_flashcard_picker_empty">Añade primero un libro a tu biblioteca. También puedes pegar tarjetas en el centro de estudio.</string>
+    <string name="study_guide_picker_empty">Añade un libro a tu biblioteca y exporta sus notas y resaltados como guía de estudio.</string>
+</resources>

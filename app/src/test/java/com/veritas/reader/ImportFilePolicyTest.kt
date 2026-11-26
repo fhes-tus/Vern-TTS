@@ -1,5 +1,6 @@
 package com.veritas.reader
 
+import java.io.IOException
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -41,5 +42,24 @@ class ImportFilePolicyTest {
         ImportFilePolicy.validateText(text)
         ImportFilePolicy.validateText(TextImportDecoder.decode(text.toByteArray(Charsets.UTF_16LE), TextImportOptions("utf_16le")).text)
         assertThrows(IllegalArgumentException::class.java) { ImportFilePolicy.validateText("binary\u0000\u0001\u0002\u0000data") }
+    }
+
+    @Test fun importFingerprintDistinguishesEqualSizedFilesAndMatchesExactCopies() {
+        val source = "First document".toByteArray()
+        val different = "Other document".toByteArray()
+        assertEquals(source.size, different.size)
+        val fingerprint = importContentFingerprint(source.size.toLong()) { source.inputStream() }
+        assertNotNull(fingerprint)
+        assertArrayEquals(fingerprint, importContentFingerprint(source.size.toLong()) { source.copyOf().inputStream() })
+        assertFalse(fingerprint!!.contentEquals(importContentFingerprint(different.size.toLong()) { different.inputStream() }!!))
+    }
+
+    @Test fun importFingerprintRequiresACompleteStreamOfTheReportedSize() {
+        assertNull(importContentFingerprint(3) { ByteArray(2).inputStream() })
+        assertNull(importContentFingerprint(3) { ByteArray(4).inputStream() })
+        assertNull(importContentFingerprint(3) { throw IOException("Provider unavailable") })
+        assertThrows(IllegalStateException::class.java) {
+            importContentFingerprint(3, checkActive = { error("Import cancelled") }) { ByteArray(3).inputStream() }
+        }
     }
 }

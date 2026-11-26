@@ -118,6 +118,7 @@ export function ReadingHighlights({
       {announce}
       <Modal
         title={draft ? (draft.id ? 'Edit highlight' : 'Highlight passages') : 'Reading highlights'}
+        dismissible={!busy}
         onClose={close}
       >
         <div className="reading-highlights">
@@ -205,7 +206,7 @@ export function ReadingHighlights({
                 <button className="primary" disabled={busy || !native}>
                   {busy ? 'Saving…' : 'Save highlight'}
                 </button>
-                <button type="button" className="secondary" disabled={busy} onClick={close}>
+                <button type="button" className="secondary" disabled={busy} data-dialog-dismiss>
                   Cancel
                 </button>
               </div>

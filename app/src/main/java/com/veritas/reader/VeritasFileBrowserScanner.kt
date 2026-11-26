@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.SystemClock
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import androidx.compose.material.icons.Icons
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Slideshow
 import java.io.File
 import java.util.Locale
+import kotlin.coroutines.cancellation.CancellationException
 
 enum class VeritasBrowserTab(val label: String, val emoji: String) {
     ALL("ALL", "📁"),
@@ -95,14 +97,23 @@ object VeritasFileBrowserScanner {
         DocumentsContract.Document.COLUMN_SIZE,
         DocumentsContract.Document.COLUMN_LAST_MODIFIED
     )
+    private val hiddenSafExtensions = setOf(
+        "bin", "apk", "exe", "so", "class", "dex", "tmp", "temp", "db", "sqlite", "sys", "dll", "dat"
+    )
 
-    fun persistedRoots(context: Context): List<VeritasBrowserRoot> {
+    fun persistedRoots(
+        context: Context,
+        knownRoots: List<VeritasBrowserRoot> = emptyList(),
+        checkCancelled: () -> Unit = {}
+    ): List<VeritasBrowserRoot> {
+        val knownLabels = knownRoots.associate { it.uri to it.label }
         return context.contentResolver.persistedUriPermissions
             .filter { it.isReadPermission }
             .map { permission ->
+                checkCancelled()
                 VeritasBrowserRoot(
                     uri = permission.uri,
-                    label = displayNameForRoot(context, permission.uri)
+                    label = knownLabels[permission.uri] ?: displayNameForRoot(context, permission.uri)
                 )
             }
             .distinctBy { it.uri }
@@ -134,7 +145,7 @@ object VeritasFileBrowserScanner {
         roots: List<VeritasBrowserRoot>,
         includeAllFilesAccess: Boolean = false,
         location: VeritasBrowserLocation? = null,
-        onProgress: (VeritasFileBrowserScanResult) -> Unit = {},
+        onProgress: ((VeritasFileBrowserScanResult) -> Unit)? = null,
         checkCancelled: () -> Unit = {}
     ): VeritasFileBrowserScanResult {
         val diagnostics = mutableListOf<String>()
@@ -146,9 +157,12 @@ object VeritasFileBrowserScanner {
                 listOf("Grant All Files access or approve a folder to browse files.")
             )
         }
+        val progress = ScanProgress(onProgress?.let { publish ->
+            { files -> publish(VeritasFileBrowserScanResult(files, activeLocation, diagnostics.toList())) }
+        })
         val entries = when {
             activeLocation.filePath != null -> listFileDirectory(context, activeLocation, diagnostics,
-                { files -> onProgress(VeritasFileBrowserScanResult(files, activeLocation, diagnostics.toList())) }, checkCancelled)
+                progress, checkCancelled)
             activeLocation.rootUri != null && activeLocation.documentId != null -> {
                 val root = roots.firstOrNull { it.uri == activeLocation.rootUri }
                 if (root == null) {
@@ -159,7 +173,9 @@ object VeritasFileBrowserScanner {
                         context = context,
                         root = root,
                         location = activeLocation,
-                        diagnostics = diagnostics
+                        diagnostics = diagnostics,
+                        progress = progress,
+                        checkCancelled = checkCancelled
                     )
                 }
             }
@@ -167,6 +183,27 @@ object VeritasFileBrowserScanner {
             else -> emptyList()
         }
         return VeritasFileBrowserScanResult(entries, activeLocation, diagnostics)
+    }
+
+    private class ScanProgress(private val publish: ((List<VeritasBrowserFile>) -> Unit)?) {
+        private var publishedCount = -1
+        private var lastPublished = 0L
+        private val canonicalPaths = HashMap<String, String>()
+
+        fun canonicalPath(path: String): String = canonicalPaths.getOrPut(path) { canonicalBrowserPath(path) }
+
+        fun snapshot(entries: List<VeritasBrowserFile>): List<VeritasBrowserFile> =
+            deduplicateBrowserFiles(entries, ::canonicalPath)
+
+        fun report(count: Int, immediate: Boolean = false, entries: () -> List<VeritasBrowserFile>) {
+            if (publish == null || count == publishedCount) return
+            val now = SystemClock.elapsedRealtime()
+            if (publishedCount >= 0 && !immediate && now - lastPublished < PROGRESS_INTERVAL_MS) return
+            val files = entries()
+            publishedCount = count
+            lastPublished = now
+            if (files.isNotEmpty()) publish(files)
+        }
     }
 
     /**
@@ -202,18 +239,17 @@ object VeritasFileBrowserScanner {
     }
 
     /**
-     * Every compatible file on the device in one pass, wherever it lives.
-     *
-     * Folder-by-folder walking only finds what the user thinks to look for — a document in
-     * Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents is six levels down and
-     * effectively invisible. MediaStore already indexes all of shared storage, across every
-     * volume, so one query reaches everything a recursive walk would, in a fraction of the
-     * time. Rows whose extension we cannot parse are dropped rather than listed as unopenable.
+     * Streams files already indexed by MediaStore across mounted volumes. The storage walk
+     * still discovers supported files the index has not picked up.
      */
     private fun queryDeviceWideFiles(
         context: Context,
-        diagnostics: MutableList<String>
-    ): List<VeritasBrowserFile> {
+        diagnostics: MutableList<String>,
+        results: MutableList<VeritasBrowserFile>,
+        checkCancelled: () -> Unit,
+        canonicalPathFor: (String) -> String,
+        onFileFound: (VeritasBrowserTab) -> Unit
+    ) {
         val projection = buildList {
             add(MediaStore.Files.FileColumns._ID)
             add(MediaStore.Files.FileColumns.DISPLAY_NAME)
@@ -225,8 +261,8 @@ object VeritasFileBrowserScanner {
             }
             add(MediaStore.Files.FileColumns.DATA)
         }.toTypedArray()
-        val docResults = mutableListOf<VeritasBrowserFile>()
-        val imageResults = mutableListOf<VeritasBrowserFile>()
+        var docCount = 0
+        var imageCount = 0
         val seen = HashSet<String>()
         // Every mounted volume, collapsing external aggregate if present
         val rawVolumes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -242,6 +278,8 @@ object VeritasFileBrowserScanner {
             rawVolumes
         }
         volumes.forEach { volume ->
+            checkCancelled()
+            if (docCount >= MAX_DOCUMENT_RESULTS && imageCount >= MAX_IMAGE_RESULTS) return
             val uri = runCatching { MediaStore.Files.getContentUri(volume) }.getOrNull() ?: return@forEach
             runCatching {
                 context.contentResolver.query(
@@ -256,9 +294,14 @@ object VeritasFileBrowserScanner {
                     val pathCol = cursor.getColumnIndex(MediaStore.Files.FileColumns.RELATIVE_PATH)
                     val dataCol = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA)
                     while (cursor.moveToNext()) {
+                        checkCancelled()
                         val name = cursor.getString(nameCol) ?: continue
                         val mime = cursor.getString(mimeCol).orEmpty()
                         val type = fileTypeFor(name, mime) ?: continue
+                        val isImage = type == VeritasBrowserTab.OCR
+                        if (isImage && imageCount >= MAX_IMAGE_RESULTS ||
+                            !isImage && docCount >= MAX_DOCUMENT_RESULTS
+                        ) continue
                         val dataPath = if (dataCol >= 0 && !cursor.isNull(dataCol)) cursor.getString(dataCol) else null
                         val diskFile = dataPath?.let(::File)
                         val relative = if (pathCol >= 0 && !cursor.isNull(pathCol)) {
@@ -270,7 +313,7 @@ object VeritasFileBrowserScanner {
                         // If the path points to a file that doesn't exist on disk, skip stale MediaStore records
                         if (diskFile != null && !diskFile.exists()) continue
 
-                        val fileUri = if (diskFile != null && diskFile.exists()) {
+                        val fileUri = if (diskFile != null) {
                             Uri.fromFile(diskFile)
                         } else {
                             ContentUris.withAppendedId(uri, cursor.getLong(idCol))
@@ -282,7 +325,7 @@ object VeritasFileBrowserScanner {
                             name
                         }
 
-                        val dedupKey = diskFile?.canonicalPath?.lowercase(Locale.ROOT)
+                        val dedupKey = dataPath?.let(canonicalPathFor)
                             ?: "${fullRelative.lowercase(Locale.ROOT)}/$name"
                         if (!seen.add(dedupKey)) continue
 
@@ -300,185 +343,161 @@ object VeritasFileBrowserScanner {
                             isSupported = true,
                             filePath = diskFile?.absolutePath
                         )
-                        if (type == VeritasBrowserTab.OCR) {
-                            if (imageResults.size < MAX_IMAGE_RESULTS) {
-                                imageResults.add(browserFile)
-                            }
-                        } else {
-                            if (docResults.size < MAX_DOCUMENT_RESULTS) {
-                                docResults.add(browserFile)
-                            }
-                        }
-                        if (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS) {
-                            break
-                        }
+                        results.add(browserFile)
+                        if (isImage) imageCount++ else docCount++
+                        onFileFound(type)
+                        if (docCount >= MAX_DOCUMENT_RESULTS && imageCount >= MAX_IMAGE_RESULTS) break
                     }
                 }
             }.onFailure { e ->
+                if (e is CancellationException) throw e
                 diagnostics.add("Could not index $volume: ${e.message ?: "unavailable"}.")
             }
         }
-        return docResults + imageResults
     }
 
     private fun listFileDirectory(
         context: Context,
         location: VeritasBrowserLocation,
         diagnostics: MutableList<String>,
-        onProgress: (List<VeritasBrowserFile>) -> Unit,
+        progress: ScanProgress,
         checkCancelled: () -> Unit
     ): List<VeritasBrowserFile> {
         val storageRoot = Environment.getExternalStorageDirectory()
         val volumeRoots = storageVolumeRoots(context)
         val current = location.filePath?.let(::File) ?: storageRoot
-        val safeCurrent =
-            if (volumeRoots.any { current.absolutePath.startsWith(it.absolutePath) }) current else storageRoot
-        val effectiveVolumeRoot = volumeRoots.firstOrNull { safeCurrent.absolutePath.startsWith(it.absolutePath) } ?: storageRoot
+        val volumeRoot = volumeRoots.firstOrNull {
+            current == it || current.absolutePath.startsWith(it.absolutePath + File.separator)
+        }
+        val safeCurrent = if (volumeRoot == null) storageRoot else current
+        val effectiveVolumeRoot = volumeRoot ?: storageRoot
         if (!safeCurrent.exists()) {
             diagnostics.add("${location.label} no longer exists.")
             return emptyList()
         }
-        val children =
-            runCatching { safeCurrent.listFiles()?.toList().orEmpty() }.getOrElse { error ->
-                diagnostics.add("Android blocked access to ${location.label}: ${error.message ?: "folder is protected"}.")
-                emptyList()
-            }
+        val children = runCatching { safeCurrent.listFiles().orEmpty() }.getOrElse { error ->
+            diagnostics.add("Android blocked access to ${location.label}: ${error.message ?: "folder is protected"}.")
+            emptyArray()
+        }
         if (children.isEmpty() && safeCurrent.isDirectory && !safeCurrent.canRead()) {
             diagnostics.add("Android protects this folder. Shared storage can be browsed, but private system/app folders may remain unavailable.")
         }
-        val atVolumeRoot = volumeRoots.any { it.absolutePath == safeCurrent.absolutePath }
-
-        // Navigation folder entries for the current folder (excluding hidden folders)
-        val folderEntries = children
-            .filter { it.isDirectory && it.name != "." && it.name != ".." && !it.name.startsWith(".") }
-            .sortedBy { it.name.lowercase(Locale.ROOT) }
-            .mapNotNull { child ->
-                val relativePath =
-                    child.relativeToOrSelf(effectiveVolumeRoot).path.replace(File.separatorChar, '/')
-                VeritasBrowserFile(
-                    uri = Uri.fromFile(child),
-                    name = child.name.ifBlank { "Folder" },
-                    mimeType = DocumentsContract.Document.MIME_TYPE_DIR,
-                    sizeBytes = 0L,
-                    modifiedAt = child.lastModified(),
-                    rootLabel = location.rootLabel,
-                    relativePath = relativePath,
-                    isDirectory = true,
-                    isSupported = child.canRead(),
-                    filePath = child.absolutePath,
-                    targetLocation = if (child.canRead()) {
-                        VeritasBrowserLocation(
-                            rootLabel = location.rootLabel,
-                            relativePath = relativePath,
-                            filePath = child.absolutePath
-                        )
-                    } else {
-                        null
-                    }
-                )
+        val folders = mutableListOf<VeritasBrowserFile>()
+        val documents = mutableListOf<VeritasBrowserFile>()
+        val images = mutableListOf<VeritasBrowserFile>()
+        val indexedFiles = mutableListOf<VeritasBrowserFile>()
+        var immediateFiles = emptyMap<String?, VeritasBrowserFile>()
+        var foundDocument = false
+        fun report(immediate: Boolean = false) {
+            val count = folders.size + documents.size + indexedFiles.size + images.size + immediateFiles.size
+            progress.report(count, immediate) {
+                progress.snapshot(folders + documents + indexedFiles + images + immediateFiles.values)
             }
+        }
+        fun limitsReached() = documents.size >= MAX_DOCUMENT_RESULTS && images.size >= MAX_IMAGE_RESULTS
 
-        val docResults = mutableListOf<VeritasBrowserFile>()
-        val imageResults = mutableListOf<VeritasBrowserFile>()
+        fun reportFile(type: VeritasBrowserTab) {
+            val firstDocument = !foundDocument && type != VeritasBrowserTab.OCR
+            if (firstDocument) foundDocument = true
+            report(immediate = firstDocument || documents.size + indexedFiles.size + images.size == 1)
+        }
 
-        // Navigation is available before the recursive discovery completes.
-        checkCancelled()
-        onProgress(folderEntries)
-        val mediaStoreResults = if (atVolumeRoot) queryDeviceWideFiles(context, diagnostics) else emptyList()
-        checkCancelled()
-        fun snapshot() = deduplicateBrowserFiles(folderEntries + docResults + mediaStoreResults + imageResults)
-            .sortedWith(compareBy<VeritasBrowserFile> { !it.isDirectory }
-                .thenBy { it.type == VeritasBrowserTab.OCR }.thenByDescending { it.modifiedAt })
-        if (mediaStoreResults.isNotEmpty()) onProgress(snapshot())
-        var lastPublished = android.os.SystemClock.elapsedRealtime()
+        fun addFile(child: File, publish: Boolean, alreadyRead: VeritasBrowserFile? = null) {
+            val name = child.name
+            val type = alreadyRead?.type ?: fileTypeFor(name, "") ?: return
+            val isImage = type == VeritasBrowserTab.OCR
+            val files = if (isImage) images else documents
+            if (files.size >= (if (isImage) MAX_IMAGE_RESULTS else MAX_DOCUMENT_RESULTS)) return
+            files.add(alreadyRead ?: VeritasBrowserFile(
+                uri = Uri.fromFile(child),
+                name = name,
+                mimeType = mimeTypeForFileName(name),
+                sizeBytes = child.length(),
+                modifiedAt = child.lastModified(),
+                rootLabel = location.rootLabel,
+                relativePath = child.relativeToOrSelf(effectiveVolumeRoot).path.replace(File.separatorChar, '/'),
+                type = type,
+                filePath = child.absolutePath
+            ))
+            if (publish) reportFile(type)
+        }
 
-        // Always scan up to 10 levels deep from safeCurrent down through all subfolders!
-        // At volume root, this traverses the whole device up to 10 levels deep.
-        // Inside a subfolder (e.g. Download), it traverses all subfolders of that folder.
-        collectSupportedDocumentFiles(
-            storageRoot = effectiveVolumeRoot,
-            current = safeCurrent,
-            diagnostics = diagnostics,
-            depth = 0,
-            docResults = docResults,
-            imageResults = imageResults,
-            checkCancelled = checkCancelled,
-            onDirectoryVisited = {
-                val now = android.os.SystemClock.elapsedRealtime()
-                if (now - lastPublished >= 500L) {
-                    onProgress(snapshot())
-                    lastPublished = now
-                }
-            }
-        )
-
-        // Deduplicate everything so every file and folder appears exactly once!
-        // Direct disk results come before MediaStore results to ensure real file paths are preserved.
-        val allEntries = folderEntries + docResults + mediaStoreResults + imageResults
-        return deduplicateBrowserFiles(allEntries)
-            .sortedWith(
-                compareBy<VeritasBrowserFile> { !it.isDirectory }
-                    .thenBy { it.type == VeritasBrowserTab.OCR }
-                    .thenByDescending { it.modifiedAt }
-            )
-    }
-
-    private fun collectSupportedDocumentFiles(
-        storageRoot: File,
-        current: File,
-        diagnostics: MutableList<String>,
-        depth: Int = 0,
-        docResults: MutableList<VeritasBrowserFile> = mutableListOf(),
-        imageResults: MutableList<VeritasBrowserFile> = mutableListOf(),
-        checkCancelled: () -> Unit = {},
-        onDirectoryVisited: () -> Unit = {}
-    ): List<VeritasBrowserFile> {
-        checkCancelled()
-        if (depth > MAX_SCAN_DEPTH ||
-            (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS) ||
-            shouldSkipRecursiveDirectory(current, storageRoot)
-        ) return docResults + imageResults
-
-        val children = current.listFiles() ?: return docResults + imageResults
-        for (child in children) {
+        fun walk(directory: File, depth: Int) {
             checkCancelled()
-            if (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS) break
-            if (child.isDirectory) {
-                collectSupportedDocumentFiles(storageRoot, child, diagnostics, depth + 1, docResults, imageResults, checkCancelled, onDirectoryVisited)
-            } else {
-                val type = fileTypeFor(child.name, "")
-                if (type != null) {
-                    val relativePath =
-                        child.relativeToOrSelf(storageRoot).path.replace(File.separatorChar, '/')
-                    val browserFile = VeritasBrowserFile(
-                        uri = Uri.fromFile(child),
-                        name = child.name.ifBlank { "Untitled file" },
-                        mimeType = mimeTypeForFileName(child.name),
-                        sizeBytes = child.length(),
-                        modifiedAt = child.lastModified(),
-                        rootLabel = "Phone storage",
-                        relativePath = relativePath,
-                        type = type,
-                        isSupported = true,
-                        filePath = child.absolutePath
-                    )
-                    if (type == VeritasBrowserTab.OCR) {
-                        if (imageResults.size < MAX_IMAGE_RESULTS) {
-                            imageResults.add(browserFile)
-                        }
-                    } else {
-                        if (docResults.size < MAX_DOCUMENT_RESULTS) {
-                            docResults.add(browserFile)
-                        }
-                    }
+            if (depth > MAX_SCAN_DEPTH || limitsReached() ||
+                shouldSkipRecursiveDirectory(directory, effectiveVolumeRoot)
+            ) return
+            val children = directory.listFiles() ?: return
+            for (child in children) {
+                checkCancelled()
+                if (limitsReached()) break
+                if (child.isDirectory) {
+                    if (depth < MAX_SCAN_DEPTH) walk(child, depth + 1)
+                } else {
+                    addFile(child, publish = true)
                 }
             }
         }
-        onDirectoryVisited()
-        return docResults + imageResults
+
+        // Publish the current folder and its files before querying or walking the rest of storage.
+        val skipCurrent = shouldSkipRecursiveDirectory(safeCurrent, effectiveVolumeRoot)
+        val subdirectories = mutableSetOf<File>()
+        for (child in children) {
+            checkCancelled()
+            if (!child.isDirectory) {
+                if (!skipCurrent) addFile(child, publish = false)
+                continue
+            }
+            subdirectories.add(child)
+            if (child.name.startsWith(".")) continue
+            val relativePath = child.relativeToOrSelf(effectiveVolumeRoot).path.replace(File.separatorChar, '/')
+            val readable = child.canRead()
+            folders.add(VeritasBrowserFile(
+                uri = Uri.fromFile(child),
+                name = child.name.ifBlank { "Folder" },
+                mimeType = DocumentsContract.Document.MIME_TYPE_DIR,
+                sizeBytes = 0L,
+                modifiedAt = child.lastModified(),
+                rootLabel = location.rootLabel,
+                relativePath = relativePath,
+                isDirectory = true,
+                isSupported = readable,
+                filePath = child.absolutePath,
+                targetLocation = if (readable) {
+                    VeritasBrowserLocation(location.rootLabel, relativePath, child.absolutePath)
+                } else null
+            ))
+        }
+        foundDocument = documents.isNotEmpty()
+        immediateFiles = (documents + images).associateBy { it.filePath }
+        documents.clear()
+        images.clear()
+        report(immediate = true)
+        if (volumeRoots.any { it == safeCurrent }) {
+            queryDeviceWideFiles(context, diagnostics, indexedFiles, checkCancelled, progress::canonicalPath, ::reportFile)
+        }
+        if (!skipCurrent) {
+            // Keep the established depth-first order for the capped result sets. The
+            // initial folder preview is available independently of that order.
+            for (child in children) {
+                checkCancelled()
+                if (limitsReached()) break
+                if (child in subdirectories) {
+                    walk(child, depth = 1)
+                } else {
+                    addFile(child, publish = true, alreadyRead = immediateFiles[child.absolutePath])
+                }
+            }
+        }
+        checkCancelled()
+        val orderedIndex = indexedFiles.sortedBy { it.type == VeritasBrowserTab.OCR }
+        return progress.snapshot(folders + documents + orderedIndex + images)
     }
 
-    internal fun deduplicateBrowserFiles(files: List<VeritasBrowserFile>): List<VeritasBrowserFile> {
+    internal fun deduplicateBrowserFiles(
+        files: List<VeritasBrowserFile>,
+        canonicalPathFor: (String) -> String = ::canonicalBrowserPath
+    ): List<VeritasBrowserFile> {
         return deduplicateFiles(
             items = files,
             isDirectory = { it.isDirectory },
@@ -487,7 +506,8 @@ object VeritasFileBrowserScanner {
             name = { it.name },
             sizeBytes = { it.sizeBytes },
             relativePath = { it.relativePath },
-            targetLocationFilePath = { it.targetLocation?.filePath }
+            targetLocationFilePath = { it.targetLocation?.filePath },
+            canonicalPathFor = canonicalPathFor
         )
     }
 
@@ -499,7 +519,8 @@ object VeritasFileBrowserScanner {
         name: (T) -> String,
         sizeBytes: (T) -> Long,
         relativePath: (T) -> String,
-        targetLocationFilePath: (T) -> String? = { null }
+        targetLocationFilePath: (T) -> String? = { null },
+        canonicalPathFor: (String) -> String = ::canonicalBrowserPath
     ): List<T> {
         val seenDirectories = HashSet<String>()
         val result = mutableListOf<T>()
@@ -520,8 +541,7 @@ object VeritasFileBrowserScanner {
             if (isDir) {
                 val dirTarget = targetLocationFilePath(item)
                 val rawDir = path ?: dirTarget ?: uriStr
-                val dirKey = "dir:" + runCatching { File(rawDir).canonicalPath.lowercase(Locale.ROOT) }
-                    .getOrDefault(rawDir.lowercase(Locale.ROOT))
+                val dirKey = "dir:" + if (path != null || dirTarget != null) canonicalPathFor(rawDir) else rawDir
                 if (seenDirectories.add(dirKey)) {
                     result.add(item)
                 }
@@ -529,14 +549,10 @@ object VeritasFileBrowserScanner {
             }
 
             val canonicalPath = when {
-                !path.isNullOrBlank() -> {
-                    runCatching { File(path).canonicalPath.lowercase(Locale.ROOT) }
-                        .getOrDefault(path.lowercase(Locale.ROOT))
-                }
+                !path.isNullOrBlank() -> canonicalPathFor(path)
                 uriStr.startsWith("file://", ignoreCase = true) -> {
                     val p = uriStr.removePrefix("file://").substringBefore('?').substringBefore('#')
-                    runCatching { File(p).canonicalPath.lowercase(Locale.ROOT) }
-                        .getOrDefault(p.lowercase(Locale.ROOT))
+                    canonicalPathFor(p)
                 }
                 else -> null
             }
@@ -622,187 +638,101 @@ object VeritasFileBrowserScanner {
         return false
     }
 
-    private fun collectSafSupportedDocumentFiles(
-        context: Context,
-        root: VeritasBrowserRoot,
-        parentDocumentId: String,
-        parentPath: String,
-        diagnostics: MutableList<String>,
-        depth: Int,
-        docResults: MutableList<VeritasBrowserFile>,
-        imageResults: MutableList<VeritasBrowserFile>
-    ) {
-        if (depth > MAX_SCAN_DEPTH ||
-            (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS)
-        ) return
-
-        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(root.uri, parentDocumentId)
-        runCatching {
-            context.contentResolver.query(childrenUri, childProjection, null, null, null)?.use { cursor ->
-                val subdirs = mutableListOf<Pair<String, String>>()
-                while (cursor.moveToNext()) {
-                    val childId = cursor.stringValue(DocumentsContract.Document.COLUMN_DOCUMENT_ID) ?: continue
-                    val name = cursor.stringValue(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty()
-                    if (name.startsWith(".")) continue
-                    val mimeType = cursor.stringValue(DocumentsContract.Document.COLUMN_MIME_TYPE).orEmpty()
-                    val childPath = if (parentPath.isBlank()) name else "$parentPath/$name"
-                    if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-                        subdirs.add(childId to childPath)
-                    } else {
-                        val type = fileTypeFor(name, mimeType)
-                        if (type != null) {
-                            val size = cursor.longValue(DocumentsContract.Document.COLUMN_SIZE)
-                            val modified = cursor.longValue(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-                            val browserFile = VeritasBrowserFile(
-                                uri = DocumentsContract.buildDocumentUriUsingTree(root.uri, childId),
-                                name = name.ifBlank { "Untitled file" },
-                                mimeType = mimeType,
-                                sizeBytes = size,
-                                modifiedAt = modified,
-                                rootLabel = root.label,
-                                relativePath = childPath,
-                                type = type,
-                                isSupported = true
-                            )
-                            if (type == VeritasBrowserTab.OCR) {
-                                if (imageResults.size < MAX_IMAGE_RESULTS) {
-                                    imageResults.add(browserFile)
-                                }
-                            } else {
-                                if (docResults.size < MAX_DOCUMENT_RESULTS) {
-                                    docResults.add(browserFile)
-                                }
-                            }
-                        }
-                    }
-                }
-                for ((subId, subPath) in subdirs) {
-                    if (docResults.size >= MAX_DOCUMENT_RESULTS && imageResults.size >= MAX_IMAGE_RESULTS) break
-                    collectSafSupportedDocumentFiles(
-                        context, root, subId, subPath, diagnostics, depth + 1, docResults, imageResults
-                    )
-                }
-            }
-        }
-    }
-
     private fun listSafDirectory(
         context: Context,
         root: VeritasBrowserRoot,
         location: VeritasBrowserLocation,
-        diagnostics: MutableList<String>
+        diagnostics: MutableList<String>,
+        progress: ScanProgress,
+        checkCancelled: () -> Unit
     ): List<VeritasBrowserFile> {
         val documentId = location.documentId ?: return emptyList()
         val entries = mutableListOf<VeritasBrowserFile>()
-        val immediateSubdirs = mutableListOf<Pair<String, String>>()
-        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(root.uri, documentId)
-        runCatching {
-            context.contentResolver.query(childrenUri, childProjection, null, null, null)
-                ?.use { cursor ->
+        val documents = mutableListOf<VeritasBrowserFile>()
+        val images = mutableListOf<VeritasBrowserFile>()
+        fun snapshot() = progress.snapshot(entries + documents + images)
+        fun report(immediate: Boolean = false) =
+            progress.report(entries.size + documents.size + images.size, immediate, ::snapshot)
+        fun limitsReached() = documents.size >= MAX_DOCUMENT_RESULTS && images.size >= MAX_IMAGE_RESULTS
+
+        fun walk(parentId: String, parentPath: String, depth: Int) {
+            checkCancelled()
+            val immediate = depth == 0
+            if (depth > MAX_SCAN_DEPTH || (!immediate && limitsReached())) return
+            val subdirectories = mutableListOf<Pair<String, String>>()
+            val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(root.uri, parentId)
+            try {
+                context.contentResolver.query(childrenUri, childProjection, null, null, null)?.use { cursor ->
+                    val idCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+                    val nameCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+                    val mimeCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
+                    val sizeCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+                    val dateCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
                     while (cursor.moveToNext()) {
-                        val childId =
-                            cursor.stringValue(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-                                ?: continue
-                        val name =
-                            cursor.stringValue(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-                                .orEmpty()
+                        checkCancelled()
+                        if (!immediate && limitsReached()) break
+                        val childId = cursor.stringValue(idCol) ?: continue
+                        val name = cursor.stringValue(nameCol).orEmpty()
                         if (name.startsWith(".")) continue
-                        val mimeType =
-                            cursor.stringValue(DocumentsContract.Document.COLUMN_MIME_TYPE)
-                                .orEmpty()
-                        val isDir = mimeType == DocumentsContract.Document.MIME_TYPE_DIR
-                        if (!isDir) {
-                            val nameLower = name.lowercase(Locale.US)
-                            val isBinaryOrSystem = nameLower.endsWith(".bin") ||
-                                    nameLower.endsWith(".apk") ||
-                                    nameLower.endsWith(".exe") ||
-                                    nameLower.endsWith(".so") ||
-                                    nameLower.endsWith(".class") ||
-                                    nameLower.endsWith(".dex") ||
-                                    nameLower.endsWith(".tmp") ||
-                                    nameLower.endsWith(".temp") ||
-                                    nameLower.endsWith(".db") ||
-                                    nameLower.endsWith(".sqlite") ||
-                                    nameLower.endsWith(".sys") ||
-                                    nameLower.endsWith(".dll") ||
-                                    nameLower.endsWith(".dat")
-                            if (isBinaryOrSystem) continue
+                        val mimeType = cursor.stringValue(mimeCol).orEmpty()
+                        val childPath = if (parentPath.isBlank()) name else "$parentPath/$name"
+                        val isDirectory = mimeType == DocumentsContract.Document.MIME_TYPE_DIR
+                        val type = if (isDirectory) null else fileTypeFor(name, mimeType)
+                        val destination = when {
+                            isDirectory -> {
+                                if (depth < MAX_SCAN_DEPTH) subdirectories.add(childId to childPath)
+                                if (!immediate) continue
+                                entries
+                            }
+                            immediate -> {
+                                if (name.substringAfterLast('.', "").lowercase(Locale.ROOT) in hiddenSafExtensions) continue
+                                entries
+                            }
+                            type == VeritasBrowserTab.OCR && images.size < MAX_IMAGE_RESULTS -> images
+                            type != null && type != VeritasBrowserTab.OCR && documents.size < MAX_DOCUMENT_RESULTS -> documents
+                            else -> continue
                         }
-                        val size = cursor.longValue(DocumentsContract.Document.COLUMN_SIZE)
-                        val modified =
-                            cursor.longValue(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-                        val childPath =
-                            if (location.relativePath.isBlank()) name else "${location.relativePath}/$name"
-                        if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-                            immediateSubdirs.add(childId to childPath)
-                            entries.add(
-                                VeritasBrowserFile(
-                                    uri = DocumentsContract.buildDocumentUriUsingTree(
-                                        root.uri,
-                                        childId
-                                    ),
-                                    name = name.ifBlank { "Folder" },
-                                    mimeType = mimeType,
-                                    sizeBytes = 0L,
-                                    modifiedAt = modified,
+                        destination.add(VeritasBrowserFile(
+                            uri = DocumentsContract.buildDocumentUriUsingTree(root.uri, childId),
+                            name = name.ifBlank { if (isDirectory) "Folder" else "Untitled file" },
+                            mimeType = mimeType,
+                            sizeBytes = if (isDirectory) 0L else cursor.longValue(sizeCol),
+                            modifiedAt = cursor.longValue(dateCol),
+                            rootLabel = root.label,
+                            relativePath = childPath,
+                            type = type ?: VeritasBrowserTab.ALL,
+                            isDirectory = isDirectory,
+                            isSupported = isDirectory || type != null,
+                            targetLocation = if (isDirectory) {
+                                VeritasBrowserLocation(
                                     rootLabel = root.label,
                                     relativePath = childPath,
-                                    isDirectory = true,
-                                    targetLocation = VeritasBrowserLocation(
-                                        rootLabel = root.label,
-                                        relativePath = childPath,
-                                        rootUri = root.uri,
-                                        documentId = childId
-                                    )
+                                    rootUri = root.uri,
+                                    documentId = childId
                                 )
-                            )
-                        } else {
-                            val type = fileTypeFor(name, mimeType)
-                            entries.add(
-                                VeritasBrowserFile(
-                                    uri = DocumentsContract.buildDocumentUriUsingTree(
-                                        root.uri,
-                                        childId
-                                    ),
-                                    name = name.ifBlank { "Untitled file" },
-                                    mimeType = mimeType,
-                                    sizeBytes = size,
-                                    modifiedAt = modified,
-                                    rootLabel = root.label,
-                                    relativePath = childPath,
-                                    type = type ?: VeritasBrowserTab.ALL,
-                                    isSupported = type != null
-                                )
-                            )
-                        }
+                            } else null
+                        ))
+                        if (!immediate) report()
                     }
                 }
-        }.onFailure { error ->
-            diagnostics.add("Android blocked access to ${location.label}: ${error.message ?: "folder is protected"}.")
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (immediate) {
+                    diagnostics.add("Android blocked access to ${location.label}: ${error.message ?: "folder is protected"}.")
+                }
+            }
+            // Release each provider cursor before opening any of its children.
+            if (immediate) report(immediate = true)
+            for ((childId, childPath) in subdirectories) {
+                if (limitsReached()) break
+                walk(childId, childPath, depth + 1)
+            }
         }
 
-        // Recurse into SAF subfolders up to 10 levels deep to uncover all nested documents
-        val docResults = mutableListOf<VeritasBrowserFile>()
-        val imageResults = mutableListOf<VeritasBrowserFile>()
-        for ((subId, subPath) in immediateSubdirs) {
-            collectSafSupportedDocumentFiles(
-                context = context,
-                root = root,
-                parentDocumentId = subId,
-                parentPath = subPath,
-                diagnostics = diagnostics,
-                depth = 1,
-                docResults = docResults,
-                imageResults = imageResults
-            )
-        }
-
-        return deduplicateBrowserFiles(entries + docResults + imageResults)
-            .sortedWith(
-                compareBy<VeritasBrowserFile> { it.isDirectory }
-                    .thenBy { it.type == VeritasBrowserTab.OCR }
-                    .thenByDescending { it.modifiedAt }
-            )
+        walk(documentId, location.relativePath, depth = 0)
+        checkCancelled()
+        return snapshot()
     }
 
     internal fun fileTypeFor(name: String, mimeType: String): VeritasBrowserTab? =
@@ -882,15 +812,14 @@ object VeritasFileBrowserScanner {
         }.getOrNull()?.takeIf { it.isNotBlank() } ?: "Approved folder"
     }
 
-    private fun Cursor.stringValue(columnName: String): String? {
-        val index = getColumnIndex(columnName)
-        return if (index >= 0 && !isNull(index)) getString(index) else null
-    }
+    private fun canonicalBrowserPath(path: String): String =
+        runCatching { File(path).canonicalPath }.getOrDefault(path).lowercase(Locale.ROOT)
 
-    private fun Cursor.longValue(columnName: String): Long {
-        val index = getColumnIndex(columnName)
-        return if (index >= 0 && !isNull(index)) getLong(index) else 0L
-    }
+    private fun Cursor.stringValue(columnName: String): String? = stringValue(getColumnIndex(columnName))
+
+    private fun Cursor.stringValue(index: Int): String? = if (index >= 0 && !isNull(index)) getString(index) else null
+
+    private fun Cursor.longValue(index: Int): Long = if (index >= 0 && !isNull(index)) getLong(index) else 0L
 }
 
 /** Walk stops at ten levels. Android/media/<app>/<app>/Media/<folder>/Sent is seven, so
@@ -899,6 +828,6 @@ private const val MAX_SCAN_DEPTH = 10
 private const val MAX_DOCUMENT_RESULTS = 5000
 private const val EXTERNAL_AGGREGATE_VOLUME = "external"
 private const val MAX_IMAGE_RESULTS = 300
-private const val MAX_SCAN_RESULTS = 5000
+private const val PROGRESS_INTERVAL_MS = 400L
 
 internal fun readableImportMimeTypes(): Array<String> = ImportFilePolicy.chooserMimeTypes()

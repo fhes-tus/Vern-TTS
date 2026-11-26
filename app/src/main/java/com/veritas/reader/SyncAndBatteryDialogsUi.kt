@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,6 +40,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import com.veritas.reader.ui.screens.menuString
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.veritas.reader.ui.VeritasSwitch
 
 
 @Composable
@@ -60,6 +63,11 @@ internal fun SyncCenterDialog(
     pronunciationRuleCount: Int,
     inProgress: Boolean,
     message: String?,
+    onRestoreAutomatic: (AutomaticBackupEntry) -> Unit,
+    onSaveAutomaticCopy: (AutomaticBackupEntry, Uri) -> Unit,
+    onSendShared: (Uri) -> Unit,
+    onReviewShared: (SharedBackupFolderEntry) -> Unit,
+    onReviewSettings: (Uri) -> Unit,
     onExportSyncPack: () -> Unit,
     onShareSyncPack: () -> Unit,
     onImportSyncPack: () -> Unit,
@@ -76,6 +84,11 @@ internal fun SyncCenterDialog(
         pronunciationRuleCount = pronunciationRuleCount,
         inProgress = inProgress,
         message = message,
+        onRestoreAutomatic = onRestoreAutomatic,
+        onSaveAutomaticCopy = onSaveAutomaticCopy,
+        onSendShared = onSendShared,
+        onReviewShared = onReviewShared,
+        onReviewSettings = onReviewSettings,
         onExportSyncPack = onExportSyncPack,
         onShareSyncPack = onShareSyncPack,
         onImportSyncPack = onImportSyncPack,
@@ -87,6 +100,8 @@ internal fun SyncCenterDialog(
     )
 }
 
+private enum class BackupCreation { TEXT, MEDIA, SHARED_FOLDER, LOCAL }
+
 @Composable
 internal fun SyncAndBackupCenterDialog(
     documentCount: Int,
@@ -95,6 +110,11 @@ internal fun SyncAndBackupCenterDialog(
     pronunciationRuleCount: Int,
     inProgress: Boolean,
     message: String?,
+    onRestoreAutomatic: (AutomaticBackupEntry) -> Unit,
+    onSaveAutomaticCopy: (AutomaticBackupEntry, Uri) -> Unit,
+    onSendShared: (Uri) -> Unit,
+    onReviewShared: (SharedBackupFolderEntry) -> Unit,
+    onReviewSettings: (Uri) -> Unit,
     onExportSyncPack: () -> Unit,
     onShareSyncPack: () -> Unit,
     onImportSyncPack: () -> Unit,
@@ -105,6 +125,10 @@ internal fun SyncAndBackupCenterDialog(
     onExportFull: () -> Unit = {}
 ) {
     val locale = LocalConfiguration.current.locales[0]
+    var creation by remember { mutableStateOf<BackupCreation?>(null) }
+    var sharedFolder by remember { mutableStateOf<Uri?>(null) }
+    var manualBackup by remember { mutableStateOf<(() -> Unit)?>(null) }
+    fun closeReview() { creation = null; manualBackup = null; sharedFolder = null }
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
@@ -117,6 +141,8 @@ internal fun SyncAndBackupCenterDialog(
         ) {
             Column(
                 modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = 840.dp)
                     .fillMaxSize()
                     .statusBarsPadding()
                     .navigationBarsPadding()
@@ -176,33 +202,7 @@ internal fun SyncAndBackupCenterDialog(
                         }
                     }
 
-                    // Included Data Summary Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = VeritasPackStyle.cardShape(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
-                        ),
-                        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Text(
-                                text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_data_included_in_backup_sync),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_saved_readings), documentCount.toString())
-                            SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_bookmarks_notes), annotationCount.toString())
-                            SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_reading_queue), queueCount.toString())
-                            SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_pronunciation_rules), pronunciationRuleCount.toString())
-                            SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_flashcards_decks_progress), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_included))
-                            SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_reading_streaks_history), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_included))
-                            SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_voice_reader_settings), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_included))
-                        }
-                    }
+                    BackupStatusBlock(inProgress = inProgress, message = message)
 
                     // Actions Card
                     Card(
@@ -224,7 +224,7 @@ internal fun SyncAndBackupCenterDialog(
                             )
 
                             Button(
-                                onClick = onExportSyncPack,
+                                onClick = { creation = BackupCreation.TEXT },
                                 modifier = Modifier.fillMaxWidth(),
                                 enabled = !inProgress,
                                 shape = VeritasPackStyle.chipShape(),
@@ -233,14 +233,14 @@ internal fun SyncAndBackupCenterDialog(
                                     contentColor = MaterialTheme.colorScheme.onPrimary
                                 )
                             ) {
-                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_export_text_settings_json), fontWeight = FontWeight.Bold)
+                                Text(menuString(R.string.backup_create_json), fontWeight = FontWeight.Bold)
                             }
 
                             Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_use_the_zip_backup_to_carry_notes_recordings_images_and_quiz_medi), style = MaterialTheme.typography.bodySmall)
 
                             val fullBackupSizeMb = fullBackupEstimateBytes / (1024.0 * 1024.0)
                             OutlinedButton(
-                                onClick = onExportFull,
+                                onClick = { creation = BackupCreation.MEDIA },
                                 modifier = Modifier.fillMaxWidth(),
                                 enabled = !inProgress,
                                 shape = VeritasPackStyle.chipShape()
@@ -255,63 +255,74 @@ internal fun SyncAndBackupCenterDialog(
                             }
 
                             OutlinedButton(
-                                onClick = onShareSyncPack,
+                                onClick = onImportSyncPack,
                                 modifier = Modifier.fillMaxWidth(),
                                 enabled = !inProgress,
                                 shape = VeritasPackStyle.chipShape()
                             ) {
-                                Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_share_text_settings_json), fontWeight = FontWeight.Bold)
-                            }
-
-                            OutlinedButton(
-                                onClick = onImportSyncPack,
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = VeritasPackStyle.chipShape()
-                            ) {
                                 Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_import_sync_backup_pack), fontWeight = FontWeight.Bold)
                             }
-
-                            BackupStatusBlock(inProgress = inProgress, message = message)
                         }
                     }
-
-                    // Auto-Backup Settings Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = VeritasPackStyle.cardShape(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = VeritasPackStyle.surfaceAlpha())
-                        ),
-                        border = VeritasPackStyle.cardBorder(MaterialTheme.colorScheme)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_automatic_weekly_backups),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_automatically_save_local_backup_archives_every_7_days),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            VeritasSwitch(
-                                checked = autoBackupEnabled,
-                                onCheckedChange = { onToggleAutoBackup() }
-                            )
-                        }
-                    }
+                    AutomaticBackupCard(
+                        weeklyEnabled = autoBackupEnabled,
+                        transferInProgress = inProgress,
+                        onReviewBackup = { action -> manualBackup = action; creation = BackupCreation.LOCAL },
+                        onToggleWeekly = onToggleAutoBackup,
+                        onRestore = onRestoreAutomatic,
+                        onSaveCopy = onSaveAutomaticCopy
+                    )
+                    VernSettingsSharingCard(inProgress, onReviewSettings)
+                    SharedBackupFolderCard(inProgress, { folder -> sharedFolder = folder; creation = BackupCreation.SHARED_FOLDER }, onReviewShared)
                 }
             }
         }
+    }
+    creation?.let { type ->
+        AlertDialog(
+            onDismissRequest = ::closeReview,
+            title = { Text(menuString(when (type) {
+                BackupCreation.TEXT -> R.string.backup_create_json
+                BackupCreation.MEDIA -> R.string.ui_export_portable_backup_with_media_zip
+                BackupCreation.SHARED_FOLDER -> R.string.backup_copy_to_folder
+                BackupCreation.LOCAL -> R.string.auto_backup_now
+            })) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(menuString(R.string.ui_data_included_in_backup_sync), style = MaterialTheme.typography.titleSmall)
+                    SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_saved_readings), documentCount.toString())
+                    SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_bookmarks_notes), annotationCount.toString())
+                    SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_reading_queue), queueCount.toString())
+                    SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_pronunciation_rules), pronunciationRuleCount.toString())
+                    SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_flashcards_decks_progress), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_included))
+                    SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_reading_streaks_history), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_included))
+                    SyncInfoRow(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_voice_reader_settings), com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.settings_included))
+                    Text(menuString(if (type != BackupCreation.MEDIA) R.string.backup_json_excludes_media
+                        else R.string.backup_includes_media), style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = {
+                Row {
+                    if (type == BackupCreation.TEXT) {
+                        TextButton(enabled = !inProgress, onClick = { closeReview(); onShareSyncPack() }) {
+                            Text(menuString(R.string.ui_share))
+                        }
+                    }
+                    TextButton(enabled = !inProgress, onClick = {
+                        val folder = sharedFolder
+                        val startManualBackup = manualBackup
+                        closeReview()
+                        when (type) {
+                            BackupCreation.TEXT -> onExportSyncPack()
+                            BackupCreation.MEDIA -> onExportFull()
+                            BackupCreation.SHARED_FOLDER -> folder?.let(onSendShared)
+                            BackupCreation.LOCAL -> startManualBackup?.invoke()
+                        }
+                    }) { Text(menuString(if (type == BackupCreation.LOCAL) R.string.auto_backup_now else R.string.backup_save_file)) }
+                }
+            },
+            dismissButton = { TextButton(onClick = ::closeReview) { Text(menuString(R.string.ui_cancel)) } }
+        )
     }
 }
 

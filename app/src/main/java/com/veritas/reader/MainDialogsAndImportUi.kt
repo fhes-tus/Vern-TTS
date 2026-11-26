@@ -8,7 +8,9 @@ import com.veritas.reader.ui.withVisibility
 
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.runtime.collectAsState
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -87,6 +89,7 @@ import com.veritas.reader.ui.ReaderViewModel
 import com.veritas.reader.ui.approveFileBrowserFolder
 import com.veritas.reader.ui.beginSentenceNote
 import com.veritas.reader.ui.clearFileBrowserAccess
+import com.veritas.reader.ui.closeFileBrowser
 import com.veritas.reader.ui.clearReadingHistory
 import com.veritas.reader.ui.deleteBrowserFiles
 import com.veritas.reader.ui.deleteDocument
@@ -100,11 +103,16 @@ import com.veritas.reader.ui.exportLibraryBackup
 import com.veritas.reader.ui.exportStudyGuidePdf
 import com.veritas.reader.ui.goUpFileBrowserDirectory
 import com.veritas.reader.ui.importLibraryBackup
+import com.veritas.reader.ui.confirmBackupReview
+import com.veritas.reader.ui.dismissBackupReview
+import com.veritas.reader.ui.reviewSharedBackup
+import com.veritas.reader.ui.sendSharedBackup
+import com.veritas.reader.ui.restoreAutomaticBackup
+import com.veritas.reader.ui.saveAutomaticBackupCopy
 import com.veritas.reader.ui.importMultipleDocuments
 import com.veritas.reader.ui.openFileBrowser
 import com.veritas.reader.ui.prepareImport
 import com.veritas.reader.ui.refreshFileBrowser
-import com.veritas.reader.ui.refreshFileBrowserAccessState
 import com.veritas.reader.ui.renameDocument
 import com.veritas.reader.ui.saveDocumentNoteDraft
 import com.veritas.reader.ui.saveReaderSettings
@@ -114,6 +122,9 @@ import com.veritas.reader.ui.screens.CURATED_CLASSICS
 import com.veritas.reader.ui.screens.bookCoverMotion
 import com.veritas.reader.ui.screens.ClassicBookCover
 import com.veritas.reader.ui.screens.DocumentNotesDialog
+import com.veritas.reader.ui.screens.localizedReadingLength
+import com.veritas.reader.ui.screens.localizedReadTimeEstimate
+import com.veritas.reader.ui.screens.localizedUiPercent
 import com.veritas.reader.ui.setDocumentCollection
 import com.veritas.reader.ui.shareActiveDocumentNotes
 import com.veritas.reader.ui.shareLibrarySyncPack
@@ -124,9 +135,11 @@ import java.util.Locale
 internal fun MainDialogsHost(
     viewModel: ReaderViewModel,
     uiState: ReaderUiState,
+    onReviewSettings: (Uri) -> Unit,
     onOpenFilePicker: () -> Unit
 ) {
     val context = LocalContext.current
+    val backupReview by viewModel.pendingBackupReview.collectAsState()
 
     val folderPickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
@@ -193,6 +206,9 @@ internal fun MainDialogsHost(
                 textOptions = uiState.textImportOptions,
                 onOptionsChange = { opt -> viewModel.updateState { it.copy(advancedPdfOptions = opt) } },
                 onTextOptionsChange = { opt -> viewModel.updateState { it.copy(textImportOptions = opt) } },
+                onRestoreDefaults = {
+                    viewModel.updateState { it.copy(advancedPdfOptions = PdfImportOptions(), textImportOptions = TextImportOptions()) }
+                },
                 onPickPdf = {
                     viewModel.updateState { it.withVisibility(VeritasScreen.PDF_IMPORT_TOOLS, false) }
                     viewModel.openFileBrowser()
@@ -204,12 +220,16 @@ internal fun MainDialogsHost(
         if (uiState.showFileBrowser && uiState.pendingImport == null) {
             val lifecycleOwner = LocalLifecycleOwner.current
             DisposableEffect(lifecycleOwner) {
+                var attached = false
                 val observer = LifecycleEventObserver { _, event ->
-                    if (event == Lifecycle.Event.ON_RESUME) {
+                    // openFileBrowser already starts the scan. addObserver replays ON_RESUME
+                    // synchronously when the dialog opens in an already resumed activity.
+                    if (attached && event == Lifecycle.Event.ON_RESUME) {
                         viewModel.refreshFileBrowser()
                     }
                 }
                 lifecycleOwner.lifecycle.addObserver(observer)
+                attached = true
                 onDispose {
                     lifecycleOwner.lifecycle.removeObserver(observer)
                 }
@@ -225,12 +245,9 @@ internal fun MainDialogsHost(
                 allFilesAccessGranted = uiState.fileBrowserAllFilesGranted,
                 importing = uiState.importInProgress || uiState.isBatchImporting,
                 importingName = uiState.importSourceName,
-                onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.FILE_BROWSER, false) } },
+                onDismiss = { viewModel.closeFileBrowser() },
                 onPickFolder = { folderPickerLauncher.launch(null) },
-                onRequestAllFilesAccess = {
-                    openAllFilesAccessSettings(context)
-                    viewModel.refreshFileBrowserAccessState()
-                },
+                onRequestAllFilesAccess = { openAllFilesAccessSettings(context) },
                 onOpenFilePicker = onOpenFilePicker,
                 onRefresh = { viewModel.refreshFileBrowser() },
                 onGoUp = { viewModel.goUpFileBrowserDirectory() },
@@ -293,7 +310,8 @@ internal fun MainDialogsHost(
                         viewModel.saveDocumentNoteDraft()
                         viewModel.exportStudyGuidePdf()
                     },
-                    onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.DOCUMENT_NOTES, false) } }
+                    onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.DOCUMENT_NOTES, false) } },
+                    onEditSentenceNote = { viewModel.beginSentenceNote(it) }
                 )
             }
         }
@@ -335,7 +353,7 @@ internal fun MainDialogsHost(
         }
 
         if (uiState.showTextEditor) {
-            val document = uiState.activeDocument
+            val document = uiState.activeDocument?.takeIf { it.id == uiState.editorDocumentId }
             val target = uiState.editorTarget
             if (document != null && target != null) {
                 TextEditorDialog(
@@ -343,7 +361,11 @@ internal fun MainDialogsHost(
                     currentIndex = viewModel.currentReaderIndex,
                     text = uiState.editorText,
                     target = target,
-                    onTextChange = { text -> viewModel.updateState { it.copy(editorText = text) } },
+                    isSaving = uiState.editorSaving,
+                    saveError = uiState.editorSaveError,
+                    onTextChange = { text -> viewModel.updateState {
+                        if (!it.editorSaving && it.editorTarget === target) it.copy(editorText = text, editorSaveError = null) else it
+                    } },
                     onSave = { partIdx, text -> viewModel.saveTextEditorChanges(partIdx, text) },
                     onDownloadToPhone = {
                         val fileName = textEditorDownloadName(document, target)
@@ -424,7 +446,7 @@ internal fun MainDialogsHost(
                         )
                     }
                 },
-                title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_move_to_collection)) },
+                title = { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_save_to_collection)) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(target.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -491,7 +513,7 @@ internal fun MainDialogsHost(
             var singleParagraphSummary by remember(target.id) { mutableStateOf("Preparing document overview…") }
             var overviewSource by remember(target.id) { mutableStateOf("") }
             var overviewSample by remember(target.id) { mutableStateOf("") }
-            var overviewApiKey by remember(target.id) { mutableStateOf("") }
+            var overviewHasApiKey by remember(target.id) { mutableStateOf(false) }
             var overviewBusy by remember(target.id) { mutableStateOf(false) }
             var overviewError by remember(target.id) { mutableStateOf<String?>(null) }
             val overviewScope = rememberCoroutineScope()
@@ -508,10 +530,10 @@ internal fun MainDialogsHost(
                         stored.isNotBlank() -> "AI overview"
                         else -> "Overview from the text"
                     }
-                    listOf(text, source, DocumentOverview.sample(raw), GeminiStudyService.getApiKey(context))
+                    Triple(text, source, DocumentOverview.sample(raw)) to GeminiStudyService.hasApiKey(context)
                 }
-                singleParagraphSummary = result[0]; overviewSource = result[1]
-                overviewSample = result[2]; overviewApiKey = result[3]
+                singleParagraphSummary = result.first.first; overviewSource = result.first.second
+                overviewSample = result.first.third; overviewHasApiKey = result.second
             }
 
             val displayAuthor = remember(target, matchingClassic) {
@@ -523,7 +545,6 @@ internal fun MainDialogsHost(
                             val candidate = t.substringAfterLast(" - ").trim()
                             if (candidate.length in 2..35 && !candidate.contains('.')) candidate else null
                         }
-                        target.collection.isNotBlank() -> target.collection
                         else -> null
                     }
                 }
@@ -672,9 +693,8 @@ internal fun MainDialogsHost(
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
-                            val lengthLabel = if (target.pageCount > 0) "${target.pageCount} pgs" else "${target.chunkCount} sents"
                             Text(
-                                text = lengthLabel,
+                                text = localizedReadingLength(target),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -686,7 +706,7 @@ internal fun MainDialogsHost(
                             color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             Text(
-                                text = "⏱️ ${formatEstimatedReadTime(target)}",
+                                text = "⏱️ ${localizedReadTimeEstimate(estimatedReadMinutes(target))}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -746,11 +766,12 @@ internal fun MainDialogsHost(
 
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(overviewSource, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        if (overviewApiKey.isNotBlank() && overviewSample.isNotBlank()) TextButton(enabled = !overviewBusy, onClick = {
+                        if (overviewHasApiKey && overviewSample.isNotBlank()) TextButton(enabled = !overviewBusy, onClick = {
                             overviewBusy = true; overviewError = null
                             overviewScope.launch {
                                 try {
-                                    GeminiStudyService.generateDocumentOverview(overviewApiKey, target.title, overviewSample)
+                                    val profile = withContext(Dispatchers.IO) { GeminiStudyService.requestProfile(context) }
+                                    GeminiStudyService.generateDocumentOverview(profile, target.title, overviewSample)
                                         .onSuccess { result ->
                                             withContext(Dispatchers.IO) {
                                                 check(context.getSharedPreferences("document_overviews", android.content.Context.MODE_PRIVATE).edit().putString(overviewKey, result).commit()) { "Could not save the overview." }
@@ -789,7 +810,7 @@ internal fun MainDialogsHost(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
-                                    text = "$percent%",
+                                    text = localizedUiPercent(percent),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -893,8 +914,14 @@ internal fun MainDialogsHost(
                 documentCount = uiState.documents.size,
                 annotationCount = uiState.annotationCount,
                 queueCount = uiState.queuedDocuments.size,
+                pronunciationRuleCount = uiState.pronunciationRules.size,
                 inProgress = uiState.backupInProgress,
                 message = uiState.backupMessage,
+                onRestoreAutomatic = viewModel::restoreAutomaticBackup,
+                onSaveAutomaticCopy = viewModel::saveAutomaticBackupCopy,
+                onSendShared = viewModel::sendSharedBackup,
+                onReviewShared = viewModel::reviewSharedBackup,
+                onReviewSettings = onReviewSettings,
                 fullBackupEstimateBytes = fullBackupEstimate,
                 autoBackupEnabled = uiState.readerSettings.autoBackupWeekly,
                 onToggleAutoBackup = {
@@ -902,6 +929,7 @@ internal fun MainDialogsHost(
                         uiState.readerSettings.copy(autoBackupWeekly = !uiState.readerSettings.autoBackupWeekly)
                     )
                 },
+                onShare = viewModel::shareLibrarySyncPack,
                 onExport = {
                     backupExportLauncher.launch(veritasBackupFileName("vern_backup"))
                 },
@@ -927,6 +955,11 @@ internal fun MainDialogsHost(
                 pronunciationRuleCount = uiState.pronunciationRules.size,
                 inProgress = uiState.backupInProgress,
                 message = uiState.backupMessage,
+                onRestoreAutomatic = viewModel::restoreAutomaticBackup,
+                onSaveAutomaticCopy = viewModel::saveAutomaticBackupCopy,
+                onSendShared = viewModel::sendSharedBackup,
+                onReviewShared = viewModel::reviewSharedBackup,
+                onReviewSettings = onReviewSettings,
                 fullBackupEstimateBytes = fullBackupEstimate,
                 autoBackupEnabled = uiState.readerSettings.autoBackupWeekly,
                 onToggleAutoBackup = {
@@ -940,11 +973,21 @@ internal fun MainDialogsHost(
                 onExportFull = {
                     fullBackupExportLauncher.launch(veritasBackupZipFileName("vern_full_backup"))
                 },
-                onShareSyncPack = { viewModel.updateState { it.withVisibility(VeritasScreen.SYNC_CENTER, false) }; viewModel.shareLibrarySyncPack() },
+                onShareSyncPack = viewModel::shareLibrarySyncPack,
                 onImportSyncPack = {
                     backupImportLauncher.launch(veritasBackupMimeTypes())
                 },
                 onDismiss = { viewModel.updateState { it.withVisibility(VeritasScreen.SYNC_CENTER, false) } }
+            )
+        }
+
+        backupReview?.let { review ->
+            BackupReviewDialog(
+                review = review,
+                checking = uiState.backupInProgress,
+                message = uiState.backupMessage,
+                onConfirm = viewModel::confirmBackupReview,
+                onDismiss = viewModel::dismissBackupReview
             )
         }
 

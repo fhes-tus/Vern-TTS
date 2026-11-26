@@ -5,7 +5,71 @@ internal data class PdfSelectionMatch(
     val charOffset: Int
 )
 
+internal data class PdfSelectionRange(val start: PdfSelectionMatch, val endChunkIndex: Int)
+
 internal object PdfSelectionLocator {
+    /** Resolve the complete selection as one contiguous occurrence. A repeated match on
+     * the selection page cannot be disambiguated using the unrelated reader cursor. */
+    fun findExactRange(
+        selectedText: String,
+        model: ReaderTextModel,
+        currentPage: Int?,
+        allowAdjacentPages: Boolean = true
+    ): PdfSelectionRange? {
+        val query = normalize(selectedText)
+        if (query.isBlank()) return null
+        val page = currentPage?.takeIf { it >= 1 }
+        val candidates = when {
+            page == null -> 1..Int.MAX_VALUE
+            allowAdjacentPages -> (page - 1).coerceAtLeast(1)..(page + 1L).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+            else -> page..page
+        }
+        val sentences = model.sentences
+        val firstCandidate = sentences.indexOfFirst { it.pageNumber in candidates }
+        if (firstCandidate < 0) return null
+        val lastCandidate = sentences.indexOfLast { it.pageNumber in candidates }
+        val text = StringBuilder()
+        val ranges = mutableListOf<RangeSentence>()
+        var candidateEnd = Int.MAX_VALUE
+        for (index in firstCandidate until sentences.size) {
+            val sentence = sentences[index]
+            val normalized = normalizeWithOffsets(sentence.text)
+            if (normalized.text.isNotEmpty()) {
+                if (text.isNotEmpty()) text.append(' ')
+                ranges += RangeSentence(sentence.index, sentence.pageNumber, text.length, normalized.offsets)
+                text.append(normalized.text)
+            }
+            if (index == lastCandidate) candidateEnd = text.length
+            // A match may start on the selection page and end on a later page.
+            if (index > lastCandidate && text.length - candidateEnd >= query.length) break
+        }
+
+        var match: PdfSelectionRange? = null
+        var offset = text.indexOf(query)
+        while (offset >= 0 && offset < candidateEnd) {
+            val end = offset + query.length
+            val before = text.getOrNull(offset - 1)
+            val after = text.getOrNull(end)
+            if ((before == null || before == ' ') && (after == null || after == ' ')) {
+                val first = ranges.at(offset)
+                if (first.pageNumber in candidates) {
+                    if (match != null) return null
+                    val last = ranges.at(end - 1)
+                    match = PdfSelectionRange(PdfSelectionMatch(first.index, first.offsets[offset - first.start]), last.index)
+                }
+            }
+            offset = text.indexOf(query, offset + 1)
+        }
+        return match
+    }
+
+    private data class RangeSentence(val index: Int, val pageNumber: Int, val start: Int, val offsets: IntArray)
+
+    private fun List<RangeSentence>.at(offset: Int): RangeSentence {
+        val index = binarySearchBy(offset) { it.start }
+        return this[if (index >= 0) index else -index - 2]
+    }
+
     fun findMatch(
         selectedText: String,
         model: ReaderTextModel,

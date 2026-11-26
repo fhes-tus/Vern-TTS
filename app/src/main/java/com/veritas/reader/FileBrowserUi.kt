@@ -65,6 +65,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -75,13 +76,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.veritas.reader.VernDialog as Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.veritas.reader.ui.screens.FeatureDropdownMenuItem
-import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 
 
 @Composable
@@ -154,33 +159,51 @@ internal fun FileBrowserDialog(
             VeritasFeatureContext(hasFileBrowserSession = roots.isNotEmpty() || allFilesAccessGranted)
         ).associateBy { it.definition.id }
     }
-    // The scanner deduplicates on its IO thread; canonical path reads here
-    // would stall rendering each new batch.
-    val distinctEntries = entries
-    val visibleEntries = remember(distinctEntries, query, selectedTab, sortMode, sortAscending) {
-        val needle = query.trim()
-        val filtered = distinctEntries
-            .filter { selectedTab == VeritasBrowserTab.ALL || it.isDirectory || it.type == selectedTab }
-            .filter { file ->
-                needle.isBlank() ||
-                        file.name.contains(needle, ignoreCase = true) ||
-                        file.rootLabel.contains(needle, ignoreCase = true) ||
-                        file.relativePath.contains(needle, ignoreCase = true)
+    val activeQuery = query.trim()
+    val activeTab = selectedTab
+    val activeSort = sortMode
+    val ascending = sortAscending
+    val sortLocale = LocalLocale.current.platformLocale
+    var displayedEntries by remember(location, activeTab, activeQuery) {
+        mutableStateOf<List<VeritasBrowserFile>?>(null)
+    }
+    LaunchedEffect(location, entries, activeQuery, activeTab, activeSort, ascending, sortLocale) {
+        displayedEntries = withContext(Dispatchers.Default) {
+            val jobContext = currentCoroutineContext()
+            val filtered = entries.filter { file ->
+                jobContext.ensureActive()
+                (activeTab == VeritasBrowserTab.ALL || file.isDirectory || file.type == activeTab) &&
+                    (activeQuery.isEmpty() ||
+                        file.name.contains(activeQuery, ignoreCase = true) ||
+                        file.rootLabel.contains(activeQuery, ignoreCase = true) ||
+                        file.relativePath.contains(activeQuery, ignoreCase = true))
             }
-        val comparator = when (sortMode) {
-            VeritasBrowserSort.NAME -> compareBy<VeritasBrowserFile> { it.name.lowercase(Locale.getDefault()) }
-            VeritasBrowserSort.DATE -> compareBy { it.modifiedAt }
-            VeritasBrowserSort.SIZE -> compareBy { it.sizeBytes }
-            VeritasBrowserSort.PATH -> compareBy { it.relativePath.lowercase(Locale.getDefault()) }
+            val comparator = when (activeSort) {
+                VeritasBrowserSort.NAME -> compareBy<VeritasBrowserFile> { it.name.lowercase(sortLocale) }
+                VeritasBrowserSort.DATE -> compareBy { it.modifiedAt }
+                VeritasBrowserSort.SIZE -> compareBy { it.sizeBytes }
+                VeritasBrowserSort.PATH -> compareBy { it.relativePath.lowercase(sortLocale) }
+            }
+            val prioritized = compareBy<VeritasBrowserFile> { it.type == VeritasBrowserTab.OCR }
+                .then(if (ascending) comparator else comparator.reversed())
+                .thenByDescending { it.modifiedAt }
+            filtered.sortedWith(prioritized)
         }
-        val sorted =
-            if (sortAscending) filtered.sortedWith(comparator) else filtered.sortedWith(comparator.reversed())
-        sorted.sortedBy { it.isDirectory }
+    }
+    val visibleEntries = displayedEntries.orEmpty()
+    val tabCounts = remember(entries) {
+        IntArray(VeritasBrowserTab.entries.size).also { counts ->
+            for (file in entries) {
+                if (file.isDirectory) continue
+                counts[VeritasBrowserTab.ALL.ordinal]++
+                if (file.type != VeritasBrowserTab.ALL) counts[file.type.ordinal]++
+            }
+        }
     }
 
-    val folders = remember(visibleEntries, canGoUp, query) {
+    val folders = remember(visibleEntries, canGoUp, activeQuery) {
         val list = visibleEntries.filter { it.isDirectory }
-        if (canGoUp && query.isBlank()) {
+        if (canGoUp && activeQuery.isEmpty()) {
             listOf(
                 VeritasBrowserFile(
                     uri = Uri.parse("vern://parent_directory"),
@@ -200,23 +223,21 @@ internal fun FileBrowserDialog(
         }
     }
     val files = remember(visibleEntries) {
-        val nonDirs = visibleEntries.filter { !it.isDirectory }
-        // De-prioritize OCR images: documents appear first, images appear last.
-        // Stable sort preserves user's chosen sort order (name, date, size, path) within each group.
-        nonDirs.sortedBy { it.type == VeritasBrowserTab.OCR }
+        visibleEntries.filterNot { it.isDirectory }
     }
 
-    val allVisibleSelected = files.isNotEmpty() && files.all { vf ->
-        selectedFiles.any { it.uri == vf.uri }
+    val selectedUris by remember { derivedStateOf { selectedFiles.mapTo(HashSet()) { it.uri } } }
+    val visibleSelectedCount = remember(files, selectedUris) {
+        if (selectedUris.isEmpty()) 0 else files.count { it.uri in selectedUris }
     }
+    val allVisibleSelected = files.isNotEmpty() && visibleSelectedCount == files.size
 
     val toggleSelectAllForActiveFilter: () -> Unit = {
         if (allVisibleSelected) {
             val visibleUris = files.map { it.uri }.toSet()
             selectedFiles.removeAll { it.uri in visibleUris }
         } else {
-            val currentUris = selectedFiles.map { it.uri }.toSet()
-            val toAdd = files.filter { it.uri !in currentUris }
+            val toAdd = files.filter { it.uri !in selectedUris }
             selectedFiles.addAll(toAdd)
         }
     }
@@ -275,7 +296,7 @@ internal fun FileBrowserDialog(
                                 Column(Modifier.weight(1f)) {
                                     Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_020, com.veritas.reader.ui.screens.localizedUiValue(selectedFiles.size)), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                     Text(if (allVisibleSelected) com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_021, com.veritas.reader.ui.screens.localizedUiValue(com.veritas.reader.ui.screens.localizedCatalogLabel(selectedTab.label))) else
-                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_022, com.veritas.reader.ui.screens.localizedUiValue(files.count { vf -> selectedFiles.any { it.uri == vf.uri } }), com.veritas.reader.ui.screens.localizedUiValue(files.size), com.veritas.reader.ui.screens.localizedUiValue(com.veritas.reader.ui.screens.localizedCatalogLabel(selectedTab.label))),
+                                        com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_dynamic_022, com.veritas.reader.ui.screens.localizedUiValue(visibleSelectedCount), com.veritas.reader.ui.screens.localizedUiValue(files.size), com.veritas.reader.ui.screens.localizedUiValue(com.veritas.reader.ui.screens.localizedCatalogLabel(selectedTab.label))),
                                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 }
@@ -476,8 +497,7 @@ internal fun FileBrowserDialog(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         VeritasBrowserTab.entries.forEach { tab ->
-                            val count =
-                                if (tab == VeritasBrowserTab.ALL) distinctEntries.count { !it.isDirectory } else distinctEntries.count { !it.isDirectory && it.type == tab }
+                            val count = tabCounts[tab.ordinal]
                             if (selectedTab == tab) {
                                 Button(
                                     onClick = { selectedTab = tab },
@@ -642,7 +662,7 @@ internal fun FileBrowserDialog(
                             onRequestAllFilesAccess = onRequestAllFilesAccess
                         )
 
-                        scanning && entries.isEmpty() -> Box(
+                        (scanning && visibleEntries.isEmpty()) || (entries.isNotEmpty() && displayedEntries == null) -> Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
@@ -658,7 +678,7 @@ internal fun FileBrowserDialog(
                             }
                         }
 
-                        visibleEntries.isEmpty() -> Box(
+                        visibleEntries.isEmpty() && folders.isEmpty() -> Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
@@ -735,15 +755,15 @@ internal fun FileBrowserDialog(
                                 }
                             }
                             if (viewMode == LibraryViewMode.TILES) {
-                                val chunkedFiles = files.chunked(columnCount)
-                                items(chunkedFiles.size) { rowIndex ->
-                                    val rowFiles = chunkedFiles[rowIndex]
+                                items((files.size + columnCount - 1) / columnCount) { rowIndex ->
+                                    val start = rowIndex * columnCount
+                                    val rowFiles = files.subList(start, minOf(start + columnCount, files.size))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
                                         rowFiles.forEach { file ->
-                                            val isSelected = selectedFiles.any { it.uri == file.uri }
+                                            val isSelected = file.uri in selectedUris
                                             FileBrowserFileTileCard(
                                                 file = file,
                                                 importing = importing,
@@ -769,7 +789,7 @@ internal fun FileBrowserDialog(
                                 }
                             } else {
                                 items(files, key = { it.uri.toString() }) { file ->
-                                    val isSelected = selectedFiles.any { it.uri == file.uri }
+                                    val isSelected = file.uri in selectedUris
                                     FileBrowserFileRow(
                                         file = file,
                                         viewMode = viewMode,
@@ -798,9 +818,9 @@ internal fun FileBrowserDialog(
                                 }
                             }
                             if (viewMode == LibraryViewMode.TILES) {
-                                val chunkedFolders = folders.chunked(columnCount)
-                                items(chunkedFolders.size) { rowIndex ->
-                                    val rowFolders = chunkedFolders[rowIndex]
+                                items((folders.size + columnCount - 1) / columnCount) { rowIndex ->
+                                    val start = rowIndex * columnCount
+                                    val rowFolders = folders.subList(start, minOf(start + columnCount, folders.size))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)

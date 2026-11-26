@@ -17,6 +17,9 @@ import com.veritas.reader.ui.screens.isSelfReferentialTocHeading
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -201,35 +204,28 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
     }
 
     fun computeStorageBreakdown(): StorageBreakdown {
-        var text = 0L
-        var originals = 0L
-        var covers = 0L
-        val docs = loadDocuments()
-        docs.forEach { doc ->
-            text += File(docsDir, doc.fileName).length()
-            originalFile(doc)?.let { originals += it.length() }
-            CoverExtractor.coverFile(appContext, doc.id)?.let { covers += it.length() }
-        }
-
-        fun dirSize(file: File?): Long {
-            if (file == null || !file.exists()) return 0L
-            if (file.isFile) return file.length()
-            var total = 0L
-            file.listFiles()?.forEach { child -> total += dirSize(child) }
-            return total
-        }
-
-        val cache = dirSize(appContext.cacheDir) + dirSize(appContext.externalCacheDir)
-        val dbFile = appContext.getDatabasePath("veritas_reader_db")
-        val database = dirSize(dbFile.parentFile)
-
+        val database = appContext.getDatabasePath(VeritasDatabaseHelper.DATABASE_NAME).parentFile
+        val covers = CoverExtractor.coversDir(appContext)
+        val voice = File(appContext.filesDir, "tts")
+        val dictionary = File(appContext.noBackupFilesDir, "offline-dictionary")
+        val noteMedia = listOf(File(appContext.filesDir, "notes_media"), File(appContext.filesDir, "voice_notes"))
+        val backups = AutomaticBackupLocation.entries.mapNotNull { AutomaticBackupFiles.directory(appContext, it) }
+        val caches = listOfNotNull(appContext.cacheDir, appContext.externalCacheDir)
+        val roots = listOf(docsDir, originalsDir, covers, voice, dictionary) + noteMedia + backups + caches + listOfNotNull(database)
+        val recognized = roots.mapTo(mutableSetOf()) { it.absoluteFile.normalize() }
+        val external = appContext.getExternalFilesDirs(null).filterNotNull()
         return StorageBreakdown(
-            textBytes = text,
-            originalsBytes = originals,
-            coversBytes = covers,
-            cacheBytes = cache,
-            databaseBytes = database,
-            documentCount = docs.size
+            textBytes = docsDir.storageBytes(),
+            originalsBytes = originalsDir.storageBytes(),
+            coversBytes = covers.storageBytes(),
+            cacheBytes = caches.sumOf { it.storageBytes() },
+            databaseBytes = database.storageBytes(),
+            documentCount = loadDocuments().size,
+            voiceBytes = voice.storageBytes(),
+            dictionaryBytes = dictionary.storageBytes(),
+            noteMediaBytes = noteMedia.sumOf { it.storageBytes() },
+            backupBytes = backups.sumOf { it.storageBytes() },
+            otherBytes = (listOf(appContext.dataDir) + external).distinct().sumOf { it.storageBytes(recognized) }
         )
     }
 
@@ -242,7 +238,9 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         fun deleteContents(dir: File?) {
             if (dir == null || !dir.exists()) return
             dir.listFiles()?.forEach { child ->
-                if (child.isDirectory) {
+                if (Files.isSymbolicLink(child.toPath())) {
+                    runCatching { child.delete() }
+                } else if (child.isDirectory) {
                     deleteContents(child)
                     runCatching { child.delete() }
                 } else {
@@ -267,10 +265,14 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
      */
     fun findCleanupCandidates(nowMillis: Long = System.currentTimeMillis()): List<Pair<SavedDocument, Long>> {
         val cutoff = nowMillis - 90L * 24 * 60 * 60 * 1000
+        val completedIds = loadTrackerCompletions().mapTo(mutableSetOf()) { it.documentId }
         return loadDocuments().mapNotNull { doc ->
-            if (doc.favorite) return@mapNotNull null
-            val original = originalFile(doc) ?: return@mapNotNull null
-            val fullyRead = doc.chunkCount > 0 && doc.currentIndex >= doc.chunkCount - 1
+            if (doc.favorite || doc.partial || doc.chunkCount <= 0) return@mapNotNull null
+            val original = originalFile(doc)?.takeIf {
+                it.isFile && it.absoluteFile.normalize().parentFile == originalsDir.absoluteFile.normalize() &&
+                    !Files.isSymbolicLink(it.toPath())
+            } ?: return@mapNotNull null
+            val fullyRead = doc.id in completedIds
             val stale = doc.updatedAt < cutoff
             if (fullyRead || stale) doc to original.length() else null
         }.sortedByDescending { it.second }
@@ -285,18 +287,22 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
      * against an original of several megabytes, so it is always worth rendering
      * before the file goes.
      */
-    fun removeOriginals(documentIds: Set<String>): Long {
+    fun removeOriginals(documentIds: Set<String>): OriginalCleanupResult = synchronized(LIBRARY_WRITE_LOCK) {
         var freed = 0L
-        loadDocuments().filter { it.id in documentIds }.forEach { doc ->
+        var removed = 0
+        findCleanupCandidates().map { it.first }.filter { it.id in documentIds }.forEach { doc ->
             originalFile(doc)?.let { file ->
                 if (CoverExtractor.coverFile(appContext, doc.id) == null) {
                     runCatching { CoverExtractor.extractCoverFromFile(appContext, doc.id, file) }
                 }
-                freed += file.length()
-                runCatching { file.delete() }
+                val bytes = file.length()
+                if (runCatching { file.delete() }.getOrDefault(false)) {
+                    freed += bytes
+                    removed++
+                }
             }
         }
-        return freed
+        OriginalCleanupResult(freed, removed)
     }
 
     /**
@@ -503,7 +509,13 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
     }
 
     fun readText(document: SavedDocument): String = synchronized(LIBRARY_WRITE_LOCK) {
-        runCatching { File(docsDir, document.fileName).readText(Charsets.UTF_8) }.getOrDefault("")
+        runCatching {
+            val previous = File(docsDir, document.fileName)
+            val body = if (previous.exists()) previous else {
+                dbHelper.getDocumentById(document.id, docsDir)?.let { File(docsDir, it.fileName) } ?: previous
+            }
+            body.readText(Charsets.UTF_8)
+        }.getOrDefault("")
     }
 
     fun updateDocumentText(documentId: String, text: String, partial: Boolean? = null): SavedDocument? = synchronized(LIBRARY_WRITE_LOCK) {
@@ -534,6 +546,84 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         updatedTarget
     }
 
+    internal fun saveEditedDocumentText(documentId: String, expectedText: String, text: String): SavedDocument? =
+        synchronized(LIBRARY_WRITE_LOCK) {
+            val cleanText = text.trim()
+            if (cleanText.isBlank()) return@synchronized null
+            val documents = loadDocuments()
+            val current = documents.firstOrNull { it.id == documentId } ?: return@synchronized null
+            val previous = File(docsDir, current.fileName)
+            val previousText = previous.readText(Charsets.UTF_8)
+            if (current.partial || previousText != expectedText) return@synchronized null
+            if (previousText == cleanText) return@synchronized current
+
+            val chunks = TextChunker.chunk(cleanText)
+            val annotations = loadAllAnnotations()
+            val updatedAnchors = remapEditedAnnotations(annotations.filter { it.documentId == documentId },
+                documentId, TextChunker.chunk(previousText), chunks)
+            val updated = current.copy(
+                fileName = "${UUID.randomUUID()}.txt",
+                updatedAt = System.currentTimeMillis(),
+                currentIndex = current.currentIndex.coerceIn(0, (chunks.size - 1).coerceAtLeast(0)),
+                chunkCount = chunks.size,
+                charCount = cleanText.length,
+                preview = previewText(cleanText),
+                pageCount = current.pageCount.takeIf { it > 0 } ?: ReaderTextIndex.build(cleanText).pageCount
+            )
+            val temporary = File.createTempFile(".vern-edit-", ".tmp", docsDir)
+            val replacement = File(docsDir, updated.fileName)
+            try {
+                FileOutputStream(temporary).use { output ->
+                    val writer = output.writer(Charsets.UTF_8)
+                    writer.write(cleanText)
+                    writer.flush()
+                    output.fd.sync()
+                }
+                Files.move(temporary.toPath(), replacement.toPath(), StandardCopyOption.ATOMIC_MOVE)
+                // The row and its anchors commit together. The old row still points at its
+                // original file until SQLite commits the new filename.
+                dbHelper.migrateSentenceAnchors(updated, updatedAnchors)
+            } catch (error: Exception) {
+                // A commit error may leave an uncertain outcome. Remove the new body only
+                // when SQLite confirms that the old row still owns this book.
+                val oldRowRetained = runCatching { dbHelper.getDocumentById(documentId, docsDir)?.fileName == current.fileName }.getOrDefault(false)
+                if (oldRowRetained) runCatching { replacement.delete() }
+                throw error
+            } finally {
+                runCatching { temporary.delete() }
+            }
+
+            val mirrored = runCatching {
+                val previousDocuments = readResilientJsonArray(KEY_DOCUMENTS)
+                val documentJson = JSONArray(documents.map { (if (it.id == documentId) updated else it).toJson() })
+                val retainedAnnotations = annotations.filterNot { it.documentId == documentId } + updatedAnchors
+                val annotationJson = JSONArray(retainedAnnotations
+                    .sortedWith(compareBy<ReaderAnnotation> { it.documentId }.thenBy { it.chunkIndex }.thenBy { it.type.name })
+                    .map { it.toJson() })
+                val mirror = prefs.edit()
+                if (previousDocuments.length() > 0) {
+                    // A legacy fallback must also point at the retained body for this book.
+                    for (index in 0 until previousDocuments.length()) {
+                        if (previousDocuments.optJSONObject(index)?.optString("id") == documentId) {
+                            previousDocuments.put(index, updated.toJson())
+                        }
+                    }
+                    mirror.putString("${KEY_DOCUMENTS}__bak", previousDocuments.toString())
+                }
+                mirror.putString(KEY_DOCUMENTS, documentJson.toString())
+                mirror.putString(KEY_ANNOTATIONS, annotationJson.toString())
+                mirror.commit()
+            }.getOrDefault(false)
+            if (mirrored && documents.none { it.id != documentId && it.fileName == current.fileName }) {
+                runCatching { previous.delete() }
+            }
+            if (!mirrored) Log.w(TAG, "Kept previous reading text after the compatibility preferences could not be refreshed.")
+            ReaderTextModelCache.invalidate(documentId)
+            outlineCache.remove(documentId)
+            updateVeritasWidgets(appContext)
+            updated
+        }
+
     // Annotations are anchored by chunk index; an edit can renumber chunks and leave
     // bookmarks/notes pointing at the wrong sentence. Re-anchor each one by matching
     // its original sentence text in the new chunk list.
@@ -541,12 +631,22 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         if (oldChunks.isEmpty() || newChunks.isEmpty()) return
         val all = loadAllAnnotations()
         if (all.none { it.documentId == documentId }) return
+        val updated = remapEditedAnnotations(all, documentId, oldChunks, newChunks)
+        if (updated != all) saveAllAnnotations(updated)
+    }
+
+    private fun remapEditedAnnotations(
+        annotations: List<ReaderAnnotation>,
+        documentId: String,
+        oldChunks: List<String>,
+        newChunks: List<String>
+    ): List<ReaderAnnotation> {
+        if (oldChunks.isEmpty() || newChunks.isEmpty()) return annotations
         val newIndexByText = HashMap<String, MutableList<Int>>()
         newChunks.forEachIndexed { idx, chunk ->
             newIndexByText.getOrPut(normalizeChunkForRemap(chunk)) { mutableListOf() }.add(idx)
         }
-        var changed = false
-        val remapped = all.map { ann ->
+        return annotations.map { ann ->
             if (ann.documentId != documentId) return@map ann
             val oldText = oldChunks.getOrNull(ann.chunkIndex) ?: return@map ann
             val candidates = newIndexByText[normalizeChunkForRemap(oldText)]
@@ -556,14 +656,8 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
             } else {
                 candidates.minByOrNull { kotlin.math.abs(it - ann.chunkIndex) } ?: ann.chunkIndex
             }
-            if (newIndex != ann.chunkIndex) {
-                changed = true
-                ann.copy(chunkIndex = newIndex)
-            } else {
-                ann
-            }
-        }
-        if (changed) saveAllAnnotations(remapped.distinctBy { it.stableKey })
+            if (newIndex != ann.chunkIndex) ann.copy(chunkIndex = newIndex) else ann
+        }.distinctBy { it.stableKey }
     }
 
     private fun normalizeChunkForRemap(chunk: String): String =
@@ -573,8 +667,7 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         val cleanText = text.trim()
         if (cleanText.isBlank() && !isComplete) return@synchronized null
 
-        val documents = loadDocuments()
-        val target = documents.firstOrNull { it.id == documentId } ?: return@synchronized null
+        val target = findDocument(documentId) ?: return@synchronized null
         ReaderTextModelCache.invalidate(documentId)
         outlineCache.remove(documentId)
 
@@ -593,7 +686,8 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
             charCount = combinedText.length,
             partial = !isComplete
         )
-        saveDocuments(listOf(updatedTarget) + documents.filterNot { it.id == documentId })
+        dbHelper.upsertDocument(updatedTarget)
+        updateVeritasWidgets(appContext)
         updatedTarget
     }
 
@@ -755,26 +849,34 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         val detectedExt = detectExtensionFromNameOrType(displayName, sourceLabel, mimeType)
         val initialSafeExt = detectedExt.ifBlank { "bin" }
         val fileName = "$documentId.$initialSafeExt"
-        val target = File(originalsDir, fileName)
+        val format = ImportFilePolicy.detect(displayName, mimeType)
+            ?: ImportFilePolicy.detect(fileName, mimeType)
+        val maxBytes = format?.let(ImportFilePolicy::byteLimit) ?: ResourceLimits.DOCUMENT_INPUT_BYTES
+        var temporary: File? = null
         return try {
+            val staged = File.createTempFile(".vern-original-", ".$initialSafeExt", originalsDir).also { temporary = it }
             appContext.contentResolver.openInputStream(uri)?.use { input ->
-                target.outputStream().use { output -> input.copyTo(output) }
+                FileOutputStream(staged).use { output ->
+                    val copied = ResourceLimits.copy(input, output, maxBytes)
+                    require(copied > 0L) { "The original file is empty." }
+                    output.fd.sync()
+                }
             } ?: return Result.failure(IllegalStateException("Could not open original file for reading."))
 
             // If extension was defaulted to bin or txt, sniff magic bytes and rename to genuine format
             val finalFileName = if (initialSafeExt == "bin" || initialSafeExt == "txt") {
-                val detected = detectExtension(target, sourceLabel, mimeType)
-                if (detected != "bin" && detected != initialSafeExt) {
-                    val renamed = File(originalsDir, "$documentId.$detected")
-                    if (target.renameTo(renamed)) "$documentId.$detected" else fileName
-                } else fileName
+                val detected = detectExtension(staged, sourceLabel, mimeType)
+                if (detected != "bin" && detected != initialSafeExt) "$documentId.$detected" else fileName
             } else fileName
 
+            Files.move(staged.toPath(), File(originalsDir, finalFileName).toPath(),
+                StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
             Result.success(finalFileName)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to copy original file $displayName to $fileName", e)
-            runCatching { target.delete() }
             Result.failure(e)
+        } finally {
+            runCatching { temporary?.delete() }
         }
     }
 
@@ -822,17 +924,30 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
             tourDone = prefs.getBoolean(KEY_QUEST_TOUR_DONE, false),
             importDone = prefs.getBoolean(KEY_QUEST_IMPORT_DONE, false),
             speedDone = prefs.getBoolean(KEY_QUEST_SPEED_DONE, false),
-            bookmarkDone = prefs.getBoolean(KEY_QUEST_BOOKMARK_DONE, false)
+            bookmarkDone = prefs.getBoolean(KEY_QUEST_BOOKMARK_DONE, false),
+            noteDone = prefs.getBoolean(KEY_QUEST_NOTE_DONE, false)
         )
     }
 
-    fun saveQuestProgress(tour: Boolean, import: Boolean, speed: Boolean, bookmark: Boolean) {
+    fun saveQuestProgress(tour: Boolean, import: Boolean, speed: Boolean, bookmark: Boolean, note: Boolean = false) {
         prefs.edit {
             putBoolean(KEY_QUEST_TOUR_DONE, tour)
             putBoolean(KEY_QUEST_IMPORT_DONE, import)
             putBoolean(KEY_QUEST_SPEED_DONE, speed)
             putBoolean(KEY_QUEST_BOOKMARK_DONE, bookmark)
+            putBoolean(KEY_QUEST_NOTE_DONE, note)
         }
+    }
+
+    internal fun completeFirstChapterMilestone(milestone: FirstChapterMilestone) {
+        val key = when (milestone) {
+            FirstChapterMilestone.IMPORT -> KEY_QUEST_IMPORT_DONE
+            FirstChapterMilestone.PACE -> KEY_QUEST_SPEED_DONE
+            FirstChapterMilestone.BOOKMARK -> KEY_QUEST_BOOKMARK_DONE
+            FirstChapterMilestone.NOTE -> KEY_QUEST_NOTE_DONE
+            FirstChapterMilestone.TOUR -> KEY_QUEST_TOUR_DONE
+        }
+        if (!prefs.getBoolean(key, false)) prefs.edit { putBoolean(key, true) }
     }
 
     fun isQuestChecklistDismissed(): Boolean {
@@ -1110,7 +1225,17 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         return runCatching { ReaderSettings.fromJson(JSONObject(raw)) }.getOrDefault(ReaderSettings())
     }
 
-    fun saveReaderSettings(settings: ReaderSettings): ReaderSettings {
+    fun saveReaderSettings(settings: ReaderSettings): ReaderSettings =
+        saveReaderSettings(settings, reconcileBackupSchedule = true)
+
+    internal fun saveReaderSettings(settings: ReaderSettings, reconcileBackupSchedule: Boolean): ReaderSettings =
+        saveReaderSettings(settings, reconcileBackupSchedule, requireDurableWrite = false)
+
+    internal fun saveReaderSettings(
+        settings: ReaderSettings,
+        reconcileBackupSchedule: Boolean,
+        requireDurableWrite: Boolean
+    ): ReaderSettings {
         val normalized = settings.copy(
             fontSizeSp = settings.fontSizeSp.coerceIn(10, 28),
             sectionSpacingDp = settings.sectionSpacingDp.coerceIn(6, 24),
@@ -1118,7 +1243,23 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
             themePackId = VeritasThemePackCatalog.normalizePackId(settings.themePackId),
             customAccentColor = normalizeCustomAccent(settings.customAccentColor)
         )
-        prefs.edit { putString(KEY_READER_SETTINGS, normalized.toJson().toString()) }
+        synchronized(READER_SETTINGS_WRITE_LOCK) {
+            val raw = normalized.toJson().toString()
+            val backupChanged = loadReaderSettings().autoBackupWeekly != normalized.autoBackupWeekly
+            if (backupChanged || requireDurableWrite) {
+                val previous = prefs.getString(KEY_READER_SETTINGS, null)
+                if (!prefs.edit().putString(KEY_READER_SETTINGS, raw).commit()) {
+                    prefs.edit().putString(KEY_READER_SETTINGS, previous).apply()
+                    throw java.io.IOException("Could not save reader preferences.")
+                }
+                if (backupChanged && reconcileBackupSchedule) {
+                    runCatching { AutoBackupWorker.configure(appContext, normalized.autoBackupWeekly) }
+                        .onFailure { android.util.Log.w("AutoBackupWorker", "Could not update weekly backup scheduling.", it) }
+                }
+            } else {
+                prefs.edit { putString(KEY_READER_SETTINGS, raw) }
+            }
+        }
         PlaybackStateStore.autoPlayQueue = normalized.autoPlayQueue
         updateVeritasWidgets(appContext)
         return normalized
@@ -1260,6 +1401,7 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         // Process-wide lock for read-modify-write of shared prefs counters that are touched
         // from multiple components/threads (UI + PlaybackService).
         internal val LIBRARY_WRITE_LOCK = Any()
+        private val READER_SETTINGS_WRITE_LOCK = Any()
         internal const val KEY_DOCUMENTS = "documents"
         internal const val KEY_QUEUE = "reading_queue"
         internal const val KEY_READING_LISTS = "reading_lists"
@@ -1281,6 +1423,7 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         internal const val KEY_QUEST_IMPORT_DONE = "quest_import_done"
         internal const val KEY_QUEST_SPEED_DONE = "quest_speed_done"
         internal const val KEY_QUEST_BOOKMARK_DONE = "quest_bookmark_done"
+        internal const val KEY_QUEST_NOTE_DONE = "quest_note_done"
         internal const val KEY_QUEST_CHECKLIST_DISMISSED = "quest_checklist_dismissed"
         internal const val KEY_QUEST_CELEBRATED = "quest_celebrated"
         internal const val KEY_TRACKER_DAYS = "reader_tracker_days"
@@ -1289,4 +1432,10 @@ class DocumentRepository(context: Context, internal val dbHelper: VeritasDatabas
         internal const val MAX_TRACKER_COMPLETIONS = 500
         internal const val MAX_TRACKER_SESSION_MILLIS = 12L * 60L * 60L * 1000L
     }
+}
+
+internal fun File?.storageBytes(exclude: Set<File> = emptySet()): Long {
+    if (this == null || absoluteFile.normalize() in exclude || Files.isSymbolicLink(toPath())) return 0L
+    return if (isDirectory) listFiles().orEmpty().sumOf { it.storageBytes(exclude) }
+    else takeIf(File::isFile)?.length() ?: 0L
 }

@@ -6,6 +6,46 @@ import org.junit.Test
 class LiteraryReadingRegressionTest {
     private fun model(text: String) = ReaderTextIndex.build(text)
 
+    @Test
+    fun closingAttributionNamesEarlierSentencesInTheSameTurn() {
+        val original = listOf("“Come in.", "We have time,” said the Ghost.", "The room fell silent.")
+        val cues = LiteraryDialogue.cues(original.mapIndexed { index, text -> ReaderSentence(index, text, 1) })
+        assertEquals(listOf("Ghost", "Ghost", null), cues.map { it.speaker })
+        assertEquals(listOf(true, true, false), cues.map { it.dialogue })
+        assertEquals(0L, LiteraryDialogue.transitionPause(cues[1], cues[2], detectDialogue = true, stripLabels = true))
+    }
+
+    @Test fun castChangesWithinTheSentenceWithoutMovingTheReaderAnchor() {
+        val line = "“Come in,” Alice whispered, and Bob said, “Thank you.”"
+        val cue = LiteraryDialogue.cues(listOf(ReaderSentence(0, line, 1))).single()
+        val cast = NarrationSettings(enabled = true, characterProfiles = listOf(
+            BookCharacter("alice", "Alice", voiceName = "alice-voice"),
+            BookCharacter("bob", "Bob", voiceName = "bob-voice"),
+            BookCharacter("narrator", "Narrator", voiceName = "narrator-voice")
+        ))
+        fun plan(settings: NarrationSettings, offset: Int = 0) =
+            SpeechPlan.segments("book", "v1", 0, line, VoiceSettings(localeTag = "en"),
+                settings, 1f, 1f, emptyList(), cue, offset, leadingPauseMs = 135L)
+
+        val runs = plan(cast)
+        assertEquals(listOf("alice-voice", "narrator-voice", "bob-voice"), runs.map { it.voice.voiceName })
+        assertEquals(listOf(135L, 85L, 85L), runs.map { it.leadingPauseMs })
+        assertEquals(line, runs.joinToString("") { line.substring(it.sourceStart, it.sourceEnd) })
+        val attribution = runs[1]
+        val aliceOffset = attribution.spoken.text.indexOf("Alice")
+        assertTrue(aliceOffset >= 0)
+        assertEquals(line.indexOf("Alice"), attribution.sourceStart + attribution.spoken.sourceOffset(aliceOffset))
+        assertEquals(listOf("narrator-voice", "bob-voice"), plan(cast, line.indexOf("Alice")).map { it.voice.voiceName })
+        assertEquals(1, plan(cast.copy(dialogueDetection = false)).size)
+    }
+
+    @Test fun translationKeepsEveryCharacterAcrossSections() {
+        val content = "a".repeat(4999) + "📖" + "b".repeat(5001)
+        val sections = com.veritas.reader.ui.screens.definitionTranslationSections(content)
+        assertEquals(content, sections.joinToString(""))
+        assertTrue(sections.all { it.length <= 5000 && !it.last().isHighSurrogate() })
+    }
+
     @Test fun closingQuotesKeepOneHighlightPerSentence() {
         assertEquals(listOf("“He left.", "She stayed.”", "Then I went home."),
             model("“He left. She stayed.” Then I went home.").sentences.map { it.text })

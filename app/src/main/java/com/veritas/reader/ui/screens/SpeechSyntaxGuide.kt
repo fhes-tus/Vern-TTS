@@ -77,6 +77,7 @@ internal fun SpeechSyntaxReference(kind: SpeechRuleKind) {
     val tokens = if (kind == SpeechRuleKind.PATTERN) listOf(
         "{number}" to R.string.speech_syntax_digits,
         "{word}" to R.string.speech_syntax_word,
+        "{symbol}" to R.string.speech_syntax_symbol,
         "{text}" to R.string.speech_syntax_text,
         "{{  }}" to R.string.speech_syntax_braces
     ) else listOf(

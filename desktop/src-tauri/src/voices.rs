@@ -237,6 +237,7 @@ const ENGLISH_SPEAKERS: [(&str, &str); 28] = [
 pub fn valid_id(id: &str) -> bool {
     descriptor(id).is_ok()
         || crate::windows_speech::valid_id(id)
+        || crate::cloud_speech::valid_id(id)
         || id.strip_prefix("android_").is_some_and(|hash| {
             hash.len() == 64
                 && hash
@@ -386,6 +387,19 @@ impl Voices {
                 )),
             }),
         }
+        result.push(Voice {
+            id: "cloud".into(),
+            name: "Cloud Voice".into(),
+            family: "Cloud".into(),
+            engine: "Online API".into(),
+            size: "Online streaming".into(),
+            language: String::new(),
+            gender: String::new(),
+            state: "installed".into(),
+            downloaded: 0,
+            total: 0,
+            error: None,
+        });
         Ok(result)
     }
     pub fn installed(&self, d: Descriptor) -> bool {

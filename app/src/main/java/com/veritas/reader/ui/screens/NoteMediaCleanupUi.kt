@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@Composable internal fun NoteMediaCleanupControl() {
+@Composable internal fun NoteMediaCleanupControl(onCleaned: () -> Unit = {}) {
     val context = LocalContext.current
     val repository = remember { DocumentRepository(context) }
     val scope = rememberCoroutineScope()
@@ -29,7 +29,7 @@ import kotlinx.coroutines.withContext
             confirmation = false
             scope.launch {
                 runCatching { withContext(Dispatchers.IO) { repository.removeUnusedNoteMedia(candidates) } }
-                    .onSuccess { freed -> candidates = emptyList(); status = "Freed ${formatVeritasBytes(freed)} from unused attachments" }
+                    .onSuccess { freed -> candidates = emptyList(); status = "Freed ${formatVeritasBytes(freed)} from unused attachments"; onCleaned() }
                     .onFailure { status = "Cleanup stopped; attachment references could not be verified" }
             }
         }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_remove_unused_files)) } }, dismissButton = { TextButton(onClick = { confirmation = false }) { Text(com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_cancel)) } })

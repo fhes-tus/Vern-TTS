@@ -50,6 +50,9 @@ import com.veritas.reader.saveAllAnnotations
 import com.veritas.reader.saveDocumentNote
 import com.veritas.reader.saveGeneralNotes
 import com.veritas.reader.upsertAnnotation
+import com.veritas.reader.withManagedAttachments
+import com.veritas.reader.ManagedMediaLeases
+import com.veritas.reader.ui.screens.NoteSharing
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.withLock
@@ -130,7 +133,7 @@ fun ReaderViewModel.toggleBookmark(index: Int = currentReaderIndex) {
                     annotationCount = allAnnotations.size + documentNotes.size
                 )
             }
-            completeQuestBookmark()
+            if (target == null) completeQuestBookmark()
         }
     }
 }
@@ -191,6 +194,7 @@ fun ReaderViewModel.saveSentenceNote(audioPath: String? = uiState.value.noteAudi
                     noteAudioDuration = 0
                 )
             }
+            if (indexes.isNotEmpty() && text.isNotBlank()) completeQuestNote()
         }
     }
 }
@@ -291,6 +295,7 @@ fun ReaderViewModel.saveDocumentNoteDraft() {
                     annotationCount = allAnnotations.size + documentNotes.size
                 )
             }
+            if (savedNote.isNotBlank()) completeQuestNote()
         }
     }
 }
@@ -306,78 +311,82 @@ fun ReaderViewModel.saveGeneralNote(
     reminderAt: Long? = null,
     closeEditor: Boolean = true,
     audioUrls: List<String> = emptyList(),
-    notebookIds: List<String>? = null
+    notebookIds: List<String>? = null,
+    onComplete: (Boolean) -> Unit = {}
 ) {
-    val target = uiState.value.generalNoteEditorTarget ?: GeneralNote(
+    val state = uiState.value
+    val session = state.generalNoteEditorSession
+    val target = state.generalNoteEditorTarget ?: GeneralNote(
         id = UUID.randomUUID().toString(), title = "", content = "", updatedAt = System.currentTimeMillis()
     )
     val revision = ++generalNoteSaveRevision
     _uiState.update { it.copy(generalNoteEditorTarget = target, generalNoteSaveStatus = "Saving…") }
+    val savedNote = target.copy(
+        title = title, content = content, updatedAt = System.currentTimeMillis(),
+        color = color, pinned = pinned, isChecklist = isChecklist, imageUrl = imageUrl,
+        audioUrl = audioUrls.firstOrNull() ?: audioUrl, audioUrls = audioUrls,
+        reminderAt = reminderAt
+    )
+    val pendingMediaPaths = NoteSharing.blocks(savedNote).mapNotNull(NoteSharing::path).toSet()
+    pendingMediaPaths.forEach(ManagedMediaLeases::acquire)
     val previousSave = generalNoteSaveJob
     generalNoteSaveJob = viewModelScope.launch {
         previousSave?.join()
-        try {
-        val savedNote = target.copy(
-            title = title, content = content, updatedAt = System.currentTimeMillis(),
-            color = color, pinned = pinned, isChecklist = isChecklist, imageUrl = imageUrl,
-            audioUrl = audioUrls.firstOrNull() ?: audioUrl, audioUrls = audioUrls,
-            reminderAt = reminderAt
-        )
-        var effectiveNote = savedNote
-        val updated = withContext(Dispatchers.IO) {
-            synchronized(com.veritas.reader.DocumentRepository.LIBRARY_WRITE_LOCK) {
-            val notesSnapshot = repository.loadGeneralNotesSnapshot()
-            check(notesSnapshot.trashed.none { it.id == target.id }) { "This note is in Trash." }
-            val existingNotes = notesSnapshot.active
-            val existing = existingNotes.firstOrNull { it.id == target.id }
-            val availableLabels = repository.loadNoteNotebooks().map { it.id }.toSet()
-            effectiveNote = savedNote.withLabels((notebookIds ?: existing?.allLabelIds ?: savedNote.allLabelIds).filter { it in availableLabels })
-            if (existing != null && effectiveNote.copy(updatedAt = existing.updatedAt) == existing) {
-                effectiveNote = existing
-                notesSnapshot
-            } else {
-                if (existing != null) repository.archiveGeneralNoteRevision(existing)
-                repository.mutateGeneralNotes { notes -> listOf(effectiveNote) + notes.filterNot { it.id == target.id } }
-                repository.loadGeneralNotesSnapshot()
-            }
-            }
-        }
-        // (Re)schedule or clear the note's reminder alarm.
-        val app = getApplication<Application>()
-        val reminderBody = title.ifBlank { content.take(80) }.ifBlank { "Note reminder" }
-        if (reminderAt != null && reminderAt > System.currentTimeMillis()) {
-            NoteReminderScheduler.ensureChannel(app)
-            NoteReminderScheduler.schedule(app, savedNote.id, title.ifBlank { "Vern note" }, reminderBody, reminderAt)
-        } else {
-            NoteReminderScheduler.cancel(app, savedNote.id)
-        }
-        withContext(Dispatchers.Main) {
-            if (revision != generalNoteSaveRevision || uiState.value.generalNoteEditorTarget?.id != target.id) return@withContext
-            _uiState.update {
-                if (closeEditor) {
-                    it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, false).copy(
-                        generalNotes = updated.active,
-                        trashedGeneralNotes = updated.trashed,
-                        generalNoteSaveStatus = "Saved",
-                        generalNoteEditorTarget = null
-                    )
-                } else {
-                    it.copy(
-                        generalNotes = updated.active,
-                        trashedGeneralNotes = updated.trashed,
-                        generalNoteSaveStatus = "Saved",
-                        generalNoteEditorTarget = effectiveNote
-                    )
+        fun ownsEditor(current: ReaderUiState): Boolean = revision == generalNoteSaveRevision &&
+            current.generalNoteEditorSession == session && current.generalNoteEditorTarget?.id == target.id
+
+        val (updated, persisted, wroteThought) = try {
+            withContext(Dispatchers.IO) {
+                synchronized(com.veritas.reader.DocumentRepository.LIBRARY_WRITE_LOCK) {
+                    val notesSnapshot = repository.loadGeneralNotesSnapshot()
+                    check(notesSnapshot.trashed.none { it.id == target.id }) { "This note is in Trash." }
+                    val existing = notesSnapshot.active.firstOrNull { it.id == target.id }
+                    val availableLabels = repository.loadNoteNotebooks().map { it.id }.toSet()
+                    val effective = savedNote.withLabels((notebookIds ?: existing?.allLabelIds ?: savedNote.allLabelIds)
+                        .filter { it in availableLabels }).withManagedAttachments(getApplication())
+                    val result = if (existing != null && effective.copy(updatedAt = existing.updatedAt) == existing) {
+                        notesSnapshot
+                    } else {
+                        if (existing != null) repository.archiveGeneralNoteRevision(existing)
+                        repository.mutateGeneralNotes { notes -> listOf(effective) + notes.filterNot { it.id == target.id } }
+                        repository.loadGeneralNotesSnapshot()
+                    }
+                    val persistedNote = result.active.first { it.id == target.id }
+                    val wroteThought = (persistedNote.title.isNotBlank() || persistedNote.content.isNotBlank()) &&
+                        (existing == null || existing.title != persistedNote.title || existing.content != persistedNote.content)
+                    Triple(result, persistedNote, wroteThought)
                 }
             }
-        }
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
             android.util.Log.e("Notes", "Could not save note", failure)
-            if (revision == generalNoteSaveRevision) _uiState.update { it.copy(generalNoteSaveStatus = "Could not save. Tap Save to retry.") }
+            _uiState.update { if (ownsEditor(it)) it.copy(generalNoteSaveStatus = "Could not save. Tap Save to retry.") else it }
+            onComplete(false)
+            return@launch
         }
-    }
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val app = getApplication<Application>()
+                val time = persisted.reminderAt
+                if (time != null && time > System.currentTimeMillis()) {
+                    NoteReminderScheduler.ensureChannel(app)
+                    NoteReminderScheduler.schedule(app, persisted.id, persisted.title.ifBlank { "Vern note" },
+                        persisted.title.ifBlank { persisted.content.take(80) }.ifBlank { "Note reminder" }, time)
+                } else {
+                    NoteReminderScheduler.cancel(app, persisted.id)
+                }
+            }.onFailure { android.util.Log.w("Notes", "Note saved, but its reminder could not be scheduled.", it) }
+        }
+        _uiState.update { current ->
+            if (!ownsEditor(current)) return@update current
+            val editor = if (closeEditor) current.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, false) else current
+            editor.copy(generalNotes = updated.active, trashedGeneralNotes = updated.trashed,
+                generalNoteSaveStatus = "Saved", generalNoteEditorTarget = if (closeEditor) null else persisted)
+        }
+        if (wroteThought) completeQuestNote()
+        onComplete(true)
+    }.also { job -> job.invokeOnCompletion { pendingMediaPaths.forEach(ManagedMediaLeases::release) } }
 }
 
 fun ReaderViewModel.duplicateGeneralNote(note: GeneralNote) {

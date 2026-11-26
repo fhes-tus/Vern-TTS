@@ -20,6 +20,8 @@ import com.veritas.reader.ui.dismissSentenceNote
 import com.veritas.reader.ui.dismissTextEditor
 import com.veritas.reader.ui.goUpFileBrowserDirectory
 import com.veritas.reader.ui.openFileBrowser
+import com.veritas.reader.ui.saveReaderSettings
+import com.veritas.reader.ui.screens.ReadingStatsDashboardDialog
 import com.veritas.reader.ui.screens.VeritasHomeTab
 
 
@@ -99,6 +101,9 @@ internal fun MainIntentAndRoutingEffects(
                 MainActivity.ACTION_SHOW_FLASHCARDS -> {
                     viewModel.navigateToHomeTab(VeritasHomeTab.STUDY)
                 }
+                MainActivity.ACTION_SHOW_READER_TRACKER -> {
+                    viewModel.updateState { it.copy(showWidgetReadingInsights = true) }
+                }
                 MainActivity.ACTION_IMPORT_DOCUMENTS -> {
                     viewModel.returnToLibrary()
                     viewModel.openFileBrowser()
@@ -142,6 +147,8 @@ internal fun MainIntentAndRoutingEffects(
                             viewModel.updateState { it.withVisibility(VeritasScreen.GENERAL_NOTES_EDITOR, true).copy(
                                 generalNoteEditorTarget = note
                             ) }
+                        } else {
+                            Toast.makeText(context, R.string.note_reminder_missing, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -149,6 +156,33 @@ internal fun MainIntentAndRoutingEffects(
             viewModel.updateState { it.copy(pendingWidgetAction = null, pendingWidgetDocId = null, pendingWidgetNoteId = null, pendingImportOnStart = false) }
         }
     }
+
+    if (uiState.showWidgetReadingInsights) {
+        LaunchedEffect(Unit) { viewModel.refreshReadingInsights() }
+        ReadingStatsDashboardDialog(
+            snapshot = uiState.readerTrackerSnapshot,
+            documents = uiState.documents,
+            documentReadingTimes = uiState.documentReadingTimes,
+            readerSettings = uiState.readerSettings,
+            onGoalMinutesChange = { minutes ->
+                viewModel.saveReaderSettings(uiState.readerSettings.copy(dailyGoalMinutes = minutes))
+            },
+            onOpenDocument = { document ->
+                viewModel.updateState { it.copy(showWidgetReadingInsights = false) }
+                viewModel.openSavedDocument(document, document.currentIndex)
+            },
+            onDismiss = { viewModel.updateState { it.copy(showWidgetReadingInsights = false) } }
+        )
+    }
+
+    val pendingSelection = PlaybackStateStore.pendingOriginalSelection
+    LaunchedEffect(pendingSelection, uiState.activeDocument?.id) {
+        if (pendingSelection != null && uiState.activeDocument?.id == pendingSelection.documentId) {
+            PlaybackStateStore.pendingOriginalSelection = null
+            viewModel.handleOriginalSelection(context, pendingSelection)
+        }
+    }
+    OriginalSelectionBookmarkSheet(viewModel)
 
     val pendingFixWord = PlaybackStateStore.pendingPronunciationFixWord
     LaunchedEffect(pendingFixWord) {
@@ -161,37 +195,6 @@ internal fun MainIntentAndRoutingEffects(
                 )
             }
             PlaybackStateStore.pendingPronunciationFixWord = null
-        }
-    }
-
-    LaunchedEffect(PlaybackStateStore.readerMode, uiState.activeDocument) {
-        val activeDoc = uiState.activeDocument
-        if (PlaybackStateStore.readerMode == ReaderMode.ORIGINAL && activeDoc != null) {
-            val activeMetadata = uiState.documents.firstOrNull { it.id == activeDoc.id }
-            if (activeMetadata != null) {
-                val file = documentRepository.originalFile(activeMetadata)
-                val isPdf = activeMetadata.originalMimeType.contains("pdf", ignoreCase = true) ||
-                        activeMetadata.originalFileName.endsWith(".pdf", ignoreCase = true) ||
-                        (file != null && file.exists() && runCatching {
-                            file.inputStream().use { input ->
-                                val bytes = ByteArray(4)
-                                val read = input.read(bytes)
-                                read == 4 && bytes[0] == '%'.code.toByte() && bytes[1] == 'P'.code.toByte() && bytes[2] == 'D'.code.toByte() && bytes[3] == 'F'.code.toByte()
-                            }
-                        }.getOrDefault(false))
-                if (isPdf) {
-                    context.startActivity(
-                        VeritasPdfViewerActivity.intent(
-                            context,
-                            activeMetadata.id
-                        )
-                    )
-                    PlaybackStateStore.readerMode = ReaderMode.TEXT
-                } else {
-                    viewModel.updateState { it.withVisibility(VeritasScreen.CANVAS_VIEW, true) }
-                    PlaybackStateStore.readerMode = ReaderMode.TEXT
-                }
-            }
         }
     }
 

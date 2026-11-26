@@ -14,6 +14,99 @@ internal object SpeechPatternRules {
         if (rule.matchKind == SpeechRuleKind.LITERAL && !rule.caseSensitive) rule.find.trim().lowercase(Locale.ROOT)
         else rule.find.trim()
 
+    private val numberPairExample = Regex("""^(\p{Nd}+)([^\p{L}\p{N}\s{}]+)(\p{Nd}+)$""")
+    private val exampleToken = Regex("""\p{L}[\p{L}\p{M}\p{Nd}_'’]*|\p{Nd}+|[\p{P}\p{S}]""")
+
+    // Include supplementary characters that the bundled RE2/J Unicode tables do not know yet.
+    private val symbolExpression by lazy {
+        buildString {
+            append("([\\p{P}\\p{S}")
+            var code = Character.MIN_SUPPLEMENTARY_CODE_POINT
+            while (code <= Character.MAX_CODE_POINT) {
+                if (!isPunctuationOrSymbol(code)) {
+                    code++
+                    continue
+                }
+                val start = code++
+                while (code <= Character.MAX_CODE_POINT && isPunctuationOrSymbol(code)) code++
+                append("\\x{").append(start.toString(16)).append('}')
+                if (code - start > 1) append("-\\x{").append((code - 1).toString(16)).append('}')
+            }
+            append("])")
+        }
+    }
+
+    private fun isPunctuationOrSymbol(code: Int): Boolean = when (Character.getType(code)) {
+        Character.CONNECTOR_PUNCTUATION.toInt(), Character.DASH_PUNCTUATION.toInt(),
+        Character.START_PUNCTUATION.toInt(), Character.END_PUNCTUATION.toInt(),
+        Character.INITIAL_QUOTE_PUNCTUATION.toInt(), Character.FINAL_QUOTE_PUNCTUATION.toInt(),
+        Character.OTHER_PUNCTUATION.toInt(), Character.MATH_SYMBOL.toInt(),
+        Character.CURRENCY_SYMBOL.toInt(), Character.MODIFIER_SYMBOL.toInt(), Character.OTHER_SYMBOL.toInt() -> true
+        else -> false
+    }
+
+    /** Captures the two changing values and leaves the separator scoped to the example. */
+    fun fromNumberPair(find: String, spoken: String): Pair<String, String>? {
+        val example = numberPairExample.matchEntire(find.trim()) ?: return null
+        val (left, separator, right) = example.destructured
+        val replacement = Regex("^" + Regex.escape(left) + """(\D+)""" + Regex.escape(right) + "$")
+            .matchEntire(spoken.trim()) ?: return null
+        val connector = quoteReplacement(replacement.groupValues[1])
+        return "{number}$separator{number}" to ("\$1" + connector + "\$2")
+    }
+
+    /** Suggest only unambiguous values carried over to the spoken example, with some fixed context. */
+    fun fromExample(find: String, spoken: String): Pair<String, String>? {
+        if (find.length > MAX_PATTERN || spoken.length > MAX_REPLACEMENT) return null
+        fromNumberPair(find, spoken)?.let { return it }
+        val source = find.trim()
+        val output = spoken.trim()
+        if (source == output || output.isBlank() || source.any { it == '{' || it == '}' }) return null
+
+        val sourceTokens = exampleToken.findAll(source).toList()
+        val outputTokens = exampleToken.findAll(output).groupBy { it.value }
+        val sourceCounts = sourceTokens.groupingBy { it.value }.eachCount()
+        val captures = sourceTokens.filter { token ->
+            sourceCounts[token.value] == 1 && outputTokens[token.value]?.size == 1
+        }
+        if (captures.isEmpty() || captures.size > 32) return null
+
+        val sourceTemplate = StringBuilder()
+        val fixedContext = StringBuilder()
+        val replacements = mutableListOf<Pair<IntRange, String>>()
+        var cursor = 0
+        captures.forEachIndexed { index, token ->
+            val fixed = source.substring(cursor, token.range.first)
+            sourceTemplate.append(fixed)
+            fixedContext.append(fixed)
+            val start = token.value.codePointAt(0)
+            sourceTemplate.append(when {
+                Character.isDigit(start) -> "{number}"
+                Character.isLetter(start) -> "{word}"
+                else -> "{symbol}"
+            })
+            replacements += outputTokens.getValue(token.value).single().range to "\${${index + 1}}"
+            cursor = token.range.last + 1
+        }
+        val tail = source.substring(cursor)
+        if ((fixedContext.append(tail)).isBlank()) return null
+        sourceTemplate.append(tail)
+
+        val outputTemplate = buildString {
+            var outputCursor = 0
+            replacements.sortedBy { it.first.first }.forEach { (range, reference) ->
+                append(quoteReplacement(output.substring(outputCursor, range.first)))
+                append(reference)
+                outputCursor = range.last + 1
+            }
+            append(quoteReplacement(output.substring(outputCursor)))
+        }
+        return sourceTemplate.toString().takeIf { it.length <= MAX_PATTERN && outputTemplate.length <= MAX_REPLACEMENT }
+            ?.let { it to outputTemplate }
+    }
+
+    private fun quoteReplacement(value: String): String = value.replace("\\", "\\\\").replace("$", "$$")
+
     fun error(rule: PronunciationRule): String? = try { compile(rule); null }
         catch (failure: com.google.re2j.PatternSyntaxException) { failure.message?.take(220) ?: "Check this pattern's syntax." }
         catch (failure: IllegalArgumentException) { failure.message?.take(220) ?: "Check this rule's pattern and replacement." }
@@ -35,6 +128,8 @@ internal object SpeechPatternRules {
         require(find.length <= MAX_PATTERN) { "Patterns can contain up to $MAX_PATTERN characters." }
         require(rule.replaceWith.length <= MAX_REPLACEMENT) { "Say instead can contain up to $MAX_REPLACEMENT characters." }
         val expression = if (rule.matchKind == SpeechRuleKind.PATTERN) template(find) else find
+        val numberSlashPair = rule.matchKind == SpeechRuleKind.PATTERN && find == "{number}/{number}"
+        val wordSlashPair = rule.matchKind == SpeechRuleKind.PATTERN && find == "{word}/{word}"
         val pattern = Pattern.compile(expression, if (rule.caseSensitive) 0 else Pattern.CASE_INSENSITIVE)
         require(!pattern.matcher("").find()) { "Use a pattern that consumes text, not an empty position." }
         val groups = pattern.matcher("").groupCount()
@@ -45,6 +140,9 @@ internal object SpeechPatternRules {
             while (matcher.find()) {
                 val start = matcher.start(); val end = matcher.end()
                 if (end <= start) continue
+                if ((numberSlashPair || wordSlashPair) &&
+                    (source.getOrNull(start - 1).isEmbeddedPair() || source.getOrNull(end).isEmbeddedPair())) continue
+                if (wordSlashPair && (!matcher.group(1).any(Char::isLetter) || !matcher.group(2).any(Char::isLetter))) continue
                 val spoken = buildString { pieces.forEach { part ->
                     if (part.group != null) append(matcher.group(part.group).orEmpty()) else append(part.text)
                 } }
@@ -53,6 +151,8 @@ internal object SpeechPatternRules {
             }
         } }
     }
+
+    private fun Char?.isEmbeddedPair(): Boolean = this != null && (isLetterOrDigit() || this == '_' || this == '/')
 
     private fun template(input: String): String {
         val source = if (input == "[n]") "[{number}]" else input
@@ -73,8 +173,9 @@ internal object SpeechPatternRules {
                 result.append(when (token) {
                     "number" -> "(\\p{Nd}+)"
                     "word" -> "([\\p{L}\\p{M}\\p{N}_'’]+)"
+                    "symbol" -> symbolExpression
                     "text" -> if (end == source.lastIndex) "([^\\r\\n]+)" else "([^\\r\\n]+?)"
-                    else -> throw IllegalArgumentException("Use {number}, {word} or {text}. Use {{ and }} for literal braces.")
+                    else -> throw IllegalArgumentException("Use {number}, {word}, {symbol} or {text}. Use {{ and }} for literal braces.")
                 })
                 at = end + 1
             } else {

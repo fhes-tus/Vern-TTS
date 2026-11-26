@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_voice_not_installed_title">语音未安装</string>
+    <string name="playback_voice_not_installed_message">请安装所选语音，或选择已安装的语音。</string>
+</resources>

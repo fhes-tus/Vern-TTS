@@ -61,6 +61,7 @@ object VernCustomization {
         VernIconPalette("rose", "Rose", 0xFF873C57.toInt(), 0xFFFFF0E9.toInt()),
         VernIconPalette("amber", "Amber", 0xFF8A4C20.toInt(), 0xFFFFF6E6.toInt()),
         VernIconPalette("midnight", "Midnight", 0xFF202534.toInt(), 0xFFE6DCFF.toInt()),
+        VernIconPalette("navy", "Deep Navy", 0xFF000020.toInt(), 0xFFFFFFFF.toInt()),
         VernIconPalette("copper", "Copper", 0xFFC07318.toInt(), 0xFFFFFFFF.toInt()),
         VernIconPalette("gold", "Gold", 0xFFE5A93C.toInt(), 0xFF2C1E00.toInt()),
         VernIconPalette("stellar", "Stellar", 0xFF4338CA.toInt(), 0xFFFFFFFF.toInt()),

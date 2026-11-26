@@ -1,0 +1,209 @@
+:root {
+  --motion-feedback: 130ms;
+  --motion-enter: 220ms;
+  --motion-exit: 145ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-leave: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.app-shell > .workspace {
+  overflow-x: clip;
+}
+
+:where(button, a, summary, .book-card, .voice-card, .saved-note) {
+  transition:
+    background-color var(--motion-feedback) ease-out,
+    border-color var(--motion-feedback) ease-out,
+    color var(--motion-feedback) ease-out,
+    box-shadow var(--motion-feedback) ease-out,
+    scale var(--motion-feedback) var(--motion-ease),
+    transform var(--motion-feedback) var(--motion-ease);
+}
+
+:where(button:enabled, .book-open, .brand, summary):active {
+  scale: 0.98;
+  transition-duration: 0ms;
+}
+
+.motion-dialog {
+  opacity: 0;
+  translate: 0 8px;
+  scale: 0.985;
+  transition:
+    opacity var(--motion-exit) var(--motion-leave),
+    translate var(--motion-exit) var(--motion-leave),
+    scale var(--motion-exit) var(--motion-leave),
+    display var(--motion-exit) allow-discrete,
+    overlay var(--motion-exit) allow-discrete;
+}
+.motion-dialog:not([open]) {
+  display: none;
+  pointer-events: none;
+}
+.motion-dialog[open] {
+  opacity: 1;
+  translate: none;
+  scale: 1;
+  transition-duration: var(--motion-enter);
+  transition-timing-function: var(--motion-ease);
+}
+.motion-dialog::backdrop {
+  background: #0007;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--motion-exit) var(--motion-leave),
+    display var(--motion-exit) allow-discrete,
+    overlay var(--motion-exit) allow-discrete;
+}
+.motion-dialog[open]::backdrop {
+  opacity: 1;
+  pointer-events: auto;
+  transition-duration: var(--motion-enter);
+  transition-timing-function: var(--motion-ease);
+}
+
+.notebook,
+.reader-search-panel,
+.reader-choice-panel {
+  opacity: 1;
+  translate: none;
+  transition:
+    opacity var(--motion-enter) var(--motion-ease),
+    translate var(--motion-enter) var(--motion-ease),
+    display var(--motion-enter) allow-discrete;
+}
+.notebook {
+  --panel-offset: 20px 0;
+}
+.reader-search-panel {
+  --panel-offset: 0 -6px;
+}
+.reader-choice-panel[data-placement='top'] {
+  --panel-offset: 0 -5px;
+}
+.reader-choice-panel[data-placement='bottom'] {
+  --panel-offset: 0 5px;
+}
+:is(.notebook, .reader-search-panel, .reader-choice-panel)[hidden] {
+  display: none;
+  pointer-events: none;
+  opacity: 0;
+  translate: var(--panel-offset);
+  transition-duration: var(--motion-exit);
+  transition-timing-function: var(--motion-leave);
+}
+
+details::details-content {
+  opacity: 0;
+  transition:
+    opacity var(--motion-exit) ease-out,
+    content-visibility var(--motion-exit) allow-discrete;
+}
+details[open]::details-content {
+  opacity: 1;
+}
+details.book-options::details-content {
+  transition-duration: 115ms;
+}
+.book-options-list {
+  transform-origin: top right;
+  scale: 0.97;
+  translate: 0 -3px;
+  transition:
+    scale 115ms var(--motion-ease),
+    translate 115ms var(--motion-ease);
+}
+.book-options[open] .book-options-list {
+  scale: 1;
+  translate: none;
+}
+.book-options:not([open]) .book-options-list {
+  pointer-events: none;
+}
+
+:is(
+  .notice-banner,
+  .workspace > .error-banner,
+  .workspace > .preview-banner[role='status'],
+  .playback-bar,
+  .inline-confirm,
+  [data-motion-in]
+) {
+  animation: feedback-arrive var(--motion-enter) var(--motion-ease);
+}
+.playback-bar {
+  --feedback-offset: 8px;
+}
+.play-button > svg {
+  animation: transport-icon-arrive var(--motion-feedback) var(--motion-ease);
+}
+@keyframes feedback-arrive {
+  from {
+    opacity: 0;
+    translate: 0 var(--feedback-offset, 4px);
+  }
+  to {
+    opacity: 1;
+    translate: none;
+  }
+}
+@keyframes transport-icon-arrive {
+  from {
+    opacity: 0.65;
+    scale: 0.87;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@starting-style {
+  .motion-dialog[open] {
+    opacity: 0;
+    translate: 0 8px;
+    scale: 0.985;
+  }
+  .motion-dialog[open]::backdrop {
+    opacity: 0;
+  }
+  :is(.notebook, .reader-search-panel, .reader-choice-panel):not([hidden]) {
+    opacity: 0;
+    translate: var(--panel-offset);
+  }
+}
+
+:root[data-theme-switching] * {
+  transition-property: none !important;
+}
+:root[data-reduce-motion='true'] :is(button, a, summary):active {
+  scale: none;
+}
+:root[data-reduce-motion='true'] .book-card:hover {
+  transform: none;
+}
+:root[data-reduce-motion='true'] :is(main, .reader-spread) {
+  opacity: 1 !important;
+  translate: none !important;
+}
+:root[data-reduce-motion='true'] .motion-dialog::backdrop,
+:root[data-reduce-motion='true'] details::details-content {
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(button, a, summary):active {
+    scale: none;
+  }
+  .book-card:hover {
+    transform: none;
+  }
+  :is(main, .reader-spread) {
+    opacity: 1 !important;
+    translate: none !important;
+  }
+  .motion-dialog::backdrop,
+  details::details-content {
+    transition: none !important;
+  }
+}

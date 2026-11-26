@@ -2,6 +2,8 @@ package com.veritas.reader
 
 /** Shared recognition without deleting characters or changing display offsets. */
 object SpeechPunctuation {
+    internal val spacedEllipsis = Regex("""(?<!\.)\.[ \t\u00A0\u202F]+\.[ \t\u00A0\u202F]+\.(?!\.)""")
+
     enum class Ending { STATEMENT, QUESTION, EXCLAMATION, HESITATION }
 
     fun normalize(char: Char): Char = when (char) {

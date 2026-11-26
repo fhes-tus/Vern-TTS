@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="classic_add_to_library">Добавить в библиотеку</string>
+    <string name="classic_waiting_for_download">Ожидание загрузки</string>
+    <string name="classic_downloading">Загрузка…</string>
+    <string name="classic_download_progress">Загрузка · %1$s</string>
+    <string name="classic_adding_to_library">Добавление в библиотеку…</string>
+    <string name="classic_retry_download">Повторить попытку загрузки</string>
+    <string name="classic_download_again">Загрузить снова</string>
+    <string name="classic_details_for_book">Подробнее о «%1$s»</string>
+    <string name="library_read_percent">Прочитано %1$s</string>
+    <string name="library_read_not_started">Чтение не начато · %1$s</string>
+    <string name="library_read_in_progress">Прочитано %1$s · осталось %2$s</string>
+    <string name="library_read_estimate_minutes">~%1$d мин</string>
+    <string name="library_read_estimate_hours">~%1$d ч</string>
+    <string name="library_read_estimate_hours_minutes">~%1$d ч %2$d мин</string>
+    <plurals name="library_page_count">
+        <item quantity="one">%1$d страница</item>
+        <item quantity="few">%1$d страницы</item>
+        <item quantity="many">%1$d страниц</item>
+        <item quantity="other">%1$d страницы</item>
+    </plurals>
+    <plurals name="library_sentence_count">
+        <item quantity="one">%1$d предложение</item>
+        <item quantity="few">%1$d предложения</item>
+        <item quantity="many">%1$d предложений</item>
+        <item quantity="other">%1$d предложения</item>
+    </plurals>
+</resources>

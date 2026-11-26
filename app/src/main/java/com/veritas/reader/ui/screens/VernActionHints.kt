@@ -1,6 +1,7 @@
 package com.veritas.reader.ui.screens
 
 import android.content.Context
+import com.veritas.reader.R
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -140,7 +141,7 @@ internal fun VernGesturePopupCard(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Close,
-                        contentDescription = "Dismiss",
+                        contentDescription = menuString(R.string.ui_dismiss),
                         tint = scheme.onSurfaceVariant.copy(alpha = 0.70f),
                         modifier = Modifier.size(18.dp)
                     )
@@ -190,7 +191,7 @@ internal fun VernGesturePopupCard(
                     onClick = onDismissPermanently
                 ) {
                     Text(
-                        text = "Don't show again",
+                        text = menuString(R.string.ui_don_t_show_again),
                         style = MaterialTheme.typography.labelMedium,
                         color = scheme.primary
                     )
@@ -200,7 +201,7 @@ internal fun VernGesturePopupCard(
                     onClick = onDismissCurrent
                 ) {
                     Text(
-                        text = "Got it",
+                        text = menuString(R.string.ui_got_it),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = scheme.primary
@@ -218,7 +219,7 @@ internal fun VernGesturePopupCard(
 internal fun VernActionHintBanner(
     hintKey: String,
     message: String,
-    title: String = "Tips & Gestures",
+    title: String = menuString(R.string.hint_tips_and_gestures),
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -289,7 +290,7 @@ internal fun VernActionHintBanner(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "Dismiss",
+                            contentDescription = menuString(R.string.ui_dismiss),
                             tint = scheme.onSurfaceVariant.copy(alpha = 0.70f),
                             modifier = Modifier.size(18.dp)
                         )
@@ -322,7 +323,7 @@ internal fun VernActionHintBanner(
                         }
                     ) {
                         Text(
-                            text = "Don't show again",
+                            text = menuString(R.string.ui_don_t_show_again),
                             style = MaterialTheme.typography.labelMedium,
                             color = scheme.primary
                         )
@@ -335,7 +336,7 @@ internal fun VernActionHintBanner(
                         }
                     ) {
                         Text(
-                            text = "Got it",
+                            text = menuString(R.string.ui_got_it),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = scheme.primary

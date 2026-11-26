@@ -1,5 +1,7 @@
 package com.veritas.reader.ui.screens
 
+import com.veritas.reader.ui.VeritasMotion
+import com.veritas.reader.ui.animateVeritasItem
 import androidx.compose.ui.platform.testTag
 
 import android.content.Context
@@ -169,7 +171,7 @@ internal fun LibraryBooksTab(
             documents.asSequence()
                 .filter { doc ->
                     val q = libraryQuery.trim()
-                    q.isBlank() || doc.title.contains(q, ignoreCase = true) || doc.preview.contains(q, ignoreCase = true) || doc.sourceLabel.contains(q, ignoreCase = true) || doc.collection.contains(q, ignoreCase = true)
+                    q.isBlank() || doc.title.contains(q, ignoreCase = true) || doc.preview.contains(q, ignoreCase = true) || doc.sourceLabel.contains(q, ignoreCase = true) || uiState.readingListCatalog.activeLists.any { list -> list.contains(doc.id) && list.title.contains(q, ignoreCase = true) }
                 }
                 .filter { doc ->
                     when (statusFilter) {
@@ -208,6 +210,7 @@ internal fun LibraryBooksTab(
     }
 
     val density = LocalDensity.current
+    val reduceMotion = VeritasMotion.scheme.reduceMotion
     val haptic = LocalHapticFeedback.current
     var draggingDocId by remember { mutableStateOf<String?>(null) }
     var dragAccumulatedOffset by remember { mutableStateOf(Offset.Zero) }
@@ -387,8 +390,7 @@ internal fun LibraryBooksTab(
                     BoxWithConstraints(Modifier.fillMaxWidth()) {
                     val tileWidth = (maxWidth - 12.dp * (columnCount - 1)) / columnCount
                     Row(
-                        modifier = Modifier
-                            .animateItem()
+                        modifier = animateVeritasItem()
                             .fillMaxWidth()
                             .zIndex(if (rowDocs.any { it.id == draggingDocId }) 100f else 1f),
                         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
@@ -396,7 +398,7 @@ internal fun LibraryBooksTab(
                         rowDocs.forEach { doc ->
                             val isDragging = doc.id == draggingDocId
                             val dragScale by animateFloatAsState(
-                                targetValue = if (isDragging) 1.06f else 1f,
+                                targetValue = if (isDragging && !reduceMotion) 1.06f else 1f,
                                 animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
                                 label = "gridDragScale"
                             )
@@ -421,9 +423,7 @@ internal fun LibraryBooksTab(
                                 onRename = { onRenameDocument(doc) },
                                 onSetCollection = { onSetCollection(doc) },
                                 onShowDetails = { onShowDetails(doc) },
-                                modifier = Modifier
-                                    .width(tileWidth)
-                                    .animateItem()
+                                modifier = animateVeritasItem(Modifier.width(tileWidth))
                                     .zIndex(if (isDragging) 100f else 1f)
                                     .graphicsLayer {
                                         scaleX = dragScale
@@ -536,7 +536,7 @@ internal fun LibraryBooksTab(
                 itemsIndexed(localDocuments, key = { _, doc -> doc.id }) { index, doc ->
                     val isDragging = doc.id == draggingDocId
                     val dragScale by animateFloatAsState(
-                        targetValue = if (isDragging) 1.04f else 1f,
+                        targetValue = if (isDragging && !reduceMotion) 1.04f else 1f,
                         animationSpec = com.veritas.reader.ui.VeritasMotion.spatialFast(),
                         label = "listDragScale"
                     )
@@ -581,8 +581,7 @@ internal fun LibraryBooksTab(
                         onSetCollection = { onSetCollection(doc) },
                         onShowDetails = { onShowDetails(doc) },
                         onManageLists = { onManageLists(doc) },
-                        modifier = Modifier
-                            .animateItem()
+                        modifier = animateVeritasItem()
                             .zIndex(if (isDragging) 100f else 1f)
                             .graphicsLayer {
                                 scaleX = dragScale

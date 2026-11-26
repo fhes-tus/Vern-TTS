@@ -7,12 +7,8 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.*
-import com.veritas.reader.ui.screens.CURATED_CLASSICS
 import kotlinx.coroutines.*
-import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.concurrent.TimeUnit
 
 class ClassicBookDownloadWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
@@ -26,64 +22,32 @@ class ClassicBookDownloadWorker(context: Context, params: WorkerParameters) : Co
         }
         try {
             setForeground(foreground(book.title))
-            setProgress(workDataOf(PHASE to "download"))
-            val raw = fetchText(book.downloadUrl) { percent ->
-                setProgress(workDataOf(PHASE to "download", PERCENT to percent))
+            val cleaned = downloadClassicText(book.downloadUrl) { source ->
+                setProgress(workDataOf(PHASE to "download"))
+                fetchClassicText(source) { percent ->
+                    setProgress(workDataOf(PHASE to "download", PERCENT to percent))
+                }
             }
             ensureActive()
-            require(!raw.trimStart().startsWith("<", ignoreCase = true)) { "The server returned a web page instead of book text." }
             setProgress(workDataOf(PHASE to "adding"))
-            val cleaned = cleanAndUnwrapClassicBookText(raw)
-            require(cleaned.isNotBlank()) { "The download contained no book text." }
             val job = currentCoroutineContext().job
             val document = repository.installClassic(book, cleaned) { job.ensureActive() }
             // Publication is already committed. A missing cover must never fail a completed book.
             BookCoverLoader.asset(applicationContext, book.id)?.let {
                 runCatching { CoverExtractor.saveCoverBitmap(applicationContext, document.id, it) }
             }
+            repository.completeFirstChapterMilestone(FirstChapterMilestone.IMPORT)
             Result.success(workDataOf("documentId" to document.id))
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
-            if (error is IOException && runAttemptCount < 2 && error !is PermanentDownloadException) {
+            if (error is IOException && runAttemptCount < 2 && error !is ClassicDownloadRejected) {
                 setProgress(workDataOf(PHASE to "waiting"))
                 Result.retry()
             } else {
                 Result.failure(workDataOf(ERROR to (error.message ?: "Could not download this book.")))
             }
         }
-    }
-
-    private suspend fun fetchText(url: String, progress: suspend (Int) -> Unit): String {
-        val connection = URL(url).openConnection() as HttpURLConnection
-        connection.connectTimeout = 15_000
-        connection.readTimeout = 15_000
-        try {
-            val status = connection.responseCode
-            if (status !in 200..299) {
-                if (status in 400..499 && status != 408 && status != 429) throw PermanentDownloadException("The book server returned HTTP $status.")
-                throw IOException("The book server returned HTTP $status.")
-            }
-            val length = connection.contentLengthLong
-            if (length > MAX_BYTES) throw PermanentDownloadException("This download exceeds the book size limit.")
-            val output = ByteArrayOutputStream()
-            connection.inputStream.use { input ->
-                val buffer = ByteArray(16 * 1024)
-                var lastPercent = -1
-                while (true) {
-                    currentCoroutineContext().ensureActive()
-                    val read = input.read(buffer)
-                    if (read < 0) break
-                    if (output.size() + read > MAX_BYTES) throw PermanentDownloadException("This download exceeds the book size limit.")
-                    output.write(buffer, 0, read)
-                    if (length > 0) {
-                        val percent = (output.size() * 100L / length).toInt().coerceIn(0, 100)
-                        if (percent / 5 != lastPercent / 5 || lastPercent < 0) { progress(percent); lastPercent = percent }
-                    }
-                }
-            }
-            return output.toString(Charsets.UTF_8.name())
-        } finally { connection.disconnect() }
     }
 
     private fun foreground(title: String): ForegroundInfo {
@@ -98,15 +62,12 @@ class ClassicBookDownloadWorker(context: Context, params: WorkerParameters) : Co
         else ForegroundInfo(notificationId, notification)
     }
 
-    private class PermanentDownloadException(message: String) : IOException(message)
-
     companion object {
         const val TAG = "classic-download"
         const val BOOK_ID = "catalogId"
         const val PHASE = "phase"
         const val PERCENT = "percent"
         const val ERROR = "error"
-        private const val MAX_BYTES = 16 * 1024 * 1024
         fun uniqueName(bookId: String) = "classic-download:$bookId"
         fun enqueue(context: Context, bookId: String) {
             require(resolveClassicDownload(bookId)?.hasDirectTextDownload == true)

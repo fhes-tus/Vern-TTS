@@ -230,7 +230,7 @@ fun DocumentRepository.addPronunciationRule(find: String, replaceWith: String,
     val existing = if (ruleId != null) current.firstOrNull { it.id == ruleId }
         .also { require(it != null) { "This rule was removed. Create a new rule instead." } }
         else current.firstOrNull { SpeechPatternRules.identity(it) == SpeechPatternRules.identity(draft) }
-    val rule = draft.copy(id = existing?.id ?: UUID.randomUUID().toString())
+    val rule = draft.copy(id = existing?.id ?: UUID.randomUUID().toString(), enabled = existing?.enabled ?: true)
     savePronunciationRules(listOf(rule) + current.filterNot {
         it.id == rule.id || SpeechPatternRules.identity(it) == SpeechPatternRules.identity(rule)
     })
@@ -291,16 +291,37 @@ private fun DocumentRepository.loadStoredGeneralNotes(): List<GeneralNote> {
 fun DocumentRepository.loadTrashedGeneralNotes(): List<GeneralNote> =
     loadStoredGeneralNotes().filter { it.deletedAt != null }.sortedByDescending { it.deletedAt }
 
+private fun DocumentRepository.commitNotePreferences(changes: Map<String, String>, failureMessage: String) {
+    val previous = changes.keys.associateWith { prefs.getString(it, null) }
+    val editor = prefs.edit()
+    changes.forEach { (key, value) -> editor.putString(key, value) }
+    try {
+        check(editor.commit()) { failureMessage }
+    } catch (failure: Exception) {
+        // SharedPreferences can publish a new in-memory value even if commit returns false.
+        // Later reads and retries must still see the previous note or revision.
+        val rollback = prefs.edit()
+        previous.forEach { (key, value) ->
+            if (value == null) rollback.remove(key) else rollback.putString(key, value)
+        }
+        runCatching { rollback.apply() }.exceptionOrNull()?.let(failure::addSuppressed)
+        throw failure
+    }
+}
+
+private fun DocumentRepository.publishGeneralNotes(array: JSONArray) {
+    val changes = mutableMapOf("general_notes" to array.toString())
+    prefs.getString("general_notes", null)?.let { changes["general_notes__bak"] = it }
+    commitNotePreferences(changes, "Unable to persist notes")
+    updateVeritasWidgets(appContext)
+}
+
 fun DocumentRepository.saveGeneralNotes(notes: List<GeneralNote>) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
     val array = JSONArray()
     val preservedTrash = loadStoredGeneralNotes().filter { it.deletedAt != null }
     (notes.filter { it.deletedAt == null } + notes.filter { it.deletedAt != null } + preservedTrash)
         .distinctBy { it.id }.forEach { array.put(it.withManagedAttachments(appContext).toJson()) }
-    val previous = prefs.getString("general_notes", null)
-    val editor = prefs.edit().putString("general_notes", array.toString())
-    if (previous != null) editor.putString("general_notes__bak", previous)
-    check(editor.commit()) { "Unable to persist notes" }
-    updateVeritasWidgets(appContext)
+    publishGeneralNotes(array)
 }
 
 /** Read and publish together so simultaneous dictionary responses retain both entries. */
@@ -315,11 +336,53 @@ private fun DocumentRepository.mutateStoredGeneralNotes(transform: (List<General
     val all = loadStoredGeneralNotes()
     val next = transform(all)
     val array = JSONArray().also { out -> next.distinctBy { it.id }.forEach { out.put(it.withManagedAttachments(appContext).toJson()) } }
-    val previous = prefs.getString("general_notes", null)
-    val editor = prefs.edit().putString("general_notes", array.toString())
-    if (previous != null) editor.putString("general_notes__bak", previous)
-    check(editor.commit()) { "Unable to persist notes" }
-    updateVeritasWidgets(appContext)
+    publishGeneralNotes(array)
+}
+
+internal suspend fun DocumentRepository.saveRecordedVoiceMemo(note: GeneralNote, source: java.io.File): List<GeneralNote> {
+    val (attachment) = NoteAttachmentStore.copyDocument(appContext, android.net.Uri.fromFile(source), "audio/wav")
+    try {
+        val saved = note.copy(audioUrl = attachment.path, audioUrls = listOf(attachment.path))
+        return mutateGeneralNotes { listOf(saved) + it }
+    } catch (failure: Exception) {
+        attachment.delete()
+        throw failure
+    }
+}
+
+internal suspend fun DocumentRepository.recoverCachedVoiceMemos() {
+    val exportDirectory = java.io.File(appContext.cacheDir, "shared_exports").canonicalFile
+    val snapshot = loadGeneralNotesSnapshot()
+    for (note in snapshot.active + snapshot.trashed) {
+        val path = note.allAudioUrls.singleOrNull() ?: continue
+        val source = runCatching { java.io.File(path).canonicalFile }.getOrNull() ?: continue
+        if (source.parentFile != exportDirectory || !source.extension.equals("wav", ignoreCase = true) || !source.isFile) continue
+        try {
+            val (attachment) = NoteAttachmentStore.copyDocument(appContext, android.net.Uri.fromFile(source), "audio/wav")
+            var published = false
+            try {
+                synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
+                    if (loadStoredGeneralNotes().none { it == note }) return@synchronized
+                    mutateStoredGeneralNotes { notes ->
+                        notes.map { current ->
+                            if (current == note) current.copy(
+                                content = current.content.replace(path, attachment.path),
+                                audioUrl = attachment.path,
+                                audioUrls = listOf(attachment.path)
+                            ) else current
+                        }
+                    }
+                    published = true
+                }
+            } finally {
+                if (!published) attachment.delete()
+            }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            android.util.Log.w("VoiceMemoRecovery", "Could not recover a cached voice memo", failure)
+        }
+    }
 }
 
 /** Restore owns the complete active/trash snapshot; normal saves preserve Trash. */
@@ -424,7 +487,7 @@ fun DocumentRepository.saveNoteRevisions(revisions: List<NoteRevision>) = synchr
         .sortedByDescending { it.savedAt }.take(200).forEach { revision ->
         array.put(JSONObject().put("noteId", revision.noteId).put("savedAt", revision.savedAt).put("snapshot", revision.snapshot.toJson()))
     }
-    check(prefs.edit().putString("general_note_revisions", array.toString()).commit()) { "Unable to persist note revisions" }
+    commitNotePreferences(mapOf("general_note_revisions" to array.toString()), "Unable to persist note revisions")
 }
 
 fun DocumentRepository.deleteNoteRevisions(noteId: String) = synchronized(DocumentRepository.LIBRARY_WRITE_LOCK) {
@@ -628,7 +691,6 @@ fun DocumentRepository.deleteQuiz(quizId: String): List<QuizSet> = synchronized(
 }
 
 internal fun DocumentRepository.loadDocumentNotes(): Map<String, String> {
-    val existingIds = loadDocuments().map { it.id }.toSet()
     val raw = prefs.getString(DocumentRepository.KEY_DOCUMENT_NOTES, "{}") ?: "{}"
     val obj = runCatching { JSONObject(raw) }.getOrDefault(JSONObject())
     val notes = linkedMapOf<String, String>()
@@ -636,20 +698,18 @@ internal fun DocumentRepository.loadDocumentNotes(): Map<String, String> {
     while (keys.hasNext()) {
         val documentId = keys.next()
         val note = obj.optString(documentId).trim()
-        if (documentId in existingIds && note.isNotBlank()) {
+        if (documentId.isNotBlank() && note.isNotBlank()) {
             notes[documentId] = note
         }
     }
-    if (notes.size != obj.length()) saveDocumentNotes(notes)
     return notes
 }
 
 internal fun DocumentRepository.saveDocumentNotes(notes: Map<String, String>) {
-    val existingIds = loadDocuments().map { it.id }.toSet()
     val obj = JSONObject()
     notes.toSortedMap().forEach { (documentId, note) ->
         val cleanNote = note.trim()
-        if (documentId in existingIds && cleanNote.isNotBlank()) {
+        if (documentId.isNotBlank() && cleanNote.isNotBlank()) {
             obj.put(documentId, cleanNote)
         }
     }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -26,21 +27,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,6 +60,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -60,12 +69,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -74,6 +84,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.DialogProperties
+import com.veritas.reader.VernDialog as Dialog
 import com.veritas.reader.AnnotationPill
 import com.veritas.reader.AnnotationType
 import com.veritas.reader.CoverExtractor
@@ -119,6 +131,7 @@ private class TextViewHolder(
     var detector: GestureDetector? = null
 )
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ReaderPageItemView(
     pageIndex: Int,
@@ -148,7 +161,7 @@ internal fun ReaderPageItemView(
     onEditNotes: (List<Int>) -> Unit,
     onTranslateSelection: (ReaderTextSelection) -> Unit,
     onCopySelection: (String) -> Unit,
-    onGoogleSelection: (ReaderTextSelection) -> Unit,
+    onDefineSelection: (ReaderTextSelection) -> Unit,
     onShareSelection: (String) -> Unit,
     onEditSpeechSelection: (String) -> Unit,
     onEditExtractedSelection: (ReaderTextSelection) -> Unit,
@@ -260,9 +273,9 @@ internal fun ReaderPageItemView(
         val endCutoutPad = horizontalCutoutValues.calculateRightPadding(layoutDirection)
         val topSafeValues = WindowInsets.statusBars.union(WindowInsets.displayCutout.only(WindowInsetsSides.Top)).asPaddingValues()
         val topCutoutClearance = topSafeValues.calculateTopPadding()
-        val bottomNavInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        // Ensure final lines of text can always scroll completely clear of the floating bottom player.
-        val floatingPlayerClearance = if (bottomBarVisible) bottomNavInset + 84.dp else bottomNavInset + 24.dp
+        val bottomNavInset = WindowInsets.navigationBarsIgnoringVisibility.asPaddingValues().calculateBottomPadding()
+        // Keep the end of the scroll range fixed when a swipe hides the player and system bars.
+        val floatingPlayerClearance = bottomNavInset + 84.dp
 
         val latestToggleBars by rememberUpdatedState(onToggleBars)
         // Full-bleed edge-to-edge rectangular page: 0.dp outer margins, RectangleShape (0.dp radius),
@@ -371,7 +384,7 @@ internal fun ReaderPageItemView(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                 }
-                                Text(
+                                if (readerSettings.showSectionNumbers) Text(
                                     text = com.veritas.reader.ui.screens.menuString(
                                         com.veritas.reader.R.string.l10n_dynamic_150,
                                         com.veritas.reader.ui.screens.localizedUiValue(pageNumber),
@@ -395,6 +408,7 @@ internal fun ReaderPageItemView(
 
                         // Scrollable content on page
                         val pageScrollState = rememberScrollState()
+                        val pageEdgeStretch = if (continuous) null else rememberReaderEdgeStretch()
                         val pageDragged by pageScrollState.interactionSource.collectIsDraggedAsState()
                         val latestHideBars by rememberUpdatedState(onHideBars)
                         LaunchedEffect(pageScrollState, pagerState, pageIndex, isCollapsible) {
@@ -410,7 +424,7 @@ internal fun ReaderPageItemView(
                                 .fillMaxWidth()
                                 .then(if (continuous) Modifier else Modifier.weight(1f))
                                 .testTag("reader-page-scroll-$pageNumber")
-                                .then(if (continuous) Modifier else Modifier.verticalScroll(pageScrollState))
+                                .then(if (continuous) Modifier else Modifier.verticalScroll(pageScrollState, overscrollEffect = pageEdgeStretch))
                                 .padding(bottom = floatingPlayerClearance)
                         ) pageContent@{
                             if (!pageMediaReady) {
@@ -459,6 +473,10 @@ internal fun ReaderPageItemView(
                                     }
                                 }
                                 if (coverBitmap != null) {
+                                    var coverExpanded by remember { mutableStateOf(false) }
+                                    if (coverExpanded) {
+                                        ReaderImageViewerDialog(bitmap = coverBitmap, onDismiss = { coverExpanded = false })
+                                    }
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -470,6 +488,7 @@ internal fun ReaderPageItemView(
                                                 .width(72.dp)
                                                 .height(100.dp)
                                                 .clip(RoundedCornerShape(8.dp))
+                                                .clickable { coverExpanded = true }
                                         ) {
                                             androidx.compose.foundation.Image(
                                                 bitmap = coverBitmap.asImageBitmap(),
@@ -494,7 +513,6 @@ internal fun ReaderPageItemView(
                             val segmentTopPx = remember { mutableStateMapOf<Int, Float>() }
                             val segmentTextViews = remember { mutableMapOf<Int, TextView>() }
                             var activeTextView by remember { mutableStateOf<TextView?>(null) }
-                            var textViewContentTopPx by remember { mutableFloatStateOf(0f) }
                             fun reportSentenceOffsets() {
                                 if (!continuous) return
                                 val offsets = mutableMapOf<Int, Int>()
@@ -516,18 +534,22 @@ internal fun ReaderPageItemView(
                                 onSentenceOffsets(offsets)
                             }
 
-                            LaunchedEffect(activeSentenceOnThisPage, readerSettings.fontSizeSp, segmentTopPx.toMap()) {
+                            val activeSegment = segments.firstOrNull { segment ->
+                                when (segment) {
+                                    is PageContentSegment.Prose -> activeSentenceOnThisPage in segment.subPart.sentenceStartIndex until segment.subPart.sentenceEndIndexExclusive
+                                    is PageContentSegment.Table -> activeSentenceOnThisPage in segment.sentenceStartIndex until segment.sentenceEndIndexExclusive
+                                    is PageContentSegment.Image -> false
+                                }
+                            }
+                            val activeSegmentTop = activeSegment?.let { segmentTopPx[it.segmentIndex] }
+                            // A table has one vertical anchor even when its active row changes.
+                            val scrollAnchor = (activeSegment as? PageContentSegment.Table)?.sentenceStartIndex
+                                ?: activeSentenceOnThisPage
+                            LaunchedEffect(scrollAnchor, activeSegment, readerSettings.fontSizeSp, activeSegmentTop) {
                                 if (selectedTextSelection != null || segmentTextViews.values.any { it.hasSelection() }) return@LaunchedEffect
-                                if (activeSentenceOnThisPage >= 0) {
-                                    val activeSegment = segments.firstOrNull { segment ->
-                                        when (segment) {
-                                            is PageContentSegment.Prose -> activeSentenceOnThisPage in segment.subPart.sentenceStartIndex until segment.subPart.sentenceEndIndexExclusive
-                                            is PageContentSegment.Table -> activeSentenceOnThisPage in segment.sentenceStartIndex until segment.sentenceEndIndexExclusive
-                                            is PageContentSegment.Image -> false
-                                        }
-                                    }
+                                if (activeSegmentTop != null && (continuous || !pageScrollState.isScrollInProgress)) {
                                     if (activeSegment is PageContentSegment.Table) {
-                                        val tableTop = segmentTopPx[activeSegment.segmentIndex] ?: 0f
+                                        val tableTop = activeSegmentTop
                                         val currentScroll = pageScrollState.value
                                         val viewportHeight = pageScrollState.viewportSize
                                         val isVisible = viewportHeight > 0 && tableTop >= currentScroll && tableTop <= (currentScroll + viewportHeight - 80)
@@ -549,8 +571,7 @@ internal fun ReaderPageItemView(
                                         val line = layout.getLineForOffset(safeOffset)
                                         val lineTop = layout.getLineTop(line)
                                         val lineBottom = layout.getLineBottom(line)
-                                        val segmentTop = segmentTopPx[activeSegment.segmentIndex] ?: textViewContentTopPx
-                                        val sentenceY = (segmentTop + lineTop).toInt()
+                                        val sentenceY = (activeSegmentTop + lineTop).toInt()
                                         val currentScroll = pageScrollState.value
                                         val viewportHeight = pageScrollState.viewportSize
                                         val isVisible = viewportHeight > 0 &&
@@ -606,7 +627,7 @@ internal fun ReaderPageItemView(
                                                 onEditNotes = onEditNotes,
                                                 onTranslateSelection = onTranslateSelection,
                                                 onCopySelection = onCopySelection,
-                                                onGoogleSelection = onGoogleSelection,
+                                                onDefineSelection = onDefineSelection,
                                                 onShareSelection = onShareSelection,
                                                 onOpenShareToAi = onOpenShareToAi,
                                                 onEditSpeechSelection = onEditSpeechSelection,
@@ -615,7 +636,6 @@ internal fun ReaderPageItemView(
                                                 onReadSelection = onReadSelection,
                                                 onGloballyPositionedTop = { top ->
                                                     segmentTopPx[segment.segmentIndex] = top
-                                                    if (segment.segmentIndex == 0) textViewContentTopPx = top
                                                     reportSentenceOffsets()
                                                 },
                                                 onTextViewActive = { tv ->
@@ -638,7 +658,7 @@ internal fun ReaderPageItemView(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .onGloballyPositioned {
-                                                        segmentTopPx[segment.segmentIndex] = it.positionInParent().y + pageScrollState.value
+                                                        segmentTopPx[segment.segmentIndex] = it.readerBlockTop() ?: return@onGloballyPositioned
                                                         reportSentenceOffsets()
                                                     }
                                             )
@@ -649,12 +669,17 @@ internal fun ReaderPageItemView(
 
                             if (unplacedBitmaps.isNotEmpty()) {
                                 unplacedBitmaps.forEachIndexed { imgIdx, bmp ->
+                                    var expanded by remember { mutableStateOf(false) }
+                                    if (expanded) {
+                                        ReaderImageViewerDialog(bitmap = bmp, onDismiss = { expanded = false })
+                                    }
                                     Spacer(modifier = Modifier.height(14.dp))
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clip(RoundedCornerShape(12.dp))
                                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                                            .clickable { expanded = true }
                                             .padding(vertical = 4.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -718,7 +743,81 @@ internal fun ReaderPageItemView(
 }
 
 @Composable
+internal fun ReaderImageViewerDialog(
+    bitmap: android.graphics.Bitmap,
+    onDismiss: () -> Unit
+) {
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.95f))
+        ) {
+            androidx.compose.foundation.Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.l10n_full_view_image),
+                contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            scale = (scale * zoom).coerceIn(0.8f, 5f)
+                            if (scale > 1f) {
+                                offsetX += pan.x
+                                offsetY += pan.y
+                            } else {
+                                offsetX = 0f
+                                offsetY = 0f
+                            }
+                        }
+                    }
+                    .graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = offsetX,
+                        translationY = offsetY
+                    )
+            )
+
+            // Top control bar with close button
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                        .size(40.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Close,
+                        contentDescription = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_close),
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 internal fun ReaderInlineIllustration(bitmap: android.graphics.Bitmap?, imageIndex: Int) {
+    var expanded by remember { mutableStateOf(false) }
+    if (expanded && bitmap != null) {
+        ReaderImageViewerDialog(bitmap = bitmap, onDismiss = { expanded = false })
+    }
     // The frame exists before decoding and keeps the same height afterwards.
     Box(
         modifier = Modifier
@@ -726,7 +825,8 @@ internal fun ReaderInlineIllustration(bitmap: android.graphics.Bitmap?, imageInd
             .padding(vertical = 10.dp)
             .height(280.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+            .then(if (bitmap != null) Modifier.clickable { expanded = true } else Modifier),
         contentAlignment = Alignment.Center
     ) {
         if (bitmap != null) {
@@ -795,6 +895,10 @@ internal fun parsePageContentSegments(
         }
     }
 }
+
+// The scroll modifier translates the whole content column. Measure inside that column.
+private fun LayoutCoordinates.readerBlockTop(): Float? =
+    parentLayoutCoordinates?.localPositionOf(this, includeMotionFrameOfReference = false)?.y
 
 private fun parseTableContentSegments(part: ReaderPart): List<PageContentSegment> {
     val text = part.text
@@ -989,6 +1093,7 @@ internal fun ReaderComposeTableCard(
     val maxCols = (table.rows.maxOfOrNull { it.size } ?: 1).coerceAtLeast(1)
     val paperAccent = com.veritas.reader.readableDocumentInk(MaterialTheme.colorScheme.primary, getCanvasColors(paperTone).first)
     val isWide = maxCols >= 3 || table.rows.any { row -> row.any { it.length > 25 } }
+    var isCardView by rememberSaveable(table.segmentIndex) { mutableStateOf(false) }
     val cardBg = when (paperTone) {
         PaperToneMode.WARM_SEPIA -> Color(0xFFF3ECE0)
         PaperToneMode.DARK -> Color(0xFF22252A)
@@ -1040,25 +1145,61 @@ internal fun ReaderComposeTableCard(
                     fontWeight = FontWeight.SemiBold,
                     color = paperAccent
                 )
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                    modifier = Modifier.clickable { onSkipTable() }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    // View mode toggle pill: Grid / Cards
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        border = androidx.compose.foundation.BorderStroke(0.5.dp, borderColor)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (!isCardView) MaterialTheme.colorScheme.primary.copy(alpha = 0.22f) else Color.Transparent,
+                                modifier = Modifier.clickable { isCardView = false }
+                            ) {
+                                Text(
+                                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_table_view_grid),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = if (!isCardView) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (!isCardView) paperAccent else rowTextColor.copy(alpha = 0.6f),
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
+                                )
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isCardView) MaterialTheme.colorScheme.primary.copy(alpha = 0.22f) else Color.Transparent,
+                                modifier = Modifier.clickable { isCardView = true }
+                            ) {
+                                Text(
+                                    text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_table_view_cards),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = if (isCardView) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isCardView) paperAccent else rowTextColor.copy(alpha = 0.6f),
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // Skip table button
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        modifier = Modifier.clickable { onSkipTable() }
                     ) {
                         Text(
                             text = com.veritas.reader.ui.screens.menuString(com.veritas.reader.R.string.ui_skip_table),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Medium,
-                            color = paperAccent
-                        )
-                        Text(
-                            text = "\u23ed\ufe0f",
-                            style = MaterialTheme.typography.labelSmall,
                             color = paperAccent
                         )
                     }
@@ -1070,70 +1211,138 @@ internal fun ReaderComposeTableCard(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            val contentModifier = if (isWide) {
-                Modifier.horizontalScroll(rememberScrollState())
-            } else {
-                Modifier.fillMaxWidth()
-            }
+            if (!isCardView) {
+                val contentModifier = if (isWide) {
+                    Modifier.horizontalScroll(rememberScrollState())
+                } else {
+                    Modifier.fillMaxWidth()
+                }
 
-            Column(modifier = contentModifier) {
-                table.rows.forEachIndexed { rowIndex, row ->
-                    val isHeaderRow = (rowIndex == 0)
-                    val rowSentenceIndex = table.rowSentenceIndices.getOrNull(rowIndex)
-                        ?: (table.sentenceStartIndex + rowIndex)
-                            .coerceAtMost((table.sentenceEndIndexExclusive - 1).coerceAtLeast(table.sentenceStartIndex))
-                    val isRowActive = (activeSentenceIndex == rowSentenceIndex)
-                    val activeColIndex = if (isRowActive) PlaybackStateStore.activeTableColumnIndex else -1
+                Column(modifier = contentModifier) {
+                    table.rows.forEachIndexed { rowIndex, row ->
+                        val isHeaderRow = (rowIndex == 0)
+                        val rowSentenceIndex = table.rowSentenceIndices.getOrNull(rowIndex)
+                            ?: (table.sentenceStartIndex + rowIndex)
+                                .coerceAtMost((table.sentenceEndIndexExclusive - 1).coerceAtLeast(table.sentenceStartIndex))
+                        val isRowActive = (activeSentenceIndex == rowSentenceIndex)
+                        val activeColIndex = if (isRowActive) PlaybackStateStore.activeTableColumnIndex else -1
 
-                    val rowBg = when {
-                        isRowActive -> activeRowBg
-                        isHeaderRow -> headerBg
-                        else -> Color.Transparent
-                    }
+                        val rowBg = when {
+                            isRowActive -> activeRowBg
+                            isHeaderRow -> headerBg
+                            else -> Color.Transparent
+                        }
 
-                    Row(
-                        modifier = Modifier
-                            .then(if (isWide) Modifier.widthIn(min = (maxCols * 115).dp) else Modifier.fillMaxWidth())
-                            .background(rowBg)
-                            .clickable { onSentenceClick(rowSentenceIndex) }
-                            .padding(horizontal = 8.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        for (colIdx in 0 until maxCols) {
-                            val cellText = row.getOrNull(colIdx).orEmpty()
-                            val isCellSpotlighted = isRowActive && (activeColIndex == colIdx || (activeColIndex == -1 && colIdx == 0))
-                            val cellModifier = if (isWide) {
-                                Modifier.widthIn(min = 105.dp, max = 220.dp)
-                            } else {
-                                Modifier.weight(1f)
-                            }
+                        Row(
+                            modifier = Modifier
+                                .then(if (isWide) Modifier.widthIn(min = (maxCols * 115).dp) else Modifier.fillMaxWidth())
+                                .background(rowBg)
+                                .clickable { onSentenceClick(rowSentenceIndex) }
+                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            for (colIdx in 0 until maxCols) {
+                                val cellText = row.getOrNull(colIdx).orEmpty()
+                                val isCellSpotlighted = isRowActive && (activeColIndex == colIdx || (activeColIndex == -1 && colIdx == 0))
+                                val cellModifier = if (isWide) {
+                                    Modifier.widthIn(min = 105.dp, max = 240.dp)
+                                } else {
+                                    Modifier.weight(1f)
+                                }
 
-                            Box(
-                                modifier = cellModifier
-                                    .background(
-                                        if (isCellSpotlighted) MaterialTheme.colorScheme.primary.copy(alpha = 0.22f) else Color.Transparent,
-                                        RoundedCornerShape(4.dp)
+                                Box(
+                                    modifier = cellModifier
+                                        .background(
+                                            if (isCellSpotlighted) MaterialTheme.colorScheme.primary.copy(alpha = 0.22f) else Color.Transparent,
+                                            RoundedCornerShape(4.dp)
+                                        )
+                                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = cellText,
+                                        style = if (isHeaderRow) MaterialTheme.typography.labelMedium else MaterialTheme.typography.bodySmall,
+                                        fontWeight = if (isHeaderRow || isRowActive) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isCellSpotlighted || isHeaderRow) paperAccent else rowTextColor
                                     )
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = cellText,
-                                    style = if (isHeaderRow) MaterialTheme.typography.labelMedium else MaterialTheme.typography.bodySmall,
-                                    fontWeight = if (isHeaderRow || isRowActive) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isCellSpotlighted || isHeaderRow) paperAccent else rowTextColor,
-                                    maxLines = 4,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                }
                             }
                         }
-                    }
 
-                    if (rowIndex < table.rows.lastIndex) {
-                        HorizontalDivider(
-                            color = borderColor.copy(alpha = 0.3f),
-                            modifier = Modifier.padding(horizontal = 4.dp)
-                        )
+                        if (rowIndex < table.rows.lastIndex) {
+                            HorizontalDivider(
+                                color = borderColor.copy(alpha = 0.3f),
+                                modifier = Modifier.padding(horizontal = 4.dp)
+                            )
+                        }
+                    }
+                }
+            } else {
+                // Card View Mode: Each data row rendered as a structured, readable card
+                val headers = table.rows.firstOrNull().orEmpty()
+                val dataRows = table.rows.drop(1)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    dataRows.forEachIndexed { dataIdx, row ->
+                        val rowIndex = dataIdx + 1
+                        val rowSentenceIndex = table.rowSentenceIndices.getOrNull(rowIndex)
+                            ?: (table.sentenceStartIndex + rowIndex)
+                                .coerceAtMost((table.sentenceEndIndexExclusive - 1).coerceAtLeast(table.sentenceStartIndex))
+                        val isRowActive = (activeSentenceIndex == rowSentenceIndex)
+                        val activeColIndex = if (isRowActive) PlaybackStateStore.activeTableColumnIndex else -1
+
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (isRowActive) activeRowBg else cardBg,
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (isRowActive) paperAccent.copy(alpha = 0.6f) else borderColor.copy(alpha = 0.5f)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSentenceClick(rowSentenceIndex) }
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                for (colIdx in 0 until maxCols) {
+                                    val cellText = row.getOrNull(colIdx).orEmpty()
+                                    if (cellText.isBlank()) continue
+                                    val colHeader = headers.getOrNull(colIdx).orEmpty()
+                                    val isCellSpotlighted = isRowActive && (activeColIndex == colIdx || (activeColIndex == -1 && colIdx == 0))
+
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(
+                                                if (isCellSpotlighted) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f) else Color.Transparent,
+                                                RoundedCornerShape(6.dp)
+                                            )
+                                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                                    ) {
+                                        if (colHeader.isNotBlank()) {
+                                            Text(
+                                                text = colHeader,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = paperAccent
+                                            )
+                                        }
+                                        Text(
+                                            text = cellText,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = rowTextColor,
+                                            fontWeight = if (isCellSpotlighted) FontWeight.SemiBold else FontWeight.Normal
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1178,7 +1387,7 @@ private fun ReaderProseBlock(
     onEditNotes: (List<Int>) -> Unit,
     onTranslateSelection: (ReaderTextSelection) -> Unit,
     onCopySelection: (String) -> Unit,
-    onGoogleSelection: (ReaderTextSelection) -> Unit,
+    onDefineSelection: (ReaderTextSelection) -> Unit,
     onShareSelection: (String) -> Unit,
     onOpenShareToAi: (ReaderTextSelection?, Boolean) -> Unit,
     onEditSpeechSelection: (String) -> Unit,
@@ -1243,7 +1452,7 @@ private fun ReaderProseBlock(
                     if (segmentIndex == 0) {
                         OnboardingController.updateBounds("reader_text_view", it)
                     }
-                    onGloballyPositionedTop(it.positionInParent().y)
+                    it.readerBlockTop()?.let(onGloballyPositionedTop)
                 },
             factory = { viewContext ->
                 TextView(viewContext).apply {
@@ -1425,7 +1634,7 @@ private fun ReaderProseBlock(
                     onEditNotes = onEditNotes,
                     onTranslateSelection = onTranslateSelection,
                     onCopySelection = onCopySelection,
-                    onGoogleSelection = onGoogleSelection,
+                    onDefineSelection = onDefineSelection,
                     onShareSelection = onShareSelection,
                     onShareSelectionToAi = { sel ->
                         onOpenShareToAi(sel, false)

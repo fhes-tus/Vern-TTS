@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_review_title">Review backup</string>
+    <string name="backup_review_action">Review restore</string>
+    <string name="backup_review_selected_file">Selected backup</string>
+    <string name="backup_review_failed">Couldn’t review the backup. %1$s</string>
+    <string name="backup_review_changed">Your library changed. Review the updated counts before restoring.</string>
+    <string name="backup_review_zip">Full ZIP archive</string>
+    <string name="backup_review_json">Text and data backup</string>
+    <string name="backup_review_format">%1$s · %2$s</string>
+    <string name="backup_review_added">New readings</string>
+    <string name="backup_review_matched">Readings that match</string>
+    <string name="backup_review_conflicting">Readings with conflicts</string>
+    <string name="backup_review_conflict_explanation">Vern will keep these local readings and skip the incoming versions and their linked records.</string>
+    <string name="backup_review_untitled">Untitled reading</string>
+    <string name="backup_review_other_conflicts">More conflicts: %1$d</string>
+    <string name="backup_review_settings">Restoring this backup also applies its saved settings.</string>
+    <string name="backup_review_archive_assets">Vern checks original files and attachments when you restore the archive.</string>
+</resources>

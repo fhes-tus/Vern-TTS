@@ -92,7 +92,16 @@ export function useTheme(settings: Settings) {
       const root = document.documentElement;
       const p = paletteFor(settings, media.matches);
       const accent = settings.accentColor || p.primary;
-      root.dataset.theme = p.dark ? 'dark' : 'light';
+      const theme = p.dark ? 'dark' : 'light';
+      if (
+        root.dataset.theme &&
+        (root.dataset.theme !== theme ||
+          root.dataset.palette !== settings.colorTheme ||
+          root.style.getPropertyValue('--accent') !== accent)
+      ) {
+        root.dataset.themeSwitching = '';
+      }
+      root.dataset.theme = theme;
       root.dataset.palette = settings.colorTheme;
       root.dataset.reduceMotion = String(settings.reduceMotion);
       root.dataset.reduceTransparency = String(settings.reduceTransparency);
@@ -124,6 +133,10 @@ export function useTheme(settings: Settings) {
           : p.primaryContainer,
       };
       for (const [key, value] of Object.entries(tokens)) root.style.setProperty(`--${key}`, value);
+      if (root.dataset.themeSwitching !== undefined) {
+        void root.offsetWidth;
+        delete root.dataset.themeSwitching;
+      }
     }
     apply();
     media.addEventListener?.('change', apply);

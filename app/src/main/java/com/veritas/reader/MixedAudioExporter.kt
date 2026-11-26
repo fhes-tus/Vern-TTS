@@ -18,9 +18,9 @@ internal class MixedAudioExporter(private val context: Context,
     private val createNeural: ((String) -> TtsEngine)? = null,
     private val renderAndroid: (suspend (SpeechSegment, File) -> Unit)? = null
 ) {
-    suspend fun export(title: String, segments: List<SpeechSegment>): AudioExportManager.ExportResult = withContext(Dispatchers.IO) {
-        val directory = File(context.cacheDir, "VernExports").apply { mkdirs() }
-        val name = title.replace(Regex("[^\\p{L}\\p{N} _.-]"), " ").trim().take(50).ifBlank { "vern_audio" } + "_${UUID.randomUUID()}.wav"
+    suspend fun export(title: String, segments: List<SpeechSegment>, format: AudioExportFormat = AudioExportFormat.WAV): AudioExportManager.ExportResult = withContext(Dispatchers.IO) {
+        val directory = File(context.cacheDir, "shared_exports").apply { check(isDirectory || mkdirs()) }
+        val name = title.replace(Regex("[^\\p{L}\\p{N} _.-]"), " ").trim().take(50).ifBlank { "vern_audio" } + "_${UUID.randomUUID()}.${format.extension}"
         val final = File(directory, name); val partial = File(directory, ".$name.partial")
         val part = File(directory, ".$name.part.wav")
         val manager = AudioExportManager(context)
@@ -30,12 +30,16 @@ internal class MixedAudioExporter(private val context: Context,
         var android: TextToSpeech? = null; var androidPackage: String? = null
         var parts = 0
         try {
-            PcmWavWriter(partial, 24000).use { writer ->
+            val output = when (format) {
+                AudioExportFormat.WAV -> PcmWavWriter(partial, EXPORT_SAMPLE_RATE)
+                AudioExportFormat.M4A -> AacM4aWriter(partial, EXPORT_SAMPLE_RATE)
+            }
+            output.use { writer ->
                 for (requested in segments) {
                     val segment = requested.copy(rate = SpeechDelivery.rate(requested.rate), pitch = SpeechDelivery.pitch(requested.pitch))
                     coroutineContext.ensureActive()
                     if (segment.spoken.text.isBlank()) continue
-                    if (segment.leadingPauseMs > 0) writer.append(ShortArray((segment.leadingPauseMs.coerceIn(0, 10000) * 24).toInt())) { coroutineContext.ensureActive() }
+                    if (segment.leadingPauseMs > 0) writer.append(ShortArray((segment.leadingPauseMs.coerceIn(0, 10000) * (EXPORT_SAMPLE_RATE / 1000)).toInt())) { coroutineContext.ensureActive() }
                     if (segment.family == SpeechEngineFamily.ANDROID) {
                         neural?.shutdown(); neural = null; neuralVoice = ""
                         graphPool?.close(); graphPool = null
@@ -57,7 +61,7 @@ internal class MixedAudioExporter(private val context: Context,
                             }
                         }
                         coroutineContext.ensureActive()
-                        WavAudioNormalizer.append(part, writer, 24000) { coroutineContext.ensureActive() }
+                        WavAudioNormalizer.append(part, writer, EXPORT_SAMPLE_RATE) { coroutineContext.ensureActive() }
                         part.delete()
                     } else {
                         android?.stop(); android?.shutdown(); android = null
@@ -80,13 +84,14 @@ internal class MixedAudioExporter(private val context: Context,
                         val audio = engine.synthesizeFloat(segment.spoken.text, segment.rate, segment.pitch)
                         coroutineContext.ensureActive()
                         require(audio != null && audio.samples.isNotEmpty()) { "${segment.voice.displayName} produced no audio for part ${parts + 1}." }
-                        val converted = com.veritas.reader.tts.BandLimitedResampler.convert(audio.samples, audio.sampleRate / 24000.0)
-                        writer.append(com.veritas.reader.tts.FloatPcmAudio(converted, 24000).pcm16()) { coroutineContext.ensureActive() }
+                        val converted = com.veritas.reader.tts.BandLimitedResampler.convert(audio.samples, audio.sampleRate.toDouble() / EXPORT_SAMPLE_RATE)
+                        writer.append(com.veritas.reader.tts.FloatPcmAudio(converted, EXPORT_SAMPLE_RATE).pcm16()) { coroutineContext.ensureActive() }
                     }
                     parts++
                 }
+                require(parts > 0) { "No speech was generated." }
+                writer.finish { coroutineContext.ensureActive() }
             }
-            require(parts > 0) { "No speech was generated." }
             coroutineContext.ensureActive()
             Files.move(partial.toPath(), final.toPath(), StandardCopyOption.ATOMIC_MOVE)
             AudioExportManager.ExportResult(final, name, parts)
