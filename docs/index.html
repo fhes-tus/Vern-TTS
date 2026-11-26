@@ -55,6 +55,15 @@ details{margin-top:.85rem;max-width:48rem}
 details p{padding-top:.55rem}
 summary{cursor:pointer;font-weight:600}
 @media(max-width:680px){.hero,.split{grid-template-columns:1fr}.hero-photo{justify-items:center}.gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.top{gap:.55rem}.hero{gap:1.5rem}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:no-preference){
+  .hero h1,.hero p,.hero .actions,.hero-photo img{animation:rise .65s cubic-bezier(.2,.7,.3,1) both}
+  .hero p{animation-delay:.08s}
+  .hero .actions,.hero-photo img{animation-delay:.16s}
+  .button{transition:transform .18s ease}
+  .button:hover{transform:translateY(-2px)}
+  .reveal{animation:rise .55s ease both}
+}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
@@ -82,10 +91,10 @@ summary{cursor:pointer;font-weight:600}
 <div><h2>Find your next classic.</h2><p class="section-copy">Browse public-domain books in the built-in Classics catalog, from Jane Austen to Marcus Aurelius. Download an edition and keep it in your library for offline reading.</p></div>
 <div class="covers"><img src="covers/classic_pride_and_prejudice.jpg" alt="Pride and Prejudice" loading="lazy"><img src="covers/classic_meditations.jpg" alt="Meditations" loading="lazy"></div>
 </section>
-<section class="download" id="download"><div class="wrap section">
+<section class="download" id="download"><div class="wrap section split"><div>
 <h2>Get Vern for Android.</h2><p class="section-copy">Vern runs on Android 9 and later.</p>
 <div class="actions"><a class="button" href="https://play.google.com/store/apps/details?id=com.veritas.reader">Google Play</a><a href="https://github.com/fhes-tus/Vern-TTS/releases/download/v3.0.0/Vern-3.0.0-release-54.apk">Download the 3.0.0 APK</a></div>
-<details><summary>Switching between Google Play and the APK?</summary><p>Export a backup first. Switching distribution channels may require reinstalling the app. Contact support before uninstalling if Android rejects the update.</p></details>
+</div><div><details><summary>Switching between Google Play and the APK?</summary><p>Export a backup first. Switching distribution channels may require reinstalling the app. Contact support before uninstalling if Android rejects the update.</p></details></div>
 </div></section>
 <section class="wrap section" id="faq"><h2>Before you start.</h2>
 <details><summary>Can I use Vern offline?</summary><p>Read imported books and listen with installed offline voices. Web imports and optional online providers need a connection.</p></details>
@@ -94,5 +103,18 @@ summary{cursor:pointer;font-weight:600}
 </section>
 </main>
 <footer class="wrap footer"><span>Vern</span><nav aria-label="Footer"><a href="https://github.com/fhes-tus/Vern-TTS">Source code</a><a href="https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md">Privacy</a><a href="mailto:myreader.veritas@gmail.com">Support</a></nav></footer>
+<script>
+if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches && "IntersectionObserver" in window) {
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("reveal");
+        observer.unobserve(entry.target);
+      }
+    }
+  }, { threshold: 0.15 });
+  document.querySelectorAll(".section h2, .gallery figure, .covers img").forEach((element) => observer.observe(element));
+}
+</script>
 </body>
 </html>
