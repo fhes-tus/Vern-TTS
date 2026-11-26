@@ -6,7 +6,7 @@
 
 ### *Your intelligent, private reading workstation, neural audiobook studio, and active-recall study suite for Android.*
 
-[![Source Version](https://img.shields.io/badge/Source-v2.8.0-orange.svg)](RELEASE_NOTES_v2.8.0.md)
+[![Source Version](https://img.shields.io/badge/Source-v3.0.0-orange.svg)](release/v3.0.0/RELEASE_NOTES.md)
 [![Target Platform](https://img.shields.io/badge/Platform-Android%2016%20(API%2036)-3DDC84.svg?logo=android&logoColor=white)](https://developer.android.com/)
 [![Minimum SDK](https://img.shields.io/badge/Min%20SDK-Android%209.0%20(API%2028)-blue.svg)](https://developer.android.com/)
 [![Language](https://img.shields.io/badge/Kotlin-2.4.0-7F52FF.svg?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
@@ -16,9 +16,9 @@
 <br/>
 
 <p align="center">
-  <img width="30%" alt="Home Dashboard" src="docs/screenshots/home.png" />
-  <img width="30%" alt="Central Library" src="docs/screenshots/library.png" />
-  <img width="30%" alt="Reading Mode" src="docs/screenshots/current_reader.png" />
+  <img width="30%" alt="Home Dashboard" src="docs/screenshots/vern-3-home.jpg" />
+  <img width="30%" alt="Central Library" src="docs/screenshots/vern-3-library.jpg" />
+  <img width="30%" alt="Reading Mode" src="docs/screenshots/vern-3-reader.jpg" />
 </p>
 
 </div>
@@ -39,15 +39,15 @@ Designed with an **offline-first, privacy-respecting philosophy**, your library,
 
 | 📚 Reading & TTS | 🎧 Immersive Audio | 📄 Original PDF View |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/current_reader.png" width="280" alt="Reading Mode & Highlighting" /> | <img src="docs/screenshots/audio_player.png" width="280" alt="Audio Player & Speeds" /> | <img src="docs/screenshots/pdf_viewer.png" width="280" alt="Original PDF Mode" /> |
+| <img src="docs/screenshots/vern-3-reader.jpg" width="280" alt="Reading Mode & Highlighting" /> | <img src="docs/screenshots/vern-3-listen.jpg" width="280" alt="Audio Player & Speeds" /> | <img src="docs/screenshots/vern-3-pdf.jpg" width="280" alt="Original PDF Mode" /> |
 
-| 🏛️ Classics Catalog | ✍️ Notes Hub & Links | 🎙️ Voice Memos & Waveforms |
+| 🏛️ Classics Catalog | ✍️ Notes Hub | 📖 Offline Dictionary |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/classics.png" width="280" alt="Public Domain Classics" /> | <img src="docs/screenshots/notes.png" width="280" alt="Notes Hub & Web Previews" /> | <img src="docs/screenshots/note_editor.png" width="280" alt="Voice Memo Waveforms & Reflections" /> |
+| <img src="docs/screenshots/vern-3-classics.jpg" width="280" alt="Public Domain Classics" /> | <img src="docs/screenshots/vern-3-notes.jpg" width="280" alt="Notes Hub" /> | <img src="docs/screenshots/vern-3-dictionary.jpg" width="280" alt="Offline Dictionary" /> |
 
 | 🧠 Study Hub | 📊 Habit & Reading Insights | 🎨 Display & Theme Packs |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/study.png" width="280" alt="Study Hub Flashcards" /> | <img src="docs/screenshots/insights.png" width="280" alt="Analytics Heatmap" /> | <img src="docs/screenshots/theme.png" width="280" alt="Themes & Palettes" /> |
+| <img src="docs/screenshots/vern-3-study.jpg" width="280" alt="Study Hub" /> | <img src="docs/screenshots/vern-3-insights.jpg" width="280" alt="Analytics Heatmap" /> | <img src="docs/screenshots/theme.png" width="280" alt="Themes & Palettes" /> |
 
 </div>
 
@@ -58,16 +58,15 @@ Designed with an **offline-first, privacy-respecting philosophy**, your library,
 
 ---
 
-## What's new in 2.8.0
+## What’s new in 3.0.0
 
-- Added preview interface translations: Korean, Brazilian Portuguese, Russian, and German, joining Arabic, Simplified Chinese, Spanish, French, and Hindi.
-- Optional on-device translation powered by Google ML Kit for supported phone languages without shipped packs, with localized Library filter chips and settings.
-- Added step-by-step walkthroughs and instant examples for Pattern and Regex pronunciation rules, with collapsible saved rule groups.
-- Searchable voice catalogs for Azure Speech and Google Cloud Text-to-Speech, with inline HTTPS custom endpoint configuration and hardened credential handling.
-- Localized reader controls, reading summaries, and native PDF viewer chrome across all ten languages.
-- Completed books stay at the end of Library; pick any custom accent in Display & theme using a colour field, hue strip and quick swatches with a live preview.
+- Organize books in Collections and turn a collection into a listening queue.
+- Assign dialogue voices in Narration Studio, reuse pronunciation patterns, and export audio as WAV or M4A.
+- Study a passage or a whole reading, revisit missed flashcards, and translate dictionary definitions.
+- Review backups before restoring, schedule weekly backups, and share reader settings separately.
+- Start with illustrated setup and the optional First Chapter walkthrough.
 
-Source is **2.8.0 / code 47**. [Full notes](RELEASE_NOTES_v2.8.0.md) · [Verification](progress.md).
+The Android release is **3.0.0, build 54**. [Release notes](release/v3.0.0/RELEASE_NOTES.md) · [APK and AAB](https://github.com/fhes-tus/Vern-TTS/releases/tag/v3.0.0) · [Website](https://fhes-tus.github.io/Vern-TTS/).
 
 ## Previous updates
 
@@ -110,7 +109,7 @@ Source is **2.8.0 / code 47**. [Full notes](RELEASE_NOTES_v2.8.0.md) · [Verific
 * **Full Audio Playback Controls**: Real-time slider adjustments for speech rate (0.5x–2.5x), pitch tuning, and voice accents.
 * **Uninterrupted Background Playback**: MediaSession-powered background audio with lock-screen notification controls, headset button mapping, and auto-pause on phone calls or headphone disconnection.
 * **Smart Sleep Timer**: Set timed audio shutoff with automatic sentence-boundary detection so playback never abruptly cuts off mid-thought.
-* **Audio Exporter**: Convert any document chapter or excerpt directly into a `.wav` audio file for offline listening on any device.
+* **Audio Exporter**: Convert any document chapter or excerpt directly into a WAV or M4A audio file for offline listening on any device.
 
 ### 🧠 3. Active-Recall Study Suite & Flashcards
 * **Tactile Spaced-Repetition Flashcards**: Automatically generate or manually build flashcard decks with tactile flip animations, rating intervals, and mastery tracking.
@@ -153,7 +152,7 @@ Source is **2.8.0 / code 47**. [Full notes](RELEASE_NOTES_v2.8.0.md) · [Verific
 
 Get Vern from [Google Play](https://play.google.com/store/apps/details?id=com.veritas.reader), or use the published APKs from the official repository releases:
 
-👉 **[Download Latest Vern Release](https://github.com/fhes-tus/Vern-TTS/releases/latest)**
+👉 **[Download Latest Vern Release](https://github.com/fhes-tus/Vern-TTS/releases/tag/v3.0.0)**
 
 | Recommended For | Architecture |
 | :--- | :--- |
