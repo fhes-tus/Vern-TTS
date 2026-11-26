@@ -65,17 +65,22 @@ summary{cursor:pointer;font-weight:600}
   .reveal{animation:rise .55s ease both}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.feature-list{display:grid;gap:1.1rem;margin-top:1.5rem}
+.feature-list h3{font-size:1.2rem}
+.feature-list p{color:var(--muted)}
+.gallery-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
+.resources{margin-top:1.25rem}
 </style>
 </head>
 <body>
 <header class="wrap top">
 <a class="brand" href="#top"><img src="icon.png" alt="" width="36" height="36"> Vern</a>
-<nav aria-label="Main"><a href="#screens">App preview</a><a href="#classics">Classics</a><a href="#download">Get Vern</a></nav>
+<nav aria-label="Main"><a href="#screens">App preview</a><a href="#classics">Classics</a><a href="#whats-new">What’s new</a><a href="#download">Get Vern</a><a href="https://github.com/fhes-tus/Vern-TTS">GitHub</a></nav>
 </header>
 <main id="top">
 <section class="wrap hero">
 <div><h1>Read, listen,<br>and study.</h1><p>Vern turns PDFs, EPUBs, Word documents, and web articles into a personal Android library you can read, hear, and study at your own pace.</p>
-<div class="actions"><a class="button" href="https://play.google.com/store/apps/details?id=com.veritas.reader">Get it on Google Play</a><a href="https://github.com/fhes-tus/Vern-TTS/releases/tag/v3.0.0">What’s new in 3.0</a></div></div>
+<div class="actions"><a class="button" href="https://play.google.com/store/apps/details?id=com.veritas.reader">Get it on Google Play</a><a href="#whats-new">What’s new in 3.0</a></div></div>
 <figure class="hero-photo"><img src="screenshots/vern-3-home.jpg" alt="Vern Home with a current read and library shortcuts"></figure>
 </section>
 <section class="band" id="screens"><div class="wrap section" id="features">
@@ -87,6 +92,29 @@ summary{cursor:pointer;font-weight:600}
 <figure><img src="screenshots/vern-3-listen.jpg" alt="Listen mode with audio playback controls" loading="lazy"><figcaption>Listen</figcaption></figure>
 <figure><img src="screenshots/vern-3-study.jpg" alt="Study Hub with study tools" loading="lazy"><figcaption>Study Hub</figcaption></figure>
 </div></div></section>
+<section class="wrap section split" id="whats-new">
+<div>
+<h2>What’s new in Vern 3.0.</h2>
+<div class="feature-list">
+<div><h3>Collections and listening queues</h3><p>Group books for a course or series, arrange them in order, and turn a collection into a listening queue.</p></div>
+<div><h3>Narration Studio and audio export</h3><p>Assign voices to dialogue, preview the performance, and use reusable pronunciation patterns. Export your narration as WAV or M4A.</p></div>
+<div><h3>Study and back up your work</h3><p>Review missed flashcards and translate dictionary definitions. Schedule weekly backups and review what will merge before you restore.</p></div>
+</div>
+<p class="section-copy"><a href="https://github.com/fhes-tus/Vern-TTS/releases/tag/v3.0.0">Read the full 3.0 release notes</a></p>
+</div>
+<div class="gallery gallery-pair">
+<figure><img src="screenshots/vern-3-notes.jpg" alt="Notes workspace in Vern" loading="lazy"><figcaption>Notes</figcaption></figure>
+<figure><img src="screenshots/vern-3-dictionary.jpg" alt="Offline dictionary in Vern" loading="lazy"><figcaption>Dictionary</figcaption></figure>
+</div>
+</section>
+<section class="band" id="formats"><div class="wrap section split">
+<div><h2>What you can read offline.</h2>
+<div class="feature-list">
+<div><h3>Supported formats</h3><p>Import PDF, EPUB, DOCX, PPTX, and plain-text files such as TXT and Markdown. Use Original PDF View to preserve the page layout, or switch to extracted text for adjustable typography and narration. Use on-device OCR for photos and image-only PDF pages.</p></div>
+<div><h3>Offline and online features</h3><p>Imported books, notes, and reading history are stored on your device. Installed voice models and dictionary packs work offline. Downloading packs, fetching web articles, and using optional cloud voices or connected AI require a connection.</p></div>
+</div></div>
+<figure class="hero-photo"><img src="screenshots/vern-3-pdf.jpg" alt="Vern displaying the original PDF layout" loading="lazy"></figure>
+</div></section>
 <section class="wrap section split" id="classics">
 <div><h2>Find your next classic.</h2><p class="section-copy">Browse public-domain books in the built-in Classics catalog, from Jane Austen to Marcus Aurelius. Download an edition and keep it in your library for offline reading.</p></div>
 <div class="covers"><img src="covers/classic_pride_and_prejudice.jpg" alt="Pride and Prejudice" loading="lazy"><img src="covers/classic_meditations.jpg" alt="Meditations" loading="lazy"></div>
@@ -101,8 +129,19 @@ summary{cursor:pointer;font-weight:600}
 <details><summary>Where does Vern store my library?</summary><p>Your library and reading history stay on your device. Optional AI, translation, and web tools send selected content to the provider you choose. <a href="https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md">Read the privacy policy</a>.</p></details>
 <details><summary>Can I read the original PDF layout?</summary><p>Yes. Use Original PDF View for the original pages or switch to extracted text for adjustable typography and narration.</p></details>
 </section>
+<section class="band" id="resources"><div class="wrap section">
+<h2>Source, community, and help.</h2>
+<nav class="resources" aria-label="Project resources">
+<a href="https://github.com/fhes-tus/Vern-TTS">GitHub repository</a>
+<a href="https://github.com/fhes-tus/Vern-TTS/releases">All releases</a>
+<a href="https://t.me/myreader_veritas">Telegram channel</a>
+<a href="https://t.me/VernTTS_bot">Vern Telegram bot</a>
+<a href="https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md">Privacy policy</a>
+<a href="mailto:myreader.veritas@gmail.com">Email support</a>
+</nav>
+</div></section>
 </main>
-<footer class="wrap footer"><span>Vern</span><nav aria-label="Footer"><a href="https://github.com/fhes-tus/Vern-TTS">Source code</a><a href="https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md">Privacy</a><a href="mailto:myreader.veritas@gmail.com">Support</a></nav></footer>
+<footer class="wrap footer"><span>Vern</span><nav aria-label="Footer"><a href="https://github.com/fhes-tus/Vern-TTS">Source code</a><a href="https://github.com/fhes-tus/Vern-TTS/blob/main/PRIVACY_POLICY.md">Privacy</a><a href="#resources">Community and support</a></nav></footer>
 <script>
 if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches && "IntersectionObserver" in window) {
   const observer = new IntersectionObserver((entries) => {
